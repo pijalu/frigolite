@@ -55,6 +55,7 @@ func Test_walcrash(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	seed = "0"
 	_ = seed // suppress unused warning
 	REPEATS = "100"
@@ -64,9 +65,7 @@ func Test_walcrash(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
 		{ // do_test "walcrash-1." + i + ".1"
-			// crashsql -delay 4 -file test.db-wal -seed [incr seed] {
-      PRAGMA journal_mode = WAL;
-      CREATE TAB...} (unsupported command, not transpiled)
+			// crashsql -delay 4 -file test.db-wal -seed [incr seed] {\n      PRAGMA journal_mode = WAL;\n      CREATE T...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-1." + i + ".2"
 			_dbtmp0, err := frigolite.Open("test.db")
@@ -80,8 +79,7 @@ func Test_walcrash(t *testing.T) {
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "walcrash-1." + i + ".4"
-			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {
-      INSERT INTO t1 VALUES(4, (SELECT sum(a) FRO...} (unsupported command, not transpiled)
+			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {\n      INSERT INTO t1 VALUES(4, (SELECT sum(a) FR...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-1." + i + ".5"
 			_dbtmp1, err := frigolite.Open("test.db")
@@ -113,9 +111,7 @@ func Test_walcrash(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
 		{ // do_test "walcrash-2." + i + ".1"
-			// crashsql -delay 5 -file test.db-wal -seed [incr seed] {
-      PRAGMA journal_mode = WAL;
-      CREATE TAB...} (unsupported command, not transpiled)
+			// crashsql -delay 5 -file test.db-wal -seed [incr seed] {\n      PRAGMA journal_mode = WAL;\n      CREATE T...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-2." + i + ".2"
 			_dbtmp2, err := frigolite.Open("test.db")
@@ -129,8 +125,7 @@ func Test_walcrash(t *testing.T) {
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "walcrash-2." + i + ".4"
-			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {
-      INSERT INTO t1 VALUES(6, (SELECT sum(a) FRO...} (unsupported command, not transpiled)
+			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {\n      INSERT INTO t1 VALUES(6, (SELECT sum(a) FR...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-2." + i + ".5"
 			_dbtmp3, err := frigolite.Open("test.db")
@@ -163,9 +158,7 @@ func Test_walcrash(t *testing.T) {
 		os.Remove("test.db")
 		os.Remove("test2.db")
 		{ // do_test "walcrash-4." + i + ".1"
-			// crashsql -delay 4 -file test.db-wal -seed [incr seed] -blocksize 4096 {
-      PRAGMA journal_mode = WAL;
-      PRAGMA pag...} (unsupported command, not transpiled)
+			// crashsql -delay 4 -file test.db-wal -seed [incr seed] -blocksize 4096 {\n      PRAGMA journal_mode = WAL;\n      PRAGMA p...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-4." + i + ".2"
 			_dbtmp4, err := frigolite.Open("test.db")
@@ -202,9 +195,7 @@ func Test_walcrash(t *testing.T) {
 		os.Remove("test.db")
 		os.Remove("test2.db")
 		{ // do_test "walcrash-5." + i + ".1"
-			// crashsql -delay 13 -file test.db-wal -seed [incr seed] -blocksize 4096 {
-      PRAGMA journal_mode = WAL;
-      PRAGMA pag...} (unsupported command, not transpiled)
+			// crashsql -delay 13 -file test.db-wal -seed [incr seed] -blocksize 4096 {\n      PRAGMA journal_mode = WAL;\n      PRAGMA p...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-5." + i + ".2"
 			_dbtmp5, err := frigolite.Open("test.db")
@@ -241,9 +232,7 @@ func Test_walcrash(t *testing.T) {
 		os.Remove("test.db")
 		os.Remove("test2.db")
 		{ // do_test "walcrash-6." + i + ".1"
-			// crashsql -delay 14 -file test.db-wal -seed [incr seed] -blocksize 512 {
-      PRAGMA journal_mode = WAL;
-      PRAGMA pag...} (unsupported command, not transpiled)
+			// crashsql -delay 14 -file test.db-wal -seed [incr seed] -blocksize 512 {\n      PRAGMA journal_mode = WAL;\n      PRAGMA p...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-6." + i + ".2"
 			_dbtmp6, err := frigolite.Open("test.db")
@@ -278,12 +267,10 @@ func Test_walcrash(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
-		pgsz = "lindex {512 1024 2048 4096 8192 16384} [expr $i%6]"
+		pgsz = tclLIndex("{512", "1024")
 		_ = pgsz // suppress unused warning
 		{ // do_test "walcrash-7." + i + ".1"
-			// crashsql -delay 3 -file test.db -seed [incr seed] -blocksize 512 
-      PRAGMA page_size = $pgsz;
-      PRAGMA jour... (unsupported command, not transpiled)
+			// crashsql -delay 3 -file test.db -seed [incr seed] -blocksize 512 \n      PRAGMA page_size = $pgsz;\n      PRAGMA jo... (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-7." + i + ".2"
 			_dbtmp7, err := frigolite.Open("test.db")

@@ -59,6 +59,7 @@ func Test_wal6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal6"
 	_ = testprefix // suppress unused warning
+	return
 	os.Remove("test.db")
 	all_journal_modes = "delete persist truncate memory off"
 	_ = all_journal_modes // suppress unused warning

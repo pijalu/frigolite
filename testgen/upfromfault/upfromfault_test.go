@@ -71,6 +71,8 @@ func Test_upfromfault(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
+			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 4 }() {
+			}
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -90,13 +92,7 @@ func Test_upfromfault(t *testing.T) {
 				}
 			}
 			// faultsim_save_and_close (unsupported command, not transpiled)
-			// do_faultsim_test 1.$tn -prep {
-    faultsim_restore_and_reopen
-    execsql { SEL...} -body {
-    execsql {
-      WITH data(k, v) AS (
-        ...} -test {
-    faultsim_test_result {0 {}} {1 {vtable constr...} (unsupported command, not transpiled)
+			// do_faultsim_test 1.$tn -prep {\n    faultsim_restore_and_reopen\n    execsql { S...} -body {\n    execsql {\n      WITH data(k, v) AS (\n     ...} -test {\n    faultsim_test_result {0 {}} {1 {vtable const...} (unsupported command, not transpiled)
 		}
 		db.Close()
 		db, err = frigolite.Open("")
@@ -108,13 +104,7 @@ func Test_upfromfault(t *testing.T) {
 			}
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
-		// do_faultsim_test 2.1 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    CREATE TRIGGER tr1 AFTER INSERT O...} -test {
-    faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+		// do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    CREATE TRIGGER tr1 AFTER INSERT...} -test {\n    faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 		// faultsim_restore_and_reopen (unsupported command, not transpiled)
 		{ // "2.2"
 			_res = db.Exec("\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n")
@@ -123,11 +113,5 @@ func Test_upfromfault(t *testing.T) {
 			}
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
-		// do_faultsim_test 2.3 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    INSERT INTO t1 VALUES(NULL, NULL,...} -test {
-  faultsim_test_result {0 {}}
-  if {$testrc==0} {...} (unsupported command, not transpiled)
+		// do_faultsim_test 2.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    INSERT INTO t1 VALUES(NULL, NUL...} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc==0}...} (unsupported command, not transpiled)
 }

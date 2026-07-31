@@ -91,9 +91,9 @@ func Test_where(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			w = i
 			_ = w // suppress unused warning
-			x = "int(log($i)/log(2))"
+			x = tclExpr("int(log($i)/log(2))")
 			_ = x // suppress unused warning
-			y = "$i*$i + 2*$i + 1"
+			y = tclExpr("$i*$i + 2*$i + 1")
 			_ = y // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + w + "," + x + "," + y + ")")
 			if _res.Error != nil {
@@ -106,6 +106,10 @@ func Test_where(t *testing.T) {
 					i = strconv.Itoa(_n + 1)
 				}
 			}
+		}
+		_res = db.Exec("\n      INSERT INTO t2 SELECT 101-w, x, (SELECT max(y) FROM t1)+1-y, y FROM t1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t2 SELECT 101-w, x, (SELECT max(y) FROM t1)+1-y, y FROM t1;\n    ")
 		}
 		_res = db.Exec("\n    CREATE INDEX i1w ON t1(\"w\");  -- Verify quoted identifier names\n    CREATE INDEX i1xy ON t1(`x`,'y' ASC); -- Old MySQL compatibility\n    CREATE INDEX i2p ON t2(p);\n    CREATE INDEX i2r ON t2(r);\n    CREATE INDEX i2qs ON t2(q, s);\n  ")
 		if _res.Error != nil {
@@ -419,6 +423,84 @@ func Test_where(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE t1.w\n  ")
 		}
 	}
+	{ // do_test "where-5.1"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE rowid IN (1,2,3,1234) order by 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.2"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE rowid+0 IN (1,2,3,1234) order by 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.3a"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE w IN (-1,1,2,3) order by 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.3b"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE w IN (3,-1,1,2) order by 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.3c"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE w IN (3,2,-1,1,2) order by 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.3d"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE w IN (-1,1,2,3) order by 1 DESC;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.4"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE w+0 IN (-1,1,2,3) order by 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.5"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE rowid IN \n         (select rowid from t1 where rowid IN (-1,2,4))\n      ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.6"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE rowid+0 IN \n         (select rowid from t1 where rowid IN (-1,2,4))\n      ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.7"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE w IN \n         (select rowid from t1 where rowid IN (-1,2,4))\n      ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.8"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE w+0 IN \n         (select rowid from t1 where rowid IN (-1,2,4))\n      ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.9"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE x IN (1,7) ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.10"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE x+0 IN (1,7) ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.11"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE y IN (6400,8100) ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.12"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE x=6 AND y IN (6400,8100) ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.13"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE x IN (1,7) AND y NOT IN (6400,8100) ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.14"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE x IN (1,7) AND y IN (9,10) ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.15"
+		_ = db.Exec("\n      SELECT * FROM t1 WHERE x IN (1,7) AND y IN (9,16) ORDER BY 1;\n    ") // count (search count always 0)
+	}
+	{ // do_test "where-5.100"
+		_res = db.Exec("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y\n    ")
+		}
+	}
+	{ // do_test "where-5.101"
+		_res = db.Exec("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y DESC\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y DESC\n    ")
+		}
+	}
+	{ // do_test "where-5.102"
+		_res = db.Exec("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y\n    ")
+		}
+	}
+	{ // do_test "where-5.103"
+		_res = db.Exec("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y DESC\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y DESC\n    ")
+		}
+	}
 	// proc definition (not transpiled)
 	{ // do_test "where-6.1"
 		_res = db.Exec("\n    CREATE TABLE t3(a,b,c);\n    CREATE INDEX t3a ON t3(a);\n    CREATE INDEX t3bc ON t3(b,c);\n    CREATE INDEX t3acb ON t3(a,c,b);\n    INSERT INTO t3 SELECT w, 101-w, y FROM t1;\n    SELECT count(*), sum(a), sum(b), sum(c) FROM t3;\n    ANALYZE;\n  ")
@@ -446,6 +528,12 @@ func Test_where(t *testing.T) {
 	}
 	{ // do_test "where-6.7.2"
 		_ = db.Exec("\n    SELECT * FROM t3 WHERE b>0 ORDER BY a LIMIT 1\n  ") // cksort
+	}
+	{ // do_test "where-6.8a"
+		_ = db.Exec("\n      SELECT * FROM t3 WHERE a IN (3,5,7,1,9,4,2) ORDER BY a LIMIT 3\n    ") // cksort
+	}
+	{ // do_test "where-6.8b"
+		_ = db.Exec("\n      SELECT * FROM t3 WHERE a IN (3,5,7,1,9,4,2) ORDER BY a DESC LIMIT 3\n    ") // cksort
 	}
 	{ // do_test "where-6.9.1"
 		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a LIMIT 3\n  ") // cksort
@@ -1305,6 +1393,18 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "\n 1  1\n 15 999\n 19 5\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "where-29.1"
+			r = db.Query("\n    SELECT DISTINCT 'xyz' FROM pragma_cache_size\n      WHERE rowid OR abs(0)\n      ORDER BY\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT 'xyz' FROM pragma_cache_size\n      WHERE rowid OR abs(0)\n      ORDER BY\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "xyz"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

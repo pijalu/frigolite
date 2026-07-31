@@ -89,6 +89,8 @@ func Test_rdonly(t *testing.T) {
 	}
 	ro_version = "02"
 	_ = ro_version // suppress unused warning
+	ro_version = "03"
+	_ = ro_version // suppress unused warning
 	{ // do_test "rdonly-1.6"
 		// hexio_write test.db 18 $ro_version (unsupported command, not transpiled)
 		// hexio_write test.db 24 11223344 (unsupported command, not transpiled)

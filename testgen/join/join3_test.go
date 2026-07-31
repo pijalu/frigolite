@@ -130,7 +130,7 @@ func Test_join3(t *testing.T) {
 			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
-				sql += " " + sep + " t" + "$i+1" + ".x==t" + i + ".x+1"
+				sql += " " + sep + " t" + tclExpr("$i+1") + ".x==t" + i + ".x+1"
 				sep = "AND"
 				_ = sep // suppress unused warning
 				// incr i 1

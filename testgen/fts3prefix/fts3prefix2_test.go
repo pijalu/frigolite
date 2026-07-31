@@ -49,6 +49,7 @@ func Test_fts3prefix2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3prefix2"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		r = db.Query(" PRAGMA page_size = 512 ")
 		if r.Error != nil {

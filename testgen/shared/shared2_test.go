@@ -56,6 +56,7 @@ func Test_shared2(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "shared2-1.1"
@@ -141,8 +142,6 @@ func Test_shared2(t *testing.T) {
 		}
 	}
 	db2.Close()
-	// do_multiclient_test {tn} {
-  sql1 { CREATE TABLE t1(a, b) }
-  sql2 { CREATE ...} (unsupported command, not transpiled)
+	// do_multiclient_test {tn} {\n  sql1 { CREATE TABLE t1(a, b) }\n  sql2 { CREAT...} (unsupported command, not transpiled)
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

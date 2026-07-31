@@ -62,11 +62,5 @@ func Test_existsfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE UNIQUE INDEX x1a ON x1(a);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
 		}
 	}
-	// do_faultsim_test 1 -faults oom* -prep {
-  sqlite3 db test.db
-  execsql { SELECT * FROM sq...} -body {
-  execsql {
-    SELECT count(*) FROM x2 WHERE EXI...} -test {
-  faultsim_test_result {0 3}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom* -prep {\n  sqlite3 db test.db\n  execsql { SELECT * FROM ...} -body {\n  execsql {\n    SELECT count(*) FROM x2 WHERE E...} -test {\n  faultsim_test_result {0 3}\n} (unsupported command, not transpiled)
 }

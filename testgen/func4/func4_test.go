@@ -61,11 +61,11 @@ func Test_func4(t *testing.T) {
 	var tcl_precision = "0"
 	_ = tcl_precision // suppress unused warning
 	// load_static_extension db totype (unsupported command, not transpiled)
-	highPrecision_1 = "\\\n    {[db eval {SELECT tointeger(9223372036854775807 + 1);}] eq {{}}}"
+	highPrecision_1 = tclExpr("\\\n    {[db eval {SELECT tointeger(9223372036854775807 + 1);}] eq {{}}}")
 	_ = highPrecision_1 // suppress unused warning
-	highPrecision_2 = "\\\n    {[db eval {SELECT toreal(-9223372036854775808 + 1);}] eq {{}}}"
+	highPrecision_2 = tclExpr("\\\n    {[db eval {SELECT toreal(-9223372036854775808 + 1);}] eq {{}}}")
 	_ = highPrecision_2 // suppress unused warning
-	highPrecision_3 = "\\\n    {[db eval {SELECT toreal(9007199254740992 + 1);}] eq {{}}}"
+	highPrecision_3 = tclExpr("\\\n    {[db eval {SELECT toreal(9007199254740992 + 1);}] eq {{}}}")
 	_ = highPrecision_3 // suppress unused warning
 	if tclBool("!" + highPrecision_1 + " || !" + highPrecision_2 + " || !" + highPrecision_3) {
 		_putsMsg := "NOTICE:\\\n        highPrecision: " + highPrecision_1 + " " + highPrecision_2 + " " + highPrecision_3
@@ -735,6 +735,1214 @@ func Test_func4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "func4-2.1"
+		r = db.Query("\n    SELECT toreal(NULL);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(NULL);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.2"
+		r = db.Query("\n    SELECT toreal('');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.3"
+		r = db.Query("\n    SELECT toreal('   ');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('   ');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.4"
+		r = db.Query("\n    SELECT toreal('1234');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('1234');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1234.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.5"
+		r = db.Query("\n    SELECT toreal('   1234');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('   1234');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.6"
+		r = db.Query("\n    SELECT toreal('bad');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('bad');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.7"
+		r = db.Query("\n    SELECT toreal('0xBAD');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('0xBAD');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.8"
+		r = db.Query("\n    SELECT toreal('123BAD');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('123BAD');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.9"
+		r = db.Query("\n    SELECT toreal('0x123BAD');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('0x123BAD');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.10"
+		r = db.Query("\n    SELECT toreal('123NO');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('123NO');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.11"
+		r = db.Query("\n    SELECT toreal('0x123NO');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('0x123NO');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.12"
+		r = db.Query("\n    SELECT toreal('-0x1');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('-0x1');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.13"
+		r = db.Query("\n    SELECT toreal('-0x0');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('-0x0');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.14"
+		r = db.Query("\n    SELECT toreal('0x0');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('0x0');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.15"
+		r = db.Query("\n    SELECT toreal('0x1');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal('0x1');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.16"
+		r = db.Query("\n    SELECT toreal(-1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.17"
+		r = db.Query("\n    SELECT toreal(-0);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-0);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.18"
+		r = db.Query("\n    SELECT toreal(0);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(0);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.19"
+		r = db.Query("\n    SELECT toreal(1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.20"
+		r = db.Query("\n    SELECT toreal(-1.79769313486232e308 - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-1.79769313486232e308 - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-Inf"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.21"
+		r = db.Query("\n    SELECT toreal(-1.79769313486232e308);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-1.79769313486232e308);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-Inf"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.22"
+		r = db.Query("\n    SELECT toreal(-1.79769313486232e308 + 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-1.79769313486232e308 + 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-Inf"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.23"
+		r = db.Query("\n    SELECT toreal(-9223372036854775808 - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-9223372036854775808 - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-9.223372036854776e+18"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.24"
+		r = db.Query("\n    SELECT toreal(-9223372036854775808);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-9223372036854775808);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if tclBool(highPrecision_2) {
+		{ // "func4-2.25"
+			r = db.Query("\n      SELECT toreal(-9223372036854775808 + 1);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT toreal(-9223372036854775808 + 1);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	{ // "func4-2.26"
+		r = db.Query("\n    SELECT toreal(-9223372036854775807 - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-9223372036854775807 - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if tclBool(highPrecision_2) {
+		{ // "func4-2.27"
+			r = db.Query("\n      SELECT toreal(-9223372036854775807);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT toreal(-9223372036854775807);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func4-2.28"
+			r = db.Query("\n      SELECT toreal(-9223372036854775807 + 1);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT toreal(-9223372036854775807 + 1);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	{ // "func4-2.29"
+		r = db.Query("\n    SELECT toreal(-2147483648 - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-2147483648 - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483649.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.30"
+		r = db.Query("\n    SELECT toreal(-2147483648);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-2147483648);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483648.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.31"
+		r = db.Query("\n    SELECT toreal(-2147483648 + 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(-2147483648 + 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483647.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.32"
+		r = db.Query("\n    SELECT toreal(2147483647 - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(2147483647 - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483646.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.33"
+		r = db.Query("\n    SELECT toreal(2147483647);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(2147483647);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483647.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.34"
+		r = db.Query("\n    SELECT toreal(2147483647 + 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(2147483647 + 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483648.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if tclBool(highPrecision_2) {
+		{ // "func4-2.35"
+			r = db.Query("\n      SELECT toreal(9223372036854775807 - 1);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT toreal(9223372036854775807 - 1);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		if tclBool(highPrecision_1) {
+			{ // "func4-2.36"
+				r = db.Query("\n        SELECT toreal(9223372036854775807);\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT toreal(9223372036854775807);\n      ")
+					return
+				}
+				got := flatten(r)
+				want := "{}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+	}
+	{ // "func4-2.37"
+		r = db.Query("\n    SELECT toreal(9223372036854775807 + 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(9223372036854775807 + 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9.223372036854776e+18"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.38"
+		r = db.Query("\n    SELECT toreal(1.79769313486232e308 - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(1.79769313486232e308 - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Inf"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.39"
+		r = db.Query("\n    SELECT toreal(1.79769313486232e308);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(1.79769313486232e308);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Inf"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.40"
+		r = db.Query("\n    SELECT toreal(1.79769313486232e308 + 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(1.79769313486232e308 + 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Inf"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.41"
+		r = db.Query("\n    SELECT toreal(4503599627370496 - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(4503599627370496 - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4503599627370495.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.42"
+		r = db.Query("\n    SELECT toreal(4503599627370496);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(4503599627370496);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4503599627370496.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.43"
+		r = db.Query("\n    SELECT toreal(4503599627370496 + 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(4503599627370496 + 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4503599627370497.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.44"
+		r = db.Query("\n    SELECT toreal(9007199254740992 - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(9007199254740992 - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9007199254740991.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.45"
+		r = db.Query("\n    SELECT toreal(9007199254740992);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(9007199254740992);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9007199254740992.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if tclBool(highPrecision_3) {
+		{ // "func4-2.46"
+			r = db.Query("\n      SELECT toreal(9007199254740992 + 1);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT toreal(9007199254740992 + 1);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	} else {
+		{ // "func4-2.46"
+			r = db.Query("\n      SELECT toreal(9007199254740992 + 1);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT toreal(9007199254740992 + 1);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "9007199254740992.0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	{ // "func4-2.47"
+		r = db.Query("\n    SELECT toreal(9007199254740992 + 2);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(9007199254740992 + 2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9007199254740994.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.48"
+		r = db.Query("\n    SELECT toreal(tointeger(9223372036854775808) - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(tointeger(9223372036854775808) - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if tclBool(highPrecision_1) {
+		{ // "func4-2.49"
+			r = db.Query("\n      SELECT toreal(tointeger(9223372036854775808));\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT toreal(tointeger(9223372036854775808));\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func4-2.50"
+			r = db.Query("\n      SELECT toreal(tointeger(9223372036854775808) + 1);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT toreal(tointeger(9223372036854775808) + 1);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	{ // "func4-2.51"
+		r = db.Query("\n    SELECT toreal(tointeger(18446744073709551616) - 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(tointeger(18446744073709551616) - 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.52"
+		r = db.Query("\n    SELECT toreal(tointeger(18446744073709551616));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(tointeger(18446744073709551616));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-2.53"
+		r = db.Query("\n    SELECT toreal(tointeger(18446744073709551616) + 1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(tointeger(18446744073709551616) + 1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-3.1"
+		_res = db.Exec("\n    CREATE TABLE t1(\n      x INTEGER CHECK(tointeger(x) IS NOT NULL)\n    );\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(\n      x INTEGER CHECK(tointeger(x) IS NOT NULL)\n    );\n  ")
+		}
+	}
+	{ // do_test "func4-3.2"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (NULL);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.3"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (NULL);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.4"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.5"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('bad');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.6"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234bad');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.7"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234.56bad');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.8"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (1234);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.9"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (1234.56);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.10"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.11"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234.56');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.12"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (ZEROBLOB(4));\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.13"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (X'');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.14"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (X'1234');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.15"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (X'12345678');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.16"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('1234.00');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.17"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES (1234.00);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-3.18"
+		_res = db.Exec("\n      INSERT INTO t1 (x) VALUES ('-9223372036854775809');\n    ")
+		_ = _res // catchsql
+	}
+	if tclBool(highPrecision_1) {
+		{ // do_test "func4-3.19"
+			_res = db.Exec("\n        INSERT INTO t1 (x) VALUES (9223372036854775808);\n      ")
+			_ = _res // catchsql
+		}
+	}
+	{ // "func4-3.20"
+		r = db.Query("\n    SELECT x FROM t1 WHERE x>0 ORDER BY x;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x>0 ORDER BY x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1234 1234 1234 1234"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-4.1"
+		_res = db.Exec("\n      CREATE TABLE t2(\n        x REAL CHECK(toreal(x) IS NOT NULL)\n      );\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t2(\n        x REAL CHECK(toreal(x) IS NOT NULL)\n      );\n    ")
+		}
+	}
+	{ // do_test "func4-4.2"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (NULL);\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.3"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (NULL);\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.4"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('');\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.5"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('bad');\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.6"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('1234bad');\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.7"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('1234.56bad');\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.8"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (1234);\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.9"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (1234.56);\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.10"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('1234');\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.11"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES ('1234.56');\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.12"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (ZEROBLOB(4));\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.13"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (X'');\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.14"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (X'1234');\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "func4-4.15"
+		_res = db.Exec("\n        INSERT INTO t2 (x) VALUES (X'12345678');\n      ")
+		_ = _res // catchsql
+	}
+	{ // "func4-4.16"
+		r = db.Query("\n      SELECT x FROM t2 ORDER BY x;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT x FROM t2 ORDER BY x;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1234.0 1234.0 1234.56 1234.56"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.1"
+		r = db.Query("\n    SELECT tointeger(toreal('1234'));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal('1234'));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1234"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.2"
+		r = db.Query("\n    SELECT tointeger(toreal(-1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(-1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.3"
+		r = db.Query("\n    SELECT tointeger(toreal(-0));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(-0));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.4"
+		r = db.Query("\n    SELECT tointeger(toreal(0));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(0));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.5"
+		r = db.Query("\n    SELECT tointeger(toreal(1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.6"
+		r = db.Query("\n    SELECT tointeger(toreal(-9223372036854775808 - 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(-9223372036854775808 - 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.7"
+		r = db.Query("\n    SELECT tointeger(toreal(-9223372036854775808));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(-9223372036854775808));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if tclBool(highPrecision_2) {
+		{ // "func4-5.8"
+			r = db.Query("\n      SELECT tointeger(toreal(-9223372036854775808 + 1));\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT tointeger(toreal(-9223372036854775808 + 1));\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	{ // "func4-5.9"
+		r = db.Query("\n    SELECT tointeger(toreal(-2147483648 - 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(-2147483648 - 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483649"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.10"
+		r = db.Query("\n    SELECT tointeger(toreal(-2147483648));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(-2147483648));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483648"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.11"
+		r = db.Query("\n    SELECT tointeger(toreal(-2147483648 + 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(-2147483648 + 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2147483647"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.12"
+		r = db.Query("\n    SELECT tointeger(toreal(2147483647 - 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(2147483647 - 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483646"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.13"
+		r = db.Query("\n    SELECT tointeger(toreal(2147483647));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(2147483647));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483647"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.14"
+		r = db.Query("\n    SELECT tointeger(toreal(2147483647 + 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(2147483647 + 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2147483648"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.15"
+		r = db.Query("\n    SELECT tointeger(toreal(9223372036854775807 - 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(9223372036854775807 - 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if tclBool(highPrecision_1) {
+		{ // "func4-5.16"
+			r = db.Query("\n      SELECT tointeger(toreal(9223372036854775807));\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT tointeger(toreal(9223372036854775807));\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func4-5.17"
+			r = db.Query("\n      SELECT tointeger(toreal(9223372036854775807 + 1));\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT tointeger(toreal(9223372036854775807 + 1));\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	{ // "func4-5.18"
+		r = db.Query("\n    SELECT tointeger(toreal(4503599627370496 - 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(4503599627370496 - 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4503599627370495"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.19"
+		r = db.Query("\n    SELECT tointeger(toreal(4503599627370496));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(4503599627370496));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4503599627370496"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.20"
+		r = db.Query("\n    SELECT tointeger(toreal(4503599627370496 + 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(4503599627370496 + 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4503599627370497"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.21"
+		r = db.Query("\n    SELECT tointeger(toreal(9007199254740992 - 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(9007199254740992 - 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9007199254740991"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.22"
+		r = db.Query("\n    SELECT tointeger(toreal(9007199254740992));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(9007199254740992));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9007199254740992"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if tclBool(highPrecision_3) {
+		{ // "func4-5.23"
+			r = db.Query("\n      SELECT tointeger(toreal(9007199254740992 + 1));\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT tointeger(toreal(9007199254740992 + 1));\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	} else {
+		{ // "func4-5.23"
+			r = db.Query("\n      SELECT tointeger(toreal(9007199254740992 + 1));\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT tointeger(toreal(9007199254740992 + 1));\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "9007199254740992"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	{ // "func4-5.24"
+		r = db.Query("\n    SELECT tointeger(toreal(9007199254740992 + 2));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(9007199254740992 + 2));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9007199254740994"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	if tclBool(highPrecision_1) {
+		{ // "func4-5.25"
+			r = db.Query("\n      SELECT tointeger(toreal(9223372036854775808 - 1));\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT tointeger(toreal(9223372036854775808 - 1));\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func4-5.26"
+			r = db.Query("\n      SELECT tointeger(toreal(9223372036854775808));\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT tointeger(toreal(9223372036854775808));\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func4-5.27"
+			r = db.Query("\n      SELECT tointeger(toreal(9223372036854775808 + 1));\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT tointeger(toreal(9223372036854775808 + 1));\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	{ // "func4-5.28"
+		r = db.Query("\n    SELECT tointeger(toreal(18446744073709551616 - 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(18446744073709551616 - 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.29"
+		r = db.Query("\n    SELECT tointeger(toreal(18446744073709551616));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(18446744073709551616));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-5.30"
+		r = db.Query("\n    SELECT tointeger(toreal(18446744073709551616 + 1));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT tointeger(toreal(18446744073709551616 + 1));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
@@ -744,6 +1952,12 @@ func Test_func4(t *testing.T) {
 			_res = db.Exec("SELECT tointeger(x'" + "01 $i" + "');")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT tointeger(x'" + "01 $i" + "');")
+			}
+		}
+		{ // "func4-6.1." + i + ".2"
+			_res = db.Exec("SELECT toreal(x'" + "01 $i" + "');")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT toreal(x'" + "01 $i" + "');")
 			}
 		}
 		// incr i 1
@@ -774,6 +1988,306 @@ func Test_func4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "72623859790382856"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.1"
+		r = db.Query("\n    SELECT toreal(x'ffefffffffffffff');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'ffefffffffffffff');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-1.7976931348623157e+308"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.2"
+		r = db.Query("\n    SELECT toreal(x'8010000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'8010000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2.2250738585072014e-308"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.3"
+		r = db.Query("\n    SELECT toreal(x'c000000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'c000000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.4"
+		r = db.Query("\n    SELECT toreal(x'bff0000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'bff0000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.5"
+		r = db.Query("\n    SELECT toreal(x'8000000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'8000000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.6"
+		r = db.Query("\n    SELECT toreal(x'0000000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'0000000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.7"
+		r = db.Query("\n    SELECT toreal(x'3ff0000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'3ff0000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.8"
+		r = db.Query("\n    SELECT toreal(x'4000000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'4000000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.9"
+		r = db.Query("\n    SELECT toreal(x'0010000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'0010000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2.2250738585072014e-308"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.10"
+		r = db.Query("\n    SELECT toreal(x'7fefffffffffffff');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'7fefffffffffffff');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1.7976931348623157e+308"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.11"
+		r = db.Query("\n    SELECT toreal(x'8000000000000001');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'8000000000000001');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-5e-324"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.12"
+		r = db.Query("\n    SELECT toreal(x'800fffffffffffff');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'800fffffffffffff');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-2.225073858507201e-308"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.13"
+		r = db.Query("\n    SELECT toreal(x'0000000000000001');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'0000000000000001');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5e-324"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.14"
+		r = db.Query("\n    SELECT toreal(x'000fffffffffffff');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'000fffffffffffff');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2.225073858507201e-308"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.15"
+		r = db.Query("\n    SELECT toreal(x'fff0000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'fff0000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-Inf"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.16"
+		r = db.Query("\n    SELECT toreal(x'7ff0000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'7ff0000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Inf"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.17"
+		r = db.Query("\n    SELECT toreal(x'fff8000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'fff8000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.18"
+		r = db.Query("\n    SELECT toreal(x'fff0000000000001');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'fff0000000000001');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.19"
+		r = db.Query("\n    SELECT toreal(x'fff7ffffffffffff');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'fff7ffffffffffff');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.20"
+		r = db.Query("\n    SELECT toreal(x'7ff0000000000001');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'7ff0000000000001');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.21"
+		r = db.Query("\n    SELECT toreal(x'7ff7ffffffffffff');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'7ff7ffffffffffff');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.22"
+		r = db.Query("\n    SELECT toreal(x'fff8000000000001');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'fff8000000000001');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.23"
+		r = db.Query("\n    SELECT toreal(x'ffffffffffffffff');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'ffffffffffffffff');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.24"
+		r = db.Query("\n    SELECT toreal(x'7ff8000000000000');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'7ff8000000000000');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "func4-6.3.25"
+		r = db.Query("\n    SELECT toreal(x'7fffffffffffffff');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT toreal(x'7fffffffffffffff');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

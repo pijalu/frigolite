@@ -83,9 +83,7 @@ func Test_e_reindex(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b, a);\n")
 		}
 	}
-	// do_reindex_tests e_reindex-0.1 {
-  1   "REINDEX"           {}
-  2   "REINDEX nocas...} (unsupported command, not transpiled)
+	// do_reindex_tests e_reindex-0.1 {\n  1   "REINDEX"           {}\n  2   "REINDEX noc...} (unsupported command, not transpiled)
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "e_reindex-1.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")

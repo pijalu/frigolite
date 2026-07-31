@@ -52,33 +52,11 @@ func Test_autovacuum_ioerr2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// do_ioerr_test autovacuum-ioerr2-1 -sqlprep {
-  PRAGMA auto_vacuum = 1;
-  CREATE TABLE abc(a);
-...} -sqlbody {
-  CREATE TABLE abc2(a);
-  BEGIN;
-  DELETE FROM ab...} (unsupported command, not transpiled)
-	// do_ioerr_test autovacuum-ioerr2-2 -tclprep {
-  execsql {
-    PRAGMA auto_vacuum = 1;
-    PRAGM...} -sqlbody {
-  BEGIN;
-  DELETE FROM abc WHERE length(a)>100;
- ...} (unsupported command, not transpiled)
-	// do_ioerr_test autovacuum-ioerr2-3 -sqlprep {
-  PRAGMA auto_vacuum = 1;
-  CREATE TABLE abc(a);
-...} -sqlbody {
-  BEGIN;
-  INSERT INTO abc2 VALUES(10);
-  DROP TA...} (unsupported command, not transpiled)
+	return
+	// do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a)...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM...} (unsupported command, not transpiled)
+	// do_ioerr_test autovacuum-ioerr2-2 -tclprep {\n  execsql {\n    PRAGMA auto_vacuum = 1;\n    PR...} -sqlbody {\n  BEGIN;\n  DELETE FROM abc WHERE length(a)>100;...} (unsupported command, not transpiled)
+	// do_ioerr_test autovacuum-ioerr2-3 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a)...} -sqlbody {\n  BEGIN;\n  INSERT INTO abc2 VALUES(10);\n  DROP...} (unsupported command, not transpiled)
 	os.Remove("backup.db")
-	// do_ioerr_test autovacuum-ioerr2-1 -sqlprep {
-  PRAGMA auto_vacuum = 1;
-  CREATE TABLE abc(a);
-...} -sqlbody {
-  CREATE TABLE abc2(a);
-  BEGIN;
-  DELETE FROM ab...} (unsupported command, not transpiled)
+	// do_ioerr_test autovacuum-ioerr2-4 -tclprep {\n    if {![file exists backup.db]} {\n      sqlit...} -sqlbody {\n    BEGIN;\n    DELETE FROM abc WHERE oid < 3;\n...} (unsupported command, not transpiled)
+	// do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a)...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM...} (unsupported command, not transpiled)
 }

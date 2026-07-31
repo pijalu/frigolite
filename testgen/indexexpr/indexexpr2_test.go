@@ -159,6 +159,24 @@ func Test_indexexpr2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x);\n")
 		}
 	}
+	{ // "3.3.1"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT json_extract(x, '$.b') FROM t2 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT json_extract(x, '$.b') FROM t2 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;\n  ")
+		}
+	}
+	{ // "3.3.2"
+		_res = db.Exec("\n    CREATE INDEX i3 ON t3(json_extract(x, '$.a'), json_extract(x, '$.b'));\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i3 ON t3(json_extract(x, '$.a'), json_extract(x, '$.b'));\n  ")
+		}
+	}
+	{ // "3.3.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT json_extract(x, '$.b') FROM t3 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT json_extract(x, '$.b') FROM t3 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;\n  ")
+		}
+	}
 	{ // "3.4.0"
 		_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('.ABC', 1);\n  INSERT INTO t4 VALUES('.abc', 2);\n  INSERT INTO t4 VALUES('.ABC', 3);\n  INSERT INTO t4 VALUES('.abc', 4);\n")
 		if _res.Error != nil {
@@ -286,6 +304,51 @@ func Test_indexexpr2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET d=d+1;")
 		}
 		_ = cnt // TCL namespace variable (query)
+	}
+	// load_static_extension db explain (unsupported command, not transpiled)
+	{ // "4.200"
+		r = db.Query("\n    CREATE TABLE t2(a,b,c,d,e,f);\n    INSERT INTO t2 VALUES(2,3,4,5,6,7);\n    CREATE INDEX t2abc ON t2(a+b+c);\n    CREATE INDEX t2cd ON t2(c*d);\n    CREATE INDEX t2def ON t2(d,e+25*f);\n    SELECT sqlite_master.name \n      FROM sqlite_master, explain('UPDATE t2 SET b=b+1')\n     WHERE explain.opcode LIKE 'Open%'\n       AND sqlite_master.rootpage=explain.p2\n     ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a,b,c,d,e,f);\n    INSERT INTO t2 VALUES(2,3,4,5,6,7);\n    CREATE INDEX t2abc ON t2(a+b+c);\n    CREATE INDEX t2cd ON t2(c*d);\n    CREATE INDEX t2def ON t2(d,e+25*f);\n    SELECT sqlite_master.name \n      FROM sqlite_master, explain('UPDATE t2 SET b=b+1')\n     WHERE explain.opcode LIKE 'Open%'\n       AND sqlite_master.rootpage=explain.p2\n     ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2 t2abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "4.210"
+		r = db.Query("\n    SELECT sqlite_master.name \n      FROM sqlite_master, explain('UPDATE t2 SET c=c+1')\n     WHERE explain.opcode LIKE 'Open%'\n       AND sqlite_master.rootpage=explain.p2\n     ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_master.name \n      FROM sqlite_master, explain('UPDATE t2 SET c=c+1')\n     WHERE explain.opcode LIKE 'Open%'\n       AND sqlite_master.rootpage=explain.p2\n     ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2 t2abc t2cd"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "4.220"
+		r = db.Query("\n    SELECT sqlite_master.name \n      FROM sqlite_master, explain('UPDATE t2 SET c=c+1, f=NULL')\n     WHERE explain.opcode LIKE 'Open%'\n       AND sqlite_master.rootpage=explain.p2\n     ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_master.name \n      FROM sqlite_master, explain('UPDATE t2 SET c=c+1, f=NULL')\n     WHERE explain.opcode LIKE 'Open%'\n       AND sqlite_master.rootpage=explain.p2\n     ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2 t2abc t2cd t2def"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	abc = "0" // TCL namespace variable
+	_ = abc // suppress unused warning
+	{ // "4.900"
+		_res = db.Exec("\n    SELECT * FROM explain WHERE rowid = $abc\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT * FROM explain WHERE rowid = $abc\n  ")
+		}
 	}
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t5(a INTEGER, b INTEGER);\n  INSERT INTO t5 VALUES(2, 4), (3, 9);\n")

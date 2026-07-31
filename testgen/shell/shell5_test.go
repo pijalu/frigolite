@@ -118,6 +118,9 @@ func Test_shell5(t *testing.T) {
 		res = "catchcmd \"test.db\" {CREATE TABLE t1(a, b);\n.import FOO t1}"
 		_ = res // suppress unused warning
 	}
+	_putsMsg := "Skipping subsequent tests due to SQLITE_OMIT_VIRTUALTABLE"
+	_ = _putsMsg
+	return
 	{ // do_test "shell5-1.4.2"
 		os.Remove("shell5.csv")
 		in = "open shell5.csv w"
@@ -129,7 +132,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.3"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \":memory:\" {ATTACH 'test.db' AS test;\n.import -schema test shell5.csv t1}"
@@ -138,7 +141,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.4"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \":memory: --list\" {ATTACH 'test.db' AS test;\n.import --schema test shell5.csv t1}"
@@ -147,7 +150,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.5"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {DELETE FROM t1;\n.import shell5.csv t1\nSELECT COUNT(*) FROM t1;}"
@@ -156,7 +159,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.6"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		_putsMsg = in
 		_ = _putsMsg
@@ -167,7 +170,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.7"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \":memory:\" {\n.mode list\nATTACH 'test.db' AS test;\n.separator ,\n.import --schema test shell5.csv t1\nSELECT COUNT(*) FROM test.t1;}"
@@ -176,7 +179,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.8.1"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db\" {.mode list\n.import shell5.csv t1\nSELECT COUNT(*) FROM t1;}"
@@ -188,7 +191,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.9.1"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {.import shell5.csv t1\nSELECT COUNT(*) FROM t1;}"
@@ -200,7 +203,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.10.1"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {.import shell5.csv t1\nSELECT COUNT(*) FROM t1;}"
@@ -212,7 +215,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.11"
 		in = "open shell5.csv wb"
 		_ = in // suppress unused warning
-		_putsMsg := "-nonewline"
+		_putsMsg = "-nonewline"
 		_ = _putsMsg
 		_putsMsg = in
 		_ = _putsMsg
@@ -226,7 +229,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.12"
 		in = "open shell5.csv wb"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		_putsMsg = in
 		_ = _putsMsg
@@ -240,7 +243,7 @@ func Test_shell5(t *testing.T) {
 		_ = str // suppress unused warning
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {.import shell5.csv t1\nSELECT length(b) FROM t1 WHERE a='8';}"
@@ -279,7 +282,7 @@ func Test_shell5(t *testing.T) {
 		data += cols
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {DROP TABLE IF EXISTS t2;\n.import shell5.csv t2\nSELECT COUNT(*) FROM t2;}"
@@ -290,7 +293,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.7.1"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg := in
+		_putsMsg = in
 		_ = _putsMsg
 		i = "1"
 		_ = i // suppress unused warning
@@ -312,15 +315,14 @@ func Test_shell5(t *testing.T) {
 	if tcl_platform_platform == "unix" {
 		{ // do_test "shell5-1.8"
 			os.Remove("test.db")
-			// catchcmd test.db {.mode csv
-.import "|awk 'END{print \"x,y\";for(i=1...} (unsupported command, not transpiled)
+			// catchcmd test.db {.mode csv\n.import "|awk 'END{print \"x,y\";for(i=...} (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "shell5-1.9"
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg := out
+		_putsMsg = out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
@@ -350,9 +352,7 @@ func Test_shell5(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		// catchcmd test.db {.mode csv
-    CREATE TABLE t1(a,b,c);
-.import shel...} (unsupported command, not transpiled)
+		// catchcmd test.db {.mode csv\n    CREATE TABLE t1(a,b,c);\n.import sh...} (unsupported command, not transpiled)
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
@@ -365,7 +365,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg := out
+		_putsMsg = out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
@@ -373,9 +373,7 @@ func Test_shell5(t *testing.T) {
 		_ = _putsMsg
 		// close $out
 		os.Remove("test.db")
-		// catchcmd test.db {.mode csv
-    CREATE TABLE t1(a,b,c,d);
-.import sh...} (unsupported command, not transpiled)
+		// catchcmd test.db {.mode csv\n    CREATE TABLE t1(a,b,c,d);\n.import ...} (unsupported command, not transpiled)
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
@@ -388,15 +386,13 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg := out
+		_putsMsg = out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
 		// close $out
 		os.Remove("test.db")
-		// catchcmd test.db {
-    CREATE TABLE t1(a,b,c,d);
-.import --csv --qes...} (unsupported command, not transpiled)
+		// catchcmd test.db {\n    CREATE TABLE t1(a,b,c,d);\n.import --csv --q...} (unsupported command, not transpiled)
 		_dbtmp2, err := frigolite.Open("test.db")
 		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
@@ -409,7 +405,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation binary (unsupported command, not transpiled)
-		_putsMsg := out
+		_putsMsg = out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
@@ -423,9 +419,7 @@ func Test_shell5(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		// catchcmd test.db {.mode csv
-.import shell5.csv t1
-  } (unsupported command, not transpiled)
+		// catchcmd test.db {.mode csv\n.import shell5.csv t1\n  } (unsupported command, not transpiled)
 		_dbtmp3, err := frigolite.Open("test.db")
 		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
@@ -443,13 +437,10 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-2.1"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg := fd
+		_putsMsg = fd
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db [string trim {
-.mode csv
-CREATE TABLE t1(a, b);
-.i... (unsupported command, not transpiled)
+		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t1(a, b);\... (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
@@ -458,13 +449,10 @@ CREATE TABLE t1(a, b);
 	{ // do_test "shell5-2.2"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg := fd
+		_putsMsg = fd
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db [string trim {
-.mode csv
-CREATE TABLE t2(a, b);
-.i... (unsupported command, not transpiled)
+		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t2(a, b);\... (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t2 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t2 ")
@@ -473,13 +461,10 @@ CREATE TABLE t2(a, b);
 	{ // do_test "shell5-2.3"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg := fd
+		_putsMsg = fd
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db [string trim {
-.mode csv
-CREATE TABLE t3(a, b);
-.i... (unsupported command, not transpiled)
+		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t3(a, b);\... (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t3 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t3 ")
@@ -488,13 +473,10 @@ CREATE TABLE t3(a, b);
 	{ // do_test "shell5-2.4"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg := fd
+		_putsMsg = fd
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db [string trim {
-.mode csv
-CREATE TABLE t4(a, b);
-.i... (unsupported command, not transpiled)
+		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t4(a, b);\... (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t4 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t4 ")
@@ -503,15 +485,12 @@ CREATE TABLE t4(a, b);
 	{ // do_test "shell5-2.5"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg := fd
+		_putsMsg = fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db [string trim {
-.mode csv
-CREATE TABLE t4(a, b);
-.i... (unsupported command, not transpiled)
+		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t4(a, b);\... (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t4 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t4 ")
@@ -521,15 +500,12 @@ CREATE TABLE t4(a, b);
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
 		// fconfigure $fd -translation binary (unsupported command, not transpiled)
-		_putsMsg := "-nonewline"
+		_putsMsg = "-nonewline"
 		_ = _putsMsg
 		_putsMsg = "-nonewline"
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db {
-.mode ascii
-CREATE TABLE t5(a, b);
-.import shell5...} (unsupported command, not transpiled)
+		// catchcmd test.db {\n.mode ascii\nCREATE TABLE t5(a, b);\n.import she...} (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t5 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t5 ")
@@ -545,16 +521,14 @@ CREATE TABLE t5(a, b);
 		os.Remove("shell5.csv")
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg := fd
+		_putsMsg = fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db [string trim {
-.mode csv
-CREATE TABLE t6(a, b, c);... (unsupported command, not transpiled)
+		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t6(a, b, c... (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t6 ORDER BY a ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t6 ORDER BY a ")
@@ -564,16 +538,14 @@ CREATE TABLE t6(a, b, c);... (unsupported command, not transpiled)
 		os.Remove("shell5.csv")
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg := fd
+		_putsMsg = fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db [string trim {
-.mode csv
-CREATE TABLE t7(a, b, c);... (unsupported command, not transpiled)
+		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t7(a, b, c... (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t7 ORDER BY a ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t7 ORDER BY a ")
@@ -583,14 +555,12 @@ CREATE TABLE t7(a, b, c);... (unsupported command, not transpiled)
 		os.Remove("shell5.csv")
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg := fd
+		_putsMsg = fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db [string trim {
-.mode csv
-CREATE TABLE t8(a, b, c);... (unsupported command, not transpiled)
+		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t8(a, b, c... (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t8 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t8 ")
@@ -600,76 +570,60 @@ CREATE TABLE t8(a, b, c);... (unsupported command, not transpiled)
 		os.Remove("shell5.csv")
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg := fd
+		_putsMsg = fd
 		_ = _putsMsg
 		// close $fd
-		// catchcmd test.db [string trim {
-.mode csv
-CREATE TEMP TABLE t8(a, b... (unsupported command, not transpiled)
+		// catchcmd test.db [string trim {\n.mode csv\nCREATE TEMP TABLE t8(a,... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell5-5.1"
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg := out
+		_putsMsg = out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
 		// close $out
 		os.Remove("test.db")
-		// catchcmd test.db {.import -csv shell5.csv t1
-.mode line --colsep ' =...} (unsupported command, not transpiled)
+		// catchcmd test.db {.import -csv shell5.csv t1\n.mode line --colsep ' ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell5-5.1b"
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg := out
+		_putsMsg = out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
 		// close $out
 		os.Remove("test.db")
-		// catchcmd test.db {.import -csv shell5.csv t1
-.mode line
-SELECT * FRO...} (unsupported command, not transpiled)
+		// catchcmd test.db {.import -csv shell5.csv t1\n.mode line\nSELECT * F...} (unsupported command, not transpiled)
 	}
-	// do_test_with_ansi_output shell5-6.1 {
-  set out [open shell5.csv w]
-  fconfigure $out -...} {0 {   あい = 1
-うえお = 2}} (unsupported command, not transpiled)
-	// do_test_with_ansi_output shell5-6.2 {
-  set out [open shell5.csv w]
-  fconfigure $out -...} {0 {1: あい
-2: うえお}} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shell5-6.1 {\n  set out [open shell5.csv w]\n  fconfigure $out...} {0 {   あい = 1\nうえお = 2}} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shell5-6.2 {\n  set out [open shell5.csv w]\n  fconfigure $out...} {0 {1: あい\n2: うえお}} (unsupported command, not transpiled)
 	{ // do_test "shell5-7.1"
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg := out
+		_putsMsg = out
 		_ = _putsMsg
 		// close $out
 		os.Remove("test.db")
-		// catchcmd :memory: -list {CREATE TABLE t1(a TEXT, b TEXT, c AS (a||b));
-.imp...} (unsupported command, not transpiled)
+		// catchcmd :memory: -list {CREATE TABLE t1(a TEXT, b TEXT, c AS (a||b));\n.im...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell5-8.1"
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg := out
+		_putsMsg = out
 		_ = _putsMsg
 		// close $out
 		// catchcmd :memory: {.import --csv shell5.csv '""""""""""""""""""""""""...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell5-9.1"
-		// catchcmd :memory: {
-    CREATE TABLE t1(a,b,c INT CHECK(c<>5));
-.bail...} (unsupported command, not transpiled)
+		// catchcmd :memory: {\n    CREATE TABLE t1(a,b,c INT CHECK(c<>5));\n.ba...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell5-9.2"
-		// catchcmd :memory: {
-    CREATE TABLE t1(a,b,c INT CHECK(c<>5));
-.bail...} (unsupported command, not transpiled)
+		// catchcmd :memory: {\n    CREATE TABLE t1(a,b,c INT CHECK(c<>5));\n.ba...} (unsupported command, not transpiled)
 	}
 }

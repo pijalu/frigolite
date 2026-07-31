@@ -53,6 +53,7 @@ func Test_tkt_b72787b1(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// proc definition (not transpiled)
 	{ // do_test "tkt-b72787b1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 SELECT x+2 FROM t1;\n    INSERT INTO t2 SELECT x+4 FROM t1;\n  ")

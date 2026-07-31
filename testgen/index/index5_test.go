@@ -125,12 +125,12 @@ func Test_index5(t *testing.T) {
 		_ = nBackward // suppress unused warning
 		nNoncont = "0"
 		_ = nNoncont // suppress unused warning
-		iPrev = "lindex $::write_list 0"
+		iPrev = tclLIndex(write_list, "0")
 		_ = iPrev // suppress unused warning
 		i = "1"
 		_ = i // suppress unused warning
 		for tclBool(i + " < " + "llength $::write_list") {
-			iNext = "lindex $::write_list $i"
+			iNext = tclLIndex(write_list, i)
 			_ = iNext // suppress unused warning
 			if func() bool { iNext_n, _iNext_e := strconv.Atoi(iNext); if _iNext_e != nil { return false }; iPrev_n, _iPrev_e := strconv.Atoi(iPrev); if _iPrev_e != nil { return false }; return iNext_n == (iPrev_n+1) }() {
 				// incr nForward 1
@@ -171,7 +171,7 @@ func Test_index5(t *testing.T) {
 			_putsMsg := "-nonewline"
 			_ = _putsMsg
 		}
-		// expr $nForward > 2*($nBackward + $nNoncont) → "$nForward > 2*($nBackward + $nNoncont)"
+		// expr $nForward > 2*($nBackward + $nNoncont) (not evaluated)
 	}
 	// tvfs delete (unsupported command, not transpiled)
 }

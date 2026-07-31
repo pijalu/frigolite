@@ -85,14 +85,14 @@ func Test_memsubsys1(t *testing.T) {
 	// reset_highwater_marks (unsupported command, not transpiled)
 	// build_test_db memsubsys1-1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-1.3"
-		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-1.4"
-		s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
+		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
 		_ = s_used // suppress unused warning
 	}
-	max_pagecache = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
+	max_pagecache = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_OVERFLOW")
 	_ = max_pagecache // suppress unused warning
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pagecache [expr 1024+$xtra_size] 20 (unsupported command, not transpiled)
@@ -101,12 +101,16 @@ func Test_memsubsys1(t *testing.T) {
 	// build_test_db memsubsys1-2 {PRAGMA page_size=1024; PRAGMA mmap_size=0} (unsupported command, not transpiled)
 	MEMORY_MANAGEMENT = sqlite_options_memorymanage
 	_ = MEMORY_MANAGEMENT // suppress unused warning
+	{ // do_test "memsubsys1-2.3"
+		pg_ovfl = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_OVERFLOW")
+		_ = pg_ovfl // suppress unused warning
+	}
 	{ // do_test "memsubsys1-2.4"
-		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-2.5"
-		s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
+		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
 		_ = s_used // suppress unused warning
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
@@ -116,16 +120,16 @@ func Test_memsubsys1(t *testing.T) {
 	// reset_highwater_marks (unsupported command, not transpiled)
 	// build_test_db memsubsys1-3.1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-3.1.3"
-		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-3.1.4"
-		overflow = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
+		overflow = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_OVERFLOW")
 		_ = overflow // suppress unused warning
-		// expr $overflow>=$max_pagecache*0.95 && $overflow<=$max_pagecache*1.05 → "$overflow>=$max_pagecache*0.95 && $overflow<=$max_pagecache*1.05"
+		// expr $overflow>=$max_pagecache*0.95 && $overflow<=$max_pagecache*1.05 (not evaluated)
 	}
 	{ // do_test "memsubsys1-3.1.5"
-		s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
+		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
 		_ = s_used // suppress unused warning
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
@@ -140,11 +144,11 @@ func Test_memsubsys1(t *testing.T) {
 		}
 	}
 	{ // do_test "memsubsys1-3.2.4"
-		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-3.2.5"
-		s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
+		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
 		_ = s_used // suppress unused warning
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
@@ -153,18 +157,18 @@ func Test_memsubsys1(t *testing.T) {
 	// reset_highwater_marks (unsupported command, not transpiled)
 	// build_test_db memsubsys1-4 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-4.3"
-		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
 		_ = pg_used // suppress unused warning
-		// expr $pg_used>=45 && $pg_used<=50 → "$pg_used>=45 && $pg_used<=50"
+		// expr $pg_used>=45 && $pg_used<=50 (not evaluated)
 	}
 	{ // do_test "memsubsys1-4.4"
-		pg_ovfl = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
+		pg_ovfl = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_OVERFLOW")
 		_ = pg_ovfl // suppress unused warning
 	}
 	{ // do_test "memsubsys1-4.5"
-		maxreq = "lindex [sqlite3_status SQLITE_STATUS_MALLOC_SIZE 0] 2"
+		maxreq = tclLIndex("sqlite3_status", "SQLITE_STATUS_MALLOC_SIZE")
 		_ = maxreq // suppress unused warning
-		// expr $maxreq<9000 → "$maxreq<9000"
+		// expr $maxreq<9000 (not evaluated)
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)

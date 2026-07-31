@@ -79,37 +79,16 @@ func Test_instrfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES($::NEEDLE, $::HAYSTACK);\n  ")
 			}
 		}
-		// do_faultsim_test 1.$enc.1 -faults oom-t* -prep {
-    execsql { SELECT instr(h, n) FROM t1 }
-  } -body {
-    execsql { SELECT instr(h, n) FROM t1 }
-  } -test {
-    faultsim_test_result {0 31}
-  } (unsupported command, not transpiled)
-		// do_faultsim_test 1.$enc.2 -faults oom-t* -prep {
-    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -body {
-    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -test {
-    faultsim_test_result {0 31}
-  } (unsupported command, not transpiled)
-		// do_faultsim_test 1.$enc.3 -faults oom-t* -prep {
-    set ::stmt [sqlite3_prepare_v2 db "SELECT ins...} -body {
-    set rc [sqlite3_step $::stmt]
-    if {$rc=="S...} -test {
-    faultsim_test_result {0 31}
-    sqlite3_final...} (unsupported command, not transpiled)
-		// do_faultsim_test 1.$enc.4 -faults oom-t* -prep {
-    set ::stmt [sqlite3_prepare_v2 db "SELECT ins...} -body {
-    set rc [sqlite3_step $::stmt]
-    if {$rc=="S...} -test {
-    faultsim_test_result {0 31}
-    sqlite3_final...} (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.1 -faults oom-t* -prep {\n    execsql { SELECT instr(h, n) FROM t1 }\n  } -body {\n    execsql { SELECT instr(h, n) FROM t1 }\n  } -test {\n    faultsim_test_result {0 31}\n  } (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.2 -faults oom-t* -prep {\n    execsql { SELECT instr($::HAYSTACK, $::NEEDL...} -body {\n    execsql { SELECT instr($::HAYSTACK, $::NEEDL...} -test {\n    faultsim_test_result {0 31}\n  } (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.3 -faults oom-t* -prep {\n    set ::stmt [sqlite3_prepare_v2 db "SELECT in...} -body {\n    set rc [sqlite3_step $::stmt]\n    if {$rc==...} -test {\n    faultsim_test_result {0 31}\n    sqlite3_fin...} (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.4 -faults oom-t* -prep {\n    set ::stmt [sqlite3_prepare_v2 db "SELECT in...} -body {\n    set rc [sqlite3_step $::stmt]\n    if {$rc==...} -test {\n    faultsim_test_result {0 31}\n    sqlite3_fin...} (unsupported command, not transpiled)
 		{ // "1." + enc + ".5.0"
 			_res = db.Exec("\n    CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;\n  ")
 			}
 		}
-		// do_faultsim_test 1.$enc.5 -faults oom-t* -body {
-    execsql { SELECT rowid FROM h1 WHERE instr(a,...} -test {} (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.5 -faults oom-t* -body {\n    execsql { SELECT rowid FROM h1 WHERE instr(a...} -test {} (unsupported command, not transpiled)
 	}
 }

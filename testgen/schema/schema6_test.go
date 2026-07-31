@@ -72,33 +72,8 @@ func Test_schema6(t *testing.T) {
 	// do_not_use_codec (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// check_same_database_content 100 {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} {
-  CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(x...} {
-  CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc), ...} {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b UN...} {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);
-  CR...} {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);
-  IN...} (unsupported command, not transpiled)
-	// check_same_database_content 110 {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b...} {
-  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
-  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
-  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
-  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} (unsupported command, not transpiled)
-	// check_same_database_content 120 {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} {
-  CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(x...} {
-  CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc), ...} {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b UN...} {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b...} {
-  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
-  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITHO...} {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITHO...} (unsupported command, not transpiled)
-	// check_different_database_content 130 {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b...} {
-  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} (unsupported command, not transpiled)
+	// check_same_database_content 100 {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQU...} {\n  CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(...} {\n  CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc),...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b U...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ...} (unsupported command, not transpiled)
+	// check_same_database_content 110 {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, ...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, ...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, ...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, ...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, ...} (unsupported command, not transpiled)
+	// check_same_database_content 120 {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQU...} {\n  CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(...} {\n  CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc),...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b U...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, ...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, ...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, ...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITH...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITH...} (unsupported command, not transpiled)
+	// check_different_database_content 130 {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQU...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, ...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQU...} (unsupported command, not transpiled)
 }

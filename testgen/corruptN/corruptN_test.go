@@ -119,6 +119,24 @@ func Test_corruptN(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	// proc definition (not transpiled)
+	{ // "5.0"
+		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';\n  ")
+		}
+	}
+	if tclBool("info exists ::G(perm:presql)" + "==0 || " + G_perm_presql + "==\"\"") {
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		{ // "5.1"
+			r = db.Query("\n      PRAGMA writable_schema = 1;\n      SELECT * FROM t1\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA writable_schema = 1;\n      SELECT * FROM t1\n    ")
+			}
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

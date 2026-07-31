@@ -218,6 +218,34 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-1.99"
 		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
+	{ // do_test "bind-2.1"
+		_res = db.Exec("\n      DELETE FROM t1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n    ")
+		}
+		VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES($one,$::two,$x(-z-))}\\\n            -1 TX"
+		_ = VM // suppress unused warning
+	}
+	v1 = "$one"
+	_ = v1 // suppress unused warning
+	v2 = "$::two"
+	_ = v2 // suppress unused warning
+	v3 = "$x(-z-)"
+	_ = v3 // suppress unused warning
+	{ // do_test "bind-2.1"
+		_res = db.Exec("\n      DELETE FROM t1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n    ")
+		}
+		VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(:one,:two,:_)} -1 TX"
+		_ = VM // suppress unused warning
+	}
+	v1 = ":one"
+	_ = v1 // suppress unused warning
+	v2 = ":two"
+	_ = v2 // suppress unused warning
+	v3 = ":_"
+	_ = v3 // suppress unused warning
 	{ // do_test "bind-2.1.1"
 		// sqlite3_bind_parameter_count $VM (unsupported command, not transpiled)
 	}
@@ -444,6 +472,66 @@ func Test_bind(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n  ")
 		}
 	}
+	{ // do_test "bind-7.1"
+		// sqlite3_bind_text16 $VM 1 [encoding convertto unicode hellothere] 10 (unsupported command, not transpiled)
+		// sqlite3_bind_text16 $VM 2 [encoding convertto unicode ""] 0 (unsupported command, not transpiled)
+		// sqlite3_bind_text16 $VM 3 [encoding convertto unicode world] 10 (unsupported command, not transpiled)
+		// sqlite_step $VM N VALUES COLNAMES (unsupported command, not transpiled)
+		// sqlite3_reset $VM (unsupported command, not transpiled)
+		r = db.Query("SELECT rowid, * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
+		}
+	}
+	{ // do_test "bind-7.2"
+		r = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+		}
+	}
+	{ // do_test "bind-7.3"
+		_res = db.Exec("DELETE FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
+		}
+		// sqlite3_bind_text16 $VM 1 [encoding convertto unicode hi\000yall\000] 16 (unsupported command, not transpiled)
+		// sqlite3_bind_text16 $VM 2 [encoding convertto unicode hi\000yall\000] 14 (unsupported command, not transpiled)
+		// sqlite3_bind_text16 $VM 3 [encoding convertto unicode hi\000yall\000] -1 (unsupported command, not transpiled)
+		// sqlite_step $VM N VALUES COLNAMES (unsupported command, not transpiled)
+		// sqlite3_reset $VM (unsupported command, not transpiled)
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	if enc == "UTF-8" {
+		{ // do_test "bind-7.4"
+			r = db.Query("SELECT hex(a), hex(b), hex(c) FROM t1")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(a), hex(b), hex(c) FROM t1")
+			}
+		}
+	} else if enc == "UTF-16le" {
+		{ // do_test "bind-7.4"
+			r = db.Query("SELECT hex(a), hex(b), hex(c) FROM t1")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(a), hex(b), hex(c) FROM t1")
+			}
+		}
+	} else if enc == "UTF-16be" {
+		{ // do_test "bind-7.4"
+			r = db.Query("SELECT hex(a), hex(b), hex(c) FROM t1")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(a), hex(b), hex(c) FROM t1")
+			}
+		}
+	}
+	{ // do_test "bind-7.5"
+		r = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+		}
+	}
 	{ // do_test "bind-7.99"
 		_res = db.Exec("DELETE FROM t1;")
 		if _res.Error != nil {
@@ -460,6 +548,9 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-8.2"
 		// sqlite3_errmsg $DB (unsupported command, not transpiled)
 	}
+	{ // do_test "bind-8.3"
+		// encoding convertfrom unicode [sqlite3_errmsg16 $DB] (unsupported command, not transpiled)
+	}
 	{ // do_test "bind-8.4"
 		// sqlite3_bind_null $VM 1 (unsupported command, not transpiled)
 		// sqlite3_errmsg $DB (unsupported command, not transpiled)
@@ -473,6 +564,9 @@ func Test_bind(t *testing.T) {
 	}
 	{ // do_test "bind-8.6"
 		// sqlite3_errmsg $DB (unsupported command, not transpiled)
+	}
+	{ // do_test "bind-8.7"
+		// encoding convertfrom unicode [sqlite3_errmsg16 $DB] (unsupported command, not transpiled)
 	}
 	{ // do_test "bind-8.8"
 		{
@@ -493,6 +587,13 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			// sqlite3_bind_text $VM 0 abc 3 (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "bind-8.11"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			// sqlite3_bind_text16 $VM 4 abc 2 (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "bind-8.12"
@@ -539,9 +640,7 @@ func Test_bind(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_prepare $DB {
-      INSERT INTO t2(a) VALUES(?0)
-    } -1 TAIL (unsupported command, not transpiled)
+			// sqlite3_prepare $DB {\n      INSERT INTO t2(a) VALUES(?0)\n    } -1 TAIL (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -609,6 +708,24 @@ func Test_bind(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
 		}
 	}
+	{ // do_test "bind-10.1"
+		VM = "sqlite3_prepare $DB {\n        INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,$abc,:abc,$ab,$abc,:abc)\n      } -1 TAIL"
+		_ = VM // suppress unused warning
+		// sqlite3_bind_parameter_count $VM (unsupported command, not transpiled)
+	}
+	v1 = "$abc"
+	_ = v1 // suppress unused warning
+	v2 = "$ab"
+	_ = v2 // suppress unused warning
+	{ // do_test "bind-10.1"
+		VM = "sqlite3_prepare $DB {\n        INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,:xyz,:abc,:xy,:xyz,:abc)\n      } -1 TAIL"
+		_ = VM // suppress unused warning
+		// sqlite3_bind_parameter_count $VM (unsupported command, not transpiled)
+	}
+	v1 = ":xyz"
+	_ = v1 // suppress unused warning
+	v2 = ":xy"
+	_ = v2 // suppress unused warning
 	{ // do_test "bind-10.2"
 		// sqlite3_bind_parameter_index $VM :abc (unsupported command, not transpiled)
 	}
@@ -706,6 +823,10 @@ func Test_bind(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		// sqlite3_finalize $VM (unsupported command, not transpiled)
+	}
+	{ // do_test "bind-11.1"
+		_res = db.Exec("SELECT * FROM sqlite_master WHERE name=$abc(123 and sql NOT NULL;")
+		_ = _res // catchsql
 	}
 	if tclBool("execsql {pragma encoding}" + "==\"UTF-8\"") {
 		{ // do_test "bind-12.1"

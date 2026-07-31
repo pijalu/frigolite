@@ -397,6 +397,12 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "5.30"
+		_res = db.Exec("\n  SELECT * FROM (t1 NATURAL JOIN pragma_table_xinfo('t1_a') NATURAL JOIN t3) t1\n                NATURAL JOIN t2 NATURAL JOIN t3\n   WHERE rowid ISNULL>0 AND 0%y;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ambiguous column name: rowid") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ambiguous column name: rowid", _res.Error, "\n  SELECT * FROM (t1 NATURAL JOIN pragma_table_xinfo('t1_a') NATURAL JOIN t3) t1\n                NATURAL JOIN t2 NATURAL JOIN t3\n   WHERE rowid ISNULL>0 AND 0%y;\n")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

@@ -82,10 +82,7 @@ func Test_soak(t *testing.T) {
 			value := _items0[_idx0+1]
 			_ = value // suppress unused warning
 			_ = _idx0
-				// switch -- $name {
-      -timeout {
-        set TIMEOUT $value
-     ...} (test infra, not transpiled)
+				// switch -- $name {\n      -timeout {\n        set TIMEOUT $value\n  ...} (test infra, not transpiled)
 			}
 		}
 		var argv = "list"
@@ -96,12 +93,12 @@ func Test_soak(t *testing.T) {
 		_ = G_isquick // suppress unused warning
 		soak_starttime = "clock_seconds"
 		_ = soak_starttime // suppress unused warning
-		soak_finishtime = "$soak_starttime + $TIMEOUT"
+		soak_finishtime = tclExpr("$soak_starttime + $TIMEOUT")
 		_ = soak_finishtime // suppress unused warning
 		iRun = "0"
 		_ = iRun // suppress unused warning
 		for tclBool("clock_seconds" + " < " + soak_finishtime) {
-			iIdx = "$iRun % [llength $SOAKTESTS]"
+			iIdx = tclExpr("$iRun % [llength $SOAKTESTS]")
 			_ = iIdx // suppress unused warning
 			{
 				var _catchErr error

@@ -214,7 +214,7 @@ func Test_temptable2(t *testing.T) {
 	{ // do_test "4.1.4"
 		n = "db one { PRAGMA temp.page_count }"
 		_ = n // suppress unused warning
-		// expr ($n → "($n"
+		// expr ($n (not evaluated)
 	}
 	{ // "4.1.4"
 		r = db.Query(" PRAGMA temp.integrity_check ")
@@ -240,7 +240,7 @@ func Test_temptable2(t *testing.T) {
 	{ // do_test "5.1.2"
 		n = "db one { PRAGMA temp.page_count }"
 		_ = n // suppress unused warning
-		// expr ($n → "($n"
+		// expr ($n (not evaluated)
 	}
 	{ // "5.1.3"
 		_res = db.Exec("\n  BEGIN;\n    UPDATE t1 SET a=2;\n    UPDATE t2 SET a=randomblob(100);\n    SELECT count(*) FROM t1;\n  ROLLBACK;\n")
@@ -464,6 +464,20 @@ func Test_temptable2(t *testing.T) {
 			_res = db.Exec("\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
+			}
+		}
+		if tclBool("permutation" + "!=\"journaltest\" && " + TEMP_STORE + "<2") {
+			{ // "10.2"
+				r = db.Query(" PRAGMA mmap_size = 512000 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 512000 ")
+					return
+				}
+				got := flatten(r)
+				want := "512000"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
 		{ // "10.3"

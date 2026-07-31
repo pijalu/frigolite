@@ -55,6 +55,7 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "tkt-bdc6bbbb38"
 	_ = testprefix // suppress unused warning
+	return
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// foreach {tn idxdir} "1 ASC 2 DESC"

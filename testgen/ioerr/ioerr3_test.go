@@ -49,14 +49,7 @@ func Test_ioerr3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// do_ioerr_test ioerr3-1 -sqlprep {
-  CREATE TABLE t1(id INTEGER, name TEXT);
-} -tclbody {
-  sqlite3_soft_heap_limit 8192
-  db cache size 0
-...} (unsupported command, not transpiled)
-	// do_ioerr_test ioerr3-2 -sqlbody {
-  CREATE TEMP TABLE t1(x,y);
-} (unsupported command, not transpiled)
+	// do_ioerr_test ioerr3-1 -sqlprep {\n  CREATE TABLE t1(id INTEGER, name TEXT);\n} -tclbody {\n  sqlite3_soft_heap_limit 8192\n  db cache size ...} (unsupported command, not transpiled)
+	// do_ioerr_test ioerr3-2 -sqlbody {\n  CREATE TEMP TABLE t1(x,y);\n} (unsupported command, not transpiled)
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 }

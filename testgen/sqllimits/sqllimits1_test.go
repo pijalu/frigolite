@@ -3,6 +3,7 @@ package sqllimits
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "strings"
 "testing"
@@ -438,7 +439,7 @@ func Test_sqllimits1(t *testing.T) {
 		// sqlite3_reset $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "sqllimits1-5.14.4"
-		np1 = "$SQLITE_LIMIT_LENGTH + 1"
+		np1 = tclExpr("$SQLITE_LIMIT_LENGTH + 1")
 		_ = np1 // suppress unused warning
 		str1 = "A $np1" // TCL namespace variable
 		_ = str1 // suppress unused warning
@@ -449,6 +450,23 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			// sqlite3_bind_text $::STMT 1 $::str1 -1 (unsupported command, not transpiled)
+			if _catchErr != nil {
+				res = "1"
+				_catchErrMsg = _catchErr.Error()
+			} else {
+				res = "0"
+				_catchErrMsg = ""
+			}
+		}
+	}
+	{ // do_test "sqllimits1-5.14.5"
+		{
+			var res string // catch result ("0"=ok, "1"=error)
+			var _catchErrMsg string // catch error message
+			_ = res // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
+			var _catchErr error
+			// sqlite3_bind_text16 $::STMT 1 $::str1 -1 (unsupported command, not transpiled)
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -475,8 +493,25 @@ func Test_sqllimits1(t *testing.T) {
 			}
 		}
 	}
+	{ // do_test "sqllimits1-5.14.7"
+		{
+			var res string // catch result ("0"=ok, "1"=error)
+			var _catchErrMsg string // catch error message
+			_ = res // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
+			var _catchErr error
+			// sqlite3_bind_text16 $::STMT 1 $::str1 [expr $np1+1] (unsupported command, not transpiled)
+			if _catchErr != nil {
+				res = "1"
+				_catchErrMsg = _catchErr.Error()
+			} else {
+				res = "0"
+				_catchErrMsg = ""
+			}
+		}
+	}
 	{ // do_test "sqllimits1-5.14.8"
-		n = "$np1-1"
+		n = tclExpr("$np1-1")
 		_ = n // suppress unused warning
 		{
 			var res string // catch result ("0"=ok, "1"=error)
@@ -555,13 +590,23 @@ func Test_sqllimits1(t *testing.T) {
 		_res = db.Exec("SELECT '41" + blobvalue + "'")
 		_ = _res // catchsql
 	}
+	strvalue = "D [expr {$SQLITE_LIMIT_LENGTH-11}]"
+	_ = strvalue // suppress unused warning
+	{ // do_test "sqllimits1-5.20"
+		_res = db.Exec("SELECT strftime('%Y ' || $::strvalue, '2008-01-02')")
+		_ = _res // catchsql
+	}
+	{ // do_test "sqllimits1-5.21"
+		_res = db.Exec("SELECT strftime('%Y-%m-%d ' || $::strvalue, '2008-01-02')")
+		_ = _res // catchsql
+	}
 	{ // do_test "sqllimits1-6.1"
 		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000 (unsupported command, not transpiled)
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
 		tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
 		_ = tail // suppress unused warning
-		N = "(50000 / [string length $tail])+1"
+		N = tclExpr("(50000 / [string length $tail])+1")
 		_ = N // suppress unused warning
 		sql += "$tail $N"
 		_res = db.Exec(sql)
@@ -573,7 +618,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = sql // suppress unused warning
 		tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
 		_ = tail // suppress unused warning
-		N = "(50000 / [string length $tail])+1"
+		N = tclExpr("(50000 / [string length $tail])+1")
 		_ = N // suppress unused warning
 		sql += "$tail $N"
 		nbytes = strconv.Itoa(len(sql))
@@ -645,7 +690,7 @@ func Test_sqllimits1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA max_page_count = 1000000;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a, b, c FROM abc;\n    INSERT INTO abc SELECT b, a, c FROM abc;\n    INSERT INTO abc SELECT c, b, a FROM abc;\n  ")
 		}
-		// expr [file size test.db] → "[file size test.db]"
+		// expr [file size test.db] (not evaluated)
 	}
 	{ // do_test "sqllimits1-7.7.2"
 		_dbtmp1, err := frigolite.Open("test.db")
@@ -851,7 +896,7 @@ func Test_sqllimits1(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; SQLITE_LIMIT_COLUMN_n, _SQLITE_LIMIT_COLUMN_e := strconv.Atoi(SQLITE_LIMIT_COLUMN); if _SQLITE_LIMIT_COLUMN_e != nil { return false }; return i_n <= SQLITE_LIMIT_COLUMN_n }() {
-			cols = tclListAppend(cols, "$i%3 + 1")
+			cols = tclListAppend(cols, tclExpr("$i%3 + 1"))
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -912,9 +957,9 @@ func Test_sqllimits1(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
 					expr = "(a " + "{AND 1 } 50" + ") AS a"
 					_ = expr // suppress unused warning
-					_res = db.Exec("CREATE VIEW v" + i + " AS SELECT " + expr + " FROM v" + "$i-1")
+					_res = db.Exec("CREATE VIEW v" + i + " AS SELECT " + expr + " FROM v" + tclExpr("$i-1"))
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIEW v" + i + " AS SELECT " + expr + " FROM v" + "$i-1")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIEW v" + i + " AS SELECT " + expr + " FROM v" + tclExpr("$i-1"))
 					}
 					// incr i 1
 					{
@@ -998,10 +1043,62 @@ func Test_sqllimits1(t *testing.T) {
 			}
 		}
 	}
+	{ // do_test "sqllimits1-12.1"
+		max = SQLITE_MAX_ATTACHED
+		_ = max // suppress unused warning
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; max_n, _max_e := strconv.Atoi(max); if _max_e != nil { return false }; return i_n < (max_n) }() {
+			os.Remove("test$")
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; max_n, _max_e := strconv.Atoi(max); if _max_e != nil { return false }; return i_n < (max_n) }() {
+			_res = db.Exec("ATTACH 'test" + i + ".db' AS aux" + i)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test" + i + ".db' AS aux" + i)
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("ATTACH 'test" + i + ".db' AS aux" + i)
+		_ = _res // catchsql
+	}
+	{ // do_test "sqllimits1-12.2"
+		max = SQLITE_MAX_ATTACHED
+		_ = max // suppress unused warning
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; max_n, _max_e := strconv.Atoi(max); if _max_e != nil { return false }; return i_n < (max_n) }() {
+			_res = db.Exec("DETACH aux" + i)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH aux" + i)
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+	}
 	{ // do_test "sqllimits1-13.1"
 		max = SQLITE_MAX_VARIABLE_NUMBER
 		_ = max // suppress unused warning
-		_res = db.Exec("SELECT ?" + "$max+1" + " FROM t1")
+		_res = db.Exec("SELECT ?" + tclExpr("$max+1") + " FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-13.2"
@@ -1095,4 +1192,52 @@ func Test_sqllimits1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
+		{ // "19.0"
+			r = db.Query("\n    PRAGMA encoding = 'utf16';\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'utf16';\n  ")
+			}
+		}
+		bigstr = "abcdefghij 5000"
+		_ = bigstr // suppress unused warning
+		bigstr16 = "encoding convertto unicode $bigstr"
+		_ = bigstr16 // suppress unused warning
+		{ // do_test "19.1"
+			_ = strconv.Itoa(len(bigstr16)) // string length result
+		}
+		{ // do_test "19.2"
+			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
+			_ = stmt // suppress unused warning
+			// sqlite3_bind_text16 $::stmt 1 $bigstr16 100000 (unsupported command, not transpiled)
+			// sqlite3_step $::stmt (unsupported command, not transpiled)
+			val = "0"
+			_ = val // suppress unused warning
+			// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+		}
+		// sqlite3_limit db SQLITE_LIMIT_LENGTH 100000 (unsupported command, not transpiled)
+		{ // do_test "19.3"
+			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
+			_ = stmt // suppress unused warning
+			// sqlite3_bind_text16 $::stmt 1 $bigstr16 100000 (unsupported command, not transpiled)
+			// sqlite3_step $::stmt (unsupported command, not transpiled)
+			val = "0"
+			_ = val // suppress unused warning
+			// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+		}
+		// sqlite3_limit db SQLITE_LIMIT_LENGTH 99999 (unsupported command, not transpiled)
+		{ // do_test "19.4"
+			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
+			_ = stmt // suppress unused warning
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		// sqlite3_finalize $::stmt (unsupported command, not transpiled)
+		// sqlite3_limit db SQLITE_LIMIT_LENGTH 100000 (unsupported command, not transpiled)
+		{ // do_test "19.5"
+			stmt = "sqlite3_prepare db \"SELECT length( ? )\" -1 TAIL" // TCL namespace variable
+			_ = stmt // suppress unused warning
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		// sqlite3_finalize $::stmt (unsupported command, not transpiled)
 }

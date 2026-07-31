@@ -121,13 +121,12 @@ func Test_savepoint6(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// expr srand(0) → "srand(0)"
+	// expr srand(0) (not evaluated)
 	{ // do_test "savepoint6-1.1"
 		// sql $DATABASE_SCHEMA (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint6-1.2"
-		// insert_rows {
-    497 166 230 355 779 588 394 317 290 475 362 1...} (unsupported command, not transpiled)
+		// insert_rows {\n    497 166 230 355 779 588 394 317 290 475 362 ...} (unsupported command, not transpiled)
 		// savepoint one (unsupported command, not transpiled)
 		// insert_rows 858 (unsupported command, not transpiled)
 		// delete_rows 930 (unsupported command, not transpiled)

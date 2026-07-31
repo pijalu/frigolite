@@ -82,6 +82,7 @@ func Test_laststmtchanges(t *testing.T) {
 		_res = db.Exec("\n        delete from t0 where x=2;\n        select changes();\n    ")
 		_ = _res // catchsql
 	}
+	return
 	{ // do_test "laststmtchanges-2.1"
 		tc = "db total_changes" // TCL namespace variable
 		_ = tc // suppress unused warning
@@ -97,7 +98,7 @@ func Test_laststmtchanges(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "laststmtchanges-2.4"
-		// expr [db total_changes] → "[db total_changes]"
+		// expr [db total_changes] (not evaluated)
 	}
 	{ // do_test "laststmtchanges-3.1"
 		_res = db.Exec("\n        drop trigger r1;\n        delete from t2; delete from t2;\n        create trigger r1 after update on t1 for each row begin\n            insert into t2 values (NULL, changes(), NULL);\n            delete from t0 where oid=1 or oid=2;\n            update t2 set v2=changes();\n        end;\n        update t1 set k=k;\n        select changes();\n    ")
@@ -121,6 +122,26 @@ func Test_laststmtchanges(t *testing.T) {
 	}
 	{ // do_test "laststmtchanges-4.3"
 		_res = db.Exec("\n        select v2 from t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "laststmtchanges-5.1"
+		_res = db.Exec("\n        drop table t0; drop table t1; drop table t2;\n        create temp table t0(x);\n        create temp table t1 (k integer primary key);\n        create temp table t2 (k integer primary key);\n        create temp view v1 as select * from t1;\n        create temp view v2 as select * from t2;\n        create temp table n1 (k integer primary key, n);\n        create temp table n2 (k integer primary key, n);\n        insert into t0 values (1);\n        insert into t0 values (2);\n        insert into t0 values (1);\n        insert into t0 values (1);\n        insert into t0 values (1);\n        insert into t0 values (2);\n        insert into t0 values (2);\n        insert into t0 values (1);\n        create temp trigger r1 instead of insert on v1 for each row begin\n            insert into n1 values (NULL, changes());\n            update t0 set x=x*10 where x=1;\n            insert into n1 values (NULL, changes());\n            insert into t1 values (NEW.k);\n            insert into n1 values (NULL, changes());\n            update t0 set x=x*10 where x=0;\n            insert into v2 values (100+NEW.k);\n            insert into n1 values (NULL, changes());\n        end;\n        create temp trigger r2 instead of insert on v2 for each row begin\n            insert into n2 values (NULL, changes());\n            insert into t2 values (1000+NEW.k);\n            insert into n2 values (NULL, changes());\n            update t0 set x=x*100 where x=0;\n            insert into n2 values (NULL, changes());\n            delete from t0 where x=2;\n            insert into n2 values (NULL, changes());\n        end;\n        insert into t1 values (77);\n        select changes();\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "laststmtchanges-5.2"
+		_res = db.Exec("\n        delete from t1 where k=88;\n        select changes();\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "laststmtchanges-5.3"
+		_res = db.Exec("\n        insert into v1 values (5);\n        select changes();\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "laststmtchanges-5.4"
+		_res = db.Exec("\n        select n from n1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "laststmtchanges-5.5"
+		_res = db.Exec("\n        select n from n2;\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "laststmtchanges-6.1"

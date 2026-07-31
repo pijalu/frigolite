@@ -64,68 +64,50 @@ func Test_e_update(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	// do_update_tests e_update-0 {
-  1    "UPDATE t1 SET a=10" {}
-  2    "UPDATE t1 ...} (unsupported command, not transpiled)
+	// do_update_tests e_update-0 {\n  1    "UPDATE t1 SET a=10" {}\n  2    "UPDATE t...} (unsupported command, not transpiled)
 	{ // "e_update-1.1.0"
 		_res = db.Exec("\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n\n  INSERT INTO aux.t1 VALUES(1, 'I');\n  INSERT INTO aux.t1 VALUES(2, 'II');\n  INSERT INTO aux.t1 VALUES(3, 'III');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n\n  INSERT INTO aux.t1 VALUES(1, 'I');\n  INSERT INTO aux.t1 VALUES(2, 'II');\n  INSERT INTO aux.t1 VALUES(3, 'III');\n")
 		}
 	}
-	// do_update_tests e_update-1.1 {
-  1.1  "UPDATE t1 SET a = a+1; SELECT * FROM t1" ...} (unsupported command, not transpiled)
+	// do_update_tests e_update-1.1 {\n  1.1  "UPDATE t1 SET a = a+1; SELECT * FROM t1"...} (unsupported command, not transpiled)
 	{ // "e_update-1.2.0"
 		_res = db.Exec("\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		}
 	}
-	// do_update_tests e_update-1.2 {
-  1  "UPDATE t1 SET b = 'roman' ; SELECT * FROM t...} (unsupported command, not transpiled)
+	// do_update_tests e_update-1.2 {\n  1  "UPDATE t1 SET b = 'roman' ; SELECT * FROM ...} (unsupported command, not transpiled)
 	{ // "e_update-1.3.0"
 		_res = db.Exec("\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(NULL, '');\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(NULL, '');\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		}
 	}
-	// do_update_tests e_update-1.3 {
-  1  "UPDATE t1 SET b = 'roman' WHERE a<2 ; SELEC...} (unsupported command, not transpiled)
+	// do_update_tests e_update-1.3 {\n  1  "UPDATE t1 SET b = 'roman' WHERE a<2 ; SELE...} (unsupported command, not transpiled)
 	{ // "e_update-1.4.0"
 		_res = db.Exec("\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(NULL, '');\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(NULL, '');\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		}
 	}
-	// do_update_tests e_update-1.4 -query {
-  SELECT * FROM t1
-} {
-  1  "UPDATE t1 SET b = 'burmese' WHERE a=5" {{} ...} (unsupported command, not transpiled)
+	// do_update_tests e_update-1.4 -query {\n  SELECT * FROM t1\n} {\n  1  "UPDATE t1 SET b = 'burmese' WHERE a=5" {{}...} (unsupported command, not transpiled)
 	{ // "e_update-1.5.0"
 		_res = db.Exec("\n  INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);\n")
 		}
 	}
-	// do_update_tests e_update-1.5 -query {
-  SELECT * FROM t2
-} {
-  1   "UPDATE t2 SET c = 1+1 WHERE a=2" 
-      {3...} (unsupported command, not transpiled)
-	// do_update_tests e_update-1.6 -query {
-  SELECT * FROM t2
-} {
-  1   "UPDATE t2 SET c=5, c=6, c=7 WHERE rowid=1"...} (unsupported command, not transpiled)
+	// do_update_tests e_update-1.5 -query {\n  SELECT * FROM t2\n} {\n  1   "UPDATE t2 SET c = 1+1 WHERE a=2" \n      ...} (unsupported command, not transpiled)
+	// do_update_tests e_update-1.6 -query {\n  SELECT * FROM t2\n} {\n  1   "UPDATE t2 SET c=5, c=6, c=7 WHERE rowid=1...} (unsupported command, not transpiled)
 	{ // "e_update-1.7.0"
 		_res = db.Exec("\n  DELETE FROM t2;\n  INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n  INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);\n")
 		}
 	}
-	// do_update_tests e_update-1.7 -query {
-  SELECT * FROM t2
-} {
-  1   "UPDATE t2 SET a=b+c"          {5 1 4     1...} (unsupported command, not transpiled)
+	// do_update_tests e_update-1.7 -query {\n  SELECT * FROM t2\n} {\n  1   "UPDATE t2 SET a=b+c"          {5 1 4     ...} (unsupported command, not transpiled)
 	{ // "e_update-1.8.0"
 		_res = db.Exec("\n  DELETE FROM t3;\n  INSERT INTO t3 VALUES(1, 'one');\n  INSERT INTO t3 VALUES(2, 'two');\n  INSERT INTO t3 VALUES(3, 'three');\n  INSERT INTO t3 VALUES(4, 'four');\n")
 		if _res.Error != nil {
@@ -168,21 +150,14 @@ func Test_e_update(t *testing.T) {
 				// sqlite3_get_autocommit db (unsupported command, not transpiled)
 			}
 		}
-		// do_update_tests e_update-2.1 -error {
-  qualified table names are not allowed on INSERT...} {
-  1 {
-      CREATE TRIGGER tr1 AFTER INSERT ON t1...} (unsupported command, not transpiled)
+		// do_update_tests e_update-2.1 -error {\n  qualified table names are not allowed on INSER...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON ...} (unsupported command, not transpiled)
 		{ // "e_update-2.1.3"
 			_res = db.Exec("\n  CREATE TRIGGER tr1 AFTER DELETE ON t4 BEGIN\n    UPDATE main.t1 SET a=1, b=2;\n  END;\n  DROP TRIGGER tr1;\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 AFTER DELETE ON t4 BEGIN\n    UPDATE main.t1 SET a=1, b=2;\n  END;\n  DROP TRIGGER tr1;\n")
 			}
 		}
-		// do_update_tests e_update-2.2 -error {
-  no such table: %s
-} {
-  1 {
-      CREATE TRIGGER tr1 AFTER INSERT ON t1...} (unsupported command, not transpiled)
+		// do_update_tests e_update-2.2 -error {\n  no such table: %s\n} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON ...} (unsupported command, not transpiled)
 		{ // "e_update-2.2.X"
 			_res = db.Exec("\n  DROP TRIGGER tr1;\n  DROP TRIGGER aux.tr1;\n")
 			if _res.Error != nil {
@@ -237,8 +212,25 @@ func Test_e_update(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// do_update_tests e_update-2.4 -error {
-  the %s %s clause is not allowed on UPDATE or DE...} {
-  1 {
-      CREATE TRIGGER tr1 AFTER INSERT ON t2...} (unsupported command, not transpiled)
+		// do_update_tests e_update-2.4 -error {\n  the %s %s clause is not allowed on UPDATE or D...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON ...} (unsupported command, not transpiled)
+		// do_update_tests e_update-2.5 -error {\n  near "%s": syntax error\n} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON ...} (unsupported command, not transpiled)
+		// do_update_tests e_update-3.0 {\n  1   "UPDATE t1 SET a=b LIMIT 5"               ...} (unsupported command, not transpiled)
+		{ // "e_update-3.1.0"
+			_res = db.Exec("\n  CREATE TABLE t7(q, r, s);\n  INSERT INTO t7 VALUES(1, 'one',   'X');\n  INSERT INTO t7 VALUES(2, 'two',   'X');\n  INSERT INTO t7 VALUES(3, 'three', 'X');\n  INSERT INTO t7 VALUES(4, 'four',  'X');\n  INSERT INTO t7 VALUES(5, 'five',  'X');\n  INSERT INTO t7 VALUES(6, 'six',   'X');\n  INSERT INTO t7 VALUES(7, 'seven', 'X');\n  INSERT INTO t7 VALUES(8, 'eight', 'X');\n  INSERT INTO t7 VALUES(9, 'nine',  'X');\n  INSERT INTO t7 VALUES(10, 'ten',  'X');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(q, r, s);\n  INSERT INTO t7 VALUES(1, 'one',   'X');\n  INSERT INTO t7 VALUES(2, 'two',   'X');\n  INSERT INTO t7 VALUES(3, 'three', 'X');\n  INSERT INTO t7 VALUES(4, 'four',  'X');\n  INSERT INTO t7 VALUES(5, 'five',  'X');\n  INSERT INTO t7 VALUES(6, 'six',   'X');\n  INSERT INTO t7 VALUES(7, 'seven', 'X');\n  INSERT INTO t7 VALUES(8, 'eight', 'X');\n  INSERT INTO t7 VALUES(9, 'nine',  'X');\n  INSERT INTO t7 VALUES(10, 'ten',  'X');\n")
+			}
+		}
+		// do_update_tests e_update-3.1 -query { SELECT s FROM t7 } {\n  1   "UPDATE t7 SET s = q LIMIT 5"            {...} (unsupported command, not transpiled)
+		// do_update_tests e_update-3.2 -query { SELECT s FROM t7 } {\n  1   "UPDATE t7 SET s = q LIMIT -1"            ...} (unsupported command, not transpiled)
+		// do_update_tests e_update-3.3 -query { SELECT s FROM t7 } {\n  1   "UPDATE t7 SET s = q ORDER BY r LIMIT 3"  ...} (unsupported command, not transpiled)
+		// do_update_tests e_update-3.3 -query { SELECT s FROM t7 } {\n  1   "UPDATE t7 SET s = q ORDER BY q LIMIT 3 OF...} (unsupported command, not transpiled)
+		// do_update_tests e_update-3.4 -query { SELECT s FROM t7 } {\n  1   "UPDATE t7 SET s = q LIMIT 4, 2"        {X...} (unsupported command, not transpiled)
+		{ // "e_update-3.5.0"
+			_res = db.Exec("\n  CREATE TABLE t8(x);\n  CREATE TRIGGER tr7 BEFORE UPDATE ON t7 BEGIN\n    INSERT INTO t8 VALUES(old.q);\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8(x);\n  CREATE TRIGGER tr7 BEFORE UPDATE ON t7 BEGIN\n    INSERT INTO t8 VALUES(old.q);\n  END;\n")
+			}
+		}
+		// do_update_tests e_update-3.5 -query { SELECT x FROM t8 ; DELETE FROM t8 } {\n  1   "UPDATE t7 SET s = q ORDER BY r LIMIT -1" ...} (unsupported command, not transpiled)
 }

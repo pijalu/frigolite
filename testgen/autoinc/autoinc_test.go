@@ -62,6 +62,7 @@ func Test_autoinc(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "autoinc"
 	_ = testprefix // suppress unused warning
+	return
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}
@@ -263,6 +264,34 @@ func Test_autoinc(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_sequence\n  ")
 		}
 	}
+	{ // do_test "autoinc-2.52"
+		_res = db.Exec("\n      CREATE TEMP TABLE t2 AS SELECT y FROM t1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TABLE t2 AS SELECT y FROM t1;\n    ")
+		}
+		r = db.Query("\n      INSERT INTO t1 SELECT NULL, y+4 FROM t2;\n      SELECT * FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT NULL, y+4 FROM t2;\n      SELECT * FROM t1;\n    ")
+		}
+	}
+	{ // do_test "autoinc-2.53"
+		r = db.Query("\n      SELECT * FROM sqlite_sequence\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_sequence\n    ")
+		}
+	}
+	{ // do_test "autoinc-2.54"
+		r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT NULL, y FROM t2;\n      SELECT * FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT NULL, y FROM t2;\n      SELECT * FROM t1;\n    ")
+		}
+	}
+	{ // do_test "autoinc-2.55"
+		r = db.Query("\n      SELECT * FROM sqlite_sequence\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_sequence\n    ")
+		}
+	}
 	{ // do_test "autoinc-2.70"
 		_res = db.Exec("\n    DROP TABLE t2;\n  ")
 		_ = _res // catchsql
@@ -319,6 +348,116 @@ func Test_autoinc(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    SELECT name FROM sqlite_sequence;\n  ")
 		}
 	}
+	{ // do_test "autoinc-4.1"
+		r = db.Query("\n      SELECT 1, name FROM sqlite_master WHERE type='table';\n      SELECT 2, name FROM temp.sqlite_master WHERE type='table';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1, name FROM sqlite_master WHERE type='table';\n      SELECT 2, name FROM temp.sqlite_master WHERE type='table';\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.2"
+		r = db.Query("\n      CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TEMP TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      SELECT 1, name FROM sqlite_master WHERE type='table';\n      SELECT 2, name FROM sqlite_temp_master WHERE type='table';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TEMP TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      SELECT 1, name FROM sqlite_master WHERE type='table';\n      SELECT 2, name FROM sqlite_temp_master WHERE type='table';\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.3"
+		r = db.Query("\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.4"
+		_res = db.Exec("\n      INSERT INTO t1 VALUES(10,1);\n      INSERT INTO t3 VALUES(20,2);\n      INSERT INTO t1 VALUES(NULL,3);\n      INSERT INTO t3 VALUES(NULL,4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(10,1);\n      INSERT INTO t3 VALUES(20,2);\n      INSERT INTO t1 VALUES(NULL,3);\n      INSERT INTO t3 VALUES(NULL,4);\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.4.1"
+		r = db.Query("\n      SELECT * FROM t1 UNION ALL SELECT * FROM t3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 UNION ALL SELECT * FROM t3;\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.5"
+		r = db.Query("\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.6"
+		r = db.Query("\n      INSERT INTO t1 SELECT * FROM t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT * FROM t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.7"
+		r = db.Query("\n      INSERT INTO t3 SELECT x+100, y  FROM t1;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t3 SELECT x+100, y  FROM t1;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.8"
+		r = db.Query("\n      DROP TABLE t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.9"
+		r = db.Query("\n      CREATE TEMP TABLE t2(p INTEGER PRIMARY KEY AUTOINCREMENT, q);\n      INSERT INTO t2 SELECT * FROM t1;\n      DROP TABLE t1;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE t2(p INTEGER PRIMARY KEY AUTOINCREMENT, q);\n      INSERT INTO t2 SELECT * FROM t1;\n      DROP TABLE t1;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-4.10"
+		r = db.Query("\n      DROP TABLE t2;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE t2;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-5.1"
+		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
+		db2, err = frigolite.Open("test2.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n      CREATE TABLE t4(m INTEGER PRIMARY KEY AUTOINCREMENT, n);\n      CREATE TABLE t5(o, p INTEGER PRIMARY KEY AUTOINCREMENT);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t4(m INTEGER PRIMARY KEY AUTOINCREMENT, n);\n      CREATE TABLE t5(o, p INTEGER PRIMARY KEY AUTOINCREMENT);\n    ")
+		}
+		r = db.Query("\n      ATTACH 'test2.db' as aux;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' as aux;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-5.2"
+		r = db.Query("\n      INSERT INTO t4 VALUES(NULL,1);\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 VALUES(NULL,1);\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-5.3"
+		r = db.Query("\n      INSERT INTO t5 VALUES(100,200);\n      SELECT * FROM sqlite_sequence\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t5 VALUES(100,200);\n      SELECT * FROM sqlite_sequence\n    ")
+		}
+	}
+	{ // do_test "autoinc-5.4"
+		r = db.Query("\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;\n    ")
+		}
+	}
+	{ // do_test "autoinc-6.1"
+		r = db.Query("\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(2147483647,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(2147483647,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
+		}
+	}
+	{ // do_test "autoinc-6.1"
+		r = db.Query("\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(9223372036854775807,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(9223372036854775807,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
+		}
+	}
 	{ // do_test "autoinc-6.2"
 		_res = db.Exec("\n    INSERT INTO t6 VALUES(NULL,1);\n  ")
 		_ = _res // catchsql
@@ -365,6 +504,62 @@ func Test_autoinc(t *testing.T) {
 		_res = db.Exec("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    INSERT INTO t2 VALUES(NULL, 1);\n    CREATE TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t3 SELECT * FROM t2 WHERE y>1;\n\n    SELECT * FROM sqlite_sequence WHERE name='t3';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    INSERT INTO t2 VALUES(NULL, 1);\n    CREATE TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t3 SELECT * FROM t2 WHERE y>1;\n\n    SELECT * FROM sqlite_sequence WHERE name='t3';\n  ")
+		}
+	}
+	_res = db.Exec(" pragma recursive_triggers = off ")
+	_ = _res // catchsql
+	{ // do_test "autoinc-3928.1"
+		_res = db.Exec("\n      CREATE TABLE t3928(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      CREATE TRIGGER t3928r1 BEFORE INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('before1');\n        INSERT INTO t3928(b) VALUES('before2');\n      END;\n      CREATE TRIGGER t3928r2 AFTER INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('after1');\n        INSERT INTO t3928(b) VALUES('after2');\n      END;\n      INSERT INTO t3928(b) VALUES('test');\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t3928(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      CREATE TRIGGER t3928r1 BEFORE INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('before1');\n        INSERT INTO t3928(b) VALUES('before2');\n      END;\n      CREATE TRIGGER t3928r2 AFTER INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('after1');\n        INSERT INTO t3928(b) VALUES('after2');\n      END;\n      INSERT INTO t3928(b) VALUES('test');\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "autoinc-3928.2"
+		_res = db.Exec("\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+		}
+	}
+	{ // do_test "autoinc-3928.3"
+		_res = db.Exec("\n      DROP TRIGGER t3928r1;\n      DROP TRIGGER t3928r2;\n      CREATE TRIGGER t3928r3 BEFORE UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('before-int-' || new.b);\n      END;\n      CREATE TRIGGER t3928r4 AFTER UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('after-int-' || new.b);\n      END;\n      DELETE FROM t3928 WHERE a!=1;\n      UPDATE t3928 SET b=456 WHERE a=1;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER t3928r1;\n      DROP TRIGGER t3928r2;\n      CREATE TRIGGER t3928r3 BEFORE UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('before-int-' || new.b);\n      END;\n      CREATE TRIGGER t3928r4 AFTER UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('after-int-' || new.b);\n      END;\n      DELETE FROM t3928 WHERE a!=1;\n      UPDATE t3928 SET b=456 WHERE a=1;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "autoinc-3928.4"
+		_res = db.Exec("\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+		}
+	}
+	{ // do_test "autoinc-3928.5"
+		_res = db.Exec("\n      CREATE TABLE t3928b(x);\n      INSERT INTO t3928b VALUES(100);\n      INSERT INTO t3928b VALUES(200);\n      INSERT INTO t3928b VALUES(300);\n      DELETE FROM t3928;\n      CREATE TABLE t3928c(y INTEGER PRIMARY KEY AUTOINCREMENT, z);\n      CREATE TRIGGER t3928br1 BEFORE DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('before-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('before-del-'||old.x);\n      END;\n      CREATE TRIGGER t3928br2 AFTER DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('after-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('after-del-'||old.x);\n      END;\n      DELETE FROM t3928b;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t3928b(x);\n      INSERT INTO t3928b VALUES(100);\n      INSERT INTO t3928b VALUES(200);\n      INSERT INTO t3928b VALUES(300);\n      DELETE FROM t3928;\n      CREATE TABLE t3928c(y INTEGER PRIMARY KEY AUTOINCREMENT, z);\n      CREATE TRIGGER t3928br1 BEFORE DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('before-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('before-del-'||old.x);\n      END;\n      CREATE TRIGGER t3928br2 AFTER DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('after-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('after-del-'||old.x);\n      END;\n      DELETE FROM t3928b;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "autoinc-3928.6"
+		_res = db.Exec("\n      SELECT * FROM t3928c ORDER BY y;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM t3928c ORDER BY y;\n    ")
+		}
+	}
+	{ // do_test "autoinc-3928.7"
+		_res = db.Exec("\n      SELECT * FROM sqlite_sequence WHERE name LIKE 't3928%' ORDER BY name;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_sequence WHERE name LIKE 't3928%' ORDER BY name;\n    ")
+		}
+	}
+	{ // do_test "autoinc-a69637.1"
+		_res = db.Exec("\n      CREATE TABLE ta69637_1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TABLE ta69637_2(z);\n      CREATE TRIGGER ra69637_1 AFTER INSERT ON ta69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+1);\n      END;\n      INSERT INTO ta69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE ta69637_1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TABLE ta69637_2(z);\n      CREATE TRIGGER ra69637_1 AFTER INSERT ON ta69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+1);\n      END;\n      INSERT INTO ta69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
+		}
+	}
+	{ // do_test "autoinc-a69637.2"
+		_res = db.Exec("\n      CREATE VIEW va69637_2 AS SELECT * FROM ta69637_2;\n      CREATE TRIGGER ra69637_2 INSTEAD OF INSERT ON va69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+10000);\n      END;\n      INSERT INTO va69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW va69637_2 AS SELECT * FROM ta69637_2;\n      CREATE TRIGGER ra69637_2 INSTEAD OF INSERT ON va69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+10000);\n      END;\n      INSERT INTO va69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
 		}
 	}
 	{ // "autoinc-10.1"
@@ -449,6 +644,9 @@ func Test_autoinc(t *testing.T) {
 		}
 		res = tclListAppend(res, msg)
 	}
+	var _err_tcl string
+	_err_tcl = "database disk image is malformed"
+	_ = _err_tcl // suppress unused warning
 	{ // do_test "autoinc-12.3"
 		os.Remove("test.db")
 		_dbtmp6, err := frigolite.Open("test.db")

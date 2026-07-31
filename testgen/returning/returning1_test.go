@@ -55,9 +55,15 @@ func Test_returning1(t *testing.T) {
 	testprefix = "returning1"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c DEFAULT 'pax');\n  INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "10 pax 2 happy pax 3 {} pax") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "10 pax 2 happy pax 3 {} pax", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c DEFAULT 'pax');\n  INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;\n")
+		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c DEFAULT 'pax');\n  INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c DEFAULT 'pax');\n  INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 10 pax 2 happy pax 3 {} pax"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.1"
@@ -73,9 +79,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "1.2"
-		_res = db.Exec("\n  INSERT INTO t1(b,c) VALUES(5,99) RETURNING b,c,a,rowid;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1(b,c) VALUES(5,99) RETURNING b,c,a,rowid;\n")
+		r = db.Query("\n  INSERT INTO t1(b,c) VALUES(5,99) RETURNING b,c,a,rowid;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1(b,c) VALUES(5,99) RETURNING b,c,a,rowid;\n")
+			return
+		}
+		got := flatten(r)
+		want := "5 99 4 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.3"
@@ -91,9 +103,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "1.4"
-		_res = db.Exec("\n  INSERT INTO t1 DEFAULT VALUES RETURNING *;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 DEFAULT VALUES RETURNING *;\n")
+		r = db.Query("\n  INSERT INTO t1 DEFAULT VALUES RETURNING *;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 DEFAULT VALUES RETURNING *;\n")
+			return
+		}
+		got := flatten(r)
+		want := "5 {} pax"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.5"
@@ -115,9 +133,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "1.7"
-		_res = db.Exec("\n  INSERT INTO t1 SELECT * FROM t2 RETURNING *;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 SELECT * FROM t2 RETURNING *;\n")
+		r = db.Query("\n  INSERT INTO t1 SELECT * FROM t2 RETURNING *;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 SELECT * FROM t2 RETURNING *;\n")
+			return
+		}
+		got := flatten(r)
+		want := "11 12 13 21 b c 31 b-value 4.75"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.8"
@@ -133,9 +157,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "2.1"
-		_res = db.Exec("\n  UPDATE t1 SET c='bellum' WHERE c='pax' RETURNING rowid, b, '|';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "10 | 2 happy | 3 {} | 5 {} |") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "10 | 2 happy | 3 {} | 5 {} |", _res.Error, "\n  UPDATE t1 SET c='bellum' WHERE c='pax' RETURNING rowid, b, '|';\n")
+		r = db.Query("\n  UPDATE t1 SET c='bellum' WHERE c='pax' RETURNING rowid, b, '|';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET c='bellum' WHERE c='pax' RETURNING rowid, b, '|';\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 10 | 2 happy | 3 {} | 5 {} |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.2"
@@ -151,9 +181,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "3.1"
-		_res = db.Exec("\n  DELETE FROM t1 WHERE c='bellum' RETURNING rowid, *, '|';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1 10 bellum | 2 2 happy bellum | 3 3 {} bellum | 5 5 {} bellum |") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1 10 bellum | 2 2 happy bellum | 3 3 {} bellum | 5 5 {} bellum |", _res.Error, "\n  DELETE FROM t1 WHERE c='bellum' RETURNING rowid, *, '|';\n")
+		r = db.Query("\n  DELETE FROM t1 WHERE c='bellum' RETURNING rowid, *, '|';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 WHERE c='bellum' RETURNING rowid, *, '|';\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 10 bellum | 2 2 happy bellum | 3 3 {} bellum | 5 5 {} bellum |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "3.2"
@@ -175,9 +211,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "4.2"
-		_res = db.Exec("\n  INSERT INTO t4(a,b,c) VALUES(1,22,33)\n  ON CONFLICT(a) DO UPDATE SET b=44\n  RETURNING *;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "44 3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "44 3", _res.Error, "\n  INSERT INTO t4(a,b,c) VALUES(1,22,33)\n  ON CONFLICT(a) DO UPDATE SET b=44\n  RETURNING *;\n")
+		r = db.Query("\n  INSERT INTO t4(a,b,c) VALUES(1,22,33)\n  ON CONFLICT(a) DO UPDATE SET b=44\n  RETURNING *;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t4(a,b,c) VALUES(1,22,33)\n  ON CONFLICT(a) DO UPDATE SET b=44\n  RETURNING *;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 44 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "4.3"
@@ -199,9 +241,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "4.5"
-		_res = db.Exec("\n  INSERT INTO t4(a,b,c) VALUES(2,3,4),(4,5,6),(5,6,7)\n  ON CONFLICT(a) DO UPDATE SET b=100\n  RETURNING *, '|';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t4(a,b,c) VALUES(2,3,4),(4,5,6),(5,6,7)\n  ON CONFLICT(a) DO UPDATE SET b=100\n  RETURNING *, '|';\n")
+		r = db.Query("\n  INSERT INTO t4(a,b,c) VALUES(2,3,4),(4,5,6),(5,6,7)\n  ON CONFLICT(a) DO UPDATE SET b=100\n  RETURNING *, '|';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t4(a,b,c) VALUES(2,3,4),(4,5,6),(5,6,7)\n  ON CONFLICT(a) DO UPDATE SET b=100\n  RETURNING *, '|';\n")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 | 4 100 6 | 5 6 7 |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -214,9 +262,9 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "5.1"
-		_res = db.Exec("\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
+		r = db.Query("\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
 		}
 	}
 	{ // "5.2"
@@ -226,21 +274,39 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "5.3"
-		_res = db.Exec("\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
+		r = db.Query("\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.4"
-		_res = db.Exec("\n  INSERT INTO t2(b) VALUES('abc');\n  INSERT INTO t1(xyz) VALUES(1);\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING b;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(b) VALUES('abc');\n  INSERT INTO t1(xyz) VALUES(1);\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING b;\n")
+		r = db.Query("\n  INSERT INTO t2(b) VALUES('abc');\n  INSERT INTO t1(xyz) VALUES(1);\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING b;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2(b) VALUES('abc');\n  INSERT INTO t1(xyz) VALUES(1);\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING b;\n")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.5"
-		_res = db.Exec("\n  INSERT INTO t2(b) VALUES('abc');\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(b) VALUES('abc');\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
+		r = db.Query("\n  INSERT INTO t2(b) VALUES('abc');\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2(b) VALUES('abc');\n  UPDATE t2 SET b='123' WHERE b='abc' RETURNING (SELECT b FROM t1);\n")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -336,6 +402,12 @@ func Test_returning1(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE t1.a=t2.b) AS x;\n")
 		}
 	}
+	{ // "9.1"
+		_res = db.Exec("\n  UPDATE pragma_encoding SET encoding='UTF-8' RETURNING a, b, *;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table pragma_encoding may not be modified") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table pragma_encoding may not be modified", _res.Error, "\n  UPDATE pragma_encoding SET encoding='UTF-8' RETURNING a, b, *;\n")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -351,25 +423,61 @@ func Test_returning1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO log VALUES('insert', new.rowid, new.a, new.b);\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES('update', new.rowid, new.a, new.b);\n  END;\n")
 		}
 	}
+	{ // "10.3a"
+		_res = db.Exec("\n    INSERT INTO t1(a, b) VALUES(1234, 5678) RETURNING rowid;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: new.rowid") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.rowid", _res.Error, "\n    INSERT INTO t1(a, b) VALUES(1234, 5678) RETURNING rowid;\n  ")
+		}
+	}
+	{ // "10.3b"
+		_res = db.Exec("\n    UPDATE t1 SET a='z' WHERE b='y' RETURNING rowid;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: new.rowid") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.rowid", _res.Error, "\n    UPDATE t1 SET a='z' WHERE b='y' RETURNING rowid;\n  ")
+		}
+	}
+	{ // "10.4"
+		r = db.Query("\n    SELECT * FROM log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM log;\n  ")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "11.1"
-		_res = db.Exec("\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TEMP TABLE t2(c,d);\n  CREATE TEMP TABLE t3(e,f);\n  CREATE TEMP TABLE log(op,x,y);\n  CREATE TEMP TRIGGER t1r1 AFTER INSERT ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t1r2 BEFORE DELETE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D1',old.a,old.b);\n  END;\n  CREATE TEMP TRIGGER t2r3 AFTER UPDATE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I2',new.c,new.d);\n  END;\n  CREATE TEMP TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D3',old.e,old.f);\n  END;\n  CREATE TEMP TRIGGER t3r2 BEFORE UPDATE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U3',new.e,new.f);\n  END;\n  INSERT INTO t1(a,b) VALUES(1,2),('happy','glad') RETURNING a, b, '|';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 | happy glad |") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 | happy glad |", _res.Error, "\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TEMP TABLE t2(c,d);\n  CREATE TEMP TABLE t3(e,f);\n  CREATE TEMP TABLE log(op,x,y);\n  CREATE TEMP TRIGGER t1r1 AFTER INSERT ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t1r2 BEFORE DELETE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D1',old.a,old.b);\n  END;\n  CREATE TEMP TRIGGER t2r3 AFTER UPDATE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I2',new.c,new.d);\n  END;\n  CREATE TEMP TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D3',old.e,old.f);\n  END;\n  CREATE TEMP TRIGGER t3r2 BEFORE UPDATE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U3',new.e,new.f);\n  END;\n  INSERT INTO t1(a,b) VALUES(1,2),('happy','glad') RETURNING a, b, '|';\n")
+		r = db.Query("\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TEMP TABLE t2(c,d);\n  CREATE TEMP TABLE t3(e,f);\n  CREATE TEMP TABLE log(op,x,y);\n  CREATE TEMP TRIGGER t1r1 AFTER INSERT ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t1r2 BEFORE DELETE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D1',old.a,old.b);\n  END;\n  CREATE TEMP TRIGGER t2r3 AFTER UPDATE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I2',new.c,new.d);\n  END;\n  CREATE TEMP TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D3',old.e,old.f);\n  END;\n  CREATE TEMP TRIGGER t3r2 BEFORE UPDATE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U3',new.e,new.f);\n  END;\n  INSERT INTO t1(a,b) VALUES(1,2),('happy','glad') RETURNING a, b, '|';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TEMP TABLE t2(c,d);\n  CREATE TEMP TABLE t3(e,f);\n  CREATE TEMP TABLE log(op,x,y);\n  CREATE TEMP TRIGGER t1r1 AFTER INSERT ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t1r2 BEFORE DELETE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D1',old.a,old.b);\n  END;\n  CREATE TEMP TRIGGER t2r3 AFTER UPDATE ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I2',new.c,new.d);\n  END;\n  CREATE TEMP TRIGGER t3r1 AFTER DELETE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('D3',old.e,old.f);\n  END;\n  CREATE TEMP TRIGGER t3r2 BEFORE UPDATE ON t3 BEGIN\n     INSERT INTO log(op,x,y) VALUES('U3',new.e,new.f);\n  END;\n  INSERT INTO t1(a,b) VALUES(1,2),('happy','glad') RETURNING a, b, '|';\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 | happy glad |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.2"
-		_res = db.Exec("\n  UPDATE t1 SET b=9 WHERE a=1 RETURNING a, b, 'x';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "9 x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "9 x", _res.Error, "\n  UPDATE t1 SET b=9 WHERE a=1 RETURNING a, b, 'x';\n")
+		r = db.Query("\n  UPDATE t1 SET b=9 WHERE a=1 RETURNING a, b, 'x';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET b=9 WHERE a=1 RETURNING a, b, 'x';\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 9 x"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.3"
-		_res = db.Exec("\n  DELETE FROM t1 WHERE a<>'xray' RETURNING a, b, '@';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "9 @ happy glad @") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "9 @ happy glad @", _res.Error, "\n  DELETE FROM t1 WHERE a<>'xray' RETURNING a, b, '@';\n")
+		r = db.Query("\n  DELETE FROM t1 WHERE a<>'xray' RETURNING a, b, '@';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 WHERE a<>'xray' RETURNING a, b, '@';\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 9 @ happy glad @"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.4"
@@ -379,9 +487,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "11.5"
-		_res = db.Exec("\n  INSERT INTO t2 VALUES('bravo','charlie') RETURNING d, c, 'z';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2 VALUES('bravo','charlie') RETURNING d, c, 'z';\n")
+		r = db.Query("\n  INSERT INTO t2 VALUES('bravo','charlie') RETURNING d, c, 'z';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2 VALUES('bravo','charlie') RETURNING d, c, 'z';\n")
+			return
+		}
+		got := flatten(r)
+		want := "charlie bravo z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.6"
@@ -391,9 +505,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "11.7"
-		_res = db.Exec("\n  INSERT INTO t3(e) VALUES(1),(2),(3) RETURNING 'I', e;\n  UPDATE t3 SET f=e+100 RETURNING 'U', e, f;\n  DELETE FROM t3 WHERE f>100 RETURNING 'D', e, f;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(e) VALUES(1),(2),(3) RETURNING 'I', e;\n  UPDATE t3 SET f=e+100 RETURNING 'U', e, f;\n  DELETE FROM t3 WHERE f>100 RETURNING 'D', e, f;\n")
+		r = db.Query("\n  INSERT INTO t3(e) VALUES(1),(2),(3) RETURNING 'I', e;\n  UPDATE t3 SET f=e+100 RETURNING 'U', e, f;\n  DELETE FROM t3 WHERE f>100 RETURNING 'D', e, f;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t3(e) VALUES(1),(2),(3) RETURNING 'I', e;\n  UPDATE t3 SET f=e+100 RETURNING 'U', e, f;\n  DELETE FROM t3 WHERE f>100 RETURNING 'D', e, f;\n")
+			return
+		}
+		got := flatten(r)
+		want := "I 1 I 2 I 3 U 1 101 U 2 102 U 3 103 D 1 101 D 2 102 D 3 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.6"
@@ -461,6 +581,27 @@ func Test_returning1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // "13.0"
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n  CREATE TABLE t2(x);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n  CREATE TABLE t2(x);\n")
+		}
+	}
+	{ // "13.1"
+		r = db.Query("\n  INSERT INTO t1(a,b,c) VALUES(1,2,3) \n  RETURNING (SELECT b FROM t2);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1(a,b,c) VALUES(1,2,3) \n  RETURNING (SELECT b FROM t2);\n")
+			return
+		}
+		got := flatten(r)
+		want := "{}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
 	{ // "14.0"
 		_res = db.Exec("\n  PRAGMA foreign_keys(1);\n  CREATE TABLE Parent(id INTEGER PRIMARY KEY);\n  CREATE TABLE Child(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES Parent(id));\n")
 		if _res.Error != nil {
@@ -478,30 +619,54 @@ func Test_returning1(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	{ // "15.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x REAL);\n  INSERT INTO t1(x) VALUES(5.0) RETURNING x, affinity(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x REAL);\n  INSERT INTO t1(x) VALUES(5.0) RETURNING x, affinity(x);\n")
+		r = db.Query("\n  CREATE TABLE t1(x REAL);\n  INSERT INTO t1(x) VALUES(5.0) RETURNING x, affinity(x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x REAL);\n  INSERT INTO t1(x) VALUES(5.0) RETURNING x, affinity(x);\n")
+			return
+		}
+		got := flatten(r)
+		want := "5.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "15.1"
-		_res = db.Exec("\n  UPDATE t1 SET x=x+1 RETURNING x, affinity(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET x=x+1 RETURNING x, affinity(x);\n")
+		r = db.Query("\n  UPDATE t1 SET x=x+1 RETURNING x, affinity(x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET x=x+1 RETURNING x, affinity(x);\n")
+			return
+		}
+		got := flatten(r)
+		want := "6.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "15.2"
-		_res = db.Exec("\n  DELETE FROM t1 RETURNING x, affinity(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 RETURNING x, affinity(x);\n")
+		r = db.Query("\n  DELETE FROM t1 RETURNING x, affinity(x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 RETURNING x, affinity(x);\n")
+			return
+		}
+		got := flatten(r)
+		want := "6.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "16.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  CREATE TEMP TABLE t2(x,y,z);\n  INSERT INTO t2 SELECT * FROM t1 RETURNING *;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3 a b c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3 a b c", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  CREATE TEMP TABLE t2(x,y,z);\n  INSERT INTO t2 SELECT * FROM t1 RETURNING *;\n")
+		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  CREATE TEMP TABLE t2(x,y,z);\n  INSERT INTO t2 SELECT * FROM t1 RETURNING *;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  CREATE TEMP TABLE t2(x,y,z);\n  INSERT INTO t2 SELECT * FROM t1 RETURNING *;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 a b c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "16.1"
@@ -534,9 +699,15 @@ func Test_returning1(t *testing.T) {
 				}
 			}
 			{ // "17." + tn + ".1"
-				_res = db.Exec("\n    INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;\n  ")
+				r = db.Query("\n    INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1 2 1\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}
@@ -544,9 +715,15 @@ func Test_returning1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "17.0"
-			_res = db.Exec("\n  CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;\n")
+			r = db.Query("\n  CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "18.0"
@@ -598,15 +775,27 @@ func Test_returning1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "21.0"
-			_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;\n")
+			r = db.Query("\n  PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "21.1"
-			_res = db.Exec("\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;\n")
+			r = db.Query("\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()
@@ -634,9 +823,15 @@ func Test_returning1(t *testing.T) {
 			}
 		}
 		{ // "23.1"
-			_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 'one') RETURNING *;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "one") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "one", _res.Error, "\n  INSERT INTO t1 VALUES(1, 'one') RETURNING *;\n")
+			r = db.Query("\n  INSERT INTO t1 VALUES(1, 'one') RETURNING *;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(1, 'one') RETURNING *;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 one"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "23.2"
@@ -654,4 +849,46 @@ func Test_returning1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
+		{ // "24.0"
+			_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(c);\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('x');\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts5(c);\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('x');\n  ")
+			}
+		}
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "24.1"
+			r = db.Query("\n    SELECT * FROM t1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "x"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "-db"
+			_res = db.Exec("db2")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			}
+		}
+		db2.Close()
+		{ // "24.3"
+			r = db.Query("\n    INSERT INTO ft VALUES('hello world') RETURNING *\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO ft VALUES('hello world') RETURNING *\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "{hello world}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
 }

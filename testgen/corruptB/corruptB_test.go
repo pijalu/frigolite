@@ -76,7 +76,7 @@ func Test_corruptB(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
 		}
-		// expr [file size test.db] > (1024*9) → "[file size test.db] > (1024*9)"
+		// expr [file size test.db] > (1024*9) (not evaluated)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -84,7 +84,7 @@ func Test_corruptB(t *testing.T) {
 	{ // do_test "corruptB-1.3.1"
 		root = "execsql {SELECT rootpage FROM sqlite_master}" // TCL namespace variable
 		_ = root // suppress unused warning
-		offset = "($::root-1)*1024" // TCL namespace variable
+		offset = tclExpr("($::root-1)*1024") // TCL namespace variable
 		_ = offset // suppress unused warning
 		// hexio_write test.db [expr $offset+8] [hexio_render_int32 $::root] (unsupported command, not transpiled)
 	}
@@ -122,7 +122,7 @@ func Test_corruptB(t *testing.T) {
 	{ // do_test "corruptB-1.6.1"
 		iRightChild = "hexio_get_int [hexio_read test.db [expr $offset+8] 4]"
 		_ = iRightChild // suppress unused warning
-		c_offset = "($iRightChild-1)*1024"
+		c_offset = tclExpr("($iRightChild-1)*1024")
 		_ = c_offset // suppress unused warning
 		// hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root] (unsupported command, not transpiled)
 	}
@@ -151,7 +151,7 @@ func Test_corruptB(t *testing.T) {
 		_ = cell_offset // suppress unused warning
 		iLeftChild = "hexio_get_int [hexio_read test.db [expr $offset+$cell_offset] 4]"
 		_ = iLeftChild // suppress unused warning
-		c_offset = "($iLeftChild-1)*1024"
+		c_offset = tclExpr("($iLeftChild-1)*1024")
 		_ = c_offset // suppress unused warning
 		// hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root] (unsupported command, not transpiled)
 	}
@@ -199,9 +199,9 @@ func Test_corruptB(t *testing.T) {
 		}
 		t2_root = "execsql {SELECT rootpage FROM sqlite_master WHERE name = 't2'}"
 		_ = t2_root // suppress unused warning
-		iPage = "($t2_root-1)*1024"
+		iPage = tclExpr("($t2_root-1)*1024")
 		_ = iPage // suppress unused warning
-		iCellarray = "$iPage + 8"
+		iCellarray = tclExpr("$iPage + 8")
 		_ = iCellarray // suppress unused warning
 		iRecord = "hexio_get_int [hexio_read test.db $iCellarray 2]"
 		_ = iRecord // suppress unused warning

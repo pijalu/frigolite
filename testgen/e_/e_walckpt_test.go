@@ -149,9 +149,7 @@ func Test_e_walckpt(t *testing.T) {
 			}
 			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
-			// switch -- $tn {
-    1 {
-      # EVIDENCE-OF: R-41299-52117 If no ...} (test infra, not transpiled)
+			// switch -- $tn {\n    1 {\n      # EVIDENCE-OF: R-41299-52117 If n...} (test infra, not transpiled)
 			db2.Close()
 		}
 		db.Close()

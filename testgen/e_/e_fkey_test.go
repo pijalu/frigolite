@@ -100,12 +100,69 @@ func Test_e_fkey(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	{ // do_test "e_fkey-1"
+		r = db.Query("\n      PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;\n    ")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // do_test "e_fkey-2.1"
+		r = db.Query("\n      PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;\n    ")
+		}
+	}
+	{ // do_test "e_fkey-2.2"
+		r = db.Query(" PRAGMA foreign_key_list(c) ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_key_list(c) ")
+		}
+	}
+	{ // do_test "e_fkey-2.3"
+		r = db.Query(" PRAGMA foreign_keys ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys ")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // do_test "e_fkey-3.1"
+		_res = db.Exec(" CREATE TABLE p(i PRIMARY KEY) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE p(i PRIMARY KEY) ")
+		}
+		_res = db.Exec(" CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE) ")
+		_ = _res // catchsql
+	}
+	{ // do_test "e_fkey-3.2"
+		_res = db.Exec(" CREATE TABLE c(j REFERENCES p) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE c(j REFERENCES p) ")
+		}
+	}
+	{ // do_test "e_fkey-3.3"
+		r = db.Query(" PRAGMA table_info(c) ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA table_info(c) ")
+		}
+	}
+	{ // do_test "e_fkey-3.4"
+		r = db.Query(" PRAGMA foreign_key_list(c) ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_key_list(c) ")
+		}
+	}
+	{ // do_test "e_fkey-3.5"
+		r = db.Query(" PRAGMA foreign_keys ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys ")
+		}
+	}
+	return
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -252,7 +309,7 @@ func Test_e_fkey(t *testing.T) {
 		_ = a2 // suppress unused warning
 		_t = "0"
 		_ = _t // suppress unused warning
-		sql = "lindex $Template [expr int(rand()*6)]"
+		sql = tclLIndex(Template, "")
 		_ = sql // suppress unused warning
 		// test_r52486_21352 $i $sql (unsupported command, not transpiled)
 		// incr i 1
@@ -393,15 +450,11 @@ func Test_e_fkey(t *testing.T) {
 	// test_efkey_57 2 0 { CREATE TABLE t1(x PRIMARY KEY) } (unsupported command, not transpiled)
 	// test_efkey_57 3 0 { CREATE TABLE t1(x UNIQUE) } (unsupported command, not transpiled)
 	// test_efkey_57 4 0 { CREATE TABLE t1(x); CREATE UNIQUE INDEX t1i ON t1...} (unsupported command, not transpiled)
-	// test_efkey_57 5 1 { 
-  CREATE TABLE t1(x); 
-  CREATE UNIQUE INDEX t1i...} (unsupported command, not transpiled)
+	// test_efkey_57 5 1 { \n  CREATE TABLE t1(x); \n  CREATE UNIQUE INDEX t...} (unsupported command, not transpiled)
 	// test_efkey_57 6 1 { CREATE TABLE t1(x) } (unsupported command, not transpiled)
 	// test_efkey_57 7 1 { CREATE TABLE t1(x, y, PRIMARY KEY(x, y)) } (unsupported command, not transpiled)
 	// test_efkey_57 8 1 { CREATE TABLE t1(x, y, UNIQUE(x, y)) } (unsupported command, not transpiled)
-	// test_efkey_57 9 1 { 
-  CREATE TABLE t1(x, y); 
-  CREATE UNIQUE INDEX ...} (unsupported command, not transpiled)
+	// test_efkey_57 9 1 { \n  CREATE TABLE t1(x, y); \n  CREATE UNIQUE INDE...} (unsupported command, not transpiled)
 	// drop_all_tables (unsupported command, not transpiled)
 	{ // do_test "e_fkey-19.1"
 		_res = db.Exec("\n    CREATE TABLE parent(a PRIMARY KEY, b UNIQUE, c, d, e, f);\n    CREATE UNIQUE INDEX i1 ON parent(c, d);\n    CREATE INDEX i2 ON parent(e);\n    CREATE UNIQUE INDEX i3 ON parent(f COLLATE nocase);\n\n    CREATE TABLE child1(f, g REFERENCES parent(a));                       -- Ok\n    CREATE TABLE child2(h, i REFERENCES parent(b));                       -- Ok\n    CREATE TABLE child3(j, k, FOREIGN KEY(j, k) REFERENCES parent(c, d)); -- Ok\n    CREATE TABLE child4(l, m REFERENCES parent(e));                       -- Err\n    CREATE TABLE child5(n, o REFERENCES parent(f));                       -- Err\n    CREATE TABLE child6(p, q, FOREIGN KEY(p,q) REFERENCES parent(b, c));  -- Err\n    CREATE TABLE child7(r REFERENCES parent(c));                          -- Err\n  ")
@@ -579,18 +632,8 @@ func Test_e_fkey(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );\n  ")
 					}
 				}
-				// do_detail_test e_fkey-25.2 {
-  PRAGMA foreign_keys = OFF;
-  EXPLAIN QUERY PLAN...} {
-  {SCAN artist} 
-  {SCAN track}
-} (unsupported command, not transpiled)
-				// do_detail_test e_fkey-25.3 {
-  PRAGMA foreign_keys = ON;
-  EXPLAIN QUERY PLAN ...} {
-  {SCAN artist} 
-  {SCAN track}
-} (unsupported command, not transpiled)
+				// do_detail_test e_fkey-25.2 {\n  PRAGMA foreign_keys = OFF;\n  EXPLAIN QUERY PL...} {\n  {SCAN artist} \n  {SCAN track}\n} (unsupported command, not transpiled)
+				// do_detail_test e_fkey-25.3 {\n  PRAGMA foreign_keys = ON;\n  EXPLAIN QUERY PLA...} {\n  {SCAN artist} \n  {SCAN track}\n} (unsupported command, not transpiled)
 				{ // do_test "e_fkey-25.4"
 					_res = db.Exec("\n    INSERT INTO artist VALUES(5, 'artist 5');\n    INSERT INTO artist VALUES(6, 'artist 6');\n    INSERT INTO artist VALUES(7, 'artist 7');\n    INSERT INTO track VALUES(1, 'track 1', 5);\n    INSERT INTO track VALUES(2, 'track 2', 6);\n  ")
 					if _res.Error != nil {
@@ -670,15 +713,8 @@ func Test_e_fkey(t *testing.T) {
 					{ // do_test "e_fkey-27.2"
 						// eqp { INSERT INTO artist VALUES(?, ?) } (unsupported command, not transpiled)
 					}
-					// do_detail_test e_fkey-27.3 {
-  EXPLAIN QUERY PLAN UPDATE artist SET artistid =...} {
-  {SCAN artist} 
-  {SEARCH track USING COVERING I...} (unsupported command, not transpiled)
-					// do_detail_test e_fkey-27.4 {
-  EXPLAIN QUERY PLAN DELETE FROM artist
-} {
-  {SCAN artist} 
-  {SEARCH track USING COVERING I...} (unsupported command, not transpiled)
+					// do_detail_test e_fkey-27.3 {\n  EXPLAIN QUERY PLAN UPDATE artist SET artistid ...} {\n  {SCAN artist} \n  {SEARCH track USING COVERING...} (unsupported command, not transpiled)
+					// do_detail_test e_fkey-27.4 {\n  EXPLAIN QUERY PLAN DELETE FROM artist\n} {\n  {SCAN artist} \n  {SEARCH track USING COVERING...} (unsupported command, not transpiled)
 					// foreach {tn sql err} "\n  1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n"
 					_items4 := tclSplitList("\n  1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n")
 					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
@@ -774,9 +810,7 @@ func Test_e_fkey(t *testing.T) {
 						}
 						// proc definition (not transpiled)
 						// drop_all_tables (unsupported command, not transpiled)
-						// test_efkey_34 1 0 {
-  CREATE TABLE ll(k PRIMARY KEY);
-  CREATE TABLE ...} (unsupported command, not transpiled)
+						// test_efkey_34 1 0 {\n  CREATE TABLE ll(k PRIMARY KEY);\n  CREATE TABL...} (unsupported command, not transpiled)
 						// test_efkey_34 2 0 BEGIN (unsupported command, not transpiled)
 						// test_efkey_34 3 0 INSERT INTO kk VALUES(5) (unsupported command, not transpiled)
 						// test_efkey_34 4 0 INSERT INTO kk VALUES(10) (unsupported command, not transpiled)
@@ -1469,6 +1503,34 @@ func Test_e_fkey(t *testing.T) {
 									}
 								}
 								// proc definition (not transpiled)
+								// test_efkey_6 1 ALTER TABLE tbl ADD COLUMN c REFERENCES xx 0 (unsupported command, not transpiled)
+								// test_efkey_6 2 ALTER TABLE tbl ADD COLUMN c DEFAULT NULL REFERENC... 0 (unsupported command, not transpiled)
+								// test_efkey_6 3 ALTER TABLE tbl ADD COLUMN c DEFAULT 0 REFERENCES ... 1 (unsupported command, not transpiled)
+								{ // do_test "e_fkey-56.1"
+									// drop_all_tables (unsupported command, not transpiled)
+									_res = db.Exec("\n    CREATE TABLE 'p 1 \"parent one\"'(a REFERENCES 'p 1 \"parent one\"', b, PRIMARY KEY(b));\n\n    CREATE TABLE c1(c, d REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c2(e, f, FOREIGN KEY(f) REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c3(e, 'f col 2', FOREIGN KEY('f col 2') REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n\n    INSERT INTO 'p 1 \"parent one\"' VALUES(1, 1);\n    INSERT INTO c1 VALUES(1, 1);\n    INSERT INTO c2 VALUES(1, 1);\n    INSERT INTO c3 VALUES(1, 1);\n\n    -- CREATE TABLE q(a, b, PRIMARY KEY(b));\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE 'p 1 \"parent one\"'(a REFERENCES 'p 1 \"parent one\"', b, PRIMARY KEY(b));\n\n    CREATE TABLE c1(c, d REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c2(e, f, FOREIGN KEY(f) REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c3(e, 'f col 2', FOREIGN KEY('f col 2') REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n\n    INSERT INTO 'p 1 \"parent one\"' VALUES(1, 1);\n    INSERT INTO c1 VALUES(1, 1);\n    INSERT INTO c2 VALUES(1, 1);\n    INSERT INTO c3 VALUES(1, 1);\n\n    -- CREATE TABLE q(a, b, PRIMARY KEY(b));\n  ")
+									}
+								}
+								{ // do_test "e_fkey-56.2"
+									_res = db.Exec(" ALTER TABLE 'p 1 \"parent one\"' RENAME TO p ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE 'p 1 \"parent one\"' RENAME TO p ")
+									}
+								}
+								{ // do_test "e_fkey-56.3"
+									r = db.Query("\n    UPDATE p SET a = 'xxx', b = 'xxx';\n    SELECT * FROM p;\n    SELECT * FROM c1;\n    SELECT * FROM c2;\n    SELECT * FROM c3;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p SET a = 'xxx', b = 'xxx';\n    SELECT * FROM p;\n    SELECT * FROM c1;\n    SELECT * FROM c2;\n    SELECT * FROM c3;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-56.4"
+									r = db.Query(" SELECT sql FROM sqlite_master WHERE type = 'table'")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sql FROM sqlite_master WHERE type = 'table'")
+									}
+								}
 								{ // do_test "e_fkey-57.1"
 									// drop_all_tables (unsupported command, not transpiled)
 									_res = db.Exec("\n    CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET NULL);\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET DEFAULT);\n    CREATE TABLE c3(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE CASCADE);\n    CREATE TABLE c4(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT);\n    CREATE TABLE c5(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION);\n\n    CREATE TABLE c6(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT \n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c7(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    CREATE TABLE log(msg);\n    CREATE TRIGGER tt AFTER DELETE ON p BEGIN\n      INSERT INTO log VALUES('delete ' || old.rowid);\n    END;\n  ")
@@ -1623,6 +1685,77 @@ func Test_e_fkey(t *testing.T) {
 									_res = db.Exec(" DELETE FROM p ")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM p ")
+									}
+								}
+								{ // do_test "e_fkey-61.1.1"
+									// drop_all_tables (unsupported command, not transpiled)
+									_res = db.Exec(" CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES(1, 2) ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES(1, 2) ")
+									}
+									_res = db.Exec(" ALTER TABLE t1 ADD COLUMN c DEFAULT 'xxx' REFERENCES t2 ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-61.1.2"
+									r = db.Query(" PRAGMA foreign_keys = OFF ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = OFF ")
+									}
+									_res = db.Exec(" ALTER TABLE t1 ADD COLUMN c DEFAULT 'xxx' REFERENCES t2 ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t1 ADD COLUMN c DEFAULT 'xxx' REFERENCES t2 ")
+									}
+									r = db.Query(" SELECT sql FROM sqlite_master WHERE name = 't1' ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sql FROM sqlite_master WHERE name = 't1' ")
+									}
+								}
+								{ // do_test "e_fkey-61.1.3"
+									r = db.Query(" PRAGMA foreign_keys = ON ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = ON ")
+									}
+								}
+								{ // do_test "e_fkey-61.2.1"
+									// drop_all_tables (unsupported command, not transpiled)
+									_res = db.Exec("\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a));\n    BEGIN;\n      ALTER TABLE p RENAME TO parent;\n      SELECT sql FROM sqlite_master WHERE name = 'c';\n    ROLLBACK;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a));\n    BEGIN;\n      ALTER TABLE p RENAME TO parent;\n      SELECT sql FROM sqlite_master WHERE name = 'c';\n    ROLLBACK;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-61.2.2"
+									r = db.Query("\n    PRAGMA foreign_keys = OFF;\n    PRAGMA legacy_alter_table = ON;\n    ALTER TABLE p RENAME TO parent;\n    SELECT sql FROM sqlite_master WHERE name = 'c';\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys = OFF;\n    PRAGMA legacy_alter_table = ON;\n    ALTER TABLE p RENAME TO parent;\n    SELECT sql FROM sqlite_master WHERE name = 'c';\n  ")
+									}
+								}
+								{ // do_test "e_fkey-61.2.3"
+									r = db.Query(" PRAGMA foreign_keys = ON ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = ON ")
+									}
+									r = db.Query(" PRAGMA legacy_alter_table = OFF ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA legacy_alter_table = OFF ")
+									}
+								}
+								{ // do_test "e_fkey-61.3.1"
+									// drop_all_tables (unsupported command, not transpiled)
+									_res = db.Exec("\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a) ON DELETE SET NULL);\n    INSERT INTO p VALUES('x');\n    INSERT INTO c VALUES('x');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c;\n    ROLLBACK;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a) ON DELETE SET NULL);\n    INSERT INTO p VALUES('x');\n    INSERT INTO c VALUES('x');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c;\n    ROLLBACK;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-61.3.2"
+									r = db.Query("\n    PRAGMA foreign_keys = OFF;\n    DROP TABLE p;\n    SELECT * FROM c;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys = OFF;\n    DROP TABLE p;\n    SELECT * FROM c;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-61.3.3"
+									r = db.Query(" PRAGMA foreign_keys = ON ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = ON ")
 									}
 								}
 								for _, zMatch := range tclSplitList("list SIMPLE PARTIAL FULL Simple parTIAL FuLL") {

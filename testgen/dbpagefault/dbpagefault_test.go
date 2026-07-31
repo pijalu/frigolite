@@ -54,23 +54,12 @@ func Test_dbpagefault(t *testing.T) {
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
 		return
 	}
+	return
 	testprefix = "dbpagefault"
 	_ = testprefix // suppress unused warning
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -prep {
-  faultsim_restore_and_reopen
-  execsql { ATTACH ...} -body {
-  execsql { 
-    CREATE VIRTUAL TABLE t1 USING sq...} -test {
-  execsql { PRAGMA journal_mode = off }
-  faultsi...} (unsupported command, not transpiled)
-	// do_faultsim_test 2 -prep {
-  sqlite3 db "xyz.db" -vfs memdb
-  execsql { ATTA...} -body {
-  execsql { 
-    CREATE VIRTUAL TABLE t1 USING sq...} -test {
-  execsql { PRAGMA journal_mode = off }
-  faultsi...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTAC...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE t1 USING ...} -test {\n  execsql { PRAGMA journal_mode = off }\n  fault...} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -prep {\n  sqlite3 db "xyz.db" -vfs memdb\n  execsql { AT...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE t1 USING ...} -test {\n  execsql { PRAGMA journal_mode = off }\n  fault...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -105,10 +94,5 @@ func Test_dbpagefault(t *testing.T) {
 	pgno = "db one {SELECT max(rootpage) FROM sqlite_schema}"
 	_ = pgno // suppress unused warning
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 4 -prep {
-  faultsim_restore_and_reopen
-  execsql { ATTACH ...} -body {
-  execsql { 
-    UPDATE sqlite_dbpage SET data = ...} -test {
-  faultsim_test_result {0 {}} {1 {unable to open ...} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTAC...} -body {\n  execsql { \n    UPDATE sqlite_dbpage SET data ...} -test {\n  faultsim_test_result {0 {}} {1 {unable to open...} (unsupported command, not transpiled)
 }

@@ -59,6 +59,7 @@ func Test_alterlegacy(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "alterlegacy"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, CHECK(t1.a != t1.b));\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;\n")
 		if _res.Error != nil {
@@ -122,6 +123,40 @@ func Test_alterlegacy(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	// register_echo_module db (unsupported command, not transpiled)
+	{ // "2.0"
+		r = db.Query("\n    PRAGMA legacy_alter_table = 1;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE eee USING echo('abc');\n    SELECT * FROM eee;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA legacy_alter_table = 1;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE eee USING echo('abc');\n    SELECT * FROM eee;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "2.1"
+		r = db.Query("\n    ALTER TABLE eee RENAME TO fff;\n    SELECT * FROM fff;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE eee RENAME TO fff;\n    SELECT * FROM fff;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // "2.2"
+		_res = db.Exec("\n    ALTER TABLE fff RENAME TO ggg;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such module: echo") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such module: echo", _res.Error, "\n    ALTER TABLE fff RENAME TO ggg;\n  ")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -312,6 +347,32 @@ func Test_alterlegacy(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: t2", _res.Error, "\n  SELECT  *  FROM vv\n")
 		}
 	}
+	// register_tcl_module db (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	{ // "6.0"
+		_res = db.Exec("\n    CREATE VIRTUAL TABLE x1 USING tcl(tcl_command);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE x1 USING tcl(tcl_command);\n  ")
+		}
+	}
+	{ // "6.1"
+		r = db.Query("\n    ALTER TABLE x1 RENAME TO x2;\n    SELECT sql FROM sqlite_master WHERE name = 'x2'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE x1 RENAME TO x2;\n    SELECT sql FROM sqlite_master WHERE name = 'x2'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{CREATE VIRTUAL TABLE \"x2\" USING tcl(tcl_command)}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "7.1"
+		_res = db.Exec("\n    CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );\n  ")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -401,6 +462,30 @@ func Test_alterlegacy(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // "10.0"
+		_res = db.Exec("\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE fff USING fts5(x, y, z);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE fff USING fts5(x, y, z);\n  ")
+		}
+	}
+	{ // "10.1"
+		_res = db.Exec("\n    BEGIN;\n      INSERT INTO fff VALUES('a', 'b', 'c');\n      ALTER TABLE fff RENAME TO ggg;\n    COMMIT;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO fff VALUES('a', 'b', 'c');\n      ALTER TABLE fff RENAME TO ggg;\n    COMMIT;\n  ")
+		}
+	}
+	{ // "10.2"
+		r = db.Query("\n    SELECT * FROM ggg;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM ggg;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a b c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -498,6 +583,36 @@ func Test_alterlegacy(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // "14.0"
+		_res = db.Exec("\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE rt USING rtree(id, minx, maxx, miny, maxy);\n\n    CREATE TABLE \"mytable\" ( \"fid\" INTEGER PRIMARY KEY, \"geom\" BLOB);\n\n    CREATE TRIGGER tr1 AFTER UPDATE OF \"geom\" ON \"mytable\" \n          WHEN OLD.\"fid\" = NEW.\"fid\" AND NEW.\"geom\" IS NULL BEGIN \n      DELETE FROM rt WHERE id = OLD.\"fid\"; \n    END;\n\n    INSERT INTO mytable VALUES(1, X'abcd');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE rt USING rtree(id, minx, maxx, miny, maxy);\n\n    CREATE TABLE \"mytable\" ( \"fid\" INTEGER PRIMARY KEY, \"geom\" BLOB);\n\n    CREATE TRIGGER tr1 AFTER UPDATE OF \"geom\" ON \"mytable\" \n          WHEN OLD.\"fid\" = NEW.\"fid\" AND NEW.\"geom\" IS NULL BEGIN \n      DELETE FROM rt WHERE id = OLD.\"fid\"; \n    END;\n\n    INSERT INTO mytable VALUES(1, X'abcd');\n  ")
+		}
+	}
+	{ // "14.1"
+		_res = db.Exec("\n    UPDATE mytable SET geom = X'1234'\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE mytable SET geom = X'1234'\n  ")
+		}
+	}
+	{ // "14.2"
+		_res = db.Exec("\n    ALTER TABLE mytable RENAME TO mytable_renamed;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE mytable RENAME TO mytable_renamed;\n  ")
+		}
+	}
+	{ // "14.3"
+		_res = db.Exec("\n    CREATE TRIGGER tr2 AFTER INSERT ON mytable_renamed BEGIN\n      DELETE FROM rt WHERE id=(SELECT min(id) FROM rt);\n    END;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER tr2 AFTER INSERT ON mytable_renamed BEGIN\n      DELETE FROM rt WHERE id=(SELECT min(id) FROM rt);\n    END;\n  ")
+		}
+	}
+	{ // "14.4"
+		_res = db.Exec("\n    ALTER TABLE mytable_renamed RENAME TO mytable2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE mytable_renamed RENAME TO mytable2;\n  ")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

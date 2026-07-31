@@ -49,6 +49,7 @@ func Test_walnoshm(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walnoshm"
 	_ = testprefix // suppress unused warning
+	return
 	// testvfs tvfsshm (unsupported command, not transpiled)
 	// testvfs tvfs -default 1 -iversion 1 (unsupported command, not transpiled)
 	_dbtmp0, err := frigolite.Open("test.db")

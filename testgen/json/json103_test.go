@@ -178,4 +178,28 @@ func Test_json103(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "json103-400"
+		r = db.Query("\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES\n      (1),\n      ('a,b'),\n      (3),\n      ('x\"y'),\n      (5),\n      (6),\n      (7);\n    SELECT json_group_array(x) OVER (ROWS 2 PRECEDING) FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES\n      (1),\n      ('a,b'),\n      (3),\n      ('x\"y'),\n      (5),\n      (6),\n      (7);\n    SELECT json_group_array(x) OVER (ROWS 2 PRECEDING) FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{[1]} {[1,\"a,b\"]} {[1,\"a,b\",3]} {[\"a,b\",3,\"x\\\"y\"]} {[3,\"x\\\"y\",5]} {[\"x\\\"y\",5,6]} {[5,6,7]}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json103-410"
+		r = db.Query("\n    SELECT json_group_object(rowid, x) OVER (ROWS 2 PRECEDING) FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_object(rowid, x) OVER (ROWS 2 PRECEDING) FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{{\"1\":1}} {{\"1\":1,\"2\":\"a,b\"}} {{\"1\":1,\"2\":\"a,b\",\"3\":3}} {{\"2\":\"a,b\",\"3\":3,\"4\":\"x\\\"y\"}} {{\"3\":3,\"4\":\"x\\\"y\",\"5\":5}} {{\"4\":\"x\\\"y\",\"5\":5,\"6\":6}} {{\"5\":5,\"6\":6,\"7\":7}}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 }

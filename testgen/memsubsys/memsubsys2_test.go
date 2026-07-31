@@ -76,13 +76,13 @@ func Test_memsubsys2(t *testing.T) {
 		_ = highwater // suppress unused warning
 		{ // do_test "memsubsys2-2.1"
 			// sqlite3_free [set x [sqlite3_malloc 100000]] (unsupported command, not transpiled)
-			// expr $x!="0" → "$x!=\"0\""
+			// expr $x!="0" (not evaluated)
 		}
 		{ // do_test "memsubsys2-2.2.1"
-			// expr [sqlite3_memory_highwater 0]>=[sqlite3_memory_used]+100000 → "[sqlite3_memory_highwater 0]>=[sqlite3_memory_used]+100000"
+			// expr [sqlite3_memory_highwater 0]>=[sqlite3_memory_used]+100000 (not evaluated)
 		}
 		{ // do_test "memsubsys2-2.2.2"
-			// expr [sqlite3_memory_highwater 0]>=$highwater+50000 → "[sqlite3_memory_highwater 0]>=$highwater+50000"
+			// expr [sqlite3_memory_highwater 0]>=$highwater+50000 (not evaluated)
 		}
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
@@ -105,7 +105,7 @@ func Test_memsubsys2(t *testing.T) {
 	{ // do_test "memsubsys2-3.5"
 		allocation = "sqlite3_malloc 100000" // TCL namespace variable
 		_ = allocation // suppress unused warning
-		// expr $::allocation!="0" → "$::allocation!=\"0\""
+		// expr $::allocation!="0" (not evaluated)
 	}
 	{ // do_test "memsubsys2-3.6"
 		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
@@ -139,13 +139,13 @@ func Test_memsubsys2(t *testing.T) {
 	{ // do_test "memsubsys2-4.5"
 		allocation = "sqlite3_malloc 100000" // TCL namespace variable
 		_ = allocation // suppress unused warning
-		// expr $::allocation!="0" → "$::allocation!=\"0\""
+		// expr $::allocation!="0" (not evaluated)
 	}
 	{ // do_test "memsubsys2-4.6"
-		// expr [sqlite3_memory_highwater 0]>=100000 → "[sqlite3_memory_highwater 0]>=100000"
+		// expr [sqlite3_memory_highwater 0]>=100000 (not evaluated)
 	}
 	{ // do_test "memsubsys2-4.7"
-		// expr [sqlite3_memory_used]>=100000 → "[sqlite3_memory_used]>=100000"
+		// expr [sqlite3_memory_used]>=100000 (not evaluated)
 	}
 	{ // do_test "memsubsys2-4.8"
 		// sqlite3_free $::allocation (unsupported command, not transpiled)
@@ -154,7 +154,7 @@ func Test_memsubsys2(t *testing.T) {
 		// sqlite3_free 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-4.10"
-		// expr [sqlite3_memory_highwater 0]>=100000 → "[sqlite3_memory_highwater 0]>=100000"
+		// expr [sqlite3_memory_highwater 0]>=100000 (not evaluated)
 	}
 	{ // do_test "memsubsys2-4.11"
 		// sqlite3_memory_used (unsupported command, not transpiled)

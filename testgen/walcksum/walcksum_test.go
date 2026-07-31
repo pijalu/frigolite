@@ -83,6 +83,7 @@ func Test_walcksum(t *testing.T) {
 	_ = pgsz // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "walcksum"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

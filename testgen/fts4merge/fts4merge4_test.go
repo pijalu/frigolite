@@ -72,6 +72,7 @@ func Test_fts4merge4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4merge4" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // "1.1"

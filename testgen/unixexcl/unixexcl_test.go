@@ -54,15 +54,7 @@ func Test_unixexcl(t *testing.T) {
 	}
 	testprefix = "unixexcl"
 	_ = testprefix // suppress unused warning
-	// do_multiclient_test tn {
-  do_test unixexcl-1.$tn.1 {
-    sql1 {
-      CRE...} (unsupported command, not transpiled)
-	// do_multiclient_test tn {
-  do_test unixexcl-2.$tn.1 {
-    sql1 {
-      CRE...} (unsupported command, not transpiled)
-	// do_multiclient_test tn {
-  do_test unixexcl-3.$tn.1 {
-    code1 { db close...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  do_test unixexcl-1.$tn.1 {\n    sql1 {\n      ...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  do_test unixexcl-2.$tn.1 {\n    sql1 {\n      ...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  do_test unixexcl-3.$tn.1 {\n    code1 { db clo...} (unsupported command, not transpiled)
 }

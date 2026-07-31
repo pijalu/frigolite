@@ -103,9 +103,7 @@ func Test_without_rowid7(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_execsql_test_if_vtab 2.2b {
-  SELECT *, '|' FROM pragma_index_info('t2');
-} {0 0 a | 1 0 a |} (unsupported command, not transpiled)
+	// do_execsql_test_if_vtab 2.2b {\n  SELECT *, '|' FROM pragma_index_info('t2');\n} {0 0 a | 1 0 a |} (unsupported command, not transpiled)
 	{ // "2.3a"
 		r = db.Query("\n  PRAGMA index_xinfo(t2);\n")
 		if r.Error != nil {
@@ -118,9 +116,7 @@ func Test_without_rowid7(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_execsql_test_if_vtab 2.3b {
-  SELECT *, '|' FROM pragma_index_xinfo('t2');
-} {0 0 a 0 nocase 1 | 1 0 a 0 BINARY 1 | 2 1 b 0 BINA...} (unsupported command, not transpiled)
+	// do_execsql_test_if_vtab 2.3b {\n  SELECT *, '|' FROM pragma_index_xinfo('t2');\n} {0 0 a 0 nocase 1 | 1 0 a 0 BINARY 1 | 2 1 b 0 BINA...} (unsupported command, not transpiled)
 	{ // "2.4"
 		r = db.Query("\n  CREATE TABLE t3(a, b, PRIMARY KEY(a COLLATE nocase, a));\n  PRAGMA index_info(t3);\n")
 		if r.Error != nil {

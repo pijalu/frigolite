@@ -145,4 +145,26 @@ func Test_collate9(t *testing.T) {
 	{ // do_test "collate9-3.5"
 		_ = db.Exec(" \n    SELECT y COLLATE \"reverse sort\" AS aaa FROM xy ORDER BY aaa\n  ") // cksort
 	}
+	{ // do_test "collate9-4.1"
+		_res = db.Exec("\n      REINDEX \"reverse sort\"\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      REINDEX \"reverse sort\"\n    ")
+		}
+	}
+	// proc definition (not transpiled)
+	{ // do_test "collate9-4.2"
+		// expr "ok" eq [execsql { PRAGMA integrity_check }] (not evaluated)
+	}
+	{ // do_test "collate9-4.3"
+		_res = db.Exec("\n      REINDEX \"reverse sort\"\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      REINDEX \"reverse sort\"\n    ")
+		}
+	}
+	{ // do_test "collate9-4.4"
+		// expr "ok" eq [execsql { PRAGMA integrity_check }] (not evaluated)
+	}
+	{ // do_test "collate9-4.5"
+		_ = db.Exec("\n      SELECT x FROM xy ORDER BY x COLLATE \"reverse sort\"\n    ") // cksort
+	}
 }

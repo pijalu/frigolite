@@ -151,6 +151,8 @@ func Test_corruptL(t *testing.T) {
 	}
 	res = "1 {database disk image is malformed}"
 	_ = res // suppress unused warning
+	res = "1 {no such table: t3}"
+	_ = res // suppress unused warning
 	{ // "4.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
 		if _res.Error == nil {
@@ -225,10 +227,11 @@ func Test_corruptL(t *testing.T) {
 		// | 176: 00 00 5f 00 fb 00 00 2d 00 00 00 00 00 00 00 00 .._....-........ (unsupported command, not transpiled)
 		// | 192: 00 00 00 00 00 00 00 00 00 00 00 00 00 1e 00 00 ................ (unsupported command, not transpiled)
 		// | 208: 00 fe 00 00 00 00 17 15 11 01 45 69 6e 64 65 2e ..........Einde. (unsupported command, not transpiled)
-		// | 224: 5b 38 63 64 74 3d 05 43 52 45 41 54 45 20 49 4e [8cdt=.CREATE IN
-|    240: 44 45 58 20 63 20 64 32... (unsupported command, not transpiled)
+		// | 224: 5b 38 63 64 74 3d 05 43 52 45 41 54 45 20 49 4e [8cdt=.CREATE IN\n|    240: 44 45 58 20 63 20 64 3... (unsupported command, not transpiled)
 	}
 	res = "1 {database disk image is malformed}"
+	_ = res // suppress unused warning
+	res = "1 {no such table: t3}"
 	_ = res // suppress unused warning
 	{ // "8.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
@@ -333,6 +336,12 @@ func Test_corruptL(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA integrity_check;\n")
 		}
 	}
+	{ // "14.2"
+		_res = db.Exec("\n    ALTER TABLE t1 RENAME TO alkjalkjdfiiiwuer987lkjwer82mx97sf98788s9789s; \n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    ALTER TABLE t1 RENAME TO alkjalkjdfiiiwuer987lkjwer82mx97sf98788s9789s; \n  ")
+		}
+	}
 	// extra_schema_checks 1 (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
@@ -416,6 +425,12 @@ func Test_corruptL(t *testing.T) {
 		_dbtmp16, err := frigolite.Open("")
 		_ = _dbtmp16 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
+	}
+	{ // "18.1"
+		_res = db.Exec("\n  SELECT \n    json_group_array(c) OVER win4 \n  FROM t1\n    WINDOW win4 AS (\n        ORDER BY a COLLATE nocase RANGE BETWEEN 1.0 PRECEDING AND CURRENT ROW\n    )\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "JSON cannot hold BLOB values") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", _res.Error, "\n  SELECT \n    json_group_array(c) OVER win4 \n  FROM t1\n    WINDOW win4 AS (\n        ORDER BY a COLLATE nocase RANGE BETWEEN 1.0 PRECEDING AND CURRENT ROW\n    )\n")
+		}
 	}
 	db.Close()
 	db, err = frigolite.Open("")

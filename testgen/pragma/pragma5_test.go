@@ -88,6 +88,30 @@ func Test_pragma5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "2.0"
+		r = db.Query("\n    PRAGMA table_info(pragma_module_list)\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA table_info(pragma_module_list)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "\n    0 name {} 0 {} 0 \n  "
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "2.1"
+		r = db.Query("\n    SELECT * FROM pragma_module_list WHERE name='fts5'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM pragma_module_list WHERE name='fts5'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "fts5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA table_info(pragma_pragma_list)\n")
 		if r.Error != nil {

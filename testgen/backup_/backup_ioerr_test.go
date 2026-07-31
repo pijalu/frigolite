@@ -92,12 +92,12 @@ func Test_backup_ioerr(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "backup_ioerr-1.1"
 		// populate_database db (unsupported command, not transpiled)
-		nPage = "[file size test.db] / 1024"
+		nPage = tclExpr("[file size test.db] / 1024")
 		_ = nPage // suppress unused warning
-		// expr $nPage>130 && $nPage<160 → "$nPage>130 && $nPage<160"
+		// expr $nPage>130 && $nPage<160 (not evaluated)
 	}
 	{ // do_test "backup_ioerr-1.2"
-		// expr [file size test.db] > $sqlite_pending_byte → "[file size test.db] > $sqlite_pending_byte"
+		// expr [file size test.db] > $sqlite_pending_byte (not evaluated)
 	}
 	{ // do_test "backup_ioerr-1.3"
 		os.Remove("test.db")
@@ -186,11 +186,11 @@ func Test_backup_ioerr(t *testing.T) {
 						continue
 					}
 					{ // do_test "backup_ioerr-" + iTest + "." + iError + ".6"
-						// expr $rc eq "SQLITE_OK" → "$rc eq \"SQLITE_OK\""
+						// expr $rc eq "SQLITE_OK" (not evaluated)
 					}
 					rc = "catchsql { UPDATE t1 SET b = randstr(1000,1000) WHERE a < 50 } sdb"
 					_ = rc // suppress unused warning
-					if tclBool("lindex $rc 0" + " && " + sqlite_io_error_persist + "==0") {
+					if tclBool(tclLIndex(rc, "0") + " && " + sqlite_io_error_persist + "==0") {
 						rc = "B step 5000"
 						_ = rc // suppress unused warning
 						if rc != "SQLITE_IOERR_UNLOCK" {
@@ -255,7 +255,7 @@ func Test_backup_ioerr(t *testing.T) {
 					// test_contents backup_ioerr-$iTest.$iError.18 ddb main sdb main (unsupported command, not transpiled)
 					_res = db.Exec("PRAGMA integrity_check")
 					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-					bStop = "$::sqlite_io_error_pending<=0"
+					bStop = tclExpr("$::sqlite_io_error_pending<=0")
 					_ = bStop // suppress unused warning
 					// incr iError 1
 					{

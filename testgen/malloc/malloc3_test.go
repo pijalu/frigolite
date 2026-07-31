@@ -145,36 +145,20 @@ func Test_malloc3(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// TEST 1 {
-  do_test $testid {
-    execsql {SELECT tbl_name ...} (unsupported command, not transpiled)
-	// SQL { 
-  CREATE TABLE IF NOT EXISTS abc(a, b, c); 
-} (unsupported command, not transpiled)
-	// TEST 2 {
-  do_test $testid.1 {
-    execsql {SELECT tbl_nam...} (unsupported command, not transpiled)
-	// TEST 3 {
-  do_test $testid.2 {
-    execsql {SELECT * FROM ...} (unsupported command, not transpiled)
+	// TEST 1 {\n  do_test $testid {\n    execsql {SELECT tbl_nam...} (unsupported command, not transpiled)
+	// SQL { \n  CREATE TABLE IF NOT EXISTS abc(a, b, c); \n} (unsupported command, not transpiled)
+	// TEST 2 {\n  do_test $testid.1 {\n    execsql {SELECT tbl_n...} (unsupported command, not transpiled)
+	// TEST 3 {\n  do_test $testid.2 {\n    execsql {SELECT * FRO...} (unsupported command, not transpiled)
 	// SQL {INSERT INTO abc VALUES(1, 2, 3);} (unsupported command, not transpiled)
 	// SQL {INSERT INTO abc VALUES(4, 5, 6);} (unsupported command, not transpiled)
 	// SQL {INSERT INTO abc VALUES(7, 8, 9);} (unsupported command, not transpiled)
-	// TEST 4 {
-  do_test $testid {
-    execsql {SELECT * FROM ab...} (unsupported command, not transpiled)
+	// TEST 4 {\n  do_test $testid {\n    execsql {SELECT * FROM ...} (unsupported command, not transpiled)
 	// SQL {CREATE INDEX abc_i ON abc(a, b, c);} (unsupported command, not transpiled)
-	// TEST 4 {
-  do_test $testid {
-    execsql {
-      SELECT * ...} (unsupported command, not transpiled)
+	// TEST 4 {\n  do_test $testid {\n    execsql {\n      SELECT...} (unsupported command, not transpiled)
 	// SQL {DELETE FROM abc WHERE a > 2;} (unsupported command, not transpiled)
 	// SQL {CREATE TRIGGER abc_t AFTER INSERT ON abc BEGIN SEL...} (unsupported command, not transpiled)
 	// SQL {CREATE VIEW abc_v AS SELECT * FROM abc;} (unsupported command, not transpiled)
-	// TEST 5 {
-  do_test $testid {
-    execsql {
-      SELECT na...} (unsupported command, not transpiled)
+	// TEST 5 {\n  do_test $testid {\n    execsql {\n      SELECT...} (unsupported command, not transpiled)
 	sql = "\n  BEGIN;DELETE FROM abc;\n"
 	_ = sql // suppress unused warning
 	i = "1"
@@ -197,29 +181,16 @@ func Test_malloc3(t *testing.T) {
 	}
 	sql += "COMMIT;"
 	// PREP $sql (unsupported command, not transpiled)
-	// SQL {
-  DELETE FROM abc WHERE oid IN (SELECT oid FROM a...} (unsupported command, not transpiled)
-	// TEST 6 {
-  do_test $testid.1 {
-    execsql {SELECT count(*...} (unsupported command, not transpiled)
-	// SQL {
-  DELETE FROM abc WHERE oid IN (SELECT oid FROM a...} (unsupported command, not transpiled)
-	// TEST 7 {
-  do_test $testid {
-    execsql {SELECT count(*) ...} (unsupported command, not transpiled)
-	// SQL {
-  DELETE FROM abc WHERE oid IN (SELECT oid FROM a...} (unsupported command, not transpiled)
-	// TEST 9 {
-  do_test $testid {
-    execsql {SELECT count(*) ...} (unsupported command, not transpiled)
+	// SQL {\n  DELETE FROM abc WHERE oid IN (SELECT oid FROM ...} (unsupported command, not transpiled)
+	// TEST 6 {\n  do_test $testid.1 {\n    execsql {SELECT count...} (unsupported command, not transpiled)
+	// SQL {\n  DELETE FROM abc WHERE oid IN (SELECT oid FROM ...} (unsupported command, not transpiled)
+	// TEST 7 {\n  do_test $testid {\n    execsql {SELECT count(*...} (unsupported command, not transpiled)
+	// SQL {\n  DELETE FROM abc WHERE oid IN (SELECT oid FROM ...} (unsupported command, not transpiled)
+	// TEST 9 {\n  do_test $testid {\n    execsql {SELECT count(*...} (unsupported command, not transpiled)
 	padding = "X 500"
 	_ = padding // suppress unused warning
-	// PREP [subst {
-  DROP TABLE abc;
-  CREATE TABLE abc(a PR... (unsupported command, not transpiled)
-	// TEST 10 {
-  do_test $testid {
-    execsql {SELECT a, b, c F...} (unsupported command, not transpiled)
+	// PREP [subst {\n  DROP TABLE abc;\n  CREATE TABLE abc(a ... (unsupported command, not transpiled)
+	// TEST 10 {\n  do_test $testid {\n    execsql {SELECT a, b, c...} (unsupported command, not transpiled)
 	// SQL {BEGIN;} (unsupported command, not transpiled)
 	// SQL {INSERT INTO abc VALUES(9, 'XXXXX', 11, 12);} (unsupported command, not transpiled)
 	// TEST_AUTOCOMMIT 11 0 (unsupported command, not transpiled)
@@ -228,92 +199,56 @@ func Test_malloc3(t *testing.T) {
 	// SQL {DELETE FROM abc WHERE a = 10;} (unsupported command, not transpiled)
 	// TEST_AUTOCOMMIT 13 0 (unsupported command, not transpiled)
 	// SQL {COMMIT;} (unsupported command, not transpiled)
-	// TEST 14 {
-  do_test $testid.1 {
-    sqlite3_get_autocommit ...} (unsupported command, not transpiled)
-	// PREP [subst {
-  DROP TABLE abc;
-  CREATE TABLE abc(a, p... (unsupported command, not transpiled)
-	// TEST 15 {
-  db eval {PRAGMA cache_size = 10}
-} (unsupported command, not transpiled)
+	// TEST 14 {\n  do_test $testid.1 {\n    sqlite3_get_autocommi...} (unsupported command, not transpiled)
+	// PREP [subst {\n  DROP TABLE abc;\n  CREATE TABLE abc(a,... (unsupported command, not transpiled)
+	// TEST 15 {\n  db eval {PRAGMA cache_size = 10}\n} (unsupported command, not transpiled)
 	// SQL {BEGIN;} (unsupported command, not transpiled)
 	// SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...} (unsupported command, not transpiled)
-	// TEST 16 {
-  do_test $testid {
-    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// TEST 16 {\n  do_test $testid {\n    execsql {SELECT a, coun...} (unsupported command, not transpiled)
 	// SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...} (unsupported command, not transpiled)
-	// TEST 17 {
-  do_test $testid {
-    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// TEST 17 {\n  do_test $testid {\n    execsql {SELECT a, coun...} (unsupported command, not transpiled)
 	// SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...} (unsupported command, not transpiled)
-	// TEST 18 {
-  do_test $testid {
-    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// TEST 18 {\n  do_test $testid {\n    execsql {SELECT a, coun...} (unsupported command, not transpiled)
 	// SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...} (unsupported command, not transpiled)
-	// TEST 19 {
-  do_test $testid {
-    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// TEST 19 {\n  do_test $testid {\n    execsql {SELECT a, coun...} (unsupported command, not transpiled)
 	// SQL {COMMIT;} (unsupported command, not transpiled)
-	// TEST 21 {
-  do_test $testid {
-    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// TEST 21 {\n  do_test $testid {\n    execsql {SELECT a, coun...} (unsupported command, not transpiled)
 	// SQL {BEGIN;} (unsupported command, not transpiled)
 	// SQL {DELETE FROM abc WHERE oid %2} (unsupported command, not transpiled)
-	// TEST 22 {
-  do_test $testid {
-    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// TEST 22 {\n  do_test $testid {\n    execsql {SELECT a, coun...} (unsupported command, not transpiled)
 	// SQL {DELETE FROM abc} (unsupported command, not transpiled)
-	// TEST 23 {
-  do_test $testid {
-    execsql {SELECT * FROM ab...} (unsupported command, not transpiled)
+	// TEST 23 {\n  do_test $testid {\n    execsql {SELECT * FROM ...} (unsupported command, not transpiled)
 	// SQL {ROLLBACK;} (unsupported command, not transpiled)
-	// TEST 24 {
-  do_test $testid {
-    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// TEST 24 {\n  do_test $testid {\n    execsql {SELECT a, coun...} (unsupported command, not transpiled)
 	// PREP {DROP VIEW abc_v;} (unsupported command, not transpiled)
-	// TEST 25 {
-  do_test $testid {
-    execsql {
-      SELECT na...} (unsupported command, not transpiled)
+	// TEST 25 {\n  do_test $testid {\n    execsql {\n      SELECT...} (unsupported command, not transpiled)
 	// SQL {BEGIN;} (unsupported command, not transpiled)
 	// SQL {CREATE TABLE def(d, e, f);} (unsupported command, not transpiled)
 	// SQL {CREATE TABLE ghi(g, h, i);} (unsupported command, not transpiled)
-	// TEST 26 {
-  do_test $testid {
-    execsql {
-      SELECT na...} (unsupported command, not transpiled)
+	// TEST 26 {\n  do_test $testid {\n    execsql {\n      SELECT...} (unsupported command, not transpiled)
 	// SQL {CREATE VIEW v1 AS SELECT * FROM def, ghi} (unsupported command, not transpiled)
 	// SQL {CREATE UNIQUE INDEX ghi_i1 ON ghi(g);} (unsupported command, not transpiled)
-	// TEST 27 {
-  do_test $testid {
-    execsql {
-      SELECT na...} (unsupported command, not transpiled)
+	// TEST 27 {\n  do_test $testid {\n    execsql {\n      SELECT...} (unsupported command, not transpiled)
 	// SQL {INSERT INTO def VALUES('a', 'b', 'c')} (unsupported command, not transpiled)
 	// SQL {INSERT INTO def VALUES(1, 2, 3)} (unsupported command, not transpiled)
 	// SQL -norollback {INSERT INTO ghi SELECT * FROM def} (unsupported command, not transpiled)
-	// TEST 28 {
-  do_test $testid {
-    execsql {
-      SELECT * ...} (unsupported command, not transpiled)
+	// TEST 28 {\n  do_test $testid {\n    execsql {\n      SELECT...} (unsupported command, not transpiled)
 	// SQL {COMMIT} (unsupported command, not transpiled)
-	// TEST 29 {
-  do_test $testid {
-    execsql {
-      SELECT * ...} (unsupported command, not transpiled)
+	// TEST 29 {\n  do_test $testid {\n    execsql {\n      SELECT...} (unsupported command, not transpiled)
 	os.Remove("test2.db")
-	// TEST 32 {
-  if {![info exists ::STMT32]} {
-    set sql "SEL...} (unsupported command, not transpiled)
+	// SQL {ATTACH 'test2.db' AS aux;} (unsupported command, not transpiled)
+	// SQL {BEGIN} (unsupported command, not transpiled)
+	// SQL {CREATE TABLE aux.tbl2(x, y, z)} (unsupported command, not transpiled)
+	// SQL {INSERT INTO tbl2 VALUES(1, 2, 3)} (unsupported command, not transpiled)
+	// SQL {INSERT INTO def VALUES(4, 5, 6)} (unsupported command, not transpiled)
+	// TEST 30 {\n    do_test $testid {\n      execsql {\n        ...} (unsupported command, not transpiled)
+	// SQL {COMMIT} (unsupported command, not transpiled)
+	// TEST 31 {\n    do_test $testid {\n      execsql {\n        ...} (unsupported command, not transpiled)
+	// TEST 32 {\n  if {![info exists ::STMT32]} {\n    set sql "S...} (unsupported command, not transpiled)
 	// SQL BEGIN (unsupported command, not transpiled)
-	// TEST 33 { 
-  do_test $testid {
-    execsql {SELECT * FROM g...} (unsupported command, not transpiled)
-	// SQL -norollback { 
-  -- There is a unique index on ghi(g), so this ...} (unsupported command, not transpiled)
-	// TEST 34 {
-  if {[info exists ::STMT32]} {
-    do_test $test...} (unsupported command, not transpiled)
+	// TEST 33 { \n  do_test $testid {\n    execsql {SELECT * FROM...} (unsupported command, not transpiled)
+	// SQL -norollback { \n  -- There is a unique index on ghi(g), so this...} (unsupported command, not transpiled)
+	// TEST 34 {\n  if {[info exists ::STMT32]} {\n    do_test $te...} (unsupported command, not transpiled)
 	// SQL COMMIT (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// sqlite3_extended_result_codes db 1 (unsupported command, not transpiled)

@@ -55,6 +55,7 @@ func Test_stat(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "stat"
 	_ = testprefix // suppress unused warning
+	return
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}

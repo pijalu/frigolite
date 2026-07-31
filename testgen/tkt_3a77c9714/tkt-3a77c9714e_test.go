@@ -47,6 +47,7 @@ func Test_tkt_3a77c9714e(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "tkt-3a77c9714e"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"

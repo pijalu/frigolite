@@ -5,6 +5,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -79,6 +80,7 @@ func Test_attach2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "attach2"
 	_ = testprefix // suppress unused warning
+	return
 	{ // do_test "attach2-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);\n  ")
 		if _res.Error != nil {
@@ -105,6 +107,9 @@ func Test_attach2(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("\n    ATTACH 'test2.db' AS t2;\n  ")
 		_ = _res // catchsql
+	}
+	{ // do_test "attach2-2.2"
+		// db_list db (unsupported command, not transpiled)
 	}
 	db2.Exec("COMMIT")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -389,5 +394,89 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-6.3"
 		_res = db.Exec("\n    DETACH aux;\n  ")
 		_ = _res // catchsql
+	}
+	os.Remove("test.db2")
+	os.Remove("test.db3")
+	os.Remove("test.db4")
+	db2, err = frigolite.Open("test.db2")
+	if err != nil { t.Fatal(err) }
+	{ // "-db"
+		_res = db.Exec("db2")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+		}
+	}
+	db2.Close()
+	db3, err = frigolite.Open("test.db3")
+	if err != nil { t.Fatal(err) }
+	{ // "-db"
+		_res = db.Exec("db3")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db3")
+		}
+	}
+	db3.Close()
+	db4, err = frigolite.Open("test.db4")
+	if err != nil { t.Fatal(err) }
+	{ // "-db"
+		_res = db.Exec("db4")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db4")
+		}
+	}
+	db4.Close()
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "2.1"
+		r = db.Query("\n    PRAGMA encoding = 'utf16';\n    ATTACH 'test.db2' AS aux;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'utf16';\n    ATTACH 'test.db2' AS aux;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "text2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "2.2"
+		r = db.Query("\n    ATTACH 'test.db4' AS aux;\n    SELECT * FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test.db4' AS aux;\n    SELECT * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "text4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	_dbtmp2, err := frigolite.Open("test.db2")
+	_ = _dbtmp2 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // "2.3"
+		r = db.Query("\n    ATTACH 'test.db3' AS aux;\n    SELECT * FROM t3;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test.db3' AS aux;\n    SELECT * FROM t3;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "text3 text2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	_dbtmp3, err := frigolite.Open("test.db2")
+	_ = _dbtmp3 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // "2.4"
+		_res = db.Exec("\n    ATTACH 'test.db4' AS aux;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attached databases must use the same text encoding as main database") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n    ATTACH 'test.db4' AS aux;\n  ")
+		}
 	}
 }

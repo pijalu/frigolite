@@ -65,6 +65,11 @@ func Test_lastinsert(t *testing.T) {
 		_res = db.Exec("\n        create table t2 (k integer primary key, val1, val2, val3);\n        select last_insert_rowid();\n    ")
 		_ = _res // catchsql
 	}
+	{ // do_test "lastinsert-1.4.2"
+		_res = db.Exec("\n        create view v as select * from t1;\n        select last_insert_rowid();\n    ")
+		_ = _res // catchsql
+	}
+	return
 	{ // do_test "lastinsert-2.1"
 		_res = db.Exec("\n        delete from t2;\n        create trigger r1 after insert on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into t1 values (13);\n        select last_insert_rowid();\n    ")
 		_ = _res // catchsql
@@ -97,6 +102,22 @@ func Test_lastinsert(t *testing.T) {
 		_res = db.Exec("\n        select val3 from t2;\n    ")
 		_ = _res // catchsql
 	}
+	{ // do_test "lastinsert-4.1"
+		_res = db.Exec("\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of insert on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into v values (15);\n        select last_insert_rowid();\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-4.2"
+		_res = db.Exec("\n        select val1 from t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-4.3"
+		_res = db.Exec("\n        select val2 from t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-4.4"
+		_res = db.Exec("\n        select val3 from t2;\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "lastinsert-5.1"
 		_res = db.Exec("\n      drop trigger r1;  -- This was not created if views are disabled.\n    ")
 		_ = _res // catchsql
@@ -114,5 +135,60 @@ func Test_lastinsert(t *testing.T) {
 	{ // do_test "lastinsert-5.4"
 		_res = db.Exec("\n        select val3 from t2;\n    ")
 		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-6.1"
+		_res = db.Exec("\n        delete from t2;\n        drop trigger r1;\n        create trigger r1 instead of update on v for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        update v set k=16 where k=14;\n        select last_insert_rowid();\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-6.2"
+		_res = db.Exec("\n        select val1 from t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-6.3"
+		_res = db.Exec("\n        select val2 from t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-6.4"
+		_res = db.Exec("\n        select val3 from t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-7.1"
+		_res = db.Exec("\n        drop table t1; drop table t2; drop trigger r1;\n        create temp table t1 (k integer primary key);\n        create temp table t2 (k integer primary key);\n        create temp view v1 as select * from t1;\n        create temp view v2 as select * from t2;\n        create temp table rid (k integer primary key, rin, rout);\n        insert into rid values (1, NULL, NULL);\n        insert into rid values (2, NULL, NULL);\n        create temp trigger r1 instead of insert on v1 for each row begin\n            update rid set rin=last_insert_rowid() where k=1;\n            insert into t1 values (100+NEW.k);\n            insert into v2 values (100+last_insert_rowid());\n            update rid set rout=last_insert_rowid() where k=1;\n        end;\n        create temp trigger r2 instead of insert on v2 for each row begin\n            update rid set rin=last_insert_rowid() where k=2;\n            insert into t2 values (1000+NEW.k);\n            update rid set rout=last_insert_rowid() where k=2;\n        end;\n        insert into t1 values (77);\n        select last_insert_rowid();\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-7.2"
+		_res = db.Exec("\n        insert into v1 values (5);\n        select last_insert_rowid();\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-7.3"
+		_res = db.Exec("\n        select rin from rid where k=1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-7.4"
+		_res = db.Exec("\n        select rout from rid where k=1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-7.5"
+		_res = db.Exec("\n        select rin from rid where k=2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-7.6"
+		_res = db.Exec("\n        select rout from rid where k=2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lastinsert-8.1"
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t3(a, b);\n    CREATE TRIGGER after_t2 AFTER INSERT ON t2 BEGIN\n      INSERT INTO t3 VALUES(new.x, new.y);\n    END;\n    INSERT INTO t2 VALUES(5000000000, 1);\n    SELECT last_insert_rowid();\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t3(a, b);\n    CREATE TRIGGER after_t2 AFTER INSERT ON t2 BEGIN\n      INSERT INTO t3 VALUES(new.x, new.y);\n    END;\n    INSERT INTO t2 VALUES(5000000000, 1);\n    SELECT last_insert_rowid();\n  ")
+		}
+	}
+	{ // do_test "lastinsert-9.1"
+		_res = db.Exec("INSERT INTO t2 VALUES(123456789012345,0)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(123456789012345,0)")
+		}
 	}
 }

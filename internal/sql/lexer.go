@@ -29,6 +29,7 @@ const (
 	TokenSlash     // /
 	TokenMod       // %
 	TokenBitAnd    // &
+	TokenTilde     // ~
 	TokenLParen    // (
 	TokenRParen    // )
 	TokenComma     // ,
@@ -101,7 +102,8 @@ var keywords = map[string]TokenType{
 	"SAVEPOINT": TokenKeyword, "SELECT": TokenKeyword, "SET": TokenKeyword,
 	"STORE": TokenKeyword, "STORED": TokenKeyword, "STRICT": TokenKeyword, "TABLE": TokenKeyword, "TEMP": TokenKeyword, "TEMPORARY": TokenKeyword,
 	"THEN": TokenKeyword, "TO": TokenKeyword, "TRANSACTION": TokenKeyword,
-	"TRIGGER": TokenKeyword, "UNBOUNDED": TokenKeyword, "UNION": TokenKeyword,
+	"TRIGGER": TokenKeyword, "TRUE": TokenKeyword, "FALSE": TokenKeyword,
+	"UNBOUNDED": TokenKeyword, "UNION": TokenKeyword,
 	"UNIQUE": TokenKeyword, "UPDATE": TokenKeyword, "USING": TokenKeyword,
 	"VACUUM": TokenKeyword, "VALUES": TokenKeyword, "VIEW": TokenKeyword,
 	"VIRTUAL": TokenKeyword, "WHEN": TokenKeyword, "WHERE": TokenKeyword,
@@ -138,7 +140,16 @@ func (t *Tokenizer) Next() Token {
 		return t.readIdent()
 	case ch == '?':
 		t.pos++
-		t.last = Token{Type: TokenParam, Value: "?", Pos: pos}
+		// Handle ?NNN numbered parameters
+		if t.pos < len(t.input) && t.input[t.pos] >= '0' && t.input[t.pos] <= '9' {
+			paramStart := t.pos
+			for t.pos < len(t.input) && t.input[t.pos] >= '0' && t.input[t.pos] <= '9' {
+				t.pos++
+			}
+			t.last = Token{Type: TokenParam, Value: "?" + t.input[paramStart:t.pos], Pos: pos}
+		} else {
+			t.last = Token{Type: TokenParam, Value: "?", Pos: pos}
+		}
 		return t.last
 	case ch == '$':
 		return t.readDollarParam(pos)
@@ -206,7 +217,7 @@ func (t *Tokenizer) trySingleCharToken(ch byte, pos int) *Token {
 			return &Token{Type: TokenArrow, Value: "->", Pos: pos}
 		}
 		return t.simpleSingleCharToken(ch, pos)
-	case '+', '*', '/', '(', ')', ',', ';':
+	case '+', '*', '/', '(', ')', ',', ';', '~':
 		return t.simpleSingleCharToken(ch, pos)
 	default:
 		return nil
@@ -241,6 +252,9 @@ func (t *Tokenizer) simpleSingleCharToken(ch byte, pos int) *Token {
 	case ';':
 		typ = TokenSemicolon
 		val = ";"
+	case '~':
+		typ = TokenTilde
+		val = "~"
 	}
 	t.pos++
 	t.last = Token{Type: typ, Value: val, Pos: pos}
@@ -265,6 +279,11 @@ func (t *Tokenizer) tryComment() *Token {
 	}
 	if ch == '/' && t.pos+1 < len(t.input) && t.input[t.pos+1] == '*' {
 		t.skipBlockComment()
+		tok := t.Next()
+		return &tok
+	}
+	if ch == '#' {
+		t.skipLineComment()
 		tok := t.Next()
 		return &tok
 	}

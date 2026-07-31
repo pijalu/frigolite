@@ -56,6 +56,8 @@ func Test_createtab(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	var upperBound = "2"
+	_ = upperBound // suppress unused warning
 	av = "0"
 	_ = av // suppress unused warning
 	for func() bool { av_n, _av_e := strconv.Atoi(av); if _av_e != nil { return false }; upperBound_n, _upperBound_e := strconv.Atoi(upperBound); if _upperBound_e != nil { return false }; return av_n <= upperBound_n }() {
@@ -74,6 +76,8 @@ func Test_createtab(t *testing.T) {
 			}
 		}
 		isUtf16 = "0"
+		_ = isUtf16 // suppress unused warning
+		isUtf16 = tclExpr("[execsql {PRAGMA encoding}] != \"UTF-8\"")
 		_ = isUtf16 // suppress unused warning
 		{ // do_test "createtab-" + av + ".2"
 			// file size test.db

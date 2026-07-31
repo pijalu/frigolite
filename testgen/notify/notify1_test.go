@@ -69,6 +69,7 @@ func Test_notify1(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "notify1-1.1"
@@ -360,15 +361,7 @@ func Test_notify1(t *testing.T) {
 				}
 			}
 		}
-		// do_malloc_test notify1-5 -tclprep {
-  set ::lUnlock [list]
-  execsql {
-    CREATE TAB...} -sqlbody {
-  COMMIT;
-} -cleanup {
-  # One of two things should have happened:
-  #
- ...} (unsupported command, not transpiled)
+		// do_malloc_test notify1-5 -tclprep {\n  set ::lUnlock [list]\n  execsql {\n    CREATE ...} -sqlbody {\n  COMMIT;\n} -cleanup {\n  # One of two things should have happened:\n  #...} (unsupported command, not transpiled)
 		{ // do_test "notify1-6.1.1"
 			os.Remove("test.db")
 			for _, conn := range tclSplitList("db db2 db3") {

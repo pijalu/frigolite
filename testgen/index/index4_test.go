@@ -76,6 +76,30 @@ func Test_index4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	soft_limit = "sqlite3_soft_heap_limit 50000"
+	_ = soft_limit // suppress unused warning
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // "1.4"
+		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    CREATE INDEX i2 ON t1(x);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    CREATE INDEX i2 ON t1(x);\n  ")
+		}
+	}
+	{ // "1.5"
+		r = db.Query("\n    PRAGMA integrity_check \n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check \n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
 	{ // "1.6"
 		r = db.Query("\n  BEGIN;\n    DROP TABLE t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('a');\n    INSERT INTO t1 VALUES('b');\n    INSERT INTO t1 VALUES('c');\n    INSERT INTO t1 VALUES('d');\n    INSERT INTO t1 VALUES('e');\n    INSERT INTO t1 VALUES('f');\n    INSERT INTO t1 VALUES('g');\n    INSERT INTO t1 VALUES(NULL);\n    INSERT INTO t1 SELECT randomblob(1202) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(2202) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(3202) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(4202) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(5202) FROM t1;     --   256\n  COMMIT;\n  CREATE INDEX i1 ON t1(x); \n  PRAGMA integrity_check\n")
 		if r.Error != nil {

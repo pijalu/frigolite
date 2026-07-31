@@ -136,20 +136,8 @@ func Test_sortfault(t *testing.T) {
 			_ = str // suppress unused warning
 			_putsMsg := threadsmode
 			_ = _putsMsg
-			// do_faultsim_test 1.$tn -prep {
-    sqlite3 db test.db
-    sqlite3_test_control S...} -body {
-    execsql { 
-      WITH r(x,y) AS (
-          S...} -test {
-    faultsim_test_result {0 {40 1000 40 1000 40 1...} (unsupported command, not transpiled)
-			// do_faultsim_test 2.$tn -faults oom* -prep {
-    sqlite3 db test.db
-    sqlite3_test_control S...} -body {
-    execsql { 
-      WITH r(x,y) AS (
-          S...} -test {
-    faultsim_test_result {0 {20 1000 20 1000 20 1...} (unsupported command, not transpiled)
+			// do_faultsim_test 1.$tn -prep {\n    sqlite3 db test.db\n    sqlite3_test_control...} -body {\n    execsql { \n      WITH r(x,y) AS (\n        ...} -test {\n    faultsim_test_result {0 {40 1000 40 1000 40 ...} (unsupported command, not transpiled)
+			// do_faultsim_test 2.$tn -faults oom* -prep {\n    sqlite3 db test.db\n    sqlite3_test_control...} -body {\n    execsql { \n      WITH r(x,y) AS (\n        ...} -test {\n    faultsim_test_result {0 {20 1000 20 1000 20 ...} (unsupported command, not transpiled)
 			if func() bool { mmap_limit_n, _mmap_limit_e := strconv.Atoi(mmap_limit); if _mmap_limit_e != nil { return false }; return mmap_limit_n > 1000000 }() {
 				str2 = "$str 10"
 				_ = str2 // suppress unused warning
@@ -162,11 +150,7 @@ func Test_sortfault(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 5 ")
 				}
-				// do_faultsim_test 3.$tn -faults oom-trans* -body {
-      execsql { 
-        WITH r(x,y) AS (
-       ...} -test {
-      faultsim_test_result {0 {60 10000 60 10000 ...} (unsupported command, not transpiled)
+				// do_faultsim_test 3.$tn -faults oom-trans* -body {\n      execsql { \n        WITH r(x,y) AS (\n    ...} -test {\n      faultsim_test_result {0 {60 10000 60 10000...} (unsupported command, not transpiled)
 				// sqlite3_memdebug_vfs_oom_test 1 (unsupported command, not transpiled)
 			}
 		}
@@ -211,12 +195,7 @@ func Test_sortfault(t *testing.T) {
 			}
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
-		// do_faultsim_test 4.2 -faults oom* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { CREATE UNIQUE INDEX i1 ON t1(a,b,c) }...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+		// do_faultsim_test 4.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE UNIQUE INDEX i1 ON t1(a,b,c) ...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -232,8 +211,5 @@ func Test_sortfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES($a, $b, $c); \n  INSERT INTO t1 VALUES($c, $b, $a); \n")
 			}
 		}
-		// do_faultsim_test 5.1 -faults oom* -body {
-  execsql { SELECT * FROM t1 ORDER BY a }
-} -test {
-  faultsim_test_result [list 0 [list $::a $::b $:...} (unsupported command, not transpiled)
+		// do_faultsim_test 5.1 -faults oom* -body {\n  execsql { SELECT * FROM t1 ORDER BY a }\n} -test {\n  faultsim_test_result [list 0 [list $::a $::b $...} (unsupported command, not transpiled)
 }

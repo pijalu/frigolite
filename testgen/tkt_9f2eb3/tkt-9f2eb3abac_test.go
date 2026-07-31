@@ -75,10 +75,5 @@ func Test_tkt_9f2eb3abac(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 3 -faults oom* -prep {
-  faultsim_restore_and_reopen
-  execsql { SELECT ...} -body {
-  execsql { SELECT * FROM t1,t2 WHERE a=? AND b=?...} -test {
-  faultsim_test_result {0 {}} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELEC...} -body {\n  execsql { SELECT * FROM t1,t2 WHERE a=? AND b=...} -test {\n  faultsim_test_result {0 {}} \n} (unsupported command, not transpiled)
 }

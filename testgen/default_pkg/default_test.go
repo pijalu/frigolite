@@ -49,6 +49,12 @@ func Test_default(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	{ // do_test "default-1.1"
+		r = db.Query("\n      CREATE TABLE t1(\n        a INTEGER,\n        b BLOB DEFAULT x'6869'\n      );\n      INSERT INTO t1(a) VALUES(1);\n      SELECT * from t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(\n        a INTEGER,\n        b BLOB DEFAULT x'6869'\n      );\n      INSERT INTO t1(a) VALUES(1);\n      SELECT * from t1;\n    ")
+		}
+	}
 	{ // do_test "default-1.2"
 		r = db.Query("\n    CREATE TABLE t2(\n      x INTEGER,\n      y INTEGER DEFAULT NULL\n    );\n    INSERT INTO t2(x) VALUES(1);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
@@ -58,6 +64,18 @@ func Test_default(t *testing.T) {
 	{ // do_test "default-1.3"
 		_res = db.Exec("\n    CREATE TABLE t3(\n      x INTEGER,\n      y INTEGER DEFAULT (max(x,5))\n    )\n  ")
 		_ = _res // catchsql
+	}
+	{ // do_test "default-2.1"
+		r = db.Query("\n      CREATE TABLE t4(c DEFAULT 'abc');\n      PRAGMA table_info(t4);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t4(c DEFAULT 'abc');\n      PRAGMA table_info(t4);\n    ")
+		}
+	}
+	{ // do_test "default-2.2"
+		r = db.Query("\n      INSERT INTO t4 DEFAULT VALUES;\n      PRAGMA table_info(t4);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 DEFAULT VALUES;\n      PRAGMA table_info(t4);\n    ")
+		}
 	}
 	{ // "default-3.1"
 		r = db.Query("\n  CREATE TABLE t3(\n    a INTEGER PRIMARY KEY AUTOINCREMENT,\n    b INT DEFAULT 12345 UNIQUE NOT NULL CHECK( b>=0 AND b<99999 ),\n    c VARCHAR(123,456) DEFAULT 'hello' NOT NULL ON CONFLICT REPLACE,\n    d REAL,\n    e FLOATING POINT(5,10) DEFAULT 4.36,\n    f NATIONAL CHARACTER(15) COLLATE RTRIM,\n    g LONG INTEGER DEFAULT( 3600*12 )\n  );\n  INSERT INTO t3 VALUES(null, 5, 'row1', '5.25', 'xyz', 321, '432');\n  SELECT a, typeof(a), b, typeof(b), c, typeof(c), \n         d, typeof(d), e, typeof(e), f, typeof(f),\n         g, typeof(g) FROM t3;\n")

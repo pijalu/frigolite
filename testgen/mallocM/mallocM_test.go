@@ -56,11 +56,7 @@ func Test_mallocM(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n")
 		}
 	}
-	// do_faultsim_test 1 -faults oom* -body {
-  execsql {
-    SELECT 'abc' FROM ( SELECT 'xyz' ...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom* -body {\n  execsql {\n    SELECT 'abc' FROM ( SELECT 'xyz...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	{ // "2.0.1"
 		r = db.Query(" SELECT instr(x'', x'') ")
 		if r.Error != nil {
@@ -97,14 +93,6 @@ func Test_mallocM(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_faultsim_test 2.1 -faults oom* -body {
-  execsql { SELECT instr (x'00', zeroblob(1)) }
-} -test {
-  faultsim_test_result {0 1}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 2.2 -faults oom* -body {
-  execsql { SELECT instr (zeroblob(1), x'00') }
-} -test {
-  faultsim_test_result {0 1}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 2.1 -faults oom* -body {\n  execsql { SELECT instr (x'00', zeroblob(1)) }\...} -test {\n  faultsim_test_result {0 1}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 2.2 -faults oom* -body {\n  execsql { SELECT instr (zeroblob(1), x'00') }\...} -test {\n  faultsim_test_result {0 1}\n} (unsupported command, not transpiled)
 }

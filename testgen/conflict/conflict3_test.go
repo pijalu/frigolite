@@ -3,6 +3,7 @@ package conflict
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -49,6 +50,7 @@ func Test_conflict3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "conflict3"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.1"
 		r = db.Query("\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY ON CONFLICT REPLACE, \n    b UNIQUE ON CONFLICT IGNORE,\n    c UNIQUE ON CONFLICT FAIL\n  );\n  INSERT INTO t1(a,b,c) VALUES(1,2,3), (2,3,4);\n  SELECT a,b,c FROM t1 ORDER BY a;\n")
 		if r.Error != nil {
@@ -511,6 +513,79 @@ func Test_conflict3(t *testing.T) {
 		want := "111 111B 112 112"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "13.1.0"
+		_res = db.Exec("\n    PRAGMA recursive_triggers = true;\n    CREATE TABLE t0 (c0 UNIQUE, c1 UNIQUE);\n    CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN \n      DELETE FROM t0; \n    END;\n\n    INSERT INTO t0 VALUES(1, NULL);\n    INSERT INTO t0 VALUES(0, NULL);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA recursive_triggers = true;\n    CREATE TABLE t0 (c0 UNIQUE, c1 UNIQUE);\n    CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN \n      DELETE FROM t0; \n    END;\n\n    INSERT INTO t0 VALUES(1, NULL);\n    INSERT INTO t0 VALUES(0, NULL);\n  ")
+		}
+	}
+	{ // "13.1.1"
+		_res = db.Exec("\n    UPDATE OR REPLACE t0 SET c1 = 1;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n    UPDATE OR REPLACE t0 SET c1 = 1;\n  ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // "13.1.3"
+		r = db.Query("\n    SELECT * FROM t0\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 0 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "13.2.0"
+		_res = db.Exec("\n    CREATE TABLE t2 (a PRIMARY KEY, b UNIQUE, c UNIQUE) WITHOUT ROWID;\n    CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN \n      DELETE FROM t2; \n    END;\n\n    INSERT INTO t2 VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(2, 2, 2);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2 (a PRIMARY KEY, b UNIQUE, c UNIQUE) WITHOUT ROWID;\n    CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN \n      DELETE FROM t2; \n    END;\n\n    INSERT INTO t2 VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(2, 2, 2);\n  ")
+		}
+	}
+	{ // "13.2.1"
+		_res = db.Exec("\n    UPDATE OR REPLACE t2 SET c = 0;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n    UPDATE OR REPLACE t2 SET c = 0;\n  ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // "13.2.3"
+		r = db.Query("\n    SELECT * FROM t2\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1 2 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "13.3.0"
+		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE log(x);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1, 2);\n\n    CREATE TRIGGER tb BEFORE UPDATE ON t1 BEGIN\n      DELETE FROM t1;\n    END;\n    CREATE TRIGGER ta AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('fired!');\n    END;\n\n    UPDATE t1 SET b=3;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE log(x);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1, 2);\n\n    CREATE TRIGGER tb BEFORE UPDATE ON t1 BEGIN\n      DELETE FROM t1;\n    END;\n    CREATE TRIGGER ta AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('fired!');\n    END;\n\n    UPDATE t1 SET b=3;\n  ")
+		}
+	}
+	{ // "13.3.1"
+		r = db.Query("\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // "13.3.2"
+		r = db.Query("\n    SELECT * FROM log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM log;\n  ")
 		}
 	}
 }

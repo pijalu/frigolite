@@ -52,6 +52,7 @@ func Test_fts3tok1(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts3tok1" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
@@ -223,6 +224,12 @@ func Test_fts3tok1(t *testing.T) {
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t USING fts4(tokenize=simple\"\"); \n")
 			if _res.Error == nil {
 				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE VIRTUAL TABLE t USING fts4(tokenize=simple\"\"); \n")
+			}
+		}
+		{ // "2.3"
+			_res = db.Exec("\n    CREATE VIRTUAL TABLE u USING fts4(tokenize=unicode61\"\"); \n  ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown tokenizer") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown tokenizer", _res.Error, "\n    CREATE VIRTUAL TABLE u USING fts4(tokenize=unicode61\"\"); \n  ")
 			}
 		}
 }

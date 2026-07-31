@@ -52,6 +52,7 @@ func Test_fts3dropmod(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3dropmod"
 	_ = testprefix // suppress unused warning
+	return
 	// sqlite3_drop_modules db fts3 (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n")

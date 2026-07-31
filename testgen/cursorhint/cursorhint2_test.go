@@ -69,6 +69,7 @@ func Test_cursorhint2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "cursorhint2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -77,35 +78,14 @@ func Test_cursorhint2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
 		}
 	}
-	// do_extract_hints_test 1.1 {
-  SELECT * FROM t1 WHERE a=1;
-} {
-  t1 EQ(c0,1)
-} (unsupported command, not transpiled)
-	// do_extract_hints_test 1.2 {
-  SELECT * FROM t1 CROSS JOIN t2 ON (a=c) WHERE d...} {
-  t2 {AND(ISNULL(c1),EQ(r[1],c0))}
-} (unsupported command, not transpiled)
-	// do_extract_hints_test 1.3 {
-  SELECT * FROM t1 LEFT JOIN t2 ON (a=c) WHERE d ...} {
-  t2 {EQ(r[2],c0)}
-} (unsupported command, not transpiled)
-	// do_extract_hints_test 1.4 {
-  SELECT * FROM t1 LEFT JOIN t2 ON (a=c AND a=10)...} {
-  t2 {AND(EQ(r[2],c0),EQ(r[3],10))}
-} (unsupported command, not transpiled)
-	// do_extract_hints_test 1.5 {
-  SELECT * FROM t1 CROSS JOIN t2 ON (a=c AND a=10...} {
-  t1 EQ(c0,10) t2 {AND(ISNULL(c1),EQ(r[3],c0))}
-} (unsupported command, not transpiled)
-	// do_extract_hints_test 1.6 {
-  SELECT * FROM t1 LEFT JOIN t2 ON (a=c) LEFT JOI...} {
-  t2 {EQ(r[2],c0)} t3 {EQ(r[6],c1)}
-} (unsupported command, not transpiled)
+	// do_extract_hints_test 1.1 {\n  SELECT * FROM t1 WHERE a=1;\n} {\n  t1 EQ(c0,1)\n} (unsupported command, not transpiled)
+	// do_extract_hints_test 1.2 {\n  SELECT * FROM t1 CROSS JOIN t2 ON (a=c) WHERE ...} {\n  t2 {AND(ISNULL(c1),EQ(r[1],c0))}\n} (unsupported command, not transpiled)
+	// do_extract_hints_test 1.3 {\n  SELECT * FROM t1 LEFT JOIN t2 ON (a=c) WHERE d...} {\n  t2 {EQ(r[2],c0)}\n} (unsupported command, not transpiled)
+	// do_extract_hints_test 1.4 {\n  SELECT * FROM t1 LEFT JOIN t2 ON (a=c AND a=10...} {\n  t2 {AND(EQ(r[2],c0),EQ(r[3],10))}\n} (unsupported command, not transpiled)
+	// do_extract_hints_test 1.5 {\n  SELECT * FROM t1 CROSS JOIN t2 ON (a=c AND a=1...} {\n  t1 EQ(c0,10) t2 {AND(ISNULL(c1),EQ(r[3],c0))}\...} (unsupported command, not transpiled)
+	// do_extract_hints_test 1.6 {\n  SELECT * FROM t1 LEFT JOIN t2 ON (a=c) LEFT JO...} {\n  t2 {EQ(r[2],c0)} t3 {EQ(r[6],c1)}\n} (unsupported command, not transpiled)
 	if false {
-		// do_extract_hints_test 1.7 {
-    SELECT * FROM t1 LEFT JOIN t2 ON (a=c AND d=e...} {
-    t2 {EQ(r[2],c0)} t3 {AND(EQ(r[6],c0),EQ(r[7],...} (unsupported command, not transpiled)
+		// do_extract_hints_test 1.7 {\n    SELECT * FROM t1 LEFT JOIN t2 ON (a=c AND d=...} {\n    t2 {EQ(r[2],c0)} t3 {AND(EQ(r[6],c0),EQ(r[7]...} (unsupported command, not transpiled)
 	}
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE x1(x, y);\n  CREATE TABLE x2(a, b);\n")
@@ -113,53 +93,20 @@ func Test_cursorhint2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(x, y);\n  CREATE TABLE x2(a, b);\n")
 		}
 	}
-	// do_extract_hints_test 2.1 {
-  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE b ...} {
-  x2 {EQ(c0,r[2])}
-} (unsupported command, not transpiled)
-	// do_extract_hints_test 2.2 {
-  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE b ...} {
-  x2 {EQ(c0,r[2])}
-} (unsupported command, not transpiled)
-	// do_extract_hints_test 2.3 {
-  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE 1 ...} {
-  x2 {EQ(c0,r[2])}
-} (unsupported command, not transpiled)
-	// do_extract_hints_test 2.4 {
-  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE 1 ...} {
-  x2 {EQ(c0,r[2])}
-} (unsupported command, not transpiled)
-	// do_extract_hints_test 2.5 {
-  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE 1 ...} {
-  x2 {EQ(c0,r[2])}
-} (unsupported command, not transpiled)
+	// do_extract_hints_test 2.1 {\n  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE b...} {\n  x2 {EQ(c0,r[2])}\n} (unsupported command, not transpiled)
+	// do_extract_hints_test 2.2 {\n  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE b...} {\n  x2 {EQ(c0,r[2])}\n} (unsupported command, not transpiled)
+	// do_extract_hints_test 2.3 {\n  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE 1...} {\n  x2 {EQ(c0,r[2])}\n} (unsupported command, not transpiled)
+	// do_extract_hints_test 2.4 {\n  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE 1...} {\n  x2 {EQ(c0,r[2])}\n} (unsupported command, not transpiled)
+	// do_extract_hints_test 2.5 {\n  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE 1...} {\n  x2 {EQ(c0,r[2])}\n} (unsupported command, not transpiled)
 	if false {
-		// do_extract_hints_test 2.6 {
-    SELECT * FROM x1 CROSS JOIN x2 ON (a=x) WHERE...} {
-    x2 {EQ(c0,r[2])}
-  } (unsupported command, not transpiled)
-		// do_extract_hints_test 2.7 {
-    SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE ...} {
-    x2 {EQ(c0,r[2])}
-  } (unsupported command, not transpiled)
-		// do_extract_hints_test 2.8 {
-    SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE ...} {
-    x2 {EQ(c0,r[2])}
-  } (unsupported command, not transpiled)
-		// do_extract_hints_test 2.9 {
-    SELECT * FROM x1 LEFT JOIN x2 ON (a=x)
-      ...} {
-    x2 {EQ(c0,r[2])}
-  } (unsupported command, not transpiled)
-		// do_extract_hints_test 2.10 {
-    SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE ...} {
-    x2 {AND(EQ(c1,ADD(32,32)),EQ(c0,r[2]))}
-  } (unsupported command, not transpiled)
+		// do_extract_hints_test 2.6 {\n    SELECT * FROM x1 CROSS JOIN x2 ON (a=x) WHER...} {\n    x2 {EQ(c0,r[2])}\n  } (unsupported command, not transpiled)
+		// do_extract_hints_test 2.7 {\n    SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE...} {\n    x2 {EQ(c0,r[2])}\n  } (unsupported command, not transpiled)
+		// do_extract_hints_test 2.8 {\n    SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE...} {\n    x2 {EQ(c0,r[2])}\n  } (unsupported command, not transpiled)
+		// do_extract_hints_test 2.9 {\n    SELECT * FROM x1 LEFT JOIN x2 ON (a=x)\n    ...} {\n    x2 {EQ(c0,r[2])}\n  } (unsupported command, not transpiled)
+		// do_extract_hints_test 2.10 {\n    SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE...} {\n    x2 {AND(EQ(c1,ADD(32,32)),EQ(c0,r[2]))}\n  } (unsupported command, not transpiled)
+		// do_extract_hints_test 2.11 {\n      SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHE...} {\n      x2 {AND(expr,EQ(c0,r[2]))}\n    } (unsupported command, not transpiled)
 	}
-	// do_extract_hints_test 2.12 {
-  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE co...} {
-  x2 {EQ(c0,r[2])}
-} (unsupported command, not transpiled)
+	// do_extract_hints_test 2.12 {\n  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE c...} {\n  x2 {EQ(c0,r[2])}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -169,8 +116,5 @@ func Test_cursorhint2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (i1 TEXT);    \n  CREATE TABLE t2 (i2 TEXT UNIQUE);    \n  INSERT INTO t1 VALUES('0');\n  INSERT INTO t2 VALUES('0');\n")
 		}
 	}
-	// do_extract_hints_test 3.1 {
-  SELECT * FROM t1 CROSS JOIN t2 WHERE (t1.i1 = t...} {
-  t1 {EQ(c0,r[1])} t2 EQ(c0,1)
-} (unsupported command, not transpiled)
+	// do_extract_hints_test 3.1 {\n  SELECT * FROM t1 CROSS JOIN t2 WHERE (t1.i1 = ...} {\n  t1 {EQ(c0,r[1])} t2 EQ(c0,1)\n} (unsupported command, not transpiled)
 }

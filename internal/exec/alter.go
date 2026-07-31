@@ -1935,6 +1935,16 @@ func collectExprRefs(expr sql.Expr, refs *[]string) {
 		collectExprRefs(e.Operand, refs)
 	case *sql.IsNotNull:
 		collectExprRefs(e.Operand, refs)
+	case *sql.IsTrue:
+		collectExprRefs(e.Operand, refs)
+	case *sql.IsFalse:
+		collectExprRefs(e.Operand, refs)
+	case *sql.IsDistinctFrom:
+		collectExprRefs(e.Left, refs)
+		collectExprRefs(e.Right, refs)
+	case *sql.IsNotDistinctFrom:
+		collectExprRefs(e.Left, refs)
+		collectExprRefs(e.Right, refs)
 	case *sql.Between:
 		collectExprRefs(e.Operand, refs)
 		collectExprRefs(e.Low, refs)

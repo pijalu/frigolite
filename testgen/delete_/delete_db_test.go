@@ -122,6 +122,68 @@ func Test_delete_db(t *testing.T) {
 		// files (unsupported command, not transpiled)
 	}
 	// delete_all (unsupported command, not transpiled)
+	_dbtmp2, err := frigolite.Open("file:test2.db?8_3_names=1")
+	_ = _dbtmp2 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // do_test "2.1.0"
+		_res = db.Exec("\n      CREATE TABLE t1(x, y);\n      BEGIN;\n        INSERT INTO t1 VALUES(1, 2);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x, y);\n      BEGIN;\n        INSERT INTO t1 VALUES(1, 2);\n    ")
+		}
+		// copydb (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
+	}
+	{ // do_test "2.1.1"
+		// sqlite3_delete_database test3.db (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
+	}
+	{ // do_test "2.2.0"
+		_res = db.Exec("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(3, 4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(3, 4);\n    ")
+		}
+		// copydb (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
+	}
+	{ // do_test "2.2.1"
+		// sqlite3_delete_database test3.db (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
+	}
+	// delete_all (unsupported command, not transpiled)
+	// sqlite3_multiplex_initialize  0 (unsupported command, not transpiled)
+	_dbtmp3, err := frigolite.Open("file:test2.db?8_3_names=1")
+	_ = _dbtmp3 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	// sqlite3_multiplex_control db main chunk_size 32768 (unsupported command, not transpiled)
+	{ // do_test "2.3.0"
+		r = db.Query(" PRAGMA auto_vacuum = 0; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 0; ")
+		}
+		_res = db.Exec("\n      CREATE TABLE x1(a, b);\n      WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n      INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n      BEGIN;\n        UPDATE x1 SET a=randomblob(101)\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE x1(a, b);\n      WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n      INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n      BEGIN;\n        UPDATE x1 SET a=randomblob(101)\n    ")
+		}
+		// copydb (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
+	}
+	{ // do_test "2.3.1"
+		// sqlite3_delete_database test3.db (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
+	}
+	{ // do_test "2.4.0"
+		_res = db.Exec("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      UPDATE x1 SET a=randomblob(102)\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      UPDATE x1 SET a=randomblob(102)\n    ")
+		}
+		// copydb (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
+	}
+	{ // do_test "2.4.1"
+		// sqlite3_delete_database test3.db (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
+	}
+	// delete_all (unsupported command, not transpiled)
 	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
 	{ // do_test "3.0"
 		// file mkdir dir2.db

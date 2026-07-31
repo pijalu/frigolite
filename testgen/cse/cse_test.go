@@ -154,6 +154,18 @@ func Test_cse(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CAST(b AS integer), typeof(b), CAST(b AS text), typeof(b) FROM t1\n  ")
 		}
 	}
+	{ // do_test "cse-1.11"
+		r = db.Query("\n      SELECT *,* FROM t1 WHERE a=2\n      UNION ALL\n      SELECT *,* FROM t1 WHERE a=1\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT *,* FROM t1 WHERE a=2\n      UNION ALL\n      SELECT *,* FROM t1 WHERE a=1\n    ")
+		}
+	}
+	{ // do_test "cse-1.12"
+		r = db.Query("\n      SELECT coalesce(b,c,d,e), a, b, c, d, e FROM t1 WHERE a=2\n      UNION ALL\n      SELECT coalesce(e,d,c,b), e, d, c, b, a FROM t1 WHERE a=1\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT coalesce(b,c,d,e), a, b, c, d, e FROM t1 WHERE a=2\n      UNION ALL\n      SELECT coalesce(e,d,c,b), e, d, c, b, a FROM t1 WHERE a=1\n    ")
+		}
+	}
 	{ // do_test "cse-1.13"
 		r = db.Query("\n     SELECT upper(b), typeof(b), b FROM t1\n  ")
 		if r.Error != nil {
@@ -184,10 +196,10 @@ func Test_cse(t *testing.T) {
 		j = "0"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return j_n < n_n }() {
-			_r = "$j+int(rand()*5)"
+			_r = tclExpr("$j+int(rand()*5)")
 			_ = _r // suppress unused warning
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n > 49 }() {
-				_r = "99-$r"
+				_r = tclExpr("99-$r")
 				_ = _r // suppress unused warning
 			}
 			colset = tclListAppend(colset, "a" + j, "a" + _r)

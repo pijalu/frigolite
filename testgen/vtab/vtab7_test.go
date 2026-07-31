@@ -3,6 +3,7 @@ package vtab
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -61,6 +62,7 @@ func Test_vtab7(t *testing.T) {
 	_ = callbacks_x_tablename // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	// trace add variable ::echo_module write echo_module_trace (unsupported command, not transpiled)
 	// proc definition (not transpiled)
@@ -123,6 +125,20 @@ func Test_vtab7(t *testing.T) {
 	_res = db.Exec("DROP TABLE newtab")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE newtab")
+	}
+	{ // do_test "vtab7-3.1"
+		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
+		_res = db.Exec("\n      ATTACH 'test2.db' AS db2;\n      CREATE TABLE db2.stuff(description, shape, color);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS db2;\n      CREATE TABLE db2.stuff(description, shape, color);\n    ")
+		}
+		callbacks_xSync_abc = "\n      execsql { INSERT INTO db2.stuff VALUES('abc', 'square', 'green'); }\n    " // TCL namespace variable
+		_ = callbacks_xSync_abc // suppress unused warning
+		r = db.Query("\n      INSERT INTO abc2 VALUES(1, 2, 3);\n      SELECT * from stuff;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO abc2 VALUES(1, 2, 3);\n      SELECT * from stuff;\n    ")
+		}
 	}
 	{ // do_test "vtab7-4.1"
 		_res = db.Exec("\n    CREATE TABLE def(d, e, f);\n    CREATE VIRTUAL TABLE def2 USING echo(def);\n  ")

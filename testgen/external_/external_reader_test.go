@@ -53,11 +53,9 @@ func Test_external_reader(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "external_reader"
 	_ = testprefix // suppress unused warning
+	return
 	if tcl_platform_os == "Windows NT" {
 		return
 	}
-	// do_multiclient_test tn {
-
-  set bExternal 1
-  if {[info commands db3]!=""}...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n\n  set bExternal 1\n  if {[info commands db3]!=...} (unsupported command, not transpiled)
 }

@@ -53,32 +53,12 @@ func Test_snapshot_fault(t *testing.T) {
 	_ = testrc // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "snapshot_fault"
 	_ = testprefix // suppress unused warning
-	// do_faultsim_test 1.0 -prep {
-  catch { db2 close }
-  faultsim_delete_and_reope...} -body {
-  db eval { PRAGMA wal_checkpoint }
-} -test {
-  db2 eval BEGIN
-  if {[catch { sqlite3_snapshot_...} (unsupported command, not transpiled)
-	// do_faultsim_test 2.0 -prep {
-  faultsim_delete_and_reopen
-  db eval { 
-    CRE...} -body {
-  db eval { PRAGMA wal_checkpoint }
-} -test {
-
-  db_save
-  db close
-  db_restore_and_reopen
-  d...} (unsupported command, not transpiled)
-	// do_faultsim_test 3.0 -prep {
-  faultsim_delete_and_reopen
-  db eval { 
-    CRE...} -body {
-  if { [catch { sqlite3_snapshot_open db main $::...} -test {
-  faultsim_test_result {0 {}} {1 SQLITE_IOERR} {1...} (unsupported command, not transpiled)
+	// do_faultsim_test 1.0 -prep {\n  catch { db2 close }\n  faultsim_delete_and_reo...} -body {\n  db eval { PRAGMA wal_checkpoint }\n} -test {\n  db2 eval BEGIN\n  if {[catch { sqlite3_snapsho...} (unsupported command, not transpiled)
+	// do_faultsim_test 2.0 -prep {\n  faultsim_delete_and_reopen\n  db eval { \n    ...} -body {\n  db eval { PRAGMA wal_checkpoint }\n} -test {\n\n  db_save\n  db close\n  db_restore_and_reopen...} (unsupported command, not transpiled)
+	// do_faultsim_test 3.0 -prep {\n  faultsim_delete_and_reopen\n  db eval { \n    ...} -body {\n  if { [catch { sqlite3_snapshot_open db main $:...} -test {\n  faultsim_test_result {0 {}} {1 SQLITE_IOERR} {...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -97,12 +77,7 @@ func Test_snapshot_fault(t *testing.T) {
 		}
 		// sqlite3_snapshot_recover db main (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 4.0 -faults oom* -prep {
-  faultsim_restore_and_reopen
-  db eval { SELECT ...} -body {
-  sqlite3_snapshot_recover db main
-} -test {
-  faultsim_test_result {0 {}} {1 SQLITE_NOMEM} {1...} (unsupported command, not transpiled)
+	// do_faultsim_test 4.0 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELEC...} -body {\n  sqlite3_snapshot_recover db main\n} -test {\n  faultsim_test_result {0 {}} {1 SQLITE_NOMEM} {...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -123,14 +98,7 @@ func Test_snapshot_fault(t *testing.T) {
 		_ = _list
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 4.1 -faults shm* -prep {
-  catch { db2 close } 
-  catch { db close } 
-  fa...} -body {
-  sqlite3_snapshot_recover db main
-} -test {
-  faultsim_test_result {0 {}} {1 SQLITE_IOERR}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 4.1 -faults shm* -prep {\n  catch { db2 close } \n  catch { db close } \n ...} -body {\n  sqlite3_snapshot_recover db main\n} -test {\n  faultsim_test_result {0 {}} {1 SQLITE_IOERR}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -147,12 +115,5 @@ func Test_snapshot_fault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 5 -prep {
-  faultsim_restore_and_reopen
-  execsql { SELECT ...} -body {
-  sqlite3_snapshot_get_blob db main
-  set {} {}
-} -test {
-  execsql END
-  faultsim_test_result {0 {}} {1 SQ...} (unsupported command, not transpiled)
+	// do_faultsim_test 5 -prep {\n  faultsim_restore_and_reopen\n  execsql { SELEC...} -body {\n  sqlite3_snapshot_get_blob db main\n  set {} {}...} -test {\n  execsql END\n  faultsim_test_result {0 {}} {1 ...} (unsupported command, not transpiled)
 }

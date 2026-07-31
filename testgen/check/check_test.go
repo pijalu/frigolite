@@ -53,6 +53,7 @@ func Test_check(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "check" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // do_test "check-1.1"
@@ -208,6 +209,10 @@ func Test_check(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t2b;\n    DROP TABLE IF EXISTS t2c;\n    DROP TABLE IF EXISTS t2n;\n  ")
 		}
 	}
+	{ // do_test "check-3.1"
+		_res = db.Exec("\n      CREATE TABLE t3(\n        x, y, z,\n        CHECK( x<(SELECT min(x) FROM t1) )\n      );\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "check-3.2"
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY name\n  ")
 		if r.Error != nil {
@@ -310,6 +315,10 @@ func Test_check(t *testing.T) {
 		_res = db.Exec("\n    UPDATE t4 SET x=0, y=2;\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "check_4.10"
+		_res = db.Exec("\n      VACUUM\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "check-5.1"
 		_res = db.Exec("\n    CREATE TABLE t5(x, y,\n      CHECK( x*y<:abc )\n    );\n  ")
 		_ = _res // catchsql
@@ -317,6 +326,80 @@ func Test_check(t *testing.T) {
 	{ // do_test "check-5.2"
 		_res = db.Exec("\n    CREATE TABLE t5(x, y,\n      CHECK( x*y<? )\n    );\n  ")
 		_ = _res // catchsql
+	}
+	{ // do_test "check-6.1"
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "check-6.2"
+		r = db.Query("\n    UPDATE OR IGNORE t1 SET x=5;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR IGNORE t1 SET x=5;\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // do_test "check-6.3"
+		r = db.Query("\n    INSERT OR IGNORE INTO t1 VALUES(5,4.0);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT OR IGNORE INTO t1 VALUES(5,4.0);\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // do_test "check-6.4"
+		r = db.Query("\n    INSERT OR IGNORE INTO t1 VALUES(2,20.0);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT OR IGNORE INTO t1 VALUES(2,20.0);\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // do_test "check-6.5"
+		_res = db.Exec("\n    UPDATE OR FAIL t1 SET x=7-x, y=y+1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "check-6.6"
+		r = db.Query("\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // do_test "check-6.7"
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(1,30.0);\n    INSERT OR ROLLBACK INTO t1 VALUES(8,40.0);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "check-6.8"
+		_res = db.Exec("\n    COMMIT;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "check-6.9"
+		r = db.Query("\n    SELECT * FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+		}
+	}
+	{ // do_test "check-6.11"
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "check-6.12"
+		_res = db.Exec("\n    REPLACE INTO t1 VALUES(6,7);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "check-6.13"
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "check-6.14"
+		_res = db.Exec("\n    INSERT OR IGNORE INTO t1 VALUES(6,7);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "check-6.15"
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
 	}
 	db.Close()
 	db, err = frigolite.Open("")

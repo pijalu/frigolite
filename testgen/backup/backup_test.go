@@ -162,7 +162,7 @@ func Test_backup(t *testing.T) {
 								// delete_file test2.db (unsupported command, not transpiled)
 							}
 							// eval (dynamic, not transpiled)
-							isMemDest = "$zDestFile eq \":memory:\" || $file_dest eq \"temp\""
+							isMemDest = tclExpr(" $zDestFile eq \":memory:\" || $file_dest eq \"temp\" ")
 							_ = isMemDest // suppress unused warning
 							if false {
 								_putsMsg := "-nonewline"
@@ -535,7 +535,7 @@ func Test_backup(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
 				}
-				// expr [execsql {PRAGMA page_count}] > 10 → "[execsql {PRAGMA page_count}] > 10"
+				// expr [execsql {PRAGMA page_count}] > 10 (not evaluated)
 			}
 			{ // do_test "backup-5." + iTest + ".1.2"
 				// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
@@ -714,7 +714,7 @@ func Test_backup(t *testing.T) {
 			}
 		}
 		{ // do_test "backup-6.2"
-			nTotal = "[file size test.db]/1024"
+			nTotal = tclExpr("[file size test.db]/1024")
 			_ = nTotal // suppress unused warning
 			// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 			// B step 1 (unsupported command, not transpiled)
@@ -931,7 +931,7 @@ func Test_backup(t *testing.T) {
 		{ // do_test "backup-9.1.2"
 			nRemaining = "B remaining"
 			_ = nRemaining // suppress unused warning
-			// expr $nRemaining>100 → "$nRemaining>100"
+			// expr $nRemaining>100 (not evaluated)
 		}
 		{ // do_test "backup-9.1.3"
 			// B step 0 (unsupported command, not transpiled)
@@ -954,19 +954,59 @@ func Test_backup(t *testing.T) {
 			db2.Close()
 		}
 		os.Remove("test.db")
+		os.Remove("bak.db")
+		_dbtmp9, err := frigolite.Open("test.db")
+		_ = _dbtmp9 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db3, err = frigolite.Open("bak.db")
+		if err != nil { t.Fatal(err) }
+		{ // do_test "backup-10.1.1"
+			_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      CREATE INDEX i1 ON t1(a, b);\n      COMMIT;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      CREATE INDEX i1 ON t1(a, b);\n      COMMIT;\n    ")
+			}
+		}
+		{ // do_test "backup-10.1.2"
+			// sqlite3_backup B db3 main db2 main (unsupported command, not transpiled)
+			// B step 5 (unsupported command, not transpiled)
+		}
+		{ // do_test "backup-10.1.3"
+			_res = db.Exec("\n      UPDATE t1 SET b = randstr(500,500);\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET b = randstr(500,500);\n    ")
+			}
+		}
+		// sqlite3_release_memory [expr 1024*1024] (unsupported command, not transpiled)
+		{ // do_test "backup-10.1.3"
+			// B step 50 (unsupported command, not transpiled)
+		}
+		{ // do_test "backup-10.1.4"
+			// B finish (unsupported command, not transpiled)
+		}
+		{ // do_test "backup-10.1.5"
+			r = db.Query(" PRAGMA integrity_check ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+			}
+		}
+		db2.Close()
+		db3.Close()
+		os.Remove("test.db")
 		// foreach {tn file rc} "\n  1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK\n"
-		_items9 := tclSplitList("\n  1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK\n")
-		for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
-			tn := _items9[_idx9+0]
+		_items10 := tclSplitList("\n  1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK\n")
+		for _idx10 := 0; _idx10+3 <= len(_items10); _idx10 += 3 {
+			tn := _items10[_idx10+0]
 			_ = tn // suppress unused warning
-			file := _items9[_idx9+1]
+			file := _items10[_idx10+1]
 			_ = file // suppress unused warning
-			rc := _items9[_idx9+2]
+			rc := _items10[_idx10+2]
 			_ = rc // suppress unused warning
-			_ = _idx9
+			_ = _idx10
 				{ // do_test "backup-10." + tn + ".1"
-					_dbtmp10, err := frigolite.Open(file)
-					_ = _dbtmp10 // sqlite3 db connection
+					_dbtmp11, err := frigolite.Open(file)
+					_ = _dbtmp11 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" \n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n      BEGIN;\n        INSERT INTO t1 VALUES(NULL, randomblob(200));\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n      COMMIT;\n      SELECT count(*) FROM t1;\n    ")
 					if r.Error != nil {
@@ -976,7 +1016,7 @@ func Test_backup(t *testing.T) {
 				{ // do_test "backup-10." + tn + ".2"
 					pgs = "execsql {pragma page_count}"
 					_ = pgs // suppress unused warning
-					// expr $pgs > 50 && $pgs < 75 → "$pgs > 50 && $pgs < 75"
+					// expr $pgs > 50 && $pgs < 75 (not evaluated)
 				}
 				{ // do_test "backup-10." + tn + ".3"
 					os.Remove("bak.db")

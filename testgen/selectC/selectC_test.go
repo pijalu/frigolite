@@ -158,6 +158,10 @@ func Test_selectC(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT uppercaseconversionfunctionwithaverylongname(b) AS x\n      FROM t1\n     ORDER BY x DESC\n  ")
 		}
 	}
+	{ // do_test "selectC-2.1"
+		_res = db.Exec("\n      CREATE TABLE t21a(a,b);\n      INSERT INTO t21a VALUES(1,2);\n      CREATE TABLE t21b(n);\n      CREATE TRIGGER r21 AFTER INSERT ON t21b BEGIN\n        SELECT a FROM t21a WHERE a>new.x UNION ALL\n        SELECT b FROM t21a WHERE b>new.x ORDER BY 1 LIMIT 2;\n      END;\n      INSERT INTO t21b VALUES(6);\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "selectC-3.1"
 		r = db.Query("\n    CREATE TABLE person (\n        org_id          TEXT NOT NULL,\n        nickname        TEXT NOT NULL,\n        license         TEXT,\n        CONSTRAINT person_pk PRIMARY KEY (org_id, nickname),\n        CONSTRAINT person_license_uk UNIQUE (license)\n    );\n    INSERT INTO person VALUES('meyers', 'jack', '2GAT123');\n    INSERT INTO person VALUES('meyers', 'hill', 'V345FMP');\n    INSERT INTO person VALUES('meyers', 'jim', '2GAT138');\n    INSERT INTO person VALUES('smith', 'maggy', '');\n    INSERT INTO person VALUES('smith', 'jose', 'JJZ109');\n    INSERT INTO person VALUES('smith', 'jack', 'THX138');\n    INSERT INTO person VALUES('lakeside', 'dave', '953OKG');\n    INSERT INTO person VALUES('lakeside', 'amy', NULL);\n    INSERT INTO person VALUES('lake-apts', 'tom', NULL);\n    INSERT INTO person VALUES('acorn', 'hideo', 'CQB421');\n    \n    SELECT \n      org_id, \n      count((NOT (org_id IS NULL)) AND (NOT (nickname IS NULL)))\n    FROM person \n    WHERE (CASE WHEN license != '' THEN 1 ELSE 0 END)\n    GROUP BY 1;\n  ")
 		if r.Error != nil {

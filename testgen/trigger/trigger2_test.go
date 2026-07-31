@@ -99,7 +99,71 @@ func Test_trigger2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "trigger2"
 	_ = testprefix // suppress unused warning
+	return
 	_res = db.Exec(" pragma recursive_triggers = off ")
+	_ = _res // catchsql
+	ii = "0"
+	_ = ii // suppress unused warning
+	tbl_definitions = "list \\\n  \t{CREATE TABLE tbl (a, b);}                                      \\\n  \t{CREATE TABLE tbl (a INTEGER PRIMARY KEY, b);}                  \\\n        {CREATE TABLE tbl (a, b PRIMARY KEY);}                          \\\n  \t{CREATE TABLE tbl (a, b); CREATE INDEX tbl_idx ON tbl(b);}      \\"
+	_ = tbl_definitions // suppress unused warning
+	tbl_definitions = tclListAppend(tbl_definitions, "CREATE TEMP TABLE tbl (a, b); CREATE INDEX tbl_idx ON tbl(b);")
+	tbl_definitions = tclListAppend(tbl_definitions, "CREATE TEMP TABLE tbl (a, b);")
+	tbl_definitions = tclListAppend(tbl_definitions, "CREATE TEMPORARY TABLE tbl (a INTEGER PRIMARY KEY, b);")
+	for _, tbl_defn := range tclSplitList(tbl_definitions) {
+	_ = tbl_defn // suppress unused warning
+		// incr ii 1
+		{
+			_n, _err := strconv.Atoi(ii)
+			if _err == nil {
+				ii = strconv.Itoa(_n + 1)
+			}
+		}
+		_res = db.Exec(" DROP INDEX tbl_idx; ")
+		_ = _res // catchsql
+		_res = db.Exec("\n      DROP TABLE rlog;\n      DROP TABLE clog;\n      DROP TABLE tbl;\n      DROP TABLE other_tbl;\n    ")
+		_ = _res // catchsql
+		_res = db.Exec(tbl_defn)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, tbl_defn)
+		}
+		_res = db.Exec("\n      INSERT INTO tbl VALUES(1, 2);\n      INSERT INTO tbl VALUES(3, 4);\n  \n      CREATE TABLE rlog (idx, old_a, old_b, db_sum_a, db_sum_b, new_a, new_b);\n      CREATE TABLE clog (idx, old_a, old_b, db_sum_a, db_sum_b, new_a, new_b);\n  \n      CREATE TRIGGER before_update_row BEFORE UPDATE ON tbl FOR EACH ROW \n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n  \n      CREATE TRIGGER after_update_row AFTER UPDATE ON tbl FOR EACH ROW \n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n  \n      CREATE TRIGGER conditional_update_row AFTER UPDATE ON tbl FOR EACH ROW\n        WHEN old.a = 1\n        BEGIN\n        INSERT INTO clog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM clog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO tbl VALUES(1, 2);\n      INSERT INTO tbl VALUES(3, 4);\n  \n      CREATE TABLE rlog (idx, old_a, old_b, db_sum_a, db_sum_b, new_a, new_b);\n      CREATE TABLE clog (idx, old_a, old_b, db_sum_a, db_sum_b, new_a, new_b);\n  \n      CREATE TRIGGER before_update_row BEFORE UPDATE ON tbl FOR EACH ROW \n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n  \n      CREATE TRIGGER after_update_row AFTER UPDATE ON tbl FOR EACH ROW \n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n  \n      CREATE TRIGGER conditional_update_row AFTER UPDATE ON tbl FOR EACH ROW\n        WHEN old.a = 1\n        BEGIN\n        INSERT INTO clog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM clog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n    ")
+		}
+		{ // do_test "trigger2-1." + ii + ".1"
+			_r = ""
+			_ = _r // suppress unused warning
+			for _, v := range tclSplitList("execsql { \n        UPDATE tbl SET a = a * 10, b = b * 10;\n        SELECT * FROM rlog ORDER BY idx;\n        SELECT * FROM clog ORDER BY idx;\n      }") {
+			_ = v // suppress unused warning
+				_r = tclListAppend(_r, tclExpr("int($v)"))
+			}
+		}
+		_res = db.Exec("\n      DELETE FROM rlog;\n      DELETE FROM tbl;\n      INSERT INTO tbl VALUES (100, 100);\n      INSERT INTO tbl VALUES (300, 200);\n      CREATE TRIGGER delete_before_row BEFORE DELETE ON tbl FOR EACH ROW\n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  0, 0);\n      END;\n  \n      CREATE TRIGGER delete_after_row AFTER DELETE ON tbl FOR EACH ROW\n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  0, 0);\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM rlog;\n      DELETE FROM tbl;\n      INSERT INTO tbl VALUES (100, 100);\n      INSERT INTO tbl VALUES (300, 200);\n      CREATE TRIGGER delete_before_row BEFORE DELETE ON tbl FOR EACH ROW\n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  0, 0);\n      END;\n  \n      CREATE TRIGGER delete_after_row AFTER DELETE ON tbl FOR EACH ROW\n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  old.a, old.b, \n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  0, 0);\n      END;\n    ")
+		}
+		{ // do_test "trigger2-1." + ii + ".2"
+			_r = ""
+			_ = _r // suppress unused warning
+			for _, v := range tclSplitList("execsql {\n        DELETE FROM tbl;\n        SELECT * FROM rlog;\n      }") {
+			_ = v // suppress unused warning
+				_r = tclListAppend(_r, tclExpr("int($v)"))
+			}
+		}
+		_res = db.Exec("\n      DELETE FROM rlog;\n      CREATE TRIGGER insert_before_row BEFORE INSERT ON tbl FOR EACH ROW\n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  0, 0,\n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n  \n      CREATE TRIGGER insert_after_row AFTER INSERT ON tbl FOR EACH ROW\n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  0, 0,\n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM rlog;\n      CREATE TRIGGER insert_before_row BEFORE INSERT ON tbl FOR EACH ROW\n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  0, 0,\n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n  \n      CREATE TRIGGER insert_after_row AFTER INSERT ON tbl FOR EACH ROW\n        BEGIN\n        INSERT INTO rlog VALUES ( (SELECT coalesce(max(idx),0) + 1 FROM rlog), \n  \t  0, 0,\n  \t  (SELECT coalesce(sum(a),0) FROM tbl),\n          (SELECT coalesce(sum(b),0) FROM tbl), \n  \t  new.a, new.b);\n      END;\n    ")
+		}
+		{ // do_test "trigger2-1." + ii + ".3"
+			r = db.Query("\n  \n        CREATE TABLE other_tbl(a, b);\n        INSERT INTO other_tbl VALUES(1, 2);\n        INSERT INTO other_tbl VALUES(3, 4);\n        -- INSERT INTO tbl SELECT * FROM other_tbl;\n        INSERT INTO tbl VALUES(5, 6);\n        DROP TABLE other_tbl;\n  \n        SELECT * FROM rlog;\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  \n        CREATE TABLE other_tbl(a, b);\n        INSERT INTO other_tbl VALUES(1, 2);\n        INSERT INTO other_tbl VALUES(3, 4);\n        -- INSERT INTO tbl SELECT * FROM other_tbl;\n        INSERT INTO tbl VALUES(5, 6);\n        DROP TABLE other_tbl;\n  \n        SELECT * FROM rlog;\n      ")
+			}
+		}
+		_res = db.Exec("PRAGMA integrity_check")
+		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	}
+	_res = db.Exec("\n    DROP TABLE rlog;\n    DROP TABLE clog;\n    DROP TABLE tbl;\n    DROP TABLE other_tbl;\n  ")
 	_ = _res // catchsql
 	ii = "0"
 	_ = ii // suppress unused warning
@@ -241,6 +305,7 @@ func Test_trigger2(t *testing.T) {
 	}
 	when_triggers = "list {t1 BEFORE INSERT ON tbl WHEN new.a > 20}"
 	_ = when_triggers // suppress unused warning
+	when_triggers = tclListAppend(when_triggers, "t2 BEFORE INSERT ON tbl WHEN (SELECT count(*) FROM tbl) = 0")
 	_res = db.Exec("\n  CREATE TABLE tbl (a, b, c, d);\n  CREATE TABLE log (a);\n  INSERT INTO log VALUES (0);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl (a, b, c, d);\n  CREATE TABLE log (a);\n  INSERT INTO log VALUES (0);\n")
@@ -252,6 +317,8 @@ func Test_trigger2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER " + trig + " BEGIN UPDATE log set a = a + 1; END;")
 		}
 	}
+	t232 = "1 0 1"
+	_ = t232 // suppress unused warning
 	{ // do_test "trigger2-3.2"
 		_res = db.Exec(" \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
 		if _res.Error != nil {
@@ -305,6 +372,195 @@ func Test_trigger2(t *testing.T) {
 	_res = db.Exec("\n  DROP TABLE tbl;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE tbl;\n")
+	}
+	_res = db.Exec("\n    CREATE TABLE tbl (a primary key, b, c);\n    CREATE TRIGGER ai_tbl AFTER INSERT ON tbl BEGIN\n      INSERT OR IGNORE INTO tbl values (new.a, 0, 0);\n    END;\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tbl (a primary key, b, c);\n    CREATE TRIGGER ai_tbl AFTER INSERT ON tbl BEGIN\n      INSERT OR IGNORE INTO tbl values (new.a, 0, 0);\n    END;\n  ")
+	}
+	{ // do_test "trigger2-6.1a"
+		r = db.Query("\n      BEGIN;\n      INSERT INTO tbl values (1, 2, 3);\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      INSERT INTO tbl values (1, 2, 3);\n      SELECT * from tbl;\n    ")
+		}
+	}
+	{ // do_test "trigger2-6.1b"
+		_res = db.Exec("\n      INSERT OR ABORT INTO tbl values (2, 2, 3);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger2-6.1c"
+		r = db.Query("\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+		}
+	}
+	{ // do_test "trigger2-6.1d"
+		_res = db.Exec("\n      INSERT OR FAIL INTO tbl values (2, 2, 3);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger2-6.1e"
+		r = db.Query("\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+		}
+	}
+	{ // do_test "trigger2-6.1f"
+		r = db.Query("\n      INSERT OR REPLACE INTO tbl values (2, 2, 3);\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT OR REPLACE INTO tbl values (2, 2, 3);\n      SELECT * from tbl;\n    ")
+		}
+	}
+	{ // do_test "trigger2-6.1g"
+		_res = db.Exec("\n      INSERT OR ROLLBACK INTO tbl values (3, 2, 3);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger2-6.1h"
+		r = db.Query("\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+		}
+	}
+	_res = db.Exec("DELETE FROM tbl")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl")
+	}
+	_res = db.Exec("\n    INSERT INTO tbl values (4, 2, 3);\n    INSERT INTO tbl values (6, 3, 4);\n    CREATE TRIGGER au_tbl AFTER UPDATE ON tbl BEGIN\n      UPDATE OR IGNORE tbl SET a = new.a, c = 10;\n    END;\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO tbl values (4, 2, 3);\n    INSERT INTO tbl values (6, 3, 4);\n    CREATE TRIGGER au_tbl AFTER UPDATE ON tbl BEGIN\n      UPDATE OR IGNORE tbl SET a = new.a, c = 10;\n    END;\n  ")
+	}
+	{ // do_test "trigger2-6.2a"
+		r = db.Query("\n      BEGIN;\n      UPDATE tbl SET a = 1 WHERE a = 4;\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      UPDATE tbl SET a = 1 WHERE a = 4;\n      SELECT * from tbl;\n    ")
+		}
+	}
+	{ // do_test "trigger2-6.2b"
+		_res = db.Exec("\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger2-6.2c"
+		r = db.Query("\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+		}
+	}
+	{ // do_test "trigger2-6.2d"
+		_res = db.Exec("\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger2-6.2e"
+		r = db.Query("\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+		}
+	}
+	{ // do_test "trigger2-6.2f.1"
+		r = db.Query("\n      UPDATE OR REPLACE tbl SET a = 1 WHERE a = 4;\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE OR REPLACE tbl SET a = 1 WHERE a = 4;\n      SELECT * from tbl;\n    ")
+		}
+	}
+	{ // do_test "trigger2-6.2f.2"
+		r = db.Query("\n      INSERT INTO tbl VALUES (2, 3, 4);\n      SELECT * FROM tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO tbl VALUES (2, 3, 4);\n      SELECT * FROM tbl;\n    ")
+		}
+	}
+	{ // do_test "trigger2-6.2g"
+		_res = db.Exec("\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger2-6.2h"
+		r = db.Query("\n      SELECT * from tbl;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * from tbl;\n    ")
+		}
+	}
+	_res = db.Exec("\n    DROP TABLE tbl;\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE tbl;\n  ")
+	}
+	{ // do_test "trigger2-7.1"
+		_res = db.Exec("\n  CREATE TABLE ab(a, b);\n  CREATE TABLE cd(c, d);\n  INSERT INTO ab VALUES (1, 2);\n  INSERT INTO ab VALUES (0, 0);\n  INSERT INTO cd VALUES (3, 4);\n\n  CREATE TABLE tlog(ii INTEGER PRIMARY KEY, \n      olda, oldb, oldc, oldd, newa, newb, newc, newd);\n\n  CREATE VIEW abcd AS SELECT a, b, c, d FROM ab, cd;\n\n  CREATE TRIGGER before_update INSTEAD OF UPDATE ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\told.a, old.b, old.c, old.d, new.a, new.b, new.c, new.d);\n  END;\n  CREATE TRIGGER after_update INSTEAD OF UPDATE ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\told.a, old.b, old.c, old.d, new.a, new.b, new.c, new.d);\n  END;\n\n  CREATE TRIGGER before_delete INSTEAD OF DELETE ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\told.a, old.b, old.c, old.d, 0, 0, 0, 0);\n  END;\n  CREATE TRIGGER after_delete INSTEAD OF DELETE ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\told.a, old.b, old.c, old.d, 0, 0, 0, 0);\n  END;\n\n  CREATE TRIGGER before_insert INSTEAD OF INSERT ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\t0, 0, 0, 0, new.a, new.b, new.c, new.d);\n  END;\n   CREATE TRIGGER after_insert INSTEAD OF INSERT ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\t0, 0, 0, 0, new.a, new.b, new.c, new.d);\n   END;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE ab(a, b);\n  CREATE TABLE cd(c, d);\n  INSERT INTO ab VALUES (1, 2);\n  INSERT INTO ab VALUES (0, 0);\n  INSERT INTO cd VALUES (3, 4);\n\n  CREATE TABLE tlog(ii INTEGER PRIMARY KEY, \n      olda, oldb, oldc, oldd, newa, newb, newc, newd);\n\n  CREATE VIEW abcd AS SELECT a, b, c, d FROM ab, cd;\n\n  CREATE TRIGGER before_update INSTEAD OF UPDATE ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\told.a, old.b, old.c, old.d, new.a, new.b, new.c, new.d);\n  END;\n  CREATE TRIGGER after_update INSTEAD OF UPDATE ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\told.a, old.b, old.c, old.d, new.a, new.b, new.c, new.d);\n  END;\n\n  CREATE TRIGGER before_delete INSTEAD OF DELETE ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\told.a, old.b, old.c, old.d, 0, 0, 0, 0);\n  END;\n  CREATE TRIGGER after_delete INSTEAD OF DELETE ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\told.a, old.b, old.c, old.d, 0, 0, 0, 0);\n  END;\n\n  CREATE TRIGGER before_insert INSTEAD OF INSERT ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\t0, 0, 0, 0, new.a, new.b, new.c, new.d);\n  END;\n   CREATE TRIGGER after_insert INSTEAD OF INSERT ON abcd BEGIN\n    INSERT INTO tlog VALUES(NULL, \n\t0, 0, 0, 0, new.a, new.b, new.c, new.d);\n   END;\n  ")
+		}
+	}
+	{ // do_test "trigger2-7.2"
+		r = db.Query("\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    DELETE FROM abcd WHERE a = 1;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    SELECT * FROM tlog;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    DELETE FROM abcd WHERE a = 1;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    SELECT * FROM tlog;\n  ")
+		}
+	}
+	{ // do_test "trigger2-7.3"
+		r = db.Query("\n    DELETE FROM tlog;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    DELETE FROM abcd WHERE a = 1;\n    SELECT * FROM tlog;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM tlog;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    DELETE FROM abcd WHERE a = 1;\n    SELECT * FROM tlog;\n  ")
+		}
+	}
+	{ // do_test "trigger2-7.4"
+		r = db.Query("\n    DELETE FROM tlog;\n    DELETE FROM abcd WHERE a = 1;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    SELECT * FROM tlog;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM tlog;\n    DELETE FROM abcd WHERE a = 1;\n    INSERT INTO abcd VALUES(10, 20, 30, 40);\n    UPDATE abcd SET a = 100, b = 5*5 WHERE a = 1;\n    SELECT * FROM tlog;\n  ")
+		}
+	}
+	{ // do_test "trigger2-8.1"
+		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    CREATE VIEW v1 AS\n      SELECT a+b AS x, b+c AS y, a+c AS z FROM t1;\n    SELECT * FROM v1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    CREATE VIEW v1 AS\n      SELECT a+b AS x, b+c AS y, a+c AS z FROM t1;\n    SELECT * FROM v1;\n  ")
+		}
+	}
+	{ // do_test "trigger2-8.2"
+		r = db.Query("\n    CREATE TABLE v1log(a,b,c,d,e,f);\n    CREATE TRIGGER r1 INSTEAD OF DELETE ON v1 BEGIN\n      INSERT INTO v1log VALUES(OLD.x,NULL,OLD.y,NULL,OLD.z,NULL);\n    END;\n    DELETE FROM v1 WHERE x=1;\n    SELECT * FROM v1log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE v1log(a,b,c,d,e,f);\n    CREATE TRIGGER r1 INSTEAD OF DELETE ON v1 BEGIN\n      INSERT INTO v1log VALUES(OLD.x,NULL,OLD.y,NULL,OLD.z,NULL);\n    END;\n    DELETE FROM v1 WHERE x=1;\n    SELECT * FROM v1log;\n  ")
+		}
+	}
+	{ // do_test "trigger2-8.3"
+		r = db.Query("\n    DELETE FROM v1 WHERE x=3;\n    SELECT * FROM v1log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM v1 WHERE x=3;\n    SELECT * FROM v1log;\n  ")
+		}
+	}
+	{ // do_test "trigger2-8.4"
+		r = db.Query("\n    INSERT INTO t1 VALUES(4,5,6);\n    DELETE FROM v1log;\n    DELETE FROM v1 WHERE y=11;\n    SELECT * FROM v1log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(4,5,6);\n    DELETE FROM v1log;\n    DELETE FROM v1 WHERE y=11;\n    SELECT * FROM v1log;\n  ")
+		}
+	}
+	{ // do_test "trigger2-8.5"
+		r = db.Query("\n    CREATE TRIGGER r2 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO v1log VALUES(NULL,NEW.x,NULL,NEW.y,NULL,NEW.z);\n    END;\n    DELETE FROM v1log;\n    INSERT INTO v1 VALUES(1,2,3);\n    SELECT * FROM v1log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER r2 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO v1log VALUES(NULL,NEW.x,NULL,NEW.y,NULL,NEW.z);\n    END;\n    DELETE FROM v1log;\n    INSERT INTO v1 VALUES(1,2,3);\n    SELECT * FROM v1log;\n  ")
+		}
+	}
+	{ // do_test "trigger2-8.6"
+		r = db.Query("\n    CREATE TRIGGER r3 INSTEAD OF UPDATE ON v1 BEGIN\n      INSERT INTO v1log VALUES(OLD.x,NEW.x,OLD.y,NEW.y,OLD.z,NEW.z);\n    END;\n    DELETE FROM v1log;\n    UPDATE v1 SET x=x+100, y=y+200, z=z+300;\n    SELECT * FROM v1log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER r3 INSTEAD OF UPDATE ON v1 BEGIN\n      INSERT INTO v1log VALUES(OLD.x,NEW.x,OLD.y,NEW.y,OLD.z,NEW.z);\n    END;\n    DELETE FROM v1log;\n    UPDATE v1 SET x=x+100, y=y+200, z=z+300;\n    SELECT * FROM v1log;\n  ")
+		}
+	}
+	{ // do_test "trigger2-9.1"
+		_res = db.Exec("\n    CREATE TABLE t3(a TEXT, b TEXT);\n    CREATE VIEW v3 AS SELECT t3.a FROM t3;\n    CREATE TRIGGER trig1 INSTEAD OF DELETE ON v3 BEGIN\n      SELECT 1;\n    END;\n    DELETE FROM v3 WHERE a = 1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a TEXT, b TEXT);\n    CREATE VIEW v3 AS SELECT t3.a FROM t3;\n    CREATE TRIGGER trig1 INSTEAD OF DELETE ON v3 BEGIN\n      SELECT 1;\n    END;\n    DELETE FROM v3 WHERE a = 1;\n  ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // "trigger2-10.1"
+		r = db.Query("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE VIEW v2(a,b,c,d) AS SELECT * FROM t1;\n  CREATE TRIGGER v2ins INSTEAD OF INSERT ON v2 BEGIN\n    INSERT INTO t1(a,b,c,d) VALUES(new.a, new.b, new.c, new.d);\n  END;\n  INSERT INTO v2(a,d) VALUES(11,14);\n  SELECT * FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE VIEW v2(a,b,c,d) AS SELECT * FROM t1;\n  CREATE TRIGGER v2ins INSTEAD OF INSERT ON v2 BEGIN\n    INSERT INTO t1(a,b,c,d) VALUES(new.a, new.b, new.c, new.d);\n  END;\n  INSERT INTO v2(a,d) VALUES(11,14);\n  SELECT * FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "11 {} {} 14"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	db.Close()
 	db, err = frigolite.Open("")

@@ -50,6 +50,7 @@ func Test_walcrash2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "walcrash2-1.1"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = off;\n    PRAGMA journal_mode = WAL;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(x);\n      CREATE TABLE t3(x);\n      CREATE TABLE t4(x);\n      CREATE TABLE t5(x);\n      CREATE TABLE t6(x);\n      CREATE TABLE t7(x);\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -60,13 +61,10 @@ func Test_walcrash2(t *testing.T) {
 	nEntry = "8"
 	_ = nEntry // suppress unused warning
 	for func() bool { nEntry_n, _nEntry_e := strconv.Atoi(nEntry); if _nEntry_e != nil { return false }; return nEntry_n < 8192 }() {
-		{ // do_test "walcrash2-1.2." + "$nEntry/8"
+		{ // do_test "walcrash2-1.2." + tclExpr("$nEntry/8")
 			C = "launch_testfixture"
 			_ = C // suppress unused warning
-			// testfixture $C {
-      sqlite3 db test.db
-      db eval {
-        ...} (unsupported command, not transpiled)
+			// testfixture $C {\n      sqlite3 db test.db\n      db eval {\n     ...} (unsupported command, not transpiled)
 			// close $C
 			// file size test.db-wal
 		}

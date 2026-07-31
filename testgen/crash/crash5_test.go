@@ -63,6 +63,9 @@ func Test_crash5(t *testing.T) {
 	_ = rc // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	_putsMsg := "Skipping crash5 tests: not compiled with -DSQLITE_ENABLE_MEMORY_MANAGEMENT..."
+	_ = _putsMsg
+	return
 	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
@@ -80,9 +83,7 @@ func Test_crash5(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', $c);\n    ")
 			}
 			{ // do_test "crash5-" + ii + "." + jj + ".1"
-				// crashsql -delay 1 -file test.db-journal -seed $ii -tclbody [join [list \
-        [list set iFail $jj] {
-     ... {} (unsupported command, not transpiled)
+				// crashsql -delay 1 -file test.db-journal -seed $ii -tclbody [join [list \\n        [list set iFail $jj] {\n   ... {} (unsupported command, not transpiled)
 				// expr 1 → "1"
 			}
 			_dbtmp1, err := frigolite.Open("test.db")

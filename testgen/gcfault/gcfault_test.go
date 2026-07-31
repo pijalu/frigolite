@@ -69,14 +69,8 @@ func Test_gcfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');\n  ")
 			}
 		}
-		// do_faultsim_test 1.$enc.1 -faults oom* -body {
-    execsql { SELECT group_concat(e, (SELECT s FR...} (unsupported command, not transpiled)
-		// do_faultsim_test 1.$enc.2 -faults oom-t* -body {
-    execsql { SELECT string_agg(e, (SELECT s FROM...} (unsupported command, not transpiled)
-		// do_faultsim_test 1.$enc.3 -faults oom-t* -prep {
-    set ::STMT [sqlite3_prepare db {SELECT group_...} -body {
-    while { "SQLITE_ROW"==[sqlite3_step $::STMT] ...} -test {
-    sqlite3_finalize $::STMT
-  } (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.1 -faults oom* -body {\n    execsql { SELECT group_concat(e, (SELECT s F...} (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.2 -faults oom-t* -body {\n    execsql { SELECT string_agg(e, (SELECT s FRO...} (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.3 -faults oom-t* -prep {\n    set ::STMT [sqlite3_prepare db {SELECT group...} -body {\n    while { "SQLITE_ROW"==[sqlite3_step $::STMT]...} -test {\n    sqlite3_finalize $::STMT\n  } (unsupported command, not transpiled)
 	}
 }

@@ -71,6 +71,12 @@ func Test_where6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND 1=c;\n  ")
 		}
 	}
+	{ // do_test "where6-1.5"
+		// explain_no_trace {SELECT * FROM t1 LEFT JOIN t2 ON x=b AND 1=c} (unsupported command, not transpiled)
+	}
+	{ // do_test "where6-1.6"
+		// explain_no_trace {SELECT * FROM t1 LEFT JOIN t2 ON x=b WHERE 1=c} (unsupported command, not transpiled)
+	}
 	{ // do_test "where6-1.11"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE c=1;\n  ")
 		if r.Error != nil {
@@ -112,6 +118,12 @@ func Test_where6(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND 1=c;\n  ")
 		}
+	}
+	{ // do_test "where6-2.5"
+		// explain_no_trace {SELECT * FROM t1 LEFT JOIN t2 ON x=b AND 1=c} (unsupported command, not transpiled)
+	}
+	{ // do_test "where6-2.6"
+		// explain_no_trace {SELECT * FROM t1 LEFT JOIN t2 ON x=b WHERE 1=c} (unsupported command, not transpiled)
 	}
 	{ // do_test "where6-2.11"
 		r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x WHERE c=1;\n  ")

@@ -55,10 +55,5 @@ func Test_tkt_313723c356(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test tkt-313723c356.2 -faults shmerr* -prep {
-  faultsim_restore_and_reopen
-  sqlite3 db2 test....} -body {
-  # At this point, the cache contains all of tabl...} -test {
-  faultsim_test_result {0 1}
-  faultsim_integrity...} (unsupported command, not transpiled)
+	// do_faultsim_test tkt-313723c356.2 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  sqlite3 db2 tes...} -body {\n  # At this point, the cache contains all of tab...} -test {\n  faultsim_test_result {0 1}\n  faultsim_integri...} (unsupported command, not transpiled)
 }

@@ -286,7 +286,7 @@ func Test_tclsqlite(t *testing.T) {
 		_ = msg // suppress unused warning
 		_ = _catchErrMsg // suppress unused warning
 		var _catchErr error
-		// expr x* → "x*"
+		// expr x* (not evaluated)
 		if _catchErr != nil {
 			msg = "1"
 			_catchErrMsg = _catchErr.Error()
@@ -390,6 +390,21 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.12"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "tcl-1.13"
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -566,6 +581,12 @@ func Test_tclsqlite(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t\\u0123x(a int, b\\u1235 float)")
 		}
 	}
+	{ // do_test "tcl-2.2"
+		r = db.Query("PRAGMA table_info(t\\u0123x)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA table_info(t\\u0123x)")
+		}
+	}
 	{ // do_test "tcl-2.3"
 		_res = db.Exec("INSERT INTO t\\u0123x VALUES(1,2.3)")
 		if _res.Error != nil {
@@ -635,10 +656,112 @@ func Test_tclsqlite(t *testing.T) {
 		}
 		rc = tclListAppend(rc, errmsg)
 	}
+	{ // do_test "tcl-3.5"
+		b = "50"
+		_ = b // suppress unused warning
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	{ // do_test "tcl-3.6"
+		b = "500"
+		_ = b // suppress unused warning
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	{ // do_test "tcl-3.7"
+		b = "500"
+		_ = b // suppress unused warning
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	_res = db.Exec("INSERT INTO t1 VALUES(99,510)")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(99,510)")
+	}
 	{ // do_test "tcl-4.1"
 		// proc definition (not transpiled)
 	}
 	{ // do_test "tcl-4.2"
+	}
+	{ // do_test "tcl-5.1"
+		_res = db.Exec("CREATE TABLE t3(a,b,c)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t3(a,b,c)")
+		}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+		}
+		x_1 = "A"
+		_ = x_1 // suppress unused warning
+		x_2 = "B"
+		_ = x_2 // suppress unused warning
+		r = db.Query("\n      INSERT INTO t3 VALUES($::x(1),$::x(2),$::x(3));\n      SELECT * FROM t3\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t3 VALUES($::x(1),$::x(2),$::x(3));\n      SELECT * FROM t3\n    ")
+		}
+	}
+	{ // do_test "tcl-5.2"
+		r = db.Query("\n      SELECT typeof(a), typeof(b), typeof(c) FROM t3\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(a), typeof(b), typeof(c) FROM t3\n    ")
+		}
+	}
+	{ // do_test "tcl-5.3"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+		}
+		x = "binary format h12 686900686f00"
+		_ = x // suppress unused warning
+		_res = db.Exec("\n      UPDATE t3 SET a=$::x;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t3 SET a=$::x;\n    ")
+		}
+		_res = db.Exec("\n      SELECT a FROM t3\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT a FROM t3\n    ")
+		}
+		// binary scan $a h12 adata (test infra, not transpiled)
+	}
+	{ // do_test "tcl-5.4"
+		r = db.Query("\n      SELECT typeof(a), typeof(b), typeof(c) FROM t3\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(a), typeof(b), typeof(c) FROM t3\n    ")
+		}
 	}
 	{ // do_test "tcl-6.1"
 		_res = db.Exec("SELECT * FROM t1")
@@ -739,6 +862,13 @@ func Test_tclsqlite(t *testing.T) {
 		_res = db.Exec("SELECT banu(), banu(1)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT banu(), banu(1)")
+		}
+	}
+	{ // do_test "tcl-9.10"
+		// proc definition (not transpiled)
+		r = db.Query("SELECT r1(10)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT r1(10)")
 		}
 	}
 	{ // do_test "tcl-10.1"
@@ -1079,7 +1209,44 @@ func Test_tclsqlite(t *testing.T) {
 		version = "db version"
 		_ = version // suppress unused warning
 		// scan $version %d.%d.%d a b c (unsupported command, not transpiled)
-		// expr $a*1000000 → "$a*1000000"
+		// expr $a*1000000 (not evaluated)
+	}
+	{ // do_test "tcl-13.1"
+		_res = db.Exec("CREATE TABLE t5(x BLOB)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t5(x BLOB)")
+		}
+		x = "abc123"
+		_ = x // suppress unused warning
+		_res = db.Exec("INSERT INTO t5 VALUES($x)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t5 VALUES($x)")
+		}
+		_res = db.Exec("SELECT typeof(x) FROM t5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(x) FROM t5")
+		}
+	}
+	{ // do_test "tcl-13.2"
+		// binary scan $x H notUsed (test infra, not transpiled)
+		_res = db.Exec("\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES($x);\n      SELECT typeof(x) FROM t5;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES($x);\n      SELECT typeof(x) FROM t5;\n    ")
+		}
+	}
+	{ // do_test "tcl-13.3"
+		_res = db.Exec("\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(@x);\n      SELECT typeof(x) FROM t5;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(@x);\n      SELECT typeof(x) FROM t5;\n    ")
+		}
+	}
+	{ // do_test "tcl-13.4"
+		y = "1234"
+		_ = y // suppress unused warning
+		_res = db.Exec("\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(@y);\n      SELECT hex(x), typeof(x) FROM t5\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(@y);\n      SELECT hex(x), typeof(x) FROM t5\n    ")
+		}
 	}
 	// proc definition (not transpiled)
 	{ // "tcl-14.1"

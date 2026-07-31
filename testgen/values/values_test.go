@@ -489,6 +489,18 @@ func Test_values(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
+			{ // "11.0"
+				_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n  ")
+				}
+			}
+			{ // "11.1"
+				_res = db.Exec("\n    INSERT INTO ft VALUES('one'), ('two');\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO ft VALUES('one'), ('two');\n  ")
+				}
+			}
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

@@ -83,4 +83,27 @@ func Test_tkt3080(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM sqlite_master;\n  ")
 		}
 	}
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	{ // do_test "tkt3080.10"
+		sql = "\n       CREATE VIRTUAL TABLE t4 USING echo(t2);\n       INSERT INTO t4 VALUES(123);\n       DROP TABLE t4;\n     "
+		_ = sql // suppress unused warning
+		_res = db.Exec("\n       DELETE FROM t1;\n       INSERT INTO t1 VALUES($sql);\n     ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       DELETE FROM t1;\n       INSERT INTO t1 VALUES($sql);\n     ")
+		}
+		_res = db.Exec("\n       SELECT execsql(x) FROM t1\n     ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       SELECT execsql(x) FROM t1\n     ")
+		}
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "tkt3080.11"
+		r = db.Query("SELECT * FROM t2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+		}
+	}
 }

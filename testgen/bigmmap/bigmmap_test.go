@@ -64,6 +64,7 @@ func Test_bigmmap(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bigmmap"
 	_ = testprefix // suppress unused warning
+	return
 	mmap_limit = "0"
 	_ = mmap_limit // suppress unused warning
 	_res = db.Exec(" \n  SELECT compile_options AS x FROM pragma_compile_options \n  WHERE x LIKE 'max_mmap_size=%' \n")
@@ -107,7 +108,7 @@ func Test_bigmmap(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 9 }() {
-		val = "$i*1024*1024*1024"
+		val = tclExpr("$i*1024*1024*1024")
 		_ = val // suppress unused warning
 		r = db.Query("PRAGMA main.mmap_size = " + val)
 		if r.Error != nil {

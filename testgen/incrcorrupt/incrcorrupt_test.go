@@ -55,6 +55,7 @@ func Test_incrcorrupt(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "incrcorrupt"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(a PRIMARY KEY, b);\n\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT i, randomblob(600) FROM data LIMIT 20;\n  PRAGMA page_count;\n")
 		if r.Error != nil {

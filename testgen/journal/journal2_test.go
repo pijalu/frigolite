@@ -156,9 +156,9 @@ func Test_journal2(t *testing.T) {
 		// file size test.db-journal
 	}
 	{ // do_test "journal2-1.11"
-		sz = "[file size test.db] / 1024"
+		sz = tclExpr("[file size test.db] / 1024")
 		_ = sz // suppress unused warning
-		// expr $sz>120 && $sz<200 → "$sz>120 && $sz<200"
+		// expr $sz>120 && $sz<200 (not evaluated)
 	}
 	{ // do_test "journal2-1.12"
 		db2, err = frigolite.Open("test.db")
@@ -187,17 +187,17 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.16"
-		sz = "[file size testX.db] / 1024"
+		sz = tclExpr("[file size testX.db] / 1024")
 		_ = sz // suppress unused warning
-		// expr $sz>240 && $sz<400 → "$sz>240 && $sz<400"
+		// expr $sz>240 && $sz<400 (not evaluated)
 	}
 	{ // do_test "journal2-1.17"
-		// expr [catchsql { PRAGMA integrity_check } db] == "0 ok" → "[catchsql { PRAGMA integrity_check } db] == \"0 ok\""
+		// expr [catchsql { PRAGMA integrity_check } db] == "0 ok" (not evaluated)
 	}
 	{ // do_test "journal2-1.20"
 		db2, err = frigolite.Open("testX.db")
 		if err != nil { t.Fatal(err) }
-		// expr [catchsql { PRAGMA integrity_check } db2] == "0 ok" → "[catchsql { PRAGMA integrity_check } db2] == \"0 ok\""
+		// expr [catchsql { PRAGMA integrity_check } db2] == "0 ok" (not evaluated)
 	}
 	{ // do_test "journal2-1.21"
 		db2.Close()
@@ -221,7 +221,7 @@ func Test_journal2(t *testing.T) {
 			_ = oplog // TCL namespace variable (query)
 		}
 		{ // do_test "journal2-2.3"
-			// expr [file size test.db-journal] > 512 → "[file size test.db-journal] > 512"
+			// expr [file size test.db-journal] > 512 (not evaluated)
 		}
 		{ // do_test "journal2-2.4"
 			oplog = "list" // TCL namespace variable

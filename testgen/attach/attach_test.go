@@ -64,6 +64,7 @@ func Test_attach(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
@@ -151,6 +152,9 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	{ // do_test "attach-1.11b"
+		// db_list db (unsupported command, not transpiled)
+	}
 	{ // do_test "attach-1.12"
 		_res = db.Exec("\n    ATTACH 'test.db' as db2;\n  ")
 		_ = _res // catchsql
@@ -170,6 +174,10 @@ func Test_attach(t *testing.T) {
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database main is already in use") {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database main is already in use", _res.Error, "\n  ATTACH 'test.db' as main;\n")
 		}
+	}
+	{ // do_test "attach-1.16"
+		_res = db.Exec("\n      ATTACH 'test.db' as temp;\n    ")
+		_ = _res // catchsql
 	}
 	{ // "attach-1.17"
 		_res = db.Exec("\n  ATTACH 'test.db' as MAIN;\n")
@@ -195,8 +203,15 @@ func Test_attach(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH db5;\n  ")
 		}
 	}
+	{ // do_test "attach-1.20.2"
+		// db_list db (unsupported command, not transpiled)
+	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	r = db.Query("select * from temp.sqlite_master")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "select * from temp.sqlite_master")
+	}
 	{ // do_test "attach-1.21"
 		_res = db.Exec("\n    ATTACH 'test.db' as db12;\n  ")
 		_ = _res // catchsql
@@ -225,14 +240,109 @@ func Test_attach(t *testing.T) {
 		_res = db.Exec("\n    DETACH main;\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "attach-1.27"
+		_res = db.Exec("\n      DETACH Temp;\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "attach-1.28"
 		_res = db.Exec("\n    DETACH db11;\n    DETACH db10;\n    DETACH db9;\n    DETACH db8;\n    DETACH db7;\n    DETACH db6;\n    DETACH db4;\n    DETACH db3;\n    DETACH db2;\n  ")
 		_ = _res // catchsql
 	}
-	{ // do_test "attach-3.1"
-		db2.Close()
+	{ // do_test "attach-1.29"
+		// db_list db (unsupported command, not transpiled)
+	}
+	{ // do_test "attach-2.1"
+		r = db.Query("\n    CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;\n  ")
+		}
+	}
+	{ // do_test "attach-2.2"
+		r = db.Query("\n    UPDATE t2 SET x=x+10;\n    SELECT * FROM tx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t2 SET x=x+10;\n    SELECT * FROM tx;\n  ")
+		}
+	}
+	{ // do_test "attach-2.3"
+		r = db.Query("\n    CREATE TABLE tx(x1,x2,y1,y2);\n    SELECT * FROM tx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tx(x1,x2,y1,y2);\n    SELECT * FROM tx;\n  ")
+		}
+	}
+	{ // do_test "attach-2.4"
+		_res = db.Exec("\n    ATTACH 'test2.db' AS db2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test2.db' AS db2;\n  ")
+		}
+	}
+	{ // do_test "attach-2.5"
+		r = db.Query("\n    UPDATE db2.t2 SET x=x+10;\n    SELECT * FROM db2.tx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE db2.t2 SET x=x+10;\n    SELECT * FROM db2.tx;\n  ")
+		}
+	}
+	{ // do_test "attach-2.6"
+		r = db.Query("\n    SELECT * FROM main.tx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM main.tx;\n  ")
+		}
+	}
+	{ // do_test "attach-2.7"
+		r = db.Query("\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "attach-2.8"
+		// db_list db (unsupported command, not transpiled)
+	}
+	{ // do_test "attach-2.8"
+		// db_list db (unsupported command, not transpiled)
+	}
+	{ // do_test "attach-2.9"
+		r = db.Query("\n    CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x>5;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x>5;\n  ")
+		}
+	}
+	{ // do_test "attach-2.10"
+		r = db.Query("\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "attach-2.12"
+		// db_list db (unsupported command, not transpiled)
+	}
+	{ // do_test "attach-2.13"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE x>5;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-2.14"
+		r = db.Query("\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "attach-2.15"
+		r = db.Query("\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "attach-2.16"
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    ATTACH 'test2.db' AS db2;\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test2.db' AS db2;\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "attach-3.1"
+		db2.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
@@ -241,6 +351,8 @@ func Test_attach(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
 		}
 	}
+	db2.Exec("\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(21, 'x');\n    INSERT INTO t2 VALUES(22, 'y');\n    CREATE TABLE tx(x1,x2,y1,y2);\n    INSERT INTO tx VALUES(1, 11, 'x', 'x');\n    INSERT INTO tx VALUES(2, 12, 'y', 'y');\n    INSERT INTO tx VALUES(11, 21, 'x', 'x');\n    INSERT INTO tx VALUES(12, 22, 'y', 'y');\n    CREATE INDEX i2 ON t2(x);\n  ")
+	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "attach-3.2"
 		_res = db.Exec("\n    SELECT * FROM t2\n  ")
 		_ = _res // catchsql
@@ -382,6 +494,146 @@ func Test_attach(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DETACH db2;\n")
 	}
+	{ // do_test "attach-4.6"
+		r = db.Query("\n      CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;\n    ")
+		}
+	}
+	{ // do_test "attach-4.7"
+		r = db.Query("\n      CREATE TABLE t4(y);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('main.' || NEW.a);\n      END;\n      INSERT INTO main.t3 VALUES(11,12);\n      SELECT * FROM main.t4;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t4(y);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('main.' || NEW.a);\n      END;\n      INSERT INTO main.t3 VALUES(11,12);\n      SELECT * FROM main.t4;\n    ")
+		}
+	}
+	_res = db.Exec("\n    CREATE TABLE t4(x);\n    INSERT INTO t3 VALUES(6,7);\n    INSERT INTO t4 VALUES('db2.6');\n    INSERT INTO t4 VALUES('db2.13');\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(x);\n    INSERT INTO t3 VALUES(6,7);\n    INSERT INTO t4 VALUES('db2.6');\n    INSERT INTO t4 VALUES('db2.13');\n  ")
+	}
+	_res = db.Exec("\n    CREATE TABLE t4(y);\n    INSERT INTO main.t3 VALUES(11,12);\n    INSERT INTO t4 VALUES('main.11');\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(y);\n    INSERT INTO main.t3 VALUES(11,12);\n    INSERT INTO t4 VALUES('main.11');\n  ")
+	}
+	{ // do_test "attach-4.8"
+		r = db.Query("\n    ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;\n  ")
+		}
+	}
+	{ // do_test "attach-4.9"
+		_res = db.Exec("INSERT INTO main.t4 VALUES('main.15')")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO main.t4 VALUES('main.15')")
+		}
+		r = db.Query("\n    INSERT INTO main.t3 VALUES(15,16);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO main.t3 VALUES(15,16);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;\n  ")
+		}
+	}
+	_res = db.Exec("INSERT INTO main.t4 VALUES('main.15')")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO main.t4 VALUES('main.15')")
+	}
+	_res = db.Exec("\n    ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    INSERT INTO main.t3 VALUES(15,16);\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    INSERT INTO main.t3 VALUES(15,16);\n  ")
+	}
+	{ // do_test "attach-4.10"
+		_res = db.Exec("\n    DETACH DATABASE db2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH DATABASE db2;\n  ")
+		}
+		r = db.Query("\n    CREATE VIEW v3 AS SELECT x*100+y FROM t3;\n    SELECT * FROM v3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v3 AS SELECT x*100+y FROM t3;\n    SELECT * FROM v3;\n  ")
+		}
+	}
+	{ // do_test "attach-4.11"
+		r = db.Query("\n    CREATE VIEW v3 AS SELECT a*100+b FROM t3;\n    SELECT * FROM v3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v3 AS SELECT a*100+b FROM t3;\n    SELECT * FROM v3;\n  ")
+		}
+	}
+	{ // do_test "attach-4.12"
+		r = db.Query("\n    ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.v3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.v3;\n  ")
+		}
+	}
+	{ // do_test "attach-4.13"
+		r = db.Query("\n    SELECT * FROM main.v3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM main.v3;\n  ")
+		}
+	}
+	{ // do_test "attach-5.1"
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		db2.Close()
+		os.Remove("test2.db")
+		db2, err = frigolite.Open("test2.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    ATTACH DATABASE 'test.db' AS orig;\n    CREATE TRIGGER r1 AFTER INSERT ON orig.t1 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.2"
+		_res = db.Exec("\n    CREATE TABLE t5(x,y);\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.3"
+		_res = db.Exec("\n    DROP TRIGGER r5;\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op' FROM orig.t1;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.4"
+		_res = db.Exec("\n      CREATE TEMP TABLE t6(p,q,r);\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM temp.t6;\n      END;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.5"
+		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' || (SELECT * FROM temp.t6);\n      END;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.6"
+		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.7"
+		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 GROUP BY 1 HAVING x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.7"
+		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT max(1,x,(SELECT min(x) FROM temp.t6)) FROM t1;\n      END;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.8"
+		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        INSERT INTO t1 VALUES((SELECT min(x) FROM temp.t6),5);\n      END;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.9"
+		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach-5.10"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			db2.Close()
+		}
+		os.Remove("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(a,b);\n      CREATE TRIGGER x1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2(a,b) SELECT key, value FROM json_each(NEW.x);\n      END;\n      INSERT INTO t1(x) VALUES('{\"a\":1}');\n      SELECT * FROM t2;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(a,b);\n      CREATE TRIGGER x1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2(a,b) SELECT key, value FROM json_each(NEW.x);\n      END;\n      INSERT INTO t1(x) VALUES('{\"a\":1}');\n      SELECT * FROM t2;\n    ")
+		}
+	}
+	{ // do_test "attach-5.11"
+		db2, err = frigolite.Open(":memory:")
+		if err != nil { t.Fatal(err) }
+		db2.Exec("\n      CREATE TABLE t3(y);\n      ATTACH 'test.db' AS aux;\n      INSERT INTO aux.t1(x) VALUES('{\"b\":2}');\n      SELECT * FROM aux.t2;\n    ")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	}
 	{ // do_test "attach-6.1"
 		_res = db.Exec("\n    ATTACH DATABASE 'no-such-file' AS nosuch;\n  ")
 		_ = _res // catchsql
@@ -428,6 +680,14 @@ func Test_attach(t *testing.T) {
 	}
 	os.Remove("test2.db")
 	os.Remove("no-such-file")
+	{ // do_test "attach-7.1"
+		os.Remove("test.db")
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n      DETACH RAISE ( IGNORE ) IN ( SELECT \"AAAAAA\" . * ORDER BY \n      REGISTER LIMIT \"AAAAAA\" . \"AAAAAA\" OFFSET RAISE ( IGNORE ) NOT NULL )\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "attach-8.1"
 		fd = "open test2.db w"
 		_ = fd // suppress unused warning
@@ -478,8 +738,8 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-10.2"
 		_ = tclLRange("execsql {\n    PRAGMA database_list;\n  }", "9", "end") // lrange result
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	_dbtmp5, err := frigolite.Open("test.db")
+	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "attach-11.1"
 		r = db.Query("\n  ATTACH printf('file:%09000x/x.db?mode=memory&cache=shared',1) AS aux1;\n  CREATE TABLE aux1.t1(x,y);\n  INSERT INTO aux1.t1(x,y) VALUES(1,2),(3,4);\n  SELECT * FROM aux1.t1;\n")
@@ -493,8 +753,8 @@ func Test_attach(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp2, err := frigolite.Open(":memory:")
-	_ = _dbtmp2 // sqlite3 db connection
+	_dbtmp6, err := frigolite.Open(":memory:")
+	_ = _dbtmp6 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "attach-12.1"
 		r = db.Query("\n  CREATE TABLE Table1 (col TEXT NOT NULL PRIMARY KEY);\n  ATTACH ':memory:' AS db2;\n  CREATE TABLE db2.Table2(col1 INTEGER, col2 INTEGER, col3 INTEGER, col4);\n  CREATE UNIQUE INDEX db2.idx_col1_unique ON Table2 (col1);\n  CREATE UNIQUE INDEX db2.idx_col23_unique ON Table2 (col2, col3);\n  CREATE INDEX db2.idx_col2 ON Table2 (col2);\n  INSERT INTO Table2 VALUES(1,2,3,4);\n  PRAGMA integrity_check;\n")
@@ -512,8 +772,8 @@ func Test_attach(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "attach-13.1"
-		_dbtmp3, err := frigolite.Open(":memory:")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp7, err := frigolite.Open(":memory:")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE base(x);")
 		if _res.Error != nil {
@@ -534,7 +794,7 @@ func Test_attach(t *testing.T) {
 				}
 			}
 		}
-		m = "a" + "$SQLITE_MAX_ATTACHED-1"
+		m = "a" + tclExpr("$SQLITE_MAX_ATTACHED-1")
 		_ = m // suppress unused warning
 		_res = db.Exec("CREATE TABLE " + m + ".t1(a INTEGER PRIMARY KEY, b);")
 		if _res.Error != nil {

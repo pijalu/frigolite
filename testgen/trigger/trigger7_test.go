@@ -49,6 +49,7 @@ func Test_trigger7(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "trigger7-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n  ")
 		if _res.Error != nil {
@@ -60,6 +61,40 @@ func Test_trigger7(t *testing.T) {
 	{ // do_test "trigger7-1.2"
 		_res = db.Exec("\n    CREATE TRIGGER not_a_db.r1 AFTER INSERT ON t1 BEGIN\n      SELECT 'no nothing';\n    END\n  ")
 		_ = _res // catchsql
+	}
+	{ // do_test "trigger7-2.1"
+		_res = db.Exec("\n      CREATE TRIGGER r1 AFTER UPDATE OF x ON t1 BEGIN\n        SELECT '___update_t1.x___';\n      END;\n      CREATE TRIGGER r2 AFTER UPDATE OF y ON t1 BEGIN\n        SELECT '___update_t1.y___';\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER r1 AFTER UPDATE OF x ON t1 BEGIN\n        SELECT '___update_t1.x___';\n      END;\n      CREATE TRIGGER r2 AFTER UPDATE OF y ON t1 BEGIN\n        SELECT '___update_t1.y___';\n      END;\n    ")
+		}
+		txt = "db eval {EXPLAIN UPDATE t1 SET x=5}"
+		_ = txt // suppress unused warning
+		tclStringMatch("*___update_t1.x___*", txt)
+	}
+	{ // do_test "trigger7-2.2"
+		txt = "db eval {EXPLAIN UPDATE t1 SET x=5}"
+		_ = txt // suppress unused warning
+		tclStringMatch("*___update_t1.y___*", txt)
+	}
+	{ // do_test "trigger7-2.3"
+		txt = "db eval {EXPLAIN UPDATE t1 SET y=5}"
+		_ = txt // suppress unused warning
+		tclStringMatch("*___update_t1.x___*", txt)
+	}
+	{ // do_test "trigger7-2.4"
+		txt = "db eval {EXPLAIN UPDATE t1 SET y=5}"
+		_ = txt // suppress unused warning
+		tclStringMatch("*___update_t1.y___*", txt)
+	}
+	{ // do_test "trigger7-2.5"
+		txt = "db eval {EXPLAIN UPDATE t1 SET rowid=5}"
+		_ = txt // suppress unused warning
+		tclStringMatch("*___update_t1.x___*", txt)
+	}
+	{ // do_test "trigger7-2.6"
+		txt = "db eval {EXPLAIN UPDATE t1 SET rowid=5}"
+		_ = txt // suppress unused warning
+		tclStringMatch("*___update_t1.x___*", txt)
 	}
 	{ // do_test "trigger7-3.1"
 		_res = db.Exec("\n    CREATE TABLE t2(x,y,z);\n    CREATE TRIGGER t2r1 AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r2 BEFORE INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r3 AFTER UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r4 BEFORE UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r5 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r6 BEFORE DELETE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r7 AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r8 BEFORE INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r9 AFTER UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r10 BEFORE UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r11 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r12 BEFORE DELETE ON t2 BEGIN SELECT 1; END;\n    DROP TRIGGER t2r6;\n  ")

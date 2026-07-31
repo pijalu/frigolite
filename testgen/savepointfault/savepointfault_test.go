@@ -49,30 +49,8 @@ func Test_savepointfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "savepointfault"
 	_ = testprefix // suppress unused warning
-	// do_malloc_test 1 -sqlprep {
-  CREATE TABLE t1(a, b, c);
-  INSERT INTO t1 VALU...} -sqlbody {
-  SAVEPOINT one;
-    INSERT INTO t1 VALUES(4, 5, ...} (unsupported command, not transpiled)
-	// do_malloc_test 2 -sqlprep {
-  PRAGMA cache_size = 10;
-  CREATE TABLE t1(a, b,...} -sqlbody {
-  PRAGMA cache_size = 10;
-  SAVEPOINT one;
-    DE...} (unsupported command, not transpiled)
-	// do_ioerr_test 3 -sqlprep {
-  CREATE TABLE t1(a, b, c);
-  INSERT INTO t1 VALU...} -sqlbody {
-  BEGIN;
-    UPDATE t1 SET a = 3 WHERE a = 1;
-   ...} -cleanup {
-  db eval {
-    SAVEPOINT one;
-    RELEASE one;
- ...} (unsupported command, not transpiled)
-	// do_malloc_test 4 -start 7 -sqlprep {
-  PRAGMA auto_vacuum = incremental;
-  PRAGMA cach...} -sqlbody {
-  ROLLBACK TO abc;
-} (unsupported command, not transpiled)
+	// do_malloc_test 1 -sqlprep {\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VA...} -sqlbody {\n  SAVEPOINT one;\n    INSERT INTO t1 VALUES(4, 5...} (unsupported command, not transpiled)
+	// do_malloc_test 2 -sqlprep {\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, ...} -sqlbody {\n  PRAGMA cache_size = 10;\n  SAVEPOINT one;\n   ...} (unsupported command, not transpiled)
+	// do_ioerr_test 3 -sqlprep {\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VA...} -sqlbody {\n  BEGIN;\n    UPDATE t1 SET a = 3 WHERE a = 1;\n...} -cleanup {\n  db eval {\n    SAVEPOINT one;\n    RELEASE one...} (unsupported command, not transpiled)
+	// do_malloc_test 4 -start 7 -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  PRAGMA ca...} -sqlbody {\n  ROLLBACK TO abc;\n} (unsupported command, not transpiled)
 }

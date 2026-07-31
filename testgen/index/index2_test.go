@@ -113,7 +113,7 @@ func Test_index2(t *testing.T) {
 			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-				sql += "$j*10000+$i" + ","
+				sql += tclExpr("$j*10000+$i") + ","
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -122,7 +122,7 @@ func Test_index2(t *testing.T) {
 					}
 				}
 			}
-			sql += "$j*10000+1000" + ");"
+			sql += tclExpr("$j*10000+1000") + ");"
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -172,6 +172,10 @@ func Test_index2(t *testing.T) {
 		}
 	}
 	{ // do_test "index2-2.2"
+		r = db.Query("EXPLAIN SELECT c9 FROM t1 ORDER BY c1, c2, c3, c4, c5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN SELECT c9 FROM t1 ORDER BY c1, c2, c3, c4, c5")
+		}
 		r = db.Query("SELECT c9 FROM t1 ORDER BY c1, c2, c3, c4, c5, c6 LIMIT 5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT c9 FROM t1 ORDER BY c1, c2, c3, c4, c5, c6 LIMIT 5")

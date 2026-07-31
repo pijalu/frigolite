@@ -118,6 +118,11 @@ func Test_types3(t *testing.T) {
 		_ = _r_tcl_str
 		_ = _r_tcl
 	}
+	{ // do_test "types3-2.1"
+		V = "db one {SELECT x'616263'}"
+		_ = V // suppress unused warning
+		// tcl_variable_type V (unsupported command, not transpiled)
+	}
 	{ // do_test "types3-2.2"
 		V = "db one {SELECT 123}"
 		_ = V // suppress unused warning

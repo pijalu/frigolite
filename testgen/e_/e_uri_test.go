@@ -288,9 +288,7 @@ func Test_e_uri(t *testing.T) {
 							{ // do_test "5." + tn
 								flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 								_ = flags // suppress unused warning
-								// sqlite3_close [
-      sqlite3_open_v2 $uri $flags $defvfs
-    ] (unsupported command, not transpiled)
+								// sqlite3_close [\n      sqlite3_open_v2 $uri $flags $defvfs\n    ... (unsupported command, not transpiled)
 								_ = vfs // TCL namespace variable (query)
 							}
 						}
@@ -431,20 +429,71 @@ func Test_e_uri(t *testing.T) {
 												// open_uri_error $uri (unsupported command, not transpiled)
 											}
 										}
-										// do_filepath_test 12.1 {
-  parse_uri file://localhost/test.db?an=unknown&p...} {/test.db {an unknown parameter is ok {}}} (unsupported command, not transpiled)
-										// do_filepath_test 12.2 {
-  parse_uri file://localhost/test.db?an&unknown&p...} {/test.db {an {} unknown {} parameter {} is {} ok {...} (unsupported command, not transpiled)
-										// foreach {tn uri parse} "\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n"
-										_items14 := tclSplitList("\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n")
-										for _idx14 := 0; _idx14+3 <= len(_items14); _idx14 += 3 {
+										orig = "sqlite3_enable_shared_cache"
+										_ = orig // suppress unused warning
+										// foreach {tn uri flags shared_default isshared} "\n  1.1   \"file:test.db\"                  \"\"         0    0\n  1.2   \"file:test.db\"                  \"\"         1    1\n  1.3   \"file:test.db\"                  private    0    0\n  1.4   \"file:test.db\"                  private    1    0\n  1.5   \"file:test.db\"                  shared     0    1\n  1.6   \"file:test.db\"                  shared     1    1\n\n  2.1   \"file:test.db?cache=private\"    \"\"         0    0\n  2.2   \"file:test.db?cache=private\"    \"\"         1    0\n  2.3   \"file:test.db?cache=private\"    private    0    0\n  2.4   \"file:test.db?cache=private\"    private    1    0\n  2.5   \"file:test.db?cache=private\"    shared     0    0\n  2.6   \"file:test.db?cache=private\"    shared     1    0\n\n  3.1   \"file:test.db?cache=shared\"     \"\"         0    1\n  3.2   \"file:test.db?cache=shared\"     \"\"         1    1\n  3.3   \"file:test.db?cache=shared\"     private    0    1\n  3.4   \"file:test.db?cache=shared\"     private    1    1\n  3.5   \"file:test.db?cache=shared\"     shared     0    1\n  3.6   \"file:test.db?cache=shared\"     shared     1    1\n"
+										_items14 := tclSplitList("\n  1.1   \"file:test.db\"                  \"\"         0    0\n  1.2   \"file:test.db\"                  \"\"         1    1\n  1.3   \"file:test.db\"                  private    0    0\n  1.4   \"file:test.db\"                  private    1    0\n  1.5   \"file:test.db\"                  shared     0    1\n  1.6   \"file:test.db\"                  shared     1    1\n\n  2.1   \"file:test.db?cache=private\"    \"\"         0    0\n  2.2   \"file:test.db?cache=private\"    \"\"         1    0\n  2.3   \"file:test.db?cache=private\"    private    0    0\n  2.4   \"file:test.db?cache=private\"    private    1    0\n  2.5   \"file:test.db?cache=private\"    shared     0    0\n  2.6   \"file:test.db?cache=private\"    shared     1    0\n\n  3.1   \"file:test.db?cache=shared\"     \"\"         0    1\n  3.2   \"file:test.db?cache=shared\"     \"\"         1    1\n  3.3   \"file:test.db?cache=shared\"     private    0    1\n  3.4   \"file:test.db?cache=shared\"     private    1    1\n  3.5   \"file:test.db?cache=shared\"     shared     0    1\n  3.6   \"file:test.db?cache=shared\"     shared     1    1\n")
+										for _idx14 := 0; _idx14+5 <= len(_items14); _idx14 += 5 {
 											tn := _items14[_idx14+0]
 											_ = tn // suppress unused warning
 											uri := _items14[_idx14+1]
 											_ = uri // suppress unused warning
-											parse := _items14[_idx14+2]
-											_ = parse // suppress unused warning
+											flags := _items14[_idx14+2]
+											_ = flags // suppress unused warning
+											shared_default := _items14[_idx14+3]
+											_ = shared_default // suppress unused warning
+											isshared := _items14[_idx14+4]
+											_ = isshared // suppress unused warning
 											_ = _idx14
-												// do_filepath_test 13.$tn { parse_uri $uri } $parse (unsupported command, not transpiled)
+												os.Remove("test.db")
+												// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
+												_dbtmp15, err := frigolite.Open("test.db")
+												_ = _dbtmp15 // sqlite3 db connection
+												if err != nil { t.Fatal(err) }
+												// sqlite3_enable_shared_cache 0 (unsupported command, not transpiled)
+												_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');\n  ")
+												if _res.Error != nil {
+													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');\n  ")
+												}
+												_f_arr = "SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
+												_ = _f_arr // suppress unused warning
+												f_shared = "concat $f() SQLITE_OPEN_SHAREDCACHE"
+												_ = f_shared // suppress unused warning
+												f_private = "concat $f() SQLITE_OPEN_PRIVATECACHE"
+												_ = f_private // suppress unused warning
+												// sqlite3_enable_shared_cache $shared_default (unsupported command, not transpiled)
+												DB = ""
+												_ = DB // suppress unused warning
+												STMT = "sqlite3_prepare $DB \"SELECT * FROM t1\" -1 dummy"
+												_ = STMT // suppress unused warning
+												_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES('ko');\n  ")
+												if _res.Error != nil {
+													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES('ko');\n  ")
+												}
+												// sqlite3_step $STMT (unsupported command, not transpiled)
+												// sqlite3_finalize $STMT (unsupported command, not transpiled)
+												RES_0 = "not an error"
+												_ = RES_0 // suppress unused warning
+												RES_1 = "database table is locked: t1"
+												_ = RES_1 // suppress unused warning
+												{ // do_test "11." + tn
+													// sqlite3_errmsg $DB (unsupported command, not transpiled)
+												}
+												// sqlite3_close $DB (unsupported command, not transpiled)
 											}
+											// sqlite3_enable_shared_cache $orig (unsupported command, not transpiled)
+											// do_filepath_test 12.1 {\n  parse_uri file://localhost/test.db?an=unknown&...} {/test.db {an unknown parameter is ok {}}} (unsupported command, not transpiled)
+											// do_filepath_test 12.2 {\n  parse_uri file://localhost/test.db?an&unknown&...} {/test.db {an {} unknown {} parameter {} is {} ok {...} (unsupported command, not transpiled)
+											// foreach {tn uri parse} "\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n"
+											_items16 := tclSplitList("\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n")
+											for _idx16 := 0; _idx16+3 <= len(_items16); _idx16 += 3 {
+												tn := _items16[_idx16+0]
+												_ = tn // suppress unused warning
+												uri := _items16[_idx16+1]
+												_ = uri // suppress unused warning
+												parse := _items16[_idx16+2]
+												_ = parse // suppress unused warning
+												_ = _idx16
+													// do_filepath_test 13.$tn { parse_uri $uri } $parse (unsupported command, not transpiled)
+												}
 }

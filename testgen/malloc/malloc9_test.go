@@ -60,13 +60,7 @@ func Test_malloc9(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
-	// do_malloc_test malloc-9.1 -tclprep {
-  set sql {CREATE TABLE t1(x)}
-  set sqlbytes [st...} -tclbody {
-  if {[catch {sqlite3_prepare db $sql $sqlbytes T...} -cleanup {
-  if {$STMT!=""} {
-    sqlite3_finalize $STMT
-  }...} (unsupported command, not transpiled)
+	// do_malloc_test malloc-9.1 -tclprep {\n  set sql {CREATE TABLE t1(x)}\n  set sqlbytes [...} -tclbody {\n  if {[catch {sqlite3_prepare db $sql $sqlbytes ...} -cleanup {\n  if {$STMT!=""} {\n    sqlite3_finalize $STMT\n...} (unsupported command, not transpiled)
 	{ // do_test "malloc9-99.X"
 		{
 			var _catchErr error

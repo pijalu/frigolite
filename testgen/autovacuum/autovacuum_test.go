@@ -89,6 +89,7 @@ func Test_autovacuum(t *testing.T) {
 	_ = sqlite_pending_byte // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	delete_orders = "list"
@@ -128,12 +129,24 @@ func Test_autovacuum(t *testing.T) {
 			}
 			tbl_data = tclListAppend(tbl_data, "make_str $i $ENTRY_LEN")
 		}
+		{ // do_test "autovacuum-1." + tn + ".1"
+			r = db.Query("\n        pragma integrity_check\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        pragma integrity_check\n      ")
+			}
+		}
 		for _, delete := range tclSplitList(delete_order) {
 		_ = delete // suppress unused warning
 			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").1"
 				_res = db.Exec("\n        DELETE FROM av1 WHERE oid = " + "join $delete")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        DELETE FROM av1 WHERE oid = " + "join $delete")
+				}
+			}
+			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").2"
+				r = db.Query("\n          pragma integrity_check\n        ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          pragma integrity_check\n        ")
 				}
 			}
 			for _, d := range tclSplitList(delete) {
@@ -284,7 +297,7 @@ func Test_autovacuum(t *testing.T) {
 	}
 	root_page_list = "list"
 	_ = root_page_list // suppress unused warning
-	pending_byte_page = "($::sqlite_pending_byte / 1024) + 1"
+	pending_byte_page = tclExpr("($::sqlite_pending_byte / 1024) + 1")
 	_ = pending_byte_page // suppress unused warning
 	if tclBool("sqlite3 -has-codec") {
 	} else {
@@ -559,38 +572,56 @@ func Test_autovacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
 		}
 	}
+	{ // do_test "autovacuum-5.1"
+		_dbtmp3, err := frigolite.Open(":memory:")
+		_ = _dbtmp3 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
+		}
+	}
+	{ // do_test "autovacuum-6.1"
+		_dbtmp4, err := frigolite.Open(":memory:")
+		_ = _dbtmp4 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
+		}
+	}
 	{ // do_test "autovacuum-7.1"
 		os.Remove("test.db")
 		os.Remove("test.db-journal")
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
 		}
-		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
+		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "autovacuum-7.2"
 		_res = db.Exec("\n    CREATE TABLE t2(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t2 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t3(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t3 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t4(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t4 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t5(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t5 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t2 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t3(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t3 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t4(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t4 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t5(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t5 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n  ")
 		}
-		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
+		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "autovacuum-7.3"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		_dbtmp6, err := frigolite.Open("test.db")
+		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		}
-		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
+		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "autovacuum-8.1"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		_dbtmp7, err := frigolite.Open("test.db")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

@@ -67,7 +67,7 @@ func Test_fuzz(t *testing.T) {
 			_ = REPEATS // suppress unused warning
 		}
 	}
-	// expr srand(0) → "srand(0)"
+	// expr srand(0) (not evaluated)
 	{ // do_test "fuzz-1.1"
 		r = db.Query("\n    SELECT 'abc' LIKE X'ABCD';\n  ")
 		if r.Error != nil {

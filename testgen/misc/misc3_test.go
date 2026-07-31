@@ -51,6 +51,38 @@ func Test_misc3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	{ // do_test "misc3-1.1"
+		_res = db.Exec("\n      CREATE TABLE t1(a UNIQUE,b);\n      INSERT INTO t1\n        VALUES(1,'a23456789_b23456789_c23456789_d23456789_e23456789_');\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      INSERT INTO t1 VALUES(2,'x');\n      UPDATE t1 SET b=substr(b,1,500);\n      BEGIN;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a UNIQUE,b);\n      INSERT INTO t1\n        VALUES(1,'a23456789_b23456789_c23456789_d23456789_e23456789_');\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      INSERT INTO t1 VALUES(2,'x');\n      UPDATE t1 SET b=substr(b,1,500);\n      BEGIN;\n    ")
+		}
+		_res = db.Exec("UPDATE t1 SET a=CASE a WHEN 2 THEN 1 ELSE a END, b='y';")
+		_ = _res // catchsql
+		r = db.Query("\n      CREATE TABLE t2(x,y);\n      COMMIT;\n      PRAGMA integrity_check;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t2(x,y);\n      COMMIT;\n      PRAGMA integrity_check;\n    ")
+		}
+	}
+	{ // do_test "misc3-1.2"
+		_res = db.Exec("\n      DROP TABLE t1;\n      DROP TABLE t2;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE t1;\n      DROP TABLE t2;\n    ")
+		}
+		_res = db.Exec("VACUUM")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+		}
+		_res = db.Exec("\n      CREATE TABLE t1(a UNIQUE,b);\n      INSERT INTO t1\n      VALUES(1,'a23456789_b23456789_c23456789_d23456789_e23456789_');\n      INSERT INTO t1 SELECT a+1, b||b FROM t1;\n      INSERT INTO t1 SELECT a+2, b||b FROM t1;\n      INSERT INTO t1 SELECT a+4, b FROM t1;\n      INSERT INTO t1 SELECT a+8, b FROM t1;\n      INSERT INTO t1 SELECT a+16, b FROM t1;\n      INSERT INTO t1 SELECT a+32, b FROM t1;\n      INSERT INTO t1 SELECT a+64, b FROM t1;\n      BEGIN;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a UNIQUE,b);\n      INSERT INTO t1\n      VALUES(1,'a23456789_b23456789_c23456789_d23456789_e23456789_');\n      INSERT INTO t1 SELECT a+1, b||b FROM t1;\n      INSERT INTO t1 SELECT a+2, b||b FROM t1;\n      INSERT INTO t1 SELECT a+4, b FROM t1;\n      INSERT INTO t1 SELECT a+8, b FROM t1;\n      INSERT INTO t1 SELECT a+16, b FROM t1;\n      INSERT INTO t1 SELECT a+32, b FROM t1;\n      INSERT INTO t1 SELECT a+64, b FROM t1;\n      BEGIN;\n    ")
+		}
+		_res = db.Exec("UPDATE t1 SET a=CASE a WHEN 128 THEN 127 ELSE a END, b='';")
+		_ = _res // catchsql
+		r = db.Query("\n      INSERT INTO t1 VALUES(200,'hello out there');\n      COMMIT;\n      PRAGMA integrity_check;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(200,'hello out there');\n      COMMIT;\n      PRAGMA integrity_check;\n    ")
+		}
+	}
 	{ // do_test "misc3-2.1"
 		r = db.Query("SELECT 2e-25*0.5e25")
 		if r.Error != nil {
@@ -197,6 +229,109 @@ func Test_misc3(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3(b) VALUES('abc');\n    INSERT INTO t3(b) VALUES('xyz');\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) SELECT b||'d' FROM t3;\n    INSERT INTO t3(b) SELECT b||'e' FROM t3;\n    INSERT INTO t3(b) SELECT b||'f' FROM t3;\n    INSERT INTO t3(b) SELECT b||'g' FROM t3;\n    INSERT INTO t3(b) SELECT b||'h' FROM t3;\n    SELECT count(a), count(b) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3(b) VALUES('abc');\n    INSERT INTO t3(b) VALUES('xyz');\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) SELECT b||'d' FROM t3;\n    INSERT INTO t3(b) SELECT b||'e' FROM t3;\n    INSERT INTO t3(b) SELECT b||'f' FROM t3;\n    INSERT INTO t3(b) SELECT b||'g' FROM t3;\n    INSERT INTO t3(b) SELECT b||'h' FROM t3;\n    SELECT count(a), count(b) FROM t3;\n  ")
+		}
+	}
+	{ // do_test "misc3-4.2"
+		r = db.Query("\n      SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3);\n    ")
+		}
+	}
+	{ // do_test "misc3-4.3"
+		r = db.Query("\n      SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3 ORDER BY a+1);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3 ORDER BY a+1);\n    ")
+		}
+	}
+	{ // do_test "misc3-5.1"
+		r = db.Query("\n      CREATE TABLE x1 (b, c);\n      INSERT INTO x1 VALUES('dog',3);\n      INSERT INTO x1 VALUES('cat',1);\n      INSERT INTO x1 VALUES('dog',4);\n      CREATE TABLE x2 (c, e);\n      INSERT INTO x2 VALUES(1,'one');\n      INSERT INTO x2 VALUES(2,'two');\n      INSERT INTO x2 VALUES(3,'three');\n      INSERT INTO x2 VALUES(4,'four');\n      SELECT x2.c AS c, e, b FROM x2 LEFT JOIN\n         (SELECT b, max(c)+0 AS c FROM x1 GROUP BY b)\n         USING(c);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE x1 (b, c);\n      INSERT INTO x1 VALUES('dog',3);\n      INSERT INTO x1 VALUES('cat',1);\n      INSERT INTO x1 VALUES('dog',4);\n      CREATE TABLE x2 (c, e);\n      INSERT INTO x2 VALUES(1,'one');\n      INSERT INTO x2 VALUES(2,'two');\n      INSERT INTO x2 VALUES(3,'three');\n      INSERT INTO x2 VALUES(4,'four');\n      SELECT x2.c AS c, e, b FROM x2 LEFT JOIN\n         (SELECT b, max(c)+0 AS c FROM x1 GROUP BY b)\n         USING(c);\n    ")
+		}
+	}
+	{ // do_test "misc3-5.2"
+		r = db.Query("\n      SELECT * FROM (\n        SELECT x2.c AS c, e, b FROM x2 LEFT JOIN\n           (SELECT b, max(c)+0 AS c FROM x1 GROUP BY b)\n           USING(c)\n      );\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT x2.c AS c, e, b FROM x2 LEFT JOIN\n           (SELECT b, max(c)+0 AS c FROM x1 GROUP BY b)\n           USING(c)\n      );\n    ")
+		}
+	}
+	{ // do_test "misc3-6.1"
+		r = db.Query("EXPLAIN BEGIN")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN BEGIN")
+		}
+		_res = db.Exec("BEGIN")
+		_ = _res // catchsql
+	}
+	{ // do_test "misc3-6.2"
+		r = db.Query("EXPLAIN COMMIT")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN COMMIT")
+		}
+		_res = db.Exec("COMMIT")
+		_ = _res // catchsql
+	}
+	{ // do_test "misc3-6.3"
+		r = db.Query("BEGIN; EXPLAIN ROLLBACK")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; EXPLAIN ROLLBACK")
+		}
+		_res = db.Exec("ROLLBACK")
+		_ = _res // catchsql
+	}
+	{ // do_test "misc3-6.10"
+		x = "execsql {\n      CREATE TABLE ex1(\n        a INTEGER DEFAULT 54321,\n        b TEXT DEFAULT \"hello\",\n        c REAL DEFAULT 3.1415926\n      );\n      CREATE UNIQUE INDEX ex1i1 ON ex1(a);\n      EXPLAIN REINDEX;\n    }"
+		_ = x // suppress unused warning
+		tclRegexp(" SorterCompare \\d+ \\d+ \\d+ ", x)
+	}
+	if tclBool("regexp {16} [db one {PRAGMA encoding}]") {
+		{ // do_test "misc3-6.11-utf16"
+			x = "execsql {\n        EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1 ORDER BY +a, b DESC\n      }"
+			_ = x // suppress unused warning
+			y = "regexp { 123456789012 } $x"
+			_ = y // suppress unused warning
+			y = tclListAppend(y, "regexp { 4.5678 } $x")
+			y = tclListAppend(y, "regexp {,-B} $x")
+		}
+	} else {
+		{ // do_test "misc3-6.11-utf8"
+			x = "execsql {\n        EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1 ORDER BY +a, b DESC\n      }"
+			_ = x // suppress unused warning
+			y = "regexp { 123456789012 } $x"
+			_ = y // suppress unused warning
+			y = tclListAppend(y, "regexp { 4.5678 } $x")
+			y = tclListAppend(y, "regexp { hello } $x")
+			y = tclListAppend(y, "regexp {,-B} $x")
+		}
+	}
+	{ // do_test "misc3-7.1"
+		r = db.Query("\n    BEGIN;\n    CREATE TABLE y1(a);\n    CREATE TABLE y2(b);\n    CREATE TABLE y3(c);\n    CREATE TRIGGER r1 AFTER DELETE ON y1 FOR EACH ROW BEGIN\n      INSERT INTO y3(c) SELECT b FROM y2 ORDER BY b LIMIT 1;\n    END;\n    INSERT INTO y1 VALUES(1);\n    INSERT INTO y1 VALUES(2);\n    INSERT INTO y1 SELECT a+2 FROM y1;\n    INSERT INTO y1 SELECT a+4 FROM y1;\n    INSERT INTO y1 SELECT a+8 FROM y1;\n    INSERT INTO y1 SELECT a+16 FROM y1;\n    INSERT INTO y2 SELECT a FROM y1;\n    COMMIT;\n    SELECT count(*) FROM y1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE y1(a);\n    CREATE TABLE y2(b);\n    CREATE TABLE y3(c);\n    CREATE TRIGGER r1 AFTER DELETE ON y1 FOR EACH ROW BEGIN\n      INSERT INTO y3(c) SELECT b FROM y2 ORDER BY b LIMIT 1;\n    END;\n    INSERT INTO y1 VALUES(1);\n    INSERT INTO y1 VALUES(2);\n    INSERT INTO y1 SELECT a+2 FROM y1;\n    INSERT INTO y1 SELECT a+4 FROM y1;\n    INSERT INTO y1 SELECT a+8 FROM y1;\n    INSERT INTO y1 SELECT a+16 FROM y1;\n    INSERT INTO y2 SELECT a FROM y1;\n    COMMIT;\n    SELECT count(*) FROM y1;\n  ")
+		}
+	}
+	{ // do_test "misc3-7.2"
+		r = db.Query("\n    DELETE FROM y1;\n    SELECT count(*) FROM y1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM y1;\n    SELECT count(*) FROM y1;\n  ")
+		}
+	}
+	{ // do_test "misc3-7.3"
+		r = db.Query("\n    SELECT count(*) FROM y3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM y3;\n  ")
+		}
+	}
+	{ // do_test "misc-8.1"
+		r = db.Query("\n      SELECT count(CASE WHEN b IN ('abc','xyz') THEN 'x' END) FROM t3\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(CASE WHEN b IN ('abc','xyz') THEN 'x' END) FROM t3\n    ")
+		}
+	}
+	{ // do_test "misc-8.2"
+		r = db.Query("\n      SELECT count(*) FROM t3 WHERE 1+(b IN ('abc','xyz'))==2\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM t3 WHERE 1+(b IN ('abc','xyz'))==2\n    ")
 		}
 	}
 }

@@ -3,6 +3,7 @@ package alter
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -149,6 +150,66 @@ func Test_alter2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE abc;\n  ")
 		}
 	}
+	{ // do_test "alter2-2.1"
+		r = db.Query("\n      CREATE TABLE abc2(a, b, c);\n      INSERT INTO abc2 VALUES(1, 2, 10);\n      INSERT INTO abc2 VALUES(3, 4, NULL);\n      INSERT INTO abc2 VALUES(5, 6, NULL);\n      CREATE VIEW abc2_v AS SELECT * FROM abc2;\n      SELECT * FROM abc2_v;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE abc2(a, b, c);\n      INSERT INTO abc2 VALUES(1, 2, 10);\n      INSERT INTO abc2 VALUES(3, 4, NULL);\n      INSERT INTO abc2 VALUES(5, 6, NULL);\n      CREATE VIEW abc2_v AS SELECT * FROM abc2;\n      SELECT * FROM abc2_v;\n    ")
+		}
+	}
+	{ // do_test "alter2-2.2"
+		// alter_table abc2 {CREATE TABLE abc2(a, b, c, d);} (unsupported command, not transpiled)
+		r = db.Query("\n      SELECT * FROM abc2_v;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM abc2_v;\n    ")
+		}
+	}
+	{ // do_test "alter2-2.3"
+		_res = db.Exec("\n      DROP TABLE abc2;\n      DROP VIEW abc2_v;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE abc2;\n      DROP VIEW abc2_v;\n    ")
+		}
+	}
+	{ // do_test "alter2-3.1"
+		_res = db.Exec("\n      CREATE TABLE abc3(a, b);\n      CREATE TABLE blog(o, n);\n      CREATE TRIGGER abc3_t AFTER UPDATE OF b ON abc3 BEGIN\n        INSERT INTO blog VALUES(old.b, new.b);\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE abc3(a, b);\n      CREATE TABLE blog(o, n);\n      CREATE TRIGGER abc3_t AFTER UPDATE OF b ON abc3 BEGIN\n        INSERT INTO blog VALUES(old.b, new.b);\n      END;\n    ")
+		}
+	}
+	{ // do_test "alter2-3.2"
+		r = db.Query("\n      INSERT INTO abc3 VALUES(1, 4);\n      UPDATE abc3 SET b = 2 WHERE b = 4;\n      SELECT * FROM blog;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO abc3 VALUES(1, 4);\n      UPDATE abc3 SET b = 2 WHERE b = 4;\n      SELECT * FROM blog;\n    ")
+		}
+	}
+	{ // do_test "alter2-3.3"
+		_res = db.Exec("\n      INSERT INTO abc3 VALUES(3, 4);\n      INSERT INTO abc3 VALUES(5, 6);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO abc3 VALUES(3, 4);\n      INSERT INTO abc3 VALUES(5, 6);\n    ")
+		}
+		// alter_table abc3 {CREATE TABLE abc3(a, b, c);} (unsupported command, not transpiled)
+		r = db.Query("\n      SELECT * FROM abc3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM abc3;\n    ")
+		}
+	}
+	{ // do_test "alter2-3.4"
+		r = db.Query("\n      UPDATE abc3 SET b = b*2 WHERE a<4;\n      SELECT * FROM abc3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE abc3 SET b = b*2 WHERE a<4;\n      SELECT * FROM abc3;\n    ")
+		}
+	}
+	{ // do_test "alter2-3.5"
+		r = db.Query("\n      SELECT * FROM blog;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM blog;\n    ")
+		}
+	}
+	{ // do_test "alter2-3.6"
+		r = db.Query("\n      CREATE TABLE clog(o, n);\n      CREATE TRIGGER abc3_t2 AFTER UPDATE OF c ON abc3 BEGIN\n        INSERT INTO clog VALUES(old.c, new.c);\n      END;\n      UPDATE abc3 SET c = a*2;\n      SELECT * FROM clog;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE clog(o, n);\n      CREATE TRIGGER abc3_t2 AFTER UPDATE OF c ON abc3 BEGIN\n        INSERT INTO clog VALUES(old.c, new.c);\n      END;\n      UPDATE abc3 SET c = a*2;\n      SELECT * FROM clog;\n    ")
+		}
+	}
 	{ // do_test "alter2-4.1"
 		// set_file_format 5 (unsupported command, not transpiled)
 		{
@@ -178,14 +239,43 @@ func Test_alter2(t *testing.T) {
 	{ // do_test "alter2-4.5"
 		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
-	default_file_format = "$SQLITE_DEFAULT_FILE_FORMAT==4 ? 4 : 1"
+	default_file_format = tclExpr("$SQLITE_DEFAULT_FILE_FORMAT==4 ? 4 : 1")
 	_ = default_file_format // suppress unused warning
-	{ // do_test "alter2-6.1"
+	{ // do_test "alter2-5.1"
 		// set_file_format 2 (unsupported command, not transpiled)
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
+		r = db.Query("SELECT 1 FROM sqlite_master LIMIT 1;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 1 FROM sqlite_master LIMIT 1;")
+		}
 		// get_file_format (unsupported command, not transpiled)
+	}
+	{ // do_test "alter2-5.2"
+		_res = db.Exec(" VACUUM ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+		}
+	}
+	{ // do_test "alter2-5.3"
+		// get_file_format (unsupported command, not transpiled)
+	}
+	{ // do_test "alter2-6.1"
+		// set_file_format 2 (unsupported command, not transpiled)
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		// get_file_format (unsupported command, not transpiled)
+	}
+	{ // do_test "alter2-6.2"
+		os.Remove("test2.db-journal")
+		os.Remove("test2.db")
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b);\n    ")
+		}
+		// get_file_format test2.db (unsupported command, not transpiled)
 	}
 	{ // do_test "alter2-6.3"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n  ")
@@ -230,10 +320,63 @@ func Test_alter2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;\n  ")
 		}
 	}
+	{ // do_test "alter2-8.1"
+		_res = db.Exec("\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n      SELECT set_val(\n          old.b||' '||typeof(old.b)||' '||old.c||' '||typeof(old.c)||' '||\n          new.b||' '||typeof(new.b)||' '||new.c||' '||typeof(new.c) \n      );\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n      SELECT set_val(\n          old.b||' '||typeof(old.b)||' '||old.c||' '||typeof(old.c)||' '||\n          new.b||' '||typeof(new.b)||' '||new.c||' '||typeof(new.c) \n      );\n      END;\n    ")
+		}
+	}
 	{ // do_test "alter2-8.2"
 		r = db.Query("\n    UPDATE t1 SET c = 10 WHERE a = 1;\n    SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET c = 10 WHERE a = 1;\n    SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;\n  ")
+		}
+	}
+	{ // do_test "alter2-8.3"
+		_ = val // TCL namespace variable (query)
+	}
+	{ // do_test "alter2-9.1"
+		_res = db.Exec("\n      CREATE TRIGGER trig2 BEFORE DELETE ON t1 BEGIN\n      SELECT set_val(\n          old.b||' '||typeof(old.b)||' '||old.c||' '||typeof(old.c)\n      );\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER trig2 BEFORE DELETE ON t1 BEGIN\n      SELECT set_val(\n          old.b||' '||typeof(old.b)||' '||old.c||' '||typeof(old.c)\n      );\n      END;\n    ")
+		}
+	}
+	{ // do_test "alter2-9.2"
+		_res = db.Exec("\n      DELETE FROM t1 WHERE a = 2;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1 WHERE a = 2;\n    ")
+		}
+		_ = val // TCL namespace variable (query)
+	}
+	{ // do_test "alter2-10.1"
+		_res = db.Exec("\n      CREATE TABLE t2(a);\n      INSERT INTO t2 VALUES('a');\n      INSERT INTO t2 VALUES('b');\n      INSERT INTO t2 VALUES('c');\n      INSERT INTO t2 VALUES('d');\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t2(a);\n      INSERT INTO t2 VALUES('a');\n      INSERT INTO t2 VALUES('b');\n      INSERT INTO t2 VALUES('c');\n      INSERT INTO t2 VALUES('d');\n    ")
+		}
+		// alter_table t2 {CREATE TABLE t2(a, b DEFAULT X'ABCD', c DEFAULT NU...} 3 (unsupported command, not transpiled)
+		_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
+		_ = _res // catchsql
+		r = db.Query("\n      SELECT quote(a), quote(b), quote(c) FROM t2 LIMIT 1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT quote(a), quote(b), quote(c) FROM t2 LIMIT 1;\n    ")
+		}
+	}
+	{ // do_test "alter2-10.2"
+		r = db.Query("\n      CREATE INDEX i1 ON t2(b);\n      SELECT a FROM t2 WHERE b = X'ABCD';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE INDEX i1 ON t2(b);\n      SELECT a FROM t2 WHERE b = X'ABCD';\n    ")
+		}
+	}
+	{ // do_test "alter2-10.3"
+		r = db.Query("\n      DELETE FROM t2 WHERE a = 'c';\n      SELECT a FROM t2 WHERE b = X'ABCD';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t2 WHERE a = 'c';\n      SELECT a FROM t2 WHERE b = X'ABCD';\n    ")
+		}
+	}
+	{ // do_test "alter2-10.4"
+		r = db.Query("\n      SELECT count(b) FROM t2 WHERE b = X'ABCD';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(b) FROM t2 WHERE b = X'ABCD';\n    ")
 		}
 	}
 }

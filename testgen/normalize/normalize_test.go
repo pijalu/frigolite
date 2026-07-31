@@ -84,4 +84,92 @@ func Test_normalize(t *testing.T) {
 				}
 			}
 		}
+		{ // do_test "200"
+			_res = db.Exec("\n    CREATE TABLE t1(a,b);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n  ")
+			}
+		}
+		{ // do_test "201"
+			STMT = "sqlite3_prepare_v3 $DB \\\n      \"SELECT a, b FROM t1 WHERE b = ? ORDER BY a;\" -1 0 TAIL"
+			_ = STMT // suppress unused warning
+			// sqlite3_bind_null $STMT 1 (unsupported command, not transpiled)
+		}
+		{ // do_test "202"
+			// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "203"
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "210"
+			STMT = "sqlite3_prepare_v3 $DB \\\n      \"SELECT a, b FROM t1 WHERE b = ? ORDER BY a;\" -1 2 TAIL"
+			_ = STMT // suppress unused warning
+			// sqlite3_bind_null $STMT 1 (unsupported command, not transpiled)
+		}
+		{ // do_test "211"
+			// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "212"
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "220"
+			STMT = "sqlite3_prepare_v3 $DB \\\n      \"SELECT a, b FROM t1 WHERE b = 'a' ORDER BY a;\" -1 2 TAIL"
+			_ = STMT // suppress unused warning
+		}
+		{ // do_test "221"
+			// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "222"
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "297"
+			_res = db.Exec("\n    DROP TABLE t1;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n  ")
+			}
+		}
+		{ // do_test "298"
+			_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d,e,\"col f\",w,x,y,z);\n    CREATE TABLE t2(x,\"col y\");\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d,e,\"col f\",w,x,y,z);\n    CREATE TABLE t2(x,\"col y\");\n  ")
+			}
+		}
+		{ // do_test "299"
+			// sqlite3_create_function db (unsupported command, not transpiled)
+		}
+		// foreach {tnum sql flags norm} "\n  300\n  {SELECT * FROM t1 WHERE a IN (1) AND b=51.42}\n  0x2\n  {0 {SELECT*FROM t1 WHERE a IN(?,?,?)AND b=?;}}\n\n  310\n  {SELECT a, b+15, c FROM t1 WHERE d NOT IN (SELECT x FROM t2);}\n  0x2\n  {0 {SELECT a,b+?,c FROM t1 WHERE d NOT IN(SELECT x FROM t2);}}\n\n  320\n  { SELECT NULL, b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';\n  }\n  0x2\n  {0 {SELECT?,b FROM t1 WHERE d IN(WITH t(a)AS(VALUES(?))SELECT a FROM t)OR e=?;}}\n\n  321\n  {/*Initial comment*/\n   -- another comment line\n   SELECT NULL  /* comment */ , b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';\n  }\n  0x2\n  {0 {SELECT?,b FROM t1 WHERE d IN(WITH t(a)AS(VALUES(?))SELECT a FROM t)OR e=?;}}\n\n  330\n  {/* Query containing parameters */\n   SELECT x,$::abc(15),y,@abc,z,?99,w FROM t1 /* Trailing comment */}\n  0x2\n  {0 {SELECT x,?,y,?,z,?,w FROM t1;}}\n\n  340\n  {/* Long list on the RHS of IN */\n   SELECT 15 IN (1,2,3,(SELECT * FROM t1),'xyz',x'abcd',22*(x+5),null);}\n  0x2\n  {1 {(1) no such column: x}}\n\n  350\n  {SELECT x'abc'; -- illegal token}\n  0x2\n  {1 {(1) unrecognized token: \"x'abc'\"}}\n\n  360\n  {SELECT a,NULL,b FROM t1 WHERE c IS NOT NULL or D is null or e=5}\n  0x2\n  {0 {SELECT a,?,b FROM t1 WHERE c IS NOT NULL OR d IS NULL OR e=?;}}\n\n  370\n  {/* IN list exactly 5 bytes long */\n   SELECT * FROM t1 WHERE x IN (1,2,3);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  400\n  {SELECT a FROM t1 WHERE x IN (1,2,3) AND sqlite_version();}\n  0x2\n  {0 {SELECT a FROM t1 WHERE x IN(?,?,?)AND sqlite_version();}}\n\n  410\n  {SELECT a FROM t1 WHERE x IN (1,2,3) AND hex8();}\n  0x2\n  {1 {(1) wrong number of arguments to function hex8()}}\n\n  420\n  {SELECT a FROM t1 WHERE x IN (1,2,3) AND hex8('abc');}\n  0x2\n  {0 {SELECT a FROM t1 WHERE x IN(?,?,?)AND hex8(?);}}\n\n  430\n  {SELECT \"a\" FROM t1 WHERE \"x\" IN (\"1\",\"2\",'3');}\n  0x2\n  {0 {SELECT a FROM t1 WHERE x IN(?,?,?);}}\n\n  440\n  {SELECT 'a' FROM t1 WHERE 'x';}\n  0x2\n  {0 {SELECT?FROM t1 WHERE?;}}\n\n  450\n  {SELECT [a] FROM t1 WHERE [x];}\n  0x2\n  {0 {SELECT a FROM t1 WHERE x;}}\n\n  460\n  {SELECT * FROM t1 WHERE x IN (x);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(x);}}\n\n  470\n  {SELECT * FROM t1 WHERE x IN (x,a);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(x,a);}}\n\n  480\n  {SELECT * FROM t1 WHERE x IN ([x],\"a\");}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(x,a);}}\n\n  500\n  {SELECT * FROM t1 WHERE x IN ([x],\"a\",'b',sqlite_version());}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(x,a,?,sqlite_version());}}\n\n  520\n  {SELECT * FROM t1 WHERE x IN (SELECT x FROM t1);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(SELECT x FROM t1);}}\n\n  540\n  {SELECT * FROM t1 WHERE x IN ((SELECT x FROM t1));}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN((SELECT x FROM t1));}}\n\n  550\n  {SELECT a, a+1, a||'b', a+\"b\" FROM t1;}\n  0x2\n  {0 {SELECT a,a+?,a||?,a+b FROM t1;}}\n\n  570\n  {SELECT * FROM t1 WHERE x IN (1);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  580\n  {SELECT * FROM t1 WHERE x IN (1,2);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  590\n  {SELECT * FROM t1 WHERE x IN (1,2,3);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  600\n  {SELECT * FROM t1 WHERE x IN (1,2,3,4);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  610\n  {SELECT * FROM t1 WHERE x IN (SELECT x FROM t1);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(SELECT x FROM t1);}}\n\n  620\n  {SELECT * FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (1,2,3));}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(?,?,?));}}\n\n  630\n  {SELECT * FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (x));}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(x));}}\n\n  640\n  {SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (x)))));}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(x)))));}}\n\n  650\n  {SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (1)))));}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(?,?,?)))));}}\n\n  660\n  {SELECT x FROM t1 WHERE x IN (1) UNION ALL SELECT x FROM t1 WHERE x IN (1);}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IN(?,?,?)UNION ALL SELECT x FROM t1 WHERE x IN(?,?,?);}}\n\n  670\n  {SELECT \"col f\", [col f] FROM t1;}\n  0x2\n  {0 {SELECT\"col f\",\"col f\"FROM t1;}}\n\n  680\n  {SELECT a, \"col f\" FROM t1 LEFT OUTER JOIN t2 ON [t1].[col f] == [t2].[col y];}\n  0x2\n  {0 {SELECT a,\"col f\"FROM t1 LEFT OUTER JOIN t2 ON t1.\"col f\"==t2.\"col y\";}}\n\n  690\n  {SELECT * FROM ( WITH x AS ( SELECT * FROM t1 WHERE x IN ( 1)) SELECT 10);}\n  0x2\n  {0 {SELECT*FROM(WITH x AS(SELECT*FROM t1 WHERE x IN(?,?,?))SELECT?);}}\n\n  700\n  {SELECT rowid, oid, _rowid_ FROM t1;}\n  0x2\n  {0 {SELECT rowid,oid,_rowid_ FROM t1;}}\n\n  710\n  {SELECT x FROM t1 WHERE x IS NULL;}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IS NULL;}}\n\n  740\n  {SELECT x FROM t1 WHERE x IS NOT NULL;}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IS NOT NULL;}}\n\n  750\n  {SELECT x FROM t1 WHERE x = NULL;}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x=?;}}\n\n  760\n  {SELECT x FROM t1 WHERE x IN ([x] IS NOT NULL, NULL, 1, 'a', \"b\", x'00');}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IN(x IS NOT NULL,?,?,?,b,?);}}\n\n  800\n  {ATTACH \"normalize800.db\" AS somefile;}\n  0x2\n  {0 {ATTACH\"normalize800.db\"AS somefile;}}\n\n  810\n  {ATTACH DATABASE \"normalize810.db\" AS somefile;}\n  0x2\n  {0 {ATTACH DATABASE\"normalize810.db\"AS somefile;}}\n\n  900\n  {INSERT INTO t1 (x) VALUES(\"sl1\"), (1), (\"sl2\"), ('i');}\n  0x2\n  {0 {INSERT INTO t1(x)VALUES(?),(?),(?),(?);}}\n\n  910\n  {UPDATE t1 SET x = \"sl1\" WHERE x IN (1, \"sl2\", 'i');}\n  0x2\n  {0 {UPDATE t1 SET x=?WHERE x IN(?,?,?);}}\n\n  920\n  {UPDATE t1 SET x = \"y\" WHERE x IN (1, \"sl1\", 'i');}\n  0x2\n  {0 {UPDATE t1 SET x=y WHERE x IN(?,?,?);}}\n\n  930\n  {DELETE FROM t1 WHERE x IN (1, \"sl1\", 'i');}\n  0x2\n  {0 {DELETE FROM t1 WHERE x IN(?,?,?);}}\n"
+		_items1 := tclSplitList("\n  300\n  {SELECT * FROM t1 WHERE a IN (1) AND b=51.42}\n  0x2\n  {0 {SELECT*FROM t1 WHERE a IN(?,?,?)AND b=?;}}\n\n  310\n  {SELECT a, b+15, c FROM t1 WHERE d NOT IN (SELECT x FROM t2);}\n  0x2\n  {0 {SELECT a,b+?,c FROM t1 WHERE d NOT IN(SELECT x FROM t2);}}\n\n  320\n  { SELECT NULL, b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';\n  }\n  0x2\n  {0 {SELECT?,b FROM t1 WHERE d IN(WITH t(a)AS(VALUES(?))SELECT a FROM t)OR e=?;}}\n\n  321\n  {/*Initial comment*/\n   -- another comment line\n   SELECT NULL  /* comment */ , b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';\n  }\n  0x2\n  {0 {SELECT?,b FROM t1 WHERE d IN(WITH t(a)AS(VALUES(?))SELECT a FROM t)OR e=?;}}\n\n  330\n  {/* Query containing parameters */\n   SELECT x,$::abc(15),y,@abc,z,?99,w FROM t1 /* Trailing comment */}\n  0x2\n  {0 {SELECT x,?,y,?,z,?,w FROM t1;}}\n\n  340\n  {/* Long list on the RHS of IN */\n   SELECT 15 IN (1,2,3,(SELECT * FROM t1),'xyz',x'abcd',22*(x+5),null);}\n  0x2\n  {1 {(1) no such column: x}}\n\n  350\n  {SELECT x'abc'; -- illegal token}\n  0x2\n  {1 {(1) unrecognized token: \"x'abc'\"}}\n\n  360\n  {SELECT a,NULL,b FROM t1 WHERE c IS NOT NULL or D is null or e=5}\n  0x2\n  {0 {SELECT a,?,b FROM t1 WHERE c IS NOT NULL OR d IS NULL OR e=?;}}\n\n  370\n  {/* IN list exactly 5 bytes long */\n   SELECT * FROM t1 WHERE x IN (1,2,3);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  400\n  {SELECT a FROM t1 WHERE x IN (1,2,3) AND sqlite_version();}\n  0x2\n  {0 {SELECT a FROM t1 WHERE x IN(?,?,?)AND sqlite_version();}}\n\n  410\n  {SELECT a FROM t1 WHERE x IN (1,2,3) AND hex8();}\n  0x2\n  {1 {(1) wrong number of arguments to function hex8()}}\n\n  420\n  {SELECT a FROM t1 WHERE x IN (1,2,3) AND hex8('abc');}\n  0x2\n  {0 {SELECT a FROM t1 WHERE x IN(?,?,?)AND hex8(?);}}\n\n  430\n  {SELECT \"a\" FROM t1 WHERE \"x\" IN (\"1\",\"2\",'3');}\n  0x2\n  {0 {SELECT a FROM t1 WHERE x IN(?,?,?);}}\n\n  440\n  {SELECT 'a' FROM t1 WHERE 'x';}\n  0x2\n  {0 {SELECT?FROM t1 WHERE?;}}\n\n  450\n  {SELECT [a] FROM t1 WHERE [x];}\n  0x2\n  {0 {SELECT a FROM t1 WHERE x;}}\n\n  460\n  {SELECT * FROM t1 WHERE x IN (x);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(x);}}\n\n  470\n  {SELECT * FROM t1 WHERE x IN (x,a);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(x,a);}}\n\n  480\n  {SELECT * FROM t1 WHERE x IN ([x],\"a\");}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(x,a);}}\n\n  500\n  {SELECT * FROM t1 WHERE x IN ([x],\"a\",'b',sqlite_version());}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(x,a,?,sqlite_version());}}\n\n  520\n  {SELECT * FROM t1 WHERE x IN (SELECT x FROM t1);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(SELECT x FROM t1);}}\n\n  540\n  {SELECT * FROM t1 WHERE x IN ((SELECT x FROM t1));}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN((SELECT x FROM t1));}}\n\n  550\n  {SELECT a, a+1, a||'b', a+\"b\" FROM t1;}\n  0x2\n  {0 {SELECT a,a+?,a||?,a+b FROM t1;}}\n\n  570\n  {SELECT * FROM t1 WHERE x IN (1);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  580\n  {SELECT * FROM t1 WHERE x IN (1,2);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  590\n  {SELECT * FROM t1 WHERE x IN (1,2,3);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  600\n  {SELECT * FROM t1 WHERE x IN (1,2,3,4);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(?,?,?);}}\n\n  610\n  {SELECT * FROM t1 WHERE x IN (SELECT x FROM t1);}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(SELECT x FROM t1);}}\n\n  620\n  {SELECT * FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (1,2,3));}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(?,?,?));}}\n\n  630\n  {SELECT * FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (x));}\n  0x2\n  {0 {SELECT*FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(x));}}\n\n  640\n  {SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (x)))));}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(x)))));}}\n\n  650\n  {SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (1)))));}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(SELECT x FROM t1 WHERE x IN(?,?,?)))));}}\n\n  660\n  {SELECT x FROM t1 WHERE x IN (1) UNION ALL SELECT x FROM t1 WHERE x IN (1);}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IN(?,?,?)UNION ALL SELECT x FROM t1 WHERE x IN(?,?,?);}}\n\n  670\n  {SELECT \"col f\", [col f] FROM t1;}\n  0x2\n  {0 {SELECT\"col f\",\"col f\"FROM t1;}}\n\n  680\n  {SELECT a, \"col f\" FROM t1 LEFT OUTER JOIN t2 ON [t1].[col f] == [t2].[col y];}\n  0x2\n  {0 {SELECT a,\"col f\"FROM t1 LEFT OUTER JOIN t2 ON t1.\"col f\"==t2.\"col y\";}}\n\n  690\n  {SELECT * FROM ( WITH x AS ( SELECT * FROM t1 WHERE x IN ( 1)) SELECT 10);}\n  0x2\n  {0 {SELECT*FROM(WITH x AS(SELECT*FROM t1 WHERE x IN(?,?,?))SELECT?);}}\n\n  700\n  {SELECT rowid, oid, _rowid_ FROM t1;}\n  0x2\n  {0 {SELECT rowid,oid,_rowid_ FROM t1;}}\n\n  710\n  {SELECT x FROM t1 WHERE x IS NULL;}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IS NULL;}}\n\n  740\n  {SELECT x FROM t1 WHERE x IS NOT NULL;}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IS NOT NULL;}}\n\n  750\n  {SELECT x FROM t1 WHERE x = NULL;}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x=?;}}\n\n  760\n  {SELECT x FROM t1 WHERE x IN ([x] IS NOT NULL, NULL, 1, 'a', \"b\", x'00');}\n  0x2\n  {0 {SELECT x FROM t1 WHERE x IN(x IS NOT NULL,?,?,?,b,?);}}\n\n  800\n  {ATTACH \"normalize800.db\" AS somefile;}\n  0x2\n  {0 {ATTACH\"normalize800.db\"AS somefile;}}\n\n  810\n  {ATTACH DATABASE \"normalize810.db\" AS somefile;}\n  0x2\n  {0 {ATTACH DATABASE\"normalize810.db\"AS somefile;}}\n\n  900\n  {INSERT INTO t1 (x) VALUES(\"sl1\"), (1), (\"sl2\"), ('i');}\n  0x2\n  {0 {INSERT INTO t1(x)VALUES(?),(?),(?),(?);}}\n\n  910\n  {UPDATE t1 SET x = \"sl1\" WHERE x IN (1, \"sl2\", 'i');}\n  0x2\n  {0 {UPDATE t1 SET x=?WHERE x IN(?,?,?);}}\n\n  920\n  {UPDATE t1 SET x = \"y\" WHERE x IN (1, \"sl1\", 'i');}\n  0x2\n  {0 {UPDATE t1 SET x=y WHERE x IN(?,?,?);}}\n\n  930\n  {DELETE FROM t1 WHERE x IN (1, \"sl1\", 'i');}\n  0x2\n  {0 {DELETE FROM t1 WHERE x IN(?,?,?);}}\n")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tnum := _items1[_idx1+0]
+			_ = tnum // suppress unused warning
+			sql := _items1[_idx1+1]
+			_ = sql // suppress unused warning
+			flags := _items1[_idx1+2]
+			_ = flags // suppress unused warning
+			norm := _items1[_idx1+3]
+			_ = norm // suppress unused warning
+			_ = _idx1
+				{ // do_test tnum
+	_ = code // suppress unused warning
+	_ = res // suppress unused warning
+					{ // catch block
+						var _catchErr error
+						STMT = "sqlite3_prepare_v3 $DB $sql -1 $flags TAIL"
+						_ = STMT // suppress unused warning
+						// sqlite3_normalized_sql $STMT (unsupported command, not transpiled)
+						if _catchErr != nil {
+							code = "1"
+							res = _catchErr.Error()
+						} else {
+							code = "0"
+							res = ""
+						}
+					}
+					if tclBool("info exists STMT") {
+						// sqlite3_finalize $STMT (unsupported command, not transpiled)
+					}
+					_list := tclList([]string{code, res})
+					_ = _list
+				}
+			}
 }

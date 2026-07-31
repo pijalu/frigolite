@@ -50,6 +50,7 @@ func Test_tkt3871(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "tkt3871-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  ")

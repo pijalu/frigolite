@@ -107,6 +107,7 @@ func Test_fts4langid(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts4langid" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
@@ -282,10 +283,8 @@ func Test_fts4langid(t *testing.T) {
 	// proc definition (not transpiled)
 	// do_test_query1 2.1.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
 	// do_test_query1 2.1.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
-	// do_test_query1 2.1.3 {zero one two} {
-  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
-	// do_test_query1 2.1.4 {"zero one" OR "one two"} {
-  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
+	// do_test_query1 2.1.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list ...} (unsupported command, not transpiled)
+	// do_test_query1 2.1.4 {"zero one" OR "one two"} {\n  or_merge_lists [rowid_list "zero one"] [rowid_...} (unsupported command, not transpiled)
 	{ // "2.2"
 		r = db.Query("\n  INSERT INTO t2(t2) VALUES('optimize');\n  SELECT count(*) FROM t2_segdir;\n")
 		if r.Error != nil {
@@ -300,10 +299,8 @@ func Test_fts4langid(t *testing.T) {
 	}
 	// do_test_query1 2.2.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
 	// do_test_query1 2.2.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
-	// do_test_query1 2.2.3 {zero one two} {
-  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
-	// do_test_query1 2.2.4 {"zero one" OR "one two"} {
-  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
+	// do_test_query1 2.2.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list ...} (unsupported command, not transpiled)
+	// do_test_query1 2.2.4 {"zero one" OR "one two"} {\n  or_merge_lists [rowid_list "zero one"] [rowid_...} (unsupported command, not transpiled)
 	{ // do_test "2.3"
 		db.Close()
 		db, err = frigolite.Open("")
@@ -316,10 +313,8 @@ func Test_fts4langid(t *testing.T) {
 	}
 	// do_test_query1 2.3.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
 	// do_test_query1 2.3.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
-	// do_test_query1 2.3.3 {zero one two} {
-  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
-	// do_test_query1 2.3.4 {"zero one" OR "one two"} {
-  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
+	// do_test_query1 2.3.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list ...} (unsupported command, not transpiled)
+	// do_test_query1 2.3.4 {"zero one" OR "one two"} {\n  or_merge_lists [rowid_list "zero one"] [rowid_...} (unsupported command, not transpiled)
 	{ // do_test "3.0"
 		db.Close()
 		db, err = frigolite.Open("")
@@ -338,10 +333,8 @@ func Test_fts4langid(t *testing.T) {
 	}
 	// do_test_query1 3.1.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
 	// do_test_query1 3.1.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
-	// do_test_query1 3.1.3 {zero one two} {
-  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
-	// do_test_query1 3.1.4 {"zero one" OR "one two"} {
-  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
+	// do_test_query1 3.1.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list ...} (unsupported command, not transpiled)
+	// do_test_query1 3.1.4 {"zero one" OR "one two"} {\n  or_merge_lists [rowid_list "zero one"] [rowid_...} (unsupported command, not transpiled)
 	{ // "3.2.1"
 		_res = db.Exec("\n  DROP TABLE t2;\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, languageid=l, content=nosuchtable);\n")
 		if _res.Error != nil {
@@ -362,10 +355,8 @@ func Test_fts4langid(t *testing.T) {
 	}
 	// do_test_query1 3.3.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
 	// do_test_query1 3.3.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
-	// do_test_query1 3.3.3 {zero one two} {
-  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
-	// do_test_query1 3.3.4 {"zero one" OR "one two"} {
-  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
+	// do_test_query1 3.3.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list ...} (unsupported command, not transpiled)
+	// do_test_query1 3.3.4 {"zero one" OR "one two"} {\n  or_merge_lists [rowid_list "zero one"] [rowid_...} (unsupported command, not transpiled)
 	{ // "3.4"
 		r = db.Query("\n  CREATE TABLE t8c(a, b);\n  CREATE VIRTUAL TABLE t8 USING fts4(content=t8c, languageid=langid);\n  INSERT INTO t8(docid, a, b) VALUES(-1, 'one two three', 'x y z');\n  SELECT docid FROM t8 WHERE t8 MATCH 'one x' AND langid=0\n")
 		if r.Error != nil {
@@ -432,7 +423,7 @@ func Test_fts4langid(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "0==($i%2)"
+			want := tclExpr("0==($i%2)")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

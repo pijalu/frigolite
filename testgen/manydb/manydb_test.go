@@ -117,7 +117,7 @@ func Test_manydb(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("testfile.1")
 		}
-		N = "$i / $num_fd_per_openwrite_db"
+		N = tclExpr("$i / $num_fd_per_openwrite_db")
 		_ = N // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning

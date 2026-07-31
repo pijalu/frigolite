@@ -135,6 +135,10 @@ func Test_minmax2(t *testing.T) {
 	{ // do_test "minmax2-2.3"
 	}
 	{ // do_test "minmax2-3.0"
+		_res = db.Exec("INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)")
+		}
 		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT max(a) FROM t2")
@@ -145,10 +149,36 @@ func Test_minmax2(t *testing.T) {
 	{ // do_test "minmax2-3.1"
 	}
 	{ // do_test "minmax2-3.2"
+		_res = db.Exec("INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)")
+		}
 		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
+		r = db.Query(" SELECT b FROM t2 WHERE a=(SELECT max(a) FROM t2) ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b FROM t2 WHERE a=(SELECT max(a) FROM t2) ")
+		}
 	}
 	{ // do_test "minmax2-3.3"
+	}
+	{ // do_test "minmax2-4.1"
+		r = db.Query("\n      SELECT coalesce(min(x+0),-1), coalesce(max(x+0),-1) FROM\n        (SELECT * FROM t1 UNION SELECT NULL as 'x', NULL as 'y')\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT coalesce(min(x+0),-1), coalesce(max(x+0),-1) FROM\n        (SELECT * FROM t1 UNION SELECT NULL as 'x', NULL as 'y')\n    ")
+		}
+	}
+	{ // do_test "minmax2-4.2"
+		r = db.Query("\n      SELECT y, coalesce(sum(x),0) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT y, coalesce(sum(x),0) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;\n    ")
+		}
+	}
+	{ // do_test "minmax2-4.3"
+		r = db.Query("\n      SELECT y, count(x), count(*) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT y, count(x), count(*) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;\n    ")
+		}
 	}
 	{ // do_test "minmax2-5.1"
 		r = db.Query("\n    CREATE TABLE t3(x INTEGER UNIQUE NOT NULL);\n    SELECT coalesce(min(x),999) FROM t3;\n  ")
@@ -228,10 +258,22 @@ func Test_minmax2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(x) FROM t1;\n  ")
 		}
 	}
+	{ // do_test "minmax2-7.2"
+		r = db.Query("\n      SELECT * FROM (SELECT max(x) FROM t1);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT max(x) FROM t1);\n    ")
+		}
+	}
 	{ // do_test "minmax2-7.3"
 		r = db.Query("\n    SELECT min(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(x) FROM t1;\n  ")
+		}
+	}
+	{ // do_test "minmax2-7.4"
+		r = db.Query("\n      SELECT * FROM (SELECT min(x) FROM t1);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT min(x) FROM t1);\n    ")
 		}
 	}
 	{ // do_test "minmax2-8.1"
@@ -244,6 +286,24 @@ func Test_minmax2(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t5(a INTEGER);\n    INSERT INTO t5 VALUES('1234');\n    INSERT INTO t5 VALUES('234');\n    INSERT INTO t5 VALUES('34');\n    SELECT min(a), max(a) FROM t5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a INTEGER);\n    INSERT INTO t5 VALUES('1234');\n    INSERT INTO t5 VALUES('234');\n    INSERT INTO t5 VALUES('34');\n    SELECT min(a), max(a) FROM t5;\n  ")
+		}
+	}
+	{ // do_test "minmax2-9.0"
+		r = db.Query("\n      SELECT max(rowid) FROM t4 UNION SELECT max(rowid) FROM t5\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT max(rowid) FROM t4 UNION SELECT max(rowid) FROM t5\n    ")
+		}
+	}
+	{ // do_test "minmax2-9.1"
+		r = db.Query("\n      SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 UNION SELECT max(rowid) FROM t5\n      )\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 UNION SELECT max(rowid) FROM t5\n      )\n    ")
+		}
+	}
+	{ // do_test "minmax2-9.2"
+		r = db.Query("\n      SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 EXCEPT SELECT max(rowid) FROM t5\n      )\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 EXCEPT SELECT max(rowid) FROM t5\n      )\n    ")
 		}
 	}
 	{ // do_test "minmax2-10.1"
@@ -282,6 +342,12 @@ func Test_minmax2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(x) FROM t6;\n  ")
 		}
 	}
+	{ // do_test "minmax2-10.7"
+		r = db.Query("\n      SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);\n    ")
+		}
+	}
 	{ // do_test "minmax2-10.8"
 		r = db.Query("\n    SELECT min(x), max(x) FROM t6;\n  ")
 		if r.Error != nil {
@@ -298,6 +364,12 @@ func Test_minmax2(t *testing.T) {
 		r = db.Query("\n    SELECT count(x) FROM t6;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(x) FROM t6;\n  ")
+		}
+	}
+	{ // do_test "minmax2-10.11"
+		r = db.Query("\n      SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);\n    ")
 		}
 	}
 	{ // do_test "minmax2-10.12"

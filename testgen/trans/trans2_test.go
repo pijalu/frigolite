@@ -95,7 +95,7 @@ func Test_trans2(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	// expr srand(1) → "srand(1)"
+	// expr srand(1) (not evaluated)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -115,7 +115,7 @@ func Test_trans2(t *testing.T) {
 			}
 		}
 	}
-	max_rowid = "$i-1"
+	max_rowid = tclExpr("$i-1")
 	_ = max_rowid // suppress unused warning
 	{ // do_test "trans2-1.1"
 		_res = db.Exec("\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
@@ -140,21 +140,21 @@ func Test_trans2(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		todel = ""
 		_ = todel // suppress unused warning
-		n = "[llength $data]/10"
+		n = tclExpr("[llength $data]/10")
 		_ = n // suppress unused warning
 		data = "scramble $data"
 		_ = data // suppress unused warning
 		for _, rec := range tclSplitList("lrange $data 0 $n") {
 		_ = rec // suppress unused warning
-			todel = tclListAppend(todel, "lindex $rec 0")
+			todel = tclListAppend(todel, tclLIndex(rec, "0"))
 		}
 		data = "lrange $data [expr {$n+1}] end"
 		_ = data // suppress unused warning
-		max1 = "lindex [lindex $data 0] 0"
+		max1 = tclLIndex("", data)
 		_ = max1 // suppress unused warning
 		for _, rec := range tclSplitList(data) {
 		_ = rec // suppress unused warning
-			id = "lindex $rec 0"
+			id = tclLIndex(rec, "0")
 			_ = id // suppress unused warning
 			if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; max1_n, _max1_e := strconv.Atoi(max1); if _max1_e != nil { return false }; return id_n > max1_n }() {
 				max1 = id
@@ -187,7 +187,7 @@ func Test_trans2(t *testing.T) {
 		j = "1"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 50 }() {
-			id = "$max_rowid+$j"
+			id = tclExpr("$max_rowid+$j")
 			_ = id // suppress unused warning
 			todel = tclListAppend(todel, id)
 			rec = "list $id [random_uuid] \\\n                      [expr {int(rand()*5000)+1000}] [random_uuid]"
@@ -202,7 +202,7 @@ func Test_trans2(t *testing.T) {
 				}
 			}
 		}
-		max_rowid = "$max_rowid+$j-1"
+		max_rowid = tclExpr("$max_rowid+$j-1")
 		_ = max_rowid // suppress unused warning
 		modsql = ""
 		_ = modsql // suppress unused warning

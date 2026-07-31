@@ -58,21 +58,10 @@ func Test_mallocG(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
-	// do_malloc_test mallocG-1 -tclbody {
-  db close
-  sqlite3 db test.db
-} (unsupported command, not transpiled)
-	// do_malloc_test mallocG-2 -sqlprep {
-  CREATE TABLE t1(x, y);
-  CREATE TABLE t2(x INTE...} -sqlbody {
-  SELECT y FROM t1 WHERE x IN t2;
-} (unsupported command, not transpiled)
-	// do_malloc_test mallocG-3 -sqlprep {
-  CREATE TABLE t1(x UNIQUE);
-  INSERT INTO t1 VAL...} -sqlbody {
-  SELECT * FROM t1
-   WHERE x BETWEEN 'a' AND 'z'...} (unsupported command, not transpiled)
+	// do_malloc_test mallocG-1 -tclbody {\n  db close\n  sqlite3 db test.db\n} (unsupported command, not transpiled)
+	// do_malloc_test mallocG-2 -sqlprep {\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x IN...} -sqlbody {\n  SELECT y FROM t1 WHERE x IN t2;\n} (unsupported command, not transpiled)
+	// do_malloc_test mallocG-3 -sqlprep {\n  CREATE TABLE t1(x UNIQUE);\n  INSERT INTO t1 V...} -sqlbody {\n  SELECT * FROM t1\n   WHERE x BETWEEN 'a' AND '...} (unsupported command, not transpiled)
+	return
 	// proc definition (not transpiled)
-	// do_malloc_test mallocG-4 -tclbody {
-  set rc [sqlite3_complete16 [utf16 "SELECT * FRO...} (unsupported command, not transpiled)
+	// do_malloc_test mallocG-4 -tclbody {\n  set rc [sqlite3_complete16 [utf16 "SELECT * FR...} (unsupported command, not transpiled)
 }

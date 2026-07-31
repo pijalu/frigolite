@@ -4,6 +4,7 @@ package percentile
 import (
 "github.com/pijalu/frigolite"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -106,6 +107,32 @@ func Test_percentile(t *testing.T) {
 					}
 				}
 			}
+			{ // do_test "percentile-1.1." + in + ".5"
+				r = db.Query("SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t1")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t1")
+				}
+			}
+			{ // do_test "percentile-1.1." + in + ".6"
+				r = db.Query("SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+				}
+			}
+			{ // do_test "percentile-1.1." + in + ".7"
+				r = db.Query("SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+				}
+			}
+			if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
+				{ // do_test "percentile-1.1." + in + ".8"
+					r = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
+					}
+				}
+			}
 		}
 		{ // "percentile-1.1.median"
 			r = db.Query("\n  SELECT median(x) FROM t1;\n")
@@ -117,6 +144,36 @@ func Test_percentile(t *testing.T) {
 			want := "8.0"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "percentile-1.1.median"
+			r = db.Query("\n    SELECT median() WITHIN GROUP (ORDER BY x) FROM t1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT median() WITHIN GROUP (ORDER BY x) FROM t1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "8.0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "percentile-1.1.distinct.1"
+			r = db.Query("\n    SELECT median(DISTINCT x) FROM t1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT median(DISTINCT x) FROM t1;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "7.0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "percentile-1.1.distinct.2"
+			_res = db.Exec("\n    SELECT percentile(DISTINCT 50) WITHIN GROUP (ORDER BY x) FROM t1;\n  ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "DISTINCT not allowed on ordered-set aggregate percentile()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT not allowed on ordered-set aggregate percentile()", _res.Error, "\n    SELECT percentile(DISTINCT 50) WITHIN GROUP (ORDER BY x) FROM t1;\n  ")
 			}
 		}
 		{ // do_test "percentile-1.2"
@@ -158,6 +215,32 @@ func Test_percentile(t *testing.T) {
 						r = db.Query("SELECT median(x) FROM t1")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median(x) FROM t1")
+						}
+					}
+				}
+				{ // do_test "percentile-1.3." + in + ".5"
+					r = db.Query("SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t1")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t1")
+					}
+				}
+				{ // do_test "percentile-1.3." + in + ".6"
+					r = db.Query("SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+					}
+				}
+				{ // do_test "percentile-1.3." + in + ".7"
+					r = db.Query("SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+					}
+				}
+				if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
+					{ // do_test "percentile-1.3." + in + ".8"
+						r = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
 						}
 					}
 				}
@@ -228,6 +311,32 @@ func Test_percentile(t *testing.T) {
 							}
 						}
 					}
+					{ // do_test "percentile-1.7." + in + ".5"
+						r = db.Query("SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t2")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t2")
+						}
+					}
+					{ // do_test "percentile-1.7." + in + ".6"
+						r = db.Query("SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
+						}
+					}
+					{ // do_test "percentile-1.7." + in + ".7"
+						r = db.Query("SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
+						}
+					}
+					if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
+						{ // do_test "percentile-1.7." + in + ".8"
+							r = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t2")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median() WITHIN GROUP (ORDER BY x) FROM t2")
+							}
+						}
+					}
 				}
 				{ // do_test "percentile-1.8.1"
 					_res = db.Exec("SELECT percentile(x,0,1) FROM t1")
@@ -245,6 +354,22 @@ func Test_percentile(t *testing.T) {
 					_res = db.Exec("SELECT median(x,0) FROM t1")
 					_ = _res // catchsql
 				}
+				{ // do_test "percentile-1.8.5"
+					_res = db.Exec("SELECT percentile(0,1) WITHIN GROUP(ORDER BY x) FROM t1")
+					_ = _res // catchsql
+				}
+				{ // do_test "percentile-1.8.2"
+					_res = db.Exec("SELECT percentile_cont(0,1)WITHIN GROUP (ORDER BY x) FROM t1")
+					_ = _res // catchsql
+				}
+				{ // do_test "percentile-1.8.3"
+					_res = db.Exec("SELECT percentile_disc(0,1)WITHIN GROUP (ORDER BY x) FROM t1")
+					_ = _res // catchsql
+				}
+				{ // do_test "percentile-1.8.4"
+					_res = db.Exec("SELECT median(x) WITHIN GROUP (ORDER BY x) FROM t1")
+					_ = _res // catchsql
+				}
 				{ // do_test "percentile-1.9.1"
 					_res = db.Exec("SELECT percentile(x) FROM t1")
 					_ = _res // catchsql
@@ -259,6 +384,18 @@ func Test_percentile(t *testing.T) {
 				}
 				{ // do_test "percentile-1.9.4"
 					_res = db.Exec("SELECT median() FROM t1")
+					_ = _res // catchsql
+				}
+				{ // do_test "percentile-1.9.5"
+					_res = db.Exec("SELECT percentile() WITHIN GROUP(ORDER BY x) FROM t1")
+					_ = _res // catchsql
+				}
+				{ // do_test "percentile-1.9.6"
+					_res = db.Exec("SELECT percentile_cont()WITHIN GROUP (ORDER BY x) FROM t1")
+					_ = _res // catchsql
+				}
+				{ // do_test "percentile-1.9.7"
+					_res = db.Exec("SELECT percentile_disc()WITHIN GROUP (ORDER BY x) FROM t1")
 					_ = _res // catchsql
 				}
 				{ // do_test "percentile-1.10"
@@ -341,123 +478,161 @@ func Test_percentile(t *testing.T) {
 					_res = db.Exec("\n    SELECT median(x) from t1;\n  ")
 					_ = _res // catchsql
 				}
+				{ // do_test "percentile-1.20.5"
+					_res = db.Exec("\n      SELECT percentile(50) WITHIN GROUP (ORDER BY x) from t1;\n    ")
+					_ = _res // catchsql
+				}
+				{ // do_test "percentile-1.20.6"
+					_res = db.Exec("\n      SELECT percentile_cont(0.50) WITHIN GROUP (ORDER BY x) from t1;\n    ")
+					_ = _res // catchsql
+				}
+				{ // do_test "percentile-1.20.7"
+					_res = db.Exec("\n      SELECT percentile_disc(0.50) WITHIN GROUP(ORDER BY X) from t1;\n    ")
+					_ = _res // catchsql
+				}
+				{ // do_test "percentile-1.20.8"
+					_res = db.Exec("\n      SELECT median() WITHIN GROUP (ORDER BY x) from t1;\n    ")
+					_ = _res // catchsql
+				}
 				{ // do_test "percentile-1.21"
 					_res = db.Exec("\n    UPDATE t1 SET x=-1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;\n  ")
 					_ = _res // catchsql
 				}
-				{ // "percentile-3.0"
-					_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);\n")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);\n")
+				{ // do_test "percentile-2.0"
+					// load_static_extension db wholenumber (unsupported command, not transpiled)
+					r = db.Query("\n      CREATE VIRTUAL TABLE nums USING wholenumber;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT value-1 FROM nums WHERE value BETWEEN 1 AND 500000;\n      INSERT INTO t3 SELECT value*10 FROM nums\n                      WHERE value BETWEEN 500000 AND 999999;\n      SELECT count(*) FROM t3;\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIRTUAL TABLE nums USING wholenumber;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT value-1 FROM nums WHERE value BETWEEN 1 AND 500000;\n      INSERT INTO t3 SELECT value*10 FROM nums\n                      WHERE value BETWEEN 500000 AND 999999;\n      SELECT count(*) FROM t3;\n    ")
 					}
 				}
-				// foreach {id oba expr} "\n  1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"\n"
-				_items3 := tclSplitList("\n  1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"\n")
-				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-					id := _items3[_idx3+0]
-					_ = id // suppress unused warning
-					oba := _items3[_idx3+1]
-					_ = oba // suppress unused warning
-					expr := _items3[_idx3+2]
-					_ = expr // suppress unused warning
+				// foreach {in out} "\n      0          0.0\n    100    9999990.0\n     50    2749999.5\n     10      99999.9\n  "
+				_items3 := tclSplitList("\n      0          0.0\n    100    9999990.0\n     50    2749999.5\n     10      99999.9\n  ")
+				for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+					in := _items3[_idx3+0]
+					_ = in // suppress unused warning
+					out := _items3[_idx3+1]
+					_ = out // suppress unused warning
 					_ = _idx3
-						if tclBool(oba) {
-						}
-						sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"
-						_ = sql // suppress unused warning
-						{ // "percentile-3." + id + ".1"
-							_res = db.Exec(sql)
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-							}
-						}
-						sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
-						_ = sql // suppress unused warning
-						{ // "percentile-3." + id + ".2"
-							_res = db.Exec(sql)
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-							}
-						}
-						sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
-						_ = sql // suppress unused warning
-						{ // "percentile-3." + id + ".3"
-							_res = db.Exec(sql)
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+						{ // do_test "percentile-2.1." + in
+							r = db.Query("\n        SELECT round(percentile(x, $in),1) from t3;\n      ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT round(percentile(x, $in),1) from t3;\n      ")
 							}
 						}
 					}
-					{ // "percential-4.0"
-						_res = db.Exec("\n  CREATE TABLE products(\n    vendorId INT,\n    productId INTEGER PRIMARY KEY,\n    productName REAL,\n    price REAL\n  );\n  INSERT INTO products VALUES\n    (1001, 17,  'Left-handed screwdriver', 25.99),\n    (1001, 49,  'Right-handed screwdriver', 25.99),\n    (1001, 216, 'Long weight (blue)', 14.75),\n    (1001, 31,  'Long weight (green)', 11.99),\n    (1002, 37,  'Sledge hammer', 33.49),\n    (1003, 7,   'Chainsaw', 245.00),\n    (1003, 8,   'Straw dog box', 55.99),\n    (1003, 12,  'Hammock', 11.01),\n    (1004, 113, 'Teapot', 12.45),\n    (1004, 117, 'Bottomless coffee mug', 9.99);\n")
+					{ // "percentile-3.0"
+						_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);\n")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE products(\n    vendorId INT,\n    productId INTEGER PRIMARY KEY,\n    productName REAL,\n    price REAL\n  );\n  INSERT INTO products VALUES\n    (1001, 17,  'Left-handed screwdriver', 25.99),\n    (1001, 49,  'Right-handed screwdriver', 25.99),\n    (1001, 216, 'Long weight (blue)', 14.75),\n    (1001, 31,  'Long weight (green)', 11.99),\n    (1002, 37,  'Sledge hammer', 33.49),\n    (1003, 7,   'Chainsaw', 245.00),\n    (1003, 8,   'Straw dog box', 55.99),\n    (1003, 12,  'Hammock', 11.01),\n    (1004, 113, 'Teapot', 12.45),\n    (1004, 117, 'Bottomless coffee mug', 9.99);\n")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);\n")
 						}
 					}
-					{ // "percentile-4.1"
-						r = db.Query("\n  SELECT VendorId, ProductId, /* ProductName,*/ Price,\n         avg(price) OVER (PARTITION BY vendorId) AS \"Average\",\n         median(price) OVER (PARTITION BY vendorId) AS \"Median\"\n    FROM products\n   ORDER BY vendorId, productId;\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT VendorId, ProductId, /* ProductName,*/ Price,\n         avg(price) OVER (PARTITION BY vendorId) AS \"Average\",\n         median(price) OVER (PARTITION BY vendorId) AS \"Median\"\n    FROM products\n   ORDER BY vendorId, productId;\n")
-							return
+					// foreach {id oba expr} "\n  1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"\n"
+					_items4 := tclSplitList("\n  1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"\n")
+					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+						id := _items4[_idx4+0]
+						_ = id // suppress unused warning
+						oba := _items4[_idx4+1]
+						_ = oba // suppress unused warning
+						expr := _items4[_idx4+2]
+						_ = expr // suppress unused warning
+						_ = _idx4
+							if tclBool(oba) {
+							}
+							sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"
+							_ = sql // suppress unused warning
+							{ // "percentile-3." + id + ".1"
+								_res = db.Exec(sql)
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								}
+							}
+							sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
+							_ = sql // suppress unused warning
+							{ // "percentile-3." + id + ".2"
+								_res = db.Exec(sql)
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								}
+							}
+							sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
+							_ = sql // suppress unused warning
+							{ // "percentile-3." + id + ".3"
+								_res = db.Exec(sql)
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								}
+							}
 						}
-						got := flatten(r)
-						want := "\n  1001      17         25.99  19.68    20.37 \n  1001      31         11.99  19.68    20.37 \n  1001      49         25.99  19.68    20.37 \n  1001      216        14.75  19.68    20.37 \n  1002      37         33.49  33.49    33.49 \n  1003      7          245.0  104.0    55.99 \n  1003      8          55.99  104.0    55.99 \n  1003      12         11.01  104.0    55.99 \n  1004      113        12.45  11.22    11.22 \n  1004      117        9.99   11.22    11.22 \n"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						{ // "percential-4.0"
+							_res = db.Exec("\n  CREATE TABLE products(\n    vendorId INT,\n    productId INTEGER PRIMARY KEY,\n    productName REAL,\n    price REAL\n  );\n  INSERT INTO products VALUES\n    (1001, 17,  'Left-handed screwdriver', 25.99),\n    (1001, 49,  'Right-handed screwdriver', 25.99),\n    (1001, 216, 'Long weight (blue)', 14.75),\n    (1001, 31,  'Long weight (green)', 11.99),\n    (1002, 37,  'Sledge hammer', 33.49),\n    (1003, 7,   'Chainsaw', 245.00),\n    (1003, 8,   'Straw dog box', 55.99),\n    (1003, 12,  'Hammock', 11.01),\n    (1004, 113, 'Teapot', 12.45),\n    (1004, 117, 'Bottomless coffee mug', 9.99);\n")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE products(\n    vendorId INT,\n    productId INTEGER PRIMARY KEY,\n    productName REAL,\n    price REAL\n  );\n  INSERT INTO products VALUES\n    (1001, 17,  'Left-handed screwdriver', 25.99),\n    (1001, 49,  'Right-handed screwdriver', 25.99),\n    (1001, 216, 'Long weight (blue)', 14.75),\n    (1001, 31,  'Long weight (green)', 11.99),\n    (1002, 37,  'Sledge hammer', 33.49),\n    (1003, 7,   'Chainsaw', 245.00),\n    (1003, 8,   'Straw dog box', 55.99),\n    (1003, 12,  'Hammock', 11.01),\n    (1004, 113, 'Teapot', 12.45),\n    (1004, 117, 'Bottomless coffee mug', 9.99);\n")
+							}
 						}
-					}
-					{ // "percentile-4.2"
-						r = db.Query("\n  SELECT vendorId, median(price) FROM products\n   GROUP BY 1 ORDER BY 1;\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT vendorId, median(price) FROM products\n   GROUP BY 1 ORDER BY 1;\n")
-							return
+						{ // "percentile-4.1"
+							r = db.Query("\n  SELECT VendorId, ProductId, /* ProductName,*/ Price,\n         avg(price) OVER (PARTITION BY vendorId) AS \"Average\",\n         median(price) OVER (PARTITION BY vendorId) AS \"Median\"\n    FROM products\n   ORDER BY vendorId, productId;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT VendorId, ProductId, /* ProductName,*/ Price,\n         avg(price) OVER (PARTITION BY vendorId) AS \"Average\",\n         median(price) OVER (PARTITION BY vendorId) AS \"Median\"\n    FROM products\n   ORDER BY vendorId, productId;\n")
+								return
+							}
+							got := flatten(r)
+							want := "\n  1001      17         25.99  19.68    20.37 \n  1001      31         11.99  19.68    20.37 \n  1001      49         25.99  19.68    20.37 \n  1001      216        14.75  19.68    20.37 \n  1002      37         33.49  33.49    33.49 \n  1003      7          245.0  104.0    55.99 \n  1003      8          55.99  104.0    55.99 \n  1003      12         11.01  104.0    55.99 \n  1004      113        12.45  11.22    11.22 \n  1004      117        9.99   11.22    11.22 \n"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
 						}
-						got := flatten(r)
-						want := "1001 20.37 1002 33.49 1003 55.99 1004 11.22"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						{ // "percentile-4.2"
+							r = db.Query("\n  SELECT vendorId, median(price) FROM products\n   GROUP BY 1 ORDER BY 1;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT vendorId, median(price) FROM products\n   GROUP BY 1 ORDER BY 1;\n")
+								return
+							}
+							got := flatten(r)
+							want := "1001 20.37 1002 33.49 1003 55.99 1004 11.22"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
 						}
-					}
-					{ // "percentile-5.0"
-						_res = db.Exec("\n  CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);\n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);\n")
+						{ // "percentile-5.0"
+							_res = db.Exec("\n  CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);\n")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);\n")
+							}
 						}
-					}
-					{ // "percentile-5.1"
-						r = db.Query("\n  SELECT name, class, cost,\n    percentile(cost,   0) OVER w1 AS 'P0',\n    percentile(cost,  25) OVER w1 AS 'P1',\n    percentile(cost,  50) OVER w1 AS 'P2',\n    percentile(cost,  75) OVER w1 AS 'P3',\n    percentile(cost, 100) OVER w1 AS 'P4'\n  FROM user\n  WINDOW w1 AS (PARTITION BY class)\n  ORDER BY class, cost;\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name, class, cost,\n    percentile(cost,   0) OVER w1 AS 'P0',\n    percentile(cost,  25) OVER w1 AS 'P1',\n    percentile(cost,  50) OVER w1 AS 'P2',\n    percentile(cost,  75) OVER w1 AS 'P3',\n    percentile(cost, 100) OVER w1 AS 'P4'\n  FROM user\n  WINDOW w1 AS (PARTITION BY class)\n  ORDER BY class, cost;\n")
-							return
+						{ // "percentile-5.1"
+							r = db.Query("\n  SELECT name, class, cost,\n    percentile(cost,   0) OVER w1 AS 'P0',\n    percentile(cost,  25) OVER w1 AS 'P1',\n    percentile(cost,  50) OVER w1 AS 'P2',\n    percentile(cost,  75) OVER w1 AS 'P3',\n    percentile(cost, 100) OVER w1 AS 'P4'\n  FROM user\n  WINDOW w1 AS (PARTITION BY class)\n  ORDER BY class, cost;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name, class, cost,\n    percentile(cost,   0) OVER w1 AS 'P0',\n    percentile(cost,  25) OVER w1 AS 'P1',\n    percentile(cost,  50) OVER w1 AS 'P2',\n    percentile(cost,  75) OVER w1 AS 'P3',\n    percentile(cost, 100) OVER w1 AS 'P4'\n  FROM user\n  WINDOW w1 AS (PARTITION BY class)\n  ORDER BY class, cost;\n")
+								return
+							}
+							got := flatten(r)
+							want := "\n  Nate   W  23.5     23.5     24.6175    24.99     33.625     59.53  \n  Hank   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Irma   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Mia    W  59.53    23.5     24.6175    24.99     33.625     59.53  \n  Jake   X  2234.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Gina   X  2320.49  2234.99  2299.115   2860.24   3792.14    4968.59\n  Bob    X  3399.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Liam   X  4968.59  2234.99  2299.115   2860.24   3792.14    4968.59\n  Fred   Y  539.99   539.99   2443.7     3328.27   3763.7     4319.99\n  Dave   Y  3078.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Alice  Y  3578.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Kim    Y  4319.99  539.99   2443.7     3328.27   3763.7     4319.99\n  Cindy  Z  699.1    699.1    1104.3225  1509.545  1914.7675  2319.99\n  Emma   Z  2319.99  699.1    1104.3225  1509.545  1914.7675  2319.99\n"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
 						}
-						got := flatten(r)
-						want := "\n  Nate   W  23.5     23.5     24.6175    24.99     33.625     59.53  \n  Hank   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Irma   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Mia    W  59.53    23.5     24.6175    24.99     33.625     59.53  \n  Jake   X  2234.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Gina   X  2320.49  2234.99  2299.115   2860.24   3792.14    4968.59\n  Bob    X  3399.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Liam   X  4968.59  2234.99  2299.115   2860.24   3792.14    4968.59\n  Fred   Y  539.99   539.99   2443.7     3328.27   3763.7     4319.99\n  Dave   Y  3078.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Alice  Y  3578.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Kim    Y  4319.99  539.99   2443.7     3328.27   3763.7     4319.99\n  Cindy  Z  699.1    699.1    1104.3225  1509.545  1914.7675  2319.99\n  Emma   Z  2319.99  699.1    1104.3225  1509.545  1914.7675  2319.99\n"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						{ // "percentile-6.0"
+							r = db.Query("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;\n")
+								return
+							}
+							got := flatten(r)
+							want := "0.55"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
 						}
-					}
-					{ // "percentile-6.0"
-						r = db.Query("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;\n")
-							return
+						{ // "percentile-7.0"
+							r = db.Query("\n  WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;\n")
+								return
+							}
+							got := flatten(r)
+							want := "499998.0"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
 						}
-						got := flatten(r)
-						want := "0.55"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					{ // "percentile-7.0"
-						r = db.Query("\n  WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;\n")
-							return
-						}
-						got := flatten(r)
-						want := "499998.0"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
 }

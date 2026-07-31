@@ -70,21 +70,11 @@ func Test_nan(t *testing.T) {
 		}
 	}
 	if tcl_platform_platform != "symbian" {
-		// do_realnum_test nan-1.1.2 {
-    sqlite3_bind_double $::STMT 1 +Inf
-    sqlite...} {{} null inf real} (expr test, not transpiled)
-		// do_realnum_test nan-1.1.3 {
-    sqlite3_bind_double $::STMT 1 -Inf
-    sqlite...} {{} null inf real -inf real} (expr test, not transpiled)
-		// do_realnum_test nan-1.1.4 {
-    sqlite3_bind_double $::STMT 1 -NaN
-    sqlite...} {{} null inf real -inf real {} null} (expr test, not transpiled)
-		// do_realnum_test nan-1.1.5 {
-    sqlite3_bind_double $::STMT 1 NaN0
-    sqlite...} {{} null inf real -inf real {} null {} null} (expr test, not transpiled)
-		// do_realnum_test nan-1.1.6 {
-    sqlite3_bind_double $::STMT 1 -NaN0
-    sqlit...} {{} null inf real -inf real {} null {} null {} null} (expr test, not transpiled)
+		// do_realnum_test nan-1.1.2 {\n    sqlite3_bind_double $::STMT 1 +Inf\n    sqli...} {{} null inf real} (expr test, not transpiled)
+		// do_realnum_test nan-1.1.3 {\n    sqlite3_bind_double $::STMT 1 -Inf\n    sqli...} {{} null inf real -inf real} (expr test, not transpiled)
+		// do_realnum_test nan-1.1.4 {\n    sqlite3_bind_double $::STMT 1 -NaN\n    sqli...} {{} null inf real -inf real {} null} (expr test, not transpiled)
+		// do_realnum_test nan-1.1.5 {\n    sqlite3_bind_double $::STMT 1 NaN0\n    sqli...} {{} null inf real -inf real {} null {} null} (expr test, not transpiled)
+		// do_realnum_test nan-1.1.6 {\n    sqlite3_bind_double $::STMT 1 -NaN0\n    sql...} {{} null inf real -inf real {} null {} null {} null} (expr test, not transpiled)
 		{ // do_test "nan-1.1.7"
 			_res = db.Exec("\n      UPDATE t1 SET x=x-x;\n      SELECT x, typeof(x) FROM t1;\n    ")
 			if _res.Error != nil {
@@ -314,12 +304,8 @@ func Test_nan(t *testing.T) {
 		}
 	}
 	if tcl_platform_platform != "symbian" {
-		// do_realnum_test nan-4.7 {
-    db eval {DELETE FROM t1}
-    db eval "INSERT ...} {inf real} (expr test, not transpiled)
-		// do_realnum_test nan-4.8 {
-    db eval {DELETE FROM t1}
-    db eval "INSERT ...} {-inf real} (expr test, not transpiled)
+		// do_realnum_test nan-4.7 {\n    db eval {DELETE FROM t1}\n    db eval "INSER...} {inf real} (expr test, not transpiled)
+		// do_realnum_test nan-4.8 {\n    db eval {DELETE FROM t1}\n    db eval "INSER...} {-inf real} (expr test, not transpiled)
 	}
 	{ // do_test "nan-4.9"
 		_res = db.Exec("DELETE FROM t1")
@@ -476,35 +462,12 @@ func Test_nan(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
 		}
 	}
-	// do_realnum_test nan-4.20 {
-  db eval {DELETE FROM t1}
-  set big [string repe...} {inf real} (expr test, not transpiled)
-	// do_realnum_test nan-4.30 {
-  db eval {
-    DELETE FROM t1;
-    INSERT INTO t...} {inf real} (expr test, not transpiled)
-	// do_realnum_test nan-4.31 {
-  db eval {
-    DELETE FROM t1;
-    INSERT INTO t...} {inf real} (expr test, not transpiled)
-	// do_realnum_test nan-4.32 {
-  db eval {
-    DELETE FROM t1;
-    INSERT INTO t...} {0.0 real} (expr test, not transpiled)
-	// do_realnum_test nan-4.33 {
-  db eval {
-    DELETE FROM t1;
-    INSERT INTO t...} {0.0 real} (expr test, not transpiled)
-	// do_realnum_test nan-4.34 {
-  db eval {
-    DELETE FROM t1;
-    INSERT INTO t...} {inf real} (expr test, not transpiled)
-	// do_realnum_test nan-4.35 {
-  db eval {
-    DELETE FROM t1;
-    INSERT INTO t...} {0.0 real} (expr test, not transpiled)
-	// do_realnum_test nan-4.40 {
-  db eval {
-    SELECT cast('-1e999' AS real);
-  ...} {-inf} (expr test, not transpiled)
+	// do_realnum_test nan-4.20 {\n  db eval {DELETE FROM t1}\n  set big [string re...} {inf real} (expr test, not transpiled)
+	// do_realnum_test nan-4.30 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INT...} {inf real} (expr test, not transpiled)
+	// do_realnum_test nan-4.31 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INT...} {inf real} (expr test, not transpiled)
+	// do_realnum_test nan-4.32 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INT...} {0.0 real} (expr test, not transpiled)
+	// do_realnum_test nan-4.33 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INT...} {0.0 real} (expr test, not transpiled)
+	// do_realnum_test nan-4.34 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INT...} {inf real} (expr test, not transpiled)
+	// do_realnum_test nan-4.35 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INT...} {0.0 real} (expr test, not transpiled)
+	// do_realnum_test nan-4.40 {\n  db eval {\n    SELECT cast('-1e999' AS real);\...} {-inf} (expr test, not transpiled)
 }

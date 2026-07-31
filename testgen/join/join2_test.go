@@ -92,6 +92,18 @@ func Test_join2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3\n  ")
 		}
 	}
+	{ // do_test "join2-1.7"
+		r = db.Query("\n      SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)\n    ")
+		}
+	}
+	{ // do_test "join2-1.7-rj"
+		r = db.Query("\n      SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1\n    ")
+		}
+	}
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n  INSERT INTO aa VALUES('one');\n  INSERT INTO bb VALUES('one');\n  INSERT INTO cc VALUES('one');\n")
 		if _res.Error != nil {
@@ -506,8 +518,7 @@ func Test_join2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP VIEW t3;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(a) SELECT n FROM c;\n  CREATE VIEW t2(b) AS SELECT a FROM t1;\n")
 		}
 	}
-	// do_vmstep_test 12.2 {
-  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 O...} 2000 {99 99 100 100} (unsupported command, not transpiled)
+	// do_vmstep_test 12.2 {\n  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 ...} 2000 {99 99 100 100} (unsupported command, not transpiled)
 	{ // "12.3"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 OFFSET 98;\n")
 		if r.Error != nil {

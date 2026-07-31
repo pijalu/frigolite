@@ -257,7 +257,7 @@ func Test_expridx1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "$nRow/2"
+			want := tclExpr("$nRow/2")
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

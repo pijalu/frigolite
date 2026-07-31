@@ -80,7 +80,7 @@ func Test_dbstatus2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 0 ")
 		}
-		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
+		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "1.2"
 		r = db.Query(" SELECT b FROM t1 WHERE a=2 ")
@@ -203,9 +203,9 @@ func Test_dbstatus2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b FROM data ORDER BY a ")
 			}
-			nTmpSpill = "lindex [db_temp_spill db 1] 1"
+			nTmpSpill = tclLIndex("db_temp_spill", "db")
 			_ = nTmpSpill // suppress unused warning
-			// expr ($nTmpSpill>7*1000*1000) && ($nTmpSpill<10*1000*1000)?"ok":$nTmpSpill → "($nTmpSpill>7*1000*1000) && ($nTmpSpill<10*1000*1000)?\"ok\":$nTmpSpill"
+			// expr ($nTmpSpill>7*1000*1000) && ($nTmpSpill<10*1000*1000)?"ok":$nTmpSpill (not evaluated)
 		}
 		{ // do_test "4.5"
 			// db_temp_spill db 0 (unsupported command, not transpiled)
@@ -215,9 +215,9 @@ func Test_dbstatus2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON data(a) ")
 			}
-			nTmpSpill = "lindex [db_temp_spill db 1] 1"
+			nTmpSpill = tclLIndex("db_temp_spill", "db")
 			_ = nTmpSpill // suppress unused warning
-			// expr ($nTmpSpill>384*1000) && ($nTmpSpill<768*1000)?"ok":$nTmpSpill → "($nTmpSpill>384*1000) && ($nTmpSpill<768*1000)?\"ok\":$nTmpSpill"
+			// expr ($nTmpSpill>384*1000) && ($nTmpSpill<768*1000)?"ok":$nTmpSpill (not evaluated)
 		}
 		{ // do_test "4.7"
 			// db_temp_spill db 0 (unsupported command, not transpiled)

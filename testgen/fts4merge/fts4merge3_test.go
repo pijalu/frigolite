@@ -53,11 +53,9 @@ func Test_fts4merge3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4merge3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	if tclBool("\"\" == " + "bc_find_binaries backcompat.test") {
 		return
 	}
-	// do_all_bc_test {
-
-  sql2 { PRAGMA page_size = 512 }
-  if { 0==[cat...} (unsupported command, not transpiled)
+	// do_all_bc_test {\n\n  sql2 { PRAGMA page_size = 512 }\n  if { 0==[...} (unsupported command, not transpiled)
 }

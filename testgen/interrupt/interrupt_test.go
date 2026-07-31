@@ -106,16 +106,92 @@ func Test_interrupt(t *testing.T) {
 	_ = origsize // suppress unused warning
 	cksum = "db eval {SELECT md5sum(a || b) FROM t1}"
 	_ = cksum // suppress unused warning
+	// interrupt_test interrupt-2.2 {VACUUM} {} 100 (unsupported command, not transpiled)
 	{ // do_test "interrupt-2.3"
 		r = db.Query("\n    SELECT md5sum(a || b) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(a || b) FROM t1;\n  ")
 		}
 	}
+	{ // do_test "interrupt-2.4"
+		// expr $::origsize>[file size test.db] (not evaluated)
+	}
+	{ // do_test "interrupt-2.5.1"
+		// sqlite3_is_interrupted $DB (unsupported command, not transpiled)
+	}
+	{ // do_test "interrupt-2.5.2"
+		interrupt_count = "0" // TCL namespace variable
+		_ = interrupt_count // suppress unused warning
+		sql = "EXPLAIN SELECT max(a,b), a, b FROM t1"
+		_ = sql // suppress unused warning
+		_res = db.Exec(sql)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		}
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			_res = db.Exec(sql)
+			if _res.Error != nil { _catchErr = _res.Error }
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	{ // do_test "interrupt-2.5.3"
+		_ = interrupt_count // TCL namespace variable (query)
+	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "interrupt-2.7"
 		// sqlite3_is_interrupted $DB (unsupported command, not transpiled)
+	}
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
+		{ // do_test "interrupt-3." + i + ".1"
+			r = db.Query("\n        BEGIN;\n        CREATE TEMP TABLE t2(x,y);\n        SELECT name FROM sqlite_temp_master;\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        BEGIN;\n        CREATE TEMP TABLE t2(x,y);\n        SELECT name FROM sqlite_temp_master;\n      ")
+			}
+		}
+		{ // do_test "interrupt-3." + i + ".2"
+			sqlite_interrupt_count = i // TCL namespace variable
+			_ = sqlite_interrupt_count // suppress unused warning
+			_res = db.Exec("\n        INSERT INTO t2 SELECT * FROM t1;\n      ")
+			_ = _res // catchsql
+		}
+		{ // do_test "interrupt-3." + i + ".3"
+			r = db.Query("\n        SELECT name FROM temp.sqlite_master;\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT name FROM temp.sqlite_master;\n      ")
+			}
+		}
+		{ // do_test "interrupt-3." + i + ".4"
+			_res = db.Exec("\n        ROLLBACK\n      ")
+			_ = _res // catchsql
+		}
+		{ // do_test "interrupt-3." + i + ".5"
+			_res = db.Exec("SELECT name FROM sqlite_temp_master")
+			_ = _res // catchsql
+			r = db.Query("\n        SELECT name FROM temp.sqlite_master;\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT name FROM temp.sqlite_master;\n      ")
+			}
+		}
+		// incr i 5
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 5)
+			}
+		}
 	}
 	_res = db.Exec("\n  CREATE TABLE t2(a,b,c);\n  INSERT INTO t2 SELECT round(a/10), randstr(50,80), randstr(50,60) FROM t1;\n")
 	if _res.Error != nil {
@@ -129,7 +205,7 @@ func Test_interrupt(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 	}
-	max_count = "1000000-$sqlite_interrupt_count"
+	max_count = tclExpr("1000000-$sqlite_interrupt_count")
 	_ = max_count // suppress unused warning
 	i = "1"
 	_ = i // suppress unused warning

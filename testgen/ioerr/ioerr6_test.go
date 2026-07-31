@@ -51,6 +51,9 @@ func Test_ioerr6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "ioerr6" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	_putsMsg := "skipping tests - not compiled with SQLITE_ENABLE_ATOMIC_WRITE..."
+	_ = _putsMsg
+	return
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}
@@ -76,22 +79,6 @@ func Test_ioerr6(t *testing.T) {
 		}
 	}
 	// shmfault delete (unsupported command, not transpiled)
-	// do_faultsim_test 2 -faults full* -prep {
-  shmfault devchar atomic
-  faultsim_restore
-  sq...} -body {
-  db eval {
-    CREATE TABLE t1(x PRIMARY KEY);
- ...} -test {
-  set res [db one { PRAGMA integrity_check }]
-  i...} (unsupported command, not transpiled)
-	// do_faultsim_test 3 -faults full* -prep {
-  shmfault devchar atomic
-  faultsim_restore
-  sq...} -body {
-  db eval {
-    CREATE TABLE t1(x);
-    CREATE TA...} -test {
-  db eval { CREATE TABLE t3(x) }
-  if {[db one { ...} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n ...} -body {\n  db eval {\n    CREATE TABLE t1(x PRIMARY KEY);...} -test {\n  set res [db one { PRAGMA integrity_check }]\n ...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n ...} -body {\n  db eval {\n    CREATE TABLE t1(x);\n    CREATE...} -test {\n  db eval { CREATE TABLE t3(x) }\n  if {[db one ...} (unsupported command, not transpiled)
 }

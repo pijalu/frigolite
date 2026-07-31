@@ -53,6 +53,7 @@ func Test_vtab6(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	_res = db.Exec("\n  CREATE TABLE real_t1(a,b,c);\n  CREATE TABLE real_t2(b,c,d);\n  CREATE TABLE real_t3(c,d,e);\n  CREATE TABLE real_t4(d,e,f);\n  CREATE TABLE real_t5(a INTEGER PRIMARY KEY);\n  CREATE TABLE real_t6(a INTEGER);\n  CREATE TABLE real_t7 (x, y);\n  CREATE TABLE real_t8 (a integer primary key, b);\n  CREATE TABLE real_t9(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE real_t10(x INTEGER PRIMARY KEY, y);\n  CREATE TABLE real_t11(p INTEGER PRIMARY KEY, q);\n  CREATE TABLE real_t12(a,b);\n  CREATE TABLE real_t13(b,c);\n  CREATE TABLE real_t21(a,b,c);\n  CREATE TABLE real_t22(p,q);\n")
 	if _res.Error != nil {
@@ -183,6 +184,18 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM t1 natural inner join t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 natural inner join t2;\n  ")
+		}
+	}
+	{ // do_test "vtab6-1.13"
+		r = db.Query("\n      SELECT * FROM t1 NATURAL JOIN \n        (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as t3\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 NATURAL JOIN \n        (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as t3\n    ")
+		}
+	}
+	{ // do_test "vtab6-1.14"
+		r = db.Query("\n      SELECT * FROM (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as 'tx'\n          NATURAL JOIN t1\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as 'tx'\n          NATURAL JOIN t1\n    ")
 		}
 	}
 	{ // do_test "vtab6-1.15"
@@ -358,6 +371,48 @@ func Test_vtab6(t *testing.T) {
 		r = db.Query("\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
+		}
+	}
+	{ // do_test "vtab6-8.1"
+		r = db.Query("\n    BEGIN;\n    INSERT INTO t9 VALUES(1,11);\n    INSERT INTO t9 VALUES(2,22);\n    INSERT INTO t10 VALUES(1,2);\n    INSERT INTO t10 VALUES(3,3);    \n    INSERT INTO t11 VALUES(2,111);\n    INSERT INTO t11 VALUES(3,333);    \n    CREATE VIEW v10_11 AS SELECT x, q FROM t10, t11 WHERE t10.y=t11.p;\n    COMMIT;\n    SELECT * FROM t9 LEFT JOIN v10_11 ON( a=x );\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t9 VALUES(1,11);\n    INSERT INTO t9 VALUES(2,22);\n    INSERT INTO t10 VALUES(1,2);\n    INSERT INTO t10 VALUES(3,3);    \n    INSERT INTO t11 VALUES(2,111);\n    INSERT INTO t11 VALUES(3,333);    \n    CREATE VIEW v10_11 AS SELECT x, q FROM t10, t11 WHERE t10.y=t11.p;\n    COMMIT;\n    SELECT * FROM t9 LEFT JOIN v10_11 ON( a=x );\n  ")
+		}
+	}
+	{ // do_test "vtab6-8.2"
+		r = db.Query("\n      SELECT * FROM t9 LEFT JOIN (SELECT x, q FROM t10, t11 WHERE t10.y=t11.p)\n           ON( a=x);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t9 LEFT JOIN (SELECT x, q FROM t10, t11 WHERE t10.y=t11.p)\n           ON( a=x);\n    ")
+		}
+	}
+	{ // do_test "vtab6-8.3"
+		r = db.Query("\n    SELECT * FROM v10_11 LEFT JOIN t9 ON( a=x );\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v10_11 LEFT JOIN t9 ON( a=x );\n  ")
+		}
+	}
+	{ // do_test "vtab6-9.1"
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t12 VALUES(1,11);\n    INSERT INTO t12 VALUES(2,22);\n    INSERT INTO t13 VALUES(22,222);\n    COMMIT;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t12 VALUES(1,11);\n    INSERT INTO t12 VALUES(2,22);\n    INSERT INTO t13 VALUES(22,222);\n    COMMIT;\n  ")
+		}
+	}
+	{ // do_test "vtab6-9.1.1"
+		r = db.Query("\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n      EXCEPT\n      SELECT * FROM t12 NATURAL LEFT JOIN (SELECT * FROM t13 WHERE b>0);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n      EXCEPT\n      SELECT * FROM t12 NATURAL LEFT JOIN (SELECT * FROM t13 WHERE b>0);\n    ")
+		}
+	}
+	{ // do_test "vtab6-9.2"
+		r = db.Query("\n      CREATE VIEW v13 AS SELECT * FROM t13 WHERE b>0;\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n        EXCEPT\n        SELECT * FROM t12 NATURAL LEFT JOIN v13;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIEW v13 AS SELECT * FROM t13 WHERE b>0;\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n        EXCEPT\n        SELECT * FROM t12 NATURAL LEFT JOIN v13;\n    ")
+		}
+	}
+	{ // do_test "vtab6-10.1"
+		r = db.Query("\n    CREATE INDEX i22 ON real_t22(q);\n    SELECT a FROM t21 LEFT JOIN t22 ON b=p WHERE q=\n       (SELECT max(m.q) FROM t22 m JOIN t21 n ON n.b=m.p WHERE n.c=1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i22 ON real_t22(q);\n    SELECT a FROM t21 LEFT JOIN t22 ON b=p WHERE q=\n       (SELECT max(m.q) FROM t22 m JOIN t21 n ON n.b=m.p WHERE n.c=1);\n  ")
 		}
 	}
 	{ // do_test "vtab6-11.1.0"

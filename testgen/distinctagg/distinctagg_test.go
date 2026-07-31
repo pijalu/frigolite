@@ -131,7 +131,7 @@ func Test_distinctagg(t *testing.T) {
 				_ = prg // suppress unused warning
 				idx = "lsearch $prg OpenEphemeral"
 				_ = idx // suppress unused warning
-				// expr $idx>=0 → "$idx>=0"
+				// expr $idx>=0 (not evaluated)
 			}
 			{ // "3." + tn + ".2"
 				_res = db.Exec(sql)
@@ -178,7 +178,7 @@ func Test_distinctagg(t *testing.T) {
 					_ = prg // suppress unused warning
 					idx = "lsearch $prg OpenEphemeral"
 					_ = idx // suppress unused warning
-					// expr $idx>=0 → "$idx>=0"
+					// expr $idx>=0 (not evaluated)
 				}
 				{ // "4." + tn + ".2"
 					_res = db.Exec(sql)

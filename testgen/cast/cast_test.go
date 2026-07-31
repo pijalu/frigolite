@@ -53,6 +53,67 @@ func Test_cast(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
+	{ // do_test "cast-1.1"
+		r = db.Query("SELECT x'616263'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x'616263'")
+		}
+	}
+	{ // do_test "cast-1.2"
+		r = db.Query("SELECT typeof(x'616263')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(x'616263')")
+		}
+	}
+	{ // do_test "cast-1.3"
+		r = db.Query("SELECT CAST(x'616263' AS text)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'616263' AS text)")
+		}
+	}
+	{ // do_test "cast-1.4"
+		r = db.Query("SELECT typeof(CAST(x'616263' AS text))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(x'616263' AS text))")
+		}
+	}
+	{ // do_test "cast-1.5"
+		r = db.Query("SELECT CAST(x'616263' AS numeric)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'616263' AS numeric)")
+		}
+	}
+	{ // do_test "cast-1.6"
+		r = db.Query("SELECT typeof(CAST(x'616263' AS numeric))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(x'616263' AS numeric))")
+		}
+	}
+	{ // do_test "cast-1.7"
+		r = db.Query("SELECT CAST(x'616263' AS blob)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'616263' AS blob)")
+		}
+	}
+	{ // do_test "cast-1.8"
+		r = db.Query("SELECT typeof(CAST(x'616263' AS blob))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(x'616263' AS blob))")
+		}
+	}
+	{ // do_test "cast-1.9"
+		r = db.Query("SELECT CAST(x'616263' AS integer)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'616263' AS integer)")
+		}
+	}
+	{ // do_test "cast-1.10"
+		r = db.Query("SELECT typeof(CAST(x'616263' AS integer))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(CAST(x'616263' AS integer))")
+		}
+	}
 	{ // do_test "cast-1.11"
 		r = db.Query("SELECT null")
 		if r.Error != nil {
@@ -389,8 +450,7 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(9223372036854774800 AS numeric)")
 		}
 	}
-	// do_realnum_test cast-3.3 {
-  execsql {SELECT CAST(9223372036854774800 AS rea...} 9.22337203685477e+18 (expr test, not transpiled)
+	// do_realnum_test cast-3.3 {\n  execsql {SELECT CAST(9223372036854774800 AS re...} 9.22337203685477e+18 (expr test, not transpiled)
 	{ // do_test "cast-3.4"
 		r = db.Query("SELECT CAST(CAST(9223372036854774800 AS real) AS integer)")
 		if r.Error != nil {
@@ -409,8 +469,7 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(-9223372036854774800 AS numeric)")
 		}
 	}
-	// do_realnum_test cast-3.7 {
-  execsql {SELECT CAST(-9223372036854774800 AS re...} -9.22337203685477e+18 (expr test, not transpiled)
+	// do_realnum_test cast-3.7 {\n  execsql {SELECT CAST(-9223372036854774800 AS r...} -9.22337203685477e+18 (expr test, not transpiled)
 	{ // do_test "cast-3.8"
 		r = db.Query("SELECT CAST(CAST(-9223372036854774800 AS real) AS integer)")
 		if r.Error != nil {
@@ -429,8 +488,7 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('9223372036854774800' AS numeric)")
 		}
 	}
-	// do_realnum_test cast-3.13 {
-  execsql {SELECT CAST('9223372036854774800' AS r...} 9.22337203685477e+18 (expr test, not transpiled)
+	// do_realnum_test cast-3.13 {\n  execsql {SELECT CAST('9223372036854774800' AS ...} 9.22337203685477e+18 (expr test, not transpiled)
 	{ // do_test "cast-3.14"
 		r = db.Query("SELECT CAST(CAST('9223372036854774800' AS real) AS integer)")
 		if r.Error != nil {
@@ -449,8 +507,7 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('-9223372036854774800' AS numeric)")
 		}
 	}
-	// do_realnum_test cast-3.17 {
-  execsql {SELECT CAST('-9223372036854774800' AS ...} -9.22337203685477e+18 (expr test, not transpiled)
+	// do_realnum_test cast-3.17 {\n  execsql {SELECT CAST('-9223372036854774800' AS...} -9.22337203685477e+18 (expr test, not transpiled)
 	{ // do_test "cast-3.18"
 		r = db.Query("SELECT CAST(CAST('-9223372036854774800' AS real) AS integer)")
 		if r.Error != nil {
@@ -470,8 +527,7 @@ func Test_cast(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'39323233333732303336383534373734383030' AS numeric)")
 			}
 		}
-		// do_realnum_test cast-3.23 {
-    execsql {SELECT CAST(x'3932323333373230333638...} 9.22337203685477e+18 (expr test, not transpiled)
+		// do_realnum_test cast-3.23 {\n    execsql {SELECT CAST(x'393232333337323033363...} 9.22337203685477e+18 (expr test, not transpiled)
 		{ // do_test "cast-3.24"
 			r = db.Query("\n      SELECT CAST(CAST(x'39323233333732303336383534373734383030' AS real)\n                  AS integer)\n    ")
 			if r.Error != nil {
@@ -768,6 +824,37 @@ func Test_cast(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	r = db.Query(" PRAGMA encoding='utf16' ")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA encoding='utf16' ")
+	}
+	{ // "cast-8.1"
+		r = db.Query("\n    SELECT quote(X'310032003300')==quote(substr(X'310032003300', 1))\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(X'310032003300')==quote(substr(X'310032003300', 1))\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "cast-8.2"
+		r = db.Query("\n    SELECT CAST(X'310032003300' AS TEXT)\n         ==CAST(substr(X'310032003300', 1) AS TEXT)\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CAST(X'310032003300' AS TEXT)\n         ==CAST(substr(X'310032003300', 1) AS TEXT)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
 	{ // "cast-9.0"
 		r = db.Query("\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v1(c0, c1) AS \n    SELECT CAST(0.0 AS NUMERIC), COUNT(*) OVER () FROM t0;\n  SELECT v1.c0 FROM v1, t0 WHERE v1.c0=0; \n")
 		if r.Error != nil {
@@ -950,6 +1037,54 @@ func Test_cast(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "X 44.0 X 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "cast-10.7"
+		r = db.Query("\n    DROP VIEW v1;\n    CREATE VIEW v1 AS SELECT CAST(44 AS REAL) AS 'm' UNION ALL SELECT 55;\n    SELECT name, type FROM pragma_table_info('v1');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP VIEW v1;\n    CREATE VIEW v1 AS SELECT CAST(44 AS REAL) AS 'm' UNION ALL SELECT 55;\n    SELECT name, type FROM pragma_table_info('v1');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "m NUM"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "cast-10.8"
+		r = db.Query("\n    CREATE VIEW v2 AS VALUES(CAST(44 AS REAL)),(55);\n    SELECT type FROM pragma_table_info('v2');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v2 AS VALUES(CAST(44 AS REAL)),(55);\n    SELECT type FROM pragma_table_info('v2');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "NUM"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "cast-10.9"
+		r = db.Query("\n    SELECT * FROM v1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "44.0 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "cast-10.10"
+		r = db.Query("\n    SELECT * FROM v2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "44.0 55"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

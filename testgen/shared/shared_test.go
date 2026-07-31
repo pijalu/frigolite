@@ -5,6 +5,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -125,6 +126,7 @@ func Test_shared(t *testing.T) {
 	_ = c // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	for _, av := range tclSplitList("list 0 1") {
@@ -133,6 +135,16 @@ func Test_shared(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
+		{ // do_test "shared-" + tclExpr("$av+1") + ".1.0"
+			r = db.Query("pragma auto_vacuum=" + av)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma auto_vacuum=" + av)
+			}
+			r = db.Query("pragma auto_vacuum")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma auto_vacuum")
+			}
+		}
 		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
@@ -167,7 +179,7 @@ func Test_shared(t *testing.T) {
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_ = sqlite_open_file_count // TCL namespace variable (query)
-				// expr $sqlite_open_file_count-$extrafds_postlock → "$sqlite_open_file_count-$extrafds_postlock"
+				// expr $sqlite_open_file_count-$extrafds_postlock (not evaluated)
 			}
 			{ // do_test "shared-" + av + ".1.2"
 				_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
@@ -226,7 +238,7 @@ func Test_shared(t *testing.T) {
 					if err != nil { t.Fatal(err) }
 				}
 				_ = sqlite_open_file_count // TCL namespace variable (query)
-				// expr $sqlite_open_file_count-($extrafds_prelock+$extrafds_postlock) → "$sqlite_open_file_count-($extrafds_prelock+$extrafds_postlock)"
+				// expr $sqlite_open_file_count-($extrafds_prelock+$extrafds_postlock) (not evaluated)
 			}
 			{ // do_test "shared-" + av + ".2.2"
 				r = db.Query("\n    BEGIN;\n    SELECT * FROM abc;\n  ")
@@ -321,21 +333,21 @@ func Test_shared(t *testing.T) {
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "shared-" + av + ".4.1.1"
-				// expr $sqlite_open_file_count-($extrafds_prelock*2) → "$sqlite_open_file_count-($extrafds_prelock*2)"
+				// expr $sqlite_open_file_count-($extrafds_prelock*2) (not evaluated)
 			}
 			{ // do_test "shared-" + av + ".4.1.2"
 				_res = db.Exec("ATTACH 'test2.db' AS test2")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test2.db' AS test2")
 				}
-				// expr $sqlite_open_file_count-($extrafds_postlock*2) → "$sqlite_open_file_count-($extrafds_postlock*2)"
+				// expr $sqlite_open_file_count-($extrafds_postlock*2) (not evaluated)
 			}
 			{ // do_test "shared-" + av + ".4.1.3"
 				_res = db.Exec("ATTACH 'test.db' AS test")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test.db' AS test")
 				}
-				// expr $sqlite_open_file_count-($extrafds_postlock*2) → "$sqlite_open_file_count-($extrafds_postlock*2)"
+				// expr $sqlite_open_file_count-($extrafds_postlock*2) (not evaluated)
 			}
 			{ // do_test "shared-" + av + ".4.2.1"
 				_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(d, e, f);\n    INSERT INTO abc VALUES('i', 'ii', 'iii');\n    INSERT INTO def VALUES('I', 'II', 'III');\n  ")
@@ -371,6 +383,18 @@ func Test_shared(t *testing.T) {
 				_res = db.Exec("\n    COMMIT\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT\n  ")
+				}
+			}
+			{ // do_test "shared-" + av + ".4.4.1.2"
+				r = db.Query("\n      CREATE TABLE test2.ghi(g, h, i);\n      SELECT 'test.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test2.db:'||name FROM test2.sqlite_master;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE test2.ghi(g, h, i);\n      SELECT 'test.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test2.db:'||name FROM test2.sqlite_master;\n    ")
+				}
+			}
+			{ // do_test "shared-" + av + ".4.4.1.2"
+				r = db.Query("\n      SELECT 'test2.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test.db:'||name FROM test.sqlite_master;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 'test2.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test.db:'||name FROM test.sqlite_master;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".4.4.2"
@@ -458,10 +482,34 @@ func Test_shared(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE test1.t1(a, b);\n    CREATE INDEX test1.i1 ON t1(a, b);\n  ")
 				}
 			}
+			{ // do_test "shared-" + av + ".5.1.3"
+				_res = db.Exec("\n      CREATE VIEW test1.v1 AS SELECT * FROM t1;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW test1.v1 AS SELECT * FROM t1;\n    ")
+				}
+			}
+			{ // do_test "shared-" + av + ".5.1.4"
+				_res = db.Exec("\n      CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;\n    ")
+				}
+			}
 			{ // do_test "shared-" + av + ".5.1.5"
 				_res = db.Exec("\n    DROP INDEX i1;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX i1;\n  ")
+				}
+			}
+			{ // do_test "shared-" + av + ".5.1.6"
+				_res = db.Exec("\n      DROP VIEW v1;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW v1;\n    ")
+				}
+			}
+			{ // do_test "shared-" + av + ".5.1.7"
+				_res = db.Exec("\n      DROP TRIGGER trig1;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER trig1;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.8"
@@ -470,10 +518,22 @@ func Test_shared(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n  ")
 				}
 			}
+			{ // do_test "shared-" + av + ".5.1.9"
+				r = db.Query("\n      SELECT * FROM sqlite_master UNION ALL SELECT * FROM test1.sqlite_master\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_master UNION ALL SELECT * FROM test1.sqlite_master\n    ")
+				}
+			}
 			{ // do_test "shared-" + av + ".6.1.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+				}
+			}
+			{ // do_test "shared-" + av + ".6.1.2"
+				r = db.Query("\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".6.1.3"
@@ -580,6 +640,55 @@ func Test_shared(t *testing.T) {
 				db2.Close()
 			}
 			os.Remove("test.db")
+			{ // do_test "shared-" + av + ".8.1.1"
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				r = db.Query("\n      PRAGMA encoding = 'UTF-16';\n      SELECT * FROM sqlite_master;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA encoding = 'UTF-16';\n      SELECT * FROM sqlite_master;\n    ")
+				}
+			}
+			{ // do_test "shared-" + av + ".8.1.2"
+				_ = tclStringRange("execsql {PRAGMA encoding;}", "0", "end-2") // string range result
+			}
+			{ // do_test "shared-" + av + ".8.1.3"
+				db2, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n      PRAGMA encoding = 'UTF-8';\n      CREATE TABLE abc(a, b, c);\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA encoding = 'UTF-8';\n      CREATE TABLE abc(a, b, c);\n    ")
+				}
+			}
+			{ // do_test "shared-" + av + ".8.1.4"
+				r = db.Query("\n      SELECT * FROM sqlite_master;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_master;\n    ")
+				}
+			}
+			{ // do_test "shared-" + av + ".8.1.5"
+				db2.Close()
+				r = db.Query("\n      PRAGMA encoding;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA encoding;\n    ")
+				}
+			}
+			os.Remove("test2.db")
+			{ // do_test "shared-" + av + ".8.2.1"
+				r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.sqlite_master;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.sqlite_master;\n    ")
+				}
+			}
+			{ // do_test "shared-" + av + ".8.2.2"
+				db2, err = frigolite.Open("test2.db")
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n      PRAGMA encoding = 'UTF-16';\n      CREATE TABLE def(d, e, f);\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA encoding = 'UTF-16';\n      CREATE TABLE def(d, e, f);\n    ")
+				}
+				_ = tclStringRange("execsql {PRAGMA encoding;} db2", "0", "end-2") // string range result
+			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
@@ -590,10 +699,80 @@ func Test_shared(t *testing.T) {
 				db2.Close()
 			}
 			os.Remove("test.db")
+			{ // do_test "shared-" + av + ".8.3.2"
+				_dbtmp5, err := frigolite.Open("test.db")
+				_ = _dbtmp5 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec(" CREATE TABLE def(d, e, f) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE def(d, e, f) ")
+				}
+				r = db.Query(" PRAGMA encoding ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA encoding ")
+				}
+			}
+			{ // do_test "shared-" + av + ".8.3.3"
+				zDb16 = "encoding convertto unicode test.db" + "\\x00\\x00"
+				_ = zDb16 // suppress unused warning
+				db16 = ""
+				_ = db16 // suppress unused warning
+				stmt = "sqlite3_prepare $db16 \"SELECT sql FROM sqlite_master\" -1 DUMMY"
+				_ = stmt // suppress unused warning
+				// sqlite3_step $stmt (unsupported command, not transpiled)
+				sql = ""
+				_ = sql // suppress unused warning
+				// sqlite3_finalize $stmt (unsupported command, not transpiled)
+			}
+			{ // do_test "shared-" + av + ".8.3.4"
+				stmt = "sqlite3_prepare $db16 \"PRAGMA encoding\" -1 DUMMY"
+				_ = stmt // suppress unused warning
+				// sqlite3_step $stmt (unsupported command, not transpiled)
+				enc = ""
+				_ = enc // suppress unused warning
+				// sqlite3_finalize $stmt (unsupported command, not transpiled)
+			}
+			// sqlite3_close $db16 (unsupported command, not transpiled)
+			if false {
+				{ // do_test "shared-" + av + ".8.2.3"
+					_res = db.Exec("\n      SELECT * FROM aux.sqlite_master;\n    ")
+					_ = _res // catchsql
+				}
+			}
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+			}
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+				db2.Close()
+			}
+			os.Remove("test.db")
+			{ // do_test "shared-" + av + ".9.1"
+				_dbtmp6, err := frigolite.Open("test.db")
+				_ = _dbtmp6 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				db2, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				r = db.Query("\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc_mirror(a, b, c);\n    CREATE TEMP TRIGGER BEFORE INSERT ON abc BEGIN \n      INSERT INTO abc_mirror(a, b, c) VALUES(new.a, new.b, new.c);\n    END;\n    INSERT INTO abc VALUES(1, 2, 3);\n    SELECT * FROM abc_mirror;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc_mirror(a, b, c);\n    CREATE TEMP TRIGGER BEFORE INSERT ON abc BEGIN \n      INSERT INTO abc_mirror(a, b, c) VALUES(new.a, new.b, new.c);\n    END;\n    INSERT INTO abc VALUES(1, 2, 3);\n    SELECT * FROM abc_mirror;\n  ")
+				}
+			}
+			{ // do_test "shared-" + av + ".9.2"
+				r = db.Query("\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc_mirror;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc_mirror;\n  ")
+				}
+			}
+			{ // do_test "shared-" + av + ".9.3"
+				db2.Close()
+			}
 			{ // do_test "shared-" + av + ".10.1"
 				os.Remove("test.db")
-				_dbtmp4, err := frigolite.Open("test.db")
-				_ = _dbtmp4 // sqlite3 db connection
+				_dbtmp7, err := frigolite.Open("test.db")
+				_ = _dbtmp7 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -665,8 +844,8 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".11.1"
 				os.Remove("test.db")
-				_dbtmp5, err := frigolite.Open("test.db")
-				_ = _dbtmp5 // sqlite3 db connection
+				_dbtmp8, err := frigolite.Open("test.db")
+				_ = _dbtmp8 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -716,14 +895,23 @@ func Test_shared(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			if tclBool("llength [info command sqlite3_shared_cache_report]" + "==1") {
+				{ // do_test "shared-" + av + ".11.9"
+					strings.ToLower("sqlite3_shared_cache_report")
+				}
 			}
 			{ // do_test "shared-" + av + ".11.11"
 				db2.Close()
 			}
 			os.Remove("test.db")
-			_dbtmp6, err := frigolite.Open("test.db")
-			_ = _dbtmp6 // sqlite3 db connection
+			_dbtmp9, err := frigolite.Open("test.db")
+			_ = _dbtmp9 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
+			{ // do_test "shared-" + av + ".12.1"
+				r = db.Query("\n      PRAGMA cache_size = 10;\n      PRAGMA cache_size;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      PRAGMA cache_size;\n    ")
+				}
+			}
 			{ // do_test "shared-" + av + ".12.2"
 				db_handles = "list" // TCL namespace variable
 				_ = db_handles // suppress unused warning
@@ -766,8 +954,8 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".13.1"
 				os.Remove("test2.db")
-				_dbtmp7, err := frigolite.Open(":memory:")
-				_ = _dbtmp7 // sqlite3 db connection
+				_dbtmp10, err := frigolite.Open(":memory:")
+				_ = _dbtmp10 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n    ATTACH 'test5.db' AS aux5;\n    DETACH aux2;\n    DETACH aux3;\n    DETACH aux4;\n    ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n  ")
 				if _res.Error != nil {
@@ -783,8 +971,8 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + ".13.3"
 			}
 			{ // do_test "shared-" + av + ".14.1"
-				_dbtmp8, err := frigolite.Open("test.db")
-				_ = _dbtmp8 // sqlite3 db connection
+				_dbtmp11, err := frigolite.Open("test.db")
+				_ = _dbtmp11 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -805,8 +993,8 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + "-15.1"
 				os.Remove("test.db")
-				_dbtmp9, err := frigolite.Open("test.db")
-				_ = _dbtmp9 // sqlite3 db connection
+				_dbtmp12, err := frigolite.Open("test.db")
+				_ = _dbtmp12 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }

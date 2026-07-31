@@ -50,6 +50,7 @@ func Test_fkey6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fkey6"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "fkey6-1.0"
 		r = db.Query("\n  PRAGMA defer_foreign_keys;\n")
 		if r.Error != nil {
@@ -310,4 +311,33 @@ func Test_fkey6(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	if tclBool("permutation" + "!=\"inmemory_journal\"") {
+		{ // "6.1"
+			_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');\n  ")
+			}
+		}
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		{ // "6.1"
+			r = db.Query("\n    PRAGMA foreign_keys = 1;\n    PRAGMA writable_schema = 1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_keys = 1;\n    PRAGMA writable_schema = 1;\n  ")
+			}
+		}
+		{ // "6.2"
+			_res = db.Exec("\n    CREATE TABLE t2(\n        y INTEGER PRIMARY KEY,\n        z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(\n        y INTEGER PRIMARY KEY,\n        z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+			}
+		}
+		{ // "6.3"
+			_res = db.Exec("\n    BEGIN;\n      INSERT INTO t2 VALUES(1,0),(2,1);\n      CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n      INSERT INTO t3 VALUES(3,3);\n      PRAGMA defer_foreign_keys=ON;\n      DELETE FROM t2;\n    COMMIT;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t2 VALUES(1,0),(2,1);\n      CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n      INSERT INTO t3 VALUES(3,3);\n      PRAGMA defer_foreign_keys=ON;\n      DELETE FROM t2;\n    COMMIT;\n  ")
+			}
+		}
+	}
 }

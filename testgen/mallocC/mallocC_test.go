@@ -83,7 +83,5 @@ func Test_mallocC(t *testing.T) {
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
-	// do_mallocC_test 1 -sql {
-  BEGIN;
-  -- Allocate 32 new root pages. This wi...} (unsupported command, not transpiled)
+	// do_mallocC_test 1 -sql {\n  BEGIN;\n  -- Allocate 32 new root pages. This ...} (unsupported command, not transpiled)
 }

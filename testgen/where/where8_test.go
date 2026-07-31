@@ -81,6 +81,12 @@ func Test_where8(t *testing.T) {
 	{ // do_test "where8-1.3"
 		// execsql_status2 { SELECT c FROM t1 WHERE a > 8 OR b = 'two' } (unsupported command, not transpiled)
 	}
+	{ // do_test "where8-1.4a"
+		// execsql_status2 { SELECT c FROM t1 WHERE a > 8 OR b GLOB 't*' } (unsupported command, not transpiled)
+	}
+	{ // do_test "where8-1.5a"
+		// execsql_status2 { SELECT c FROM t1 WHERE a > 8 OR b GLOB 'f*' } (unsupported command, not transpiled)
+	}
 	{ // do_test "where8-1.6"
 		// execsql_status { SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER...} (unsupported command, not transpiled)
 	}
@@ -94,38 +100,44 @@ func Test_where8(t *testing.T) {
 		// execsql_status2 { SELECT c FROM t1 WHERE a >= 9 OR b <= 'eight' } (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.10"
-		// execsql_status2 { 
-    SELECT c FROM t1 WHERE (a >= 9 AND c != 'X')...} (unsupported command, not transpiled)
+		// execsql_status2 { \n    SELECT c FROM t1 WHERE (a >= 9 AND c != 'X'...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.11"
-		// execsql_status2 { 
-    SELECT c FROM t1 WHERE (a >= 4 AND a <= 6) O...} (unsupported command, not transpiled)
+		// execsql_status2 { \n    SELECT c FROM t1 WHERE (a >= 4 AND a <= 6) ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.12.1"
-		// execsql_status2 { 
-    SELECT c FROM t1 WHERE a IN(1, 2, 3) OR a = ...} (unsupported command, not transpiled)
+		// execsql_status2 { \n    SELECT c FROM t1 WHERE a IN(1, 2, 3) OR a =...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.12.2"
-		// execsql_status2 { 
-    SELECT c FROM t1 WHERE +a IN(1, 2, 3) OR +a ...} (unsupported command, not transpiled)
+		// execsql_status2 { \n    SELECT c FROM t1 WHERE +a IN(1, 2, 3) OR +a...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.13"
-		// execsql_status2 {
-    SELECT c FROM t1
-    WHERE a = 2 OR b = 'thre...} (unsupported command, not transpiled)
+		// execsql_status2 {\n    SELECT c FROM t1\n    WHERE a = 2 OR b = 'th...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.14"
-		// execsql_status2 {
-    SELECT c FROM t1
-    WHERE 
-      a = 2 OR b ...} (unsupported command, not transpiled)
+		// execsql_status2 {\n    SELECT c FROM t1\n    WHERE \n      a = 2 OR...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.15"
-		// execsql_status2 {
-    SELECT c FROM t1 WHERE 
-      a BETWEEN 2 AND...} (unsupported command, not transpiled)
+		// execsql_status2 {\n    SELECT c FROM t1 WHERE \n      a BETWEEN 2 A...} (unsupported command, not transpiled)
 	}
 	if false {
+		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		{ // do_test "where8-2.1"
+			r = db.Query("\n      CREATE VIRTUAL TABLE e1 USING echo(t1);\n      SELECT b FROM e1;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIRTUAL TABLE e1 USING echo(t1);\n      SELECT b FROM e1;\n    ")
+			}
+		}
+		{ // do_test "where8-2.2.1"
+			echo_module = ""
+			_ = echo_module // suppress unused warning
+			r = db.Query("\n      SELECT c FROM e1 WHERE a=1 OR b='three';\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM e1 WHERE a=1 OR b='three';\n    ")
+			}
+		}
+		{ // do_test "where8-2.2.2"
+		}
 	}
 	{ // do_test "where8-3.1"
 		_res = db.Exec("\n    CREATE TABLE t2(d, e, f);\n    CREATE INDEX i3 ON t2(d);\n    CREATE INDEX i4 ON t2(e);\n\n    INSERT INTO t2 VALUES(1,  NULL,         'I');\n    INSERT INTO t2 VALUES(2,  'four',       'IV');\n    INSERT INTO t2 VALUES(3,  NULL,         'IX');\n    INSERT INTO t2 VALUES(4,  'sixteen',    'XVI');\n    INSERT INTO t2 VALUES(5,  NULL,         'XXV');\n    INSERT INTO t2 VALUES(6,  'thirtysix',  'XXXVI');\n    INSERT INTO t2 VALUES(7,  'fortynine',  'XLIX');\n    INSERT INTO t2 VALUES(8,  'sixtyeight', 'LXIV');\n    INSERT INTO t2 VALUES(9,  'eightyone',  'LXXXIX');\n    INSERT INTO t2 VALUES(10, NULL,         'C');\n  ")
@@ -134,94 +146,64 @@ func Test_where8(t *testing.T) {
 		}
 	}
 	{ // do_test "where8-3.2"
-		// execsql_status {
-    SELECT a, d FROM t1, t2 WHERE b=e
-  } (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM t1, t2 WHERE b=e\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.3"
-		// execsql_status {
-    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.4"
-		// execsql_status {
-    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.5"
-		// execsql_status {
-    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.6"
-		// execsql_status {
-    SELECT a, d 
-    FROM t1, t2 
-    WHERE (a = ...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.7"
-		// execsql_status {
-    SELECT a, d 
-    FROM t1, t2 
-    WHERE a = 2...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE a ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.8"
-		// execsql_status {
-    SELECT a, d 
-    FROM t1, t2 
-    WHERE (a = ...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.9"
-		// execsql_status {
-    SELECT a, d 
-    FROM t1, t2 
-    WHERE (a = ...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.10"
-		// execsql_status {
-    SELECT d FROM t2 WHERE e IS NULL OR e = 'four...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT d FROM t2 WHERE e IS NULL OR e = 'fou...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.11"
-		// execsql_status {
-    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) A...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.12"
-		// execsql_status {
-    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) A...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.13"
-		// execsql_status {
-    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) A...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.14"
-		// execsql_status {
-    SELECT c FROM t1 WHERE a > (SELECT d FROM t2 ...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT c FROM t1 WHERE a > (SELECT d FROM t2...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.15"
-		// execsql_status {
-    SELECT c FROM t1, t2 WHERE a BETWEEN 1 AND 2 ...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT c FROM t1, t2 WHERE a BETWEEN 1 AND 2...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.21"
-		// execsql_status {
-    SELECT a, d FROM t1, (t2) WHERE (a=d OR b=e) ...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM t1, (t2) WHERE (a=d OR b=e)...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.21.1"
-		// execsql_status {
-    SELECT a, d FROM t1, ((t2)) AS t3 WHERE (a=d ...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM t1, ((t2)) AS t3 WHERE (a=d...} (unsupported command, not transpiled)
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where8-3.21.2"
-			// execsql_status {
-    SELECT a, d FROM t1, ((SELECT * FROM t2)) AS ...} (unsupported command, not transpiled)
+			// execsql_status {\n    SELECT a, d FROM t1, ((SELECT * FROM t2)) AS...} (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "where8-3.22"
-		// execsql_status {
-    SELECT a, d FROM ((((((t1))), (((t2))))))
-   ...} (unsupported command, not transpiled)
+		// execsql_status {\n    SELECT a, d FROM ((((((t1))), (((t2))))))\n ...} (unsupported command, not transpiled)
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where8-3.23"
-			// execsql_status {
-    SELECT * FROM ((SELECT * FROM t2)) AS t3;
-  } (unsupported command, not transpiled)
+			// execsql_status {\n    SELECT * FROM ((SELECT * FROM t2)) AS t3;\n ...} (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "where8-4.1"

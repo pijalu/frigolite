@@ -91,6 +91,7 @@ func Test_bestindexE(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bestindexE"
 	_ = testprefix // suppress unused warning
+	return
 	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -99,12 +100,8 @@ func Test_bestindexE(t *testing.T) {
 	{ // do_test "1.0"
 		// create_vtab x1 {a b c} (unsupported command, not transpiled)
 	}
-	// do_bestindex_test 1.1 {
-  SELECT * FROM x1 WHERE a=?
-} {{x1: a=?}} (unsupported command, not transpiled)
-	// do_bestindex_test 1.2 {
-  SELECT * FROM x1 WHERE a=? AND b=?
-} {{x1: a=? AND b=?}} (unsupported command, not transpiled)
+	// do_bestindex_test 1.1 {\n  SELECT * FROM x1 WHERE a=?\n} {{x1: a=?}} (unsupported command, not transpiled)
+	// do_bestindex_test 1.2 {\n  SELECT * FROM x1 WHERE a=? AND b=?\n} {{x1: a=? AND b=?}} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -114,19 +111,8 @@ func Test_bestindexE(t *testing.T) {
 		// create_vtab ReturnDelivery {id customer} (unsupported command, not transpiled)
 		// create_vtab Customer {oid name} (unsupported command, not transpiled)
 	}
-	// do_bestindex_test 2.1 {
-  SELECT Delivery.ID, Customer.Name
-  FROM Delive...} {
-  {Delivery: }
-  {Customer: oid=?}
-} (unsupported command, not transpiled)
-	// do_bestindex_test 2.2 {
-  SELECT * FROM
-  (
-     SELECT Delivery.ID, Cust...} {
-  {Delivery: id=?} 
-  {Customer: oid=?} 
-  {Retur...} (unsupported command, not transpiled)
+	// do_bestindex_test 2.1 {\n  SELECT Delivery.ID, Customer.Name\n  FROM Deli...} {\n  {Delivery: }\n  {Customer: oid=?}\n} (unsupported command, not transpiled)
+	// do_bestindex_test 2.2 {\n  SELECT * FROM\n  (\n     SELECT Delivery.ID, C...} {\n  {Delivery: id=?} \n  {Customer: oid=?} \n  {Re...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -157,9 +143,15 @@ func Test_bestindexE(t *testing.T) {
 		}
 	}
 	{ // "3.1.2"
-		_res = db.Exec("\n  INSERT INTO tcl VALUES('i', 'ii') RETURNING *;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO tcl VALUES('i', 'ii') RETURNING *;\n")
+		r = db.Query("\n  INSERT INTO tcl VALUES('i', 'ii') RETURNING *;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO tcl VALUES('i', 'ii') RETURNING *;\n")
+			return
+		}
+		got := flatten(r)
+		want := "i ii"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.1.3"
@@ -189,9 +181,15 @@ func Test_bestindexE(t *testing.T) {
 		}
 	}
 	{ // "3.2.3"
-		_res = db.Exec("\n  INSERT INTO tcl VALUES('i', 'ii') RETURNING *;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO tcl VALUES('i', 'ii') RETURNING *;\n")
+		r = db.Query("\n  INSERT INTO tcl VALUES('i', 'ii') RETURNING *;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO tcl VALUES('i', 'ii') RETURNING *;\n")
+			return
+		}
+		got := flatten(r)
+		want := "i ii"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

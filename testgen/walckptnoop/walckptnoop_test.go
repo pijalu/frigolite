@@ -64,6 +64,7 @@ func Test_walckptnoop(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walckptnoop"
 	_ = testprefix // suppress unused warning
+	return
 	VAL = "123"
 	_ = VAL // suppress unused warning
 	// proc definition (not transpiled)

@@ -447,6 +447,18 @@ func Test_colname(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT BBb FROM (SELECT aaa AS Bbb FROM t1)")
 		}
 	}
+	{ // "colname-9.320"
+		r = db.Query("\n    CREATE TABLE t2 AS SELECT BBb FROM (SELECT aaa AS Bbb FROM t1);\n    SELECT name FROM pragma_table_info('t2');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT BBb FROM (SELECT aaa AS Bbb FROM t1);\n    SELECT name FROM pragma_table_info('t2');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "Bbb"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "colname-9.330"
 		r = db.Query(" -- added 2019-08-10 to invalidate\n  DROP TABLE IF EXISTS t1;      -- a couple assert()s that were\n  CREATE TABLE t1(a);           -- added by ticket 3b44500725\n  INSERT INTO t1 VALUES(17),(2),(99),(-3),(7);\n  SELECT (SELECT avg(a) UNION SELECT min(a) OVER()) FROM t1;\n")
 		if r.Error != nil {

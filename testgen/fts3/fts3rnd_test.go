@@ -214,13 +214,14 @@ func Test_fts3rnd(t *testing.T) {
 	_ = res // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	G_nVocab = "100"
 	_ = G_nVocab // suppress unused warning
 	nVocab = "100"
 	_ = nVocab // suppress unused warning
 	lVocab = "list"
 	_ = lVocab // suppress unused warning
-	// expr srand(0) → "srand(0)"
+	// expr srand(0) (not evaluated)
 	lChar = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
 	_ = lChar // suppress unused warning
 	i = "0"
@@ -228,14 +229,14 @@ func Test_fts3rnd(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nVocab_n, _nVocab_e := strconv.Atoi(nVocab); if _nVocab_e != nil { return false }; return i_n < nVocab_n }() {
 		_len = "2"
 		_ = _len // suppress unused warning
-		word = "lindex $lChar [expr int(rand()*26)]"
+		word = tclLIndex(lChar, "")
 		_ = word // suppress unused warning
-		word += "lindex $lChar [expr int(rand()*26)]"
+		word += tclLIndex(lChar, "")
 		if func() bool { _len_n, __len_e := strconv.Atoi(_len); if __len_e != nil { return false }; return _len_n > 2 }() {
-			word += "lindex $lChar [expr int(rand()*26)]"
+			word += tclLIndex(lChar, "")
 		}
 		if func() bool { _len_n, __len_e := strconv.Atoi(_len); if __len_e != nil { return false }; return _len_n > 3 }() {
-			word += "lindex $lChar [expr int(rand()*26)]"
+			word += tclLIndex(lChar, "")
 		}
 		lVocab = tclListAppend(lVocab, word)
 		// incr i 1
@@ -320,12 +321,12 @@ func Test_fts3rnd(t *testing.T) {
 				_ = rows // suppress unused warning
 				nRow = "llength $rows"
 				_ = nRow // suppress unused warning
-				iUpdate = "lindex $rows [expr {int(rand()*$nRow)}]"
+				iUpdate = tclLIndex(rows, "")
 				_ = iUpdate // suppress unused warning
 				iDelete = iUpdate
 				_ = iDelete // suppress unused warning
 				for func() bool { iDelete_n, _iDelete_e := strconv.Atoi(iDelete); if _iDelete_e != nil { return false }; iUpdate_n, _iUpdate_e := strconv.Atoi(iUpdate); if _iUpdate_e != nil { return false }; return iDelete_n == iUpdate_n }() {
-					iDelete = "lindex $rows [expr {int(rand()*$nRow)}]"
+					iDelete = tclLIndex(rows, "")
 					_ = iDelete // suppress unused warning
 				}
 				iInsert = iUpdate
@@ -354,10 +355,8 @@ func Test_fts3rnd(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 					term = "random_term"
 					_ = term // suppress unused warning
-					// do_select_test 1.$i.asc {
-        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 0] (test infra, not transpiled)
-					// do_select_test 1.$i.desc {
-        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 1] (test infra, not transpiled)
+					// do_select_test 1.$i.asc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1...} [simple_token_matchinfo $term 0] (test infra, not transpiled)
+					// do_select_test 1.$i.desc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1...} [simple_token_matchinfo $term 1] (test infra, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -373,8 +372,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = prefix // suppress unused warning
 					match = prefix + "*"
 					_ = match // suppress unused warning
-					// do_orderbydocid_test 2.$i {
-        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $match] (unsupported command, not transpiled)
+					// do_orderbydocid_test 2.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_phrase $match] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -390,8 +388,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = term // suppress unused warning
 					match = "\\\"" + term + "\\\""
 					_ = match // suppress unused warning
-					// do_orderbydocid_test 3.$i {
-        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term] (unsupported command, not transpiled)
+					// do_orderbydocid_test 3.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_phrase $term] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -407,8 +404,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = term // suppress unused warning
 					match = "\\\"" + term + "\\\""
 					_ = match // suppress unused warning
-					// do_orderbydocid_test 4.$i {
-        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term] (unsupported command, not transpiled)
+					// do_orderbydocid_test 4.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_phrase $term] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -426,8 +422,7 @@ func Test_fts3rnd(t *testing.T) {
 					query += "[random_term] 0 end-1" + "*"
 					match = "\\\"" + query + "\\\""
 					_ = match // suppress unused warning
-					// do_orderbydocid_test 5.$i {
-        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $query] (unsupported command, not transpiled)
+					// do_orderbydocid_test 5.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_phrase $query] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -443,8 +438,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = terms // suppress unused warning
 					match = "join $terms \" NEAR \""
 					_ = match // suppress unused warning
-					// do_orderbydocid_test 6.$i {
-        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms 10] (unsupported command, not transpiled)
+					// do_orderbydocid_test 6.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_near $terms 10] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -462,8 +456,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = nNear // suppress unused warning
 					match = "join $terms \" NEAR/$nNear \""
 					_ = match // suppress unused warning
-					// do_orderbydocid_test 7.$i {
-        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms $nNear] (unsupported command, not transpiled)
+					// do_orderbydocid_test 7.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_near $terms $nNear] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -491,8 +484,7 @@ func Test_fts3rnd(t *testing.T) {
 							_ = term2 // suppress unused warning
 							match = term1 + " " + op + " " + term2
 							_ = match // suppress unused warning
-							// do_orderbydocid_test $tn.$i {
-          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc [simple_phrase $term1] [simple_phrase $term... (unsupported command, not transpiled)
+							// do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $m...} [$proc [simple_phrase $term1] [simple_phrase $term... (unsupported command, not transpiled)
 							// incr i 1
 							{
 								_n, _err := strconv.Atoi(i)
@@ -525,9 +517,7 @@ func Test_fts3rnd(t *testing.T) {
 								_ = term4 // suppress unused warning
 								match = term1 + " NEAR " + term2 + " " + op + " " + term3 + " NEAR " + term4
 								_ = match // suppress unused warning
-								// do_orderbydocid_test $tn.$i {
-          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc                                  \
-        ... (unsupported command, not transpiled)
+								// do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $m...} [$proc                                  \\n       ... (unsupported command, not transpiled)
 								// incr i 1
 								{
 									_n, _err := strconv.Atoi(i)

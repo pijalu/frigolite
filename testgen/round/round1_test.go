@@ -69,7 +69,7 @@ func Test_round1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "round1"
 	_ = testprefix // suppress unused warning
-	// expr srand(0) → "srand(0)"
+	// expr srand(0) (not evaluated)
 	iTest = "1"
 	_ = iTest // suppress unused warning
 	for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n <= 50000 }() {

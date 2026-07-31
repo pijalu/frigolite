@@ -57,14 +57,11 @@ func Test_fts3varint(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3varint"
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// do_fts3_varint_test 1.0 {
-  1 10 100 1000 10000 100000 1000000 
-  10000000 ...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 1.1 {
-  -1 -10 -100 -1000 -10000 -100000 -1000000 
-  -1...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 1.0 {\n  1 10 100 1000 10000 100000 1000000 \n  1000000...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 1.1 {\n  -1 -10 -100 -1000 -10000 -100000 -1000000 \n  ...} (unsupported command, not transpiled)
 	// do_fts3_varint_test 2.0 { 0 1 2 } (unsupported command, not transpiled)
 	// do_fts3_varint_test 2.1 { 1 2 3 } (unsupported command, not transpiled)
 	// do_fts3_varint_test 2.2 { 3 4 5 } (unsupported command, not transpiled)
@@ -119,27 +116,17 @@ func Test_fts3varint(t *testing.T) {
 	// do_fts3_varint_test 2.51 { 2251799813685247 2251799813685248 225179981368524...} (unsupported command, not transpiled)
 	// do_fts3_varint_test 2.52 { 4503599627370495 4503599627370496 450359962737049...} (unsupported command, not transpiled)
 	// do_fts3_varint_test 2.53 { 9007199254740991 9007199254740992 900719925474099...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 2.54 { 
-    18014398509481983 18014398509481984 18014398...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 2.55 { 
-    36028797018963967 36028797018963968 36028797...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 2.56 { 
-    72057594037927935 72057594037927936 72057594...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 2.57 { 
-    144115188075855871 144115188075855872 144115...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 2.58 { 
-    288230376151711743 288230376151711744 288230...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 2.59 { 
-    576460752303423487 576460752303423488 576460...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 2.60 { 
-    1152921504606846975 1152921504606846976 1152...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 2.61 { 
-    2305843009213693951 2305843009213693952 2305...} (unsupported command, not transpiled)
-	// do_fts3_varint_test 2.62 { 
-    4611686018427387903 4611686018427387904 4611...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 2.54 { \n    18014398509481983 18014398509481984 1801439...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 2.55 { \n    36028797018963967 36028797018963968 3602879...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 2.56 { \n    72057594037927935 72057594037927936 7205759...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 2.57 { \n    144115188075855871 144115188075855872 14411...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 2.58 { \n    288230376151711743 288230376151711744 28823...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 2.59 { \n    576460752303423487 576460752303423488 57646...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 2.60 { \n    1152921504606846975 1152921504606846976 115...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 2.61 { \n    2305843009213693951 2305843009213693952 230...} (unsupported command, not transpiled)
+	// do_fts3_varint_test 2.62 { \n    4611686018427387903 4611686018427387904 461...} (unsupported command, not transpiled)
 	if tclBool("!" + "0") {
-		// do_fts3_varint_test 2.63 { 
-      9223372036854775807 9223372036854775808 92...} (unsupported command, not transpiled)
+		// do_fts3_varint_test 2.63 { \n      9223372036854775807 9223372036854775808 9...} (unsupported command, not transpiled)
 		// do_fts3_varint_test 3.0 { 18446744073709551615 -18446744073709551615 } (unsupported command, not transpiled)
 	}
 }

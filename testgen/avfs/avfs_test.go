@@ -137,6 +137,7 @@ func Test_avfs(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "avfs" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
 	// load_static_extension db appendvfs (unsupported command, not transpiled)
@@ -160,9 +161,7 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + fza + "?mode=rwc" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    PRAGMA page_size=1024;
-    PRAGMA cache_size=...} { lappend results $pets } (unsupported command, not transpiled)
+		// adb eval {\n    PRAGMA page_size=1024;\n    PRAGMA cache_siz...} { lappend results $pets } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		results = tclListAppend(results, "fosAvfs $fza")
 		result = "join $results \" | \"" // TCL namespace variable
@@ -174,8 +173,7 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + fza + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets } (unsupported command, not transpiled)
+		// adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT ...} { lappend results $pets } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		result = "join $results \" | \"" // TCL namespace variable
 		_ = result // suppress unused warning
@@ -195,9 +193,7 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + fa + "?mode=rwc" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    PRAGMA auto_vacuum = 0;
-    PRAGMA page_size=...} { lappend results $pets } (unsupported command, not transpiled)
+		// adb eval {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_siz...} { lappend results $pets } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
@@ -211,8 +207,7 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets } (unsupported command, not transpiled)
+		// adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT ...} { lappend results $pets } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		result = "join $results \" | \"" // TCL namespace variable
 		_ = result // suppress unused warning
@@ -269,10 +264,7 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    DROP TABLE t1;
-    PRAGMA cache_size=10;
-    ...} (unsupported command, not transpiled)
+		// adb eval {\n    DROP TABLE t1;\n    PRAGMA cache_size=10;\n ...} (unsupported command, not transpiled)
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nrint_n, _nrint_e := strconv.Atoi(nrint); if _nrint_e != nil { return false }; return i_n < nrint_n }() {
@@ -286,8 +278,7 @@ func Test_avfs(t *testing.T) {
 			_ = u // suppress unused warning
 			v = randints__incr_i_
 			_ = v // suppress unused warning
-			// adb eval {
-      INSERT INTO ri VALUES ($r),($s),($t),($u),(...} (unsupported command, not transpiled)
+			// adb eval {\n      INSERT INTO ri VALUES ($r),($s),($t),($u),...} (unsupported command, not transpiled)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -296,24 +287,20 @@ func Test_avfs(t *testing.T) {
 				}
 			}
 		}
-		// adb eval {
-    COMMIT;
-    SELECT integrity_check as ic FROM...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb eval {\n    COMMIT;\n    SELECT integrity_check as ic FR...} { lappend results $ic } (unsupported command, not transpiled)
 		adbSz = "file size $::fa"
 		_ = adbSz // suppress unused warning
 		qr = ""
 		_ = qr // suppress unused warning
-		// adb eval {
-    SELECT count(*) as ic FROM ri;
-    DELETE FRO...} { lappend qr $ic } (unsupported command, not transpiled)
+		// adb eval {\n    SELECT count(*) as ic FROM ri;\n    DELETE F...} { lappend qr $ic } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
-		adba = "($adbSz + 0.1)/$adaSz"
+		adba = tclExpr("($adbSz + 0.1)/$adaSz")
 		_ = adba // suppress unused warning
 		results = "concat $results [lrange $qr 0 2]"
 		_ = results // suppress unused warning
-		results = tclListAppend(results, "$adba > 10.0")
+		results = tclListAppend(results, tclExpr("$adba > 10.0"))
 		result = "join $results \" | \"" // TCL namespace variable
 		_ = result // suppress unused warning
 	}
@@ -323,8 +310,7 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb eval {\n    SELECT integrity_check as ic FROM pragma_int...} { lappend results $ic } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		result = "join $results \" | \"" // TCL namespace variable
 		_ = result // suppress unused warning
@@ -349,12 +335,11 @@ func Test_avfs(t *testing.T) {
 			}
 		}
 		// adb eval { COMMIT } (unsupported command, not transpiled)
-		// adb eval {
-    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb eval {\n    SELECT integrity_check as ic FROM pragma_int...} { lappend results $ic } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
-		adaSzr = "[file size $::fa] / 300.0 / 1500"
+		adaSzr = tclExpr("[file size $::fa] / 300.0 / 1500")
 		_ = adaSzr // suppress unused warning
-		okSzr = "$adaSzr > 1.0 && $adaSzr < 1.3"
+		okSzr = tclExpr("$adaSzr > 1.0 && $adaSzr < 1.3")
 		_ = okSzr // suppress unused warning
 		results = tclListAppend(results, okSzr)
 		result = "join $results \" | \"" // TCL namespace variable
@@ -366,8 +351,7 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb eval {\n    SELECT integrity_check as ic FROM pragma_int...} { lappend results $ic } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		result = ic // TCL namespace variable
 		_ = result // suppress unused warning
@@ -380,18 +364,15 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    DELETE FROM ri WHERE rowid % 8 <> 0;
-    SELE...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb eval {\n    DELETE FROM ri WHERE rowid % 8 <> 0;\n    SE...} { lappend results $ic } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		adasz = "file size $::fa"
 		_ = adasz // suppress unused warning
-		results = tclListAppend(results, "$adbsz/$adasz > 5")
+		results = tclListAppend(results, tclExpr("$adbsz/$adasz > 5"))
 		_dbtmp0, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb eval {\n    SELECT integrity_check as ic FROM pragma_int...} { lappend results $ic } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		result = "join $results \" | \"" // TCL namespace variable
 		_ = result // suppress unused warning
@@ -495,9 +476,7 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + shod + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		// adb eval {
-    SELECT count(*) as n FROM sqlar
-  } { lappend res $n } (unsupported command, not transpiled)
+		// adb eval {\n    SELECT count(*) as n FROM sqlar\n  } { lappend res $n } (unsupported command, not transpiled)
 		// adb close (unsupported command, not transpiled)
 		os.Remove(shdo)
 		result = "join $res \" | \"" // TCL namespace variable

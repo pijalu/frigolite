@@ -74,6 +74,47 @@ func Test_badutf(t *testing.T) {
 	}
 	db2, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // do_test "badutf-1.10"
+		db2.Exec("PRAGMA encoding=UTF16be")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+		// sqlite3_exec db2 {SELECT hex('%80') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.11"
+		// sqlite3_exec db2 {SELECT hex('%81') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.12"
+		// sqlite3_exec db2 {SELECT hex('%bf') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.13"
+		// sqlite3_exec db2 {SELECT hex('%c0') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.14"
+		// sqlite3_exec db2 {SELECT hex('%c1') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.15"
+		// sqlite3_exec db2 {SELECT hex('%c0%bf') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.16"
+		// sqlite3_exec db2 {SELECT hex('%c1%bf') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.17"
+		// sqlite3_exec db2 {SELECT hex('%c3%bf') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.18"
+		// sqlite3_exec db2 {SELECT hex('%e0') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.19"
+		// sqlite3_exec db2 {SELECT hex('%f0') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-1.20"
+		// sqlite3_exec db2 {SELECT hex('%ff') AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-2.1"
+		// sqlite3_exec db {SELECT '%80'=CAST(x'80' AS text) AS x} (unsupported command, not transpiled)
+	}
+	{ // do_test "badutf-2.2"
+		// sqlite3_exec db {SELECT CAST('%80' AS blob)=x'80' AS x} (unsupported command, not transpiled)
+	}
 	{ // do_test "badutf-3.1"
 		// sqlite3_exec db {SELECT length('%80') AS x} (unsupported command, not transpiled)
 	}

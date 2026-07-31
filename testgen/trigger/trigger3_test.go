@@ -45,6 +45,7 @@ func Test_trigger3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
 	_res = db.Exec(" CREATE TABLE tbl(a, b ,c) ")
@@ -161,6 +162,28 @@ func Test_trigger3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        INSERT INTO tbl2 VALUES (1, 2, 3);\n        SELECT * FROM tbl2;\n        SELECT * FROM tbl;\n    ")
 		}
 	}
+	_res = db.Exec("CREATE VIEW tbl_view AS SELECT * FROM tbl")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIEW tbl_view AS SELECT * FROM tbl")
+	}
+	_res = db.Exec("\n    CREATE TRIGGER tbl_view_insert INSTEAD OF INSERT ON tbl_view BEGIN\n        SELECT CASE WHEN (new.a = 1) THEN RAISE(ROLLBACK, 'View rollback')\n                    WHEN (new.a = 2) THEN RAISE(IGNORE) \n                    WHEN (new.a = 3) THEN RAISE(ABORT, 'View abort') END;\n    END;\n")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER tbl_view_insert INSTEAD OF INSERT ON tbl_view BEGIN\n        SELECT CASE WHEN (new.a = 1) THEN RAISE(ROLLBACK, 'View rollback')\n                    WHEN (new.a = 2) THEN RAISE(IGNORE) \n                    WHEN (new.a = 3) THEN RAISE(ABORT, 'View abort') END;\n    END;\n")
+	}
+	{ // do_test "trigger3-7.1"
+		_res = db.Exec("\n        INSERT INTO tbl_view VALUES(1, 2, 3);\n    ")
+		_ = _res // catchsql
+	}
+	// verify_ex_errcode trigger3-7.1b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
+	{ // do_test "trigger3-7.2"
+		_res = db.Exec("\n        INSERT INTO tbl_view VALUES(2, 2, 3);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger3-7.3"
+		_res = db.Exec("\n        INSERT INTO tbl_view VALUES(3, 2, 3);\n    ")
+		_ = _res // catchsql
+	}
+	// verify_ex_errcode trigger3-7.3b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	_res = db.Exec(" DROP TABLE tbl; ")

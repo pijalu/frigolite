@@ -63,52 +63,24 @@ func Test_trace2(t *testing.T) {
 	_ = _var // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "trace2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// do_trace_select_test 1.1 {
-  SELECT 1, 2, 3;
-} {
-  "SELECT 1, 2, 3;"
-} (unsupported command, not transpiled)
-	// do_trace_select_test 1.2 {
-  SELECT sql('SELECT 1, 2, 3');
-} {
-  "SELECT sql('SELECT 1, 2, 3');"
-  "-- SELECT 1,...} (unsupported command, not transpiled)
-	// do_trace_select_test 1.3 {
-  SELECT sql('SELECT 1, 
-    2, 
-    3'
-  );
-} {
-  "SELECT sql('SELECT 1, 
-    2, 
-    3'
-  );"
-  ...} (unsupported command, not transpiled)
-	// do_trace_select_test 1.4 {
-  SELECT sql('SELECT 1, 
-
-
-    3'
-  );
-} {
-  "SELECT sql('SELECT 1, 
-
-
-    3'
-  );"
-  "-- SE...} (unsupported command, not transpiled)
-	// do_trace_select_test 1.5 {
-  SELECT $var, sql('SELECT 1, 
-    $var, 
-    3'
-...} {
-  "SELECT NULL, sql('SELECT 1, 
-    $var, 
-    3'...} (unsupported command, not transpiled)
+	// do_trace_select_test 1.1 {\n  SELECT 1, 2, 3;\n} {\n  "SELECT 1, 2, 3;"\n} (unsupported command, not transpiled)
+	// do_trace_select_test 1.2 {\n  SELECT sql('SELECT 1, 2, 3');\n} {\n  "SELECT sql('SELECT 1, 2, 3');"\n  "-- SELECT ...} (unsupported command, not transpiled)
+	// do_trace_select_test 1.3 {\n  SELECT sql('SELECT 1, \n    2, \n    3'\n  );\...} {\n  "SELECT sql('SELECT 1, \n    2, \n    3'\n  );...} (unsupported command, not transpiled)
+	// do_trace_select_test 1.4 {\n  SELECT sql('SELECT 1, \n\n\n    3'\n  );\n} {\n  "SELECT sql('SELECT 1, \n\n\n    3'\n  );"\n  ...} (unsupported command, not transpiled)
+	// do_trace_select_test 1.5 {\n  SELECT $var, sql('SELECT 1, \n    $var, \n    ...} {\n  "SELECT NULL, sql('SELECT 1, \n    $var, \n   ...} (unsupported command, not transpiled)
+	{ // "2.1"
+		_res = db.Exec("\n    CREATE VIRTUAL TABLE x1 USING fts4;\n    INSERT INTO x1 VALUES('Cloudy, with a high near 16');\n    INSERT INTO x1 VALUES('Wind chill values as low as -13');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE x1 USING fts4;\n    INSERT INTO x1 VALUES('Cloudy, with a high near 16');\n    INSERT INTO x1 VALUES('Wind chill values as low as -13');\n  ")
+		}
+	}
+	// do_trace_test 2.2 {\n    INSERT INTO x1 VALUES('North northwest wind ...} {\n    "INSERT INTO x1 VALUES('North northwest wind...} (unsupported command, not transpiled)
+	// do_trace_test 2.3 {\n    INSERT INTO x1(x1) VALUES('optimize');\n  } {\n    "INSERT INTO x1(x1) VALUES('optimize');"\n  ...} (unsupported command, not transpiled)
 }

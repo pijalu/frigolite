@@ -85,7 +85,7 @@ func Test_update(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 10 }() {
-			sql = "INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")"
+			sql = "INSERT INTO test1 VALUES(" + i + "," + tclExpr("1<<$i") + ")"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -911,6 +911,30 @@ func Test_update(t *testing.T) {
 		_res = db.Exec("\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "update-11.1"
+		r = db.Query("\n      UPDATE t1 SET e=e+1 WHERE b IN (SELECT b FROM t1);\n      SELECT b,e FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET e=e+1 WHERE b IN (SELECT b FROM t1);\n      SELECT b,e FROM t1;\n    ")
+		}
+	}
+	{ // do_test "update-11.2"
+		r = db.Query("\n      UPDATE t1 SET e=e+1 WHERE a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET e=e+1 WHERE a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;\n    ")
+		}
+	}
+	{ // do_test "update-11.3"
+		r = db.Query("\n      UPDATE t1 AS xyz SET e=e+1 WHERE xyz.a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 AS xyz SET e=e+1 WHERE xyz.a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;\n    ")
+		}
+	}
+	{ // do_test "update-11.4"
+		r = db.Query("\n      UPDATE t1 AS xyz SET e=e+1 WHERE EXISTS(SELECT 1 FROM t1 WHERE t1.a<xyz.a);\n      SELECT a,e FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 AS xyz SET e=e+1 WHERE EXISTS(SELECT 1 FROM t1 WHERE t1.a<xyz.a);\n      SELECT a,e FROM t1;\n    ")
+		}
+	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "update-13.1"
@@ -951,6 +975,38 @@ func Test_update(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "update-14.1"
+		_res = db.Exec("\n    CREATE TABLE t3(a,b,c);\n    CREATE TRIGGER t3r1 BEFORE UPDATE on t3 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a,b,c);\n    CREATE TRIGGER t3r1 BEFORE UPDATE on t3 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;\n  ")
+		}
+	}
+	{ // do_test "update-14.2"
+		_res = db.Exec("\n    UPDATE t3 SET a=1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "update-14.3"
+		_res = db.Exec("\n    CREATE TABLE t4(a,b,c);\n    CREATE TRIGGER t4r1 AFTER UPDATE on t4 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(a,b,c);\n    CREATE TRIGGER t4r1 AFTER UPDATE on t4 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;\n  ")
+		}
+	}
+	{ // do_test "update-14.4"
+		_res = db.Exec("\n    UPDATE t4 SET a=1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // "update-15.1"
+		r = db.Query("\n    CREATE TABLE t15(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t15(a,b) VALUES(10,'abc'),(20,'def'),(30,'ghi');\n    ALTER TABLE t15 ADD COLUMN c;\n    CREATE INDEX t15c ON t15(c);\n    INSERT INTO t15(a,b)\n      VALUES(5,'zyx'),(15,'wvu'),(25,'tsr'),(35,'qpo');\n    UPDATE t15 SET c=printf('y%d',a) WHERE c IS NULL;\n    SELECT a,b,c,'|' FROM t15 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t15(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t15(a,b) VALUES(10,'abc'),(20,'def'),(30,'ghi');\n    ALTER TABLE t15 ADD COLUMN c;\n    CREATE INDEX t15c ON t15(c);\n    INSERT INTO t15(a,b)\n      VALUES(5,'zyx'),(15,'wvu'),(25,'tsr'),(35,'qpo');\n    UPDATE t15 SET c=printf('y%d',a) WHERE c IS NULL;\n    SELECT a,b,c,'|' FROM t15 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 zyx y5 | 10 abc y10 | 15 wvu y15 | 20 def y20 | 25 tsr y25 | 30 ghi y30 | 35 qpo y35 |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "update-16.1"
 		r = db.Query("\n  CREATE TABLE t16(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b UNIQUE);\n  INSERT INTO t16(a,b) VALUES(1,2),(3,4),(5,6);\n  UPDATE t16 SET a=a;\n  SELECT * FROM t16 ORDER BY +a;\n")
 		if r.Error != nil {

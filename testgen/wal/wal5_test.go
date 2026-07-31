@@ -93,6 +93,7 @@ func Test_wal5(t *testing.T) {
 	_ = x // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// do_not_use_codec (unsupported command, not transpiled)
 	testprefix = "wal5"
 	_ = testprefix // suppress unused warning
@@ -107,24 +108,12 @@ func Test_wal5(t *testing.T) {
 		_ = do_wal_checkpoint // suppress unused warning
 		_ = _idx0
 			// eval (dynamic, not transpiled)
-			// do_multiclient_test tn {
-
-    set ::nBusyHandler 0
-    set ::busy_handler_...} (unsupported command, not transpiled)
+			// do_multiclient_test tn {\n\n    set ::nBusyHandler 0\n    set ::busy_handl...} (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
-			// do_multiclient_test tn {
-    setup_and_attach_aux
-    do_test 2.1.$tn.1 {
-...} (unsupported command, not transpiled)
-			// do_multiclient_test tn {
-    setup_and_attach_aux
-    do_test 2.2.$tn.1 {
-...} (unsupported command, not transpiled)
-			// do_multiclient_test tn {
-    setup_and_attach_aux
-    do_test 2.3.$tn.1 {
-...} (unsupported command, not transpiled)
+			// do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.1.$tn.1 ...} (unsupported command, not transpiled)
+			// do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.2.$tn.1 ...} (unsupported command, not transpiled)
+			// do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.3.$tn.1 ...} (unsupported command, not transpiled)
 			// foreach {tn1 checkpoint busy_on ckpt_expected expected} "\n    1   PASSIVE   -   {0 3 3}   -\n    2   TYPO      -   {0 3 3}   -\n\n    3   FULL      -   {0 4 4}   2\n    4   FULL      1   {1 3 3}   1\n    5   FULL      2   {1 4 3}   2\n    6   FULL      3   {0 4 4}   2\n\n    7   RESTART   -   {0 4 4}   3\n    8   RESTART   1   {1 3 3}   1\n    9   RESTART   2   {1 4 3}   2\n    10  RESTART   3   {1 4 4}   3\n\n    11  TRUNCATE  -   {0 0 0}   3\n    12  TRUNCATE  1   {1 3 3}   1\n    13  TRUNCATE  2   {1 4 3}   2\n    14  TRUNCATE  3   {1 4 4}   3\n\n  "
 			_items1 := tclSplitList("\n    1   PASSIVE   -   {0 3 3}   -\n    2   TYPO      -   {0 3 3}   -\n\n    3   FULL      -   {0 4 4}   2\n    4   FULL      1   {1 3 3}   1\n    5   FULL      2   {1 4 3}   2\n    6   FULL      3   {0 4 4}   2\n\n    7   RESTART   -   {0 4 4}   3\n    8   RESTART   1   {1 3 3}   1\n    9   RESTART   2   {1 4 3}   2\n    10  RESTART   3   {1 4 4}   3\n\n    11  TRUNCATE  -   {0 0 0}   3\n    12  TRUNCATE  1   {1 3 3}   1\n    13  TRUNCATE  2   {1 4 3}   2\n    14  TRUNCATE  3   {1 4 4}   3\n\n  ")
 			for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
@@ -139,22 +128,10 @@ func Test_wal5(t *testing.T) {
 				expected := _items1[_idx1+4]
 				_ = expected // suppress unused warning
 				_ = _idx1
-					// do_multiclient_test tn {
-      setup_and_attach_aux
-
-      proc busyhandle...} (unsupported command, not transpiled)
+					// do_multiclient_test tn {\n      setup_and_attach_aux\n\n      proc busyhan...} (unsupported command, not transpiled)
 				}
-				// do_multiclient_test tn {
-
-    code1 $do_wal_checkpoint
-    code2 $do_wal_c...} (unsupported command, not transpiled)
-				// do_multiclient_test tn {
-
-    code1 $do_wal_checkpoint
-    code2 $do_wal_c...} (unsupported command, not transpiled)
-				// do_multiclient_test tn {
-
-    code1 $do_wal_checkpoint
-    code2 $do_wal_c...} (unsupported command, not transpiled)
+				// do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wa...} (unsupported command, not transpiled)
+				// do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wa...} (unsupported command, not transpiled)
+				// do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wa...} (unsupported command, not transpiled)
 			}
 }

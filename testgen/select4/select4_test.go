@@ -3,6 +3,7 @@ package select4
 
 import (
 "github.com/pijalu/frigolite"
+"strconv"
 "strings"
 "testing"
 )
@@ -52,6 +53,527 @@ func Test_select4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	_res = db.Exec("\n  CREATE TABLE t1(n int, log int);\n  BEGIN;\n")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(n int, log int);\n  BEGIN;\n")
+	}
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
+		j = "0"
+		_ = j // suppress unused warning
+		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (1<<j_n) < i_n }() {
+			// incr j 1
+			{
+				_n, _err := strconv.Atoi(j)
+				if _err == nil {
+					j = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("INSERT INTO t1 VALUES(" + i + "," + j + ")")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + i + "," + j + ")")
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("\n  COMMIT;\n")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
+	}
+	{ // do_test "select4-1.0"
+		r = db.Query("SELECT DISTINCT log FROM t1 ORDER BY log")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT DISTINCT log FROM t1 ORDER BY log")
+		}
+	}
+	{ // do_test "select4-1.1a"
+		_ = tclSort("execsql {SELECT DISTINCT log FROM t1}") // lsort result
+	}
+	{ // do_test "select4-1.1b"
+		_ = tclSort("execsql {SELECT n FROM t1 WHERE log=3}") // lsort result
+	}
+	{ // do_test "select4-1.1c"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+		}
+	}
+	{ // do_test "select4-1.1d"
+		r = db.Query("\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
+		}
+	}
+	_res = db.Exec("DROP TABLE t2")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
+	}
+	{ // do_test "select4-1.1e"
+		r = db.Query("\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
+		}
+	}
+	_res = db.Exec("DROP TABLE t2")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
+	}
+	{ // do_test "select4-1.1f"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=2\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=2\n  ")
+		}
+	}
+	{ // do_test "select4-1.1g"
+		r = db.Query("\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=2;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=2;\n    SELECT * FROM t2;\n  ")
+		}
+	}
+	_res = db.Exec("DROP TABLE t2")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
+	}
+	{ // do_test "select4-1.2"
+		r = db.Query("\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION ALL\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION ALL\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+		}
+	}
+	{ // do_test "select4-1.3"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // "select4-1.4"
+		_res = db.Exec("\n  SELECT (VALUES(0) INTERSECT SELECT(0) UNION SELECT(0) ORDER BY 1 UNION\n          SELECT 0 UNION SELECT 0 ORDER BY 1);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY clause should come after UNION not before") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after UNION not before", _res.Error, "\n  SELECT (VALUES(0) INTERSECT SELECT(0) UNION SELECT(0) ORDER BY 1 UNION\n          SELECT 0 UNION SELECT 0 ORDER BY 1);\n")
+		}
+	}
+	{ // do_test "select4-2.1"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+		}
+	}
+	{ // do_test "select4-2.2"
+		r = db.Query("\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+		}
+	}
+	{ // do_test "select4-2.3"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log\n    UNION\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-2.4"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT 0 ORDER BY (SELECT 0) UNION SELECT 0;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // "select4-2.5"
+		r = db.Query("\n  SELECT 123 AS x ORDER BY (SELECT x ORDER BY 1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 AS x ORDER BY (SELECT x ORDER BY 1);\n")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "select4-3.1.1"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    EXCEPT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    EXCEPT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+		}
+	}
+	{ // do_test "select4-3.1.2"
+		r = db.Query("\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
+		}
+	}
+	_res = db.Exec("DROP TABLE t2")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
+	}
+	{ // do_test "select4-3.1.3"
+		r = db.Query("\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
+		}
+	}
+	_res = db.Exec("DROP TABLE t2")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
+	}
+	{ // do_test "select4-3.2"
+		r = db.Query("\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 EXCEPT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 EXCEPT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+		}
+	}
+	{ // do_test "select4-3.3"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log\n    EXCEPT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-4.1.1"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+		}
+	}
+	{ // do_test "select4-4.1.2"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT 6\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY t1.log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT 6\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY t1.log;\n  ")
+		}
+	}
+	{ // do_test "select4-4.1.3"
+		r = db.Query("\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;\n  ")
+		}
+	}
+	_res = db.Exec("DROP TABLE t2")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
+	}
+	{ // do_test "select4-4.1.4"
+		r = db.Query("\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;\n  ")
+		}
+	}
+	_res = db.Exec("DROP TABLE t2")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
+	}
+	{ // do_test "select4-4.2"
+		r = db.Query("\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 INTERSECT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 INTERSECT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;\n    ")
+		}
+	}
+	{ // do_test "select4-4.3"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // "select4-4.4"
+		_res = db.Exec("\n  SELECT 3 IN (\n    SELECT 0 ORDER BY 1\n    INTERSECT\n    SELECT 1\n    INTERSECT \n    SELECT 2\n    ORDER BY 1\n  );\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ORDER BY clause should come after INTERSECT not before") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ORDER BY clause should come after INTERSECT not before", _res.Error, "\n  SELECT 3 IN (\n    SELECT 0 ORDER BY 1\n    INTERSECT\n    SELECT 1\n    INTERSECT \n    SELECT 2\n    ORDER BY 1\n  );\n")
+		}
+	}
+	{ // do_test "select4-5.1"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log FROM t2\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-5.2"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log AS \"xyzzy\" FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY xyzzy;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-5.2b"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log AS xyzzy FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY \"xyzzy\";\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-5.2c"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY \"xyzzy\";\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-5.2d"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log FROM t1\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY \"xyzzy\";\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-5.2e"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY n;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-5.2f"
+		_res = db.Exec("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-5.2g"
+		_res = db.Exec("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY 1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-5.2h"
+		_res = db.Exec("\n    SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY 2;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-5.2i"
+		_res = db.Exec("\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY 2, 1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-5.2j"
+		_res = db.Exec("\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY 1, 2 DESC;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-5.2k"
+		_res = db.Exec("\n    SELECT DISTINCT 1, log FROM t1\n    UNION ALL\n    SELECT 2, n FROM t1 WHERE log=3\n    ORDER BY n, 1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-5.3"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT DISTINCT log, n FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-5.3-3807-1"
+		_res = db.Exec("\n    SELECT 1 UNION SELECT 2, 3 UNION SELECT 4, 5 ORDER BY 1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-5.4"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT log FROM t1 WHERE n=2\n    UNION ALL\n    SELECT log FROM t1 WHERE n=3\n    UNION ALL\n    SELECT log FROM t1 WHERE n=4\n    UNION ALL\n    SELECT log FROM t1 WHERE n=5\n    ORDER BY log;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select4-6.1"
+		r = db.Query("\n    SELECT log, count(*) as cnt FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY cnt, log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, count(*) as cnt FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY cnt, log;\n  ")
+		}
+	}
+	{ // do_test "select4-6.2"
+		r = db.Query("\n    SELECT log, count(*) FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY count(*), log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT log, count(*) FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY count(*), log;\n  ")
+		}
+	}
+	{ // do_test "select4-6.3"
+		r = db.Query("\n    SELECT NULL UNION SELECT NULL UNION\n    SELECT 1 UNION SELECT 2 AS 'x'\n    ORDER BY x;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT NULL UNION SELECT NULL UNION\n    SELECT 1 UNION SELECT 2 AS 'x'\n    ORDER BY x;\n  ")
+		}
+	}
+	{ // do_test "select4-6.3.1"
+		r = db.Query("\n    SELECT NULL UNION ALL SELECT NULL UNION ALL\n    SELECT 1 UNION ALL SELECT 2 AS 'x'\n    ORDER BY x;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT NULL UNION ALL SELECT NULL UNION ALL\n    SELECT 1 UNION ALL SELECT 2 AS 'x'\n    ORDER BY x;\n  ")
+		}
+	}
+	{ // do_test "select4-6.4"
+		r = db.Query("\n      SELECT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );\n    ")
+		}
+	}
+	{ // do_test "select4-6.5"
+		r = db.Query("\n      SELECT DISTINCT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT DISTINCT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );\n    ")
+		}
+	}
+	{ // do_test "select4-6.6"
+		r = db.Query("\n      SELECT DISTINCT * FROM (\n         SELECT 1,2  UNION ALL SELECT 1,2\n      );\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT DISTINCT * FROM (\n         SELECT 1,2  UNION ALL SELECT 1,2\n      );\n    ")
+		}
+	}
+	{ // do_test "select4-6.7"
+		r = db.Query("\n    SELECT NULL EXCEPT SELECT NULL\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT NULL EXCEPT SELECT NULL\n  ")
+		}
+	}
+	{ // do_test "select4-7.1"
+		r = db.Query("\n    CREATE TABLE t2 AS SELECT log AS 'x', count(*) AS 'y' FROM t1 GROUP BY log;\n    SELECT * FROM t2 ORDER BY x;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT log AS 'x', count(*) AS 'y' FROM t1 GROUP BY log;\n    SELECT * FROM t2 ORDER BY x;\n  ")
+		}
+	}
+	{ // do_test "select4-7.2"
+		r = db.Query("\n      SELECT * FROM t1 WHERE n IN (SELECT n FROM t1 INTERSECT SELECT x FROM t2)\n      ORDER BY n\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 WHERE n IN (SELECT n FROM t1 INTERSECT SELECT x FROM t2)\n      ORDER BY n\n    ")
+		}
+	}
+	{ // do_test "select4-7.3"
+		r = db.Query("\n      SELECT * FROM t1 WHERE n IN (SELECT n FROM t1 EXCEPT SELECT x FROM t2)\n      ORDER BY n LIMIT 2\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 WHERE n IN (SELECT n FROM t1 EXCEPT SELECT x FROM t2)\n      ORDER BY n LIMIT 2\n    ")
+		}
+	}
+	{ // do_test "select4-7.4"
+		r = db.Query("\n      SELECT * FROM t1 WHERE n IN (SELECT n FROM t1 UNION SELECT x FROM t2)\n      ORDER BY n LIMIT 2\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 WHERE n IN (SELECT n FROM t1 UNION SELECT x FROM t2)\n      ORDER BY n LIMIT 2\n    ")
+		}
+	}
 	{ // do_test "select4-8.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t3(a text, b float, c text);\n    INSERT INTO t3 VALUES(1, 1.1, '1.1');\n    INSERT INTO t3 VALUES(2, 1.10, '1.10');\n    INSERT INTO t3 VALUES(3, 1.10, '1.1');\n    INSERT INTO t3 VALUES(4, 1.1, '1.10');\n    INSERT INTO t3 VALUES(5, 1.2, '1.2');\n    INSERT INTO t3 VALUES(6, 1.3, '1.3');\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -67,6 +589,200 @@ func Test_select4(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT c FROM t3 ORDER BY c;\n  ")
 		}
+	}
+	{ // do_test "select4-9.1"
+		r = db.Query("\n    SELECT x, y FROM t2 UNION SELECT a, b FROM t3 ORDER BY x LIMIT 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, y FROM t2 UNION SELECT a, b FROM t3 ORDER BY x LIMIT 1\n  ")
+		}
+	}
+	{ // do_test "select4-9.2"
+		r = db.Query("\n    SELECT x, y FROM t2 UNION ALL SELECT a, b FROM t3 ORDER BY x LIMIT 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, y FROM t2 UNION ALL SELECT a, b FROM t3 ORDER BY x LIMIT 1\n  ")
+		}
+	}
+	{ // do_test "select4-9.3"
+		r = db.Query("\n    SELECT x, y FROM t2 EXCEPT SELECT a, b FROM t3 ORDER BY x LIMIT 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, y FROM t2 EXCEPT SELECT a, b FROM t3 ORDER BY x LIMIT 1\n  ")
+		}
+	}
+	{ // do_test "select4-9.4"
+		r = db.Query("\n    SELECT x, y FROM t2 INTERSECT SELECT 0 AS a, 1 AS b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, y FROM t2 INTERSECT SELECT 0 AS a, 1 AS b;\n  ")
+		}
+	}
+	{ // do_test "select4-9.5"
+		r = db.Query("\n    SELECT 0 AS x, 1 AS y\n    UNION\n    SELECT 2 AS p, 3 AS q\n    UNION\n    SELECT 4 AS a, 5 AS b\n    ORDER BY x LIMIT 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 0 AS x, 1 AS y\n    UNION\n    SELECT 2 AS p, 3 AS q\n    UNION\n    SELECT 4 AS a, 5 AS b\n    ORDER BY x LIMIT 1\n  ")
+		}
+	}
+	{ // do_test "select4-9.6"
+		r = db.Query("\n    SELECT * FROM (\n      SELECT 0 AS x, 1 AS y\n      UNION\n      SELECT 2 AS p, 3 AS q\n      UNION\n      SELECT 4 AS a, 5 AS b\n    ) ORDER BY 1 LIMIT 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (\n      SELECT 0 AS x, 1 AS y\n      UNION\n      SELECT 2 AS p, 3 AS q\n      UNION\n      SELECT 4 AS a, 5 AS b\n    ) ORDER BY 1 LIMIT 1;\n  ")
+		}
+	}
+	{ // do_test "select4-9.7"
+		r = db.Query("\n    SELECT * FROM (\n      SELECT 0 AS x, 1 AS y\n      UNION\n      SELECT 2 AS p, 3 AS q\n      UNION\n      SELECT 4 AS a, 5 AS b\n    ) ORDER BY x LIMIT 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (\n      SELECT 0 AS x, 1 AS y\n      UNION\n      SELECT 2 AS p, 3 AS q\n      UNION\n      SELECT 4 AS a, 5 AS b\n    ) ORDER BY x LIMIT 1;\n  ")
+		}
+	}
+	{ // do_test "select4-9.8"
+		r = db.Query("\n    SELECT 0 AS x, 1 AS y\n    UNION\n    SELECT 2 AS y, -3 AS x\n    ORDER BY x LIMIT 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 0 AS x, 1 AS y\n    UNION\n    SELECT 2 AS y, -3 AS x\n    ORDER BY x LIMIT 1;\n  ")
+		}
+	}
+	{ // do_test "select4-9.9.1"
+		r = db.Query("\n    SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS b, 4 AS a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS b, 4 AS a\n  ")
+		}
+	}
+	{ // do_test "select4-9.9.2"
+		r = db.Query("\n    SELECT * FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS b, 4 AS a)\n     WHERE b=3\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS b, 4 AS a)\n     WHERE b=3\n  ")
+		}
+	}
+	{ // do_test "select4-9.10"
+		r = db.Query("\n    SELECT * FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS b, 4 AS a)\n     WHERE b=2\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS b, 4 AS a)\n     WHERE b=2\n  ")
+		}
+	}
+	{ // do_test "select4-9.11"
+		r = db.Query("\n    SELECT * FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS e, 4 AS b)\n     WHERE b=2\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS e, 4 AS b)\n     WHERE b=2\n  ")
+		}
+	}
+	{ // do_test "select4-9.12"
+		r = db.Query("\n    SELECT * FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS e, 4 AS b)\n     WHERE b>0\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 3 AS e, 4 AS b)\n     WHERE b>0\n  ")
+		}
+	}
+	{ // do_test "select4-10.1"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log\n  ")
+		}
+	}
+	{ // do_test "select4-10.2"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 4\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 4\n  ")
+		}
+	}
+	{ // do_test "select4-10.3"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0\n  ")
+		}
+	}
+	{ // do_test "select4-10.4"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1\n  ")
+		}
+	}
+	{ // do_test "select4-10.5"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1 OFFSET 2\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1 OFFSET 2\n  ")
+		}
+	}
+	{ // do_test "select4-10.6"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 3 OFFSET 2\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 3 OFFSET 2\n  ")
+		}
+	}
+	{ // do_test "select4-10.7"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY +log LIMIT 3 OFFSET 20\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY +log LIMIT 3 OFFSET 20\n  ")
+		}
+	}
+	{ // do_test "select4-10.8"
+		r = db.Query("\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0 OFFSET 3\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0 OFFSET 3\n  ")
+		}
+	}
+	{ // do_test "select4-10.9"
+		_res = db.Exec("\n    SELECT DISTINCT max(n), log FROM t1 ORDER BY +log; -- LIMIT 2 OFFSET 1\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT DISTINCT max(n), log FROM t1 ORDER BY +log; -- LIMIT 2 OFFSET 1\n  ")
+		}
+	}
+	{ // do_test "select4-11.1"
+		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.2"
+		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.3"
+		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.4"
+		_res = db.Exec("\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.5"
+		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.6"
+		_res = db.Exec("\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.7"
+		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    INTERSECT\n    SELECT x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.8"
+		_res = db.Exec("\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.11"
+		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.12"
+		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.13"
+		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.14"
+		_res = db.Exec("\n    SELECT x FROM t2\n    UNION\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.15"
+		_res = db.Exec("\n    SELECT x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x FROM t2\n    UNION\n    SELECT x FROM t2\n    INTERSECT\n    SELECT x FROM t2\n    UNION ALL\n    SELECT x FROM t2\n    EXCEPT\n    SELECT x FROM t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-11.16"
+		_res = db.Exec("\n    INSERT INTO t2(rowid) VALUES(2) UNION SELECT 3,4 UNION SELECT 5,6 ORDER BY 1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select4-12.1"
+		db2, err = frigolite.Open(":memory:")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT 1 UNION SELECT 2,3 UNION SELECT 4,5 ORDER BY 1;\n  ")
+		_ = _res // catchsql
 	}
 	{ // do_test "select4-13.1"
 		_dbtmp0, err := frigolite.Open("test.db")

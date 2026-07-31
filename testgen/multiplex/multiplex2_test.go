@@ -47,8 +47,7 @@ func Test_multiplex2(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// do_multiclient_test tn {
-  code1 { catch { sqlite3_multiplex_initialize ""...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  code1 { catch { sqlite3_multiplex_initialize "...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

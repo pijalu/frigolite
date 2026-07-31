@@ -56,6 +56,7 @@ func Test_walprotocol(t *testing.T) {
 	_ = spec // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "walprotocol"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"

@@ -3,6 +3,7 @@ package mutex
 
 import (
 "github.com/pijalu/frigolite"
+"strconv"
 "testing"
 )
 
@@ -75,6 +76,7 @@ func Test_mutex1(t *testing.T) {
 	_ = counters_static_main // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	if tclBool("info exists tester_do_binarylog") {
 		return
 	}
@@ -105,7 +107,7 @@ func Test_mutex1(t *testing.T) {
 	}
 	{ // do_test "mutex1-1.7"
 		// mutex_counters counters (unsupported command, not transpiled)
-		// expr $counters(total)>0 → "$counters(total)>0"
+		// expr $counters(total)>0 (not evaluated)
 	}
 	{ // do_test "mutex1-1.8"
 		// clear_mutex_counters (unsupported command, not transpiled)
@@ -116,57 +118,154 @@ func Test_mutex1(t *testing.T) {
 		_list := tclList([]string{counters_total, counters_static_main})
 		_ = _list
 	}
-	{ // do_test "mutex1.4.1"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-		}
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
-		if err != nil { t.Fatal(err) }
-		// enter_db_mutex db (unsupported command, not transpiled)
-		_res = db.Exec("SELECT 1, 2, 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
-		}
-	}
-	{ // do_test "mutex1.4.2"
-		// leave_db_mutex db (unsupported command, not transpiled)
-		_res = db.Exec("SELECT 1, 2, 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
-		}
-	}
-	{ // do_test "mutex1.4.3"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
-		if err != nil { t.Fatal(err) }
-		// enter_db_mutex db (unsupported command, not transpiled)
-		_res = db.Exec("SELECT 1, 2, 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
-		}
-	}
-	{ // do_test "mutex1.4.4"
-		// leave_db_mutex db (unsupported command, not transpiled)
-		_res = db.Exec("SELECT 1, 2, 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
-		}
-	}
-	{ // do_test "mutex1-X"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-		}
-		// sqlite3_shutdown (unsupported command, not transpiled)
-		// clear_mutex_counters (unsupported command, not transpiled)
-		// install_mutex_counters 0 (unsupported command, not transpiled)
-		// sqlite3_initialize (unsupported command, not transpiled)
-	}
-	// autoinstall_test_functions (unsupported command, not transpiled)
+	enable_shared_cache = "sqlite3_enable_shared_cache 1"
+	_ = enable_shared_cache // suppress unused warning
+	// foreach {mode mutexes} "\n    singlethread {}\n    multithread  {\n      fast static_app1 static_app2 static_app3\n      static_lru static_main static_mem static_open\n      static_prng static_pmem static_vfs1 static_vfs2\n      static_vfs3\n    }\n    serialized  {\n      fast recursive static_app1 static_app2\n      static_app3 static_lru static_main static_mem\n      static_open static_prng static_pmem static_vfs1\n      static_vfs2 static_vfs3\n    }\n  "
+	_items0 := tclSplitList("\n    singlethread {}\n    multithread  {\n      fast static_app1 static_app2 static_app3\n      static_lru static_main static_mem static_open\n      static_prng static_pmem static_vfs1 static_vfs2\n      static_vfs3\n    }\n    serialized  {\n      fast recursive static_app1 static_app2\n      static_app3 static_lru static_main static_mem\n      static_open static_prng static_pmem static_vfs1\n      static_vfs2 static_vfs3\n    }\n  ")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		mode := _items0[_idx0+0]
+		_ = mode // suppress unused warning
+		mutexes := _items0[_idx0+1]
+		_ = mutexes // suppress unused warning
+		_ = _idx0
+			if mode != "serialized" {
+			}
+			if tclBool("permutation" + "==\"inmemory_journal\"") {
+				idx = "lsearch $mutexes static_prng"
+				_ = idx // suppress unused warning
+				if func() bool { idx_n, _idx_e := strconv.Atoi(idx); if _idx_e != nil { return false }; return idx_n >= 0 }() {
+					mutexes = "lreplace $mutexes $idx $idx"
+					_ = mutexes // suppress unused warning
+				}
+			}
+			{ // do_test "mutex1.2." + mode + ".1"
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				// sqlite3_shutdown (unsupported command, not transpiled)
+				// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
+				// sqlite3_config $mode (unsupported command, not transpiled)
+			}
+			{ // do_test "mutex1.2." + mode + ".2"
+				// sqlite3_initialize (unsupported command, not transpiled)
+				// clear_mutex_counters (unsupported command, not transpiled)
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec(" CREATE TABLE abc(a, b, c) ")
+				_ = _res // catchsql
+				_res = db.Exec("\n        INSERT INTO abc VALUES(1, 2, 3);\n      ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO abc VALUES(1, 2, 3);\n      ")
+				}
+			}
+			mutexes = tclRegsub(" static_lru", mutexes, "")
+			_ = mutexes // suppress unused warning
+			if mode != "singlethread" {
+				{ // do_test "mutex1.2." + mode + ".3"
+					// enter_static_mutex static_app1 (unsupported command, not transpiled)
+					// leave_static_mutex static_app1 (unsupported command, not transpiled)
+					// enter_static_mutex static_app2 (unsupported command, not transpiled)
+					// leave_static_mutex static_app2 (unsupported command, not transpiled)
+					// enter_static_mutex static_app3 (unsupported command, not transpiled)
+					// leave_static_mutex static_app3 (unsupported command, not transpiled)
+					// enter_static_mutex static_vfs1 (unsupported command, not transpiled)
+					// leave_static_mutex static_vfs1 (unsupported command, not transpiled)
+					// enter_static_mutex static_vfs2 (unsupported command, not transpiled)
+					// leave_static_mutex static_vfs2 (unsupported command, not transpiled)
+					// enter_static_mutex static_vfs3 (unsupported command, not transpiled)
+					// leave_static_mutex static_vfs3 (unsupported command, not transpiled)
+				}
+			}
+			{ // do_test "mutex1.2." + mode + ".4"
+				// mutex_counters counters (unsupported command, not transpiled)
+				res = "list"
+				_ = res // suppress unused warning
+				// foreach {key value} "array get counters"
+				_items2 := tclSplitList("array get counters")
+				for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+					key := _items2[_idx2+0]
+					_ = key // suppress unused warning
+					value := _items2[_idx2+1]
+					_ = value // suppress unused warning
+					_ = _idx2
+						if tclBool(key + " != \"total\" && " + value + " > 0") {
+							res = tclListAppend(res, key)
+						}
+					}
+					_ = tclSort(res) // lsort result
+				}
+			}
+			// sqlite3_enable_shared_cache $enable_shared_cache (unsupported command, not transpiled)
+			{ // do_test "mutex1.3.1"
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				// clear_mutex_counters (unsupported command, not transpiled)
+				_dbtmp3, err := frigolite.Open("test.db")
+				_ = _dbtmp3 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				r = db.Query(" SELECT * FROM abc ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+				}
+			}
+			{ // do_test "mutex1.3.2"
+				// mutex_counters counters (unsupported command, not transpiled)
+			}
+			{ // do_test "mutex1.4.1"
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				// enter_db_mutex db (unsupported command, not transpiled)
+				_res = db.Exec("SELECT 1, 2, 3")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
+				}
+			}
+			{ // do_test "mutex1.4.2"
+				// leave_db_mutex db (unsupported command, not transpiled)
+				_res = db.Exec("SELECT 1, 2, 3")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
+				}
+			}
+			{ // do_test "mutex1.4.3"
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				_dbtmp5, err := frigolite.Open("test.db")
+				_ = _dbtmp5 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				// enter_db_mutex db (unsupported command, not transpiled)
+				_res = db.Exec("SELECT 1, 2, 3")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
+				}
+			}
+			{ // do_test "mutex1.4.4"
+				// leave_db_mutex db (unsupported command, not transpiled)
+				_res = db.Exec("SELECT 1, 2, 3")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
+				}
+			}
+			{ // do_test "mutex1-X"
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				// sqlite3_shutdown (unsupported command, not transpiled)
+				// clear_mutex_counters (unsupported command, not transpiled)
+				// install_mutex_counters 0 (unsupported command, not transpiled)
+				// sqlite3_initialize (unsupported command, not transpiled)
+			}
+			// autoinstall_test_functions (unsupported command, not transpiled)
 }

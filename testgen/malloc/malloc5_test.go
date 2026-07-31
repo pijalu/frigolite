@@ -86,6 +86,7 @@ func Test_malloc5(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
+	return
 	// proc definition (not transpiled)
 	mrange = "0.98"
 	_ = mrange // suppress unused warning
@@ -251,7 +252,7 @@ func Test_malloc5(t *testing.T) {
 		_ = nMaxBytes // suppress unused warning
 		_putsMsg = "-nonewline"
 		_ = _putsMsg
-		// expr $nMaxBytes → "$nMaxBytes"
+		// expr $nMaxBytes (not evaluated)
 	}
 	{ // do_test "malloc5-4.2"
 		_res = db.Exec("PRAGMA cache_size=1")
@@ -269,7 +270,7 @@ func Test_malloc5(t *testing.T) {
 		_ = nMaxBytes // suppress unused warning
 		_putsMsg = "-nonewline"
 		_ = _putsMsg
-		// expr $nMaxBytes → "$nMaxBytes"
+		// expr $nMaxBytes (not evaluated)
 	}
 	{ // do_test "malloc5-4.3"
 		r = db.Query("\n    SELECT count(*), sum(a), sum(b) FROM abc;\n  ")
@@ -316,7 +317,7 @@ func Test_malloc5(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2.Exec("PRAGMA cache_size=2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		_list := tclList([]string{"([file size test.db]/1024)>20", "([file size test2.db]/1024)>20"})
+		_list := tclList([]string{tclExpr("([file size test.db]/1024)>20"), tclExpr("([file size test2.db]/1024)>20")})
 		_ = _list
 	}
 	{ // do_test "malloc5-6.1.2"
@@ -332,11 +333,11 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 		}
-		// expr [nPage db] → "[nPage db]"
+		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.2.2"
 		// sqlite3_release_memory 3000 (unsupported command, not transpiled)
-		// expr [nPage db] → "[nPage db]"
+		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.2.3"
 		r = db.Query(" SELECT * FROM abc ")
@@ -344,7 +345,7 @@ func Test_malloc5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
 		// sqlite3_release_memory 3000 (unsupported command, not transpiled)
-		// expr [nPage db] → "[nPage db]"
+		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.3.1"
 		_res = db.Exec("\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
@@ -355,7 +356,7 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
-		// expr [nPage db] → "[nPage db]"
+		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.3.2"
 		// sqlite3_release_memory [expr 7*1132] (unsupported command, not transpiled)

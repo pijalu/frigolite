@@ -62,21 +62,11 @@ func Test_e_totalchanges(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n  CREATE INDEX t2_y ON t2(y);\n")
 		}
 	}
-	// do_tc_test 1.1.1 {
-  INSERT INTO t1 VALUES(1, 2);
-  INSERT INTO t1 V...} {6} (unsupported command, not transpiled)
-	// do_tc_test 1.1.2 {
-  DELETE FROM t1
-} {6} (unsupported command, not transpiled)
-	// do_tc_test 1.1.3 {
-  WITH data(a,b) AS (
-      SELECT 0, 0 UNION ALL...} {106} (unsupported command, not transpiled)
-	// do_tc_test 1.1.4 {
-  INSERT INTO t2 SELECT * FROM t1 WHERE a<50;
-  U...} {206} (unsupported command, not transpiled)
-	// do_tc_test 1.1.5 {
-  DELETE FROM t2 WHERE y<=25
-} {231} (unsupported command, not transpiled)
+	// do_tc_test 1.1.1 {\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1...} {6} (unsupported command, not transpiled)
+	// do_tc_test 1.1.2 {\n  DELETE FROM t1\n} {6} (unsupported command, not transpiled)
+	// do_tc_test 1.1.3 {\n  WITH data(a,b) AS (\n      SELECT 0, 0 UNION A...} {106} (unsupported command, not transpiled)
+	// do_tc_test 1.1.4 {\n  INSERT INTO t2 SELECT * FROM t1 WHERE a<50;\n ...} {206} (unsupported command, not transpiled)
+	// do_tc_test 1.1.5 {\n  DELETE FROM t2 WHERE y<=25\n} {231} (unsupported command, not transpiled)
 	{ // "1.2.1"
 		_res = db.Exec("\n  DELETE FROM t1;\n  DELETE FROM t2;\n")
 		if _res.Error != nil {
@@ -86,15 +76,14 @@ func Test_e_totalchanges(t *testing.T) {
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	// do_tc_test 1.2.2 {
-  CREATE TABLE log(detail);
-  CREATE TRIGGER t1_a...} {9} (unsupported command, not transpiled)
+	// do_tc_test 1.2.2 {\n  CREATE TABLE log(detail);\n  CREATE TRIGGER t1...} {9} (unsupported command, not transpiled)
+	// do_tc_test 2.1 {\n    INSERT INTO t1 VALUES(1, 2), (3, 4);\n    IN...} {15} (unsupported command, not transpiled)
+	// do_tc_test 2.2 {\n    SELECT count(*) FROM t1;\n  } {2 15} (unsupported command, not transpiled)
+	// do_tc_test 2.3 {\n    CREATE TABLE t4(a, b);\n    ALTER TABLE t4 A...} {15} (unsupported command, not transpiled)
 	_dbtmp1, err := frigolite.Open("test.db")
 	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	// do_tc_test 3.1.1 {
-  CREATE TABLE p1(c PRIMARY KEY, d);
-  CREATE TAB...} {7} (unsupported command, not transpiled)
+	// do_tc_test 3.1.1 {\n  CREATE TABLE p1(c PRIMARY KEY, d);\n  CREATE T...} {7} (unsupported command, not transpiled)
 	// do_tc_test 3.1.2 { DELETE FROM p1 WHERE c=1; } {9} (unsupported command, not transpiled)
 	// do_tc_test 3.1.3 { DELETE FROM p1 WHERE c=2; } {11} (unsupported command, not transpiled)
 	// do_tc_test 3.1.4 { DELETE FROM p1 WHERE c=3; } {13} (unsupported command, not transpiled)
@@ -102,10 +91,7 @@ func Test_e_totalchanges(t *testing.T) {
 	_dbtmp2, err := frigolite.Open("test.db")
 	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	// do_tc_test 3.1.6 {
-  DROP TABLE c1;
-  DROP TABLE c2;
-  DROP TABLE c3...} {7} (unsupported command, not transpiled)
+	// do_tc_test 3.1.6 {\n  DROP TABLE c1;\n  DROP TABLE c2;\n  DROP TABLE...} {7} (unsupported command, not transpiled)
 	// do_tc_test 3.1.7 { UPDATE p1 SET c=c+4 WHERE c=1; } {9} (unsupported command, not transpiled)
 	// do_tc_test 3.1.8 { UPDATE p1 SET c=c+4 WHERE c=2; } {11} (unsupported command, not transpiled)
 	// do_tc_test 3.1.9 { UPDATE p1 SET c=c+4 WHERE c=3; } {13} (unsupported command, not transpiled)
@@ -113,18 +99,11 @@ func Test_e_totalchanges(t *testing.T) {
 	_dbtmp3, err := frigolite.Open("test.db")
 	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	// do_tc_test 3.2.1 {
-  CREATE TABLE t3(a UNIQUE, b UNIQUE);
-  INSERT I...} {3} (unsupported command, not transpiled)
-	// do_tc_test 3.2.2 {
-  INSERT INTO t3 VALUES('three', 'one');
-  UPDATE...} {three two 5} (unsupported command, not transpiled)
+	// do_tc_test 3.2.1 {\n  CREATE TABLE t3(a UNIQUE, b UNIQUE);\n  INSERT...} {3} (unsupported command, not transpiled)
+	// do_tc_test 3.2.2 {\n  INSERT INTO t3 VALUES('three', 'one');\n  UPDA...} {three two 5} (unsupported command, not transpiled)
 	_dbtmp4, err := frigolite.Open("test.db")
 	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	// do_tc_test 4.1 {
-  CREATE TABLE t6(x);
-  CREATE VIEW v1 AS SELECT ...} {0} (unsupported command, not transpiled)
-	// do_tc_test 4.2 {
-  CREATE TRIGGER v1_tr2 INSTEAD OF INSERT ON v1 B...} {2} (unsupported command, not transpiled)
+	// do_tc_test 4.1 {\n  CREATE TABLE t6(x);\n  CREATE VIEW v1 AS SELEC...} {0} (unsupported command, not transpiled)
+	// do_tc_test 4.2 {\n  CREATE TRIGGER v1_tr2 INSTEAD OF INSERT ON v1 ...} {2} (unsupported command, not transpiled)
 }

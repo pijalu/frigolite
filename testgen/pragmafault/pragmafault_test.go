@@ -60,12 +60,5 @@ func Test_pragmafault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  catchsql { PRAGMA integrity_check }
-  set {} 0
-} -test {
-  faultsim_test_result {0 0} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  catchsql { PRAGMA integrity_check }\n  set {} ...} -test {\n  faultsim_test_result {0 0} \n} (unsupported command, not transpiled)
 }

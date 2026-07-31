@@ -56,11 +56,5 @@ func Test_upsertfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -faults oom* -prep {
-  faultsim_restore_and_reopen
-  db eval { SELECT ...} -body {
-  execsql {
-     INSERT INTO t1 VALUES(3, 2, 2, N...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELEC...} -body {\n  execsql {\n     INSERT INTO t1 VALUES(3, 2, 2,...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 }

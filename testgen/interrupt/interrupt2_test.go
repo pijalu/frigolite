@@ -216,7 +216,7 @@ func Test_interrupt2(t *testing.T) {
 		}
 		nFrame2 = "wal_frame_count test.db-wal 1024"
 		_ = nFrame2 // suppress unused warning
-		// expr $nFrame2 → "$nFrame2"
+		// expr $nFrame2 (not evaluated)
 	}
 	{ // do_test "4.2"
 		nFrame1 = "wal_frame_count test.db-wal 1024"
@@ -227,6 +227,6 @@ func Test_interrupt2(t *testing.T) {
 		}
 		nFrame2 = "wal_frame_count test.db-wal 1024"
 		_ = nFrame2 // suppress unused warning
-		// expr $nFrame2 → "$nFrame2"
+		// expr $nFrame2 (not evaluated)
 	}
 }

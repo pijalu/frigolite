@@ -92,6 +92,55 @@ func Test_capi3e(t *testing.T) {
 			// file isfile $name
 		}
 	}
+	i = "0"
+	_ = i // suppress unused warning
+	for _, name := range tclSplitList(names) {
+	_ = name // suppress unused warning
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+		{ // do_test "capi3e-2.1." + i
+			// set db2 [sqlite3_open ...] (skipped, DB connection)
+			// sqlite3_errcode $db2 (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3e-2.2." + i
+			// sqlite3_close $db2 (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3e-2.3." + i
+			// file isfile $name
+		}
+	}
+	{ // do_test "capi3e-3.1"
+		db2, err = frigolite.Open("base.db")
+		if err != nil { t.Fatal(err) }
+	}
+	i = "0"
+	_ = i // suppress unused warning
+	for _, name := range tclSplitList(names) {
+	_ = name // suppress unused warning
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+		{ // do_test "capi3e-3.2." + i
+			db2.Exec("ATTACH DATABASE '" + name + "' AS db" + i + ";")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+		}
+		{ // do_test "capi3e-3.3." + i
+			db2.Exec("DETACH DATABASE db" + i + ";")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+		}
+	}
+	{ // do_test "capi3e-3.4"
+		db2.Close()
+	}
 	os.Remove("base.db")
 	for _, name := range tclSplitList(names) {
 	_ = name // suppress unused warning

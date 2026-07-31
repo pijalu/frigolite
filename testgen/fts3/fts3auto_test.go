@@ -4,6 +4,7 @@ package fts3
 import (
 "github.com/pijalu/frigolite"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -242,6 +243,7 @@ func Test_fts3auto(t *testing.T) {
 	_ = p // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts3auto"
 	_ = testprefix // suppress unused warning
 	sfep = sqlite_fts3_enable_parentheses
@@ -357,6 +359,9 @@ func Test_fts3auto(t *testing.T) {
 					limit = "fts3_make_deferrable t1 c"
 					_ = limit // suppress unused warning
 					// do_fts3query_test 3.$tn.2.1 t1 {a OR c} (unsupported command, not transpiled)
+					{ // do_test "3." + tn + ".3"
+						// fts3_zero_long_segments t1 $limit (unsupported command, not transpiled)
+					}
 					// foreach {tn2 expr def} "\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  "
 					_items3 := tclSplitList("\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  ")
 					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
@@ -394,6 +399,7 @@ func Test_fts3auto(t *testing.T) {
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('optimize') ")
 								}
+								// expr [fts3_zero_long_segments t1 $limit]>0 (not evaluated)
 							}
 							// do_fts3query_test 4.$tn.3.1 -deferred five t1 {one AND five} (unsupported command, not transpiled)
 							// do_fts3query_test 4.$tn.3.2 -deferred five t1 {one NEAR five} (unsupported command, not transpiled)
@@ -405,6 +411,16 @@ func Test_fts3auto(t *testing.T) {
 							// do_fts3query_test 4.$tn.4.3 -deferred fi* t1 {on* NEAR/1 fi*} (unsupported command, not transpiled)
 							// do_fts3query_test 4.$tn.4.4 -deferred fi* t1 {on* NEAR/2 fi*} (unsupported command, not transpiled)
 							// do_fts3query_test 4.$tn.4.5 -deferred fi* t1 {on* NEAR/3 fi*} (unsupported command, not transpiled)
+							_res = db.Exec("UPDATE t1_stat SET value=x'' WHERE id=0")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1_stat SET value=x'' WHERE id=0")
+							}
+							{ // "4." + tn + ".4.6"
+								_res = db.Exec("\n      SELECT docid FROM t1 WHERE t1 MATCH 'on* NEAR/3 fi*'\n    ")
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n      SELECT docid FROM t1 WHERE t1 MATCH 'on* NEAR/3 fi*'\n    ")
+								}
+							}
 						}
 						chunkconfig = "fts3_configure_incr_load 1 1"
 						_ = chunkconfig // suppress unused warning

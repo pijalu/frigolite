@@ -160,7 +160,7 @@ func Test_pragma3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "pragma3-195"
-		// expr [db eval {PRAGMA data_version}]!=[db2 eval {PRAGMA data_version}] → "[db eval {PRAGMA data_version}]!=[db2 eval {PRAGMA data_version}]"
+		// expr [db eval {PRAGMA data_version}]!=[db2 eval {PRAGMA data_version}] (not evaluated)
 	}
 	{ // do_test "pragma3-200"
 		_res = db.Exec("PRAGMA data_version; SELECT * FROM t1;")
@@ -182,6 +182,41 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	db2.Close()
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "pragma3-300"
+		_res = db.Exec("\n      PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;\n    ")
+		}
+	}
+	{ // do_test "pragma3-310"
+		db2.Exec("\n      PRAGMA data_version;\n      BEGIN;\n      INSERT INTO t3(a,b,c) VALUES('abc','def','ghi');\n      SELECT * FROM t3;\n      PRAGMA data_version;\n    ")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	}
+	{ // do_test "pragma3-320"
+		_res = db.Exec("\n      PRAGMA data_version;\n      SELECT * FROM t4;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA data_version;\n      SELECT * FROM t4;\n    ")
+		}
+	}
+	{ // do_test "pragma3-330"
+		db2.Exec("\n      COMMIT;\n      PRAGMA data_version;\n      SELECT * FROM t4;\n    ")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	}
+	{ // do_test "pragma3-340"
+		_res = db.Exec("\n      PRAGMA data_version;\n      SELECT * FROM t3;\n      SELECT * FROM t4;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA data_version;\n      SELECT * FROM t3;\n      SELECT * FROM t4;\n    ")
+		}
+	}
+	db2.Close()
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	if tclBool("wal_is_capable") {
 		if tclBool("permutation" + "!=\"inmemory_journal\"") {
 			_dbtmp0, err := frigolite.Open("test.db")
@@ -217,13 +252,13 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n"
-	_items0 := tclSplitList("\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

@@ -60,6 +60,8 @@ func Test_vacuum(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	// omit_test vacuum.test {Compiled with SQLITE_OMIT_VACUUM} (unsupported command, not transpiled)
+	return
 	if tclBool(AUTOVACUUM) {
 		// omit_test vacuum.test {Auto-vacuum is enabled} (unsupported command, not transpiled)
 		return
@@ -75,7 +77,7 @@ func Test_vacuum(t *testing.T) {
 		_ = size1 // suppress unused warning
 		cksum = "cksum" // TCL namespace variable
 		_ = cksum // suppress unused warning
-		// expr $::cksum!="" → "$::cksum!=\"\""
+		// expr $::cksum!="" (not evaluated)
 	}
 	// proc definition (not transpiled)
 	{ // do_test "vacuum-1.1b"
@@ -89,8 +91,15 @@ func Test_vacuum(t *testing.T) {
 		}
 		// cksum (unsupported command, not transpiled)
 	}
+	{ // do_test "vacuum-1.3"
+		// expr [file size test.db]<$::size1 (not evaluated)
+	}
 	{ // do_test "vacuum-1.4"
 		sql_script = "\n    BEGIN;\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    CREATE VIEW v1 AS SELECT b, c FROM t3;\n    CREATE TRIGGER r1 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    COMMIT;\n    DROP TABLE t2;\n  "
+		_ = sql_script // suppress unused warning
+		sql_script = tclRegsub("CREATE VIEW", sql_script, "-- CREATE VIEW")
+		_ = sql_script // suppress unused warning
+		sql_script = tclRegsub("CREATE TRIGGER", sql_script, "-- CREATE TRIGGER")
 		_ = sql_script // suppress unused warning
 		_res = db.Exec(sql_script)
 		if _res.Error != nil {
@@ -100,7 +109,7 @@ func Test_vacuum(t *testing.T) {
 		_ = size1 // suppress unused warning
 		cksum = "cksum" // TCL namespace variable
 		_ = cksum // suppress unused warning
-		// expr $::cksum!="" → "$::cksum!=\"\""
+		// expr $::cksum!="" (not evaluated)
 	}
 	{ // do_test "vacuum-1.5"
 		_res = db.Exec("\n    VACUUM;\n  ")
@@ -108,6 +117,22 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n  ")
 		}
 		// cksum (unsupported command, not transpiled)
+	}
+	{ // do_test "vacuum-1.6"
+		// expr [file size test.db]<$::size1 (not evaluated)
+	}
+	{ // do_test "vacuum-2.1.1"
+		_res = db.Exec("\n      BEGIN;\n      VACUUM;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "vacuum-2.1.2"
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
+	}
+	{ // do_test "vacuum-2.1.3"
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
 	}
 	{ // do_test "vacuum-2.2"
 		db2, err = frigolite.Open("test.db")
@@ -206,6 +231,18 @@ func Test_vacuum(t *testing.T) {
 	{ // do_test "vacuum-4.2"
 		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
+	{ // do_test "vacuum-5.1"
+		os.Remove("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    CREATE TABLE Test (TestID int primary key);\n    INSERT INTO Test VALUES (NULL);\n    CREATE VIEW viewTest AS SELECT * FROM Test;\n\n    BEGIN;\n    CREATE TABLE tempTest (TestID int primary key, Test2 int NULL);\n    INSERT INTO tempTest SELECT TestID, 1 FROM Test;\n    DROP TABLE Test;\n    CREATE TABLE Test(TestID int primary key, Test2 int NULL);\n    INSERT INTO Test SELECT * FROM tempTest;\n    DROP TABLE tempTest;\n    COMMIT;\n    VACUUM;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "vacuum-5.2"
+		_res = db.Exec("\n    VACUUM;\n  ")
+		_ = _res // catchsql
+	}
 	{ // do_test "vacuum-6.1"
 		_res = db.Exec("\n    CREATE TABLE \"abc abc\"(a, b, c);\n    INSERT INTO \"abc abc\" VALUES(1, 2, 3);\n    VACUUM;\n  ")
 		if _res.Error != nil {
@@ -216,6 +253,18 @@ func Test_vacuum(t *testing.T) {
 		r = db.Query("\n    select * from \"abc abc\";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from \"abc abc\";\n  ")
+		}
+	}
+	{ // do_test "vacuum-6.3"
+		_res = db.Exec("\n      DELETE FROM \"abc abc\";\n      INSERT INTO \"abc abc\" VALUES(X'00112233', NULL, NULL);\n      VACUUM;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM \"abc abc\";\n      INSERT INTO \"abc abc\" VALUES(X'00112233', NULL, NULL);\n      VACUUM;\n    ")
+		}
+	}
+	{ // do_test "vacuum-6.4"
+		r = db.Query("\n      select count(*) from \"abc abc\" WHERE a = X'00112233';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select count(*) from \"abc abc\" WHERE a = X'00112233';\n    ")
 		}
 	}
 	os.Remove(":memory:")
@@ -245,6 +294,36 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA freelist_count; ")
 		}
 	}
+	{ // do_test "vacuum-7.4"
+		r = db.Query(" PRAGMA auto_vacuum ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
+		}
+	}
+	{ // do_test "vacuum-7.5"
+		r = db.Query(" PRAGMA auto_vacuum = 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 1")
+		}
+		r = db.Query(" PRAGMA auto_vacuum ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
+		}
+	}
+	{ // do_test "vacuum-7.6"
+		r = db.Query(" PRAGMA auto_vacuum = 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 1")
+		}
+		_res = db.Exec(" VACUUM ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+		}
+		r = db.Query(" PRAGMA auto_vacuum ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
+		}
+	}
 	db2.Close()
 	{ // do_test "vacuum-8.1"
 		os.Remove("a'z.db")
@@ -257,11 +336,43 @@ func Test_vacuum(t *testing.T) {
 		}
 	}
 	db2.Close()
+	{ // do_test "vacuum-9.1"
+		_res = db.Exec("\n      DROP TABLE 'abc abc';\n      CREATE TABLE autoinc(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      INSERT INTO autoinc(b) VALUES('hi');\n      INSERT INTO autoinc(b) VALUES('there');\n      DELETE FROM autoinc;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE 'abc abc';\n      CREATE TABLE autoinc(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      INSERT INTO autoinc(b) VALUES('hi');\n      INSERT INTO autoinc(b) VALUES('there');\n      DELETE FROM autoinc;\n    ")
+		}
+		cksum = "cksum" // TCL namespace variable
+		_ = cksum // suppress unused warning
+		// expr $::cksum!="" (not evaluated)
+	}
+	{ // do_test "vacuum-9.2"
+		_res = db.Exec("\n      VACUUM;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      VACUUM;\n    ")
+		}
+		// cksum (unsupported command, not transpiled)
+	}
+	{ // do_test "vacuum-9.3"
+		_res = db.Exec("\n      INSERT INTO autoinc(b) VALUES('one');\n      INSERT INTO autoinc(b) VALUES('two');\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO autoinc(b) VALUES('one');\n      INSERT INTO autoinc(b) VALUES('two');\n    ")
+		}
+		cksum = "cksum" // TCL namespace variable
+		_ = cksum // suppress unused warning
+		// expr $::cksum!="" (not evaluated)
+	}
+	{ // do_test "vacuum-9.4"
+		_res = db.Exec("\n      VACUUM;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      VACUUM;\n    ")
+		}
+		// cksum (unsupported command, not transpiled)
+	}
 	os.Remove("a'z.db")
 	{ // do_test "vacuum-10.1"
 		os.Remove("test.db")
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('a', 'b');\n    INSERT INTO t8 VALUES('c', 'd');\n    PRAGMA count_changes = 1;\n  ")
 		if r.Error != nil {

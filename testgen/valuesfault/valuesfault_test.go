@@ -56,11 +56,5 @@ func Test_valuesfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -prep {
-  faultsim_restore_and_reopen
-  sqlite3_limit db ...} -body {
-  execsql {
-    INSERT INTO x1 VALUES(1, 1, 1), (...} -test {
-  faultsim_test_result {0 {}} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  sqlite3_limit d...} -body {\n  execsql {\n    INSERT INTO x1 VALUES(1, 1, 1),...} -test {\n  faultsim_test_result {0 {}} \n} (unsupported command, not transpiled)
 }

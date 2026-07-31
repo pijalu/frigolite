@@ -66,8 +66,20 @@ func Test_colmeta(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a PRIMARY KEY COLLATE NOCASE, b VARCHAR(32), c);\n    CREATE TABLE abc3(a NOT NULL, b INTEGER PRIMARY KEY, c);\n    CREATE TABLE abc5(w,x,y,z,PRIMARY KEY(x,z)) WITHOUT ROWID;\n    CREATE TABLE abc6(rowid TEXT COLLATE rtrim, oid REAL, _rowid_ BLOB);\n  ")
 		}
+		_res = db.Exec("\n      CREATE TABLE abc4(a, b INTEGER PRIMARY KEY AUTOINCREMENT, c);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE abc4(a, b INTEGER PRIMARY KEY AUTOINCREMENT, c);\n    ")
+		}
+		_res = db.Exec("\n      CREATE VIEW v1 AS SELECT * FROM abc2;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW v1 AS SELECT * FROM abc2;\n    ")
+		}
 	}
 	tests = "\n  1  {main abc a}                {0 {{} BINARY 0 0 0}}\n  2  {{} abc a}                  {0 {{} BINARY 0 0 0}}\n  3  {{} abc2 b}                 {0 {VARCHAR(32) BINARY 0 0 0}}\n  4  {main abc2 b}               {0 {VARCHAR(32) BINARY 0 0 0}}\n  5  {{} abc2 a}                 {0 {{} NOCASE 0 1 0}}\n  6  {{} abc3 a}                 {0 {{} BINARY 1 0 0}}\n  7  {{} abc3 b}                 {0 {INTEGER BINARY 0 1 0}}\n  13 {main abc rowid}            {0 {INTEGER BINARY 0 1 0}}\n  14 {main abc3 rowid}           {0 {INTEGER BINARY 0 1 0}}\n  16 {main abc d}                {1 {no such table column: abc.d}}\n  20 {main abc5 w}               {0 {{} BINARY 0 0 0}}\n  21 {main abc5 x}               {0 {{} BINARY 1 1 0}}\n  22 {main abc5 y}               {0 {{} BINARY 0 0 0}}\n  23 {main abc5 z}               {0 {{} BINARY 1 1 0}}\n  24 {main abc5 rowid}           {1 {no such table column: abc5.rowid}}\n  30 {main abc6 rowid}           {0 {TEXT rtrim 0 0 0}}\n  31 {main abc6 oid}             {0 {REAL BINARY 0 0 0}}\n  32 {main abc6 _rowid_}         {0 {BLOB BINARY 0 0 0}}\n"
+	_ = tests // suppress unused warning
+	tests = "concat $tests {\n    100 {{} abc4 b}              {0 {INTEGER BINARY 0 1 1}}\n    101 {main abc4 rowid}        {0 {INTEGER BINARY 0 1 1}}\n  }"
+	_ = tests // suppress unused warning
+	tests = "concat $tests {\n    200 {{} v1 a}                {1 {no such table column: v1.a}}\n    201 {main v1 b}              {1 {no such table column: v1.b}}\n    202 {main v1 badname}        {1 {no such table column: v1.badname}}\n    203 {main v1 rowid}          {1 {no such table column: v1.rowid}}\n  }"
 	_ = tests // suppress unused warning
 	// foreach {tn params results} tests
 	_items0 := tclSplitList(tests)

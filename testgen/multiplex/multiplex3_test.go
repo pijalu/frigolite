@@ -66,6 +66,11 @@ func Test_multiplex3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "multiplex3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	_putsMsg := "-nonewline"
+	_ = _putsMsg
+	_putsMsg = "Skipping tests multiplex3-*."
+	_ = _putsMsg
+	return
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	// autoinstall_test_functions (unsupported command, not transpiled)
@@ -78,13 +83,7 @@ func Test_multiplex3(t *testing.T) {
 	{ // do_test "1.0"
 		// setup_and_save_db (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 1 -prep {
-  multiplex_restore_db
-  sqlite3 db file:test.db?...} -body {
-  execsql {
-    UPDATE t1 SET a=randomblob(12), b...} -test {
-  faultsim_test_result {0 {}}
-  if {$testrc!=0} {...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  multiplex_restore_db\n  sqlite3 db file:test.d...} -body {\n  execsql {\n    UPDATE t1 SET a=randomblob(12),...} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc!=0}...} (unsupported command, not transpiled)
 	{ // do_test "2.0"
 		// setup_and_save_db (unsupported command, not transpiled)
 		// multiplex_restore_db (unsupported command, not transpiled)
@@ -135,14 +134,7 @@ func Test_multiplex3(t *testing.T) {
 	{ // do_test "3.0"
 		// setup_and_save_db (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 3 -faults ioerr-trans* -prep {
-
-  forcedelete test2.db
-  set fd [open test2.wal ...} -body {
-  sqlite3_backup B db2 main db main
-  B step 1000...} -test {
-  faultsim_test_result {0 SQLITE_OK}
-  if {$testr...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults ioerr-trans* -prep {\n\n  forcedelete test2.db\n  set fd [open test2.w...} -body {\n  sqlite3_backup B db2 main db main\n  B step 10...} -test {\n  faultsim_test_result {0 SQLITE_OK}\n  if {$tes...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

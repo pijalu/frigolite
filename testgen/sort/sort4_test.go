@@ -153,7 +153,7 @@ func Test_sort4(t *testing.T) {
 		}
 		// populate_table 100000 500 (unsupported command, not transpiled)
 	}
-	iTimeLimit = "[clock_seconds] + $SORT4TIMEOUT"
+	iTimeLimit = tclExpr("[clock_seconds] + $SORT4TIMEOUT")
 	_ = iTimeLimit // suppress unused warning
 	_t = "2"
 	_ = _t // suppress unused warning
@@ -169,7 +169,7 @@ func Test_sort4(t *testing.T) {
 		_ = iNow // suppress unused warning
 		if func() bool { iNow_n, _iNow_e := strconv.Atoi(iNow); if _iNow_e != nil { return false }; iTimeLimit_n, _iTimeLimit_e := strconv.Atoi(iTimeLimit); if _iTimeLimit_e != nil { return false }; return iNow_n >= iTimeLimit_n }() {
 		}
-		{ // do_test testprefix + "-(" + "$iTimeLimit-$iNow" + " seconds remain)"
+		{ // do_test testprefix + "-(" + tclExpr("$iTimeLimit-$iNow") + " seconds remain)"
 			_res = db.Exec("")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "")

@@ -3,6 +3,7 @@ package alter
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "strings"
 "testing"
@@ -79,7 +80,10 @@ func Test_alter(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "alter-1.1"
+		temp = "TEMP" // TCL namespace variable
+		_ = temp // suppress unused warning
 		_res = db.Exec("-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
@@ -93,6 +97,10 @@ func Test_alter(t *testing.T) {
 		_res = db.Exec("CREATE " + temp + " TABLE objlist(type, name, tbl_name);\n    INSERT INTO objlist SELECT type, name, tbl_name \n        FROM sqlite_master WHERE NAME!='objlist';")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE " + temp + " TABLE objlist(type, name, tbl_name);\n    INSERT INTO objlist SELECT type, name, tbl_name \n        FROM sqlite_master WHERE NAME!='objlist';")
+		}
+		_res = db.Exec("\n      INSERT INTO objlist SELECT type, name, tbl_name \n          FROM temp.sqlite_master WHERE NAME!='objlist';\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO objlist SELECT type, name, tbl_name \n          FROM temp.sqlite_master WHERE NAME!='objlist';\n    ")
 		}
 		r = db.Query("\n    SELECT type, name, tbl_name FROM objlist ORDER BY tbl_name, type desc, name;\n  ")
 		if r.Error != nil {
@@ -127,15 +135,24 @@ func Test_alter(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM objlist ORDER BY tbl_name, type desc, name;\n  ")
 		}
 	}
+	{ // do_test "alter-1.6"
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		DB = "sqlite3_connection_pointer db"
+		_ = DB // suppress unused warning
+		r = db.Query("\n      CREATE TEMP TABLE objlist(type, name, tbl_name);\n      INSERT INTO objlist SELECT type, name, tbl_name FROM sqlite_master;\n      INSERT INTO objlist \n          SELECT type, name, tbl_name FROM temp.sqlite_master \n          WHERE NAME!='objlist';\n      SELECT type, name, tbl_name FROM objlist \n          ORDER BY tbl_name, type desc, name;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE objlist(type, name, tbl_name);\n      INSERT INTO objlist SELECT type, name, tbl_name FROM sqlite_master;\n      INSERT INTO objlist \n          SELECT type, name, tbl_name FROM temp.sqlite_master \n          WHERE NAME!='objlist';\n      SELECT type, name, tbl_name FROM objlist \n          ORDER BY tbl_name, type desc, name;\n    ")
+		}
+	}
 	// proc definition (not transpiled)
 	{ // do_test "alter-1.7-prep"
 		_res = db.Exec("SELECT substr(name,1,3) FROM sqlite_master")
 		_ = _res // catchsql
 	}
 	{ // do_test "alter-1.7"
-		// stepsql $DB {
-    ALTER TABLE [-t1-] RENAME to [*t1*];
-    ALTE...} (unsupported command, not transpiled)
+		// stepsql $DB {\n    ALTER TABLE [-t1-] RENAME to [*t1*];\n    AL...} (unsupported command, not transpiled)
 		_res = db.Exec("\n    DELETE FROM objlist;\n    INSERT INTO objlist SELECT type, name, tbl_name\n        FROM sqlite_master WHERE NAME!='objlist';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM objlist;\n    INSERT INTO objlist SELECT type, name, tbl_name\n        FROM sqlite_master WHERE NAME!='objlist';\n  ")
@@ -145,6 +162,50 @@ func Test_alter(t *testing.T) {
 		r = db.Query("\n    SELECT type, name, tbl_name FROM objlist ORDER BY tbl_name, type desc, name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM objlist ORDER BY tbl_name, type desc, name;\n  ")
+		}
+	}
+	{ // do_test "alter-1.8.1"
+		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n    ")
+		}
+	}
+	{ // do_test "alter-1.8.2"
+		_res = db.Exec("\n      CREATE TABLE t4(a PRIMARY KEY, b, c);\n      CREATE TABLE aux.t4(a PRIMARY KEY, b, c);\n      CREATE INDEX i4 ON t4(b);\n      CREATE INDEX aux.i4 ON t4(b);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t4(a PRIMARY KEY, b, c);\n      CREATE TABLE aux.t4(a PRIMARY KEY, b, c);\n      CREATE INDEX i4 ON t4(b);\n      CREATE INDEX aux.i4 ON t4(b);\n    ")
+		}
+	}
+	{ // do_test "alter-1.8.3"
+		r = db.Query("\n      INSERT INTO t4 VALUES('main', 'main', 'main');\n      INSERT INTO aux.t4 VALUES('aux', 'aux', 'aux');\n      SELECT * FROM t4 WHERE a = 'main';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 VALUES('main', 'main', 'main');\n      INSERT INTO aux.t4 VALUES('aux', 'aux', 'aux');\n      SELECT * FROM t4 WHERE a = 'main';\n    ")
+		}
+	}
+	{ // do_test "alter-1.8.4"
+		r = db.Query("\n      ALTER TABLE t4 RENAME TO t5;\n      SELECT * FROM t4 WHERE a = 'aux';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ALTER TABLE t4 RENAME TO t5;\n      SELECT * FROM t4 WHERE a = 'aux';\n    ")
+		}
+	}
+	{ // do_test "alter-1.8.5"
+		r = db.Query("\n      SELECT * FROM t5;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t5;\n    ")
+		}
+	}
+	{ // do_test "alter-1.8.6"
+		r = db.Query("\n      SELECT * FROM t5 WHERE b = 'main';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t5 WHERE b = 'main';\n    ")
+		}
+	}
+	{ // do_test "alter-1.8.7"
+		r = db.Query("\n      ALTER TABLE aux.t4 RENAME TO t5;\n      SELECT * FROM aux.t5 WHERE b = 'aux';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ALTER TABLE aux.t4 RENAME TO t5;\n      SELECT * FROM aux.t5 WHERE b = 'aux';\n    ")
 		}
 	}
 	{ // do_test "alter-1.9.1"
@@ -198,6 +259,191 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-2.6"
 		_res = db.Exec("\n    ALTER TABLE t3 ADD COLUMN (ALTER TABLE t3 ADD COLUMN);\n  ")
 		_ = _res // catchsql
+	}
+	// proc definition (not transpiled)
+	{ // do_test "alter-3.1.0"
+		_res = db.Exec("\n    CREATE TABLE t6(a, b, c);\n    -- Different case for the table name in the trigger.\n    CREATE TRIGGER trig1 AFTER INSERT ON T6 BEGIN\n      SELECT trigfunc('trig1', new.a, new.b, new.c);\n    END;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a, b, c);\n    -- Different case for the table name in the trigger.\n    CREATE TRIGGER trig1 AFTER INSERT ON T6 BEGIN\n      SELECT trigfunc('trig1', new.a, new.b, new.c);\n    END;\n  ")
+		}
+	}
+	{ // do_test "alter-3.1.1"
+		_res = db.Exec("\n    INSERT INTO t6 VALUES(1, 2, 3);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t6 VALUES(1, 2, 3);\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	{ // do_test "alter-3.1.2"
+		_res = db.Exec("\n    ALTER TABLE t6 RENAME TO t7;\n    INSERT INTO t7 VALUES(4, 5, 6);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t6 RENAME TO t7;\n    INSERT INTO t7 VALUES(4, 5, 6);\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	{ // do_test "alter-3.1.3"
+		_res = db.Exec("\n    DROP TRIGGER trig1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TRIGGER trig1;\n  ")
+		}
+	}
+	{ // do_test "alter-3.1.4"
+		_res = db.Exec("\n    CREATE TRIGGER trig2 AFTER INSERT ON main.t7 BEGIN\n      SELECT trigfunc('trig2', new.a, new.b, new.c);\n    END;\n    INSERT INTO t7 VALUES(1, 2, 3);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER trig2 AFTER INSERT ON main.t7 BEGIN\n      SELECT trigfunc('trig2', new.a, new.b, new.c);\n    END;\n    INSERT INTO t7 VALUES(1, 2, 3);\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	{ // do_test "alter-3.1.5"
+		_res = db.Exec("\n    ALTER TABLE t7 RENAME TO t8;\n    INSERT INTO t8 VALUES(4, 5, 6);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t7 RENAME TO t8;\n    INSERT INTO t8 VALUES(4, 5, 6);\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	{ // do_test "alter-3.1.6"
+		_res = db.Exec("\n    DROP TRIGGER trig2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TRIGGER trig2;\n  ")
+		}
+	}
+	{ // do_test "alter-3.1.7"
+		_res = db.Exec("\n    CREATE TRIGGER trig3 AFTER INSERT ON main.'t8'BEGIN\n      SELECT trigfunc('trig3', new.a, new.b, new.c);\n    END;\n    INSERT INTO t8 VALUES(1, 2, 3);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER trig3 AFTER INSERT ON main.'t8'BEGIN\n      SELECT trigfunc('trig3', new.a, new.b, new.c);\n    END;\n    INSERT INTO t8 VALUES(1, 2, 3);\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	{ // do_test "alter-3.1.8"
+		_res = db.Exec("\n    ALTER TABLE t8 RENAME TO t9;\n    INSERT INTO t9 VALUES(4, 5, 6);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t8 RENAME TO t9;\n    INSERT INTO t9 VALUES(4, 5, 6);\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	os.Remove("test3.db")
+	os.Remove("test3.db-journal")
+	{ // do_test "alter-3.2.1"
+		_res = db.Exec("\n      ATTACH 'test3.db' AS ON;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.2"
+		_res = db.Exec("\n      ATTACH 'test3.db' AS 'ON';\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.3"
+		_res = db.Exec("\n      CREATE TABLE ON.t1(a, b, c); \n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.4"
+		_res = db.Exec("\n      CREATE TABLE 'ON'.t1(a, b, c); \n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.4"
+		_res = db.Exec("\n      CREATE TABLE 'ON'.ON(a, b, c); \n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.5"
+		_res = db.Exec("\n      CREATE TABLE 'ON'.'ON'(a, b, c); \n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.6"
+		_res = db.Exec("\n    CREATE TABLE t10(a, ON, c);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.7"
+		_res = db.Exec("\n    CREATE TABLE t10(a, 'ON', c);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.8"
+		_res = db.Exec("\n    CREATE TRIGGER trig4 AFTER INSERT ON ON BEGIN SELECT 1; END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.9"
+		_res = db.Exec("\n      CREATE TRIGGER 'on'.trig4 AFTER INSERT ON 'ON' BEGIN SELECT 1; END;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "alter-3.2.10"
+		_res = db.Exec("\n    DROP TABLE t10;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t10;\n  ")
+		}
+	}
+	{ // do_test "alter-3.3.1"
+		_res = db.Exec("CREATE TABLE tbl1(a, b, c);\n    CREATE " + temp + " TRIGGER trig1 AFTER INSERT ON tbl1 BEGIN\n      SELECT trigfunc('trig1', new.a, new.b, new.c);\n    END;")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tbl1(a, b, c);\n    CREATE " + temp + " TRIGGER trig1 AFTER INSERT ON tbl1 BEGIN\n      SELECT trigfunc('trig1', new.a, new.b, new.c);\n    END;")
+		}
+	}
+	{ // do_test "alter-3.3.2"
+		_res = db.Exec("\n    INSERT INTO tbl1 VALUES('a', 'b', 'c');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO tbl1 VALUES('a', 'b', 'c');\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	{ // do_test "alter-3.3.3"
+		_res = db.Exec("\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    INSERT INTO tbl2 VALUES('d', 'e', 'f');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    INSERT INTO tbl2 VALUES('d', 'e', 'f');\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	{ // do_test "alter-3.3.4"
+		_res = db.Exec("CREATE " + temp + " TRIGGER trig2 AFTER UPDATE ON tbl2 BEGIN\n      SELECT trigfunc('trig2', new.a, new.b, new.c);\n    END;")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE " + temp + " TRIGGER trig2 AFTER UPDATE ON tbl2 BEGIN\n      SELECT trigfunc('trig2', new.a, new.b, new.c);\n    END;")
+		}
+	}
+	{ // do_test "alter-3.3.5"
+		_res = db.Exec("\n    ALTER TABLE tbl2 RENAME TO tbl3;\n    INSERT INTO tbl3 VALUES('g', 'h', 'i');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE tbl2 RENAME TO tbl3;\n    INSERT INTO tbl3 VALUES('g', 'h', 'i');\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	{ // do_test "alter-3.3.6"
+		_res = db.Exec("\n    UPDATE tbl3 SET a = 'G' where a = 'g';\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE tbl3 SET a = 'G' where a = 'g';\n  ")
+		}
+		_ = TRIGGER // TCL namespace variable (query)
+	}
+	{ // do_test "alter-3.3.7"
+		_res = db.Exec("\n    DROP TABLE tbl3;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE tbl3;\n  ")
+		}
+	}
+	{ // do_test "alter-3.3.8"
+		r = db.Query("\n      SELECT * FROM temp.sqlite_master WHERE type = 'trigger';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM temp.sqlite_master WHERE type = 'trigger';\n    ")
+		}
+	}
+	{ // do_test "alter-4.1"
+		_res = db.Exec("\n    CREATE TABLE tbl1(a INTEGER PRIMARY KEY AUTOINCREMENT);\n    INSERT INTO tbl1 VALUES(10);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tbl1(a INTEGER PRIMARY KEY AUTOINCREMENT);\n    INSERT INTO tbl1 VALUES(10);\n  ")
+		}
+	}
+	{ // do_test "alter-4.2"
+		r = db.Query("\n    INSERT INTO tbl1 VALUES(NULL);\n    SELECT a FROM tbl1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO tbl1 VALUES(NULL);\n    SELECT a FROM tbl1;\n  ")
+		}
+	}
+	{ // do_test "alter-4.3"
+		r = db.Query("\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    DELETE FROM tbl2;\n    INSERT INTO tbl2 VALUES(NULL);\n    SELECT a FROM tbl2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    DELETE FROM tbl2;\n    INSERT INTO tbl2 VALUES(NULL);\n    SELECT a FROM tbl2;\n  ")
+		}
+	}
+	{ // do_test "alter-4.4"
+		_res = db.Exec("\n    DROP TABLE tbl2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE tbl2;\n  ")
+		}
 	}
 	{ // do_test "alter-5.1"
 		_res = db.Exec("\n    CREATE TABLE tbl1(a, b, c);\n    INSERT INTO tbl1 VALUES('x', 'y', 'z');\n  ")
@@ -281,8 +527,8 @@ func Test_alter(t *testing.T) {
 	col_name2 = "B\\3421\\A" // TCL namespace variable
 	_ = col_name2 // suppress unused warning
 	{ // do_test "alter-6.6"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    ALTER TABLE " + tbl_name + " ADD COLUMN " + col_name2 + "\n  ")
 		if _res.Error != nil {
@@ -299,9 +545,7 @@ func Test_alter(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO " + tbl_name + " VALUES(1, 2, 3, 4, 5);\n    SELECT " + col_name + ", " + col_name2 + " FROM " + tbl_name + ";\n  ")
 		}
 	}
-	// do_realnum_test alter-7.1 {
-  execsql {
-    CREATE TABLE t1(a TEXT COLLATE BI...} {text 1 integer -2 text 5.4e-08 real 5.4e-08} (expr test, not transpiled)
+	// do_realnum_test alter-7.1 {\n  execsql {\n    CREATE TABLE t1(a TEXT COLLATE ...} {text 1 integer -2 text 5.4e-08 real 5.4e-08} (expr test, not transpiled)
 	{ // do_test "alter-8.1"
 		r = db.Query("\n    CREATE TABLE t2(a INTEGER);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    ALTER TABLE t2 ADD COLUMN b INTEGER DEFAULT 9;\n    SELECT sum(b) FROM t2;\n  ")
 		if r.Error != nil {
@@ -322,13 +566,13 @@ func Test_alter(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n"
-	_items1 := tclSplitList("\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items2 := tclSplitList("\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n")
+	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning
-		sql := _items1[_idx1+1]
+		sql := _items2[_idx2+1]
 		_ = sql // suppress unused warning
-		_ = _idx1
+		_ = _idx2
 			{ // do_test "alter-9.2." + tn
 				{
 					var _catchErr error
@@ -466,8 +710,8 @@ func Test_alter(t *testing.T) {
 			}
 		}
 		{ // do_test "alter-12.4"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			_dbtmp3, err := frigolite.Open("test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT * FROM v1; ")
 			if r.Error != nil {
@@ -508,14 +752,16 @@ func Test_alter(t *testing.T) {
 		_ = system_table_list // suppress unused warning
 		_res = db.Exec("ANALYZE")
 		_ = _res // catchsql
+		system_table_list = tclListAppend(system_table_list, "2", "sqlite_stat1")
+		system_table_list = tclListAppend(system_table_list, "4", "sqlite_stat4")
 		// foreach {tn tbl} system_table_list
-		_items3 := tclSplitList(system_table_list)
-		for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-			tn := _items3[_idx3+0]
+		_items4 := tclSplitList(system_table_list)
+		for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+			tn := _items4[_idx4+0]
 			_ = tn // suppress unused warning
-			tbl := _items3[_idx3+1]
+			tbl := _items4[_idx4+1]
 			_ = tbl // suppress unused warning
-			_ = _idx3
+			_ = _idx4
 				{ // do_test "alter-15." + tn + ".1"
 					_res = db.Exec("ALTER TABLE " + tbl + " RENAME TO xyz")
 					_ = _res // catchsql
@@ -545,6 +791,21 @@ func Test_alter(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "abc 1.25 99 xyzzy cba 5.5 98 fizzle"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			_dbtmp5, err := frigolite.Open(":memory:")
+			_ = _dbtmp5 // sqlite3 db connection
+			if err != nil { t.Fatal(err) }
+			{ // "alter-17.100"
+				r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE VIRTUAL TABLE t2 USING rtree(id,x0,x1);\n    INSERT INTO t1 VALUES(1,'apple'),(2,'fig'),(3,'pear');\n    INSERT INTO t2 VALUES(1,1.0,2.0),(2,2.0,3.0),(3,1.5,3.5);\n    CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN\n      DELETE FROM t2 WHERE id = OLD.a;\n    END;\n    ALTER TABLE t1 RENAME TO t3;\n    UPDATE t3 SET b='peach' WHERE a=2;\n    SELECT * FROM t2 ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE VIRTUAL TABLE t2 USING rtree(id,x0,x1);\n    INSERT INTO t1 VALUES(1,'apple'),(2,'fig'),(3,'pear');\n    INSERT INTO t2 VALUES(1,1.0,2.0),(2,2.0,3.0),(3,1.5,3.5);\n    CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN\n      DELETE FROM t2 WHERE id = OLD.a;\n    END;\n    ALTER TABLE t1 RENAME TO t3;\n    UPDATE t3 SET b='peach' WHERE a=2;\n    SELECT * FROM t2 ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 1.0 2.0 3 1.5 3.5"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

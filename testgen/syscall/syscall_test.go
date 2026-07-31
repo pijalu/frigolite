@@ -181,10 +181,7 @@ func Test_syscall(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	// do_multiclient_test tn {
-  code1 {
-    sqlite3 dbX1 test.db
-    sqlite3 db...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  code1 {\n    sqlite3 dbX1 test.db\n    sqlite3...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

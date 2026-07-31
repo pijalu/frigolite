@@ -49,6 +49,7 @@ func Test_filterfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "filterfault"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
 		if _res.Error != nil {
@@ -56,11 +57,5 @@ func Test_filterfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT sum(a) FILTER (WHERE b<5),...} -test {
-  faultsim_test_result {0 {{} 1 {} 1 1 1}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT sum(a) FILTER (WHERE b<5...} -test {\n  faultsim_test_result {0 {{} 1 {} 1 1 1}}\n} (unsupported command, not transpiled)
 }

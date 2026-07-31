@@ -78,9 +78,9 @@ func Test_limit(t *testing.T) {
 				}
 			}
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(" + "32-$i" + "," + "10-$j" + ")")
+		_res = db.Exec("INSERT INTO t1 VALUES(" + tclExpr("32-$i") + "," + tclExpr("10-$j") + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + "32-$i" + "," + "10-$j" + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + tclExpr("32-$i") + "," + tclExpr("10-$j") + ")")
 		}
 		// incr i 1
 		{
@@ -184,13 +184,35 @@ func Test_limit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 AS a, t1 AS b ORDER BY a.x, b.x LIMIT 5 OFFSET 32")
 		}
 	}
+	{ // do_test "limit-2.1"
+		r = db.Query("\n      CREATE VIEW v1 AS SELECT * FROM t1 LIMIT 2;\n      SELECT count(*) FROM (SELECT * FROM v1);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIEW v1 AS SELECT * FROM t1 LIMIT 2;\n      SELECT count(*) FROM (SELECT * FROM v1);\n    ")
+		}
+	}
 	{ // do_test "limit-2.2"
 		r = db.Query("\n    CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 2;\n    SELECT count(*) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 2;\n    SELECT count(*) FROM t2;\n  ")
 		}
 	}
+	{ // do_test "limit-2.3"
+		r = db.Query("\n      SELECT count(*) FROM t1 WHERE rowid IN (SELECT rowid FROM t1 LIMIT 2);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM t1 WHERE rowid IN (SELECT rowid FROM t1 LIMIT 2);\n    ")
+		}
+	}
+	{ // do_test "limit-3.1"
+		r = db.Query("\n      SELECT z FROM (SELECT y*10+x AS z FROM t1 ORDER BY x LIMIT 10)\n      ORDER BY z LIMIT 5;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT z FROM (SELECT y*10+x AS z FROM t1 ORDER BY x LIMIT 10)\n      ORDER BY z LIMIT 5;\n    ")
+		}
+	}
 	{ // do_test "limit-4.1"
+		r = db.Query("\n      BEGIN;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT x FROM t1 ORDER BY x LIMIT 10 OFFSET 1;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      END;\n      SELECT count(*) FROM t3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT x FROM t1 ORDER BY x LIMIT 10 OFFSET 1;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      END;\n      SELECT count(*) FROM t3;\n    ")
+		}
 	}
 	{ // do_test "limit-4.2"
 		r = db.Query("\n    SELECT x FROM t3 LIMIT 2 OFFSET 10000\n  ")
@@ -282,6 +304,88 @@ func Test_limit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 LIMIT 0 OFFSET 1\n  ")
 		}
 	}
+	{ // do_test "limit-7.1.1"
+		_res = db.Exec("\n    SELECT x FROM t2 LIMIT 5 UNION ALL SELECT a FROM t6;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "limit-7.1.2"
+		_res = db.Exec("\n    SELECT x FROM t2 LIMIT 5 UNION SELECT a FROM t6;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "limit-7.1.3"
+		_res = db.Exec("\n    SELECT x FROM t2 LIMIT 5 EXCEPT SELECT a FROM t6 LIMIT 3;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "limit-7.1.4"
+		_res = db.Exec("\n    SELECT x FROM t2 LIMIT 0,5 INTERSECT SELECT a FROM t6;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "limit-7.2"
+		r = db.Query("\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 5;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 5;\n  ")
+		}
+	}
+	{ // do_test "limit-7.3"
+		r = db.Query("\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 3 OFFSET 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 3 OFFSET 1;\n  ")
+		}
+	}
+	{ // do_test "limit-7.4"
+		r = db.Query("\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 ORDER BY 1 LIMIT 3 OFFSET 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION ALL SELECT a FROM t6 ORDER BY 1 LIMIT 3 OFFSET 1;\n  ")
+		}
+	}
+	{ // do_test "limit-7.5"
+		r = db.Query("\n    SELECT x FROM t2 UNION SELECT x+2 FROM t2 LIMIT 2 OFFSET 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION SELECT x+2 FROM t2 LIMIT 2 OFFSET 1;\n  ")
+		}
+	}
+	{ // do_test "limit-7.6"
+		r = db.Query("\n    SELECT x FROM t2 UNION SELECT x+2 FROM t2 ORDER BY 1 DESC LIMIT 2 OFFSET 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t2 UNION SELECT x+2 FROM t2 ORDER BY 1 DESC LIMIT 2 OFFSET 1;\n  ")
+		}
+	}
+	{ // do_test "limit-7.7"
+		r = db.Query("\n    SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 LIMIT 2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 LIMIT 2;\n  ")
+		}
+	}
+	{ // do_test "limit-7.8"
+		r = db.Query("\n    SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 ORDER BY 1 DESC LIMIT 2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 ORDER BY 1 DESC LIMIT 2;\n  ")
+		}
+	}
+	{ // do_test "limit-7.9"
+		r = db.Query("\n    SELECT a+26 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+26 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;\n  ")
+		}
+	}
+	{ // do_test "limit-7.10"
+		r = db.Query("\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;\n  ")
+		}
+	}
+	{ // do_test "limit-7.11"
+		r = db.Query("\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1 OFFSET 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1 OFFSET 1;\n  ")
+		}
+	}
+	{ // do_test "limit-7.12"
+		r = db.Query("\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 \n       ORDER BY 1 DESC LIMIT 1 OFFSET 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 \n       ORDER BY 1 DESC LIMIT 1 OFFSET 1;\n  ")
+		}
+	}
 	{ // do_test "limit-8.1"
 		r = db.Query("\n    SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5;\n  ")
 		if r.Error != nil {
@@ -300,11 +404,39 @@ func Test_limit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5 OFFSET 25;\n  ")
 		}
 	}
+	{ // do_test "limit-9.1"
+		r = db.Query("\n      SELECT * FROM (SELECT * FROM t6 LIMIT 3);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t6 LIMIT 3);\n    ")
+		}
+	}
 	{ // do_test "limit-9.2.1"
 		_res = db.Exec("\n    CREATE TABLE t7 AS SELECT * FROM t6;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t7 AS SELECT * FROM t6;\n  ")
 		}
+	}
+	{ // do_test "limit-9.2.2"
+		r = db.Query("\n      SELECT * FROM (SELECT * FROM t7 LIMIT 3);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t7 LIMIT 3);\n    ")
+		}
+	}
+	{ // do_test "limit-9.3"
+		r = db.Query("\n        SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1\n      ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1\n      ")
+		}
+	}
+	{ // do_test "limit-9.4"
+		r = db.Query("\n        SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1\n        LIMIT 2\n      ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1\n        LIMIT 2\n      ")
+		}
+	}
+	{ // do_test "limit-9.5"
+		_res = db.Exec("\n      SELECT * FROM t6 LIMIT 3\n      UNION\n      SELECT * FROM t7 LIMIT 3\n    ")
+		_ = _res // catchsql
 	}
 	{ // do_test "limit-10.1"
 		limit = "10"
@@ -371,6 +503,12 @@ func Test_limit(t *testing.T) {
 		}
 		_list := tclList([]string{rc, msg})
 		_ = _list
+	}
+	{ // do_test "limit-11.1"
+		_res = db.Exec("\n     SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x\n  ")
+		}
 	}
 	{ // do_test "limit-12.1"
 		_res = db.Exec("\n     SELECT * FROM t1 LIMIT replace(1)\n  ")

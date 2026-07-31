@@ -85,68 +85,62 @@ func Test_shell2(t *testing.T) {
 		// catchcmdex {:memory: -list "select+3" "select+4"} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.3"
-		// catchcmd -batch test.db {
-    PRAGMA recursive_triggers = ON;
-    CREATE TA...} (unsupported command, not transpiled)
+		// catchcmd -batch test.db {\n    PRAGMA recursive_triggers = ON;\n    CREATE ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.1"
 		os.Remove("foo.db")
-		// catchcmd foo.db {.mode batch
-CREATE TABLE foo(a);
-INSERT INTO foo(a...} (unsupported command, not transpiled)
+		// catchcmd foo.db {.mode batch\nCREATE TABLE foo(a);\nINSERT INTO foo...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.2"
 		os.Remove("foo.db")
-		// catchcmd -echo foo.db {CREATE TABLE foo(a);
-INSERT INTO foo(a) VALUES(1);...} (unsupported command, not transpiled)
+		// catchcmd -echo foo.db {CREATE TABLE foo(a);\nINSERT INTO foo(a) VALUES(1)...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.3"
 		os.Remove("foo.db")
-		// catchcmd foo.db {
-.mode batch
-.echo ON
-CREATE TABLE foo(a);
-INSERT ...} (unsupported command, not transpiled)
+		// catchcmd foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo(a);\nINS...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.4"
 		os.Remove("foo.db")
-		// catchcmd foo.db {
-.mode batch
-.echo ON
-CREATE TABLE foo(a);
-.echo O...} (unsupported command, not transpiled)
+		// catchcmd foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo(a);\n.ec...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.5"
 		os.Remove("foo.db")
-		// catchcmdex foo.db {
-.mode batch
-.echo ON
-CREATE TABLE foo1(a);
-INSERT...} (unsupported command, not transpiled)
+		// catchcmdex foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo1(a);\nIN...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.6"
 		os.Remove("foo.db")
-		// catchcmdex foo.db {
-.mode batch
-.echo ON
-.headers ON
-CREATE TABLE foo...} (unsupported command, not transpiled)
+		// catchcmdex foo.db {\n.mode batch\n.echo ON\n.headers ON\nCREATE TABLE...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.7"
-		// catchcmd :memory: {
- SELECT 'unclosed;} (unsupported command, not transpiled)
+		// catchcmd :memory: {\n SELECT 'unclosed;} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.8"
-		// catchcmd -safe :memory: {
- SELECT edit('DoNotCare');} (unsupported command, not transpiled)
+		// catchcmd -safe :memory: {\n SELECT edit('DoNotCare');} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.9"
-		// catchcmd -safe :memory: {
- SELECT writefile('DoNotCare', x'');} (unsupported command, not transpiled)
+		// catchcmd -safe :memory: {\n SELECT writefile('DoNotCare', x'');} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.9"
 		os.Remove("clone.db")
 		res = "catchcmd :memory: [string trim {\n.mode batch\n CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT);\n INSERT INTO t VALUES (1),(2);\n.clone clone.db\n.open clone.db\n SELECT max(seq) FROM sqlite_sequence;}]"
+		_ = res // suppress unused warning
+	}
+	{ // do_test "shell2-1.4.10"
+		res = "catchcmd :memory: [string trim {\n .mode batch\n SELECT * FROM generate_series(9223372036854775807,9223372036854775807,1);\n SELECT * FROM generate_series(9223372036854775807,9223372036854775807,-1);\n SELECT avg(value),min(value),max(value) FROM generate_series(\n  -9223372036854775808,9223372036854775807,1085102592571150095);\n SELECT * FROM generate_series(-9223372036854775808,9223372036854775807,\n  9223372036854775807);\n SELECT value FROM generate_series(-4611686018427387904,\n  4611686018427387904, 4611686018427387904) ORDER BY value DESC;\n SELECT * FROM generate_series(0,-2,-1);\n SELECT * FROM generate_series(0,-2);\n SELECT * FROM generate_series(0,2) LIMIT 3;}]"
+		_ = res // suppress unused warning
+	}
+	{ // do_test "shell2-1.4.10b"
+		res = "catchcmd :memory: [string trim {\n .mode tty\n.print\n SELECT * FROM generate_series(9223372036854775807,9223372036854775807,1);\n SELECT * FROM generate_series(9223372036854775807,9223372036854775807,-1);\n SELECT avg(value),min(value),max(value) FROM generate_series(\n  -9223372036854775808,9223372036854775807,1085102592571150095);\n SELECT * FROM generate_series(-9223372036854775808,9223372036854775807,\n  9223372036854775807);\n SELECT value FROM generate_series(-4611686018427387904,\n  4611686018427387904, 4611686018427387904) ORDER BY value DESC;\n SELECT * FROM generate_series(0,-2,-1);\n SELECT * FROM generate_series(0,-2);\n SELECT * FROM generate_series(0,2) LIMIT 3;}]"
+		_ = res // suppress unused warning
+	}
+	{ // do_test "shell2-1.4.11"
+		os.Remove("dummy.csv")
+		df = "open dummy.csv w"
+		_ = df // suppress unused warning
+		_putsMsg := df
+		_ = _putsMsg
+		// close $df
+		res = "catchcmd :memory: [string trim {\n CREATE TABLE t(line text);\n.mode ascii -colsep \"\\377\" -rowsep \"\\n\"\n.import dummy.csv t\n SELECT count(*) FROM t;}]"
 		_ = res // suppress unused warning
 	}
 	{ // do_test "shell2-1.4.12"

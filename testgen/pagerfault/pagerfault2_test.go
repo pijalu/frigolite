@@ -83,12 +83,7 @@ func Test_pagerfault2(t *testing.T) {
 		// faultsim_save_and_close (unsupported command, not transpiled)
 		// file size test.db
 	}
-	// do_faultsim_test pagerfault2-1 -faults oom-transient -prep {
-  faultsim_restore_and_reopen
-  sqlite3_db_config...} -body {
-  execsql { UPDATE t1 SET a = a||'x' WHERE rowid>...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault2-1 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  sqlite3_db_conf...} -body {\n  execsql { UPDATE t1 SET a = a||'x' WHERE rowid...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	{ // do_test "pagerfault2-2-pre1"
 		// faultsim_restore_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" DELETE FROM t1 ")
@@ -97,11 +92,6 @@ func Test_pagerfault2(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault2-2 -faults oom-transient -prep {
-  faultsim_restore_and_reopen
-  sqlite3_db_config...} -body {
-  execsql { INSERT INTO t1 VALUES (a_string(20000...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault2-2 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  sqlite3_db_conf...} -body {\n  execsql { INSERT INTO t1 VALUES (a_string(2000...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	// sqlite3_memdebug_vfs_oom_test 1 (unsupported command, not transpiled)
 }

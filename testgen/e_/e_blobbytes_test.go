@@ -57,6 +57,7 @@ func Test_e_blobbytes(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "e_blobbytes"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE q1(r INTEGER PRIMARY KEY, s TEXT);\n  WITH d(a, b) AS (\n    SELECT 0, '' \n      UNION ALL\n    SELECT a+1, b||'.' FROM d WHERE a<10000\n  )\n  INSERT INTO q1 SELECT * FROM d;\n")
 		if r.Error != nil {

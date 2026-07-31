@@ -94,12 +94,16 @@ func Test_between(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			w = i
 			_ = w // suppress unused warning
-			x = "int(log($i)/log(2))"
+			x = tclExpr("int(log($i)/log(2))")
 			_ = x // suppress unused warning
-			y = "$i*$i + 2*$i + 1"
+			y = tclExpr("$i*$i + 2*$i + 1")
 			_ = y // suppress unused warning
-			z = "$x+$y"
+			z = tclExpr("$x+$y")
 			_ = z // suppress unused warning
+			_res = db.Exec("INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)")
+			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -115,44 +119,34 @@ func Test_between(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "between-1.1.1"
-		// queryplan {
-    SELECT * FROM t1 WHERE w BETWEEN 5 AND 6 ORDE...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 6 ORD...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.1.2"
-		// queryplan {
-    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 6 ORD...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 6 OR...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.2.1"
-		// queryplan {
-    SELECT * FROM t1 WHERE w BETWEEN 5 AND 65-y O...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 65-y ...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.2.2"
-		// queryplan {
-    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 65-y ...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 65-y...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.3.1"
-		// queryplan {
-    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 6 O...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 6 ...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.3.2"
-		// queryplan {
-    SELECT * FROM t1 WHERE +w BETWEEN 41-y AND 6 ...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 41-y AND 6...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.4"
-		// queryplan {
-    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 65-...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 65...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.5.1"
-		// queryplan {
-    SELECT * FROM t1 WHERE 26 BETWEEN y AND z ORD...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND z OR...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.5.2"
-		// queryplan {
-    SELECT * FROM t1 WHERE 26 BETWEEN +y AND z OR...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN +y AND z O...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.5.3"
-		// queryplan {
-    SELECT * FROM t1 WHERE 26 BETWEEN y AND +z OR...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND +z O...} (test infra, not transpiled)
 	}
 	db.Close()
 	db, err = frigolite.Open("")

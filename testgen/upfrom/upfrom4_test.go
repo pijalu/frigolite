@@ -116,4 +116,31 @@ func Test_upfrom4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "500"
+		_res = db.Exec("\n    CREATE TABLE t1(abc INT, def INT);  \n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    CREATE TABLE dual(dummy TEXT);  \n    INSERT INTO dual(dummy) VALUES('X');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(abc INT, def INT);  \n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    CREATE TABLE dual(dummy TEXT);  \n    INSERT INTO dual(dummy) VALUES('X');\n  ")
+		}
+	}
+	{ // "510"
+		_res = db.Exec("\n    UPDATE t1\n      SET (abc, def)=(SELECT  x, 123)\n      FROM dual LEFT JOIN (SELECT 789 AS 'x' FROM dual) AS d2\n      LIMIT 2\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1\n      SET (abc, def)=(SELECT  x, 123)\n      FROM dual LEFT JOIN (SELECT 789 AS 'x' FROM dual) AS d2\n      LIMIT 2\n  ")
+		}
+	}
+	{ // "520"
+		r = db.Query("\n    SELECT * FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "789 123 789 123 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 }

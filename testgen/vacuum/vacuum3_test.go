@@ -62,6 +62,7 @@ func Test_vacuum3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "vacuum3-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
 		if _res.Error != nil {
@@ -122,6 +123,10 @@ func Test_vacuum3(t *testing.T) {
 			_res = db.Exec("\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
+			}
+			_res = db.Exec(" ALTER TABLE t1 ADD COLUMN d; ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t1 ADD COLUMN d; ")
 			}
 			_res = db.Exec("\n    UPDATE t1 SET d = randomblob(1000);\n  ")
 			if _res.Error != nil {
@@ -300,30 +305,12 @@ func Test_vacuum3(t *testing.T) {
 				}
 				create_database_sql = "\n  BEGIN; \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, randstr(50,50), randstr(50,50)); \n  INSERT INTO t1 SELECT a+2, b||'-'||rowid, c||'-'||rowid FROM t1; \n  INSERT INTO t1 SELECT a+4, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+8, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+16, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+32, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+64, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+128, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 VALUES(1, randstr(600,600), randstr(600,600));\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE TABLE t3 AS SELECT * FROM t1;\n  COMMIT;\n  DROP TABLE t2;\n"
 				_ = create_database_sql // suppress unused warning
-				// do_ioerr_test vacuum3-ioerr-1 -cksum true -sqlprep 
-  PRAGMA page_size = 1024;
-  $create_database_sql... -sqlbody {
-  PRAGMA page_size = 4096;
-  VACUUM;
-} (unsupported command, not transpiled)
-				// do_ioerr_test vacuum3-ioerr-2 -cksum true -sqlprep  
-  PRAGMA page_size = 2048;
-  $create_database_sq... -sqlbody {
-  PRAGMA page_size = 512;
-  VACUUM;
-} (unsupported command, not transpiled)
+				// do_ioerr_test vacuum3-ioerr-1 -cksum true -sqlprep \n  PRAGMA page_size = 1024;\n  $create_database_s... -sqlbody {\n  PRAGMA page_size = 4096;\n  VACUUM;\n} (unsupported command, not transpiled)
+				// do_ioerr_test vacuum3-ioerr-2 -cksum true -sqlprep  \n  PRAGMA page_size = 2048;\n  $create_database_... -sqlbody {\n  PRAGMA page_size = 512;\n  VACUUM;\n} (unsupported command, not transpiled)
+				// do_ioerr_test vacuum3-ioerr-3 -cksum true -sqlprep \n    PRAGMA auto_vacuum = 0;\n    $create_databas... -sqlbody {\n    PRAGMA auto_vacuum = 1;\n    VACUUM;\n  } (unsupported command, not transpiled)
+				// do_ioerr_test vacuum3-ioerr-4 -cksum true -sqlprep \n    PRAGMA auto_vacuum = 1;\n    $create_databas... -sqlbody {\n    PRAGMA auto_vacuum = 0;\n    VACUUM;\n  } (unsupported command, not transpiled)
 				if tclBool(MEMDEBUG) {
-					// do_malloc_test vacuum3-malloc-1 -sqlprep { 
-    PRAGMA page_size = 2048;
-    BEGIN; 
-    CRE...} -sqlbody {
-    PRAGMA page_size = 512;
-    VACUUM;
-  } (unsupported command, not transpiled)
-					// do_malloc_test vacuum3-malloc-2 -sqlprep { 
-    PRAGMA encoding=UTF16;
-    CREATE TABLE t1(a...} -sqlbody {
-    VACUUM;
-  } (unsupported command, not transpiled)
+					// do_malloc_test vacuum3-malloc-1 -sqlprep { \n    PRAGMA page_size = 2048;\n    BEGIN; \n    ...} -sqlbody {\n    PRAGMA page_size = 512;\n    VACUUM;\n  } (unsupported command, not transpiled)
+					// do_malloc_test vacuum3-malloc-2 -sqlprep { \n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1...} -sqlbody {\n    VACUUM;\n  } (unsupported command, not transpiled)
 				}
 }

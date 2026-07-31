@@ -62,6 +62,44 @@ func Test_misc4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n  ")
 		}
 	}
+	{ // do_test "misc4-1.2"
+		sql = "CREATE TEMP TABLE t2 AS SELECT * FROM t1"
+		_ = sql // suppress unused warning
+		stmt = "sqlite3_prepare $DB $sql -1 TAIL"
+		_ = stmt // suppress unused warning
+		_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      INSERT INTO t1 SELECT * FROM t1;\n      ROLLBACK;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      INSERT INTO t1 SELECT * FROM t1;\n      ROLLBACK;\n    ")
+		}
+	}
+	{ // do_test "misc4-1.2.1"
+		_list := tclList([]string{"SQLITE_ROW", ""})
+		_ = _list
+	}
+	{ // do_test "misc4-1.2.2"
+		stmt = "sqlite3_prepare $DB $sql -1 TAIL"
+		_ = stmt // suppress unused warning
+	}
+	{ // do_test "misc4-1.3"
+		// sqlite3_step $stmt (unsupported command, not transpiled)
+	}
+	{ // do_test "misc4-1.4"
+		r = db.Query("\n      SELECT * FROM temp.t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM temp.t2;\n    ")
+		}
+	}
+	{ // do_test "misc4-1.5"
+		_res = db.Exec("DROP TABLE t2")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2")
+		}
+		// sqlite3_reset $stmt (unsupported command, not transpiled)
+		// sqlite3_step $stmt (unsupported command, not transpiled)
+	}
+	{ // do_test "misc4-1.6"
+		// sqlite3_finalize $stmt (unsupported command, not transpiled)
+	}
 	{ // do_test "misc4-2.1"
 		stmt = "sqlite3_prepare $DB {CREATE TABLE t3(x);} -1 TAIL"
 		_ = stmt // suppress unused warning
@@ -85,6 +123,52 @@ func Test_misc4(t *testing.T) {
 		}
 		_res = db.Exec(" \n    SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2 ORDER BY 1, 2;\n  ")
 		_ = _res // catchsql
+	}
+	{ // do_test "misc4-3.2"
+		r = db.Query("\n      SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1\n      ORDER BY 1, 2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1\n      ORDER BY 1, 2;\n    ")
+		}
+	}
+	{ // do_test "misc4-3.3"
+		_res = db.Exec(" \n      SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n      ORDER BY 1, 2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "misc4-3.4"
+		_res = db.Exec(" \n      SELECT ID, max(Value) FROM Table2 GROUP BY 1, 2\n         UNION SELECT ID, Value FROM Table1\n      ORDER BY 1, 2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "misc4-4.1"
+		r = db.Query("\n      create table a(key varchar, data varchar);\n      create table b(key varchar, period integer);\n      insert into a values('01','data01');\n      insert into a values('+1','data+1');\n      \n      insert into b values ('01',1);\n      insert into b values ('01',2);\n      insert into b values ('+1',3);\n      insert into b values ('+1',4);\n      \n      select a.*, x.*\n        from a, (select key,sum(period) from b group by key) as x\n        where a.key=x.key order by 1 desc;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      create table a(key varchar, data varchar);\n      create table b(key varchar, period integer);\n      insert into a values('01','data01');\n      insert into a values('+1','data+1');\n      \n      insert into b values ('01',1);\n      insert into b values ('01',2);\n      insert into b values ('+1',3);\n      insert into b values ('+1',4);\n      \n      select a.*, x.*\n        from a, (select key,sum(period) from b group by key) as x\n        where a.key=x.key order by 1 desc;\n    ")
+		}
+	}
+	{ // do_test "misc4-4.2"
+		_res = db.Exec("\n      CREATE TABLE ab(a TEXT, b TEXT);\n      INSERT INTO ab VALUES('01', '1');\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE ab(a TEXT, b TEXT);\n      INSERT INTO ab VALUES('01', '1');\n    ")
+		}
+		r = db.Query("\n      select * from ab, (select b from ab) as x where x.b = ab.a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select * from ab, (select b from ab) as x where x.b = ab.a;\n    ")
+		}
+	}
+	{ // do_test "misc4-5.1"
+		_res = db.Exec("\n      create table t4(a,b);\n      create table t5(a,c);\n      insert into t4 values (1,2);\n      insert into t5 values (1,3);\n      create view myview as select t4.a a from t4 inner join t5 on t4.a=t5.a;\n      create table problem as select * from myview; \n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      create table t4(a,b);\n      create table t5(a,c);\n      insert into t4 values (1,2);\n      insert into t5 values (1,3);\n      create view myview as select t4.a a from t4 inner join t5 on t4.a=t5.a;\n      create table problem as select * from myview; \n    ")
+		}
+		r = db.Query("\n      select * FROM problem;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select * FROM problem;\n    ")
+		}
+	}
+	{ // do_test "misc4-5.2"
+		r = db.Query("\n      create table t6 as select * from t4, t5;\n      select * from t6;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      create table t6 as select * from t4, t5;\n      select * from t6;\n    ")
+		}
 	}
 	{ // do_test "misc4-6.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(1);\n    CREATE TABLE def(d, e, f, PRIMARY KEY(d, e));\n  ")

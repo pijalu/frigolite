@@ -73,7 +73,7 @@ func Test_orderby9(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT random() AS y FROM t1 ORDER BY 1;")
 		}
-		// expr $l1==[lsort -command bigintcompare $l1] → "$l1==[lsort -command bigintcompare $l1]"
+		// expr $l1==[lsort -command bigintcompare $l1] (not evaluated)
 	}
 	{ // do_test "1.1"
 		l1 = ""
@@ -82,7 +82,7 @@ func Test_orderby9(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT random() AS y FROM t1 ORDER BY random();")
 		}
-		// expr $l1==[lsort -command bigintcompare $l1] → "$l1==[lsort -command bigintcompare $l1]"
+		// expr $l1==[lsort -command bigintcompare $l1] (not evaluated)
 	}
 	{ // do_test "1.2"
 		l1 = ""
@@ -91,6 +91,6 @@ func Test_orderby9(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT random() AS y FROM t1 ORDER BY +random();")
 		}
-		// expr $l1==[lsort -command bigintcompare $l1] → "$l1==[lsort -command bigintcompare $l1]"
+		// expr $l1==[lsort -command bigintcompare $l1] (not evaluated)
 	}
 }

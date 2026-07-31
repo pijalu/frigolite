@@ -79,11 +79,8 @@ func Test_without_rowid1(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	// do_execsql_test_if_vtab without_rowid1-1.0ixi {
-  SELECT name, key FROM pragma_index_xinfo('t1');...} {c 1 a 1 b 0 d 0} (unsupported command, not transpiled)
-	// do_execsql_test_if_vtab without_rowid1-1.0tl {
-  SELECT wr FROM pragma_table_list('t1');
-} {1} (unsupported command, not transpiled)
+	// do_execsql_test_if_vtab without_rowid1-1.0ixi {\n  SELECT name, key FROM pragma_index_xinfo('t1')...} {c 1 a 1 b 0 d 0} (unsupported command, not transpiled)
+	// do_execsql_test_if_vtab without_rowid1-1.0tl {\n  SELECT wr FROM pragma_table_list('t1');\n} {1} (unsupported command, not transpiled)
 	{ // "without_rowid1-1.1"
 		r = db.Query("\n  SELECT *, '|' FROM t1 ORDER BY +c, a;\n")
 		if r.Error != nil {
@@ -236,6 +233,18 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "without_rowid1-1.52"
+		r = db.Query("\n    SELECT DISTINCT tbl, idx FROM sqlite_stat4 ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT tbl, idx FROM sqlite_stat4 ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t1 t1 t1bd"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "2.1.1"
 		r = db.Query("\n  CREATE TABLE t4 (a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 'def');\n  SELECT * FROM t4;\n")
 		if r.Error != nil {
@@ -260,8 +269,7 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_execsql_test_if_vtab 2.1.3 {
-  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0} (unsupported command, not transpiled)
+	// do_execsql_test_if_vtab 2.1.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo...} {a nocase 1 b BINARY 0} (unsupported command, not transpiled)
 	{ // "2.2.1"
 		r = db.Query("\n  DROP TABLE t4;\n  CREATE TABLE t4 (b, a COLLATE nocase PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4(a, b) VALUES('abc', 'def');\n  SELECT * FROM t4;\n")
 		if r.Error != nil {
@@ -286,16 +294,14 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_execsql_test_if_vtab 2.2.3 {
-  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0} (unsupported command, not transpiled)
+	// do_execsql_test_if_vtab 2.2.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo...} {a nocase 1 b BINARY 0} (unsupported command, not transpiled)
 	{ // "2.3.1"
 		_res = db.Exec("\n  CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';\n")
 		}
 	}
-	// do_execsql_test_if_vtab 2.3.2 {
-  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a BINARY 1} (unsupported command, not transpiled)
+	// do_execsql_test_if_vtab 2.3.2 {\n  SELECT name, coll, key FROM pragma_index_xinfo...} {b BINARY 1 a BINARY 1} (unsupported command, not transpiled)
 	{ // "2.4.1"
 		_res = db.Exec("\n  CREATE TABLE t6 (\n    a COLLATE nocase, b, c UNIQUE, PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t6(a, b, c) VALUES('abc', 'def', 'ghi');\n  UPDATE t6 SET a='ABC', c='ghi';\n")
 		if _res.Error != nil {
@@ -314,8 +320,7 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_execsql_test_if_vtab 2.4.3 {
-  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a nocase 1 c BINARY 0} (unsupported command, not transpiled)
+	// do_execsql_test_if_vtab 2.4.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo...} {b BINARY 1 a nocase 1 c BINARY 0} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -656,6 +661,39 @@ func Test_without_rowid1(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
+			{ // "14.1"
+				r = db.Query("\n    CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1(a) VALUES(10);\n    ALTER TABLE t1 ADD COLUMN b INT;\n    SELECT * FROM t1 WHERE a=20 OR (a=10 AND b=10);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1(a) VALUES(10);\n    ALTER TABLE t1 ADD COLUMN b INT;\n    SELECT * FROM t1 WHERE a=20 OR (a=10 AND b=10);\n  ")
+				}
+			}
+			{ // "14.2"
+				r = db.Query("\n    CREATE TABLE dual AS SELECT 'X' AS dummy;\n    EXPLAIN QUERY PLAN SELECT * FROM dual, t1 WHERE a=10 AND b=10;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE dual AS SELECT 'X' AS dummy;\n    EXPLAIN QUERY PLAN SELECT * FROM dual, t1 WHERE a=10 AND b=10;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "~/b=/"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "15.1"
+				r = db.Query("\n    PRAGMA writable_schema=ON;\n    CREATE TABLE sqlite_sequence (name PRIMARY KEY) WITHOUT ROWID;\n    PRAGMA writable_schema=OFF;\n    CREATE TABLE c1(x);\n    INSERT INTO sqlite_sequence(name) VALUES('c0'),('c1'),('c2');\n    ALTER TABLE c1 RENAME TO a;\n    SELECT name FROM sqlite_sequence ORDER BY +name;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema=ON;\n    CREATE TABLE sqlite_sequence (name PRIMARY KEY) WITHOUT ROWID;\n    PRAGMA writable_schema=OFF;\n    CREATE TABLE c1(x);\n    INSERT INTO sqlite_sequence(name) VALUES('c0'),('c1'),('c2');\n    ALTER TABLE c1 RENAME TO a;\n    SELECT name FROM sqlite_sequence ORDER BY +name;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "a c0 c2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

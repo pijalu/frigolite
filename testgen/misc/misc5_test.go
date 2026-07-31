@@ -107,10 +107,22 @@ func Test_misc5(t *testing.T) {
 			}
 		}
 	}
+	{ // do_test "misc5-2.1"
+		r = db.Query("\n      create table t2(x unique);\n      insert into t2 values(1);\n      insert or ignore into t2 select x*2 from t2;\n      insert or ignore into t2 select x*4 from t2;\n      insert or ignore into t2 select x*16 from t2;\n      insert or ignore into t2 select x*256 from t2;\n      insert or ignore into t2 select x*65536 from t2;\n      insert or ignore into t2 select x*2147483648 from t2;\n      insert or ignore into t2 select x-1 from t2;\n      insert or ignore into t2 select x+1 from t2;\n      insert or ignore into t2 select -x from t2;\n      select count(*) from t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      create table t2(x unique);\n      insert into t2 values(1);\n      insert or ignore into t2 select x*2 from t2;\n      insert or ignore into t2 select x*4 from t2;\n      insert or ignore into t2 select x*16 from t2;\n      insert or ignore into t2 select x*256 from t2;\n      insert or ignore into t2 select x*65536 from t2;\n      insert or ignore into t2 select x*2147483648 from t2;\n      insert or ignore into t2 select x-1 from t2;\n      insert or ignore into t2 select x+1 from t2;\n      insert or ignore into t2 select -x from t2;\n      select count(*) from t2;\n    ")
+		}
+	}
 	{ // do_test "misc5-2.2"
 		r = db.Query("\n    select x from t2 order by x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select x from t2 order by x;\n  ")
+		}
+	}
+	{ // do_test "misc5-3.1"
+		r = db.Query("\n      CREATE TABLE songs(songid, artist, timesplayed);\n      INSERT INTO songs VALUES(1,'one',1);\n      INSERT INTO songs VALUES(2,'one',2);\n      INSERT INTO songs VALUES(3,'two',3);\n      INSERT INTO songs VALUES(4,'three',5);\n      INSERT INTO songs VALUES(5,'one',7);\n      INSERT INTO songs VALUES(6,'two',11);\n      SELECT DISTINCT artist \n      FROM (    \n       SELECT DISTINCT artist    \n       FROM songs      \n       WHERE songid IN (    \n        SELECT songid    \n        FROM songs    \n        WHERE LOWER(artist) = (    \n          -- This sub-query is indeterminate. Because there is no ORDER BY,\n          -- it may return 'one', 'two' or 'three'. Because of this, the\n\t  -- outermost parent query may correctly return any of 'one', 'two' \n          -- or 'three' as well.\n          SELECT DISTINCT LOWER(artist)    \n          FROM (      \n            -- This sub-query returns the table:\n            --\n            --     two      14\n            --     one      10\n            --     three    5\n            --\n            SELECT DISTINCT artist,sum(timesplayed) AS total      \n            FROM songs      \n            GROUP BY LOWER(artist)      \n            ORDER BY total DESC      \n            LIMIT 10    \n          )    \n          WHERE artist <> '' \n        )  \n       )       \n      )  \n      ORDER BY LOWER(artist) ASC;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE songs(songid, artist, timesplayed);\n      INSERT INTO songs VALUES(1,'one',1);\n      INSERT INTO songs VALUES(2,'one',2);\n      INSERT INTO songs VALUES(3,'two',3);\n      INSERT INTO songs VALUES(4,'three',5);\n      INSERT INTO songs VALUES(5,'one',7);\n      INSERT INTO songs VALUES(6,'two',11);\n      SELECT DISTINCT artist \n      FROM (    \n       SELECT DISTINCT artist    \n       FROM songs      \n       WHERE songid IN (    \n        SELECT songid    \n        FROM songs    \n        WHERE LOWER(artist) = (    \n          -- This sub-query is indeterminate. Because there is no ORDER BY,\n          -- it may return 'one', 'two' or 'three'. Because of this, the\n\t  -- outermost parent query may correctly return any of 'one', 'two' \n          -- or 'three' as well.\n          SELECT DISTINCT LOWER(artist)    \n          FROM (      \n            -- This sub-query returns the table:\n            --\n            --     two      14\n            --     one      10\n            --     three    5\n            --\n            SELECT DISTINCT artist,sum(timesplayed) AS total      \n            FROM songs      \n            GROUP BY LOWER(artist)      \n            ORDER BY total DESC      \n            LIMIT 10    \n          )    \n          WHERE artist <> '' \n        )  \n       )       \n      )  \n      ORDER BY LOWER(artist) ASC;\n    ")
 		}
 	}
 	if tclBool("permutation" + " == \"\"") {
@@ -159,6 +171,18 @@ func Test_misc5(t *testing.T) {
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
+	{ // do_test "misc5-6.1"
+		_res = db.Exec("\n      SELECT * FROM sqlite_master \n      UNION ALL \n      SELECT * FROM sqlite_master\n      LIMIT (SELECT count(*) FROM blah);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "misc5-6.2"
+		_res = db.Exec("\n      CREATE TABLE logs(msg TEXT, timestamp INTEGER, dbtime TEXT);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE logs(msg TEXT, timestamp INTEGER, dbtime TEXT);\n    ")
+		}
+		_res = db.Exec("\n      SELECT * FROM logs WHERE logs.oid >= (SELECT head FROM logs_base) \n      UNION ALL \n      SELECT * FROM logs \n      LIMIT (SELECT lmt FROM logs_base) ;\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "misc5-7.1.1"
 		_res = db.Exec("CREATE TABLE t1(x)")
 		if _res.Error != nil {
@@ -219,6 +243,18 @@ func Test_misc5(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db2.Close()
+	{ // do_test "misc5-9.1"
+		r = db.Query("\n      SELECT name, type FROM sqlite_master WHERE name IS NULL\n      UNION\n      SELECT type, name FROM sqlite_master WHERE type IS NULL\n      ORDER BY 1, 2, 1, 2, 1, 2\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT name, type FROM sqlite_master WHERE name IS NULL\n      UNION\n      SELECT type, name FROM sqlite_master WHERE type IS NULL\n      ORDER BY 1, 2, 1, 2, 1, 2\n    ")
+		}
+	}
+	{ // do_test "misc5-9.2"
+		r = db.Query("\n      SELECT name, type FROM sqlite_master WHERE name IS NULL\n      UNION\n      SELECT type, name FROM sqlite_master WHERE type IS NULL\n      ORDER BY 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT name, type FROM sqlite_master WHERE name IS NULL\n      UNION\n      SELECT type, name FROM sqlite_master WHERE type IS NULL\n      ORDER BY 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2\n    ")
+		}
+	}
 	{ // do_test "misc5-10.1"
 		_res = db.Exec("\n    SELECT 123abc\n  ")
 		_ = _res // catchsql

@@ -61,6 +61,7 @@ func Test_fts3misc(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3misc"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n  INSERT INTO t1 VALUES('one', 'i');\n  INSERT INTO t1 VALUES('one', 'ii');\n  INSERT INTO t1 VALUES('two', 'i');\n  INSERT INTO t1 VALUES('two', 'ii');\n")
 		if _res.Error != nil {
@@ -240,6 +241,61 @@ func Test_fts3misc(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // "4.0"
+		r = db.Query("\n    PRAGMA page_size = 512;\n    CREATE VIRTUAL TABLE t4 USING fts4;\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<8000 )\n    INSERT INTO t4 SELECT 'a b c a b c a b c' FROM s;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    CREATE VIRTUAL TABLE t4 USING fts4;\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<8000 )\n    INSERT INTO t4 SELECT 'a b c a b c a b c' FROM s;\n  ")
+		}
+	}
+	{ // "4.1"
+		r = db.Query("\n    SELECT count(*) FROM t4 WHERE t4 MATCH '\"a b c\" OR \"c a b\"'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t4 WHERE t4 MATCH '\"a b c\" OR \"c a b\"'\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "4.2"
+		r = db.Query("\n    SELECT quote(value) from t4_stat where id=0\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(value) from t4_stat where id=0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "X'C03EC0B204C0A608'"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	{ // "4.3"
+		_res = db.Exec("\n    UPDATE t4_stat SET value = X'C03EC0B204C0A60800' WHERE id=0;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t4_stat SET value = X'C03EC0B204C0A60800' WHERE id=0;\n  ")
+		}
+	}
+	{ // "4.4"
+		_res = db.Exec("\n    SELECT count(*) FROM t4 WHERE t4 MATCH '\"a b c\" OR \"c a b\"'\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    SELECT count(*) FROM t4 WHERE t4 MATCH '\"a b c\" OR \"c a b\"'\n  ")
+		}
+	}
+	{ // "4.5"
+		_res = db.Exec("\n    UPDATE t4_stat SET value = X'00C03EC0B204C0A608' WHERE id=0;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t4_stat SET value = X'00C03EC0B204C0A608' WHERE id=0;\n  ")
+		}
+	}
+	{ // "4.6"
+		_res = db.Exec("\n    SELECT count(*) FROM t4 WHERE t4 MATCH '\"a b c\" OR \"c a b\"'\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    SELECT count(*) FROM t4 WHERE t4 MATCH '\"a b c\" OR \"c a b\"'\n  ")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

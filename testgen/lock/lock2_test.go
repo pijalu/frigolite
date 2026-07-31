@@ -54,9 +54,7 @@ func Test_lock2(t *testing.T) {
 	{ // do_test "lock2-1.1"
 		tf1 = "launch_testfixture" // TCL namespace variable
 		_ = tf1 // suppress unused warning
-		// testfixture $::tf1 {
-    sqlite3 db test.db -key xyzzy
-    db eval {se...} (unsupported command, not transpiled)
+		// testfixture $::tf1 {\n    sqlite3 db test.db -key xyzzy\n    db eval {...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.1.1"
 		r = db.Query("pragma lock_status")
@@ -72,30 +70,20 @@ func Test_lock2(t *testing.T) {
 		}
 	}
 	{ // do_test "lock2-1.3"
-		// testfixture $::tf1 {
-    db eval {
-      BEGIN;
-      SELECT * FROM sq...} (unsupported command, not transpiled)
+		// testfixture $::tf1 {\n    db eval {\n      BEGIN;\n      SELECT * FROM...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.4"
-		// testfixture $::tf1 {
-    catch { db eval { CREATE TABLE def(d, e, f) }...} (unsupported command, not transpiled)
+		// testfixture $::tf1 {\n    catch { db eval { CREATE TABLE def(d, e, f) ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.5"
 		_res = db.Exec("\n    COMMIT;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock2-1.6"
-		// testfixture $::tf1 {
-    db eval {
-      SELECT * FROM sqlite_master;
-...} (unsupported command, not transpiled)
+		// testfixture $::tf1 {\n    db eval {\n      SELECT * FROM sqlite_master...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.7"
-		// testfixture $::tf1 {
-    catch { db eval {
-      BEGIN;
-      SELECT *...} (unsupported command, not transpiled)
+		// testfixture $::tf1 {\n    catch { db eval {\n      BEGIN;\n      SELEC...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.8"
 		_res = db.Exec("\n    COMMIT;\n  ")
@@ -109,10 +97,7 @@ func Test_lock2(t *testing.T) {
 	}
 	// catch (non-braced)
 	{ // do_test "lock2-1.10"
-		// testfixture $::tf1 {
-    db eval {
-      SELECT * FROM sqlite_master;
-...} (unsupported command, not transpiled)
+		// testfixture $::tf1 {\n    db eval {\n      SELECT * FROM sqlite_master...} (unsupported command, not transpiled)
 	}
 	{
 		var _catchErr error

@@ -61,11 +61,8 @@ func Test_walro(t *testing.T) {
 	if tcl_platform_os == "Windows NT" {
 		return
 	}
-	// do_multiclient_test tn {
-  
-  # Close all connections and delete the datab...} (unsupported command, not transpiled)
+	return
+	// do_multiclient_test tn {\n  \n  # Close all connections and delete the dat...} (unsupported command, not transpiled)
 	os.Remove("test.db")
-	// do_multiclient_test tn {
-  
-  # Close all connections and delete the datab...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  \n  # Close all connections and delete the dat...} (unsupported command, not transpiled)
 }

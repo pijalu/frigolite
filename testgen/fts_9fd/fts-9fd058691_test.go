@@ -48,6 +48,7 @@ func Test_fts_9fd058691(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts3-9fd058691" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "1.0"

@@ -181,6 +181,30 @@ func Test_pragma4(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n")
 				}
 			}
+			{ // "4.2.2"
+				r = db.Query(" SELECT * FROM pragma_table_info('t1') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_table_info('t1') ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4.2.3"
+				r = db.Query(" SELECT * FROM pragma_table_info('t2') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_table_info('t2') ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 			{ // do_test "4.2.4"
 				db3, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -195,6 +219,18 @@ func Test_pragma4(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t2 ")
 				}
 			}
+			{ // "4.2.5"
+				r = db.Query(" SELECT * FROM pragma_table_info('t1') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_table_info('t1') ")
+				}
+			}
+			{ // "4.2.6"
+				r = db.Query(" SELECT * FROM pragma_table_info('t2') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_table_info('t2') ")
+				}
+			}
 			db2.Close()
 			db3.Close()
 			db.Close()
@@ -205,6 +241,30 @@ func Test_pragma4(t *testing.T) {
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n  CREATE INDEX aux.i2 ON t2(e);\n")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n  CREATE INDEX aux.i2 ON t2(e);\n")
+				}
+			}
+			{ // "4.3.2"
+				r = db.Query(" SELECT * FROM pragma_index_info('i1') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_info('i1') ")
+					return
+				}
+				got := flatten(r)
+				want := "0 1 b"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4.3.3"
+				r = db.Query(" SELECT * FROM pragma_index_info('i2') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_info('i2') ")
+					return
+				}
+				got := flatten(r)
+				want := "0 1 e"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "4.3.4"
@@ -225,6 +285,18 @@ func Test_pragma4(t *testing.T) {
 				_res = db.Exec(" SELECT * FROM sqlite_master ")
 				_ = _res // catchsql
 			}
+			{ // "4.3.5"
+				r = db.Query(" SELECT * FROM pragma_index_info('i1') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_info('i1') ")
+				}
+			}
+			{ // "4.3.6"
+				r = db.Query(" SELECT * FROM pragma_index_info('i2') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_info('i2') ")
+				}
+			}
 			r = db.Query("SELECT * FROM main.sqlite_master, aux.sqlite_master")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM main.sqlite_master, aux.sqlite_master")
@@ -233,6 +305,30 @@ func Test_pragma4(t *testing.T) {
 				_res = db.Exec("\n  CREATE INDEX main.i1 ON t1(b, c);\n  CREATE INDEX aux.i2 ON t2(e, f);\n")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX main.i1 ON t1(b, c);\n  CREATE INDEX aux.i2 ON t2(e, f);\n")
+				}
+			}
+			{ // "4.4.1"
+				r = db.Query(" SELECT * FROM pragma_index_list('t1') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_list('t1') ")
+					return
+				}
+				got := flatten(r)
+				want := "0 i1 0 c 0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4.4.2"
+				r = db.Query(" SELECT * FROM pragma_index_list('t2') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_list('t2') ")
+					return
+				}
+				got := flatten(r)
+				want := "0 i2 0 c 0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "4.4.3"
@@ -249,6 +345,18 @@ func Test_pragma4(t *testing.T) {
 				_res = db.Exec(" SELECT * FROM sqlite_master, aux.sqlite_master ")
 				_ = _res // catchsql
 			}
+			{ // "4.4.5"
+				r = db.Query(" SELECT * FROM pragma_index_list('t1') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_list('t1') ")
+				}
+			}
+			{ // "4.4.6"
+				r = db.Query(" SELECT * FROM pragma_index_list('t2') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_index_list('t2') ")
+				}
+			}
 			r = db.Query("SELECT * FROM main.sqlite_master, aux.sqlite_master")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM main.sqlite_master, aux.sqlite_master")
@@ -257,6 +365,30 @@ func Test_pragma4(t *testing.T) {
 				_res = db.Exec("\n  CREATE UNIQUE INDEX main.i1 ON t1(a);\n  CREATE UNIQUE INDEX aux.i2 ON t2(d);\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE UNIQUE INDEX main.i1 ON t1(a);\n  CREATE UNIQUE INDEX aux.i2 ON t2(d);\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n")
+				}
+			}
+			{ // "4.5.1"
+				r = db.Query(" SELECT * FROM pragma_foreign_key_list('c1') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_foreign_key_list('c1') ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0 0 t1 c a {NO ACTION} {NO ACTION} NONE\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4.5.2"
+				r = db.Query(" SELECT * FROM pragma_foreign_key_list('c2') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_foreign_key_list('c2') ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0 0 t2 r d {NO ACTION} {NO ACTION} NONE\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "4.5.3"
@@ -272,6 +404,18 @@ func Test_pragma4(t *testing.T) {
 			if tclBool("permutation" + "==\"prepare\"") {
 				_res = db.Exec(" SELECT * FROM sqlite_master, aux.sqlite_master ")
 				_ = _res // catchsql
+			}
+			{ // "4.5.4"
+				r = db.Query(" SELECT * FROM pragma_foreign_key_list('c1') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_foreign_key_list('c1') ")
+				}
+			}
+			{ // "4.5.5"
+				r = db.Query(" SELECT * FROM pragma_foreign_key_list('c2') ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pragma_foreign_key_list('c2') ")
+				}
 			}
 			r = db.Query("SELECT * FROM main.sqlite_master, aux.sqlite_master")
 			if r.Error != nil {
@@ -352,5 +496,81 @@ func Test_pragma4(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 				db3.Close()
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "6.0"
+				r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INT PRIMARY KEY, b INT);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT REFERENCES t1);\n    SELECT t.name, f.\"table\", f.\"from\", i.name, i.pk\n      FROM pragma_table_list() AS t\n           JOIN pragma_foreign_key_list(t.name, t.schema) AS f\n           JOIN pragma_table_info(f.\"table\", t.schema) AS i\n     WHERE i.pk;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INT PRIMARY KEY, b INT);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT REFERENCES t1);\n    SELECT t.name, f.\"table\", f.\"from\", i.name, i.pk\n      FROM pragma_table_list() AS t\n           JOIN pragma_foreign_key_list(t.name, t.schema) AS f\n           JOIN pragma_table_info(f.\"table\", t.schema) AS i\n     WHERE i.pk;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "t2 t1 d a 1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			// test_sqlite3_log [list lappend ::log] (unsupported command, not transpiled)
+			log = "" // TCL namespace variable
+			_ = log // suppress unused warning
+			{ // "6.1"
+				r = db.Query("\n    CREATE VIEW v1 AS SELECT abs(a) FROM t1;\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_schema\n       SET sql=replace(sql,'abs(a)','nosuchfunc(a)')\n     WHERE name='v1';\n    PRAGMA writable_schema=RESET;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v1 AS SELECT abs(a) FROM t1;\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_schema\n       SET sql=replace(sql,'abs(a)','nosuchfunc(a)')\n     WHERE name='v1';\n    PRAGMA writable_schema=RESET;\n  ")
+				}
+			}
+			{ // "6.2"
+				r = db.Query("\n    PRAGMA table_list;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA table_list;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "main v1 view 0 0 0 main t2 table 2 0 0 main t1 table 2 0 0 main sqlite_schema table 5 0 0 temp sqlite_temp_schema table 5 0 0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "6.3"
+				_ = log // TCL namespace variable (query)
+			}
+			// test_sqlite3_log (unsupported command, not transpiled)
+			{ // "7.0"
+				_res = db.Exec("\n    CREATE TABLE t3 (\"a\" TEXT, \"b\" TEXT);\n    CREATE TABLE t4 (\"a\" TEXT, \"b\" TEXT, \"c\" TEXT); \n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3 (\"a\" TEXT, \"b\" TEXT);\n    CREATE TABLE t4 (\"a\" TEXT, \"b\" TEXT, \"c\" TEXT); \n  ")
+				}
+			}
+			{ // "7.1"
+				_res = db.Exec("\n    CREATE TABLE pragma_t3 AS SELECT * FROM pragma_table_info('t3');\n    CREATE TABLE pragma_t4 AS SELECT * FROM pragma_table_info('t4');\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pragma_t3 AS SELECT * FROM pragma_table_info('t3');\n    CREATE TABLE pragma_t4 AS SELECT * FROM pragma_table_info('t4');\n  ")
+				}
+			}
+			{ // "7.2"
+				r = db.Query("\n    SELECT pragma_t4.name, pragma_t3.name \n      FROM pragma_t4 RIGHT JOIN pragma_t3 ON (pragma_t4.name=pragma_t3.name);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT pragma_t4.name, pragma_t3.name \n      FROM pragma_t4 RIGHT JOIN pragma_t3 ON (pragma_t4.name=pragma_t3.name);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "a a b b"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "7.3"
+				r = db.Query("\n    SELECT t4.name, t3.name \n    FROM pragma_table_info('t4') t4 \n    RIGHT JOIN pragma_table_info('t3') t3 ON (t4.name=t3.name);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t4.name, t3.name \n    FROM pragma_table_info('t4') t4 \n    RIGHT JOIN pragma_table_info('t3') t3 ON (t4.name=t3.name);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "a a b b"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 }

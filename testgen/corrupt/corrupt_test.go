@@ -113,7 +113,7 @@ func Test_corrupt(t *testing.T) {
 	i = "256"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; fsize_n, _fsize_e := strconv.Atoi(fsize); if _fsize_e != nil { return false }; return i_n < fsize_n-256 }() {
-		tn = "$i/256"
+		tn = tclExpr("$i/256")
 		_ = tn // suppress unused warning
 		tclFileCopy("test.bu", "test.db")
 		fd = "open test.db r+"
@@ -193,7 +193,7 @@ func Test_corrupt(t *testing.T) {
 		_ = t1_r // suppress unused warning
 		t1i1_r = "execsql {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
 		_ = t1i1_r // suppress unused warning
-		cookie = "[execsql {PRAGMA schema_version}] + 1"
+		cookie = tclExpr("[execsql {PRAGMA schema_version}] + 1")
 		_ = cookie // suppress unused warning
 		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")
@@ -334,7 +334,7 @@ func Test_corrupt(t *testing.T) {
 		}
 		rootpage = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
 		_ = rootpage // suppress unused warning
-		offset = "($rootpage * 1024)-14+2"
+		offset = tclExpr("($rootpage * 1024)-14+2")
 		_ = offset // suppress unused warning
 		// hexio_write test.db $offset 00FF (unsupported command, not transpiled)
 		_dbtmp11, err := frigolite.Open("test.db")
@@ -344,9 +344,54 @@ func Test_corrupt(t *testing.T) {
 		_ = _res // catchsql
 	}
 	os.Remove("test.db")
+	_dbtmp12, err := frigolite.Open("test.db")
+	_ = _dbtmp12 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	_res = db.Exec(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
+	}
+	{ // do_test "corrupt-7.1"
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 39 }() {
+			_res = db.Exec("\n        INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n      ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n      ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+	}
+	fd = "open test.db r+"
+	_ = fd // suppress unused warning
+	// fconfigure $fd -translation binary (unsupported command, not transpiled)
+	// seek $fd [expr 1024+8] (unsupported command, not transpiled)
+	_putsMsg := "-nonewline"
+	_ = _putsMsg
+	// close $fd
+	_dbtmp13, err := frigolite.Open("test.db")
+	_ = _dbtmp13 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // do_test "corrupt-7.2"
+		_res = db.Exec(" \n      UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;\n    ")
+		}
+	}
+	{ // do_test "corrupt-7.3"
+		_res = db.Exec("\n      INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n    ")
+		_ = _res // catchsql
+	}
+	os.Remove("test.db")
 	{ // do_test "corrupt-8.1"
-		_dbtmp12, err := frigolite.Open("test.db")
-		_ = _dbtmp12 // sqlite3 db connection
+		_dbtmp14, err := frigolite.Open("test.db")
+		_ = _dbtmp14 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
 		if _res.Error != nil {
@@ -359,8 +404,8 @@ func Test_corrupt(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "corrupt-8.2"
-		_dbtmp13, err := frigolite.Open("test.db")
-		_ = _dbtmp13 // sqlite3 db connection
+		_dbtmp15, err := frigolite.Open("test.db")
+		_ = _dbtmp15 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
 		if _res.Error != nil {

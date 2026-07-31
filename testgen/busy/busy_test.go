@@ -97,4 +97,68 @@ func Test_busy(t *testing.T) {
 	{ // do_test "busy-2.2"
 	}
 	db2.Close()
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "3.1"
+		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n\n  CREATE INDEX i1 ON t1(x);\n  CREATE INDEX i2 ON t2(y);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(1);\n  ANALYZE;\n\n  SELECT * FROM t1 WHERE x=1;\n  SELECT * FROM t2 WHERE y=1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n\n  CREATE INDEX i1 ON t1(x);\n  CREATE INDEX i2 ON t2(y);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(1);\n  ANALYZE;\n\n  SELECT * FROM t1 WHERE x=1;\n  SELECT * FROM t2 WHERE y=1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "3.2"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec(" BEGIN EXCLUSIVE ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN EXCLUSIVE ")
+		}
+		_res = db.Exec(" PRAGMA optimize ")
+		_ = _res // catchsql
+	}
+	// proc definition (not transpiled)
+	{ // do_test "3.3"
+		_res = db.Exec(" PRAGMA optimize ")
+		_ = _res // catchsql
+	}
+	{ // do_test "3.4"
+		r = db.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
+		}
+	}
+	// proc definition (not transpiled)
+	{ // do_test "3.5"
+		_res = db.Exec(" PRAGMA optimize ")
+		_ = _res // catchsql
+	}
+	{ // do_test "3.6"
+		_res = db.Exec(" COMMIT ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		}
+		r = db.Query("\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
+		}
+		r = db.Query("\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "3.7"
+		_res = db.Exec(" PRAGMA optimize ")
+		_ = _res // catchsql
+	}
+	// proc definition (not transpiled)
+	{ // do_test "3.8"
+		_res = db.Exec(" PRAGMA optimize ")
+		_ = _res // catchsql
+	}
 }

@@ -82,7 +82,7 @@ func Test_fuzz3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
-	// expr srand(123) → "srand(123)"
+	// expr srand(123) (not evaluated)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

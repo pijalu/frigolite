@@ -220,4 +220,16 @@ func Test_json107(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "2.1"
+		r = db.Query("\n    SELECT key, value FROM json_tree( CAST('{\"a\":123,\"b\":456}' AS blob) )\n      WHERE atom;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT key, value FROM json_tree( CAST('{\"a\":123,\"b\":456}' AS blob) )\n      WHERE atom;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a 123 b 456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 }

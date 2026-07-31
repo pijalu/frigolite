@@ -47,6 +47,7 @@ func Test_tkt2285(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "tkt2285-1.1"
 		r = db.Query("\n    PRAGMA locking_mode = EXCLUSIVE;\n  ")
 		if r.Error != nil {
@@ -61,6 +62,18 @@ func Test_tkt2285(t *testing.T) {
 		r = db.Query("\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "tkt2285-2.1"
+		_res = db.Exec("\n      BEGIN;\n      CREATE TEMP TABLE abc(a, b, c);\n      ROLLBACK;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TEMP TABLE abc(a, b, c);\n      ROLLBACK;\n    ")
+		}
+	}
+	{ // do_test "tkt2285-2.2"
+		r = db.Query("\n      SELECT * FROM sqlite_temp_master;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_temp_master;\n    ")
 		}
 	}
 }

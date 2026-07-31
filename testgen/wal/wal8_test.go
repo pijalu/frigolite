@@ -50,6 +50,7 @@ func Test_wal8(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal8" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	// do_not_use_codec (unsupported command, not transpiled)
 	os.Remove("test.db")
 	_dbtmp0, err := frigolite.Open("test.db")

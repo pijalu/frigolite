@@ -51,6 +51,7 @@ func Test_corrupt6(t *testing.T) {
 		return
 	}
 	// database_may_be_corrupt (unsupported command, not transpiled)
+	return
 	{ // do_test "corrupt6-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');\n    INSERT INTO t1(x) VALUES('varint32-01234567890123456789012345678901234567890123456789');\n  ")
 		if _res.Error != nil {

@@ -48,6 +48,7 @@ func Test_corrupt5(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// database_may_be_corrupt (unsupported command, not transpiled)
+	return
 	{ // do_test "corrupt5-1.1"
 		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';\n  ")

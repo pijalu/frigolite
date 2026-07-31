@@ -62,18 +62,9 @@ func Test_tkt3922(t *testing.T) {
 			}
 		}
 	}
-	// do_realnum_test tkt3922.2 {
-  execsql {
-    DELETE FROM t1;
-    INSERT INTO t...} {-9.22337203685478e+18 real} (expr test, not transpiled)
-	// do_realnum_test tkt3922.3 {
-  execsql {
-    DELETE FROM t1;
-    INSERT INTO t...} {-9.22337203685478e+18 real} (expr test, not transpiled)
-	// do_realnum_test tkt3922.4 {
-  execsql {
-    DELETE FROM t1;
-    INSERT INTO t...} {-9.22337203685478e+18 real} (expr test, not transpiled)
+	// do_realnum_test tkt3922.2 {\n  execsql {\n    DELETE FROM t1;\n    INSERT INT...} {-9.22337203685478e+18 real} (expr test, not transpiled)
+	// do_realnum_test tkt3922.3 {\n  execsql {\n    DELETE FROM t1;\n    INSERT INT...} {-9.22337203685478e+18 real} (expr test, not transpiled)
+	// do_realnum_test tkt3922.4 {\n  execsql {\n    DELETE FROM t1;\n    INSERT INT...} {-9.22337203685478e+18 real} (expr test, not transpiled)
 	if tclBool("working_64bit_int") {
 		{ // do_test "tkt3922.5"
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES('9223372036854775807');\n      SELECT a, typeof(a) FROM t1;\n    ")
@@ -89,8 +80,5 @@ func Test_tkt3922(t *testing.T) {
 			}
 		}
 	}
-	// do_realnum_test tkt3922.6 {
-  execsql {
-    DELETE FROM t1;
-    INSERT INTO t...} {9.22337203685478e+18 real} (expr test, not transpiled)
+	// do_realnum_test tkt3922.6 {\n  execsql {\n    DELETE FROM t1;\n    INSERT INT...} {9.22337203685478e+18 real} (expr test, not transpiled)
 }

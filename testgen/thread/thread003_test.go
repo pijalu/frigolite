@@ -96,7 +96,7 @@ func Test_thread003(t *testing.T) {
 		}
 	}
 	{ // do_test "thread003.1.2"
-		// expr ([file size test.db] / 1024) > 2000 → "([file size test.db] / 1024) > 2000"
+		// expr ([file size test.db] / 1024) > 2000 (not evaluated)
 	}
 	{ // do_test "thread003.1.3"
 		os.Remove("test2.db")
@@ -130,7 +130,7 @@ func Test_thread003(t *testing.T) {
 		}
 	}
 	{ // do_test "thread003.1.5"
-		// expr ([file size test.db] / 1024) > 2000 → "([file size test.db] / 1024) > 2000"
+		// expr ([file size test.db] / 1024) > 2000 (not evaluated)
 	}
 	{ // do_test "thread003.1.6"
 	}
@@ -175,10 +175,8 @@ func Test_thread003(t *testing.T) {
 	_putsMsg = "Starting thread003.4 (should run for ~" + nSecond + " seconds)"
 	_ = _putsMsg
 	{ // do_test "thread003.4"
-		// thread_spawn finished(1) $thread_procs [format {
-    set iEnd [expr {[clock_seconds] + %d... (unsupported command, not transpiled)
-		// thread_spawn finished(2) [format {
-    set iEnd [expr {[clock_seconds] + %d... (unsupported command, not transpiled)
+		// thread_spawn finished(1) $thread_procs [format {\n    set iEnd [expr {[clock_seconds] + %... (unsupported command, not transpiled)
+		// thread_spawn finished(2) [format {\n    set iEnd [expr {[clock_seconds] + %... (unsupported command, not transpiled)
 		for _, ii := range tclSplitList("1 2") {
 		_ = ii // suppress unused warning
 			if tclBool("!" + "info exists finished($ii)") {

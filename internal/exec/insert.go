@@ -38,7 +38,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 		return e.execInsertSelect(tableEntry, colDefs, s.Select, s.Columns, s.IsReplace)
 	}
 	if len(s.Values) == 0 {
-		return e.execInsertDefault(tableEntry)
+		return e.execInsertDefault(tableEntry, colDefs, s)
 	}
 
 	var totalChanges int64
@@ -87,17 +87,17 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 		// Handle RETURNING clause — evaluate RETURNING expression against inserted row
 		if s.HasReturning {
 			row := buildRowMapFromValues(values, colDefs, lastRowID)
-			val, err := e.evalExpr(s.Returning.Expr, row)
+			rowValues, err := e.evalReturningExprs(s.Returning, row, colDefs)
 			if err != nil {
 				return &Result{Error: err}
 			}
-			returningRows = append(returningRows, []interface{}{util.UnwrapColumnValue(val)})
+			returningRows = append(returningRows, rowValues)
 		}
 	}
 
 	// If RETURNING clause was present, return result rows instead of change count
 	if s.HasReturning {
-		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, nil)
+		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
 		return &Result{Columns: columns, Rows: returningRows}
 	}
 	return &Result{Changes: totalChanges}
@@ -113,6 +113,10 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 
 	// Validate constraints before inserting
 	if err := e.checkConstraints(tableEntry, colDefs, values); err != nil {
+		// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
+		if isIgnoreableConflict(err, colDefs) {
+			return &Result{Changes: 0}
+		}
 		return &Result{Error: err}
 	}
 
@@ -446,12 +450,35 @@ func scanForConflict(cursor *btree.Cursor, uniqueCols []int, values []interface{
 }
 
 // hasConflictAt returns true if any of the UNIQUE column values match.
+// Per SQL standard, NULL != NULL for UNIQUE constraint purposes.
 func hasConflictAt(recValues []interface{}, uniqueCols []int, values []interface{}) bool {
 	for _, idx := range uniqueCols {
 		if idx < len(recValues) && idx < len(values) {
+			// NULL != NULL — two NULLs never violate a UNIQUE constraint
+			if recValues[idx] == nil || values[idx] == nil {
+				continue
+			}
 			if util.CompareValues(recValues[idx], values[idx]) == 0 {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+// isIgnoreableConflict checks if a constraint error should be silently ignored
+// due to a column-level ON CONFLICT IGNORE clause.
+func isIgnoreableConflict(err error, colDefs []sql.ColumnDef) bool {
+	if err == nil {
+		return false
+	}
+	errStr := err.Error()
+	if !strings.Contains(errStr, "UNIQUE constraint failed") {
+		return false
+	}
+	for _, cd := range colDefs {
+		if cd.OnConflict == "IGNORE" {
+			return true
 		}
 	}
 	return false
@@ -632,7 +659,7 @@ func (e *Engine) pkRowID(colDefs []sql.ColumnDef, values []interface{}, rootPage
 	return e.findNextRowID(rootPage)
 }
 
-func (e *Engine) execInsertDefault(tableEntry *schema.Entry) *Result {
+func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt) *Result {
 	record, err := storage.EncodeRecord(nil)
 	if err != nil {
 		return &Result{Error: err}
@@ -647,6 +674,22 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry) *Result {
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}
+
+	// Handle RETURNING clause
+	if s.HasReturning {
+		row := make(RowMap)
+		for _, cd := range colDefs {
+			row[cd.Name] = nil
+		}
+		row["rowid"] = nextRowID
+		values, err := e.evalReturningExprs(s.Returning, row, colDefs)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+		return &Result{Columns: columns, Rows: [][]interface{}{values}}
+	}
+
 	return &Result{Changes: 1}
 }
 
@@ -765,7 +808,15 @@ func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.Col
 		values[i] = v
 	}
 	if len(columns) > 0 {
+		// Start with default values for all columns, then override with provided values
 		mapped := make([]interface{}, len(colDefs))
+		for j, cd := range colDefs {
+			if cd.Default != nil {
+				if dv, err := e.evalExpr(cd.Default, nil); err == nil {
+					mapped[j] = dv
+				}
+			}
+		}
 		for i, col := range columns {
 			for j, cd := range colDefs {
 				if cd.Name == col && i < len(values) {
@@ -775,6 +826,80 @@ func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.Col
 			}
 		}
 		values = mapped
+	} else if len(values) < len(colDefs) {
+		// Pad with default values for any missing trailing columns
+		padded := make([]interface{}, len(colDefs))
+		copy(padded, values)
+		for j := len(values); j < len(colDefs); j++ {
+			if colDefs[j].Default != nil {
+				if dv, err := e.evalExpr(colDefs[j].Default, nil); err == nil {
+					padded[j] = dv
+				}
+			}
+		}
+		values = padded
 	}
 	return values
+}
+
+// evalReturningExprs evaluates RETURNING expressions against a row and
+// returns a flat list of values. It handles three cases:
+//   - RETURNING * : expands to all column values
+//   - RETURNING expr (single) : returns the single expression value
+//   - RETURNING expr, ..., * , ... : multi-expression with * expanded inline
+func (e *Engine) evalReturningExprs(ret sql.SelectColumn, row Row, colDefs []sql.ColumnDef) ([]interface{}, error) {
+	switch expr := ret.Expr.(type) {
+	case *sql.ColumnRef:
+		if expr.Name == "*" && expr.Table == "" {
+			// RETURNING * — expand to all column values
+			var values []interface{}
+			for _, cd := range colDefs {
+				if cd.Dropped {
+					continue
+				}
+				if v, ok := row.Get(cd.Name); ok {
+					values = append(values, util.UnwrapColumnValue(v))
+				}
+			}
+			return values, nil
+		}
+		// Single column reference
+		val, err := e.evalExpr(expr, row)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{util.UnwrapColumnValue(val)}, nil
+
+	case *sql.RowValue:
+		// Multi-expression RETURNING — evaluate each sub-expression
+		var values []interface{}
+		for _, subExpr := range expr.Values {
+			if ref, ok := subExpr.(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
+				// Expand * to all column values inline
+				for _, cd := range colDefs {
+					if cd.Dropped {
+						continue
+					}
+					if v, ok := row.Get(cd.Name); ok {
+						values = append(values, util.UnwrapColumnValue(v))
+					}
+				}
+			} else {
+				val, err := e.evalExpr(subExpr, row)
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, util.UnwrapColumnValue(val))
+			}
+		}
+		return values, nil
+
+	default:
+		// Single expression not * and not a row value
+		val, err := e.evalExpr(ret.Expr, row)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{util.UnwrapColumnValue(val)}, nil
+	}
 }

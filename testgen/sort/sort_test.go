@@ -365,10 +365,88 @@ func Test_sort(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t4 ORDER BY 1\n  ")
 		}
 	}
+	{ // do_test "sort-7.3"
+		r = db.Query("\n    CREATE VIEW v4 AS SELECT * FROM t4;\n    SELECT a FROM v4 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v4 AS SELECT * FROM t4;\n    SELECT a FROM v4 ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "sort-7.4"
+		r = db.Query("\n    SELECT b FROM v4 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM v4 ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "sort-7.5"
+		r = db.Query("\n    SELECT a FROM t4 UNION SELECT a FROM v4 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 UNION SELECT a FROM v4 ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "sort-7.6"
+		r = db.Query("\n    SELECT b FROM t4 UNION SELECT a FROM v4 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t4 UNION SELECT a FROM v4 ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "sort-7.7"
+		r = db.Query("\n    SELECT a FROM t4 UNION SELECT b FROM v4 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4 UNION SELECT b FROM v4 ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "sort-7.8"
+		r = db.Query("\n    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1;\n  ")
+		}
+	}
 	{ // do_test "sort-8.1"
 		r = db.Query("\n    CREATE TABLE t5(a real, b text);\n    INSERT INTO t5 VALUES(100,'A1');\n    INSERT INTO t5 VALUES(100.0,'A2');\n    SELECT * FROM t5 ORDER BY a, b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a real, b text);\n    INSERT INTO t5 VALUES(100,'A1');\n    INSERT INTO t5 VALUES(100.0,'A2');\n    SELECT * FROM t5 ORDER BY a, b;\n  ")
+		}
+	}
+	{ // do_test "sort-9.1"
+		r = db.Query("\n    CREATE TABLE t6(x, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,'1');\n    INSERT INTO t6 VALUES(3,x'31');\n    INSERT INTO t6 VALUES(4,NULL);\n    SELECT x FROM t6 ORDER BY y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(x, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,'1');\n    INSERT INTO t6 VALUES(3,x'31');\n    INSERT INTO t6 VALUES(4,NULL);\n    SELECT x FROM t6 ORDER BY y;\n  ")
+		}
+	}
+	{ // do_test "sort-9.2"
+		r = db.Query("\n    SELECT x FROM t6 ORDER BY y DESC;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 ORDER BY y DESC;\n  ")
+		}
+	}
+	{ // do_test "sort-9.3"
+		r = db.Query("\n    SELECT x FROM t6 WHERE y<1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y<1\n  ")
+		}
+	}
+	{ // do_test "sort-9.4"
+		r = db.Query("\n    SELECT x FROM t6 WHERE y<'1'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y<'1'\n  ")
+		}
+	}
+	{ // do_test "sort-9.5"
+		r = db.Query("\n    SELECT x FROM t6 WHERE y<x'31'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y<x'31'\n  ")
+		}
+	}
+	{ // do_test "sort-9.6"
+		r = db.Query("\n    SELECT x FROM t6 WHERE y>1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y>1\n  ")
+		}
+	}
+	{ // do_test "sort-9.7"
+		r = db.Query("\n    SELECT x FROM t6 WHERE y>'1'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t6 WHERE y>'1'\n  ")
 		}
 	}
 	{ // do_test "sort-10.1"

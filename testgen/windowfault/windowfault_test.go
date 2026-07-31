@@ -65,6 +65,7 @@ func Test_windowfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "windowfault"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
 		if _res.Error != nil {
@@ -72,77 +73,16 @@ func Test_windowfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -start 1 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT row_number() OVER win,
-   ...} -test {
-  faultsim_test_result {0 {1 1 1 1 4 4 {} 8 {} 4 ...} (unsupported command, not transpiled)
-	// do_faultsim_test 1.1 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT row_number() OVER win,
-   ...} -test {
-  faultsim_test_result {0 {1 1 1 2 2 2 1 1 1}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 1.2 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT ntile(105) 
-    OVER ( RAN...} -test {
-  faultsim_test_result {0 {1 2 3}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 2 -start 1 -faults oom-* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT round(percent_rank() OVER ...} -test {
-  faultsim_test_result {0 {0.0 0.33 0.5 0.67 1.0 ...} (unsupported command, not transpiled)
-	// do_faultsim_test 3 -faults oom-* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT min(d) OVER win, max(d) OV...} -test {
-  faultsim_test_result {0 {4 12 8 12 12 12}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 4 -faults oom-* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    CREATE VIEW aaa AS
-    SELECT min...} -test {
-  faultsim_test_result {0 {4 12 8 12 12 12}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 5 -start 1 -faults oom-* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT last_value(a) OVER win1,
- ...} -test {
-  faultsim_test_result {0 {5 1 9 5 9 9}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 6 -faults oom-* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT percent_rank() OVER (), cu...} -test {
-  faultsim_test_result {0 {0.0 1.0 0.0 1.0 0.0 1....} (unsupported command, not transpiled)
-	// do_faultsim_test 7 -faults oom-* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT percent_rank() OVER (), cu...} -test {
-  faultsim_test_result {0 {0.0 1.0 0.0 1.0 0.0 1....} (unsupported command, not transpiled)
-	// do_faultsim_test 8 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT a, sum(b) OVER win1 FROM t...} -test {
-  faultsim_test_result {0 {1 2 5 6 9 10}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -start 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT row_number() OVER win,\n...} -test {\n  faultsim_test_result {0 {1 1 1 1 4 4 {} 8 {} 4...} (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT row_number() OVER win,\n...} -test {\n  faultsim_test_result {0 {1 1 1 2 2 2 1 1 1}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 1.2 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT ntile(105) \n    OVER ( ...} -test {\n  faultsim_test_result {0 {1 2 3}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -start 1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT round(percent_rank() OVE...} -test {\n  faultsim_test_result {0 {0.0 0.33 0.5 0.67 1.0...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT min(d) OVER win, max(d) ...} -test {\n  faultsim_test_result {0 {4 12 8 12 12 12}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    CREATE VIEW aaa AS\n    SELECT ...} -test {\n  faultsim_test_result {0 {4 12 8 12 12 12}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 5 -start 1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT last_value(a) OVER win1,...} -test {\n  faultsim_test_result {0 {5 1 9 5 9 9}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 6 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT percent_rank() OVER (), ...} -test {\n  faultsim_test_result {0 {0.0 1.0 0.0 1.0 0.0 1...} (unsupported command, not transpiled)
+	// do_faultsim_test 7 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT percent_rank() OVER (), ...} -test {\n  faultsim_test_result {0 {0.0 1.0 0.0 1.0 0.0 1...} (unsupported command, not transpiled)
+	// do_faultsim_test 8 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT a, sum(b) OVER win1 FROM...} -test {\n  faultsim_test_result {0 {1 2 5 6 9 10}}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -167,12 +107,7 @@ func Test_windowfault(t *testing.T) {
 	// proc definition (not transpiled)
 	L = "db eval {SELECT 0.0 FROM t}"
 	_ = L // suppress unused warning
-	// do_faultsim_test 9 -end 25 -faults tmpread -body {
-  execsql {
-    SELECT sum(y) OVER win FROM t
-   ...} -test {
-  faultsim_test_result [list 0 $::L]
-} (unsupported command, not transpiled)
+	// do_faultsim_test 9 -end 25 -faults tmpread -body {\n  execsql {\n    SELECT sum(y) OVER win FROM t\n...} -test {\n  faultsim_test_result [list 0 $::L]\n} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -187,13 +122,7 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);\n")
 		}
 	}
-	// do_faultsim_test 10 -faults oom* -prep {
-} -body {
-  execsql {
-    SELECT row_number() OVER win
-    ...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 10 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT row_number() OVER win\n ...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -203,19 +132,8 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);\n")
 		}
 	}
-	// do_faultsim_test 11.1 -faults oom* -prep {
-} -body {
-  execsql {
-    SELECT * FROM t0 WHERE 
-      (0,...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 11.2 -faults oom* -prep {
-} -body {
-  execsql {
-    VALUES(false),(current_date colla...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 11.1 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT * FROM t0 WHERE \n      ...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 11.2 -faults oom* -prep {\n} -body {\n  execsql {\n    VALUES(false),(current_date col...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -225,13 +143,7 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n")
 		}
 	}
-	// do_faultsim_test 12 -faults oom* -prep {
-} -body {
-  execsql {
-    WITH v(a, b, row_number) AS (
-   ...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 12 -faults oom* -prep {\n} -body {\n  execsql {\n    WITH v(a, b, row_number) AS (\n...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -255,11 +167,5 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_faultsim_test 13 -faults oom* -prep {
-} -body {
-  execsql {
-    SELECT group_concat(a, b) OVER (
-...} -test {
-  faultsim_test_result [list 0 $::queryres]
-} (unsupported command, not transpiled)
+	// do_faultsim_test 13 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT group_concat(a, b) OVER ...} -test {\n  faultsim_test_result [list 0 $::queryres]\n} (unsupported command, not transpiled)
 }

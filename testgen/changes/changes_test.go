@@ -70,7 +70,7 @@ func Test_changes(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			nBig = "$nRow"
+			nBig = tclExpr("$nRow")
 			_ = nBig // suppress unused warning
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
@@ -105,7 +105,7 @@ func Test_changes(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "$nBig+1"
+				want := tclExpr("$nBig+1")
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

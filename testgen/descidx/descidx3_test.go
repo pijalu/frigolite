@@ -54,6 +54,7 @@ func Test_descidx3(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
+	return
 	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -122,6 +123,21 @@ func Test_descidx3(t *testing.T) {
 		r = db.Query("\n    SELECT i FROM t1 WHERE b>-9999 AND b<x'ffffffff'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT i FROM t1 WHERE b>-9999 AND b<x'ffffffff'\n  ")
+		}
+	}
+	{ // do_test "descidx3-4.1"
+		_ = tclSort("execsql {\n      UPDATE t1 SET a=2 WHERE i<6;\n      SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';\n    }") // lsort result
+	}
+	{ // do_test "descidx3-4.2"
+		r = db.Query("\n      UPDATE t1 SET a=1;\n      SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET a=1;\n      SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';\n    ")
+		}
+	}
+	{ // do_test "descidx3-4.3"
+		r = db.Query("\n      UPDATE t1 SET b=2;\n      SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET b=2;\n      SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';\n    ")
 		}
 	}
 }

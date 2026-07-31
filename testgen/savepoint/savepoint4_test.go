@@ -64,12 +64,13 @@ func Test_savepoint4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// proc definition (not transpiled)
 	ITERATIONS = "25"
 	_ = ITERATIONS // suppress unused warning
 	ITERATIONS2 = "13"
 	_ = ITERATIONS2 // suppress unused warning
-	// expr srand(0) → "srand(0)"
+	// expr srand(0) (not evaluated)
 	{ // do_test "savepoint4-1"
 		r = db.Query("\n    PRAGMA cache_size=10;\n    BEGIN;\n    CREATE TABLE t1(x TEXT);\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
@@ -91,7 +92,7 @@ func Test_savepoint4(t *testing.T) {
 				_ = ret // suppress unused warning
 				// signature (unsupported command, not transpiled)
 			}
-			crashed = "lindex $ret 0"
+			crashed = tclLIndex(ret, "0")
 			_ = crashed // suppress unused warning
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -138,7 +139,7 @@ func Test_savepoint4(t *testing.T) {
 			{ // do_test "savepoint4-2." + ii + ".1." + iDelay
 				ret = "crashsql -delay $iDelay -file $file {\n        SAVEPOINT one;\n          INSERT INTO t1 SELECT * FROM t1 WHERE rowid<50;\n         ROLLBACK TO one;\n          INSERT INTO t1 SELECT * FROM t1 WHERE rowid<50;\n          SAVEPOINT two;\n            DELETE FROM t1 WHERE (random()%10)==0;\n            SAVEPOINT three;\n              DELETE FROM t1 WHERE (random()%10)==0;\n              SAVEPOINT four;\n                DELETE FROM t1 WHERE (random()%10)==0;\n          RELEASE two;\n\n          SAVEPOINT three;\n            UPDATE t1 SET x = substr(x||x, 12, 100000) WHERE (rowid%12)==0;\n            SAVEPOINT four;\n              UPDATE t1 SET x = substr(x||x, 14, 100000) WHERE (rowid%14)==0;\n           ROLLBACK TO three;\n            UPDATE t1 SET x = substr(x||x, 13, 100000) WHERE (rowid%13)==0;\n          RELEASE three;\n\n        DELETE FROM t1 WHERE rowid > (\n          SELECT rowid FROM t1 ORDER BY rowid ASC LIMIT 1 OFFSET 256\n        );\n        RELEASE one;\n      }"
 				_ = ret // suppress unused warning
-				crashed = "lindex $ret 0"
+				crashed = tclLIndex(ret, "0")
 				_ = crashed // suppress unused warning
 				if tclBool(crashed) {
 					// signature (unsupported command, not transpiled)

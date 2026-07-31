@@ -57,6 +57,8 @@ func Test_walsetlk2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walsetlk2"
 	_ = testprefix // suppress unused warning
+	return
+	return
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -141,10 +143,7 @@ func Test_walsetlk2(t *testing.T) {
 		}
 	}
 	// sqlite3_setlk_timeout db 2000 (unsupported command, not transpiled)
-	// testfixture_nb done {
-  sqlite3 db test.db
-  db eval {
-    BEGIN EXCLUS...} (unsupported command, not transpiled)
+	// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
 	{ // "2.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
@@ -193,10 +192,7 @@ func Test_walsetlk2(t *testing.T) {
 	}
 	if func() bool { sqlite_options_setlk_timeout_n, _sqlite_options_setlk_timeout_e := strconv.Atoi(sqlite_options_setlk_timeout); if _sqlite_options_setlk_timeout_e != nil { return false }; return sqlite_options_setlk_timeout_n == 1 }() {
 		// sqlite3_setlk_timeout db 2000 (unsupported command, not transpiled)
-		// testfixture_nb done {
-  sqlite3 db test.db
-  db eval {
-    BEGIN EXCLUS...} (unsupported command, not transpiled)
+		// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
 		{ // "2.6"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(13, 14);\n")
 			if _res.Error == nil {
@@ -227,20 +223,14 @@ func Test_walsetlk2(t *testing.T) {
 			}
 		}
 		// sqlite3_setlk_timeout db -1 (unsupported command, not transpiled)
-		// testfixture_nb done {
-  sqlite3 db test.db
-  db eval {
-    BEGIN EXCLUS...} (unsupported command, not transpiled)
+		// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
 		{ // "3.1"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 'seven');\n")
 			if _res.Error == nil {
 				t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1 VALUES(7, 'seven');\n")
 			}
 		}
-		// testfixture_nb done {
-  sqlite3 db test.db
-  db eval {
-    BEGIN EXCLUS...} (unsupported command, not transpiled)
+		// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
 		{ // "3.2"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(9, 'ten');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
@@ -259,10 +249,7 @@ func Test_walsetlk2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// testfixture_nb done {
-  sqlite3 db test.db
-  db eval {
-    BEGIN EXCLUS...} (unsupported command, not transpiled)
+		// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }

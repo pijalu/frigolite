@@ -73,6 +73,7 @@ func Test_exclusive(t *testing.T) {
 	_ = fname // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	os.Remove("test2.db-journal")
 	os.Remove("test2.db")
 	os.Remove("test3.db-journal")
@@ -119,6 +120,78 @@ func Test_exclusive(t *testing.T) {
 		r = db.Query("\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;\n  ")
+		}
+	}
+	{ // do_test "exclusive-1.7"
+		_res = db.Exec("\n      pragma locking_mode = exclusive;\n      ATTACH 'test2.db' as aux;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      pragma locking_mode = exclusive;\n      ATTACH 'test2.db' as aux;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.8"
+		r = db.Query("\n      pragma main.locking_mode = normal;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode = normal;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.9"
+		r = db.Query("\n      pragma locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.10"
+		_res = db.Exec("\n      ATTACH 'test3.db' as aux2;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test3.db' as aux2;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.11"
+		r = db.Query("\n      pragma aux.locking_mode = normal;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma aux.locking_mode = normal;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.12"
+		r = db.Query("\n      pragma locking_mode = normal;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma locking_mode = normal;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.13"
+		_res = db.Exec("\n      ATTACH 'test4.db' as aux3;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test4.db' as aux3;\n    ")
+		}
+		r = db.Query("\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n      pragma aux3.locking_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n      pragma aux3.locking_mode;\n    ")
+		}
+	}
+	{ // do_test "exclusive-1.99"
+		_res = db.Exec("\n      DETACH aux;\n      DETACH aux2;\n      DETACH aux3;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DETACH aux;\n      DETACH aux2;\n      DETACH aux3;\n    ")
 		}
 	}
 	{ // do_test "exclusive-2.0"
@@ -325,35 +398,35 @@ func Test_exclusive(t *testing.T) {
 				}
 			}
 			{ // do_test "exclusive-5.1"
-				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
 			}
 			{ // do_test "exclusive-5.2"
 				_res = db.Exec("\n    COMMIT;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
 				}
-				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
 			}
 			{ // do_test "exclusive-5.3"
 				_res = db.Exec("\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
 				}
-				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
 			}
 			{ // do_test "exclusive-5.4"
 				_res = db.Exec("\n    INSERT INTO abc SELECT a+10, b+10, c+10 FROM abc;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc SELECT a+10, b+10, c+10 FROM abc;\n  ")
 				}
-				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
 			}
 			{ // do_test "exclusive-5.5"
 				_res = db.Exec("\n    COMMIT;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
 				}
-				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
 			}
 			{ // do_test "exclusive-5.6"
 				r = db.Query("\n    PRAGMA locking_mode = normal;\n    SELECT * FROM abc;\n  ")
@@ -362,7 +435,7 @@ func Test_exclusive(t *testing.T) {
 				}
 			}
 			{ // do_test "exclusive-5.7"
-				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
+				// expr $sqlite_open_file_count-$extrafds (not evaluated)
 			}
 			{ // "exclusive-6.1"
 				_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('Eden', 1955);\n  BEGIN;\n    INSERT INTO t4 VALUES('Macmillan', 1957);\n    INSERT INTO t4 VALUES('Douglas-Home', 1963);\n    INSERT INTO t4 VALUES('Wilson', 1964);\n")

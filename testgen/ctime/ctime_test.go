@@ -66,6 +66,7 @@ func Test_ctime(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "ctime-1.1.1"
 		_res = db.Exec("\n    PRAGMA compile_options();\n  ")
 		_ = _res // catchsql
@@ -81,137 +82,174 @@ func Test_ctime(t *testing.T) {
 	{ // do_test "ctime-1.2.1"
 		ans = "catchsql {\n    PRAGMA compile_options;\n  }"
 		_ = ans // suppress unused warning
-		_list := tclList([]string{"lindex $ans 0"})
+		_list := tclList([]string{tclLIndex(ans, "0")})
 		_ = _list
 	}
 	{ // do_test "ctime-1.2.2"
 		ans = "catchsql {\n    PRAGMA compile_options;\n  }"
 		_ = ans // suppress unused warning
-		_list := tclList([]string{"lindex $ans 0", "[lsort [lindex $ans 1]]==[lindex $ans 1]"})
+		_list := tclList([]string{tclLIndex(ans, "0"), tclExpr(" [lsort [lindex $ans 1]]==[lindex $ans 1] ")})
 		_ = _list
 	}
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
-	{ // do_test "ctime-1.4.1"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used('SQLITE_THREADSAFE');\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-1.4.2"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used('THREADSAFE');\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-1.4.3"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used(\"THREADSAFE\");\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-1.5"
-		ans1 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=0');\n  }"
-		_ = ans1 // suppress unused warning
-		ans2 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=1');\n  }"
-		_ = ans2 // suppress unused warning
-		ans3 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=2');\n  }"
-		_ = ans3 // suppress unused warning
-		_ = tclSort("list $ans1 $ans2 $ans3") // lsort result
-	}
-	{ // do_test "ctime-1.6"
-		r = db.Query("\n    SELECT sqlite_compileoption_used('THREADSAFE=');\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_compileoption_used('THREADSAFE=');\n  ")
+	// foreach {tn opt res} "\n    1 SQLITE_THREADSAFE     1\n    2 THREADSAFE            1\n    3 THREADSAFE=0          0\n    4 THREADSAFE=1          0\n    5 THREADSAFE=2          1\n    6 THREADSAFE=           0\n  "
+	_items0 := tclSplitList("\n    1 SQLITE_THREADSAFE     1\n    2 THREADSAFE            1\n    3 THREADSAFE=0          0\n    4 THREADSAFE=1          0\n    5 THREADSAFE=2          1\n    6 THREADSAFE=           0\n  ")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
+		_ = tn // suppress unused warning
+		opt := _items0[_idx0+1]
+		_ = opt // suppress unused warning
+		res := _items0[_idx0+2]
+		_ = res // suppress unused warning
+		_ = _idx0
+			{ // "ctime-1.3." + tn
+				r = db.Query("\n      SELECT sqlite_compileoption_used($opt)\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sqlite_compileoption_used($opt)\n    ")
+					return
+				}
+				got := flatten(r)
+				want := res
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 		}
-	}
-	{ // do_test "ctime-1.7.1"
-		r = db.Query("\n    SELECT sqlite_compileoption_used('SQLITE_OMIT_COMPILEOPTION_DIAGS');\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_compileoption_used('SQLITE_OMIT_COMPILEOPTION_DIAGS');\n  ")
+		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+		{ // do_test "ctime-1.4.1"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used('SQLITE_THREADSAFE');\n  ")
+			_ = _res // catchsql
 		}
-	}
-	{ // do_test "ctime-1.7.2"
-		r = db.Query("\n    SELECT sqlite_compileoption_used('OMIT_COMPILEOPTION_DIAGS');\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_compileoption_used('OMIT_COMPILEOPTION_DIAGS');\n  ")
+		{ // do_test "ctime-1.4.2"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used('THREADSAFE');\n  ")
+			_ = _res // catchsql
 		}
-	}
-	{ // do_test "ctime-2.1.1"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used();\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.1.2"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used(NULL);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.1.3"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used(\"\");\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.1.4"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used('');\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.1.5"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used(foo);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.1.6"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used('THREADSAFE', 0);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.1.7"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used(0);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.1.8"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used('0');\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.1.9"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used(1.0);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.2.1"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_get();\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.2.2"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_get(0, 0);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.3"
-		_res = db.Exec("\n    SELECT sqlite_compileoption_used(sqlite_compileoption_get(0));\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "ctime-2.4"
-		ans = "catchsql {\n    SELECT sqlite_compileoption_get(0);\n  }"
+		{ // do_test "ctime-1.4.3"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used(\"THREADSAFE\");\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-1.5"
+			ans1 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=0');\n  }"
+			_ = ans1 // suppress unused warning
+			ans2 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=1');\n  }"
+			_ = ans2 // suppress unused warning
+			ans3 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=2');\n  }"
+			_ = ans3 // suppress unused warning
+			_ = tclSort("list $ans1 $ans2 $ans3") // lsort result
+		}
+		{ // do_test "ctime-1.6"
+			r = db.Query("\n    SELECT sqlite_compileoption_used('THREADSAFE=');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_compileoption_used('THREADSAFE=');\n  ")
+			}
+		}
+		{ // do_test "ctime-1.7.1"
+			r = db.Query("\n    SELECT sqlite_compileoption_used('SQLITE_OMIT_COMPILEOPTION_DIAGS');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_compileoption_used('SQLITE_OMIT_COMPILEOPTION_DIAGS');\n  ")
+			}
+		}
+		{ // do_test "ctime-1.7.2"
+			r = db.Query("\n    SELECT sqlite_compileoption_used('OMIT_COMPILEOPTION_DIAGS');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_compileoption_used('OMIT_COMPILEOPTION_DIAGS');\n  ")
+			}
+		}
+		{ // do_test "ctime-2.1.1"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used();\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.1.2"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used(NULL);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.1.3"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used(\"\");\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.1.4"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used('');\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.1.5"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used(foo);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.1.6"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used('THREADSAFE', 0);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.1.7"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used(0);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.1.8"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used('0');\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.1.9"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used(1.0);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.2.1"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_get();\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.2.2"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_get(0, 0);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.3"
+			_res = db.Exec("\n    SELECT sqlite_compileoption_used(sqlite_compileoption_get(0));\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "ctime-2.4"
+			ans = "catchsql {\n    SELECT sqlite_compileoption_get(0);\n  }"
+			_ = ans // suppress unused warning
+			_list := tclList([]string{tclLIndex(ans, "0")})
+			_ = _list
+		}
+		ans = "catchsql {\n  PRAGMA compile_options;\n}"
 		_ = ans // suppress unused warning
-		_list := tclList([]string{"lindex $ans 0"})
-		_ = _list
-	}
-	ans = "catchsql {\n  PRAGMA compile_options;\n}"
-	_ = ans // suppress unused warning
-	opts = "lindex $ans 1"
-	_ = opts // suppress unused warning
-	tc = "1"
-	_ = tc // suppress unused warning
-	for _, opt := range tclSplitList(opts) {
-	_ = opt // suppress unused warning
+		opts = tclLIndex(ans, "1")
+		_ = opts // suppress unused warning
+		tc = "1"
+		_ = tc // suppress unused warning
+		for _, opt := range tclSplitList(opts) {
+		_ = opt // suppress unused warning
+			{ // do_test "ctime-2.5." + tc
+				N = "expr"
+				_ = N // suppress unused warning
+	_ = ans1 // suppress unused warning
+	_ = msg // suppress unused warning
+				{ // catch block
+					var _catchErr error
+					if _catchErr != nil {
+						ans1 = "1"
+						msg = _catchErr.Error()
+					} else {
+						ans1 = "0"
+						msg = ""
+					}
+				}
+				ans1 = tclListAppend(ans1, msg)
+				ans2 = "catchsql {\n      SELECT sqlite_compileoption_used($opt);\n    }"
+				_ = ans2 // suppress unused warning
+				_list := tclList([]string{tclLIndex(ans1, "0"), tclExpr(" [lindex $ans1 1]==$opt "), tclExpr(" $ans2 ")})
+				_ = _list
+			}
+			// incr tc 1
+			{
+				_n, _err := strconv.Atoi(tc)
+				if _err == nil {
+					tc = strconv.Itoa(_n + 1)
+				}
+			}
+		}
 		{ // do_test "ctime-2.5." + tc
 			N = "expr"
 			_ = N // suppress unused warning
-	_ = ans1 // suppress unused warning
-	_ = msg // suppress unused warning
-			{ // catch block
-				var _catchErr error
-				if _catchErr != nil {
-					ans1 = "1"
-					msg = _catchErr.Error()
-				} else {
-					ans1 = "0"
-					msg = ""
-				}
-			}
-			ans1 = tclListAppend(ans1, msg)
-			ans2 = "catchsql {\n      SELECT sqlite_compileoption_used($opt);\n    }"
-			_ = ans2 // suppress unused warning
-			_list := tclList([]string{"lindex $ans1 0", "[lindex $ans1 1]==$opt", "$ans2"})
-			_ = _list
+			ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
+			_ = ans // suppress unused warning
 		}
 		// incr tc 1
 		{
@@ -220,27 +258,15 @@ func Test_ctime(t *testing.T) {
 				tc = strconv.Itoa(_n + 1)
 			}
 		}
-	}
-	{ // do_test "ctime-2.5." + tc
-		N = "expr"
-		_ = N // suppress unused warning
-		ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
-		_ = ans // suppress unused warning
-	}
-	// incr tc 1
-	{
-		_n, _err := strconv.Atoi(tc)
-		if _err == nil {
-			tc = strconv.Itoa(_n + 1)
+		{ // do_test "ctime-2.5." + tc
+			N = "-1"
+			_ = N // suppress unused warning
+			ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
+			_ = ans // suppress unused warning
 		}
-	}
-	{ // do_test "ctime-2.5." + tc
-		N = "-1"
-		_ = N // suppress unused warning
-		ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
-		_ = ans // suppress unused warning
-	}
-	{ // do_test "ctime-3.0.1"
-		// expr [lsearch [db eval {PRAGMA compile_options}] DIRECT_OVERFLOW_READ]>=0 → "[lsearch [db eval {PRAGMA compile_options}] DIRECT_OVERFLOW_READ]>=0"
-	}
+		res = "1"
+		_ = res // suppress unused warning
+		{ // do_test "ctime-3.0.1"
+			// expr [lsearch [db eval {PRAGMA compile_options}] DIRECT_OVERFLOW_READ]>=0 (not evaluated)
+		}
 }

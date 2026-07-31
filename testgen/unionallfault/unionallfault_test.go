@@ -56,12 +56,5 @@ func Test_unionallfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT * FROM t1, (
-      SELECT ...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT * FROM t1, (\n      SELE...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 }

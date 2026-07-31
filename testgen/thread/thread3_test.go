@@ -86,14 +86,8 @@ func Test_thread3(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nAttempt_n, _nAttempt_e := strconv.Atoi(nAttempt); if _nAttempt_e != nil { return false }; return i_n < nAttempt_n }() {
-			// sqlthread spawn X {
-      sqlite3 dbI test.db
-      dbI timeout 100
- ...} (unsupported command, not transpiled)
-			// sqlthread spawn Y {
-      sqlite3 dbR test.db
-      catch {
-        d...} (unsupported command, not transpiled)
+			// sqlthread spawn X {\n      sqlite3 dbI test.db\n      dbI timeout 100...} (unsupported command, not transpiled)
+			// sqlthread spawn Y {\n      sqlite3 dbR test.db\n      catch {\n      ...} (unsupported command, not transpiled)
 			// wait_for_var X (unsupported command, not transpiled)
 			// wait_for_var Y (unsupported command, not transpiled)
 			// incr nTotalBusy X

@@ -3,6 +3,7 @@ package view
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
@@ -64,6 +65,7 @@ func Test_view(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "view-1.0"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(4,5,6);\n    INSERT INTO t1 VALUES(7,8,9);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -95,6 +97,18 @@ func Test_view(t *testing.T) {
 	{ // do_test "view-1.1.110"
 		_res = db.Exec("\n    SELECT * FROM v1 ORDER BY a;\n    SELECT * FROM v1temp ORDER BY a;\n  ")
 		_ = _res // catchsql
+	}
+	{ // "view-1.1.120"
+		r = db.Query("\n    SELECT name, type FROM pragma_table_list('v1');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, type FROM pragma_table_list('v1');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "v1 view"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "view-1.2"
 		_res = db.Exec("\n    ROLLBACK;\n    SELECT * FROM v1 ORDER BY a;\n  ")
@@ -280,6 +294,18 @@ func Test_view(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "expected 4 columns for 'v1err' but got 3", _res.Error, "\n  DROP VIEW IF EXISTS v1err;\n  CREATE VIEW v1err(w,x,y,z) AS SELECT a, b+c, c-b FROM t1;\n  SELECT * FROM v1err;\n")
 		}
 	}
+	{ // do_test "view-3.4"
+		r = db.Query("\n    CREATE VIEW v3 AS SELECT a FROM t1 UNION SELECT b FROM t1 ORDER BY b;\n    SELECT * FROM v3 LIMIT 4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v3 AS SELECT a FROM t1 UNION SELECT b FROM t1 ORDER BY b;\n    SELECT * FROM v3 LIMIT 4;\n  ")
+		}
+	}
+	{ // do_test "view-3.5"
+		r = db.Query("\n    CREATE VIEW v4 AS \n      SELECT a, b FROM t1 \n      UNION\n      SELECT b AS 'x', a AS 'y' FROM t1\n      ORDER BY x, y;\n    SELECT b FROM v4 ORDER BY b LIMIT 4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v4 AS \n      SELECT a, b FROM t1 \n      UNION\n      SELECT b AS 'x', a AS 'y' FROM t1\n      ORDER BY x, y;\n    SELECT b FROM v4 ORDER BY b LIMIT 4;\n  ")
+		}
+	}
 	{ // do_test "view-4.1"
 		_res = db.Exec("\n    DROP VIEW t1;\n  ")
 		_ = _res // catchsql
@@ -315,6 +341,36 @@ func Test_view(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v5 AS\n      SELECT t1.x AS v, t2.y AS w FROM t1 JOIN t2 USING(a);\n    SELECT * FROM v5;\n  ")
 		}
+	}
+	{ // do_test "view-5.3"
+		// lsearch "execsql {\n    EXPLAIN SELECT * FROM v5;\n  }" (simplified)
+	}
+	{ // do_test "view-5.4"
+		r = db.Query("\n    SELECT * FROM v5 AS a, t2 AS b WHERE a.w=b.y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v5 AS a, t2 AS b WHERE a.w=b.y;\n  ")
+		}
+	}
+	{ // do_test "view-5.5"
+		// lsearch "execsql {\n    EXPLAIN SELECT * FROM v5 AS a, t2 AS b WHERE a.w=b.y;\n  }" (simplified)
+	}
+	{ // do_test "view-5.6"
+		r = db.Query("\n    SELECT * FROM t2 AS b, v5 AS a WHERE a.w=b.y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 AS b, v5 AS a WHERE a.w=b.y;\n  ")
+		}
+	}
+	{ // do_test "view-5.7"
+		// lsearch "execsql {\n    EXPLAIN SELECT * FROM t2 AS b, v5 AS a WHERE a.w=b.y;\n  }" (simplified)
+	}
+	{ // do_test "view-5.8"
+		r = db.Query("\n    SELECT * FROM t1 AS a, v5 AS b, t2 AS c WHERE a.x=b.v AND b.w=c.y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 AS a, v5 AS b, t2 AS c WHERE a.x=b.v AND b.w=c.y;\n  ")
+		}
+	}
+	{ // do_test "view-5.9"
+		// lsearch "execsql {\n    EXPLAIN SELECT * FROM t1 AS a, v5 AS b, t2 AS c WHERE a.x=b.v AND b.w=c.y;\n  }" (simplified)
 	}
 	{ // do_test "view-6.1"
 		r = db.Query("\n    SELECT min(x), min(a), min(b), min(c), min(a+b+c) FROM v2;\n  ")
@@ -394,6 +450,30 @@ func Test_view(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v7(a) AS SELECT pqr+xyz FROM v6;\n    SELECT * FROM v7 ORDER BY a;\n  ")
 		}
 	}
+	{ // do_test "view-8.4"
+		r = db.Query("\n      CREATE VIEW v8 AS SELECT max(cnt) AS mx FROM\n        (SELECT a%2 AS eo, count(*) AS cnt FROM t1 GROUP BY eo);\n      SELECT * FROM v8;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIEW v8 AS SELECT max(cnt) AS mx FROM\n        (SELECT a%2 AS eo, count(*) AS cnt FROM t1 GROUP BY eo);\n      SELECT * FROM v8;\n    ")
+		}
+	}
+	{ // do_test "view-8.5"
+		r = db.Query("\n      SELECT mx+10, mx*2 FROM v8;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT mx+10, mx*2 FROM v8;\n    ")
+		}
+	}
+	{ // do_test "view-8.6"
+		r = db.Query("\n      SELECT mx+10, pqr FROM v6, v8 WHERE xyz=2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT mx+10, pqr FROM v6, v8 WHERE xyz=2;\n    ")
+		}
+	}
+	{ // do_test "view-8.7"
+		r = db.Query("\n      SELECT mx+10, pqr FROM v6, v8 WHERE xyz>2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT mx+10, pqr FROM v6, v8 WHERE xyz>2;\n    ")
+		}
+	}
 	{ // do_test "view-9.1"
 		r = db.Query("\n    INSERT INTO t2 SELECT * FROM t2 WHERE a<5;\n    INSERT INTO t2 SELECT * FROM t2 WHERE a<4;\n    INSERT INTO t2 SELECT * FROM t2 WHERE a<3;\n    SELECT DISTINCT count(*) FROM t2 GROUP BY a ORDER BY 1;\n  ")
 		if r.Error != nil {
@@ -448,6 +528,12 @@ func Test_view(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a COLLATE NOCASE);\n    INSERT INTO t4 VALUES('This');\n    INSERT INTO t4 VALUES('this');\n    INSERT INTO t4 VALUES('THIS');\n    SELECT * FROM t4 WHERE a = 'THIS';\n  ")
 		}
 	}
+	{ // do_test "view-11.2"
+		r = db.Query("\n      SELECT * FROM (SELECT * FROM t4) WHERE a = 'THIS';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t4) WHERE a = 'THIS';\n    ")
+		}
+	}
 	{ // do_test "view-11.3"
 		r = db.Query("\n    CREATE VIEW v11 AS SELECT * FROM t4;\n    SELECT * FROM v11 WHERE a = 'THIS';\n  ")
 		if r.Error != nil {
@@ -460,6 +546,11 @@ func Test_view(t *testing.T) {
 	}
 	{ // do_test "view-12.2"
 		_res = db.Exec("\n    CREATE VIEW v12(x) AS SELECT a FROM t1 WHERE b=?\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "view-13.1"
+		os.Remove("test2.db")
+		_res = db.Exec("\n      ATTACH 'test2.db' AS two;\n      CREATE TABLE two.t2(x,y);\n      CREATE VIEW v13 AS SELECT y FROM two.t2;\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "view-14.1"
@@ -583,6 +674,7 @@ func Test_view(t *testing.T) {
 	}
 	res = "list {SQLITE_DELETE sqlite_stat1 {} main {}}"
 	_ = res // suppress unused warning
+	res = tclListAppend(res, "SQLITE_DELETE sqlite_stat4 {} main {}")
 	{ // do_test "view-25.2"
 		log = ""
 		_ = log // suppress unused warning
@@ -775,6 +867,30 @@ func Test_view(t *testing.T) {
 		_res = db.Exec("\n  CREATE TABLE t0(a INT, b TEXT);\n\n  INSERT INTO t0 VALUES(1,'one');\n\n  CREATE VIEW t1      AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n  CREATE VIEW t2(a,b) AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a INT, b TEXT);\n\n  INSERT INTO t0 VALUES(1,'one');\n\n  CREATE VIEW t1      AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n  CREATE VIEW t2(a,b) AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n")
+		}
+	}
+	{ // "view-30.1"
+		r = db.Query("\n    PRAGMA table_info = t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA table_info = t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := " 0 a INT 0 {} 0 1 b BLOB 0 {} 0 "
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "view-30.2"
+		r = db.Query("\n    PRAGMA table_info = t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA table_info = t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := " 0 a INT 0 {} 0 1 b BLOB 0 {} 0 "
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

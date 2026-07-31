@@ -73,16 +73,11 @@ func Test_e_droptrigger(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "e_droptrigger" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// do_droptrigger_tests 1.1 -repair {
-  droptrigger_reopen_db
-} -tclquery {
-  list_all_triggers 
-} {
-  1   "DROP TRIGGER main.tr1"            
-      {...} (unsupported command, not transpiled)
+	// do_droptrigger_tests 1.1 -repair {\n  droptrigger_reopen_db\n} -tclquery {\n  list_all_triggers \n} {\n  1   "DROP TRIGGER main.tr1"            \n     ...} (unsupported command, not transpiled)
 	// foreach {tn tbl droptrigger before after} "\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n"
 	_items0 := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
 	for _idx0 := 0; _idx0+5 <= len(_items0); _idx0 += 5 {

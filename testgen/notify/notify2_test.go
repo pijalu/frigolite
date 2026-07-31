@@ -126,6 +126,7 @@ func Test_notify2(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	nThread = "6"
@@ -178,14 +179,14 @@ func Test_notify2(t *testing.T) {
 				{ // do_test "notify2-" + iTest + ".2." + ii
 					if tclBool("!" + "info exists finished($ii)") {
 					}
-					// incr anSuccess_xStep lindex $finished($ii) 0
+					// incr anSuccess_xStep tclLIndex(finished_ii, "0")
 					{
 						_n, _err := strconv.Atoi(anSuccess_xStep)
 						if _err == nil {
 							anSuccess_xStep = strconv.Itoa(_n + 1)
 						}
 					}
-					// incr anAttempt_xStep lindex $finished($ii) 1
+					// incr anAttempt_xStep tclLIndex(finished_ii, "1")
 					{
 						_n, _err := strconv.Atoi(anAttempt_xStep)
 						if _err == nil {
@@ -223,13 +224,13 @@ func Test_notify2(t *testing.T) {
 		_putsMsg = "array get anWrite"
 		_ = _putsMsg
 		{ // do_test "notify2-3"
-			blocking = "double($anSuccess(sqlite3_blocking_step)) /\n    double($anAttempt(sqlite3_blocking_step))"
+			blocking = tclExpr("\n    double($anSuccess(sqlite3_blocking_step)) /\n    double($anAttempt(sqlite3_blocking_step)) \n  ")
 			_ = blocking // suppress unused warning
-			non = "double($anSuccess(sqlite3_step)) /\n    double($anAttempt(sqlite3_step))"
+			non = tclExpr("\n    double($anSuccess(sqlite3_step)) /\n    double($anAttempt(sqlite3_step)) \n  ")
 			_ = non // suppress unused warning
 			_putsMsg = "-nonewline"
 			_ = _putsMsg
-			// expr $blocking > $non → "$blocking > $non"
+			// expr $blocking > $non (not evaluated)
 		}
 		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

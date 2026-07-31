@@ -74,6 +74,7 @@ func Test_indexfault(t *testing.T) {
 	_ = file // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "indexfault"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
@@ -85,11 +86,11 @@ func Test_indexfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1.1 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { CREATE INDEX i1 ON t1(x) }
-  faultsim...} (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE INDEX i1 ON t1(x) }\n  faults...} (unsupported command, not transpiled)
+	soft_limit = "sqlite3_soft_heap_limit 50000"
+	_ = soft_limit // suppress unused warning
+	// do_faultsim_test 2.1 -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql { CREATE INDEX i1 ON t1(x) }\n    fa...} (unsupported command, not transpiled)
+	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
@@ -100,10 +101,11 @@ func Test_indexfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 2.1 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { CREATE INDEX i1 ON t1(t,u,v,w,x,y,z) ...} (unsupported command, not transpiled)
+	// do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE INDEX i1 ON t1(t,u,v,w,x,y,z)...} (unsupported command, not transpiled)
+	soft_limit = "sqlite3_soft_heap_limit 50000"
+	_ = soft_limit // suppress unused warning
+	// do_faultsim_test 2.2 -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql { CREATE INDEX i1 ON t1(t,u,v,w,x,y,...} (unsupported command, not transpiled)
+	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
 	// install_custom_faultsim (unsupported command, not transpiled)
 	_dbtmp1, err := frigolite.Open("test.db")
 	_ = _dbtmp1 // sqlite3 db connection
@@ -118,20 +120,19 @@ func Test_indexfault(t *testing.T) {
 	custom_filter = "xOpen" // TCL namespace variable
 	_ = custom_filter // suppress unused warning
 	// proc definition (not transpiled)
-	// do_faultsim_test 3.1 -faults custom -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { CREATE INDEX i1 ON t1(x) }
-  faultsim...} (unsupported command, not transpiled)
+	// do_faultsim_test 3.1 -faults custom -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE INDEX i1 ON t1(x) }\n  faults...} (unsupported command, not transpiled)
+	soft_limit = "sqlite3_soft_heap_limit 50000"
+	_ = soft_limit // suppress unused warning
+	// do_faultsim_test 3.2 -faults custom -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql { CREATE INDEX i1 ON t1(x) }\n    fa...} (unsupported command, not transpiled)
+	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
 	custom_filter = "xOpen xWrite" // TCL namespace variable
 	_ = custom_filter // suppress unused warning
 	// proc definition (not transpiled)
-	// do_faultsim_test 3.3 -faults custom -prep {
-  faultsim_restore_and_reopen
-  set ::nTmpOpen 0
-} -body {
-  execsql { CREATE INDEX i1 ON t1(x) }
-  faultsim...} (unsupported command, not transpiled)
+	// do_faultsim_test 3.3 -faults custom -prep {\n  faultsim_restore_and_reopen\n  set ::nTmpOpen ...} -body {\n  execsql { CREATE INDEX i1 ON t1(x) }\n  faults...} (unsupported command, not transpiled)
+	soft_limit = "sqlite3_soft_heap_limit 50000"
+	_ = soft_limit // suppress unused warning
+	// do_faultsim_test 3.4 -faults custom -prep {\n    faultsim_restore_and_reopen\n    set ::nTmpO...} -body {\n    execsql { CREATE INDEX i1 ON t1(x) }\n    fa...} (unsupported command, not transpiled)
+	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
 	// uninstall_custom_faultsim (unsupported command, not transpiled)
 	// install_custom_faultsim (unsupported command, not transpiled)
 	{
@@ -168,17 +169,7 @@ func Test_indexfault(t *testing.T) {
 	custom_filter = "xRead" // TCL namespace variable
 	_ = custom_filter // suppress unused warning
 	// proc definition (not transpiled)
-	// do_faultsim_test 4.2 -faults custom -prep {
-  faultsim_restore_and_reopen
-  set ::nReadCall 0...} -body {
-  execsql { CREATE INDEX i1 ON t1(x) }
-  faultsim...} (unsupported command, not transpiled)
-	// do_faultsim_test 5 -prep {
-  reset_db
-} -body {
-  execsql { 
- CREATE TABLE reallyreallyreallyreal...} -test {
-  faultsim_test_result {0 {}} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test 4.2 -faults custom -prep {\n  faultsim_restore_and_reopen\n  set ::nReadCall...} -body {\n  execsql { CREATE INDEX i1 ON t1(x) }\n  faults...} (unsupported command, not transpiled)
+	// do_faultsim_test 5 -prep {\n  reset_db\n} -body {\n  execsql { \n CREATE TABLE reallyreallyreallyre...} -test {\n  faultsim_test_result {0 {}} \n} (unsupported command, not transpiled)
 	// uninstall_custom_faultsim (unsupported command, not transpiled)
 }

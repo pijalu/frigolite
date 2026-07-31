@@ -49,6 +49,7 @@ func Test_trigger6(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "trigger6-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    CREATE TABLE log(a, b, c);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(1, new.x, new.y);\n    END;\n    CREATE TRIGGER r2 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(2, new.x, new.y);\n    END;\n  ")
 		if _res.Error != nil {

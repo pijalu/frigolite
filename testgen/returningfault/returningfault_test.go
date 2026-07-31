@@ -58,10 +58,17 @@ func Test_returningfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { 
-    INSERT INTO t1(b) VALUES(65) RET...} -test {
-  faultsim_test_result {1 {sub-select returns 5 c...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    INSERT INTO t1(b) VALUES(65) R...} -test {\n  faultsim_test_result {1 {sub-select returns 5 ...} (unsupported command, not transpiled)
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "2.0"
+		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n  ")
+		}
+	}
+	// proc definition (not transpiled)
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults oom* -prep {\n    faultsim_restore_and_reopen\n    register_tc...} -body {\n    db eval {\n      INSERT INTO tcl VALUES('hel...} -test {\n    faultsim_test_result {0 {hello world}} {1 {v...} (unsupported command, not transpiled)
 }

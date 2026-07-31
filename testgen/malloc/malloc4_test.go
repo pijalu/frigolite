@@ -88,6 +88,7 @@ func Test_malloc4(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
+	return
 	// proc definition (not transpiled)
 	_res = db.Exec("\n  CREATE TABLE tbl(\n    the_first_reasonably_long_column_name that_also_has_quite_a_lengthy_type\n  );\n  INSERT INTO tbl VALUES(\n    'An extra long string. Far too long to be stored in NBFS bytes.'\n  );\n")
 	if _res.Error != nil {

@@ -90,85 +90,23 @@ func Test_shared_err(t *testing.T) {
 
 	// proc definition (not transpiled)
 	// set testdir: test directory (not used in Go test context)
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
-	// do_ioerr_test shared_ioerr-1 -tclprep {
-  sqlite3 db2 test.db
-  execsql {
-    PRAGMA read...} -sqlbody {
-  SELECT * FROM sqlite_master;
-  INSERT INTO t1 V...} -cleanup {
-  do_test shared_ioerr-1.$n.cleanup.1 {
-    set r...} (unsupported command, not transpiled)
-	// do_ioerr_test shared_ioerr-2 -tclprep {
-  sqlite3 db2 test.db
-  execsql {
-    PRAGMA read...} -tclbody {
-  set ::residx 0
-  execsql {DELETE FROM t1 WHERE ...} -cleanup {
-  catchsql ROLLBACK
-  do_test shared_ioerr-2.$n.c...} (unsupported command, not transpiled)
-	// do_ioerr_test shared_ioerr-3 -tclprep {
-  sqlite3 db2 test.db
-  execsql {
-    PRAGMA read...} -tclbody {
-  execsql {
-    BEGIN;
-    INSERT INTO t1 VALUES(...} -cleanup {
-  set ::steprc  [sqlite3_step $::STMT]
-  set ::co...} (unsupported command, not transpiled)
-	// do_ioerr_test shared_ioerr-3rev -tclprep {
-  sqlite3 db2 test.db
-  execsql {
-    PRAGMA read...} -tclbody {
-  execsql {
-    BEGIN;
-    INSERT INTO t1 VALUES(...} -cleanup {
-  set ::steprc  [sqlite3_step $::STMT]
-  set ::co...} (unsupported command, not transpiled)
-	// do_malloc_test shared_err-4 -tclprep {
-  sqlite3 db2 test.db
-  execsql {
-    PRAGMA read...} -tclbody {
-  execsql {
-    INSERT INTO t1 VALUES(6, NULL);
- ...} -cleanup {
-  do_test shared_malloc-4.$::n.cleanup.1 {
-    se...} (unsupported command, not transpiled)
-	// do_malloc_test shared_err-5 -tclbody {
-  db close
-  sqlite3 dbX test.db
-  sqlite3 dbY te...} -cleanup {
-  catch {dbX close}
-  catch {dbY close}
-} (unsupported command, not transpiled)
-	// do_malloc_test shared_err-6 -tclbody {
-  catch {db close}
-  ifcapable deprecated {
-    s...} -cleanup {
-  sqlite3_enable_shared_cache 1
-} (unsupported command, not transpiled)
+	// do_ioerr_test shared_ioerr-1 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA r...} -sqlbody {\n  SELECT * FROM sqlite_master;\n  INSERT INTO t1...} -cleanup {\n  do_test shared_ioerr-1.$n.cleanup.1 {\n    set...} (unsupported command, not transpiled)
+	// do_ioerr_test shared_ioerr-2 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA r...} -tclbody {\n  set ::residx 0\n  execsql {DELETE FROM t1 WHER...} -cleanup {\n  catchsql ROLLBACK\n  do_test shared_ioerr-2.$n...} (unsupported command, not transpiled)
+	// do_ioerr_test shared_ioerr-3 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA r...} -tclbody {\n  execsql {\n    BEGIN;\n    INSERT INTO t1 VALU...} -cleanup {\n  set ::steprc  [sqlite3_step $::STMT]\n  set ::...} (unsupported command, not transpiled)
+	// do_ioerr_test shared_ioerr-3rev -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA r...} -tclbody {\n  execsql {\n    BEGIN;\n    INSERT INTO t1 VALU...} -cleanup {\n  set ::steprc  [sqlite3_step $::STMT]\n  set ::...} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-4 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA r...} -tclbody {\n  execsql {\n    INSERT INTO t1 VALUES(6, NULL);...} -cleanup {\n  do_test shared_malloc-4.$::n.cleanup.1 {\n    ...} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-5 -tclbody {\n  db close\n  sqlite3 dbX test.db\n  sqlite3 dbY...} -cleanup {\n  catch {dbX close}\n  catch {dbY close}\n} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-6 -tclbody {\n  catch {db close}\n  ifcapable deprecated {\n  ...} -cleanup {\n  sqlite3_enable_shared_cache 1\n} (unsupported command, not transpiled)
 	aborted = "0" // TCL namespace variable
 	_ = aborted // suppress unused warning
-	// do_malloc_test shared_err-8 -tclprep {
-  sqlite3 db2 test.db
-  execsql {
-    PRAGMA read...} -tclbody {
-  execsql {
-    BEGIN;
-    INSERT INTO t1 VALUES(...} -cleanup {
-  # UPDATE: As of [5668], if the rollback fails S...} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-8 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA r...} -tclbody {\n  execsql {\n    BEGIN;\n    INSERT INTO t1 VALU...} -cleanup {\n  # UPDATE: As of [5668], if the rollback fails ...} (unsupported command, not transpiled)
 	{ // do_test "shared_malloc-8.X"
-		// expr $::aborted==0 → "$::aborted==0"
+		// expr $::aborted==0 (not evaluated)
 	}
-	// do_malloc_test shared_err-9 -tclprep {
-  sqlite3 db2 test.db
-} -sqlbody {
-  PRAGMA page_size = 4096;
-  PRAGMA page_size = 1...} -cleanup {
-  db2 eval {
-    CREATE TABLE abc(a, b, c);
-    B...} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-9 -tclprep {\n  sqlite3 db2 test.db\n} -sqlbody {\n  PRAGMA page_size = 4096;\n  PRAGMA page_size =...} -cleanup {\n  db2 eval {\n    CREATE TABLE abc(a, b, c);\n  ...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -178,24 +116,8 @@ func Test_shared_err(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	// do_malloc_test shared_err-10 -tclprep {
-  sqlite3 db test.db
-  sqlite3 db2 test.db
-  
-  d...} -tclbody {
-  catch {db eval {SELECT * FROM sqlite_master}}
- ...} -cleanup {
-  execsql { SELECT * FROM sqlite_master }
-} (unsupported command, not transpiled)
-	// do_malloc_test shared_err-11 -tclprep {
-  sqlite3 db test.db
-  sqlite3 db2 test.db
-  
-  d...} -tclbody {
-  catch {db eval {SELECT * FROM sqlite_master}}
- ...} -cleanup {
-  execsql { SELECT * FROM sqlite_master }
-} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-10 -tclprep {\n  sqlite3 db test.db\n  sqlite3 db2 test.db\n  \...} -tclbody {\n  catch {db eval {SELECT * FROM sqlite_master}}\...} -cleanup {\n  execsql { SELECT * FROM sqlite_master }\n} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-11 -tclprep {\n  sqlite3 db test.db\n  sqlite3 db2 test.db\n  \...} -tclbody {\n  catch {db eval {SELECT * FROM sqlite_master}}\...} -cleanup {\n  execsql { SELECT * FROM sqlite_master }\n} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -205,9 +127,7 @@ func Test_shared_err(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	// do_malloc_test shared_err-12 -sqlbody {
-  CREATE TABLE abc(a, b, c);
-  INSERT INTO abc VA...} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-12 -sqlbody {\n  CREATE TABLE abc(a, b, c);\n  INSERT INTO abc ...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

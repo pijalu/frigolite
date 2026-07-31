@@ -56,6 +56,37 @@ func Test_altertab2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altertab2"
 	_ = testprefix // suppress unused warning
+	return
+	{ // "1.0"
+		r = db.Query("\n    CREATE TABLE rr(a, b);\n    CREATE VIRTUAL TABLE ff USING fts5(a, b);\n    CREATE TRIGGER tr1 AFTER INSERT ON rr BEGIN\n      INSERT INTO ff VALUES(new.a, new.b);\n    END;\n    INSERT INTO rr VALUES('hello', 'world');\n    SELECT * FROM ff;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE rr(a, b);\n    CREATE VIRTUAL TABLE ff USING fts5(a, b);\n    CREATE TRIGGER tr1 AFTER INSERT ON rr BEGIN\n      INSERT INTO ff VALUES(new.a, new.b);\n    END;\n    INSERT INTO rr VALUES('hello', 'world');\n    SELECT * FROM ff;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.1"
+		_res = db.Exec("\n    ALTER TABLE ff RENAME TO ffff;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE ff RENAME TO ffff;\n  ")
+		}
+	}
+	{ // "1.2"
+		r = db.Query("\n    INSERT INTO rr VALUES('in', 'tcl');\n    SELECT * FROM ffff;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO rr VALUES('in', 'tcl');\n    SELECT * FROM ffff;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "hello world in tcl"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE p1(a PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1);\n  CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES p1);\n  CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES p1(a));\n")
 		if _res.Error != nil {
@@ -200,6 +231,48 @@ func Test_altertab2(t *testing.T) {
 			want := "\n{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,ddd)=(aaa,b);\n  END}\n"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "5.0"
+			_res = db.Exec("\n  CREATE TABLE t2(a);\n  CREATE TRIGGER r2 AFTER INSERT ON t2 WHEN new.a NOT NULL BEGIN\n    SELECT a, sum(a) OVER w1 FROM t2\n      WINDOW w1 AS (\n        PARTITION BY a ORDER BY a \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY a\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a);\n  CREATE TRIGGER r2 AFTER INSERT ON t2 WHEN new.a NOT NULL BEGIN\n    SELECT a, sum(a) OVER w1 FROM t2\n      WINDOW w1 AS (\n        PARTITION BY a ORDER BY a \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY a\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END;\n")
+			}
+		}
+		{ // "5.0.1"
+			_res = db.Exec("\n  INSERT INTO t2 VALUES(1);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2 VALUES(1);\n")
+			}
+		}
+		{ // "5.1"
+			r = db.Query("\n  ALTER TABLE t2 RENAME TO t2x;\n  SELECT sql FROM sqlite_master WHERE name = 'r2';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2 RENAME TO t2x;\n  SELECT sql FROM sqlite_master WHERE name = 'r2';\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  {CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.a NOT NULL BEGIN\n    SELECT a, sum(a) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY a ORDER BY a \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY a\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END}\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "5.2"
+			r = db.Query("\n  ALTER TABLE t2x RENAME a TO aaaa;\n  SELECT sql FROM sqlite_master WHERE name = 'r2';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2x RENAME a TO aaaa;\n  SELECT sql FROM sqlite_master WHERE name = 'r2';\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  {CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.aaaa NOT NULL BEGIN\n    SELECT aaaa, sum(aaaa) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY aaaa ORDER BY aaaa \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY aaaa\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END}\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "5.3"
+			_res = db.Exec("\n  INSERT INTO t2x VALUES(1);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2x VALUES(1);\n")
 			}
 		}
 		{ // "6.0"

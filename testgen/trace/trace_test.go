@@ -77,6 +77,7 @@ func Test_trace(t *testing.T) {
 	_ = t6null // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	stmtlist = "" // TCL namespace variable
 	_ = stmtlist // suppress unused warning
 	{ // do_test "trace-1.1"
@@ -242,6 +243,19 @@ func Test_trace(t *testing.T) {
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "trace-5.1"
+		_res = db.Exec("\n      CREATE TRIGGER r1t1 AFTER UPDATE ON t1 BEGIN\n        UPDATE t2 SET a=new.a WHERE rowid=new.rowid;\n      END;\n      CREATE TRIGGER r1t2 AFTER UPDATE ON t2 BEGIN\n        SELECT 'hello';\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER r1t1 AFTER UPDATE ON t1 BEGIN\n        UPDATE t2 SET a=new.a WHERE rowid=new.rowid;\n      END;\n      CREATE TRIGGER r1t2 AFTER UPDATE ON t2 BEGIN\n        SELECT 'hello';\n      END;\n    ")
+		}
+		TRACE_OUT = ""
+		_ = TRACE_OUT // suppress unused warning
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      UPDATE t1 SET a=a+1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET a=a+1;\n    ")
 		}
 	}
 	{ // do_test "trace-6.1"

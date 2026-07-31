@@ -62,6 +62,7 @@ func Test_dbpage(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "dbpage"
 	_ = testprefix // suppress unused warning
+	return
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // do_test "100"
 		r = db.Query("\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;\n  ")

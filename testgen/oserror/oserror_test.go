@@ -3,6 +3,7 @@ package oserror
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -111,9 +112,7 @@ func Test_oserror(t *testing.T) {
 			}
 		}
 		if tclBool(rc) {
-			// do_re_test 1.1.3 { 
-      lindex $::log 0 
-    } {^os_unix.c:\d+: \(\d+\) (open|getcwd)\(.*test.db\)...} (unsupported command, not transpiled)
+			// do_re_test 1.1.3 { \n      lindex $::log 0 \n    } {^os_unix.c:\d+: \(\d+\) (open|getcwd)\(.*test.db\)...} (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "1.2.1"
@@ -137,9 +136,24 @@ func Test_oserror(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	// do_re_test 1.4.2 { 
-  lindex $::log 0
-} {^os_unix.c:\d*: \(\d+\) (open|readlink|lstat)\(.*t...} (unsupported command, not transpiled)
+	// do_re_test 1.4.2 { \n  lindex $::log 0\n} {^os_unix.c:\d*: \(\d+\) (open|readlink|lstat)\(.*t...} (unsupported command, not transpiled)
+	{ // do_test "2.1.1"
+		log = "list" // TCL namespace variable
+		_ = log // suppress unused warning
+		// file mkdir test.db-wal
+		os.Remove("test.db")
+		_list := tclList([]string{"0", msg})
+		_ = _list
+	}
+	// do_re_test 2.1.2 { \n    lindex $::log 0 \n  } {^os_unix.c:\d+: \(\d+\) unlink\(.*test.db-wal\) - } (unsupported command, not transpiled)
+	{ // do_test "2.1.3"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			// dbh close (unsupported command, not transpiled)
+		}
+		os.Remove("test.db-wal")
+	}
 	// test_syscall reset (unsupported command, not transpiled)
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log (unsupported command, not transpiled)

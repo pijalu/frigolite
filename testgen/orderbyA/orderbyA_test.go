@@ -103,18 +103,12 @@ func Test_orderbyA(t *testing.T) {
 				nomatch = "1"
 				_ = nomatch // suppress unused warning
 			}
-			// do_sortcount_test 1.$tn.1.1 {
-    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {one 6 three 24 two 15} (unsupported command, not transpiled)
-			// do_sortcount_test 1.$tn.1.2 {
-    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {two 15 three 24 one 6} (unsupported command, not transpiled)
-			// do_sortcount_test 1.$tn.2.1 {
-    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15} (unsupported command, not transpiled)
-			// do_sortcount_test 1.$tn.2.2 {
-    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6} (unsupported command, not transpiled)
-			// do_sortcount_test 1.$tn.3.1 {
-    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15} (unsupported command, not transpiled)
-			// do_sortcount_test 1.$tn.3.2 {
-    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.1.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY...} $match {one 6 three 24 two 15} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.1.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY...} $match {two 15 three 24 one 6} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.2.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY...} $nomatch {one 6 three 24 two 15} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.2.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY...} $nomatch {two 15 three 24 one 6} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.3.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY...} $nomatch {one 6 three 24 two 15} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.3.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY...} $nomatch {two 15 three 24 one 6} (unsupported command, not transpiled)
 		}
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 'one', 1);\n  INSERT INTO t2 VALUES(1, 'two', 2);\n  INSERT INTO t2 VALUES(1, 'one', 3);\n  INSERT INTO t2 VALUES(1, 'two', 4);\n  INSERT INTO t2 VALUES(1, 'one', 5);\n  INSERT INTO t2 VALUES(1, 'two', 6);\n\n  INSERT INTO t2 VALUES(2, 'one', 7);\n  INSERT INTO t2 VALUES(2, 'two', 8);\n  INSERT INTO t2 VALUES(2, 'one', 9);\n  INSERT INTO t2 VALUES(2, 'two', 10);\n  INSERT INTO t2 VALUES(2, 'one', 11);\n  INSERT INTO t2 VALUES(2, 'two', 12);\n\n  INSERT INTO t2 VALUES(NULL, 'one', 13);\n  INSERT INTO t2 VALUES(NULL, 'two', 14);\n  INSERT INTO t2 VALUES(NULL, 'one', 15);\n  INSERT INTO t2 VALUES(NULL, 'two', 16);\n  INSERT INTO t2 VALUES(NULL, 'one', 17);\n  INSERT INTO t2 VALUES(NULL, 'two', 18);\n")
@@ -138,23 +132,17 @@ func Test_orderbyA(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 				}
-				nSort = "($tn==2 || $tn==3) ? 0 : 1"
+				nSort = tclExpr("($tn==2 || $tn==3) ? 0 : 1")
 				_ = nSort // suppress unused warning
-				// do_sortcount_test 2.$tn.1.1 {
-    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {{} one 45  {} two 48  1 one 9  1 two 12  2 one 27 ...} (unsupported command, not transpiled)
-				// do_sortcount_test 2.$tn.1.2 {
-    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {2 two 30  2 one 27  1 two 12  1 one 9  {} two 48  ...} (unsupported command, not transpiled)
-				nSort = "($tn==4 || $tn==5) ? 0 : 1"
+				// do_sortcount_test 2.$tn.1.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b OR...} $nSort {{} one 45  {} two 48  1 one 9  1 two 12  2 one 27 ...} (unsupported command, not transpiled)
+				// do_sortcount_test 2.$tn.1.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b OR...} $nSort {2 two 30  2 one 27  1 two 12  1 one 9  {} two 48  ...} (unsupported command, not transpiled)
+				nSort = tclExpr("($tn==4 || $tn==5) ? 0 : 1")
 				_ = nSort // suppress unused warning
-				// do_sortcount_test 2.$tn.2.1 {
-    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...} (unsupported command, not transpiled)
-				// do_sortcount_test 2.$tn.2.2 {
-    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...} (unsupported command, not transpiled)
-				nSort = "$tn==1 ? 2 : 1"
+				// do_sortcount_test 2.$tn.2.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b OR...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...} (unsupported command, not transpiled)
+				// do_sortcount_test 2.$tn.2.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b OR...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...} (unsupported command, not transpiled)
+				nSort = tclExpr("$tn==1 ? 2 : 1")
 				_ = nSort // suppress unused warning
-				// do_sortcount_test 2.$tn.3.1 {
-    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...} (unsupported command, not transpiled)
-				// do_sortcount_test 2.$tn.3.2 {
-    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...} (unsupported command, not transpiled)
+				// do_sortcount_test 2.$tn.3.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b OR...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...} (unsupported command, not transpiled)
+				// do_sortcount_test 2.$tn.3.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b OR...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...} (unsupported command, not transpiled)
 			}
 }

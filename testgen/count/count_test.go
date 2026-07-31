@@ -174,6 +174,14 @@ func Test_count(t *testing.T) {
 	{ // do_test "count-2.13"
 		// uses_op_count {SELECT count(*) FROM t1, t2} (unsupported command, not transpiled)
 	}
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	{ // do_test "count-2.14"
+		_res = db.Exec(" CREATE VIRTUAL TABLE techo USING echo(t1); ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE techo USING echo(t1); ")
+		}
+		// uses_op_count {SELECT count(*) FROM techo} (unsupported command, not transpiled)
+	}
 	{ // do_test "count-3.1"
 		r = db.Query("\n    CREATE TABLE t3(a, b);\n    SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==0;\n  ")
 		if r.Error != nil {

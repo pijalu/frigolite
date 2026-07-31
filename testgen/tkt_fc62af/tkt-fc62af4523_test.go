@@ -63,10 +63,7 @@ func Test_tkt_fc62af4523(t *testing.T) {
 	_ = _chan // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "tkt-fc62af4523.2"
-		// testfixture $::chan {
-    sqlite3 db test.db
-    db eval {
-      PRAGMA...} (unsupported command, not transpiled)
+		// testfixture $::chan {\n    sqlite3 db test.db\n    db eval {\n      PRA...} (unsupported command, not transpiled)
 		// file exists "test.db-journal"
 	}
 	{ // do_test "tkt-fc62af4523.3"

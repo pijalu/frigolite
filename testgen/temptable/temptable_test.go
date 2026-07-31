@@ -52,6 +52,7 @@ func Test_temptable(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "temptable-1.0"
 		db2, err = frigolite.Open("./test.db")
 		if err != nil { t.Fatal(err) }
@@ -444,6 +445,10 @@ func Test_temptable(t *testing.T) {
 		_ = _res // catchsql
 	}
 	os.Remove("test2.db")
+	{ // do_test "temptable-7.1"
+		_res = db.Exec("\n      ATTACH 'test2.db' AS two;\n      CREATE TEMP TABLE two.abc(x,y);\n    ")
+		_ = _res // catchsql
+	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

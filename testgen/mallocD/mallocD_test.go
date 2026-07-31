@@ -60,16 +60,9 @@ func Test_mallocD(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	PREP = " \n  PRAGMA page_size = 1024;\n  CREATE TABLE abc(a, b, c);\n"
 	_ = PREP // suppress unused warning
-	// do_malloc_test mallocD-1 -sqlprep $PREP -sqlbody { 
-  INSERT INTO abc VALUES(1, 2, 3);
-} (unsupported command, not transpiled)
-	// do_malloc_test mallocD-2 -sqlprep $PREP -sqlbody {
-  BEGIN;
-  INSERT INTO abc VALUES(1, 2, 3);
-  INS...} (unsupported command, not transpiled)
-	// do_malloc_test mallocD-3 -sqlprep $PREP -sqlbody {
-  BEGIN;
-  INSERT INTO abc VALUES(1, 2, 3);
-  INS...} (unsupported command, not transpiled)
+	// do_malloc_test mallocD-1 -sqlprep $PREP -sqlbody { \n  INSERT INTO abc VALUES(1, 2, 3);\n} (unsupported command, not transpiled)
+	// do_malloc_test mallocD-2 -sqlprep $PREP -sqlbody {\n  BEGIN;\n  INSERT INTO abc VALUES(1, 2, 3);\n  ...} (unsupported command, not transpiled)
+	// do_malloc_test mallocD-3 -sqlprep $PREP -sqlbody {\n  BEGIN;\n  INSERT INTO abc VALUES(1, 2, 3);\n  ...} (unsupported command, not transpiled)
+	// do_malloc_test mallocD-4 -sqlprep $PREP -sqlbody {\n    ATTACH 'test2.db' AS aux;\n    BEGIN;\n    C...} (unsupported command, not transpiled)
 	// sqlite3_simulate_device -char {} (unsupported command, not transpiled)
 }

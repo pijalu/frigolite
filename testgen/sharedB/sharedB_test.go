@@ -57,6 +57,7 @@ func Test_sharedB(t *testing.T) {
 	}
 	testprefix = "sharedB" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "1.1"

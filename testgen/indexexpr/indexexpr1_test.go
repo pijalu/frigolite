@@ -198,6 +198,30 @@ func Test_indexexpr1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "indexexpr1-160"
+		r = db.Query("\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET d=length(a);\n    CREATE INDEX t1a2 ON t1(SUBSTR(a, 27, 3)) WHERE d>=29;\n    SELECT rowid, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET d=length(a);\n    CREATE INDEX t1a2 ON t1(SUBSTR(a, 27, 3)) WHERE d>=29;\n    SELECT rowid, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "indexexpr1-160eqp"
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n      SELECT rowid, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n      SELECT rowid, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "/USING INDEX t1a2/"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "indexexpr1-170"
 		r = db.Query("\n  CREATE INDEX t1alen ON t1(length(a));\n  SELECT length(a) FROM t1 ORDER BY length(a);\n")
 		if r.Error != nil {
@@ -392,6 +416,30 @@ func Test_indexexpr1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "/USING COVERING INDEX t1abx/"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "indexexpr1-260"
+		r = db.Query("\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET d=length(a);\n    CREATE INDEX t1a2 ON t1(SUBSTR(a, 27, 3)) WHERE d>=29;\n    SELECT id, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET d=length(a);\n    CREATE INDEX t1a2 ON t1(SUBSTR(a, 27, 3)) WHERE d>=29;\n    SELECT id, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "indexexpr1-260eqp"
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n      SELECT id, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n      SELECT id, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "/USING INDEX t1a2/"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -750,6 +798,42 @@ func Test_indexexpr1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "indexexpr1-1800"
+		r = db.Query("\n    DROP TABLE IF EXISTS t0;\n    CREATE TABLE t0(c0 REAL, c1 TEXT);\n    CREATE INDEX i0 ON t0(+c0, c0);\n    INSERT INTO t0(c0) VALUES(0);\n    SELECT CAST(+ t0.c0 AS BLOB) LIKE 0 FROM t0; \n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t0;\n    CREATE TABLE t0(c0 REAL, c1 TEXT);\n    CREATE INDEX i0 ON t0(+c0, c0);\n    INSERT INTO t0(c0) VALUES(0);\n    SELECT CAST(+ t0.c0 AS BLOB) LIKE 0 FROM t0; \n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "indexexpr1-1810"
+		r = db.Query("\n    SELECT CAST(+ t0.c0 AS BLOB) LIKE '0.0' FROM t0; \n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CAST(+ t0.c0 AS BLOB) LIKE '0.0' FROM t0; \n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "indexexpr1-1820"
+		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x REAL);\n    CREATE INDEX t1x ON t1(x, +x);\n    INSERT INTO t1(x) VALUES(2);\n    SELECT +x FROM t1 WHERE x=2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x REAL);\n    CREATE INDEX t1x ON t1(x, +x);\n    INSERT INTO t1(x) VALUES(2);\n    SELECT +x FROM t1 WHERE x=2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -766,9 +850,15 @@ func Test_indexexpr1(t *testing.T) {
 		}
 	}
 	{ // "indexexpr1-1910"
-		_res = db.Exec("\n  DELETE FROM t1 INDEXED BY i1 \n   WHERE x IS +y COLLATE NOCASE IN (SELECT z FROM t1)\n  RETURNING *;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 INDEXED BY i1 \n   WHERE x IS +y COLLATE NOCASE IN (SELECT z FROM t1)\n  RETURNING *;\n")
+		r = db.Query("\n  DELETE FROM t1 INDEXED BY i1 \n   WHERE x IS +y COLLATE NOCASE IN (SELECT z FROM t1)\n  RETURNING *;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 INDEXED BY i1 \n   WHERE x IS +y COLLATE NOCASE IN (SELECT z FROM t1)\n  RETURNING *;\n")
+			return
+		}
+		got := flatten(r)
+		want := "alpha ALPHA 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "indexexpr1-1920"

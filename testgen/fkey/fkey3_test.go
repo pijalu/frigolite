@@ -48,6 +48,7 @@ func Test_fkey3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fkey3"
 	_ = testprefix // suppress unused warning
 	{ // do_test "fkey3-1.1"

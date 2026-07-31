@@ -954,16 +954,34 @@ func Test_trans(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		}
 	}
+	{ // do_test "trans-7.9"
+		r = db.Query("\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
+		}
+	}
 	{ // do_test "trans-7.10"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		}
 	}
+	{ // do_test "trans-7.11"
+		r = db.Query("\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
+		}
+	}
 	{ // do_test "trans-7.12"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+		}
+	}
+	{ // do_test "trans-7.13"
+		r = db.Query("\n      BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		}
 	}
 	{ // do_test "trans-7.14"
@@ -1054,7 +1072,7 @@ func Test_trans(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
 		sig = "signature" // TCL namespace variable
 		_ = sig // suppress unused warning
-		cnt = "lindex $::sig 0"
+		cnt = tclLIndex(sig, "0")
 		_ = cnt // suppress unused warning
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%2 == 0 }() {
 			r = db.Query("PRAGMA fullfsync=ON")
@@ -1095,7 +1113,10 @@ func Test_trans(t *testing.T) {
 			// catch (non-braced)
 			if tcl_platform_platform == "unix" {
 				{ // do_test "trans-9." + i + ".4-" + cnt
-					// expr $sqlite_sync_count>0 → "$sqlite_sync_count>0"
+					// expr $sqlite_sync_count>0 (not evaluated)
+				}
+				{ // do_test "trans-9." + i + ".5-" + cnt
+					// expr $sqlite_fullsync_count>0 (not evaluated)
 				}
 			}
 		}

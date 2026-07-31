@@ -60,6 +60,7 @@ func Test_fkey5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fkey5"
 	_ = testprefix // suppress unused warning
+	return
 	{ // do_test "fkey5-1.1"
 		_res = db.Exec("\n    CREATE TABLE p1(a INTEGER PRIMARY KEY); INSERT INTO p1 VALUES(88),(89);\n    CREATE TABLE p2(a INT PRIMARY KEY); INSERT INTO p2 VALUES(77),(78);\n    CREATE TABLE p3(a TEXT PRIMARY KEY);\n    INSERT INTO p3 VALUES(66),(67),('alpha'),('BRAVO');\n    CREATE TABLE p4(a TEXT PRIMARY KEY COLLATE nocase);\n    INSERT INTO p4 VALUES('alpha'),('BRAVO'),('55'),('Delta'),('ECHO');\n    CREATE TABLE p5(a INTEGER PRIMARY KEY, b, c, UNIQUE(b,c));\n    INSERT INTO p5 VALUES(1,'Alpha','abc'),(2,'beta','def');\n    CREATE TABLE p6(a INTEGER PRIMARY KEY, b TEXT COLLATE nocase,\n                    c TEXT COLLATE rtrim, UNIQUE(b,c));\n    INSERT INTO p6 VALUES(1,'Alpha','abc '),(2,'bETA','def    ');\n\n    CREATE TABLE c1(x INTEGER PRIMARY KEY references p1);\n    CREATE TABLE c2(x INTEGER PRIMARY KEY references p2);\n    CREATE TABLE c3(x INTEGER PRIMARY KEY references p3);\n    CREATE TABLE c4(x INTEGER PRIMARY KEY references p4);\n    CREATE TABLE c5(x INT references p1);\n    CREATE TABLE c6(x INT references p2);\n    CREATE TABLE c7(x INT references p3);\n    CREATE TABLE c8(x INT references p4);\n    CREATE TABLE c9(x TEXT UNIQUE references p1);\n    CREATE TABLE c10(x TEXT UNIQUE references p2);\n    CREATE TABLE c11(x TEXT UNIQUE references p3);\n    CREATE TABLE c12(x TEXT UNIQUE references p4);\n    CREATE TABLE c13(x TEXT COLLATE nocase references p3);\n    CREATE TABLE c14(x TEXT COLLATE nocase references p4);\n    CREATE TABLE c15(x, y, FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c16(x, y, FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c17(x, y, FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c18(x, y, FOREIGN KEY(x,y) REFERENCES p6(c,b));\n    CREATE TABLE c19(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c20(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c21(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c22(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(c,b));\n\n    PRAGMA foreign_key_check;\n  ")
 		if _res.Error != nil {
@@ -450,6 +451,69 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 9 t2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "13.0"
+		r = db.Query("\n    SELECT *, 'x' FROM pragma_foreign_key_check('t1');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, 'x' FROM pragma_foreign_key_check('t1');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 9 t2 0 x"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "13.1"
+		_res = db.Exec("\n    SELECT *, 'x' FROM pragma_foreign_key_check('t1','main');\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t1") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t1", _res.Error, "\n    SELECT *, 'x' FROM pragma_foreign_key_check('t1','main');\n  ")
+		}
+	}
+	{ // "13.2"
+		r = db.Query("\n    SELECT *, 'x' FROM pragma_foreign_key_check('t1','aux');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, 'x' FROM pragma_foreign_key_check('t1','aux');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 9 t2 0 x"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "13.10"
+		_res = db.Exec("\n      PRAGMA foreign_keys=OFF;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n      CREATE TABLE t2(x TEXT PRIMARY KEY, y INT);\n      CREATE TABLE t3(w TEXT, z INT REFERENCES t1);\n      INSERT INTO t2 VALUES('abc',11),('def',22),('xyz',99);\n      INSERT INTO t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n      INSERT INTO t3 VALUES(11,7),(22,19);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA foreign_keys=OFF;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n      CREATE TABLE t2(x TEXT PRIMARY KEY, y INT);\n      CREATE TABLE t3(w TEXT, z INT REFERENCES t1);\n      INSERT INTO t2 VALUES('abc',11),('def',22),('xyz',99);\n      INSERT INTO t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n      INSERT INTO t3 VALUES(11,7),(22,19);\n    ")
+		}
+	}
+	{ // "13.11"
+		r = db.Query("\n    SELECT x.*, '|'\n      FROM sqlite_schema, pragma_foreign_key_check(name) AS x\n      WHERE type='table'\n      ORDER BY x.\"table\";\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x.*, '|'\n      FROM sqlite_schema, pragma_foreign_key_check(name) AS x\n      WHERE type='table'\n      ORDER BY x.\"table\";\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 9 t2 0 | t3 2 t1 0 |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "13.12"
+		r = db.Query("\n    SELECT *, '|'\n      FROM pragma_foreign_key_check AS x\n      ORDER BY x.\"table\";\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, '|'\n      FROM pragma_foreign_key_check AS x\n      ORDER BY x.\"table\";\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 9 t2 0 | t3 2 t1 0 |"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

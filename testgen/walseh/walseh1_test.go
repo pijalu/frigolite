@@ -86,62 +86,26 @@ func Test_walseh1(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -faults seh -prep {
-  catch { db2 close }
-  faultsim_restore_and_reop...} -body {
-  execsql { SELECT * FROM t1 } db2
-} -test {
-  faultsim_test_result {0 {1 2 3 4}} 
-  if {$test...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults seh -prep {\n  catch { db2 close }\n  faultsim_restore_and_re...} -body {\n  execsql { SELECT * FROM t1 } db2\n} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n  if {$te...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 2 -faults seh -prep {
-  catch { db close }
-  faultsim_restore_and_reope...} -body {
-  execsql { SELECT * FROM t1 } 
-} -test {
-  faultsim_test_result {0 {1 2 3 4}} 
-  if {$test...} (unsupported command, not transpiled)
-	// do_faultsim_test 3 -faults seh -prep {
-  catch { db close }
-  faultsim_restore_and_reope...} -body {
-  execsql { INSERT INTO t1 VALUES(5, 6) }
-  execs...} -test {
-  faultsim_test_result {0 {1 2 3 4 5 6}} 
-  if {$...} (unsupported command, not transpiled)
-	// do_faultsim_test 4 -faults seh -prep {
-  catch { db close }
-  faultsim_restore_and_reope...} -body {
-  execsql { PRAGMA wal_checkpoint }
-  execsql { I...} -test {
-  faultsim_test_result {0 {1 2 3 4 7 8}} 
-  if {$...} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reo...} -body {\n  execsql { SELECT * FROM t1 } \n} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n  if {$te...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reo...} -body {\n  execsql { INSERT INTO t1 VALUES(5, 6) }\n  exe...} -test {\n  faultsim_test_result {0 {1 2 3 4 5 6}} \n  if ...} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reo...} -body {\n  execsql { PRAGMA wal_checkpoint }\n  execsql {...} -test {\n  faultsim_test_result {0 {1 2 3 4 7 8}} \n  if ...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	// do_faultsim_test 5 -faults seh -prep {
-  catch { db close }
-  faultsim_restore_and_reope...} -body {
-  execsql ROLLBACK
-} -test {
-  faultsim_test_result {0 {}}
-  if {$testrc} { te...} (unsupported command, not transpiled)
+	// do_faultsim_test 5 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reo...} -body {\n  execsql ROLLBACK\n} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc} { ...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	// do_faultsim_test 6 -faults seh -prep {
-  catch { db close }
-  faultsim_restore_and_reope...} -body {
-  execsql { PRAGMA wal_checkpoint = TRUNCATE }
-  ...} -test {
-  faultsim_test_result {0 {1 2 3 4 7 8}} 
-  if {$...} (unsupported command, not transpiled)
+	// do_faultsim_test 6 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reo...} -body {\n  execsql { PRAGMA wal_checkpoint = TRUNCATE }\n...} -test {\n  faultsim_test_result {0 {1 2 3 4 7 8}} \n  if ...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

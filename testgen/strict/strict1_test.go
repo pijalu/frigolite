@@ -92,6 +92,18 @@ func Test_strict1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c BLOB,\n    d TEXT,\n    e REAL\n  ) STRICT;\n")
 		}
 	}
+	{ // "strict1-2.0a"
+		r = db.Query("\n    SELECT strict FROM pragma_table_list('t1');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT strict FROM pragma_table_list('t1');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "strict1-2.1"
 		_res = db.Exec("\n  INSERT INTO t1(a) VALUES('xyz');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store TEXT value in INT column t1.a") {
@@ -216,6 +228,30 @@ func Test_strict1(t *testing.T) {
 		_res = db.Exec("\n  INSERT INTO t1(e) VALUES(x'3456');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in REAL column t1.e") {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in REAL column t1.e", _res.Error, "\n  INSERT INTO t1(e) VALUES(x'3456');\n")
+		}
+	}
+	{ // "strict1-7.1"
+		r = db.Query("\n    DROP TABLE IF EXISTS t4;\n    CREATE TABLE t4(\n      a INT AS (b*2) VIRTUAL,\n      b INT AS (c*2) STORED,\n      c INT PRIMARY KEY\n    ) STRICT;\n    INSERT INTO t4(c) VALUES(1);\n    SELECT * FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t4;\n    CREATE TABLE t4(\n      a INT AS (b*2) VIRTUAL,\n      b INT AS (c*2) STORED,\n      c INT PRIMARY KEY\n    ) STRICT;\n    INSERT INTO t4(c) VALUES(1);\n    SELECT * FROM t4;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "strict1-7.2"
+		_res = db.Exec("\n    ALTER TABLE t4 ADD COLUMN d VARCHAR;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t4 after add column: unknown datatype for t4.d: \\\"VARCHAR\\\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t4 after add column: unknown datatype for t4.d: \\\"VARCHAR\\\"", _res.Error, "\n    ALTER TABLE t4 ADD COLUMN d VARCHAR;\n  ")
+		}
+	}
+	{ // "strict1-7.3"
+		_res = db.Exec("\n    ALTER TABLE t4 ADD COLUMN d;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t4 after add column: missing datatype for t4.d") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t4 after add column: missing datatype for t4.d", _res.Error, "\n    ALTER TABLE t4 ADD COLUMN d;\n  ")
 		}
 	}
 	db.Close()

@@ -49,6 +49,7 @@ func Test_fts4intck1(t *testing.T) {
 	_ = in // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts4intck1" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

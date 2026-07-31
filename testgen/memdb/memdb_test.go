@@ -3,6 +3,7 @@ package memdb
 
 import (
 "github.com/pijalu/frigolite"
+"strconv"
 "testing"
 )
 
@@ -89,4 +90,379 @@ func Test_memdb(t *testing.T) {
 	_ = fd // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	{ // do_test "memdb-1.1"
+		_dbtmp0, err := frigolite.Open(":memory:")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
+		}
+	}
+	// proc definition (not transpiled)
+	limit = "10"
+	_ = limit // suppress unused warning
+	i = "2"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
+		sig = "signature one" // TCL namespace variable
+		_ = sig // suppress unused warning
+		cnt = tclLIndex(sig, "0")
+		_ = cnt // suppress unused warning
+		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%2 == 0 }() {
+			r = db.Query("PRAGMA synchronous=FULL")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA synchronous=FULL")
+			}
+		} else {
+			r = db.Query("PRAGMA synchronous=NORMAL")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA synchronous=NORMAL")
+			}
+		}
+		{ // do_test "memdb-1." + i + ".1-" + cnt
+			_res = db.Exec("\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
+			}
+			sig2 = "signature two"
+			_ = sig2 // suppress unused warning
+		}
+		{ // do_test "memdb-1." + i + ".2-" + cnt
+			_res = db.Exec("\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
+			}
+			// signature (unsupported command, not transpiled)
+		}
+		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
+			{ // do_test "memdb-1." + i + ".9-" + cnt
+				_res = db.Exec("\n         INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;\n       ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n         INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;\n       ")
+				}
+			}
+		}
+		pager_old_format = "0" // TCL namespace variable
+		_ = pager_old_format // suppress unused warning
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "memdb-3.1"
+		r = db.Query("\n    CREATE TABLE t4(a,b,c,d);\n    BEGIN;\n    INSERT INTO t4 VALUES(1,2,3,4);\n    SELECT * FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(a,b,c,d);\n    BEGIN;\n    INSERT INTO t4 VALUES(1,2,3,4);\n    SELECT * FROM t4;\n  ")
+		}
+	}
+	{ // do_test "memdb-3.2"
+		r = db.Query("\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+		}
+	}
+	{ // do_test "memdb-3.3"
+		r = db.Query("\n    DROP TABLE t4;\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t4;\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+		}
+	}
+	{ // do_test "memdb-3.4"
+		r = db.Query("\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
+		}
+	}
+	{ // do_test "memdb-4.0"
+		r = db.Query("\n    CREATE TABLE t1(a, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
+		}
+	}
+	// foreach {i conf cmd t0 t1 t2} "\n  1 {}       INSERT                  1 {}  1\n  2 {}       {INSERT OR IGNORE}      0 3   1\n  3 {}       {INSERT OR REPLACE}     0 4   1\n  4 {}       REPLACE                 0 4   1\n  5 {}       {INSERT OR FAIL}        1 {}  1\n  6 {}       {INSERT OR ABORT}       1 {}  1\n  7 {}       {INSERT OR ROLLBACK}    1 {}  {}\n"
+	_items1 := tclSplitList("\n  1 {}       INSERT                  1 {}  1\n  2 {}       {INSERT OR IGNORE}      0 3   1\n  3 {}       {INSERT OR REPLACE}     0 4   1\n  4 {}       REPLACE                 0 4   1\n  5 {}       {INSERT OR FAIL}        1 {}  1\n  6 {}       {INSERT OR ABORT}       1 {}  1\n  7 {}       {INSERT OR ROLLBACK}    1 {}  {}\n")
+	for _idx1 := 0; _idx1+6 <= len(_items1); _idx1 += 6 {
+		i := _items1[_idx1+0]
+		_ = i // suppress unused warning
+		conf := _items1[_idx1+1]
+		_ = conf // suppress unused warning
+		cmd := _items1[_idx1+2]
+		_ = cmd // suppress unused warning
+		t0 := _items1[_idx1+3]
+		_ = t0 // suppress unused warning
+		t1 := _items1[_idx1+4]
+		_ = t1 // suppress unused warning
+		t2 := _items1[_idx1+5]
+		_ = t2 // suppress unused warning
+		_ = _idx1
+			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 1 }() {
+			}
+			{ // do_test "memdb-4." + i
+				if conf != "" {
+					conf = "ON CONFLICT " + conf
+					_ = conf // suppress unused warning
+				}
+	_ = r0 // suppress unused warning
+	_ = r1 // suppress unused warning
+				{ // catch block
+					var _catchErr error
+					_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN " + conf + ";\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
+					if _res.Error != nil { _catchErr = _res.Error }
+					if _catchErr != nil {
+						r0 = "1"
+						r1 = _catchErr.Error()
+					} else {
+						r0 = "0"
+						r1 = ""
+					}
+				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+					_res = db.Exec("COMMIT")
+					if _res.Error != nil { _catchErr = _res.Error }
+				}
+				if tclBool(r0) {
+					r1 = ""
+					_ = r1 // suppress unused warning
+				} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
+				}
+				r2 = "execsql {SELECT x FROM t2}"
+				_ = r2 // suppress unused warning
+				_list := tclList([]string{r0, r1, r2})
+				_ = _list
+			}
+		}
+		{ // do_test "memdb-5.0"
+			_res = db.Exec("\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+			}
+		}
+		// foreach {i conf1 conf2 cmd t0 t1 t2} "\n  1 {}       {}       UPDATE                  1 {6 7 8 9}  1\n  2 REPLACE  {}       UPDATE                  0 {7 6 9}    1\n  3 IGNORE   {}       UPDATE                  0 {6 7 3 9}  1\n  4 FAIL     {}       UPDATE                  1 {6 7 3 4}  1\n  5 ABORT    {}       UPDATE                  1 {1 2 3 4}  1\n  6 ROLLBACK {}       UPDATE                  1 {1 2 3 4}  0\n  7 REPLACE  {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n  8 IGNORE   {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n  9 FAIL     {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 10 ABORT    {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 11 ROLLBACK {}       {UPDATE OR IGNORE}      0 {6 7 3 9}   1\n 12 {}       {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 13 {}       {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 14 {}       {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1\n 15 {}       {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1\n 16 {}       {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0\n"
+		_items2 := tclSplitList("\n  1 {}       {}       UPDATE                  1 {6 7 8 9}  1\n  2 REPLACE  {}       UPDATE                  0 {7 6 9}    1\n  3 IGNORE   {}       UPDATE                  0 {6 7 3 9}  1\n  4 FAIL     {}       UPDATE                  1 {6 7 3 4}  1\n  5 ABORT    {}       UPDATE                  1 {1 2 3 4}  1\n  6 ROLLBACK {}       UPDATE                  1 {1 2 3 4}  0\n  7 REPLACE  {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n  8 IGNORE   {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n  9 FAIL     {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 10 ABORT    {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 11 ROLLBACK {}       {UPDATE OR IGNORE}      0 {6 7 3 9}   1\n 12 {}       {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1\n 13 {}       {}       {UPDATE OR REPLACE}     0 {7 6 9}    1\n 14 {}       {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1\n 15 {}       {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1\n 16 {}       {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0\n")
+		for _idx2 := 0; _idx2+7 <= len(_items2); _idx2 += 7 {
+			i := _items2[_idx2+0]
+			_ = i // suppress unused warning
+			conf1 := _items2[_idx2+1]
+			_ = conf1 // suppress unused warning
+			conf2 := _items2[_idx2+2]
+			_ = conf2 // suppress unused warning
+			cmd := _items2[_idx2+3]
+			_ = cmd // suppress unused warning
+			t0 := _items2[_idx2+4]
+			_ = t0 // suppress unused warning
+			t1 := _items2[_idx2+5]
+			_ = t1 // suppress unused warning
+			t2 := _items2[_idx2+6]
+			_ = t2 // suppress unused warning
+			_ = _idx2
+				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 1 }() {
+				}
+				if tclBool(t0) {
+					t1 = "UNIQUE constraint failed: t1.a"
+					_ = t1 // suppress unused warning
+				}
+				{ // do_test "memdb-5." + i
+					if conf1 != "" {
+						conf1 = "ON CONFLICT " + conf1
+						_ = conf1 // suppress unused warning
+					}
+					if conf2 != "" {
+						conf2 = "ON CONFLICT " + conf2
+						_ = conf2 // suppress unused warning
+					}
+	_ = r0 // suppress unused warning
+	_ = r1 // suppress unused warning
+					{ // catch block
+						var _catchErr error
+						_res = db.Exec("\n      DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) " + conf1 + ");\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN " + conf2 + ";\n      " + cmd + " t3 SET x=1;\n      " + cmd + " t1 SET b=b*2;\n      " + cmd + " t1 SET a=c+5;\n    ")
+						if _res.Error != nil { _catchErr = _res.Error }
+						if _catchErr != nil {
+							r0 = "1"
+							r1 = _catchErr.Error()
+						} else {
+							r0 = "0"
+							r1 = ""
+						}
+					}
+					{
+						var _catchErr error
+						_ = _catchErr // suppress unused warning
+						_res = db.Exec("COMMIT")
+						if _res.Error != nil { _catchErr = _res.Error }
+					}
+					if tclBool("!" + r0) {
+						r1 = "execsql {SELECT a FROM t1 ORDER BY b}"
+						_ = r1 // suppress unused warning
+					}
+					r2 = "execsql {SELECT x FROM t3}"
+					_ = r2 // suppress unused warning
+					_list := tclList([]string{r0, r1, r2})
+					_ = _list
+				}
+			}
+			{ // do_test "memdb-6.1"
+				r = db.Query("\n    SELECT * FROM t2;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.2"
+				r = db.Query("\n    BEGIN;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.3"
+				r = db.Query("\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.4"
+				r = db.Query("\n    SELECT * FROM t2;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.5"
+				r = db.Query("\n    SELECT a FROM t2 UNION SELECT b FROM t2 ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 UNION SELECT b FROM t2 ORDER BY 1;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.6"
+				r = db.Query("\n    CREATE INDEX i2 ON t2(c);\n    SELECT a FROM t2 ORDER BY c;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i2 ON t2(c);\n    SELECT a FROM t2 ORDER BY c;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.6"
+				r = db.Query("\n    SELECT a FROM t2 ORDER BY c DESC;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 ORDER BY c DESC;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.7"
+				r = db.Query("\n    BEGIN;\n    CREATE TABLE t5(x,y);\n    INSERT INTO t5 VALUES(1,2);\n    SELECT * FROM t5;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t5(x,y);\n    INSERT INTO t5 VALUES(1,2);\n    SELECT * FROM t5;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.8"
+				r = db.Query("\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.9"
+				r = db.Query("\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.10"
+				r = db.Query("\n    CREATE TABLE t5(x PRIMARY KEY, y UNIQUE);\n    SELECT * FROM t5;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(x PRIMARY KEY, y UNIQUE);\n    SELECT * FROM t5;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.11"
+				r = db.Query("\n    SELECT * FROM t5 ORDER BY y DESC;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t5 ORDER BY y DESC;\n  ")
+				}
+			}
+			{ // do_test "memdb-6.12"
+				r = db.Query("\n      INSERT INTO t5 VALUES(1,2);\n      INSERT INTO t5 VALUES(3,4);\n      REPLACE INTO t5 VALUES(1,4);\n      SELECT rowid,* FROM t5;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t5 VALUES(1,2);\n      INSERT INTO t5 VALUES(3,4);\n      REPLACE INTO t5 VALUES(1,4);\n      SELECT rowid,* FROM t5;\n    ")
+				}
+			}
+			{ // do_test "memdb-6.13"
+				r = db.Query("\n      DELETE FROM t5 WHERE x>5;\n      SELECT * FROM t5;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t5 WHERE x>5;\n      SELECT * FROM t5;\n    ")
+				}
+			}
+			{ // do_test "memdb-6.14"
+				r = db.Query("\n      DELETE FROM t5 WHERE y<3;\n      SELECT * FROM t5;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t5 WHERE y<3;\n      SELECT * FROM t5;\n    ")
+				}
+			}
+			{ // do_test "memdb-6.15"
+				r = db.Query("\n    DELETE FROM t5 WHERE x>0;\n    SELECT * FROM t5;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t5 WHERE x>0;\n    SELECT * FROM t5;\n  ")
+				}
+			}
+			{ // do_test "memdb-7.1"
+				// load_static_extension db wholenumber (unsupported command, not transpiled)
+				r = db.Query("\n      CREATE TABLE t6(x);\n      CREATE VIRTUAL TABLE nums USING wholenumber;\n      INSERT INTO t6 SELECT value FROM nums WHERE value BETWEEN 1 AND 256;\n      SELECT count(*) FROM (SELECT DISTINCT x FROM t6);\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t6(x);\n      CREATE VIRTUAL TABLE nums USING wholenumber;\n      INSERT INTO t6 SELECT value FROM nums WHERE value BETWEEN 1 AND 256;\n      SELECT count(*) FROM (SELECT DISTINCT x FROM t6);\n    ")
+				}
+			}
+			i = "1"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 256 }() {
+				{ // do_test "memdb-7.2." + i
+					_res = db.Exec("DELETE FROM t6 WHERE x=\\\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t6 WHERE x=\\\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)")
+					}
+					r = db.Query("SELECT count(*) FROM t6")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t6")
+					}
+				}
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			{ // do_test "memdb-8.1"
+				_dbtmp3, err := frigolite.Open(":memory:")
+				_ = _dbtmp3 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				r = db.Query("\n    PRAGMA auto_vacuum=TRUE;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    SELECT count(*) FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum=TRUE;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    SELECT count(*) FROM t1;\n  ")
+				}
+			}
+			{ // do_test "memdb-8.2"
+				r = db.Query("\n    DELETE FROM t1;\n    SELECT count(*) FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    SELECT count(*) FROM t1;\n  ")
+				}
+			}
+			{ // do_test "memdb-9.1"
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
+				}
+				before = "db one {PRAGMA page_count}"
+				_ = before // suppress unused warning
+				_res = db.Exec(" DELETE FROM t1 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
+				}
+				after = "db one {PRAGMA page_count}"
+				_ = after // suppress unused warning
+				// expr $before>$after (not evaluated)
+			}
 }

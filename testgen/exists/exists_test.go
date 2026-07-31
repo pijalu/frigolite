@@ -57,20 +57,8 @@ func Test_exists(t *testing.T) {
 		}
 		testprefix = "exists-" + jm
 		_ = testprefix // suppress unused warning
-		// do_multiclient_test tn {
-
-    # TABLE objects.
-    #
-    do_test 1.$tn.1.1...} (unsupported command, not transpiled)
-		// do_multiclient_test tn {
-
-    # TABLE objects.
-    #
-    do_test 2.$tn.1 {...} (unsupported command, not transpiled)
-		// do_multiclient_test tn {
-
-    forcedelete test.db2
-    do_test 3.$tn.0 {
- ...} (unsupported command, not transpiled)
+		// do_multiclient_test tn {\n\n    # TABLE objects.\n    #\n    do_test 1.$tn...} (unsupported command, not transpiled)
+		// do_multiclient_test tn {\n\n    # TABLE objects.\n    #\n    do_test 2.$tn...} (unsupported command, not transpiled)
+		// do_multiclient_test tn {\n\n    forcedelete test.db2\n    do_test 3.$tn.0 ...} (unsupported command, not transpiled)
 	}
 }

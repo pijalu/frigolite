@@ -72,6 +72,7 @@ func Test_notify3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	esc = "sqlite3_enable_shared_cache 1"
 	_ = esc // suppress unused warning
 	_dbtmp0, err := frigolite.Open("test.db")

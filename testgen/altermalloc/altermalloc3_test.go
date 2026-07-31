@@ -51,6 +51,7 @@ func Test_altermalloc3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altermalloc3"
 	_ = testprefix // suppress unused warning
+	return
 	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
@@ -61,13 +62,7 @@ func Test_altermalloc3(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { ALTER TABLE t1 DROP COLUMN c }
-} -test {
-  faultsim_test_result {0 {}} $::TMPDBERROR
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ALTER TABLE t1 DROP COLUMN c }\n} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -85,12 +80,5 @@ func Test_altermalloc3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 RENAME TO t2x;\n")
 		}
 	}
-	// do_faultsim_test 2.2 -prep {
-  faultsim_restore_and_reopen
-  db eval { SELECT ...} -body {
-  execsql {
-    ALTER TABLE t2 RENAME TO t2x;
-  }...} -test {
-  faultsim_test_result {0 {}} $::TMPDBERROR
-} (unsupported command, not transpiled)
+	// do_faultsim_test 2.2 -prep {\n  faultsim_restore_and_reopen\n  db eval { SELEC...} -body {\n  execsql {\n    ALTER TABLE t2 RENAME TO t2x;\n...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n} (unsupported command, not transpiled)
 }

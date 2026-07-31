@@ -56,12 +56,5 @@ func Test_aggfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 2 -faults oom* -prep {
-  faultsim_restore_and_reopen
-  execsql { SELECT ...} -body {
-  execsql {
-    SELECT * FROM t1 AS a1 WHERE (
-  ...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELEC...} -body {\n  execsql {\n    SELECT * FROM t1 AS a1 WHERE (\...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 }

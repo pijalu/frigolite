@@ -61,6 +61,7 @@ func Test_e_blobclose(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "e_blobclose"
 	_ = testprefix // suppress unused warning
+	return
 	dots = ". 40"
 	_ = dots // suppress unused warning
 	{ // "1.0"

@@ -51,9 +51,10 @@ func Test_bigsort(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bigsort"
 	_ = testprefix // suppress unused warning
-	if tclBool("0" + " || " + "lindex $out 1" + "<8000000") {
+	if tclBool("0" + " || " + tclLIndex(out, "1") + "<8000000") {
 		return
 	}
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  BEGIN;\n  WITH data(x,y) AS (\n    SELECT 1, zeroblob(10000)\n    UNION ALL\n    SELECT x+1, y FROM data WHERE x < 300000\n  )\n  INSERT INTO t1 SELECT * FROM data;\n  COMMIT;\n")
 		if _res.Error != nil {

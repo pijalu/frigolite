@@ -4,6 +4,7 @@ package savepoint
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -380,10 +381,200 @@ func Test_savepoint(t *testing.T) {
 		}
 	}
 	// wal_check_journal_mode savepoint-4.9 (unsupported command, not transpiled)
+	{ // do_test "savepoint-5.1.1"
+		_res = db.Exec("\n      CREATE TABLE blobs(x);\n      INSERT INTO blobs VALUES('a twentyeight character blob');\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE blobs(x);\n      INSERT INTO blobs VALUES('a twentyeight character blob');\n    ")
+		}
+		fd = "db incrblob blobs x 1"
+		_ = fd // suppress unused warning
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
+		_res = db.Exec("SAVEPOINT abc")
+		_ = _res // catchsql
+	}
+	{ // do_test "savepoint-5.1.2"
+		// close $fd
+		_res = db.Exec("SAVEPOINT abc")
+		_ = _res // catchsql
+	}
+	{ // do_test "savepoint-5.2"
+		_res = db.Exec("RELEASE abc")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "RELEASE abc")
+		}
+		_res = db.Exec("RELEASE abc")
+		_ = _res // catchsql
+	}
+	{ // do_test "savepoint-5.3.1"
+		_res = db.Exec("SAVEPOINT abc")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SAVEPOINT abc")
+		}
+		_res = db.Exec("ROLLBACK TO def")
+		_ = _res // catchsql
+	}
+	{ // do_test "savepoint-5.3.2.1"
+		_res = db.Exec("SAVEPOINT def")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SAVEPOINT def")
+		}
+		fd = "db incrblob -readonly blobs x 1"
+		_ = fd // suppress unused warning
+	_ = rc // suppress unused warning
+	_ = res // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			// seek $fd 0 (unsupported command, not transpiled)
+			// read $fd (unsupported command, not transpiled)
+			if _catchErr != nil {
+				rc = "1"
+				res = _catchErr.Error()
+			} else {
+				rc = "0"
+				res = ""
+			}
+		}
+		rc = tclListAppend(rc, res)
+	}
+	{ // do_test "savepoint-5.3.2.2"
+		_res = db.Exec("ROLLBACK TO def")
+		_ = _res // catchsql
+	}
+	{ // do_test "savepoint-5.3.2.3"
+	_ = rc // suppress unused warning
+	_ = res // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			// seek $fd 0 (unsupported command, not transpiled)
+			// read $fd (unsupported command, not transpiled)
+			if _catchErr != nil {
+				rc = "1"
+				res = _catchErr.Error()
+			} else {
+				rc = "0"
+				res = ""
+			}
+		}
+	}
+	{ // do_test "savepoint-5.3.3"
+		_res = db.Exec("RELEASE def")
+		_ = _res // catchsql
+	}
+	{ // do_test "savepoint-5.3.4"
+		// close $fd
+		_res = db.Exec("savepoint def")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "savepoint def")
+		}
+		fd = "db incrblob blobs x 1"
+		_ = fd // suppress unused warning
+		_res = db.Exec("release def")
+		_ = _res // catchsql
+	}
+	{ // do_test "savepoint-5.3.5"
+		// close $fd
+		_res = db.Exec("release abc")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "release abc")
+		}
+	}
+	{ // do_test "savepoint-5.4.1"
+		_res = db.Exec("\n      SAVEPOINT main;\n      INSERT INTO blobs VALUES('another blob');\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT main;\n      INSERT INTO blobs VALUES('another blob');\n    ")
+		}
+	}
+	{ // do_test "savepoint-5.4.2"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query(" BEGIN ; SELECT count(*) FROM blobs ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN ; SELECT count(*) FROM blobs ")
+		}
+	}
+	if tclBool("wal_is_wal_mode") {
+		{ // do_test "savepoint-5.4.3"
+			_res = db.Exec("RELEASE main")
+			_ = _res // catchsql
+		}
+		{ // do_test "savepoint-5.4.4"
+			db2.Close()
+		}
+	} else {
+		{ // do_test "savepoint-5.4.3"
+			_res = db.Exec(" RELEASE main ")
+			_ = _res // catchsql
+		}
+		{ // do_test "savepoint-5.4.4"
+			db2.Close()
+			_res = db.Exec(" RELEASE main ")
+			_ = _res // catchsql
+		}
+	}
+	{ // do_test "savepoint-5.4.5"
+		r = db.Query(" SELECT x FROM blobs WHERE rowid = 2 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM blobs WHERE rowid = 2 ")
+		}
+	}
+	{ // do_test "savepoint-5.4.6"
+		r = db.Query(" SELECT count(*) FROM blobs ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM blobs ")
+		}
+	}
 	// wal_check_journal_mode savepoint-5.5 (unsupported command, not transpiled)
 	os.Remove("test.db")
 	_dbtmp1, err := frigolite.Open("test.db")
 	_ = _dbtmp1 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // do_test "savepoint-6.1"
+		r = db.Query(" PRAGMA auto_vacuum = incremental ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = incremental ")
+		}
+		// wal_set_journal_mode (unsupported command, not transpiled)
+		_res = db.Exec("\n      CREATE TABLE t1(a, b, c);\n      CREATE INDEX i1 ON t1(a, b);\n      BEGIN;\n      INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a, b, c);\n      CREATE INDEX i1 ON t1(a, b);\n      BEGIN;\n      INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));\n    ")
+		}
+		_r = "randstr(10,400)"
+		_ = _r // suppress unused warning
+		ii = "0"
+		_ = ii // suppress unused warning
+		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
+			_res = db.Exec("INSERT INTO t1 SELECT " + _r + ", " + _r + ", " + _r + " FROM t1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT " + _r + ", " + _r + ", " + _r + " FROM t1")
+			}
+			// incr ii 1
+			{
+				_n, _err := strconv.Atoi(ii)
+				if _err == nil {
+					ii = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec(" COMMIT ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "savepoint-6.3"
+		_res = db.Exec("\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE rowid%2;\n          PRAGMA incr_vacuum;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n            DELETE FROM t1 WHERE rowid%2;\n            PRAGMA incr_vacuum;\n        ROLLBACK TO one;\n      COMMIT;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 10;\n      BEGIN;\n        UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE rowid%2;\n          PRAGMA incr_vacuum;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n            DELETE FROM t1 WHERE rowid%2;\n            PRAGMA incr_vacuum;\n        ROLLBACK TO one;\n      COMMIT;\n    ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	// wal_check_journal_mode savepoint-6.5 (unsupported command, not transpiled)
+	os.Remove("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-7.1"
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
@@ -395,7 +586,7 @@ func Test_savepoint(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1(a) VALUES('alligator');\n      INSERT INTO t1(a) VALUES('angelfish');\n      INSERT INTO t1(a) VALUES('ant');\n      INSERT INTO t1(a) VALUES('antelope');\n      INSERT INTO t1(a) VALUES('ape');\n      INSERT INTO t1(a) VALUES('baboon');\n      INSERT INTO t1(a) VALUES('badger');\n      INSERT INTO t1(a) VALUES('bear');\n      INSERT INTO t1(a) VALUES('beetle');\n      INSERT INTO t1(a) VALUES('bird');\n      INSERT INTO t1(a) VALUES('bison');\n      UPDATE t1 SET b =    randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(10,1000);\n    COMMIT;\n  ")
 		}
-		// expr ([execsql { PRAGMA page_count }] → "([execsql { PRAGMA page_count }]"
+		// expr ([execsql { PRAGMA page_count }] (not evaluated)
 	}
 	{ // do_test "savepoint-7.2.1"
 		_res = db.Exec("\n    BEGIN;\n      SAVEPOINT one;\n      CREATE TABLE t2(a, b);\n      INSERT INTO t2 SELECT a, b FROM t1;\n      ROLLBACK TO one;\n  ")
@@ -432,8 +623,8 @@ func Test_savepoint(t *testing.T) {
 	// wal_check_journal_mode savepoint-7.3.3 (unsupported command, not transpiled)
 	{ // do_test "savepoint-7.4.1"
 		os.Remove("test.db")
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
 		if r.Error != nil {
@@ -482,6 +673,74 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " RELEASE \"including Whitespace \" ")
 		}
 	}
+	// proc definition (not transpiled)
+	{ // do_test "savepoint-9.1"
+		authdata = "list" // TCL namespace variable
+		_ = authdata // suppress unused warning
+		_res = db.Exec(" SAVEPOINT sp1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SAVEPOINT sp1 ")
+		}
+		_ = authdata // TCL namespace variable (query)
+	}
+	{ // do_test "savepoint-9.2"
+		authdata = "list" // TCL namespace variable
+		_ = authdata // suppress unused warning
+		_res = db.Exec(" ROLLBACK TO sp1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK TO sp1 ")
+		}
+		_ = authdata // TCL namespace variable (query)
+	}
+	{ // do_test "savepoint-9.3"
+		authdata = "list" // TCL namespace variable
+		_ = authdata // suppress unused warning
+		_res = db.Exec(" RELEASE sp1 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " RELEASE sp1 ")
+		}
+		_ = authdata // TCL namespace variable (query)
+	}
+	// proc definition (not transpiled)
+	{ // do_test "savepoint-9.4"
+		authdata = "list" // TCL namespace variable
+		_ = authdata // suppress unused warning
+		res = "catchsql { SAVEPOINT sp1 }"
+		_ = res // suppress unused warning
+		_r_tcl := append([]string{}, tclSplitList(authdata)...)
+		_r_tcl = append(_r_tcl, tclSplitList(res)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
+	}
+	{ // do_test "savepoint-9.5"
+		authdata = "list" // TCL namespace variable
+		_ = authdata // suppress unused warning
+		res = "catchsql { ROLLBACK TO sp1 }"
+		_ = res // suppress unused warning
+		_r_tcl := append([]string{}, tclSplitList(authdata)...)
+		_r_tcl = append(_r_tcl, tclSplitList(res)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
+	}
+	{ // do_test "savepoint-9.6"
+		authdata = "list" // TCL namespace variable
+		_ = authdata // suppress unused warning
+		res = "catchsql { RELEASE sp1 }"
+		_ = res // suppress unused warning
+		_r_tcl := append([]string{}, tclSplitList(authdata)...)
+		_r_tcl = append(_r_tcl, tclSplitList(res)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
+	}
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+		_res = db.Exec("ROLLBACK")
+		if _res.Error != nil { _catchErr = _res.Error }
+	}
 	{ // do_test "savepoint-10.1.1"
 		_res = db.Exec("\n    SAVEPOINT one;\n    ATTACH 'test2.db' AS aux;\n    DETACH aux;\n  ")
 		_ = _res // catchsql
@@ -500,7 +759,7 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    RELEASE one;\n    DETACH aux;\n  ")
 		}
 	}
-	templockstate = "lindex [db eval {PRAGMA lock_status}] 3"
+	templockstate = tclLIndex("db", "eval")
 	_ = templockstate // suppress unused warning
 	if tclBool("wal_is_wal_mode" + "==0") {
 		{ // do_test "savepoint-10.2.1"
@@ -628,8 +887,8 @@ func Test_savepoint(t *testing.T) {
 	}
 	{ // do_test "savepoint-11.1"
 		os.Remove("test.db")
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = full; ")
 		if r.Error != nil {
@@ -760,20 +1019,11 @@ func Test_savepoint(t *testing.T) {
 		}
 	}
 	// delete_file test.db (unsupported command, not transpiled)
-	// do_multiclient_test tn {
-  do_test savepoint-14.$tn.1 {
-    sql1 {
-      C...} (unsupported command, not transpiled)
-	// do_multiclient_test tn {
-  do_test savepoint-15.$tn.1 {
-    sql1 {
-      C...} (unsupported command, not transpiled)
-	// do_multiclient_test tn {
-  do_test savepoint-16.$tn.1 {
-    sql1 {
-      C...} (unsupported command, not transpiled)
-	_dbtmp4, err := frigolite.Open("test.db")
-	_ = _dbtmp4 // sqlite3 db connection
+	// do_multiclient_test tn {\n  do_test savepoint-14.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  do_test savepoint-15.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  do_test savepoint-16.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
+	_dbtmp5, err := frigolite.Open("test.db")
+	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "savepoint-17.1"
 		_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t6(a, b);\n    INSERT INTO t6 VALUES(1, 2);\n    SAVEPOINT one;\n      INSERT INTO t6 VALUES(3, 4);\n    ROLLBACK TO one;\n    SELECT * FROM t6;\n  ROLLBACK;\n")

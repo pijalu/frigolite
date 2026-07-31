@@ -56,13 +56,7 @@ func Test_notnullfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT * FROM t2 WHERE d NOT NULL...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT * FROM t2 WHERE d NOT NU...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -73,11 +67,5 @@ func Test_notnullfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 2.1 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT dense_rank() OVER win FROM...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 2.1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT dense_rank() OVER win FR...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 }

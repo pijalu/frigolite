@@ -144,6 +144,10 @@ func Test_delete(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA count_changes=on")
 		}
+		r = db.Query("EXPLAIN DELETE FROM table1 WHERE f1=3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN DELETE FROM table1 WHERE f1=3")
+		}
 		_res = db.Exec("DELETE FROM 'table1' WHERE f1=3")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM 'table1' WHERE f1=3")
@@ -231,9 +235,9 @@ func Test_delete(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 200 }() {
-			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
+			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table1 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			}
 			// incr i 1
 			{
@@ -266,9 +270,9 @@ func Test_delete(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 200 }() {
-			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
+			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table1 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			}
 			// incr i 1
 			{
@@ -311,9 +315,9 @@ func Test_delete(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 200 }() {
-			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
+			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table1 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			}
 			// incr i 1
 			{
@@ -427,9 +431,9 @@ func Test_delete(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 3000 }() {
-			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
+			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table1 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			}
 			// incr i 1
 			{
@@ -446,9 +450,9 @@ func Test_delete(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 3000 }() {
-			_res = db.Exec("INSERT INTO table2 VALUES(" + i + "," + "$i*$i" + ")")
+			_res = db.Exec("INSERT INTO table2 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table2 VALUES(" + i + "," + "$i*$i" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO table2 VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			}
 			// incr i 1
 			{
@@ -554,6 +558,40 @@ func Test_delete(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1);\n    INSERT INTO t3 SELECT a+1 FROM t3;\n    INSERT INTO t3 SELECT a+2 FROM t3;\n    SELECT * FROM t3;\n  ")
 		}
+	}
+	{ // do_test "delete-7.2"
+		r = db.Query("\n      CREATE TABLE cnt(del);\n      INSERT INTO cnt VALUES(0);\n      CREATE TRIGGER r1 AFTER DELETE ON t3 FOR EACH ROW BEGIN\n        UPDATE cnt SET del=del+1;\n      END;\n      DELETE FROM t3 WHERE a<2;\n      SELECT * FROM t3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE cnt(del);\n      INSERT INTO cnt VALUES(0);\n      CREATE TRIGGER r1 AFTER DELETE ON t3 FOR EACH ROW BEGIN\n        UPDATE cnt SET del=del+1;\n      END;\n      DELETE FROM t3 WHERE a<2;\n      SELECT * FROM t3;\n    ")
+		}
+	}
+	{ // do_test "delete-7.3"
+		r = db.Query("\n      SELECT * FROM cnt;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM cnt;\n    ")
+		}
+	}
+	{ // do_test "delete-7.4"
+		r = db.Query("\n      DELETE FROM t3;\n      SELECT * FROM t3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t3;\n      SELECT * FROM t3;\n    ")
+		}
+	}
+	{ // do_test "delete-7.5"
+		r = db.Query("\n      SELECT * FROM cnt;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM cnt;\n    ")
+		}
+	}
+	{ // do_test "delete-7.6"
+		_res = db.Exec("\n      INSERT INTO t3 VALUES(1);\n      INSERT INTO t3 SELECT a+1 FROM t3;\n      INSERT INTO t3 SELECT a+2 FROM t3;\n      CREATE TABLE t4 AS SELECT * FROM t3;\n      PRAGMA count_changes=ON;\n      DELETE FROM t3;\n      DELETE FROM t4;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3 VALUES(1);\n      INSERT INTO t3 SELECT a+1 FROM t3;\n      INSERT INTO t3 SELECT a+2 FROM t3;\n      CREATE TABLE t4 AS SELECT * FROM t3;\n      PRAGMA count_changes=ON;\n      DELETE FROM t3;\n      DELETE FROM t4;\n    ")
+		}
+	}
+	_res = db.Exec("DELETE FROM t3")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t3")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }

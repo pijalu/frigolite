@@ -87,11 +87,12 @@ func Test_types(t *testing.T) {
 	}
 	values = "\n  { 5.0    integer integer text real    }\n  { 5.1    real    real    text real    }\n  { 5      integer integer text integer }\n  { '5.0'  integer integer text text    }\n  { '5.1'  real    real    text text    }\n  { '-5.0' integer integer text text    }\n  { '-5.0' integer integer text text    }\n  { '5'    integer integer text text    }\n  { 'abc'  text    text    text text    }\n  { NULL   null    null    null null    }\n"
 	_ = values // suppress unused warning
+	values = tclListAppend(values, " X'00'  blob    blob    blob blob    ")
 	tnum = "1"
 	_ = tnum // suppress unused warning
 	for _, val := range tclSplitList(values) {
 	_ = val // suppress unused warning
-		lit = "lindex $val 0"
+		lit = tclLIndex(val, "0")
 		_ = lit // suppress unused warning
 		_res = db.Exec("DELETE FROM t1;")
 		if _res.Error != nil {
@@ -119,7 +120,7 @@ func Test_types(t *testing.T) {
 	_ = tnum // suppress unused warning
 	for _, val := range tclSplitList(values) {
 	_ = val // suppress unused warning
-		lit = "lindex $val 0"
+		lit = tclLIndex(val, "0")
 		_ = lit // suppress unused warning
 		_res = db.Exec("DELETE FROM t1;")
 		if _res.Error != nil {
@@ -147,7 +148,7 @@ func Test_types(t *testing.T) {
 	_ = tnum // suppress unused warning
 	for _, val := range tclSplitList(values) {
 	_ = val // suppress unused warning
-		lit = "lindex $val 0"
+		lit = tclLIndex(val, "0")
 		_ = lit // suppress unused warning
 		_res = db.Exec("UPDATE t1 SET i = " + lit + ", n = " + lit + ", t = " + lit + ", o = " + lit + ";")
 		if _res.Error != nil {
@@ -220,6 +221,11 @@ func Test_types(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1;\n  ")
 		}
 	}
+	{ // do_test "types-2.1.9"
+		root = "db eval {select rootpage from sqlite_master where name = 't1'}"
+		_ = root // suppress unused warning
+		// record_sizes $root (unsupported command, not transpiled)
+	}
 	{ // do_test "types-2.2.1"
 		_res = db.Exec("\n    CREATE TABLE t2(a float);\n    INSERT INTO t2 VALUES(0.0);\n    INSERT INTO t2 VALUES(12345.678);\n    INSERT INTO t2 VALUES(-12345.678);\n  ")
 		if _res.Error != nil {
@@ -231,6 +237,11 @@ func Test_types(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2;\n  ")
 		}
+	}
+	{ // do_test "types-2.2.3"
+		root = "db eval {select rootpage from sqlite_master where name = 't2'}"
+		_ = root // suppress unused warning
+		// record_sizes $root (unsupported command, not transpiled)
 	}
 	{ // do_test "types-2.3.1"
 		_res = db.Exec("\n    CREATE TABLE t3(a nullvalue);\n    INSERT INTO t3 VALUES(NULL);\n  ")

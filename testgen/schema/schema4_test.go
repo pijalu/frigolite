@@ -102,4 +102,128 @@ func Test_schema4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);\n")
 		}
 	}
+	{ // "schema4-1.7"
+		_res = db.Exec("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3;\n  ")
+		}
+	}
+	{ // "schema4-1.8"
+		r = db.Query("\n    DELETE FROM log;\n    DROP TABLE t1;\n    INSERT INTO tbl VALUES(1, 2);\n    UPDATE tbl SET b=a+b, a=a+1;\n    DELETE FROM tbl;\n    SELECT x, a, b FROM log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM log;\n    DROP TABLE t1;\n    INSERT INTO tbl VALUES(1, 2);\n    UPDATE tbl SET b=a+b, a=a+1;\n    DELETE FROM tbl;\n    SELECT x, a, b FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{after insert} 1 2 {after update} 2 3 {after delete} 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	// drop_all_tables (unsupported command, not transpiled)
+	{ // "schema4-2.1"
+		_res = db.Exec("\n    CREATE TABLE log(x, a, b);\n    CREATE TABLE tbl(a, b);\n  \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE log(x, a, b);\n    CREATE TABLE tbl(a, b);\n  \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
+		}
+	}
+	{ // "schema4-2.2"
+		_res = db.Exec("\n    CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n      INSERT INTO log VALUES('after insert', new.a, new.b);\n    END;\n    CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n      INSERT INTO log VALUES('after delete', old.a, old.b);\n    END;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n      INSERT INTO log VALUES('after insert', new.a, new.b);\n    END;\n    CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n      INSERT INTO log VALUES('after delete', old.a, old.b);\n    END;\n  ")
+		}
+	}
+	{ // "schema4-2.3"
+		_res = db.Exec(" ALTER TABLE t1 RENAME TO t2 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t1 RENAME TO t2 ")
+		}
+	}
+	{ // "schema4-2.4"
+		r = db.Query(" \n    INSERT INTO tbl VALUES('a', 'b');\n    DELETE FROM tbl;\n    SELECT * FROM log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO tbl VALUES('a', 'b');\n    DELETE FROM tbl;\n    SELECT * FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{after insert} a b {after delete} a b"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // "schema4-2.5"
+		r = db.Query(" \n    DELETE FROM log;\n    INSERT INTO tbl VALUES('c', 'd');\n    DELETE FROM tbl;\n    SELECT * FROM log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM log;\n    INSERT INTO tbl VALUES('c', 'd');\n    DELETE FROM tbl;\n    SELECT * FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{after insert} c d {after delete} c d"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "schema4-2.6"
+		_res = db.Exec("\n    CREATE TEMP TRIGGER x1 AFTER UPDATE ON tbl BEGIN\n      INSERT INTO log VALUES('after update', new.a, new.b);\n    END;\n\n    CREATE TEMP TABLE x1(x);\n    INSERT INTO x1 VALUES(123);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TRIGGER x1 AFTER UPDATE ON tbl BEGIN\n      INSERT INTO log VALUES('after update', new.a, new.b);\n    END;\n\n    CREATE TEMP TABLE x1(x);\n    INSERT INTO x1 VALUES(123);\n  ")
+		}
+	}
+	{ // "schema4-2.8"
+		r = db.Query("\n    select sql from temp.sqlite_master WHERE type='table';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select sql from temp.sqlite_master WHERE type='table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{CREATE TABLE x1(x)}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "schema4-2.7"
+		_res = db.Exec(" ALTER TABLE tbl RENAME TO tbl2 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE tbl RENAME TO tbl2 ")
+		}
+	}
+	{ // "schema4-2.9"
+		r = db.Query("\n    select sql from sqlite_temp_master WHERE type='table';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select sql from sqlite_temp_master WHERE type='table';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{CREATE TABLE x1(x)}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "schema4-2.10"
+		r = db.Query(" \n    DELETE FROM log;\n    INSERT INTO tbl2 VALUES('e', 'f');\n    UPDATE tbl2 SET a='g', b='h';\n    DELETE FROM tbl2;\n    SELECT * FROM log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM log;\n    INSERT INTO tbl2 VALUES('e', 'f');\n    UPDATE tbl2 SET a='g', b='h';\n    DELETE FROM tbl2;\n    SELECT * FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{after insert} e f {after update} g h {after delete} g h"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "schema4-2.11"
+		r = db.Query("\n    INSERT INTO x1 VALUES(456);\n    SELECT * FROM x1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO x1 VALUES(456);\n    SELECT * FROM x1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 }

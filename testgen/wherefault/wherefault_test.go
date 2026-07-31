@@ -55,17 +55,8 @@ func Test_wherefault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wherefault"
 	_ = testprefix // suppress unused warning
-	// do_malloc_test 1 -sqlprep {
-  CREATE TABLE t1(a, b, c);
-  CREATE INDEX i1 ON ...} -sqlbody {
-  SELECT c FROM t1
-  WHERE 
-    a = 2 OR b = 'thr...} (unsupported command, not transpiled)
-	// do_malloc_test 2 -tclprep {
-  db eval {
-    BEGIN;
-    CREATE TABLE t1(a, b, ...} -sqlbody {
-  SELECT count(*) FROM t1 WHERE a BETWEEN 5 AND 9...} (unsupported command, not transpiled)
+	// do_malloc_test 1 -sqlprep {\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 O...} -sqlbody {\n  SELECT c FROM t1\n  WHERE \n    a = 2 OR b = '...} (unsupported command, not transpiled)
+	// do_malloc_test 2 -tclprep {\n  db eval {\n    BEGIN;\n    CREATE TABLE t1(a, ...} -sqlbody {\n  SELECT count(*) FROM t1 WHERE a BETWEEN 5 AND ...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -76,11 +67,5 @@ func Test_wherefault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 3.1 -faults oom* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT * FROM (SELECT a FROM t1 N...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 3.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT * FROM (SELECT a FROM t1...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 }

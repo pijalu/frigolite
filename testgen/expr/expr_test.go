@@ -73,6 +73,22 @@ func Test_expr(t *testing.T) {
 	_ = sqlite_options_casesensitivelike // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	_res = db.Exec("CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)")
+	}
+	_res = db.Exec("INSERT INTO test1 VALUES(1,2,1.1,2.2,'hello','world')")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(1,2,1.1,2.2,'hello','world')")
+	}
+	_res = db.Exec("CREATE TABLE test1(i1 int, i2 int, t1 text, t2 text)")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(i1 int, i2 int, t1 text, t2 text)")
+	}
+	_res = db.Exec("INSERT INTO test1 VALUES(1,2,'hello','world')")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(1,2,'hello','world')")
+	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// test_expr expr-1.1 {i1=10, i2=20} {i1+i2} 30 (expr test, not transpiled)
@@ -96,6 +112,8 @@ func Test_expr(t *testing.T) {
 	// test_expr expr-1.19 {i1=20, i2=20} {i2=i1} 1 (expr test, not transpiled)
 	// test_expr expr-1.20 {i1=20, i2=20} {i2<>i1} 0 (expr test, not transpiled)
 	// test_expr expr-1.21 {i1=20, i2=20} {i2==i1} 1 (expr test, not transpiled)
+	// test_expr expr-1.22 {i1=1, i2=2, r1=3.0} {i1+i2*r1} {7.0} (expr test, not transpiled)
+	// test_expr expr-1.23 {i1=1, i2=2, r1=3.0} {(i1+i2)*r1} {9.0} (expr test, not transpiled)
 	// test_expr expr-1.24 {i1=1, i2=2} {min(i1,i2,i1+i2,i1-i2)} {-1} (expr test, not transpiled)
 	// test_expr expr-1.25 {i1=1, i2=2} {max(i1,i2,i1+i2,i1-i2)} {3} (expr test, not transpiled)
 	// test_expr expr-1.26 {i1=1, i2=2} {max(i1,i2,i1+i2,i1-i2)} {3} (expr test, not transpiled)
@@ -194,6 +212,9 @@ func Test_expr(t *testing.T) {
 	if tclBool("working_64bit_int") {
 		// test_expr expr-1.102 {i1=40, i2=1} {i2<<i1} 1099511627776 (expr test, not transpiled)
 	}
+	// test_expr expr-1.103 {i1=0} {(-2147483648.0 % -1)} 0.0 (expr test, not transpiled)
+	// test_expr expr-1.104 {i1=0} {(-9223372036854775808.0 % -1)} 0.0 (expr test, not transpiled)
+	// test_expr expr-1.105 {i1=0} {(-9223372036854775808.0 / -1)>1} 1 (expr test, not transpiled)
 	if tclBool("working_64bit_int") {
 		// test_realnum_expr expr-1.106 {i1=0} {-9223372036854775808/-1} 9.22337203685478e+18 (expr test, not transpiled)
 	}
@@ -241,8 +262,99 @@ func Test_expr(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#1\\\": syntax error", _res.Error, "\n  SELECT 1 IS #1;\n")
 		}
 	}
+	if tclBool("working_64bit_int") {
+		// test_expr expr-1.200\\n {i1=9223372036854775806, i2=1} {i1+i2} 9223372036854775807 (expr test, not transpiled)
+		// test_realnum_expr expr-1.201\\n {i1=9223372036854775806, i2=2} {i1+i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.202\\n {i1=9223372036854775806, i2=100000} {i1+i2} 9.22337203685488e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.203\\n {i1=9223372036854775807, i2=0} {i1+i2} 9223372036854775807 (expr test, not transpiled)
+		// test_realnum_expr expr-1.204\\n {i1=9223372036854775807, i2=1} {i1+i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.205\\n {i2=9223372036854775806, i1=1} {i1+i2} 9223372036854775807 (expr test, not transpiled)
+		// test_realnum_expr expr-1.206\\n {i2=9223372036854775806, i1=2} {i1+i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.207\\n {i2=9223372036854775806, i1=100000} {i1+i2} 9.22337203685488e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.208\\n {i2=9223372036854775807, i1=0} {i1+i2} 9223372036854775807 (expr test, not transpiled)
+		// test_realnum_expr expr-1.209\\n {i2=9223372036854775807, i1=1} {i1+i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.210\\n {i1=-9223372036854775807, i2=-1} {i1+i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.211\\n {i1=-9223372036854775807, i2=-2} {i1+i2} -9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.212\\n {i1=-9223372036854775807, i2=-100000} {i1+i2} -9.22337203685488e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.213\\n {i1=-9223372036854775808, i2=0} {i1+i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.214\\n {i1=-9223372036854775808, i2=-1} {i1+i2} -9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.215\\n {i2=-9223372036854775807, i1=-1} {i1+i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.216\\n {i2=-9223372036854775807, i1=-2} {i1+i2} -9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.217\\n {i2=-9223372036854775807, i1=-100000} {i1+i2} -9.22337203685488e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.218\\n {i2=-9223372036854775808, i1=0} {i1+i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.219\\n {i2=-9223372036854775808, i1=-1} {i1+i2} -9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.220\\n {i1=9223372036854775806, i2=-1} {i1-i2} 9223372036854775807 (expr test, not transpiled)
+		// test_realnum_expr expr-1.221\\n {i1=9223372036854775806, i2=-2} {i1-i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.222\\n {i1=9223372036854775806, i2=-100000} {i1-i2} 9.22337203685488e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.223\\n {i1=9223372036854775807, i2=0} {i1-i2} 9223372036854775807 (expr test, not transpiled)
+		// test_realnum_expr expr-1.224\\n {i1=9223372036854775807, i2=-1} {i1-i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.225\\n {i2=-9223372036854775806, i1=1} {i1-i2} 9223372036854775807 (expr test, not transpiled)
+		// test_realnum_expr expr-1.226\\n {i2=-9223372036854775806, i1=2} {i1-i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.227\\n {i2=-9223372036854775806, i1=100000} {i1-i2} 9.22337203685488e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.228\\n {i2=-9223372036854775807, i1=0} {i1-i2} 9223372036854775807 (expr test, not transpiled)
+		// test_realnum_expr expr-1.229\\n {i2=-9223372036854775807, i1=1} {i1-i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.230\\n {i1=-9223372036854775807, i2=1} {i1-i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.231\\n {i1=-9223372036854775807, i2=2} {i1-i2} -9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.232\\n {i1=-9223372036854775807, i2=100000} {i1-i2} -9.22337203685488e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.233\\n {i1=-9223372036854775808, i2=0} {i1-i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.234\\n {i1=-9223372036854775808, i2=1} {i1-i2} -9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.235\\n {i2=9223372036854775807, i1=-1} {i1-i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.236\\n {i2=9223372036854775807, i1=-2} {i1-i2} -9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.237\\n {i2=9223372036854775807, i1=-100000} {i1-i2} -9.22337203685488e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.238\\n {i2=9223372036854775807, i1=0} {i1-i2} -9223372036854775807 (expr test, not transpiled)
+		// test_realnum_expr expr-1.239\\n {i2=9223372036854775807, i1=-1} {i1-i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.250\\n {i1=4294967296, i2=2147483648} {i1*i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.251\\n {i1=4294967296, i2=2147483647} {i1*i2} 9223372032559808512 (expr test, not transpiled)
+		// test_realnum_expr expr-1.252\\n {i1=-4294967296, i2=2147483648} {i1*i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.253\\n {i1=-4294967296, i2=2147483647} {i1*i2} -9223372032559808512 (expr test, not transpiled)
+		// test_realnum_expr expr-1.254\\n {i1=4294967296, i2=-2147483648} {i1*i2} -9223372036854775808 (expr test, not transpiled)
+		// test_realnum_expr expr-1.255\\n {i1=4294967296, i2=-2147483647} {i1*i2} -9223372032559808512 (expr test, not transpiled)
+		// test_realnum_expr expr-1.256\\n {i1=-4294967296, i2=-2147483648} {i1*i2} 9.22337203685478e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.257\\n {i1=-4294967296, i2=-2147483647} {i1*i2} 9223372032559808512 (expr test, not transpiled)
+		// test_realnum_expr expr-1.260\\n {i1=3037000500, i2=3037000500} {i1*i2} 9.22337203700025e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.261\\n {i1=3037000500, i2=-3037000500} {i1*i2} -9.22337203700025e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.262\\n {i1=-3037000500, i2=3037000500} {i1*i2} -9.22337203700025e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.263\\n {i1=-3037000500, i2=-3037000500} {i1*i2} 9.22337203700025e+18 (expr test, not transpiled)
+		// test_realnum_expr expr-1.264\\n {i1=3037000500, i2=3037000499} {i1*i2} 9223372033963249500 (expr test, not transpiled)
+		// test_realnum_expr expr-1.265\\n {i1=3037000500, i2=-3037000499} {i1*i2} -9223372033963249500 (expr test, not transpiled)
+		// test_realnum_expr expr-1.266\\n {i1=-3037000500, i2=3037000499} {i1*i2} -9223372033963249500 (expr test, not transpiled)
+		// test_realnum_expr expr-1.267\\n {i1=-3037000500, i2=-3037000499} {i1*i2} 9223372033963249500 (expr test, not transpiled)
+		// test_realnum_expr expr-1.268\\n {i1=3037000499, i2=3037000500} {i1*i2} 9223372033963249500 (expr test, not transpiled)
+		// test_realnum_expr expr-1.269\\n {i1=3037000499, i2=-3037000500} {i1*i2} -9223372033963249500 (expr test, not transpiled)
+		// test_realnum_expr expr-1.270\\n {i1=-3037000499, i2=3037000500} {i1*i2} -9223372033963249500 (expr test, not transpiled)
+		// test_realnum_expr expr-1.271\\n {i1=-3037000499, i2=-3037000500} {i1*i2} 9223372033963249500 (expr test, not transpiled)
+	}
+	// test_expr expr-2.1 {r1=1.23, r2=2.34} {r1+r2} 3.57 (expr test, not transpiled)
+	// test_expr expr-2.2 {r1=1.23, r2=2.34} {r1-r2} -1.11 (expr test, not transpiled)
+	// test_expr expr-2.3 {r1=1.23, r2=2.34} {r1*r2} 2.8782 (expr test, not transpiled)
 	var tcl_precision = "15"
 	_ = tcl_precision // suppress unused warning
+	// test_expr expr-2.4 {r1=1.23, r2=2.34} {r1/r2} 0.525641025641026 (expr test, not transpiled)
+	// test_expr expr-2.5 {r1=1.23, r2=2.34} {r2/r1} 1.90243902439024 (expr test, not transpiled)
+	// test_expr expr-2.6 {r1=1.23, r2=2.34} {r2<r1} 0 (expr test, not transpiled)
+	// test_expr expr-2.7 {r1=1.23, r2=2.34} {r2<=r1} 0 (expr test, not transpiled)
+	// test_expr expr-2.8 {r1=1.23, r2=2.34} {r2>r1} 1 (expr test, not transpiled)
+	// test_expr expr-2.9 {r1=1.23, r2=2.34} {r2>=r1} 1 (expr test, not transpiled)
+	// test_expr expr-2.10 {r1=1.23, r2=2.34} {r2!=r1} 1 (expr test, not transpiled)
+	// test_expr expr-2.11 {r1=1.23, r2=2.34} {r2=r1} 0 (expr test, not transpiled)
+	// test_expr expr-2.12 {r1=1.23, r2=2.34} {r2<>r1} 1 (expr test, not transpiled)
+	// test_expr expr-2.13 {r1=1.23, r2=2.34} {r2==r1} 0 (expr test, not transpiled)
+	// test_expr expr-2.14 {r1=2.34, r2=2.34} {r2<r1} 0 (expr test, not transpiled)
+	// test_expr expr-2.15 {r1=2.34, r2=2.34} {r2<=r1} 1 (expr test, not transpiled)
+	// test_expr expr-2.16 {r1=2.34, r2=2.34} {r2>r1} 0 (expr test, not transpiled)
+	// test_expr expr-2.17 {r1=2.34, r2=2.34} {r2>=r1} 1 (expr test, not transpiled)
+	// test_expr expr-2.18 {r1=2.34, r2=2.34} {r2!=r1} 0 (expr test, not transpiled)
+	// test_expr expr-2.19 {r1=2.34, r2=2.34} {r2=r1} 1 (expr test, not transpiled)
+	// test_expr expr-2.20 {r1=2.34, r2=2.34} {r2<>r1} 0 (expr test, not transpiled)
+	// test_expr expr-2.21 {r1=2.34, r2=2.34} {r2==r1} 1 (expr test, not transpiled)
+	// test_expr expr-2.22 {r1=1.23, r2=2.34} {min(r1,r2,r1+r2,r1-r2)} {-1.11} (expr test, not transpiled)
+	// test_expr expr-2.23 {r1=1.23, r2=2.34} {max(r1,r2,r1+r2,r1-r2)} {3.57} (expr test, not transpiled)
+	// test_expr expr-2.24 {r1=25.0, r2=11.0} {r1%r2} 3.0 (expr test, not transpiled)
+	// test_expr expr-2.25 {r1=1.23, r2=NULL} {coalesce(r1+r2,99.0)} 99.0 (expr test, not transpiled)
+	// test_expr expr-2.26 {r1=1e300, r2=1e300} {coalesce((r1*r2)*0.0,99.0)} 99.0 (expr test, not transpiled)
+	// test_expr expr-2.26b {r1=1e300, r2=-1e300} {coalesce((r1*r2)*0.0,99.0)} 99.0 (expr test, not transpiled)
+	// test_expr expr-2.27 {r1=1.1, r2=0.0} {r1/r2} {{}} (expr test, not transpiled)
+	// test_expr expr-2.28 {r1=1.1, r2=0.0} {r1%r2} {{}} (expr test, not transpiled)
 	// test_expr expr-3.1 {t1='abc', t2='xyz'} {t1<t2} 1 (expr test, not transpiled)
 	// test_expr expr-3.2 {t1='xyz', t2='abc'} {t1<t2} 0 (expr test, not transpiled)
 	// test_expr expr-3.3 {t1='abc', t2='abc'} {t1<t2} 0 (expr test, not transpiled)
@@ -298,9 +410,20 @@ func Test_expr(t *testing.T) {
 	// test_expr expr-4.7 {t1=' 0.000', t2=' 0.0'} {t1==t2} 0 (expr test, not transpiled)
 	// test_expr expr-4.8 {t1='0.0', t2='abc'} {t1<t2} 1 (expr test, not transpiled)
 	// test_expr expr-4.9 {t1='0.0', t2='abc'} {t1==t2} 0 (expr test, not transpiled)
+	// test_expr expr-4.10 {r1='0.0', r2='abc'} {r1>r2} 0 (expr test, not transpiled)
+	// test_expr expr-4.11 {r1='abc', r2='Abc'} {r1<r2} 0 (expr test, not transpiled)
+	// test_expr expr-4.12 {r1='abc', r2='Abc'} {r1>r2} 1 (expr test, not transpiled)
+	// test_expr expr-4.13 {r1='abc', r2='Bbc'} {r1<r2} 0 (expr test, not transpiled)
+	// test_expr expr-4.14 {r1='abc', r2='Bbc'} {r1>r2} 1 (expr test, not transpiled)
+	// test_expr expr-4.15 {r1='0', r2='0.0'} {r1==r2} 1 (expr test, not transpiled)
+	// test_expr expr-4.16 {r1='0.000', r2='0.0'} {r1==r2} 1 (expr test, not transpiled)
+	// test_expr expr-4.17 {r1=' 0.000', r2=' 0.0'} {r1==r2} 1 (expr test, not transpiled)
+	// test_expr expr-4.18 {r1='0.0', r2='abc'} {r1<r2} 1 (expr test, not transpiled)
+	// test_expr expr-4.19 {r1='0.0', r2='abc'} {r1==r2} 0 (expr test, not transpiled)
+	// test_expr expr-4.20 {r1='0.0', r2='abc'} {r1>r2} 0 (expr test, not transpiled)
 	CSL = sqlite_options_casesensitivelike
 	_ = CSL // suppress unused warning
-	NCSL = "!$CSL"
+	NCSL = tclExpr("!$CSL")
 	_ = NCSL // suppress unused warning
 	// test_expr expr-5.1 {t1='abc', t2='xyz'} {t1 LIKE t2} 0 (expr test, not transpiled)
 	// test_expr expr-5.2a {t1='abc', t2='abc'} {t1 LIKE t2} 1 (expr test, not transpiled)
@@ -486,6 +609,9 @@ func Test_expr(t *testing.T) {
 	// test_expr expr-6.64 {t1='ac', t2=NULL} {t1 GLOB t2} {{}} (expr test, not transpiled)
 	// test_expr expr-6.65 {t1=NULL, t2='a*?c'} {t1 NOT GLOB t2} {{}} (expr test, not transpiled)
 	// test_expr expr-6.66 {t1='ac', t2=NULL} {t1 NOT GLOB t2} {{}} (expr test, not transpiled)
+	// test_expr expr-6.67 {t1='01', t2=1} {t1 = t2} 0 (expr test, not transpiled)
+	// test_expr expr-6.68 {t1='1', t2=1} {t1 = t2} 1 (expr test, not transpiled)
+	// test_expr expr-6.69 {t1='01', t2=1} {CAST(t1 AS INTEGER) = t2} 1 (expr test, not transpiled)
 	// test_expr expr-case.1 {i1=1, i2=2} {CASE WHEN i1 = i2 THEN 'eq' ELSE 'ne' END} ne (expr test, not transpiled)
 	// test_expr expr-case.2 {i1=2, i2=2} {CASE WHEN i1 = i2 THEN 'eq' ELSE 'ne' END} eq (expr test, not transpiled)
 	// test_expr expr-case.3 {i1=NULL, i2=2} {CASE WHEN i1 = i2 THEN 'eq' ELSE 'ne' END} ne (expr test, not transpiled)
@@ -498,8 +624,7 @@ func Test_expr(t *testing.T) {
 	// test_expr expr-case.10 {i1=3} {CASE i1 WHEN 1 THEN 'one' WHEN 2 THEN 'two' END} {{}} (expr test, not transpiled)
 	// test_expr expr-case.11 {i1=null} {CASE i1 WHEN 1 THEN 'one' WHEN 2 THEN 'two' ELSE 3...} 3 (expr test, not transpiled)
 	// test_expr expr-case.12 {i1=1} {CASE i1 WHEN 1 THEN null WHEN 2 THEN 'two' ELSE 3 ...} {{}} (expr test, not transpiled)
-	// test_expr expr-case.13 {i1=7} { CASE WHEN i1 < 5 THEN 'low' 
-	       WHEN i1 < 10...} medium (expr test, not transpiled)
+	// test_expr expr-case.13 {i1=7} { CASE WHEN i1 < 5 THEN 'low' \n	       WHEN i1 < 1...} medium (expr test, not transpiled)
 	_res = db.Exec("DROP TABLE test1")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE test1")
@@ -511,9 +636,9 @@ func Test_expr(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 20 }() {
-		_res = db.Exec("INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")")
+		_res = db.Exec("INSERT INTO test1 VALUES(" + i + "," + tclExpr("1<<$i") + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(" + i + "," + tclExpr("1<<$i") + ")")
 		}
 		// incr i 1
 		{
@@ -576,6 +701,7 @@ func Test_expr(t *testing.T) {
 	// test_expr2 expr-7.37 {a<2 OR (b=0 OR a<0)} {{} 1} (expr test, not transpiled)
 	// test_expr2 expr-7.38 {a<2 OR (a<0 AND b=0)} {1} (expr test, not transpiled)
 	// test_expr2 expr-7.39 {a<2 OR (b=0 AND a<0)} {1} (expr test, not transpiled)
+	// test_expr2 expr-7.40 {((a<2 OR a IS NULL) AND b<3) OR b>1e10} {{} 1} (expr test, not transpiled)
 	// test_expr2 expr-7.41 {a BETWEEN -1 AND 1} {1} (expr test, not transpiled)
 	// test_expr2 expr-7.42 {a NOT BETWEEN 2 AND 100} {1} (expr test, not transpiled)
 	// test_expr2 expr-7.43 {(b+1234)||'this is a string that is at least 32 ch...} {} (expr test, not transpiled)
@@ -584,7 +710,11 @@ func Test_expr(t *testing.T) {
 	// test_expr2 expr-7.46 {((123||'xabcdefghijklmnopqrstuvwyxz01234567890'||a...} {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20} (expr test, not transpiled)
 	// test_expr2 expr-7.50 {((a between 1 and 2 OR 0) AND 1) OR 0} {1 2} (expr test, not transpiled)
 	// test_expr2 expr-7.51 {((a not between 3 and 100 OR 0) AND 1) OR 0} {1 2} (expr test, not transpiled)
+	// test_expr2 expr-7.52 {((a in (1,2) OR 0) AND 1) OR 0} {1 2} (expr test, not transpiled)
+	// test_expr2 expr-7.53 {((a not in (3,4,5,6,7,8,9,10) OR 0) AND a<11) OR 0} {1 2} (expr test, not transpiled)
 	// test_expr2 expr-7.54 {((a>0 OR 0) AND a<3) OR 0} {1 2} (expr test, not transpiled)
+	// test_expr2 expr-7.55 {((a in (1,2) OR 0) IS NULL AND 1) OR 0} {{}} (expr test, not transpiled)
+	// test_expr2 expr-7.56 {((a not in (3,4,5,6,7,8,9,10) IS NULL OR 0) AND 1)...} {{}} (expr test, not transpiled)
 	// test_expr2 expr-7.57 {((a>0 IS NULL OR 0) AND 1) OR 0} {{}} (expr test, not transpiled)
 	// test_expr2 expr-7.58 {(a||'')<='1'} {1} (expr test, not transpiled)
 	// test_expr2 expr-7.59 {LIKE('10%',b)} {10 20} (expr test, not transpiled)
@@ -600,9 +730,55 @@ func Test_expr(t *testing.T) {
 	// test_expr2 expr-7.69 {b = abs(++++-2)} {1} (expr test, not transpiled)
 	// test_expr2 expr-7.70 {b = 5 - abs(+3)} {1} (expr test, not transpiled)
 	// test_expr2 expr-7.71 {b = 5 - abs(-3)} {1} (expr test, not transpiled)
+	// test_expr2 expr-7.72 {b = abs(-2.0)} {1} (expr test, not transpiled)
 	// test_expr2 expr-7.73 {b = 6 - abs(-a)} {2} (expr test, not transpiled)
+	// test_expr2 expr-7.74 {b = abs(8.0)} {3} (expr test, not transpiled)
+	sqlite_current_time = "1157124849"
+	_ = sqlite_current_time // suppress unused warning
+	{ // do_test "expr-8.1"
+		r = db.Query("SELECT CURRENT_TIME")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_TIME")
+		}
+	}
+	{ // do_test "expr-8.2"
+		r = db.Query("SELECT CURRENT_DATE")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_DATE")
+		}
+	}
+	{ // do_test "expr-8.3"
+		r = db.Query("SELECT CURRENT_TIMESTAMP")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_TIMESTAMP")
+		}
+	}
+	{ // do_test "expr-8.4"
+		r = db.Query("SELECT CURRENT_TIME==time('now');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_TIME==time('now');")
+		}
+	}
+	{ // do_test "expr-8.5"
+		r = db.Query("SELECT CURRENT_DATE==date('now');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_DATE==date('now');")
+		}
+	}
+	{ // do_test "expr-8.6"
+		r = db.Query("SELECT CURRENT_TIMESTAMP==datetime('now');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CURRENT_TIMESTAMP==datetime('now');")
+		}
+	}
 	sqlite_current_time = "0"
 	_ = sqlite_current_time // suppress unused warning
+	{ // do_test "expr-9.1"
+		r = db.Query("SELECT round(-('-'||'123'))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(-('-'||'123'))")
+		}
+	}
 	{ // do_test "expr-10.1"
 		_res = db.Exec("SELECT 'abc' LIKE 'abc' ESCAPE ''")
 		_ = _res // catchsql
@@ -671,6 +847,18 @@ func Test_expr(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(-00000009223372036854775808)")
 		}
 	}
+	{ // do_test "expr-11.13"
+		r = db.Query("SELECT typeof(-9223372036854775809)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(-9223372036854775809)")
+		}
+	}
+	{ // do_test "expr-11.14"
+		r = db.Query("SELECT typeof(-00000009223372036854775809)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(-00000009223372036854775809)")
+		}
+	}
 	{ // do_test "expr-12.1"
 		_res = db.Exec("\n    SELECT (CASE a>4 THEN 1 ELSE 0 END) FROM test1;\n  ")
 		_ = _res // catchsql
@@ -679,6 +867,7 @@ func Test_expr(t *testing.T) {
 		_res = db.Exec("\n    SELECT (CASE WHEN a>4 THEN 1 ELSE 0) FROM test1;\n  ")
 		_ = _res // catchsql
 	}
+	// do_realnum_test expr-13.1 {\n    execsql {\n      SELECT 12345678901234567890...} {1.23456789012346e+19} (expr test, not transpiled)
 	if tclBool("working_64bit_int") {
 		{ // do_test "expr-13.2"
 			r = db.Query("\n      SELECT 0+'9223372036854775807'\n    ")
@@ -693,14 +882,10 @@ func Test_expr(t *testing.T) {
 			}
 		}
 	}
-	// do_realnum_test expr-13.6 {
-  execsql {
-    SELECT 0+'9223372036854775807.0'
-...} {9.22337203685478e+18} (expr test, not transpiled)
-	// do_realnum_test expr-13.7 {
-  execsql {
-    SELECT '9223372036854775807.0'+0
-...} {9.22337203685478e+18} (expr test, not transpiled)
+	// do_realnum_test expr-13.4 {\n    execsql {\n      SELECT 0+'92233720368547758...} {9.22337203685478e+18} (expr test, not transpiled)
+	// do_realnum_test expr-13.5 {\n    execsql {\n      SELECT '9223372036854775808...} {9.22337203685478e+18} (expr test, not transpiled)
+	// do_realnum_test expr-13.6 {\n  execsql {\n    SELECT 0+'9223372036854775807.0...} {9.22337203685478e+18} (expr test, not transpiled)
+	// do_realnum_test expr-13.7 {\n  execsql {\n    SELECT '9223372036854775807.0'+...} {9.22337203685478e+18} (expr test, not transpiled)
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // "expr-13.8"
 		r = db.Query("\n  SELECT \"\" <= '';\n")

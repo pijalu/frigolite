@@ -113,7 +113,7 @@ func Test_e_vacuum(t *testing.T) {
 					}
 				}
 			} else {
-				freelist = "$nPage - $sz"
+				freelist = tclExpr("$nPage - $sz")
 				_ = freelist // suppress unused warning
 				if avmode == "incremental" {
 					// incr freelist -2
@@ -144,8 +144,40 @@ func Test_e_vacuum(t *testing.T) {
 				}
 			}
 			{ // do_test "e_vacuum-1.1." + tn + ".5"
-				// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
+				// expr [file size test.db] / 1024 (not evaluated)
 			}
+		}
+		// create_db (unsupported command, not transpiled)
+		// register_dbstat_vtab db (unsupported command, not transpiled)
+		{ // "e_vacuum-1.2.1"
+			_res = db.Exec("\n    DELETE FROM t1 WHERE a%2;\n    INSERT INTO t1 SELECT b, a FROM t2 WHERE a%2;\n    UPDATE t1 SET b=randomblob(600) WHERE (a%2)==0;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE a%2;\n    INSERT INTO t1 SELECT b, a FROM t2 WHERE a%2;\n    UPDATE t1 SET b=randomblob(600) WHERE (a%2)==0;\n  ")
+			}
+		}
+		{ // do_test "e_vacuum-1.2.2.1"
+			// expr [fragment_count t1]>100 (not evaluated)
+		}
+		{ // do_test "e_vacuum-1.2.2.2"
+			// expr [fragment_count sqlite_autoindex_t1_1]>100 (not evaluated)
+		}
+		{ // do_test "e_vacuum-1.2.2.3"
+			// expr [fragment_count sqlite_autoindex_t1_2]>100 (not evaluated)
+		}
+		{ // "e_vacuum-1.2.3"
+			_res = db.Exec(" VACUUM ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+			}
+		}
+		{ // do_test "e_vacuum-1.2.4.1"
+			// fragment_count t1 (unsupported command, not transpiled)
+		}
+		{ // do_test "e_vacuum-1.2.4.2"
+			// fragment_count sqlite_autoindex_t1_1 (unsupported command, not transpiled)
+		}
+		{ // do_test "e_vacuum-1.2.4.3"
+			// fragment_count sqlite_autoindex_t1_2 (unsupported command, not transpiled)
 		}
 		{ // do_test "e_vacuum-1.3.1.1"
 			// create_db PRAGMA page_size = 1024 ; PRAGMA auto_vacuum = FUL... (unsupported command, not transpiled)
@@ -239,7 +271,7 @@ func Test_e_vacuum(t *testing.T) {
 			}
 		}
 		{ // do_test "e_vacuum-2.1.6"
-			// expr [file size test.db2]==$::original_size → "[file size test.db2]==$::original_size"
+			// expr [file size test.db2]==$::original_size (not evaluated)
 		}
 		{ // "e_vacuum-2.1.7"
 			_res = db.Exec(" VACUUM aux; ")
@@ -248,7 +280,7 @@ func Test_e_vacuum(t *testing.T) {
 			}
 		}
 		{ // do_test "e_vacuum-2.1.8"
-			// expr [file size test.db2]<$::original_size → "[file size test.db2]<$::original_size"
+			// expr [file size test.db2]<$::original_size (not evaluated)
 		}
 		{ // "e_vacuum-3.1.1"
 			r = db.Query("\n  CREATE TABLE t4(x);\n  INSERT INTO t4(x) VALUES('x');\n  INSERT INTO t4(x) VALUES('y');\n  INSERT INTO t4(x) VALUES('z');\n  DELETE FROM t4 WHERE x = 'y';\n  SELECT rowid, x FROM t4;\n")
@@ -411,7 +443,7 @@ func Test_e_vacuum(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
 			}
-			// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
+			// expr [file size test.db] / 1024 (not evaluated)
 		}
 		{ // do_test "e_vacuum-3.3.2.2"
 			// create_db { PRAGMA auto_vacuum = INCREMENTAL } (unsupported command, not transpiled)
@@ -419,6 +451,6 @@ func Test_e_vacuum(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum;\n  ")
 			}
-			// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
+			// expr [file size test.db] / 1024 (not evaluated)
 		}
 }

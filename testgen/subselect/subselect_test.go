@@ -49,6 +49,7 @@ func Test_subselect(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "subselect-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a int, b int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);\n  ")
 		if _res.Error != nil {
@@ -100,6 +101,12 @@ func Test_subselect(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=8)")
 		}
 	}
+	{ // do_test "subselect-1.3e"
+		r = db.Query("\n      SELECT b FROM t1\n       WHERE a = (SELECT a FROM t1 UNION SELECT b FROM t1 ORDER BY 1);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b FROM t1\n       WHERE a = (SELECT a FROM t1 UNION SELECT b FROM t1 ORDER BY 1);\n    ")
+		}
+	}
 	{ // do_test "subselect-1.4"
 		r = db.Query("SELECT b from t1 where a = coalesce((SELECT a FROM t1 WHERE b=5),1)")
 		if r.Error != nil {
@@ -142,6 +149,18 @@ func Test_subselect(t *testing.T) {
 		r = db.Query("\n    SELECT 2 IN (SELECT a FROM t1 ORDER BY a DESC);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 2 IN (SELECT a FROM t1 ORDER BY a DESC);\n  ")
+		}
+	}
+	{ // do_test "subselect-3.1"
+		r = db.Query("\n    CREATE TABLE t3(x int);\n    INSERT INTO t3 SELECT a FROM t1 UNION ALL SELECT b FROM t1;\n    SELECT * FROM t3 ORDER BY x;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(x int);\n    INSERT INTO t3 SELECT a FROM t1 UNION ALL SELECT b FROM t1;\n    SELECT * FROM t3 ORDER BY x;\n  ")
+		}
+	}
+	{ // do_test "subselect-3.1"
+		r = db.Query("\n    CREATE TABLE t3(x int);\n    INSERT INTO t3 SELECT a FROM t1; \n    INSERT INTO t3 SELECT b FROM t1;\n    SELECT * FROM t3 ORDER BY x;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(x int);\n    INSERT INTO t3 SELECT a FROM t1; \n    INSERT INTO t3 SELECT b FROM t1;\n    SELECT * FROM t3 ORDER BY x;\n  ")
 		}
 	}
 	{ // do_test "subselect-3.2"

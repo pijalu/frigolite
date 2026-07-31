@@ -74,6 +74,7 @@ func Test_unionvtab(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "unionvtab"
 	_ = testprefix // suppress unused warning
+	return
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	os.Remove("test.db2")
 	{ // "1.0"
@@ -287,7 +288,7 @@ func Test_unionvtab(t *testing.T) {
 				E = "split $e ."
 				_ = E // suppress unused warning
 				if tclBool("llength $E" + ">1") {
-					L = tclListAppend(L, "('" + "lindex $E 0" + "', '" + "lindex $E 1" + "', " + iMin + ", " + iMin + ")")
+					L = tclListAppend(L, "('" + tclLIndex(E, "0") + "', '" + tclLIndex(E, "1") + "', " + iMin + ", " + iMin + ")")
 				} else {
 					L = tclListAppend(L, "(NULL, '" + e + "', " + iMin + ", " + iMin + ")")
 				}

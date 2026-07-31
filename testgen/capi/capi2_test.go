@@ -104,6 +104,9 @@ func Test_capi2(t *testing.T) {
 		_list := tclList([]string{"0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
+	{ // do_test "capi2-1.8"
+		// sqlite3_step $VM (unsupported command, not transpiled)
+	}
 	{ // do_test "capi2-1.9"
 		// sqlite3_reset $VM (unsupported command, not transpiled)
 		_list := tclList([]string{"0", "get_row_values $VM", "get_column_names $VM"})
@@ -563,59 +566,40 @@ func Test_capi2(t *testing.T) {
 	_res = db.Exec("ROLLBACK")
 	_ = _res // catchsql
 	{ // do_test "capi2-7.1"
-		// stepsql $DB {
-    SELECT * FROM t1
-  } (unsupported command, not transpiled)
+		// stepsql $DB {\n    SELECT * FROM t1\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.2"
-		// stepsql $DB {
-    PRAGMA count_changes=on
-  } (unsupported command, not transpiled)
+		// stepsql $DB {\n    PRAGMA count_changes=on\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.3"
-		// stepsql $DB {
-    UPDATE t1 SET a=a+10;
-  } (unsupported command, not transpiled)
+		// stepsql $DB {\n    UPDATE t1 SET a=a+10;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.4"
-		// stepsql $DB {
-    INSERT INTO t1 SELECT a+1,b+1,c+1 FROM t1;
-  } (unsupported command, not transpiled)
+		// stepsql $DB {\n    INSERT INTO t1 SELECT a+1,b+1,c+1 FROM t1;\n...} (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.4b"
 		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.5"
-		// stepsql $DB {
-    UPDATE t1 SET a=a+10;
-  } (unsupported command, not transpiled)
+		// stepsql $DB {\n    UPDATE t1 SET a=a+10;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.5b"
 		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.6"
-		// stepsql $DB {
-    SELECT * FROM t1;
-  } (unsupported command, not transpiled)
+		// stepsql $DB {\n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.7"
-		// stepsql $DB {
-    INSERT INTO t1 SELECT a+2,b+2,c+2 FROM t1;
-  } (unsupported command, not transpiled)
+		// stepsql $DB {\n    INSERT INTO t1 SELECT a+2,b+2,c+2 FROM t1;\n...} (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.8"
 		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.9"
-		// stepsql $DB {
-    SELECT * FROM t1;
-  } (unsupported command, not transpiled)
+		// stepsql $DB {\n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.10"
-		// stepsql $DB {
-    UPDATE t1 SET a=a-20;
-    SELECT * FROM t1;
- ...} (unsupported command, not transpiled)
+		// stepsql $DB {\n    UPDATE t1 SET a=a-20;\n    SELECT * FROM t1;...} (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.11"
 		// sqlite3_changes $DB (unsupported command, not transpiled)
@@ -625,6 +609,11 @@ func Test_capi2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
+	}
+	{ // do_test "capi2-7.12"
+		x = "stepsql $DB {EXPLAIN SELECT * FROM t1}"
+		_ = x // suppress unused warning
+		_ = tclLIndex(x, "0") // lindex result
 	}
 	{ // do_test "capi2-8.1"
 		VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
@@ -642,6 +631,113 @@ func Test_capi2(t *testing.T) {
 	}
 	{ // do_test "capi2-10.2"
 		// sqlite3_reset 0 (unsupported command, not transpiled)
+	}
+	// proc definition (not transpiled)
+	{ // do_test "capi2-11.1"
+		_res = db.Exec("\n    CREATE TABLE tab1(col1, col2);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tab1(col1, col2);\n  ")
+		}
+	}
+	{ // do_test "capi2-11.2"
+		// check_origins {SELECT col2, col1 FROM tab1} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-11.3"
+		// check_origins {SELECT col2 AS hello, col1 AS world FROM tab1} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-11.4"
+		// check_origins {SELECT b, a FROM (SELECT col1 AS a, col2 AS b FROM...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-11.5"
+		// check_origins {SELECT (SELECT col2 FROM tab1), (SELECT col1 FROM ...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-11.6"
+		// check_origins {SELECT (SELECT col2), (SELECT col1) FROM tab1} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-11.7"
+		// check_origins {SELECT * FROM tab1} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-11.8"
+		// check_origins {SELECT * FROM (SELECT * FROM tab1)} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-12.1"
+		_res = db.Exec("\n      CREATE VIEW view1 AS SELECT * FROM  tab1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW view1 AS SELECT * FROM  tab1;\n    ")
+		}
+	}
+	{ // do_test "capi2-12.2"
+		// check_origins {SELECT col2, col1 FROM view1} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-12.3"
+		// check_origins {SELECT col2 AS hello, col1 AS world FROM view1} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-12.4"
+		// check_origins {SELECT b, a FROM (SELECT col1 AS a, col2 AS b FROM...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-12.5"
+		// check_origins {SELECT (SELECT col2 FROM view1), (SELECT col1 FROM...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-12.6"
+		// check_origins {SELECT (SELECT col2), (SELECT col1) FROM view1} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-12.7"
+		// check_origins {SELECT * FROM view1} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-12.8"
+		// check_origins {select * from (select * from view1)} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-12.9"
+		// check_origins {select * from (select * from (select * from view1)...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-12.10"
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
+		// check_origins {select * from (select * from (select * from view1)...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.1"
+		_res = db.Exec("\n      CREATE VIEW view2 AS SELECT * FROM tab1 limit 10 offset 10;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW view2 AS SELECT * FROM tab1 limit 10 offset 10;\n    ")
+		}
+	}
+	{ // do_test "capi2-13.2"
+		// check_origins {SELECT col2, col1 FROM view2} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.3"
+		// check_origins {SELECT col2 AS hello, col1 AS world FROM view2} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.4"
+		// check_origins {SELECT b, a FROM (SELECT col1 AS a, col2 AS b FROM...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.5"
+		// check_origins {SELECT (SELECT col2 FROM view2), (SELECT col1 FROM...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.6"
+		// check_origins {SELECT (SELECT col2), (SELECT col1) FROM view2} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.7"
+		// check_origins {SELECT * FROM view2} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.8"
+		// check_origins {select * from (select * from view2)} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.9"
+		// check_origins {select * from (select * from (select * from view2)...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.10"
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
+		// check_origins {select * from (select * from (select * from view2)...} (unsupported command, not transpiled)
+	}
+	{ // do_test "capi2-13.11"
+		// check_origins {select * from (select * from tab1 limit 10 offset ...} (unsupported command, not transpiled)
 	}
 	db2.Close()
 }

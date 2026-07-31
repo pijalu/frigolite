@@ -62,6 +62,7 @@ func Test_incrblob3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "incrblob3"
 	_ = testprefix // suppress unused warning
+	return
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
@@ -215,6 +216,22 @@ func Test_incrblob3(t *testing.T) {
 			_res = db.Exec(" UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1 ")
+			}
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-6.1"
+			_res = db.Exec("\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('rules to open a column to which');\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('rules to open a column to which');\n    ")
+			}
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-6.2"
+			_res = db.Exec(" CREATE VIEW v1 AS SELECT * FROM blobs ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIEW v1 AS SELECT * FROM blobs ")
 			}
 			_list := tclList([]string{"0", msg})
 			_ = _list

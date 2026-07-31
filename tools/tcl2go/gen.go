@@ -806,6 +806,14 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		// Simplified: catch just returns "0" (no error)
 		return `"0"`
 
+	case "lindex":
+		if len(args) >= 2 {
+			listExpr := tp.buildStringExpr(args[0])
+			idxExpr := tp.buildStringExpr(args[1])
+			return fmt.Sprintf("tclLIndex(%s, %s)", listExpr, idxExpr)
+		}
+		return `""`
+
 	case "file":
 		return fmt.Sprintf("%q", cmdText)
 
@@ -957,10 +965,33 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		tp.emitLine("if err != nil { t.Fatal(err) }")
 	case "source", "finish_test", "test_finish", "exit", "flush",
 		"fix_testname", "incr_ntest", "sqlite3_memdebug_settitle",
-		"ifcapable", "ifnotcapable", "namespace", "rename", "array",
+		"namespace", "rename", "array",
 		"foreach_kv", "foreach_u", "global", "uplevel", "upvar",
 		"info", "vwait", "after", "update", "breakpoint":
 		// no-op: TCL infrastructure commands
+	case "ifcapable":
+		// ifcapable NAME { BODY } — friglolite supports all capabilities,
+		// so transpile the body unconditionally.
+		if bodyCmds := tp.parseBracedBody(args, 1); bodyCmds != nil {
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars}
+			bodyTP.processCommands(bodyCmds)
+			tp.varCount = bodyTP.varCount
+			tp.indent = bodyTP.indent
+			tp.vars = bodyTP.vars
+		}
+	case "ifnotcapable":
+		// ifnotcapable NAME { BODY } — friglolite supports all capabilities,
+		// so skip the body (condition is false).
+	case "time":
+		// time { SCRIPT } [count] — transpile the inner script as regular code,
+		// ignoring the timing measurement.
+		if bodyCmds := tp.parseBracedBody(args, 0); bodyCmds != nil {
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars}
+			bodyTP.processCommands(bodyCmds)
+			tp.varCount = bodyTP.varCount
+			tp.indent = bodyTP.indent
+			tp.vars = bodyTP.vars
+		}
 	case "proc":
 		tp.emitLine("// proc definition (not transpiled)")
 	case "unset":
@@ -1014,12 +1045,16 @@ func describeArgsShort(args []tcl.RawWord) string {
 	for _, a := range args {
 		if a.Braced {
 			s := a.Text
+			s = strings.ReplaceAll(s, "\n", "\\n")
+			s = strings.ReplaceAll(s, "\r", "")
 			if len(s) > 50 {
 				s = s[:50] + "..."
 			}
 			parts = append(parts, "{"+s+"}")
 		} else {
 			s := a.Text
+			s = strings.ReplaceAll(s, "\n", "\\n")
+			s = strings.ReplaceAll(s, "\r", "")
 			if len(s) > 50 {
 				s = s[:50] + "..."
 			}
@@ -1048,10 +1083,14 @@ func isQueryStmt(stmt string) bool {
 		return false
 	}
 	upper := strings.ToUpper(stmt[:min(len(stmt), 10)])
-	return strings.HasPrefix(upper, "SELECT") ||
+	if strings.HasPrefix(upper, "SELECT") ||
 		strings.HasPrefix(upper, "PRAGMA") ||
 		strings.HasPrefix(upper, "EXPLAIN") ||
-		strings.HasPrefix(upper, "WITH")
+		strings.HasPrefix(upper, "WITH") {
+		return true
+	}
+	// INSERT/UPDATE/DELETE with RETURNING should use db.Query
+	return strings.Contains(strings.ToUpper(stmt), "RETURNING")
 }
 
 func min(a, b int) int {
@@ -1354,8 +1393,9 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 	case "transaction":
 		if len(rest) > 0 && rest[0].Braced {
 			bodyCmds := tcl.ParseCommands(rest[0].Text)
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: goName, t: tp.t, vars: tp.vars}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: goName, t: tp.t, varCount: tp.varCount, vars: tp.vars}
 			bodyTP.processCommands(bodyCmds)
+			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
 		}
 	case "cache", "function", "collate", "create_function",
@@ -2122,6 +2162,41 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 				}
 			}
 		}
+	}
+
+	// Handle [time { SCRIPT }] in set: transpile the inner script.
+	if len(rest) == 1 && !rest[0].Braced && strings.HasPrefix(rest[0].Text, "[time ") {
+		cmdText := rest[0].Text
+		cmdText = strings.TrimPrefix(cmdText, "[")
+		cmdText = strings.TrimSuffix(cmdText, "]")
+		cmdText = strings.TrimSpace(strings.TrimPrefix(cmdText, "time"))
+		if strings.HasPrefix(cmdText, "{") {
+			depth := 0
+			bodyStart := -1
+			for i, c := range cmdText {
+				if c == '{' {
+					if depth == 0 { bodyStart = i + 1 }
+					depth++
+				} else if c == '}' {
+					depth--
+					if depth == 0 && bodyStart >= 0 {
+						bodyStr := cmdText[bodyStart:i]
+						bodyCmds := tcl.ParseCommands(bodyStr)
+						bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars}
+						bodyTP.processCommands(bodyCmds)
+						tp.indent = bodyTP.indent
+					}
+				}
+			}
+		}
+		if tp.isVarDeclared(goName) {
+			tp.emitLine("%s = \"\"", goName)
+		} else {
+			tp.emitLine("var %s = \"\"", goName)
+			tp.vars = append(tp.vars, goName)
+		}
+		tp.emitLine("_ = %s // suppress unused warning", goName)
+		return
 	}
 
 	valueExpr := tp.varValueExpr(rest)

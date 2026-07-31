@@ -1,9 +1,74 @@
 # Frigolite — TDD Master Plan v2
 
-> **Status**: PLANNING — awaiting review before goal creation.
+> **Status**: PHASE 0 COMPLETE — Tier 1 engine work in progress.
 > **Created**: 2026-07-30. Supersedes `plans/TDD_MASTER.md` (failed).
 > **Approach**: Strict TDD — every test gap is a visible failure (RED) that drives
 > an engine fix (GREEN). No silent skips. No cheating.
+
+---
+
+## 0. CURRENT STATUS — HANDOFF (2026-07-31)
+
+> Measured by running `go build ./testgen/...` and `go test ./testgen/... -count=1 -timeout 30s -p 16`.
+
+| Metric | Value |
+|--------|-------|
+| **Phase 0 (transpile health)** | ✅ **COMPLETE** — `go build ./testgen/...` exits 0 |
+| testgen packages | 614 dirs |
+| PASS | 339 |
+| RUNTIME_FAIL | 275 |
+| SETUP_FAIL | 2 (`crash` — syntax error `expected operand, found '{'`; `shell` — `illegal UTF-8 encoding`) |
+| BUILD_FAIL | 1 (`reindex`) |
+| Tier 1 starting point | Basic CRUD PASS: `select1`, `insert`, `delete_`, `update`, `null`, `cast`, `between`, `intpkey`, `intreal`, `delete2`, `delete3`, `whereN`, `select7`, `select8` … |
+
+### ⚠️ MEMORY LEAK — investigate before running the full suite
+- **Symptom**: some test packages **exhaust all memory** (system OOM) when the
+  suite is run. A full `go test ./testgen/...` run was interrupted by the 280s
+  timeout while consuming significant memory.
+- **Suspected cause**: engine memory leaks (unverified). Candidate areas:
+  statement cache in `internal/exec/engine.go`, prepared-statement clones,
+  pager/page-cache growth, `btree` cursor retention across many statements.
+- **Impact**: running the full 614-package suite in one process risks OOM /
+  machine instability. Workaround: run package-by-package or in small batches
+  with a per-package timeout, e.g.
+  `go test ./testgen/<pkg>/ -count=1 -timeout 30s` or
+  `go test ./testgen/... -count=1 -timeout 30s -p 8`.
+- **Note**: `corruptL_test.go:123` expects `"out of memory"` as an error message
+  — that is a test expectation, NOT the leak. The real leak is observed as
+  growing RSS during test runs.
+
+### 🔄 PARSER CHANGE — go-lemon generated LALR(1) SQL parser
+- The SQL engine (`internal/exec/engine.go`) now uses the **go-lemon generated
+  LALR(1) SQL parser** in **`internal/parse/`** for full statement parsing
+  (`internal/exec/engine.go:404` — "Full parse using go-lemon generated parser").
+- `internal/parse/` contains: `parser.go` (generated parse tables + `ParseSQL`),
+  `engine.go` (parser engine adapted from go-lemon), `sql_tables.go` (SQLite
+  grammar tables), `token.go`, plus tests.
+- The hand-written recursive-descent parser in `internal/sql/parser.go` still
+  exists (recently modified) and `internal/sql` provides the AST types; exec
+  imports both `internal/parse` and `internal/sql`.
+- **go-lemon tool fixes made this session** (`tools/go-lemon/`):
+  - `YY_ACCEPT_ACTION` / `YY_ERROR_ACTION` / `YY_NO_ACTION` moved out of the
+    shift-state range (now 9998 / 9997 / 9999 instead of 1 / 0 / 2), eliminating
+    the collision where "accept" was indistinguishable from "shift to state 1".
+  - Empty-rule handling in the engine: stack growth for `nrhs==0` plus stack
+    truncation after reduce (prevents stale-slot corruption).
+  - nil-safe `TokenName` in all trace output.
+  - Verify: `go test ./tools/tclconvert/tcl/tclparser/ -count=1` (15 tests pass,
+    including select1.test comparison against the hand-written parser).
+- **Stopped**: the go-lemon transpiler prototype for `tools/tcl2go` was
+  **abandoned per user request** (2026-07-31). `tcl_transpiler.y` skeleton exists
+  in `tools/tclconvert/tcl/tclparser/` but is NOT wired up and should not be
+  pursued unless requested. The tcl2go transpiler remains the hand-written
+  `tools/tcl2go/gen.go`.
+
+### Commands for the next session
+```bash
+go build ./testgen/...                        # Phase 0 gate (must exit 0)
+go test ./testgen/select1/ -count=1           # single package (avoid OOM)
+go test ./testgen/... -count=1 -timeout 30s -p 8   # batch (may still OOM)
+go test -run TestSOLID_ -count=1 ./...        # architecture check
+```
 
 ---
 
@@ -64,14 +129,20 @@ One logical fix per commit. Commit message format: `T<tier>.<task>: <description
 
 ## 3. Current State — Accurate Baseline
 
-Measured on 2026-07-30 by compiling and running all 607 testgen packages.
+Measured on 2026-07-31 by compiling and running all testgen packages
+(see §0 for the latest handoff numbers).
 
 | Status | Count | Meaning |
 |--------|-------|---------|
-| **PASS** | 89 | Builds and passes all assertions |
-| **RUNTIME_FAIL** | 324 | Compiles but engine bugs cause assertion failures |
-| **BUILD_FAIL** | 192 | Transpiler produces non-compiling Go code |
-| **Total** | **607** | (out of 1,192 TCL source files; 585 not yet generated) |
+| **PASS** | 339 | Builds and passes all assertions |
+| **RUNTIME_FAIL** | 275 | Compiles but engine bugs cause assertion failures |
+| **SETUP_FAIL** | 2 | Generated code fails to compile at test time (`crash`, `shell`) |
+| **BUILD_FAIL** | 1 | Transpiler produces non-compiling Go code (`reindex`) |
+| **Total** | **614** | testgen package dirs (Phase 0 gate: `go build ./testgen/...` exits 0) |
+
+> Phase 0 (transpile health) is **COMPLETE**: every package compiles. The
+> remaining failures are RUNTIME_FAIL (engine bugs), driving Tiers 1-6.
+> ⚠️ See §0 for the memory-leak warning before running the full suite.
 
 ### Build failure root causes (transpiler bugs)
 

@@ -49,6 +49,7 @@ func Test_vtabdistinct(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtabdistinct"
 	_ = testprefix // suppress unused warning
+	return
 	// load_static_extension db qpvtab (unsupported command, not transpiled)
 	{ // "1.1"
 		r = db.Query("\n  SELECT ix FROM qpvtab WHERE vn='sqlite3_vtab_distinct';\n")

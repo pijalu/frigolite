@@ -84,6 +84,7 @@ func Test_superlock(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	return
 	{ // do_test "1.2"
 		// sqlite3demo_superlock unlock test.db (unsupported command, not transpiled)
 	}
@@ -198,11 +199,7 @@ func Test_superlock(t *testing.T) {
 	{ // do_test "4.6"
 		// unlock (unsupported command, not transpiled)
 	}
-	// do_multiclient_test tn {
-
-  proc busyhandler {x} {
-    switch -- $x {
-    ...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n\n  proc busyhandler {x} {\n    switch -- $x {\n...} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

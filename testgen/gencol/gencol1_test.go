@@ -815,6 +815,21 @@ func Test_gencol1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
+		{ // "gencol1-21.1"
+			r = db.Query("\n    CREATE TABLE t1(\n      a integer primary key,\n      b int generated always as (a+5),\n      c text    GENERATED   ALWAYS as (printf('%08x',a)),\n      d Generated\n        Always\n        AS ('xyzzy'),\n      e int                         Always default(5)\n    );\n    INSERT INTO t1(a) VALUES(5);\n    SELECT name, type FROM pragma_table_xinfo('t1');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(\n      a integer primary key,\n      b int generated always as (a+5),\n      c text    GENERATED   ALWAYS as (printf('%08x',a)),\n      d Generated\n        Always\n        AS ('xyzzy'),\n      e int                         Always default(5)\n    );\n    INSERT INTO t1(a) VALUES(5);\n    SELECT name, type FROM pragma_table_xinfo('t1');\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "a INTEGER b INT c TEXT d {} e INT"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
 		{ // "gencol1-22.1"
 			r = db.Query("\n  CREATE TABLE t0(a PRIMARY KEY,b TEXT AS ('2') UNIQUE);\n  INSERT INTO t0(a) VALUES(2);\n  SELECT * FROM t0 AS x JOIN t0 AS y\n   WHERE x.b='2'\n     AND (y.a=2 OR (x.b LIKE '2*' AND y.a=x.b));\n")
 			if r.Error != nil {

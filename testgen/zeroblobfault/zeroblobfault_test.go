@@ -53,11 +53,5 @@ func Test_zeroblobfault(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	quoted_res = "db one { SELECT quote(zeroblob(2000)) }"
 	_ = quoted_res // suppress unused warning
-	// do_faultsim_test 1 -prep {
-  sqlite3 db test.db
-} -body {
-  execsql { SELECT quote(zeroblob(2000)) }
-} -test {
-  faultsim_test_result [list 0 $::quoted_res]
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { SELECT quote(zeroblob(2000)) }\n} -test {\n  faultsim_test_result [list 0 $::quoted_res]\n} (unsupported command, not transpiled)
 }

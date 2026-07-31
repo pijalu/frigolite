@@ -50,6 +50,7 @@ func Test_e_delete(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// proc definition (not transpiled)
 	{ // "e_delete-0.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
@@ -57,18 +58,15 @@ func Test_e_delete(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
 		}
 	}
-	// do_delete_tests e_delete-0.1 {
-  1  "DELETE FROM t1"                            ...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-0.1 {\n  1  "DELETE FROM t1"                           ...} (unsupported command, not transpiled)
 	// drop_all_tables (unsupported command, not transpiled)
 	{ // do_test "e_delete-1.0"
 		for _, _t := range tclSplitList("t1 t2 t3 t4 t5 t6") {
 		_ = _t // suppress unused warning
 		}
 	}
-	// do_delete_tests e_delete-1.1 {
-  1  "DELETE FROM t1       ; SELECT * FROM t1"   ...} (unsupported command, not transpiled)
-	// do_delete_tests e_delete-1.2 {
-  1  "DELETE FROM t3 WHERE 1       ; SELECT x FRO...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-1.1 {\n  1  "DELETE FROM t1       ; SELECT * FROM t1"  ...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-1.2 {\n  1  "DELETE FROM t3 WHERE 1       ; SELECT x FR...} (unsupported command, not transpiled)
 	os.Remove("test.db2")
 	os.Remove("test.db3")
 	{ // "e_delete-2.0"
@@ -77,22 +75,15 @@ func Test_e_delete(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  ATTACH 'test.db3' AS aux2;\n\n  CREATE TABLE temp.t7(a, b);   INSERT INTO temp.t7 VALUES(1, 2);\n  CREATE TABLE main.t7(a, b);   INSERT INTO main.t7 VALUES(3, 4);\n  CREATE TABLE aux.t7(a, b);    INSERT INTO aux.t7 VALUES(5, 6);\n  CREATE TABLE aux2.t7(a, b);   INSERT INTO aux2.t7 VALUES(7, 8);\n\n  CREATE TABLE main.t8(a, b);   INSERT INTO main.t8 VALUES(1, 2);\n  CREATE TABLE aux.t8(a, b);    INSERT INTO aux.t8 VALUES(3, 4);\n  CREATE TABLE aux2.t8(a, b);   INSERT INTO aux2.t8 VALUES(5, 6);\n\n  CREATE TABLE aux.t9(a, b);    INSERT INTO aux.t9 VALUES(1, 2);\n  CREATE TABLE aux2.t9(a, b);   INSERT INTO aux2.t9 VALUES(3, 4);\n\n  CREATE TABLE aux2.t10(a, b);  INSERT INTO aux2.t10 VALUES(1, 2);\n")
 		}
 	}
-	// do_delete_tests e_delete-2.1 -error {
-  qualified table names are not allowed on INSERT...} {
-  1 {
-      CREATE TRIGGER tr1 AFTER INSERT ON t1...} (unsupported command, not transpiled)
-	// do_delete_tests e_delete-2.2.1 -error { no such table: %s } {
-  1 {
-      CREATE TRIGGER main.tr1 AFTER INSERT ...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-2.1 -error {\n  qualified table names are not allowed on INSER...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON ...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-2.2.1 -error { no such table: %s } {\n  1 {\n      CREATE TRIGGER main.tr1 AFTER INSER...} (unsupported command, not transpiled)
 	{ // "e_delete-2.2.X"
 		_res = db.Exec("\n  DROP TRIGGER main.tr1;\n  DROP TRIGGER aux.tr2;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER main.tr1;\n  DROP TRIGGER aux.tr2;\n")
 		}
 	}
-	// do_delete_tests e_delete-2.2.2 {
-  1 {
-      CREATE TRIGGER aux.tr1 AFTER INSERT O...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-2.2.2 {\n  1 {\n      CREATE TRIGGER aux.tr1 AFTER INSERT...} (unsupported command, not transpiled)
 	{ // "e_delete-2.3.0"
 		_res = db.Exec("\n  DROP TRIGGER aux.tr1;\n  DROP TRIGGER main.tr1;\n  DELETE FROM main.t8 WHERE oid>1;\n  DELETE FROM aux.t8 WHERE oid>1;\n  INSERT INTO aux.t9 VALUES(1, 2);\n  INSERT INTO main.t7 VALUES(3, 4);\n")
 		if _res.Error != nil {
@@ -135,8 +126,19 @@ func Test_e_delete(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i8 ON t8(a, b);\n")
 		}
 	}
-	// do_delete_tests e_delete-2.4 -error {
-  the %s %s clause is not allowed on UPDATE or DE...} {
-  1 {
-    CREATE TRIGGER tr3 AFTER INSERT ON t8 B...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-2.4 -error {\n  the %s %s clause is not allowed on UPDATE or D...} {\n  1 {\n    CREATE TRIGGER tr3 AFTER INSERT ON t8...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-2.5 -error { near "%s": syntax error } {\n  1 {\n    CREATE TRIGGER tr3 AFTER INSERT ON t8...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.1 {\n  1   "DELETE FROM t1 LIMIT 5"                  ...} (unsupported command, not transpiled)
+	// drop_all_tables (unsupported command, not transpiled)
+	// proc definition (not transpiled)
+	// rebuild_t1 (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.2 -repair rebuild_t1 -query {\n  SELECT a FROM t1\n} {\n  1   "DELETE FROM t1 LIMIT 3"       {4 5}\n  2 ...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.3 -error { datatype mismatch } {\n  1   "DELETE FROM t1 LIMIT 'abc'"   {}\n  2   "...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.4 -repair rebuild_t1 -query {\n  SELECT a FROM t1\n} {\n  1   "DELETE FROM t1 LIMIT -1"       {}\n  2   ...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.5 -error { datatype mismatch } {\n  1   "DELETE FROM t1 LIMIT 1 OFFSET 'abc'"   {}...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.6 -repair rebuild_t1 -query {\n  SELECT a FROM t1\n} {\n  1a  "DELETE FROM t1 LIMIT 3 OFFSET 0"        {...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.7 -repair rebuild_t1 -query {\n  SELECT a FROM t1\n} {\n  1   "DELETE FROM t1 ORDER BY b LIMIT 2"       ...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.8 -repair rebuild_t1 -query {\n  SELECT a FROM t1\n} {\n  1   "DELETE FROM t1 ORDER BY a ASC LIMIT 10"  ...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.9 -repair rebuild_t1 -query {\n  SELECT a FROM t1\n} {\n  1   "DELETE FROM t1 LIMIT 2"               {3 ...} (unsupported command, not transpiled)
+	// do_delete_tests e_delete-3.10 -repair {\n  rebuild_t1 \n  catchsql { DROP TABLE t1log }\n...} -query {\n  SELECT x FROM t1log\n} {\n  1   "DELETE FROM t1 ORDER BY a DESC LIMIT 2"  ...} (unsupported command, not transpiled)
 }

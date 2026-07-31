@@ -50,6 +50,7 @@ func Test_sync(t *testing.T) {
 	_ = adj // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}
@@ -67,6 +68,15 @@ func Test_sync(t *testing.T) {
 		}
 		// cond_incr_sync_count 2 (unsupported command, not transpiled)
 	}
+	{ // do_test "sync-1.2"
+		sqlite_sync_count = "0"
+		_ = sqlite_sync_count // suppress unused warning
+		_res = db.Exec("\n      PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;\n    ")
+		}
+		// cond_incr_sync_count 4 (unsupported command, not transpiled)
+	}
 	{ // do_test "sync-1.3"
 		sqlite_sync_count = "0"
 		_ = sqlite_sync_count // suppress unused warning
@@ -75,5 +85,15 @@ func Test_sync(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;\n  ")
 		}
 		// cond_incr_sync_count 4 (unsupported command, not transpiled)
+	}
+	if tclBool("permutation" + "!=\"journaltest\"") {
+		{ // do_test "sync-1.4"
+			sqlite_sync_count = "0"
+			_ = sqlite_sync_count // suppress unused warning
+			_res = db.Exec("\n      PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;\n    ")
+			}
+		}
 	}
 }

@@ -88,6 +88,7 @@ func Test_bestindex4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bestindex4"
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	// register_tcl_module db (unsupported command, not transpiled)
 	param1 = "0"

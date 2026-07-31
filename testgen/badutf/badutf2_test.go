@@ -114,12 +114,42 @@ func Test_badutf2(t *testing.T) {
 			hstr = "utf8_to_hstr $uval"
 			_ = hstr // suppress unused warning
 			if hstr != "%00" {
+				{ // do_test "badutf2-2.1." + i
+					sql = "SELECT '" + hstr + "'=CAST(x'" + uval + "' AS text) AS x;"
+					_ = sql // suppress unused warning
+					res = "sqlite3_exec db $sql"
+					_ = res // suppress unused warning
+					_ = tclLIndex(tclLIndex(res, "1"), "1") // lindex result
+				}
+				{ // do_test "badutf2-2.2." + i
+					sql = "SELECT CAST('" + hstr + "' AS blob)=x'" + uval + "' AS x;"
+					_ = sql // suppress unused warning
+					res = "sqlite3_exec db $sql"
+					_ = res // suppress unused warning
+					_ = tclLIndex(tclLIndex(res, "1"), "1") // lindex result
+				}
+			}
+			{ // do_test "badutf2-2.3." + i
+				sql = "SELECT hex(CAST(x'" + uval + "' AS text)) AS x;"
+				_ = sql // suppress unused warning
+				res = "sqlite3_exec db $sql"
+				_ = res // suppress unused warning
+				_ = tclLIndex(tclLIndex(res, "1"), "1") // lindex result
+			}
+			{ // do_test "badutf2-2.4." + i
+				sql = "SELECT hex(CAST(x'" + uval + "' AS text)) AS x;"
+				_ = sql // suppress unused warning
+				res = "sqlite3_exec db $sql"
+				_ = res // suppress unused warning
+				_ = tclLIndex(tclLIndex(res, "1"), "1") // lindex result
+			}
+			if hstr != "%00" {
 				{ // do_test "badutf2-3.1." + i
 					sql = "SELECT hex('" + hstr + "') AS x;"
 					_ = sql // suppress unused warning
 					res = "sqlite3_exec db $sql"
 					_ = res // suppress unused warning
-					_ = tclLIndex("lindex $res 1", "1") // lindex result
+					_ = tclLIndex(tclLIndex(res, "1"), "1") // lindex result
 				}
 			}
 			if tclBool(i + "==5 && " + tcl_version + ">=8.7") {
@@ -130,6 +160,9 @@ func Test_badutf2(t *testing.T) {
 					// sqlite3_step $S (unsupported command, not transpiled)
 					// utf8_to_ustr2 [ sqlite3_column_text $S 0 ] (unsupported command, not transpiled)
 				}
+			}
+			{ // do_test "badutf2-5.1." + i
+				// utf8_to_utf8 $uval (unsupported command, not transpiled)
 			}
 		}
 		{ // do_test "badutf2-4.2"

@@ -101,7 +101,7 @@ func Test_filectrl(t *testing.T) {
 			handle = "file_control_win32_get_handle db"
 			_ = handle // suppress unused warning
 			os.Remove("test2.db")
-			_list := tclList([]string{size, handle, "$handle != 0"})
+			_list := tclList([]string{size, handle, tclExpr("$handle != 0")})
 			_ = _list
 		}
 		{ // do_test "filectrl-2.2"
@@ -117,7 +117,7 @@ func Test_filectrl(t *testing.T) {
 			handle = "file_control_win32_get_handle db"
 			_ = handle // suppress unused warning
 			os.Remove("test2.db")
-			_list := tclList([]string{size, handle, "$handle != 0"})
+			_list := tclList([]string{size, handle, tclExpr("$handle != 0")})
 			_ = _list
 		}
 	}

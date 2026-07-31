@@ -79,14 +79,14 @@ func Test_wal9(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "1.4"
-		// expr [file size test.db-wal]>(1500*1024) → "[file size test.db-wal]>(1500*1024)"
+		// expr [file size test.db-wal]>(1500*1024) (not evaluated)
 	}
 	{ // do_test "1.5"
-		// expr [file size test.db-shm]>32768 → "[file size test.db-shm]>32768"
+		// expr [file size test.db-shm]>32768 (not evaluated)
 	}
 	{ // do_test "1.6"
 		// skip: foreach over unresolved TCL command
-		_list := tclList([]string{"$a==0", "$b>14500", "$c>14500", "$b==$c"})
+		_list := tclList([]string{tclExpr("$a==0"), tclExpr("$b>14500"), tclExpr("$c>14500"), tclExpr("$b==$c")})
 		_ = _list
 	}
 	{ // do_test "1.7"

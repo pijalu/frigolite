@@ -58,13 +58,7 @@ func Test_malloc6(t *testing.T) {
 	}
 	sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
-	// do_malloc_test malloc6-1 -tclprep {
-  db close
-} -tclbody {
-  if {[catch {sqlite3 db test.db}]} {
-    error "...} -sqlbody {
-  DROP TABLE IF EXISTS t1;
-  CREATE TABLE IF NOT ...} (unsupported command, not transpiled)
+	// do_malloc_test malloc6-1 -tclprep {\n  db close\n} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error...} -sqlbody {\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE IF NO...} (unsupported command, not transpiled)
 	{ // do_test "malloc6-1.X"
 		{
 			var _catchErr error

@@ -85,9 +85,9 @@ func Test_select2(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
-		_res = db.Exec("INSERT INTO tbl1 VALUES(" + "$i%9" + "," + "$i%10" + ")")
+		_res = db.Exec("INSERT INTO tbl1 VALUES(" + tclExpr("$i%9") + "," + tclExpr("$i%10") + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES(" + "$i%9" + "," + "$i%10" + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES(" + tclExpr("$i%9") + "," + tclExpr("$i%10") + ")")
 		}
 		// incr i 1
 		{
@@ -125,6 +125,39 @@ func Test_select2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 		}
 	}
+	{ // do_test "select2-2.0.1"
+		_res = db.Exec("CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;")
+		}
+		i = "1"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30000 }() {
+			i2 = tclExpr("$i*2")
+			_ = i2 // suppress unused warning
+			i3 = tclExpr("$i*3")
+			_ = i3 // suppress unused warning
+			_res = db.Exec("INSERT INTO tbl2 VALUES($i,$i2,$i3)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl2 VALUES($i,$i2,$i3)")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		t1 = ""
+		_ = t1 // suppress unused warning
+	}
+	_putsMsg := "time with cache: " + t1
+	_ = _putsMsg
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -132,10 +165,37 @@ func Test_select2(t *testing.T) {
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "select2-2.0.2"
-		t2 = "time {\n    execsql {CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;}\n    for {set i 1} {$i<=30000} {incr i} {\n      set i2 [expr {$i*2}]\n      set i3 [expr {$i*3}]\n      execsql \"INSERT INTO tbl2 VALUES($i,$i2,$i3)\"\n    }\n    execsql {COMMIT}\n  }"
+		_res = db.Exec("CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;")
+		}
+		i = "1"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30000 }() {
+			i2 = tclExpr("$i*2")
+			_ = i2 // suppress unused warning
+			i3 = tclExpr("$i*3")
+			_ = i3 // suppress unused warning
+			_res = db.Exec("INSERT INTO tbl2 VALUES(" + i + "," + i2 + "," + i3 + ")")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl2 VALUES(" + i + "," + i2 + "," + i3 + ")")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		t2 = ""
 		_ = t2 // suppress unused warning
 	}
-	_putsMsg := "time without cache: " + t2
+	_putsMsg = "time without cache: " + t2
 	_ = _putsMsg
 	{ // do_test "select2-2.1"
 		r = db.Query("SELECT count(*) FROM tbl2")

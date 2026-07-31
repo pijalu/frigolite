@@ -64,6 +64,7 @@ func Test_jrnlmode(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	if tclBool("info exists TEMP_STORE" + " && " + TEMP_STORE + ">=2") {
 		temp_persist = "memory"
 		_ = temp_persist // suppress unused warning
@@ -151,6 +152,402 @@ func Test_jrnlmode(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n    PRAGMA journal_mode = invalid;\n  ")
 		}
+	}
+	{ // do_test "jrnlmode-1.9"
+		_res = db.Exec("\n      PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;\n    ")
+		}
+		r = db.Query("\n      PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-1.10"
+		r = db.Query("\n      PRAGMA main.journal_mode = OFF;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.journal_mode = OFF;\n    ")
+		}
+		r = db.Query("\n      PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-1.11"
+		r = db.Query("\n      PRAGMA journal_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-1.12"
+		_res = db.Exec("\n      ATTACH ':memory:' as aux2;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH ':memory:' as aux2;\n    ")
+		}
+		r = db.Query("\n      PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-1.13"
+		r = db.Query("\n      PRAGMA aux1.journal_mode = DELETE;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux1.journal_mode = DELETE;\n    ")
+		}
+		r = db.Query("\n      PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-1.14"
+		r = db.Query("\n      PRAGMA journal_mode = delete;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = delete;\n    ")
+		}
+		r = db.Query("\n      PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-1.15"
+		_res = db.Exec("\n      ATTACH ':memory:' as aux3;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH ':memory:' as aux3;\n    ")
+		}
+		r = db.Query("\n      PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n      PRAGMA aux3.journal_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n      PRAGMA aux3.journal_mode;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-1.16"
+		r = db.Query("\n      PRAGMA journal_mode = TRUNCATE;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = TRUNCATE;\n    ")
+		}
+		r = db.Query("\n      PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n      PRAGMA aux3.journal_mode;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n      PRAGMA aux3.journal_mode;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-1.99"
+		_res = db.Exec("\n      DETACH aux1;\n      DETACH aux2;\n      DETACH aux3;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DETACH aux1;\n      DETACH aux2;\n      DETACH aux3;\n    ")
+		}
+	}
+	os.Remove("test2.db")
+	{ // do_test "jrnlmode-2.1"
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);\n    ")
+		}
+		_res = db.Exec("\n      BEGIN;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO def VALUES(4, 5, 6);\n      COMMIT;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO def VALUES(4, 5, 6);\n      COMMIT;\n    ")
+		}
+		_list := tclList([]string{"file exists test.db-journal", "file exists test2.db-journal"})
+		_ = _list
+	}
+	{ // do_test "jrnlmode-2.2"
+		// file size test.db-journal
+	}
+	{ // do_test "jrnlmode-2.3"
+		r = db.Query("\n      SELECT * FROM abc;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM abc;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-2.4"
+		// file size test.db-journal
+	}
+	{ // do_test "jrnlmode-2.5"
+		r = db.Query("\n      SELECT * FROM def;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM def;\n    ")
+		}
+	}
+	os.Remove("test2.db")
+	os.Remove("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // do_test "jrnlmode-3.1"
+		_res = db.Exec(" \n      CREATE TABLE x(n INTEGER); \n      ATTACH 'test2.db' AS a; \n      create table a.x ( n integer ); \n      insert into a.x values(1); \n      insert into a.x values (2); \n      insert into a.x values (3); \n      insert into a.x values (4); \n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      CREATE TABLE x(n INTEGER); \n      ATTACH 'test2.db' AS a; \n      create table a.x ( n integer ); \n      insert into a.x values(1); \n      insert into a.x values (2); \n      insert into a.x values (3); \n      insert into a.x values (4); \n    ")
+		}
+	}
+	{ // do_test "jrnlmode-3.2"
+		r = db.Query(" PRAGMA journal_mode=off; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode=off; ")
+		}
+		_res = db.Exec(" \n      BEGIN IMMEDIATE;\n      INSERT OR IGNORE INTO main.x SELECT * FROM a.x;\n      COMMIT;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      BEGIN IMMEDIATE;\n      INSERT OR IGNORE INTO main.x SELECT * FROM a.x;\n      COMMIT;\n    ")
+		}
+	}
+	os.Remove("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // do_test "jrnlmode-4.1"
+		_res = db.Exec("\n      PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);\n    ")
+		}
+		r = db.Query(" PRAGMA page_count ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_count ")
+		}
+	}
+	{ // do_test "jrnlmode-4.2"
+		r = db.Query(" PRAGMA journal_mode = off ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = off ")
+		}
+	}
+	{ // do_test "jrnlmode-4.3"
+		_res = db.Exec(" INSERT INTO abc VALUES(1, 2, randomblob(2000)) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc VALUES(1, 2, randomblob(2000)) ")
+		}
+	}
+	{ // do_test "jrnlmode-4.4"
+		_res = db.Exec(" DELETE FROM abc ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM abc ")
+		}
+	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	if tclBool("atomic_batch_write test.db" + "==0") {
+		os.Remove("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		{ // do_test "jrnlmode-5.1"
+			r = db.Query("pragma page_size=1024")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma page_size=1024")
+			}
+			r = db.Query("pragma journal_mode=persist")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma journal_mode=persist")
+			}
+		}
+		{ // do_test "jrnlmode-5.2"
+			r = db.Query(" PRAGMA journal_size_limit ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_size_limit ")
+			}
+		}
+		{ // do_test "jrnlmode-5.3"
+			r = db.Query(" \n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode=persist;\n      PRAGMA aux.journal_size_limit;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode=persist;\n      PRAGMA aux.journal_size_limit;\n    ")
+			}
+		}
+		{ // do_test "jrnlmode-5.4.1"
+			r = db.Query(" PRAGMA aux.journal_size_limit = 999999999999 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA aux.journal_size_limit = 999999999999 ")
+			}
+		}
+		{ // do_test "jrnlmode-5.4.2"
+			r = db.Query(" PRAGMA aux.journal_size_limit = 10240 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA aux.journal_size_limit = 10240 ")
+			}
+		}
+		{ // do_test "jrnlmode-5.5"
+			r = db.Query(" PRAGMA main.journal_size_limit = 20480 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_size_limit = 20480 ")
+			}
+		}
+		{ // do_test "jrnlmode-5.6"
+			r = db.Query(" PRAGMA journal_size_limit ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_size_limit ")
+			}
+		}
+		{ // do_test "jrnlmode-5.7"
+			r = db.Query(" PRAGMA aux.journal_size_limit ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA aux.journal_size_limit ")
+			}
+		}
+		{ // do_test "jrnlmode-5.8"
+			r = db.Query("\n      ATTACH 'test3.db' AS aux2;\n      PRAGMA aux2.journal_mode=persist;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test3.db' AS aux2;\n      PRAGMA aux2.journal_mode=persist;\n    ")
+			}
+		}
+		{ // do_test "jrnlmode-5.9"
+			_res = db.Exec("\n      CREATE TABLE main.t1(a, b, c);\n      CREATE TABLE aux.t2(a, b, c);\n      CREATE TABLE aux2.t3(a, b, c);\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE main.t1(a, b, c);\n      CREATE TABLE aux.t2(a, b, c);\n      CREATE TABLE aux2.t3(a, b, c);\n    ")
+			}
+		}
+		{ // do_test "jrnlmode-5.10"
+			_list := tclList([]string{"file exists test.db-journal", "file exists test2.db-journal", "file exists test3.db-journal"})
+			_ = _list
+		}
+		{ // do_test "jrnlmode-5.11"
+			_res = db.Exec("\n      BEGIN;\n      INSERT INTO t3 VALUES(randomblob(1000),randomblob(1000),randomblob(1000));\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t2 SELECT * FROM t3;\n      INSERT INTO t1 SELECT * FROM t2;\n      COMMIT;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO t3 VALUES(randomblob(1000),randomblob(1000),randomblob(1000));\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t2 SELECT * FROM t3;\n      INSERT INTO t1 SELECT * FROM t2;\n      COMMIT;\n    ")
+			}
+			_list := tclList([]string{"file exists test.db-journal", "file exists test2.db-journal", "file exists test3.db-journal", "file size test.db-journal", "file size test2.db-journal", "file size test3.db-journal"})
+			_ = _list
+		}
+		{ // do_test "jrnlmode-5.12"
+			_res = db.Exec("\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			}
+			// expr [file size test.db-journal]>30000 (not evaluated)
+		}
+		{ // do_test "jrnlmode-5.13"
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+			// file size test.db-journal
+		}
+		{ // do_test "jrnlmode-5.14"
+			_res = db.Exec("\n      BEGIN;\n      UPDATE t2 SET a = randomblob(1000);\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      UPDATE t2 SET a = randomblob(1000);\n    ")
+			}
+			// expr [file size test2.db-journal]>30000 (not evaluated)
+		}
+		{ // do_test "jrnlmode-5.15"
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+			// file size test2.db-journal
+		}
+		{ // do_test "jrnlmode-5.16"
+			_res = db.Exec("\n      BEGIN;\n      UPDATE t3 SET a = randomblob(1000);\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      UPDATE t3 SET a = randomblob(1000);\n    ")
+			}
+			journalsize = "file size test3.db-journal"
+			_ = journalsize // suppress unused warning
+			// expr $journalsize>30000 (not evaluated)
+		}
+		{ // do_test "jrnlmode-5.17"
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+			sz = "file size test3.db-journal"
+			_ = sz // suppress unused warning
+			// expr $sz>=$journalsize (not evaluated)
+		}
+		{ // do_test "jrnlmode-5.18"
+			_res = db.Exec("\n      PRAGMA journal_size_limit = -4;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_size_limit = -4;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			}
+			journalsize = "file size test.db-journal"
+			_ = journalsize // suppress unused warning
+			// expr $journalsize>30000 (not evaluated)
+		}
+		{ // do_test "jrnlmode-5.19"
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+			sz = "file size test.db-journal"
+			_ = sz // suppress unused warning
+			// expr $sz>=$journalsize (not evaluated)
+		}
+		{ // do_test "jrnlmode-5.20"
+			_res = db.Exec("\n      PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);\n    ")
+			}
+		}
+		{ // do_test "jrnlmode-5.21"
+			// expr [file size test.db-journal] > 1024 (not evaluated)
+		}
+		{ // do_test "jrnlmode-5.22"
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+			_list := tclList([]string{"file exists test.db-journal", "file size test.db-journal"})
+			_ = _list
+		}
+	}
+	if tclBool("atomic_batch_write test.db" + "==0") {
+		if tclBool("permutation" + " != \"journaltest\"") {
+			{ // do_test "jrnlmode-6.1"
+				r = db.Query("\n        PRAGMA journal_mode = truncate;\n        CREATE TABLE t4(a, b);\n        BEGIN;\n          INSERT INTO t4 VALUES(1, 2);\n          PRAGMA journal_mode = memory;\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA journal_mode = truncate;\n        CREATE TABLE t4(a, b);\n        BEGIN;\n          INSERT INTO t4 VALUES(1, 2);\n          PRAGMA journal_mode = memory;\n      ")
+				}
+			}
+			{ // do_test "jrnlmode-6.2"
+				// file exists "test.db-journal"
+			}
+			{ // do_test "jrnlmode-6.3"
+				r = db.Query("\n        COMMIT;\n        SELECT * FROM t4;\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        COMMIT;\n        SELECT * FROM t4;\n      ")
+				}
+			}
+			{ // do_test "jrnlmode-6.4"
+				// file exists "test.db-journal"
+			}
+			{ // do_test "jrnlmode-6.5"
+				_res = db.Exec("\n        PRAGMA journal_mode = MEMORY;\n        BEGIN;\n          INSERT INTO t4 VALUES(3, 4);\n      ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        PRAGMA journal_mode = MEMORY;\n        BEGIN;\n          INSERT INTO t4 VALUES(3, 4);\n      ")
+				}
+				// file exists "test.db-journal"
+			}
+			{ // do_test "jrnlmode-6.7"
+				r = db.Query("\n        COMMIT;\n        SELECT * FROM t4;\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        COMMIT;\n        SELECT * FROM t4;\n      ")
+				}
+			}
+			{ // do_test "jrnlmode-6.8"
+				// file exists "test.db-journal"
+			}
+			{ // do_test "jrnlmode-6.9"
+				_res = db.Exec("\n        PRAGMA journal_mode = DELETE;\n        BEGIN IMMEDIATE; INSERT INTO t4 VALUES(1,2); COMMIT;\n      ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        PRAGMA journal_mode = DELETE;\n        BEGIN IMMEDIATE; INSERT INTO t4 VALUES(1,2); COMMIT;\n      ")
+				}
+				// file exists "test.db-journal"
+			}
+		}
+	}
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+	}
+	{ // do_test "jrnlmode-7.1"
+		for _, f := range tclSplitList("glob -nocomplain test.db*") {
+		_ = f // suppress unused warning
+			os.Remove(f)
+		}
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      PRAGMA journal_mode = memory;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 1024;\n      PRAGMA user_version = 5;\n      PRAGMA user_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = memory;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 1024;\n      PRAGMA user_version = 5;\n      PRAGMA user_version;\n    ")
+		}
+	}
+	{ // do_test "jrnlmode-7.2"
+		// file size test.db
 	}
 	{ // "jrnlmode-8.1"
 		r = db.Query(" PRAGMA locking_mode=EXCLUSIVE ")

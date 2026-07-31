@@ -87,6 +87,12 @@ func Test_zeroblob(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2,3,4,zeroblob(1000000));\n  ")
 		}
 	}
+	{ // do_test "zeroblob-1.1.1"
+		_ = sqlite3_max_blobsize // TCL namespace variable (query)
+	}
+	{ // do_test "zeroblob-1.1.2"
+		// expr [sqlite3_memory_highwater]<$::memused+35000 (not evaluated)
+	}
 	{ // do_test "zeroblob-1.2"
 		r = db.Query("\n    SELECT length(d) FROM t1\n  ")
 		if r.Error != nil {
@@ -116,6 +122,9 @@ func Test_zeroblob(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(4,5,zeroblob(10000),zeroblob(10000));\n  ")
 		}
 	}
+	{ // do_test "zeroblob-1.5.1"
+		_ = sqlite3_max_blobsize // TCL namespace variable (query)
+	}
 	{ // do_test "zeroblob-1.6"
 		r = db.Query("\n    SELECT length(c), length(d) FROM t1\n  ")
 		if r.Error != nil {
@@ -129,6 +138,9 @@ func Test_zeroblob(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(5,zeroblob(10000),NULL,zeroblob(10000));\n  ")
 		}
+	}
+	{ // do_test "zeroblob-1.7.1"
+		_ = sqlite3_max_blobsize // TCL namespace variable (query)
 	}
 	{ // do_test "zeroblob-1.8"
 		r = db.Query("\n    SELECT length(b), length(d) FROM t1 WHERE a=5\n  ")
@@ -146,6 +158,18 @@ func Test_zeroblob(t *testing.T) {
 		r = db.Query("\n    CREATE INDEX i1_1 ON t1(b);\n    SELECT a FROM t1 WHERE b=zeroblob(10000);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1_1 ON t1(b);\n    SELECT a FROM t1 WHERE b=zeroblob(10000);\n  ")
+		}
+	}
+	{ // do_test "zeroblob-3.1"
+		r = db.Query("\n      SELECT count(DISTINCT a) FROM (\n        SELECT x'00000000000000000000' AS a\n        UNION ALL\n        SELECT zeroblob(10) AS a\n      )\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(DISTINCT a) FROM (\n        SELECT x'00000000000000000000' AS a\n        UNION ALL\n        SELECT zeroblob(10) AS a\n      )\n    ")
+		}
+	}
+	{ // do_test "zeroblob-4.1"
+		r = db.Query("\n      SELECT hex(zeroblob(2) || x'61')\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT hex(zeroblob(2) || x'61')\n    ")
 		}
 	}
 	{ // do_test "zeroblob-5.1"
@@ -238,6 +262,12 @@ func Test_zeroblob(t *testing.T) {
 	}
 	{ // do_test "zeroblob-7.3"
 		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "zeroblob-7.4"
+		_ = sqlite3_max_blobsize // TCL namespace variable (query)
+	}
+	{ // do_test "zeroblob-7.5"
+		// expr [sqlite3_memory_highwater]<$::memused+10000 (not evaluated)
 	}
 	{ // do_test "zeroblob-8.1"
 		_ = strconv.Itoa(tclLLength("execsql {\n    SELECT 'hello' AS a, zeroblob(10) as b from t1 ORDER BY a, b;\n  }")) // llength result

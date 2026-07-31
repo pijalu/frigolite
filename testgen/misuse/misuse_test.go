@@ -85,20 +85,17 @@ func Test_misuse(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
 		}
-		// catchsql2 {
-    SELECT * FROM t1
-  } (unsupported command, not transpiled)
+		// catchsql2 {\n    SELECT * FROM t1\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-1.2"
-		// catchsql2 {
-    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1
-  } (unsupported command, not transpiled)
+		// catchsql2 {\n    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1\n...} (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-1.3"
 		// sqlite3_create_function $::DB (unsupported command, not transpiled)
-		// catchsql2 {
-    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1
-  } (unsupported command, not transpiled)
+		// catchsql2 {\n    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1\n...} (unsupported command, not transpiled)
+	}
+	{ // do_test "misuse-1.4"
+		// catchsql2 {\n       SELECT x_sqlite_exec('SELECT * FROM t1') ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-1.5"
 		// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)

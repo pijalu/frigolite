@@ -79,7 +79,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "1.2"
 		offset = "hexio_get_int [hexio_read test.db [expr 2*1024 + 8] 2]"
 		_ = offset // suppress unused warning
-		off = "2*1024 + $offset + 1"
+		off = tclExpr("2*1024 + $offset + 1")
 		_ = off // suppress unused warning
 		// hexio_write test.db $off 7f06 (unsupported command, not transpiled)
 		_dbtmp0, err := frigolite.Open("test.db")
@@ -91,7 +91,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "1.3"
 		offset = "hexio_get_int [hexio_read test.db [expr 2*1024 + 8] 2]"
 		_ = offset // suppress unused warning
-		off = "2*1024 + $offset + 1"
+		off = tclExpr("2*1024 + $offset + 1")
 		_ = off // suppress unused warning
 		// hexio_write test.db $off FFFF7f02 (unsupported command, not transpiled)
 		_dbtmp1, err := frigolite.Open("test.db")
@@ -111,7 +111,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "2.1"
 		offset = "hexio_get_int [hexio_read test.db [expr (5-1)*1024 + 8] 2]"
 		_ = offset // suppress unused warning
-		off = "(5-1)*1024 + $offset + 1"
+		off = tclExpr("(5-1)*1024 + $offset + 1")
 		_ = off // suppress unused warning
 		// hexio_write test.db $off FFFF0004 (unsupported command, not transpiled)
 		_dbtmp2, err := frigolite.Open("test.db")
@@ -170,7 +170,7 @@ func Test_corruptI(t *testing.T) {
 	}
 	root = "db one {SELECT rootpage FROM sqlite_master}"
 	_ = root // suppress unused warning
-	offset = "($root-1) * 65536"
+	offset = tclExpr("($root-1) * 65536")
 	_ = offset // suppress unused warning
 	{ // do_test "4.1"
 		// hexio_write test.db [expr $offset + 8 + 2] 0000 (unsupported command, not transpiled)
@@ -220,15 +220,13 @@ func Test_corruptI(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "$nPage+1"
+		want := tclExpr("$nPage+1")
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "5.2"
-		// hexio_write test.db [expr 512*($nPage-1)] [
-    format "%.8X%.8X%.8X" 0 1 [expr $nPage+1]
-  ... (unsupported command, not transpiled)
+		// hexio_write test.db [expr 512*($nPage-1)] [\n    format "%.8X%.8X%.8X" 0 1 [expr $nPage+1]\n... (unsupported command, not transpiled)
 	}
 	{ // do_test "5.3"
 		_dbtmp4, err := frigolite.Open("test.db")

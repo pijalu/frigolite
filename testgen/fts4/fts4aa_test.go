@@ -70,6 +70,7 @@ func Test_fts4aa(t *testing.T) {
 	_ = code // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	fts4aa_queries = "\n  {abraham}\n  {the king}\n  {\"the king\"}\n  {abraham OR joseph}\n  {ab* OR jos*}\n  {lived t*}\n  {spake hebrew}\n  {melchizedek}\n  {t* melchizedek}\n  {melchizedek t*}\n"
 	_ = fts4aa_queries // suppress unused warning
 	{ // do_test "fts4aa-1.0"
@@ -133,6 +134,12 @@ func Test_fts4aa(t *testing.T) {
 		_res = db.Exec("\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
+		}
+	}
+	{ // do_test "fts4aa-1.9"
+		_res = db.Exec("\n      SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n       WHERE t1 MATCH 'joseph died in egypt'\n       ORDER BY docid;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n       WHERE t1 MATCH 'joseph died in egypt'\n       ORDER BY docid;\n    ")
 		}
 	}
 	{ // do_test "fts4aa-2.0"

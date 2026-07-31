@@ -233,6 +233,18 @@ func Test_join(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 natural inner join t2;\n  ")
 		}
 	}
+	{ // do_test "join-1.13"
+		r = db.Query("\n      SELECT * FROM t1 NATURAL JOIN \n        (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as t3\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 NATURAL JOIN \n        (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as t3\n    ")
+		}
+	}
+	{ // do_test "join-1.14"
+		r = db.Query("\n      SELECT * FROM (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as 'tx'\n          NATURAL JOIN t1\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as 'tx'\n          NATURAL JOIN t1\n    ")
+		}
+	}
 	{ // do_test "join-1.15"
 		r = db.Query("\n    CREATE TABLE t3(c,d,e);\n    INSERT INTO t3 VALUES(2,3,4);\n    INSERT INTO t3 VALUES(3,4,5);\n    INSERT INTO t3 VALUES(4,5,6);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
@@ -456,6 +468,70 @@ func Test_join(t *testing.T) {
 		r = db.Query("\n    CREATE TABLE t7 (x, y);\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    CREATE TABLE t8 (a integer primary key, b);\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7 (x, y);\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    CREATE TABLE t8 (a integer primary key, b);\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
+		}
+	}
+	{ // do_test "join-8.1"
+		r = db.Query("\n    BEGIN;\n    CREATE TABLE t9(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t9 VALUES(1,11);\n    INSERT INTO t9 VALUES(2,22);\n    CREATE TABLE t10(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t10 VALUES(1,2);\n    INSERT INTO t10 VALUES(3,3);    \n    CREATE TABLE t11(p INTEGER PRIMARY KEY, q);\n    INSERT INTO t11 VALUES(2,111);\n    INSERT INTO t11 VALUES(3,333);    \n    CREATE VIEW v10_11 AS SELECT x, q FROM t10, t11 WHERE t10.y=t11.p;\n    COMMIT;\n    SELECT * FROM t9 LEFT JOIN v10_11 ON( a=x );\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t9(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t9 VALUES(1,11);\n    INSERT INTO t9 VALUES(2,22);\n    CREATE TABLE t10(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t10 VALUES(1,2);\n    INSERT INTO t10 VALUES(3,3);    \n    CREATE TABLE t11(p INTEGER PRIMARY KEY, q);\n    INSERT INTO t11 VALUES(2,111);\n    INSERT INTO t11 VALUES(3,333);    \n    CREATE VIEW v10_11 AS SELECT x, q FROM t10, t11 WHERE t10.y=t11.p;\n    COMMIT;\n    SELECT * FROM t9 LEFT JOIN v10_11 ON( a=x );\n  ")
+		}
+	}
+	{ // do_test "join-8.2"
+		r = db.Query("\n      SELECT * FROM t9 LEFT JOIN (SELECT x, q FROM t10, t11 WHERE t10.y=t11.p)\n           ON( a=x);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t9 LEFT JOIN (SELECT x, q FROM t10, t11 WHERE t10.y=t11.p)\n           ON( a=x);\n    ")
+		}
+	}
+	{ // do_test "join-8.3"
+		r = db.Query("\n    SELECT * FROM v10_11 LEFT JOIN t9 ON( a=x );\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v10_11 LEFT JOIN t9 ON( a=x );\n  ")
+		}
+	}
+	{ // do_test "join-8.4"
+		r = db.Query("\n      SELECT * FROM t9 LEFT JOIN (SELECT 44, p, q FROM t11) AS sub1 ON p=a\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t9 LEFT JOIN (SELECT 44, p, q FROM t11) AS sub1 ON p=a\n    ")
+		}
+	}
+	{ // do_test "join-9.1"
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t12(a,b);\n    INSERT INTO t12 VALUES(1,11);\n    INSERT INTO t12 VALUES(2,22);\n    CREATE TABLE t13(b,c);\n    INSERT INTO t13 VALUES(22,222);\n    COMMIT;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t12(a,b);\n    INSERT INTO t12 VALUES(1,11);\n    INSERT INTO t12 VALUES(2,22);\n    CREATE TABLE t13(b,c);\n    INSERT INTO t13 VALUES(22,222);\n    COMMIT;\n  ")
+		}
+	}
+	{ // do_test "join-9.1.1"
+		r = db.Query("\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n      EXCEPT\n      SELECT * FROM t12 NATURAL LEFT JOIN (SELECT * FROM t13 WHERE b>0);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n      EXCEPT\n      SELECT * FROM t12 NATURAL LEFT JOIN (SELECT * FROM t13 WHERE b>0);\n    ")
+		}
+	}
+	{ // do_test "join-9.2"
+		r = db.Query("\n      CREATE VIEW v13 AS SELECT * FROM t13 WHERE b>0;\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n        EXCEPT\n        SELECT * FROM t12 NATURAL LEFT JOIN v13;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIEW v13 AS SELECT * FROM t13 WHERE b>0;\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n        EXCEPT\n        SELECT * FROM t12 NATURAL LEFT JOIN v13;\n    ")
+		}
+	}
+	{ // do_test "join-10.1"
+		r = db.Query("\n      CREATE TABLE t21(a,b,c);\n      CREATE TABLE t22(p,q);\n      CREATE INDEX i22 ON t22(q);\n      SELECT a FROM t21 LEFT JOIN t22 ON b=p WHERE q=\n         (SELECT max(m.q) FROM t22 m JOIN t21 n ON n.b=m.p WHERE n.c=1);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t21(a,b,c);\n      CREATE TABLE t22(p,q);\n      CREATE INDEX i22 ON t22(q);\n      SELECT a FROM t21 LEFT JOIN t22 ON b=p WHERE q=\n         (SELECT max(m.q) FROM t22 m JOIN t21 n ON n.b=m.p WHERE n.c=1);\n    ")
+		}
+	}
+	{ // do_test "join-10.2"
+		_res = db.Exec("\n      CREATE TABLE t23(a, b, c);\n      CREATE TABLE t24(a, b, c);\n      INSERT INTO t23 VALUES(1, 2, 3);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t23(a, b, c);\n      CREATE TABLE t24(a, b, c);\n      INSERT INTO t23 VALUES(1, 2, 3);\n    ")
+		}
+		r = db.Query("\n      SELECT * FROM t23 LEFT JOIN t24;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t23 LEFT JOIN t24;\n    ")
+		}
+	}
+	{ // do_test "join-10.3"
+		r = db.Query("\n      SELECT * FROM t23 LEFT JOIN (SELECT * FROM t24);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t23 LEFT JOIN (SELECT * FROM t24);\n    ")
 		}
 	}
 	{ // do_test "join-11.1"
@@ -1051,6 +1127,90 @@ func Test_join(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // "join-23.10"
+		r = db.Query("\n    CREATE TABLE t0(c0);\n    INSERT INTO t0(c0) VALUES(123);\n    CREATE VIEW v0(c0) AS SELECT 0 GROUP BY 1;\n    SELECT t0.c0, v0.c0, vt0.name\n     FROM v0, t0 LEFT JOIN pragma_table_info('t0') AS vt0\n       ON vt0.name LIKE 'c0'\n     WHERE v0.c0 == 0;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t0(c0);\n    INSERT INTO t0(c0) VALUES(123);\n    CREATE VIEW v0(c0) AS SELECT 0 GROUP BY 1;\n    SELECT t0.c0, v0.c0, vt0.name\n     FROM v0, t0 LEFT JOIN pragma_table_info('t0') AS vt0\n       ON vt0.name LIKE 'c0'\n     WHERE v0.c0 == 0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123 0 c0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "join-23.20"
+		r = db.Query("\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('[\"a\", \"b\", null]');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('[\"a\", \"c\", null]');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('[\"a\", \"b\", null]');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('[\"a\", \"c\", null]');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a a {} c {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "join-23.21"
+		r = db.Query("\n    SELECT a.value, b.value FROM b LEFT JOIN a ON a.value = b.value;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value FROM b LEFT JOIN a ON a.value = b.value;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a a {} c {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "join-23.22"
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"c\", null]') AS b\n           LEFT JOIN\n           json_each('[\"a\", \"b\", null]') AS a ON a.value = b.value;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"c\", null]') AS b\n           LEFT JOIN\n           json_each('[\"a\", \"b\", null]') AS a ON a.value = b.value;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a a {} c {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "join-23.23"
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a a {} c {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "join-23.24"
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a a {} c {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "join-23.25"
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a a {} c {} {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

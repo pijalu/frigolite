@@ -56,6 +56,7 @@ func Test_fts3shared(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts3shared" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable

@@ -111,6 +111,13 @@ func Test_win32nolock(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
+	{ // do_test "win32nolock-1.7"
+		// sqlite3_release_memory 1000000 (unsupported command, not transpiled)
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
 	{ // do_test "win32nolock-1.8"
 		db2.Close()
 	}

@@ -50,6 +50,8 @@ func Test_securedel(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	DEFAULT_SECDEL = "0"
 	_ = DEFAULT_SECDEL // suppress unused warning
+	DEFAULT_SECDEL = "2"
+	_ = DEFAULT_SECDEL // suppress unused warning
 	{ // do_test "securedel-1.0"
 		_res = db.Exec("PRAGMA secure_delete;")
 		if _res.Error != nil {

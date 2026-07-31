@@ -56,10 +56,48 @@ func Test_misc2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
+	{ // do_test "misc2-1.1"
+		_res = db.Exec("\n    CREATE TABLE FOO(bar integer);\n    CREATE TRIGGER foo_insert BEFORE INSERT ON foo BEGIN\n      SELECT CASE WHEN (NOT new.bar BETWEEN 0 AND 20)\n             THEN raise(rollback, 'aiieee') END;\n    END;\n    INSERT INTO foo(bar) VALUES (1);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "misc2-1.2"
+		_res = db.Exec("\n    INSERT INTO foo(bar) VALUES (111);\n  ")
+		_ = _res // catchsql
+	}
 	{ // do_test "misc2-2.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(7,8,9);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(7,8,9);\n  ")
+		}
+	}
+	{ // "misc2-2.2"
+		_res = db.Exec("\n      SELECT rowid, * FROM (SELECT * FROM t1, t2);\n    ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n      SELECT rowid, * FROM (SELECT * FROM t1, t2);\n    ")
+		}
+	}
+	{ // "misc2-2.2b"
+		_res = db.Exec("\n    SELECT 'rowid', * FROM (SELECT * FROM t1, t2);\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT 'rowid', * FROM (SELECT * FROM t1, t2);\n  ")
+		}
+	}
+	{ // "misc2-2.3"
+		_res = db.Exec("\n      CREATE VIEW v1 AS SELECT * FROM t1, t2;\n      SELECT rowid, * FROM v1;\n    ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n      CREATE VIEW v1 AS SELECT * FROM t1, t2;\n      SELECT rowid, * FROM v1;\n    ")
+		}
+	}
+	{ // "misc2-2.3b"
+		_res = db.Exec("\n    SELECT 'rowid', * FROM v1;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT 'rowid', * FROM v1;\n  ")
+		}
+	}
+	{ // do_test "misc2-2.4"
+		r = db.Query("\n      SELECT * FROM (SELECT a, b AS 'a', c AS 'a', 4 AS 'a' FROM t1)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT a, b AS 'a', c AS 'a', 4 AS 'a' FROM t1)\n    ")
 		}
 	}
 	{ // do_test "misc2-3.1"
@@ -102,6 +140,12 @@ func Test_misc2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1 WHERE a<1000000000000 ORDER BY 1;\n  ")
 		}
 	}
+	{ // do_test "misc2-5.1"
+		r = db.Query("\n    CREATE TABLE x(a,b);\n    CREATE VIEW y AS \n      SELECT x1.b AS p, x2.b AS q FROM x AS x1, x AS x2 WHERE x1.a=x2.a;\n    CREATE VIEW z AS\n      SELECT y1.p, y2.p FROM y AS y1, y AS y2 WHERE y1.q=y2.q;\n    SELECT * from z;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE x(a,b);\n    CREATE VIEW y AS \n      SELECT x1.b AS p, x2.b AS q FROM x AS x1, x AS x2 WHERE x1.a=x2.a;\n    CREATE VIEW z AS\n      SELECT y1.p, y2.p FROM y AS y1, y AS y2 WHERE y1.q=y2.q;\n    SELECT * from z;\n  ")
+		}
+	}
 	{ // do_test "misc2-6.1"
 		_dbtmp0, err := frigolite.Open("")
 		_ = _dbtmp0 // sqlite3 db connection
@@ -111,14 +155,244 @@ func Test_misc2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;\n  ")
 		}
 	}
+	{ // do_test "misc2-7.1"
+		os.Remove("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;\n    ")
+		}
+	}
+	{ // do_test "misc2-7.2"
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			_res = db.Exec("SELECT rowid FROM t1")
+			if _res.Error != nil { _catchErr = _res.Error }
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	{ // do_test "misc2-7.3"
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.4"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.5"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.6"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.7"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.8"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.11"
+		os.Remove("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;\n    ")
+		}
+	}
+	{ // do_test "misc2-7.12"
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			_res = db.Exec("SELECT rowid FROM t1 ORDER BY rowid DESC")
+			if _res.Error != nil { _catchErr = _res.Error }
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		rc = tclListAppend(rc, msg)
+	}
+	{ // do_test "misc2-7.13"
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.14"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.15"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.16"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.17"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
+	{ // do_test "misc2-7.18"
+		_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1(rowid,x) VALUES(10,10);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1(rowid,x) VALUES(10,10);\n    ")
+		}
+		_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rowid, x FROM t1 ORDER BY rowid DESC")
+		}
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+		}
+	}
 	os.Remove("test.db")
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
 	{ // do_test "misc2-8.1"
 		_res = db.Exec("-")
 		_ = _res // catchsql
+	}
+	{ // do_test "misc2-9.1"
+		r = db.Query("\n      BEGIN;\n      CREATE TABLE counts(n INTEGER PRIMARY KEY);\n      INSERT INTO counts VALUES(0);\n      INSERT INTO counts VALUES(1);\n      INSERT INTO counts SELECT n+2 FROM counts;\n      INSERT INTO counts SELECT n+4 FROM counts;\n      INSERT INTO counts SELECT n+8 FROM counts;\n      COMMIT;\n  \n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n<10 AND dim2.n<10 AND dim3.n<10;\n  \n      SELECT count(*) FROM x;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TABLE counts(n INTEGER PRIMARY KEY);\n      INSERT INTO counts VALUES(0);\n      INSERT INTO counts VALUES(1);\n      INSERT INTO counts SELECT n+2 FROM counts;\n      INSERT INTO counts SELECT n+4 FROM counts;\n      INSERT INTO counts SELECT n+8 FROM counts;\n      COMMIT;\n  \n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n<10 AND dim2.n<10 AND dim3.n<10;\n  \n      SELECT count(*) FROM x;\n    ")
+		}
+	}
+	{ // do_test "misc2-9.2"
+		r = db.Query("\n      DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n>=6 AND dim2.n>=6 AND dim3.n>=6;\n  \n      SELECT count(*) FROM x;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n>=6 AND dim2.n>=6 AND dim3.n>=6;\n  \n      SELECT count(*) FROM x;\n    ")
+		}
+	}
+	{ // do_test "misc2-9.3"
+		r = db.Query("\n      DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n, dim4.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3, counts AS dim4\n      WHERE dim1.n<5 AND dim2.n<5 AND dim3.n<5 AND dim4.n<5;\n  \n      SELECT count(*) FROM x;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n, dim4.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3, counts AS dim4\n      WHERE dim1.n<5 AND dim2.n<5 AND dim3.n<5 AND dim4.n<5;\n  \n      SELECT count(*) FROM x;\n    ")
+		}
+	}
+	{ // do_test "misc2-10.1"
+		_res = db.Exec("\n      CREATE TABLE t1229(x);\n      CREATE TRIGGER r1229 BEFORE INSERT ON t1229 BEGIN\n        INSERT INTO t1229 SELECT y FROM (SELECT new.x y);\n      END;\n      INSERT INTO t1229 VALUES(1);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1229(x);\n      CREATE TRIGGER r1229 BEFORE INSERT ON t1229 BEGIN\n        INSERT INTO t1229 SELECT y FROM (SELECT new.x y);\n      END;\n      INSERT INTO t1229 VALUES(1);\n    ")
+		}
 	}
 }

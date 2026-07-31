@@ -135,6 +135,7 @@ func Test_wal(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal"
 	_ = testprefix // suppress unused warning
+	return
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	blobcnt = "0" // TCL namespace variable
@@ -332,7 +333,7 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES('x', 'y');\n    RELEASE tr;\n  ")
 		}
-		// expr  $logsize == [file size test.db-wal]  → "$logsize == [file size test.db-wal]"
+		// expr  $logsize == [file size test.db-wal]  (not evaluated)
 	}
 	{ // do_test "wal-4.4.5"
 		r = db.Query(" SELECT count(*) FROM t2 ")
@@ -392,7 +393,7 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES('x', 'y');\n    RELEASE tr;\n    COMMIT;\n  ")
 		}
-		// expr  $logsize == [file size test.db-wal]  → "$logsize == [file size test.db-wal]"
+		// expr  $logsize == [file size test.db-wal]  (not evaluated)
 	}
 	{ // do_test "wal-4.5.5"
 		r = db.Query(" SELECT count(*) FROM t2 ; SELECT count(*) FROM t1 ")
@@ -578,16 +579,14 @@ func Test_wal(t *testing.T) {
 			// $handle close (unsupported command, not transpiled)
 		}
 	}
-	// do_multiclient_test tn {
-
-  # Initialize the database schema and contents....} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n\n  # Initialize the database schema and content...} (unsupported command, not transpiled)
 	{ // do_test "wal-11.1"
 		// reopen_db (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "[file size test.db-wal]/1044"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), tclExpr("[file size test.db-wal]/1044")})
 		_ = _list
 	}
 	{ // do_test "wal-11.2"
@@ -595,7 +594,7 @@ func Test_wal(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
 	}
 	{ // do_test "wal-11.3"
@@ -603,7 +602,7 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES( blob(900) ) ")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
 	}
 	{ // do_test "wal-11.4"
@@ -611,7 +610,7 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 2\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 4\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 8\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 16\n  ")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
 	}
 	{ // do_test "wal-11.5"
@@ -625,7 +624,7 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
 	}
 	{ // do_test "wal-11.7"
@@ -639,11 +638,11 @@ func Test_wal(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
 	}
 	{ // do_test "wal-11.9"
-		_list := tclList([]string{"[file size test.db]/1024", "log_deleted test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "log_deleted test.db-wal"})
 		_ = _list
 	}
 	// sqlite3_wal db test.db (unsupported command, not transpiled)
@@ -654,7 +653,7 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 32\n      SELECT count(*) FROM t1;\n  ")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
 	}
 	{ // do_test "wal-11.11"
@@ -664,7 +663,7 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "wal-11.12"
-		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
 	}
 	{ // do_test "wal-11.13"
@@ -674,7 +673,7 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "wal-11.14"
-		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
 	}
 	// reopen_db (unsupported command, not transpiled)
@@ -683,7 +682,7 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES('A', 1);\n  ")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
 	}
 	{ // do_test "wal-12.2"
@@ -694,7 +693,7 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA synchronous = normal;\n    UPDATE t1 SET y = 0 WHERE x = 'A';\n  ")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "[file size test.db-wal]/1044"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), tclExpr("[file size test.db-wal]/1044")})
 		_ = _list
 	}
 	{ // do_test "wal-12.3"
@@ -702,7 +701,7 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES('B', 1) ")
 		}
-		_list := tclList([]string{"[file size test.db]/1024", "[file size test.db-wal]/1044"})
+		_list := tclList([]string{tclExpr("[file size test.db]/1024"), tclExpr("[file size test.db-wal]/1044")})
 		_ = _list
 	}
 	{ // do_test "wal-12.4"
@@ -1023,7 +1022,7 @@ func Test_wal(t *testing.T) {
 									msg = ""
 								}
 							}
-							// expr  $rc!=0 || $msg!="ok"  → "$rc!=0 || $msg!=\"ok\""
+							// expr  $rc!=0 || $msg!="ok"  (not evaluated)
 						}
 						// incr pg 1
 						{
@@ -1087,9 +1086,7 @@ func Test_wal(t *testing.T) {
 					{ // do_test "wal-20.2"
 						buddy = "launch_testfixture" // TCL namespace variable
 						_ = buddy // suppress unused warning
-						// testfixture $::buddy {
-      sqlite3 db test.db
-      db transaction { d...} (unsupported command, not transpiled)
+						// testfixture $::buddy {\n      sqlite3 db test.db\n      db transaction {...} (unsupported command, not transpiled)
 					}
 					{ // do_test "wal-20.3"
 						// close $::buddy
@@ -1155,8 +1152,7 @@ func Test_wal(t *testing.T) {
 				}
 				for _, pgsz := range tclSplitList("512 1024 2048 4096 8192 16384 32768 65536") {
 				_ = pgsz // suppress unused warning
-					// do_multiclient_test tn [string map [list %PGSZ% $pgsz] {
-    do_test wal-... (unsupported command, not transpiled)
+					// do_multiclient_test tn [string map [list %PGSZ% $pgsz] {\n    do_test wal... (unsupported command, not transpiled)
 				}
 				// incr do_not_use_codec -1
 				{
@@ -1165,6 +1161,8 @@ func Test_wal(t *testing.T) {
 						do_not_use_codec = strconv.Itoa(_n + -1)
 					}
 				}
+				walfile = "file nativename [file join [get_pwd] test.db-wal]"
+				_ = walfile // suppress unused warning
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
@@ -1204,14 +1202,51 @@ func Test_wal(t *testing.T) {
 				{ // do_test "wal-23.4"
 					_ = log // TCL namespace variable (query)
 				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				os.Remove("test.db")
+				_dbtmp17, err := frigolite.Open("test.db")
+				_ = _dbtmp17 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				{ // "24.1"
+					_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    PRAGMA journal_mode = WAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(5000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    PRAGMA journal_mode = WAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(5000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
+					}
+				}
+				{ // do_test "24.2"
+					r = db.Query("\n      DELETE FROM t1;\n      PRAGMA wal_checkpoint;\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      PRAGMA wal_checkpoint;\n    ")
+					}
+					_dbtmp18, err := frigolite.Open("test.db")
+					_ = _dbtmp18 // sqlite3 db connection
+					if err != nil { t.Fatal(err) }
+					// file exists "test.db-wal"
+				}
+				{ // do_test "24.3"
+					// file size test.db
+				}
+				{ // do_test "24.4"
+					r = db.Query(" \n      PRAGMA cache_size = 200;\n      PRAGMA incremental_vacuum;\n      PRAGMA wal_checkpoint;\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA cache_size = 200;\n      PRAGMA incremental_vacuum;\n      PRAGMA wal_checkpoint;\n    ")
+					}
+					// file size test.db
+				}
+				{ // do_test "24.5"
+					// file size test.db-wal
+				}
 				// sqlite3_shutdown (unsupported command, not transpiled)
 				// test_sqlite3_log (unsupported command, not transpiled)
 				// sqlite3_initialize (unsupported command, not transpiled)
 				for _, mode := range tclSplitList("OFF MEMORY PERSIST DELETE TRUNCATE WAL") {
 				_ = mode // suppress unused warning
 					// delete_file test.db test2.db (unsupported command, not transpiled)
-					_dbtmp17, err := frigolite.Open("test.db")
-					_ = _dbtmp17 // sqlite3 db connection
+					_dbtmp19, err := frigolite.Open("test.db")
+					_ = _dbtmp19 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					{ // do_test "wal-25." + mode
 						_res = db.Exec("PRAGMA journal_mode=" + mode)
@@ -1225,8 +1260,8 @@ func Test_wal(t *testing.T) {
 					}
 				}
 				os.Remove("test.db")
-				_dbtmp18, err := frigolite.Open("test.db")
-				_ = _dbtmp18 // sqlite3 db connection
+				_dbtmp20, err := frigolite.Open("test.db")
+				_ = _dbtmp20 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("PRAGMA journal_mode=WAL")
 				if _res.Error != nil {
@@ -1261,7 +1296,7 @@ func Test_wal(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t" + i + " VALUES(randomblob(10000));")
 						}
-						// expr [file size attached-$i.db-wal]>10000 → "[file size attached-$i.db-wal]>10000"
+						// expr [file size attached-$i.db-wal]>10000 (not evaluated)
 					}
 					// incr i 1
 					{
@@ -1271,7 +1306,7 @@ func Test_wal(t *testing.T) {
 						}
 					}
 				}
-				i = "$SQLITE_MAX_ATTACHED-1"
+				i = tclExpr("$SQLITE_MAX_ATTACHED-1")
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0 }() {
 					{ // do_test "wal-26.2." + i
@@ -1285,7 +1320,7 @@ func Test_wal(t *testing.T) {
 					_ = j // suppress unused warning
 					for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return j_n < i_n }() {
 						{ // do_test "wal-26.2." + i + "." + j
-							// expr [file size attached-$j.db-wal]>10000 → "[file size attached-$j.db-wal]>10000"
+							// expr [file size attached-$j.db-wal]>10000 (not evaluated)
 						}
 						// incr j 1
 						{

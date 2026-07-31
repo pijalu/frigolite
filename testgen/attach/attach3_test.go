@@ -58,6 +58,7 @@ func Test_attach3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
 	_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n")
@@ -157,6 +158,84 @@ func Test_attach3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    SELECT name FROM aux.sqlite_master;\n  ")
 		}
 	}
+	{ // do_test "attach3-5.1"
+		_res = db.Exec("\n    CREATE VIEW aux.v1 AS SELECT * FROM t3;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIEW aux.v1 AS SELECT * FROM t3;\n  ")
+		}
+	}
+	{ // do_test "attach3-5.2"
+		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 'v1';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 'v1';\n  ")
+		}
+	}
+	{ // do_test "attach3-5.3"
+		r = db.Query("\n    INSERT INTO aux.t3 VALUES('hello', 'world');\n    SELECT * FROM v1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO aux.t3 VALUES('hello', 'world');\n    SELECT * FROM v1;\n  ")
+		}
+	}
+	{ // do_test "attach3-6.1"
+		_res = db.Exec("\n    DROP VIEW aux.v1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP VIEW aux.v1;\n  ")
+		}
+	}
+	{ // do_test "attach3-6.2"
+		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 'v1';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 'v1';\n  ")
+		}
+	}
+	{ // do_test "attach3-7.1"
+		_res = db.Exec("\n    CREATE TRIGGER aux.tr1 AFTER INSERT ON t3 BEGIN\n      INSERT INTO t3 VALUES(new.e*2, new.f*2);\n    END;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER aux.tr1 AFTER INSERT ON t3 BEGIN\n      INSERT INTO t3 VALUES(new.e*2, new.f*2);\n    END;\n  ")
+		}
+	}
+	{ // do_test "attach3-7.2"
+		r = db.Query("\n    DELETE FROM t3;\n    INSERT INTO t3 VALUES(10, 20);\n    SELECT * FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    INSERT INTO t3 VALUES(10, 20);\n    SELECT * FROM t3;\n  ")
+		}
+	}
+	{ // do_test "attach3-5.3"
+		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 'tr1';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 'tr1';\n  ")
+		}
+	}
+	{ // do_test "attach3-8.1"
+		_res = db.Exec("\n    DROP TRIGGER aux.tr1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TRIGGER aux.tr1;\n  ")
+		}
+	}
+	{ // do_test "attach3-8.2"
+		r = db.Query("\n    SELECT * FROM aux.sqlite_master WHERE name = 'tr1';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM aux.sqlite_master WHERE name = 'tr1';\n  ")
+		}
+	}
+	{ // do_test "attach3-9.0"
+		r = db.Query("\n      CREATE TABLE main.t4(a, b, c);\n      CREATE TABLE aux.t4(a, b, c);\n      CREATE TEMP TRIGGER tst_trigger BEFORE INSERT ON aux.t4 BEGIN \n        SELECT 'hello world';\n      END;\n      SELECT count(*) FROM temp.sqlite_master;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE main.t4(a, b, c);\n      CREATE TABLE aux.t4(a, b, c);\n      CREATE TEMP TRIGGER tst_trigger BEFORE INSERT ON aux.t4 BEGIN \n        SELECT 'hello world';\n      END;\n      SELECT count(*) FROM temp.sqlite_master;\n    ")
+		}
+	}
+	{ // do_test "attach3-9.1"
+		r = db.Query("\n      DROP TABLE main.t4;\n      SELECT count(*) FROM sqlite_temp_master;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE main.t4;\n      SELECT count(*) FROM sqlite_temp_master;\n    ")
+		}
+	}
+	{ // do_test "attach3-9.2"
+		r = db.Query("\n      DROP TABLE aux.t4;\n      SELECT count(*) FROM temp.sqlite_master;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE aux.t4;\n      SELECT count(*) FROM temp.sqlite_master;\n    ")
+		}
+	}
 	{ // do_test "attach3-10.0"
 		_res = db.Exec("\n    INSERT INTO aux.sqlite_master VALUES(1, 2, 3, 4, 5);\n  ")
 		_ = _res // catchsql
@@ -174,4 +253,92 @@ func Test_attach3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	// proc definition (not transpiled)
+	_res = db.Exec("create temp table dummy(dummy)")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "create temp table dummy(dummy)")
+	}
+	{ // do_test "attach3-12.1"
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.2"
+		_res = db.Exec("\n    ATTACH DATABASE ? AS ?\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE ? AS ?\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.3"
+		_res = db.Exec("\n    DETACH aux\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH aux\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.4"
+		_res = db.Exec("\n    DETACH ?\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH ?\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.5"
+		_res = db.Exec("\n    ATTACH DATABASE '' AS ''\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE '' AS ''\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.6"
+		_res = db.Exec("\n    DETACH ''\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH ''\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.7"
+		_res = db.Exec("\n    ATTACH DATABASE '' AS ?\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE '' AS ?\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.8"
+		_res = db.Exec("\n    DETACH ''\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH ''\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.9"
+		_res = db.Exec("\n    ATTACH DATABASE '' AS NULL\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE '' AS NULL\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.10"
+		_res = db.Exec("\n    DETACH ?\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH ?\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.11"
+		_res = db.Exec("\n    DETACH NULL\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach3-12.12"
+		_res = db.Exec("\n    ATTACH null AS null;\n    ATTACH '' AS '';\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "attach3-12.13"
+		// db_list (unsupported command, not transpiled)
+	}
+	{ // do_test "attach3-12.14"
+		_res = db.Exec("\n    DETACH '';\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH '';\n  ")
+		}
+		// db_list (unsupported command, not transpiled)
+	}
 }

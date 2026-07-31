@@ -107,74 +107,60 @@ func Test_malloc(t *testing.T) {
 	_putsMsg = "Memory dump to file memdump.txt..."
 	_ = _putsMsg
 	// sqlite3_memdebug_dump memdump.txt (unsupported command, not transpiled)
+	// do_malloc_test 1 -tclprep {\n    db close\n  } -tclbody {\n    if {[catch {sqlite3 db test.db}]} {\n      e...} -sqlbody {\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t...} (unsupported command, not transpiled)
 	{ // do_test "malloc-1.X"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
 	}
+	// do_malloc_test 2 -sqlbody {\n    CREATE TABLE t1(a int, b int default 'abc', ...} (unsupported command, not transpiled)
 	{ // do_test "malloc-2.X"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
 	}
-	// do_malloc_test 3 -sqlbody {
-  BEGIN TRANSACTION;
-  CREATE TABLE t1(a int, b i...} (unsupported command, not transpiled)
+	// do_malloc_test 3 -sqlbody {\n  BEGIN TRANSACTION;\n  CREATE TABLE t1(a int, b...} (unsupported command, not transpiled)
 	{ // do_test "malloc-3.X"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
 	}
+	// do_malloc_test 4 -sqlbody {\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a in...} (unsupported command, not transpiled)
 	{ // do_test "malloc-4.X"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
 	}
+	// do_malloc_test 5 -sqlbody {\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a,b)...} (unsupported command, not transpiled)
 	{ // do_test "malloc-5.X"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
 	}
+	// do_malloc_test 6 -sqlprep {\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a);\...} -sqlbody {\n    VACUUM;\n  } (unsupported command, not transpiled)
 	// autoinstall_test_functions (unsupported command, not transpiled)
-	// do_malloc_test 7 -sqlprep {
-  CREATE TABLE t1(a, b);
-  INSERT INTO t1 VALUES(...} -sqlbody {
-  SELECT min(a) FROM t1 WHERE a<6 GROUP BY b;
-  S...} (unsupported command, not transpiled)
-	// do_malloc_test 9 -sqlprep {
-  ATTACH 'test2.db' as test2;
-  CREATE TABLE abc1...} -sqlbody {
-  BEGIN;
-  INSERT INTO abc1 VALUES(1, 2, 3);
-  IN...} (unsupported command, not transpiled)
-	// do_malloc_test 10 -tclprep {
-  catch {db2 close}
-  db close
-  forcedelete test...} -tclbody {
-  db close
-  sqlite3 db2 test.db
-  sqlite3_extend...} (unsupported command, not transpiled)
-	// do_malloc_test 11 -tclbody {
-  set rc [sqlite3_create_function db]
-  if {[stri...} (unsupported command, not transpiled)
-	// do_malloc_test 12 -tclbody {
-  set sql16 [encoding convertto unicode "SELECT *...} (unsupported command, not transpiled)
+	// do_malloc_test 7 -sqlprep {\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUE...} -sqlbody {\n  SELECT min(a) FROM t1 WHERE a<6 GROUP BY b;\n ...} (unsupported command, not transpiled)
+	STMT = "" // TCL namespace variable
+	_ = STMT // suppress unused warning
+	// do_malloc_test 8 -tclprep {\n    set sql "SELECT '[string repeat abc 20]', '[...} -tclbody {\n    sqlite3_column_text16 $::STMT 0\n    sqlite3...} -cleanup {\n    if {$::STMT!=""} {\n      sqlite3_finalize $...} (unsupported command, not transpiled)
+	// do_malloc_test 9 -sqlprep {\n  ATTACH 'test2.db' as test2;\n  CREATE TABLE ab...} -sqlbody {\n  BEGIN;\n  INSERT INTO abc1 VALUES(1, 2, 3);\n ...} (unsupported command, not transpiled)
+	// do_malloc_test 10 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete t...} -tclbody {\n  db close\n  sqlite3 db2 test.db\n  sqlite3_ext...} (unsupported command, not transpiled)
+	// do_malloc_test 11 -tclbody {\n  set rc [sqlite3_create_function db]\n  if {[st...} (unsupported command, not transpiled)
+	// do_malloc_test 12 -tclbody {\n  set sql16 [encoding convertto unicode "SELECT ...} (unsupported command, not transpiled)
+	// do_malloc_test 13 -tclprep {\n    set rc [crashsql -delay 1 -file test2.db {\n...} -tclbody {\n    db eval {ATTACH 'test2.db' as aux;}\n    set...} (unsupported command, not transpiled)
 	if tclBool(tcl_platform_platform + " != \"windows\" && " + "atomic_batch_write test.db" + "==0") {
-		// do_malloc_test 14 -tclprep {
-    catch {db close}
-    sqlite3 db2 test2.db
-   ...} -tclbody {
-    sqlite3 db test.db
-    sqlite3_extended_resul...} (unsupported command, not transpiled)
+		// do_malloc_test 14 -tclprep {\n    catch {db close}\n    sqlite3 db2 test2.db\n...} -tclbody {\n    sqlite3 db test.db\n    sqlite3_extended_res...} (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
-	// do_malloc_test 16 -tclbody {
-  db complete {SELECT "hello """||'world"' [micro...} (unsupported command, not transpiled)
+	// do_malloc_test 15 -start 4 -tclbody {\n    db collate string_compare string_compare\n  ...} (unsupported command, not transpiled)
+	// do_malloc_test 16 -tclbody {\n  db complete {SELECT "hello """||'world"' [micr...} (unsupported command, not transpiled)
+	// do_malloc_test 17 -tclbody {\n    set DB2 0\n    set STMT 0\n  \n    # open da...} -cleanup {\n    if {$STMT!="0"} {\n      sqlite3_finalize $S...} (unsupported command, not transpiled)
+	// do_malloc_test 18 -tclprep {\n    catch {\n      db eval "SELECT [string repea...} -tclbody {\n    set utf16 [sqlite3_errmsg16 [sqlite3_connect...} (unsupported command, not transpiled)
 	static_string = "\\x00h\\x00e\\x00l\\x00l\\x00o"
 	_ = static_string // suppress unused warning
 	l = "0"
@@ -190,106 +176,36 @@ func Test_malloc(t *testing.T) {
 		}
 	}
 	static_string += "\\x00\\x00"
-	// do_malloc_test 19 -tclprep {
-  execsql {
-    PRAGMA encoding = "UTF16be";
-    ...} -tclbody {
-  unset -nocomplain ::STMT
-  set r [catch {
-    s...} -cleanup {
-  if {[info exists ::STMT]} {
-    sqlite3_finaliz...} (unsupported command, not transpiled)
-	// do_malloc_test 22 -tclbody {
-  set ::STMT ""
-  set r [catch {
-    set ::STMT [...} -cleanup {
-  if {$::STMT ne ""} {
-    sqlite3_finalize $::ST...} (unsupported command, not transpiled)
-	// do_malloc_test 25 -sqlprep {
-  CREATE TABLE abc(a, b, c);
-  CREATE INDEX i1 ON...} -tclbody {
-  # For each UPDATE executed, the cursor used for...} (unsupported command, not transpiled)
-	// do_malloc_test 26 -sqlprep {
-  BEGIN;
-  CREATE TABLE t1(a, b);
-  INSERT INTO t...} -tclbody {
-  db close
-  sqlite3 db test.db
-  db eval { INSER...} (unsupported command, not transpiled)
-	// do_malloc_test 27 -tclprep {
-  db close
-  sqlite3_shutdown
-} -tclbody {
-  set rc [sqlite3_initialize]
-  if {$rc == "SQLIT...} (unsupported command, not transpiled)
+	// do_malloc_test 19 -tclprep {\n  execsql {\n    PRAGMA encoding = "UTF16be";\n ...} -tclbody {\n  unset -nocomplain ::STMT\n  set r [catch {\n  ...} -cleanup {\n  if {[info exists ::STMT]} {\n    sqlite3_final...} (unsupported command, not transpiled)
+	// do_malloc_test 20 -tclprep {\n    db close\n    forcedelete test2.db test2.db-...} -tclbody {\n    if {[catch {sqlite3 db test.db}]} {\n      e...} -sqlbody {\n    ATTACH DATABASE 'test2.db' AS t2;\n    SELEC...} (unsupported command, not transpiled)
+	// do_malloc_test 21 -sqlbody {\n    CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REF...} (unsupported command, not transpiled)
+	// do_malloc_test 22 -tclbody {\n  set ::STMT ""\n  set r [catch {\n    set ::STM...} -cleanup {\n  if {$::STMT ne ""} {\n    sqlite3_finalize $::...} (unsupported command, not transpiled)
+	// do_malloc_test 23 -tclprep {\n    db eval {\n      PRAGMA cache_size = 10;\n  ...} -tclbody {\n    # If an out-of-memory occurs within a call t...} -cleanup {\n    set e [db eval {PRAGMA integrity_check}]\n  ...} (unsupported command, not transpiled)
+	// do_malloc_test 24 -sqlprep {\n    CREATE TABLE t1(a, b, c)\n  } -sqlbody {\n    SELECT 1 FROM t1 UNION SELECT 2 FROM t1 ORDE...} (unsupported command, not transpiled)
+	// do_malloc_test 25 -sqlprep {\n    CREATE TABLE t1(a, b, c);\n    CREATE VIEW v...} -sqlbody {\n    DELETE FROM v1 WHERE a = 1;\n    INSERT INTO...} (unsupported command, not transpiled)
+	// do_malloc_test 25 -sqlprep {\n  CREATE TABLE abc(a, b, c);\n  CREATE INDEX i1 ...} -tclbody {\n  # For each UPDATE executed, the cursor used fo...} (unsupported command, not transpiled)
+	// do_malloc_test 26 -sqlprep {\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INT...} -tclbody {\n  db close\n  sqlite3 db test.db\n  db eval { IN...} (unsupported command, not transpiled)
+	// do_malloc_test 27 -tclprep {\n  db close\n  sqlite3_shutdown\n} -tclbody {\n  set rc [sqlite3_initialize]\n  if {$rc == "SQL...} (unsupported command, not transpiled)
 	// autoinstall_test_functions (unsupported command, not transpiled)
-	// do_malloc_test 28 -sqlprep {
-  CREATE TABLE t1(a, b);
-  CREATE INDEX i1 ON t1(...} -sqlbody {
-  SELECT * FROM t1 INDEXED BY i1 ORDER BY a;
-  SE...} (unsupported command, not transpiled)
-	// do_malloc_test 29 -sqlprep {
-  CREATE TABLE t1(a TEXT, b TEXT);
-} -sqlbody {
-  INSERT INTO t1 VALUES(1, -234);
-  INSERT INTO t...} (unsupported command, not transpiled)
-	// do_malloc_test 30 -tclprep {
-  db eval {
-    CREATE TABLE t1(x PRIMARY KEY);
- ...} -sqlbody {
-  -- This statement requires the 'no-content' pag...} (unsupported command, not transpiled)
-	// do_malloc_test 31 -sqlprep {
-  PRAGMA journal_mode = persist;
-  PRAGMA journal...} -sqlbody {
-  INSERT INTO t1 VALUES(1, 2);
-} (unsupported command, not transpiled)
-	// do_malloc_test 32 -tclprep {
-  # Build a small database containing an indexed ...} -tclbody {
-  # Running in exclusive mode, perform a database...} -cleanup {
-
-  # Perform another transaction using the first ...} (unsupported command, not transpiled)
-	// do_malloc_test 33 -tclprep {
-  db eval { PRAGMA cache_size = 10 }
-  db transac...} -sqlbody {
-  SELECT count(*) FROM abc;
-} (unsupported command, not transpiled)
-	// do_malloc_test 34 -tclprep {
-  db eval { PRAGMA cache_size = 10 }
-  db transac...} -sqlbody {
-  SELECT count(*) FROM abc;
-} (unsupported command, not transpiled)
+	// do_malloc_test 28 -sqlprep {\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t...} -sqlbody {\n  SELECT * FROM t1 INDEXED BY i1 ORDER BY a;\n  ...} (unsupported command, not transpiled)
+	// do_malloc_test 29 -sqlprep {\n  CREATE TABLE t1(a TEXT, b TEXT);\n} -sqlbody {\n  INSERT INTO t1 VALUES(1, -234);\n  INSERT INTO...} (unsupported command, not transpiled)
+	// do_malloc_test 30 -tclprep {\n  db eval {\n    CREATE TABLE t1(x PRIMARY KEY);...} -sqlbody {\n  -- This statement requires the 'no-content' pa...} (unsupported command, not transpiled)
+	// do_malloc_test 31 -sqlprep {\n  PRAGMA journal_mode = persist;\n  PRAGMA journ...} -sqlbody {\n  INSERT INTO t1 VALUES(1, 2);\n} (unsupported command, not transpiled)
+	// do_malloc_test 32 -tclprep {\n  # Build a small database containing an indexed...} -tclbody {\n  # Running in exclusive mode, perform a databas...} -cleanup {\n\n  # Perform another transaction using the firs...} (unsupported command, not transpiled)
+	// do_malloc_test 33 -tclprep {\n  db eval { PRAGMA cache_size = 10 }\n  db trans...} -sqlbody {\n  SELECT count(*) FROM abc;\n} (unsupported command, not transpiled)
+	// do_malloc_test 34 -tclprep {\n  db eval { PRAGMA cache_size = 10 }\n  db trans...} -sqlbody {\n  SELECT count(*) FROM abc;\n} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	// do_malloc_test 35 -tclprep {
-  db func f f
-  set ::STMT [sqlite3_prepare db "S...} -tclbody {
-  sqlite3_finalize $::STMT
-} -cleanup {
-  # At one point an assert( !db->mallocFailed ) c...} (unsupported command, not transpiled)
-	// do_malloc_test 36 -sqlprep {
-  CREATE TABLE t1(a, b);
-  INSERT INTO t1 VALUES(...} -sqlbody {
-  SELECT test_agg_errmsg16(), group_concat(a) FRO...} (unsupported command, not transpiled)
+	// do_malloc_test 35 -tclprep {\n  db func f f\n  set ::STMT [sqlite3_prepare db ...} -tclbody {\n  sqlite3_finalize $::STMT\n} -cleanup {\n  # At one point an assert( !db->mallocFailed ) ...} (unsupported command, not transpiled)
+	// do_malloc_test 36 -sqlprep {\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUE...} -sqlbody {\n  SELECT test_agg_errmsg16(), group_concat(a) FR...} (unsupported command, not transpiled)
 	if tclBool("db eval {PRAGMA locking_mode}" + "!=\"exclusive\"") {
-		// do_malloc_test 37 -tclprep {
-    sqlite3 db2 test.db
-    execsql {
-      CREAT...} -sqlbody {
-    SELECT * FROM t1;
-  } -cleanup {
-    # Try to write to the database using connecti...} (unsupported command, not transpiled)
+		// do_malloc_test 37 -tclprep {\n    sqlite3 db2 test.db\n    execsql {\n      CR...} -sqlbody {\n    SELECT * FROM t1;\n  } -cleanup {\n    # Try to write to the database using connect...} (unsupported command, not transpiled)
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
 	}
-	// do_malloc_test 39 -tclprep {
-  sqlite3 db test.db
-} -sqlbody {
-  SELECT test_auxdata('abc', 'def');
-} -cleanup {
-  db close
-} (unsupported command, not transpiled)
+	// do_malloc_test 39 -tclprep {\n  sqlite3 db test.db\n} -sqlbody {\n  SELECT test_auxdata('abc', 'def');\n} -cleanup {\n  db close\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -312,10 +228,7 @@ func Test_malloc(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_faultsim_test 40.3 -faults oom-trans* -body {
-  execsql {
-    SELECT * FROM t1 ORDER BY 1 COLLA...} -test {
-  faultsim_test_result {0 {abcde fghij klmno pqrs...} (unsupported command, not transpiled)
+	// do_faultsim_test 40.3 -faults oom-trans* -body {\n  execsql {\n    SELECT * FROM t1 ORDER BY 1 COL...} -test {\n  faultsim_test_result {0 {abcde fghij klmno pqr...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -328,10 +241,7 @@ func Test_malloc(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a COLLATE utf16bin);\n  INSERT INTO t1 VALUES('fghij' || $::big);\n  INSERT INTO t1 VALUES('pqrst' || $::big);\n  INSERT INTO t1 VALUES('abcde' || $::big);\n  INSERT INTO t1 VALUES('uvwxy' || $::big);\n  INSERT INTO t1 VALUES('klmno' || $::big);\n  CREATE INDEX i1 ON t1(a);\n")
 		}
 	}
-	// do_faultsim_test 41.2 -faults oom* -body {
-  execsql { SELECT * FROM t1 WHERE a = ('abcde' |...} -test {
-  faultsim_test_result [list 0 "abcde$::big"]
-  f...} (unsupported command, not transpiled)
+	// do_faultsim_test 41.2 -faults oom* -body {\n  execsql { SELECT * FROM t1 WHERE a = ('abcde' ...} -test {\n  faultsim_test_result [list 0 "abcde$::big"]\n ...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -342,14 +252,7 @@ func Test_malloc(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 42 -faults oom-tran* -prep {
-  faultsim_restore_and_reopen
-  execsql { SELECT ...} -body {
-  execsql {
-    SELECT t1.z, a002.m
-    FROM t1 J...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 42 -faults oom-tran* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELEC...} -body {\n  execsql {\n    SELECT t1.z, a002.m\n    FROM t...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	{ // do_test "malloc-99.X"
 		{
 			var _catchErr error

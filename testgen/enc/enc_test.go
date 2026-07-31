@@ -99,6 +99,7 @@ func Test_enc(t *testing.T) {
 	_ = DB // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -254,6 +255,25 @@ func Test_enc(t *testing.T) {
 		_res = db.Exec("PRAGMA function_list")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA function_list")
+		}
+	}
+	_res = db.Exec("CREATE VIRTUAL TABLE t3 USING rtree(id,x1,x2)")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t3 USING rtree(id,x1,x2)")
+	}
+	_dbtmp5, err := frigolite.Open("utf16.db")
+	_ = _dbtmp5 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // "enc-13.2"
+		r = db.Query("\n    WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ok ok ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

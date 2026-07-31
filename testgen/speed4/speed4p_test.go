@@ -81,7 +81,7 @@ func Test_speed4p(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// speed_trial_init speed1 (unsupported command, not transpiled)
-	// expr srand(0) → "srand(0)"
+	// expr srand(0) (not evaluated)
 	sqlout = "open speed1.txt w"
 	_ = sqlout // suppress unused warning
 	// proc definition (not transpiled)
@@ -152,9 +152,7 @@ func Test_speed4p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);\n")
 	}
-	// speed_trial speed4p-insert-ignore 50000 row {
-  INSERT OR IGNORE INTO t5 SELECT t, i FROM t1;
-} (unsupported command, not transpiled)
+	// speed_trial speed4p-insert-ignore 50000 row {\n  INSERT OR IGNORE INTO t5 SELECT t, i FROM t1;\...} (unsupported command, not transpiled)
 	list = "db eval {SELECT t FROM t5}"
 	_ = list // suppress unused warning
 	script = "\n  db eval BEGIN\n  foreach t $::list {\n    db eval {UPDATE t5 SET i=i+1 WHERE t=$t}\n  }\n  db eval COMMIT\n"
@@ -186,7 +184,7 @@ func Test_speed4p(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 = "$ii*2"
+		ii2 = tclExpr("$ii*2")
 		_ = ii2 // suppress unused warning
 		list = tclListAppend(list, ii, ii2, "number_name $ii2")
 		// incr ii 2
@@ -233,7 +231,7 @@ func Test_speed4p(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 = "$ii*2"
+		ii2 = tclExpr("$ii*2")
 		_ = ii2 // suppress unused warning
 		list = tclListAppend(list, ii, ii2, "number_name $ii2")
 		// incr ii 2

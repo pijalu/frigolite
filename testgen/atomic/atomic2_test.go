@@ -90,13 +90,6 @@ func Test_atomic2(t *testing.T) {
 	// tvfs script at_vfs_callback (unsupported command, not transpiled)
 	// tvfs filter {xFileControl xWrite} (unsupported command, not transpiled)
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_one_faultsim_test 2.0 {*} $setup -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    WITH s(i) AS ( SELECT 1 UNION ALL...} -test {
-  faultsim_test_result {0 {}}
-
-  set res [execsql...} (unsupported command, not transpiled)
+	// do_one_faultsim_test 2.0 {*} $setup -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    WITH s(i) AS ( SELECT 1 UNION A...} -test {\n  faultsim_test_result {0 {}}\n\n  set res [exec...} (unsupported command, not transpiled)
 	// tvfs delete (unsupported command, not transpiled)
 }

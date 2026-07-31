@@ -43,3 +43,12 @@ test.db*
 # Junk artifacts from test runs (SQL-generated file names)
 cannot-read
 file:*
+
+# Local build artifacts
+/tools/go-lemon/go-lemon
+go-lemon
+_check_delete_db.py
+testgen/main/testdb
+testgen/misc/mydir
+testgen/misc/file join*
+tools/tcl2go/testgen/

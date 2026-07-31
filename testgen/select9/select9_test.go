@@ -138,46 +138,26 @@ func Test_select9(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, indexes)
 			}
 		}
-		// test_compound_select select9-1.$iOuterLoop.2 {
-    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {1 one 3 {} 5 five 7 seven 9 {} 2 two 4 four 6 {} 8...} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.3 {
-    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {1 one 1 two 2 two 2 four 3 {} 3 {} 4 four 4 eight ...} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.4 {
-    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {3 {} 9 {} 6 {} 3 {} 6 {} 9 {} 8 eight 4 eight 5 fi...} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-1.$iOuterLoop.5 {
-    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {1 one 1 two 2 four 2 two 3 {} 3 {} 4 eight 4 four ...} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-1.$iOuterLoop.6 {
-    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {3 {} 3 {} 6 {} 6 {} 9 {} 9 {} 4 eight 8 eight 5 fi...} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.7 {
-    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.8 {
-    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.9 {
-    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {3 {} 6 {} 9 {} 4 eight 8 eight 5 five 2 four 4 fou...} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-1.$iOuterLoop.10 {
-    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-1.$iOuterLoop.11 {
-    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {3 {} 6 {} 9 {} 4 eight 8 eight 5 five 2 four 4 fou...} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.11 {
-    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-1.$iOuterLoop.12 {
-    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.13 {
-    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-1.$iOuterLoop.14 {
-    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-1.$iOuterLoop.15 {
-    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.16 {
-    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.17 {
-    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.18 {
-    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.19 {
-    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten} (unsupported command, not transpiled)
-		// test_compound_select select9-1.$iOuterLoop.20 {
-    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.2 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FR...} {1 one 3 {} 5 five 7 seven 9 {} 2 two 4 four 6 {} 8...} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.3 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FR...} {1 one 1 two 2 two 2 four 3 {} 3 {} 4 four 4 eight ...} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.4 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FR...} {3 {} 9 {} 6 {} 3 {} 6 {} 9 {} 8 eight 4 eight 5 fi...} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-1.$iOuterLoop.5 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FR...} {1 one 1 two 2 four 2 two 3 {} 3 {} 4 eight 4 four ...} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-1.$iOuterLoop.6 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FR...} {3 {} 3 {} 6 {} 6 {} 9 {} 9 {} 4 eight 8 eight 5 fi...} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.7 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.8 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.9 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t...} {3 {} 6 {} 9 {} 4 eight 8 eight 5 five 2 four 4 fou...} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-1.$iOuterLoop.10 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-1.$iOuterLoop.11 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t...} {3 {} 6 {} 9 {} 4 eight 8 eight 5 five 2 four 4 fou...} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.11 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FR...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-1.$iOuterLoop.12 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FR...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.13 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FR...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-1.$iOuterLoop.14 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FR...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-1.$iOuterLoop.15 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FR...} {3 {} 6 {} 9 {}} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.16 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM ...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.17 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM ...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.18 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM ...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.19 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM ...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten} (unsupported command, not transpiled)
+		// test_compound_select select9-1.$iOuterLoop.20 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM ...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two} (unsupported command, not transpiled)
 		// incr iOuterLoop 1
 		{
 			_n, _err := strconv.Atoi(iOuterLoop)
@@ -203,22 +183,14 @@ func Test_select9(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, indexes)
 			}
 		}
-		// test_compound_select_flippable select9-2.$iOuterLoop.2 {
-    SELECT * FROM t1 WHERE a<5 UNION SELECT * FRO...} {1 one I 2 two II 3 {} {} 4 four IV 5 ten XX 6 {} {...} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-2.$iOuterLoop.2 {
-    SELECT * FROM t1 WHERE a<5 UNION SELECT * FRO...} {3 {} {} 6 {} {} 9 {} {} 4 four IV 7 fourteen XXVII...} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-2.$iOuterLoop.3 {
-    SELECT * FROM t1 WHERE a<5 UNION SELECT * FRO...} {3 {} {} 6 {} {} 9 {} {} 2 two II 10 twenty XL 5 te...} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-2.$iOuterLoop.4 {
-    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT *...} {1 one I 2 two II 3 {} {} 4 four IV 5 ten XX 6 {} {...} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-2.$iOuterLoop.5 {
-    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT *...} {3 {} {} 6 {} {} 9 {} {} 4 four IV 7 fourteen XXVII...} (unsupported command, not transpiled)
-		// test_compound_select_flippable select9-2.$iOuterLoop.6 {
-    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT *...} {3 {} {} 6 {} {} 9 {} {} 2 two II 10 twenty XL 5 te...} (unsupported command, not transpiled)
-		// test_compound_select select9-2.$iOuterLoop.4 {
-    SELECT a FROM t1 WHERE a<8 EXCEPT SELECT d FR...} {4 5 6 7} (unsupported command, not transpiled)
-		// test_compound_select select9-2.$iOuterLoop.4 {
-    SELECT a FROM t1 WHERE a<8 INTERSECT SELECT d...} {1 2 3} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-2.$iOuterLoop.2 {\n    SELECT * FROM t1 WHERE a<5 UNION SELECT * FR...} {1 one I 2 two II 3 {} {} 4 four IV 5 ten XX 6 {} {...} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-2.$iOuterLoop.2 {\n    SELECT * FROM t1 WHERE a<5 UNION SELECT * FR...} {3 {} {} 6 {} {} 9 {} {} 4 four IV 7 fourteen XXVII...} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-2.$iOuterLoop.3 {\n    SELECT * FROM t1 WHERE a<5 UNION SELECT * FR...} {3 {} {} 6 {} {} 9 {} {} 2 two II 10 twenty XL 5 te...} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-2.$iOuterLoop.4 {\n    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT ...} {1 one I 2 two II 3 {} {} 4 four IV 5 ten XX 6 {} {...} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-2.$iOuterLoop.5 {\n    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT ...} {3 {} {} 6 {} {} 9 {} {} 4 four IV 7 fourteen XXVII...} (unsupported command, not transpiled)
+		// test_compound_select_flippable select9-2.$iOuterLoop.6 {\n    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT ...} {3 {} {} 6 {} {} 9 {} {} 2 two II 10 twenty XL 5 te...} (unsupported command, not transpiled)
+		// test_compound_select select9-2.$iOuterLoop.4 {\n    SELECT a FROM t1 WHERE a<8 EXCEPT SELECT d F...} {4 5 6 7} (unsupported command, not transpiled)
+		// test_compound_select select9-2.$iOuterLoop.4 {\n    SELECT a FROM t1 WHERE a<8 INTERSECT SELECT ...} {1 2 3} (unsupported command, not transpiled)
 	}
 	{ // do_test "select9-2.X"
 		_res = db.Exec("\n    DROP INDEX i1;\n    DROP INDEX i2;\n    DROP INDEX i3;\n  ")

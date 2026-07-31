@@ -69,6 +69,9 @@ func Test_shellB(t *testing.T) {
 	// do_clitest vt100-a.sql (unsupported command, not transpiled)
 	// do_clitest regexp1.sql (unsupported command, not transpiled)
 	// do_clitest imposter1.sql (unsupported command, not transpiled)
+	// do_clitest dotcmd01.sql (unsupported command, not transpiled)
+	// do_clitest import01.sql (unsupported command, not transpiled)
+	// do_clitest intck01.sql --unsafe-testing (unsupported command, not transpiled)
 	// do_clitest fptest01.sql (unsupported command, not transpiled)
 	// do_clitest shell-prompt.sql (unsupported command, not transpiled)
 }

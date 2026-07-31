@@ -83,6 +83,58 @@ func Test_schema(t *testing.T) {
 	{ // do_test "schema-1.4"
 		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
+	{ // do_test "schema-2.1"
+		STMT = "sqlite3_prepare $::DB {SELECT * FROM sqlite_master} -1 TAIL" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		_res = db.Exec("\n      CREATE VIEW v1 AS SELECT * FROM sqlite_master;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW v1 AS SELECT * FROM sqlite_master;\n    ")
+		}
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-2.2"
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-2.3"
+		STMT = "sqlite3_prepare $::DB {SELECT * FROM sqlite_master} -1 TAIL" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		_res = db.Exec("\n      DROP VIEW v1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW v1;\n    ")
+		}
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-2.4"
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-3.1"
+		_res = db.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE abc(a, b, c);\n    ")
+		}
+		STMT = "sqlite3_prepare $::DB {SELECT * FROM sqlite_master} -1 TAIL" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		_res = db.Exec("\n      CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;\n    ")
+		}
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-3.2"
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-3.3"
+		STMT = "sqlite3_prepare $::DB {SELECT * FROM sqlite_master} -1 TAIL" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		_res = db.Exec("\n      DROP TRIGGER abc_trig;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER abc_trig;\n    ")
+		}
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-3.4"
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	}
 	{ // do_test "schema-4.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n  ")
 		_ = _res // catchsql
@@ -109,6 +161,30 @@ func Test_schema(t *testing.T) {
 	{ // do_test "schema-4.4"
 		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
+	{ // do_test "schema-5.1"
+		sql = "SELECT * FROM abc;"
+		_ = sql // suppress unused warning
+		STMT = "sqlite3_prepare $::DB $sql -1 TAIL" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n    ")
+		}
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-5.2"
+		// sqlite3_reset $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-5.3"
+		_res = db.Exec("\n      DETACH aux;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DETACH aux;\n    ")
+		}
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-5.4"
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	}
 	{ // do_test "schema-6.1"
 		sql = "SELECT * FROM abc;"
 		_ = sql // suppress unused warning
@@ -126,6 +202,41 @@ func Test_schema(t *testing.T) {
 	{ // do_test "schema-6.4"
 		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
+	{ // do_test "schema-7.1"
+		sql = "SELECT * FROM abc;"
+		_ = sql // suppress unused warning
+		STMT = "sqlite3_prepare $::DB $sql -1 TAIL" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		// add_test_collate $::DB 1 1 1 (unsupported command, not transpiled)
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-7.2"
+		// sqlite3_reset $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-7.3"
+		// add_test_collate $::DB 0 0 0 (unsupported command, not transpiled)
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-7.4"
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	}
+	// proc definition (not transpiled)
+	{ // do_test "schema-8.1"
+		STMT = "sqlite3_prepare $::DB {SELECT * FROM sqlite_master} -1 TAIL" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-8.2"
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-8.11"
+		STMT = "sqlite3_prepare $::DB {SELECT * FROM sqlite_master} -1 TAIL" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-8.12"
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
+	}
 	{ // do_test "schema-9.1"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -140,6 +251,21 @@ func Test_schema(t *testing.T) {
 	_res = db.Exec("\n  CREATE TABLE abc(a, b, c);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE abc(a, b, c);\n")
+	}
+	{ // do_test "schema-9.2"
+		_res = db.Exec("\n      CREATE VIEW abcview AS SELECT * FROM abc;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW abcview AS SELECT * FROM abc;\n    ")
+		}
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n      DROP VIEW abcview;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW abcview;\n    ")
+		}
+		db2.Close()
+		_res = db.Exec("\n      SELECT * FROM abcview;\n    ")
+		_ = _res // catchsql
 	}
 	{ // do_test "schema-10.1"
 		_res = db.Exec("\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
@@ -241,5 +367,17 @@ func Test_schema(t *testing.T) {
 		}
 		_list := tclList([]string{"SQLITE_ROW", ""})
 		_ = _list
+	}
+	{ // do_test "schema-13.1"
+		S = ""
+		_ = S // suppress unused warning
+		// proc definition (not transpiled)
+		// sqlite3_step $S (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-13.2"
+		// sqlite3_step $S (unsupported command, not transpiled)
+	}
+	{ // do_test "schema-13.3"
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 }

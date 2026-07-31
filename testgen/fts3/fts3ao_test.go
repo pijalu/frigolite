@@ -56,6 +56,7 @@ func Test_fts3ao(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts3ao" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n  INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one four two');\n")

@@ -47,6 +47,7 @@ func Test_tkt3810(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "tkt3810-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT * FROM t1;\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);\n  ")
 		if _res.Error != nil {

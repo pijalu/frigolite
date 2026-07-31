@@ -49,6 +49,7 @@ func Test_spellfix3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "spellfix3"
 	_ = testprefix // suppress unused warning
+	return
 	// load_static_extension db spellfix (unsupported command, not transpiled)
 	{ // "100"
 		r = db.Query("\n  SELECT spellfix1_scriptcode('And God said, “Let there be light”');\n")

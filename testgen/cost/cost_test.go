@@ -243,9 +243,9 @@ func Test_cost(t *testing.T) {
 		_ = _idx0
 			w = "join [lrange $L 0 [expr $nTerm-1]] \" AND \""
 			_ = w // suppress unused warning
-			p1 = "($nRow-1) / 100.0"
+			p1 = tclExpr("($nRow-1) / 100.0")
 			_ = p1 // suppress unused warning
-			p2 = "($nRow+1) / 100.0"
+			p2 = tclExpr("($nRow+1) / 100.0")
 			_ = p2 // suppress unused warning
 			sql1 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p1 + ") AND " + w
 			_ = sql1 // suppress unused warning
@@ -262,6 +262,57 @@ func Test_cost(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql2)
 				}
+			}
+		}
+		{ // "10.1"
+			_res = db.Exec("\n    CREATE TABLE t6(a, b, c);\n    CREATE INDEX t6i1 ON t6(a, b);\n    CREATE INDEX t6i2 ON t6(c);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a, b, c);\n    CREATE INDEX t6i1 ON t6(a, b);\n    CREATE INDEX t6i2 ON t6(c);\n  ")
+			}
+		}
+		{ // do_test "10.2"
+			i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
+				_res = db.Exec(" INSERT INTO t6 VALUES($i%4, 'xyz', $i%8) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES($i%4, 'xyz', $i%8) ")
+				}
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			_res = db.Exec("ANALYZE")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+			}
+		}
+		{ // "10.3"
+			r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT rowid FROM t6 WHERE a=0 AND c=0\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT rowid FROM t6 WHERE a=0 AND c=0\n  ")
+			}
+		}
+		{ // "10.4"
+			r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT rowid FROM t6 WHERE a=0 AND b='xyz' AND c=0\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT rowid FROM t6 WHERE a=0 AND b='xyz' AND c=0\n  ")
+			}
+		}
+		{ // "10.5"
+			r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT rowid FROM t6 WHERE likelihood(a=0, 0.1) AND c=0\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT rowid FROM t6 WHERE likelihood(a=0, 0.1) AND c=0\n  ")
+			}
+		}
+		{ // "10.6"
+			r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT rowid FROM t6 WHERE likelihood(a=0, 0.1) AND b='xyz' AND c=0\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT rowid FROM t6 WHERE likelihood(a=0, 0.1) AND b='xyz' AND c=0\n  ")
 			}
 		}
 }

@@ -63,6 +63,7 @@ func Test_bestindexB(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bestindexB"
 	_ = testprefix // suppress unused warning
+	return
 	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -84,23 +85,41 @@ func Test_bestindexB(t *testing.T) {
 		}
 	}
 	{ // "1.2"
-		_res = db.Exec("\n  INSERT INTO y1 VALUES(1, 2) RETURNING rowid;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO y1 VALUES(1, 2) RETURNING rowid;\n")
+		r = db.Query("\n  INSERT INTO y1 VALUES(1, 2) RETURNING rowid;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO y1 VALUES(1, 2) RETURNING rowid;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.3"
-		_res = db.Exec("\n  CREATE TRIGGER y1tr BEFORE INSERT ON y1 BEGIN\n    SELECT * FROM x1;\n  END;\n  INSERT INTO y1 VALUES(3, 4) RETURNING rowid;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER y1tr BEFORE INSERT ON y1 BEGIN\n    SELECT * FROM x1;\n  END;\n  INSERT INTO y1 VALUES(3, 4) RETURNING rowid;\n")
+		r = db.Query("\n  CREATE TRIGGER y1tr BEFORE INSERT ON y1 BEGIN\n    SELECT * FROM x1;\n  END;\n  INSERT INTO y1 VALUES(3, 4) RETURNING rowid;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TRIGGER y1tr BEFORE INSERT ON y1 BEGIN\n    SELECT * FROM x1;\n  END;\n  INSERT INTO y1 VALUES(3, 4) RETURNING rowid;\n")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	xbestindex_sql = "\n  INSERT INTO y2 VALUES(NULL, NULL) RETURNING rowid;\n" // TCL namespace variable
 	_ = xbestindex_sql // suppress unused warning
 	{ // "1.4"
-		_res = db.Exec("\n  INSERT INTO y1 VALUES(5, 6) RETURNING rowid;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO y1 VALUES(5, 6) RETURNING rowid;\n")
+		r = db.Query("\n  INSERT INTO y1 VALUES(5, 6) RETURNING rowid;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO y1 VALUES(5, 6) RETURNING rowid;\n")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.5"

@@ -63,23 +63,15 @@ func Test_shellA(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, x TEXT);\n  INSERT INTO t1 VALUES\n   (1, 'line with '' single quote'),\n   (2, concat(char(0x1b),'[31mVT-100 codes',char(0x1b),'[0m')),\n   (3, NULL),\n   (4, 1234),\n   (5, 568.25),\n   (6, unistr('new\\u000aline')),\n   (7, unistr('carriage\\u000dreturn')),\n   (8, 'last line');\n")
 		}
 	}
-	// do_test_with_ansi_output shellA-1.2 {
-  exec {*}$CLI -noinit test.db {.mode box -quote ...} {
-╭───┬───────────�...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shellA-1.2 {\n  exec {*}$CLI -noinit test.db {.mode box -quote...} {\n╭───┬───────────...} (unsupported command, not transpiled)
 	{ // do_test "shellA-1.3"
 		// exec {*} $CLI -noinit -list test.db {SELECT x FROM t1 WHERE a=2;} (unsupported command, not transpiled)
 	}
-	// do_test_with_ansi_output shellA-1.4 {
-  exec {*}$CLI -noinit -list test.db --escape sym...} {
-␛[31mVT-100 codes␛[0m
-} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shellA-1.4 {\n  exec {*}$CLI -noinit -list test.db --escape sy...} {\n␛[31mVT-100 codes␛[0m\n} (unsupported command, not transpiled)
 	{ // do_test "shellA-1.5"
 		// exec {*} $CLI -noinit -list test.db --escape ascii {SELECT x FROM t1 WHERE a=2;} (unsupported command, not transpiled)
 	}
-	// do_test_with_ansi_output shellA-1.6 {
-  exec {*}$CLI -noinit test.db {.mode list --esca...} {
-␛[31mVT-100 codes␛[0m
-} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shellA-1.6 {\n  exec {*}$CLI -noinit test.db {.mode list --esc...} {\n␛[31mVT-100 codes␛[0m\n} (unsupported command, not transpiled)
 	{ // do_test "shellA-1.7"
 		// exec {*} $CLI -noinit test.db {.mode list --escape ascii} {SELECT x FROM t1 WHERE a=2;} (unsupported command, not transpiled)
 	}
@@ -137,29 +129,14 @@ func Test_shellA(t *testing.T) {
 	{ // do_test "shellA-2.4"
 		// exec {*} $CLI -noinit test.db --quote --escape OFF {.mode} (unsupported command, not transpiled)
 	}
-	// do_test_with_ansi_output shellA-3.1 {
- exec {*}$CLI -noinit test.db --line --escape sym...} {
-    a: 1
-    x: line with ' single quote
-
-    a: ...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shellA-3.1 {\n exec {*}$CLI -noinit test.db --line --escape sy...} {\n    a: 1\n    x: line with ' single quote\n\n   ...} (unsupported command, not transpiled)
 	{ // do_test "shellA-3.2"
 		// exec {*} $CLI -noinit test.db --line --escape ascii {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)} (unsupported command, not transpiled)
 	}
-	// do_test_with_ansi_output shellA-4.1 {
- exec {*}$CLI -noinit test.db --box --escape asci...} {
-╭───┬───────────�...} (unsupported command, not transpiled)
-	// do_test_with_ansi_output shellA-4.1b {
- exec {*}$CLI -noinit test.db --box --escape asci...} {
- a │            x
-═══╪═════�...} (unsupported command, not transpiled)
-	// do_test_with_ansi_output shellA-4.2 {
- exec {*}$CLI -noinit test.db {.mode qbox} {SELEC...} {
-╭───┬───────────�...} (unsupported command, not transpiled)
-	// do_test_with_ansi_output shellA-4.2b {
- exec {*}$CLI -noinit test.db {.mode qbox -border...} {
- a │                     x
-═══╪══�...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shellA-4.1 {\n exec {*}$CLI -noinit test.db --box --escape asc...} {\n╭───┬───────────...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shellA-4.1b {\n exec {*}$CLI -noinit test.db --box --escape asc...} {\n a │            x\n═══╪═════...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shellA-4.2 {\n exec {*}$CLI -noinit test.db {.mode qbox} {SELE...} {\n╭───┬───────────...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shellA-4.2b {\n exec {*}$CLI -noinit test.db {.mode qbox -borde...} {\n a │                     x\n═══╪══...} (unsupported command, not transpiled)
 	{ // do_test "shellA-5.1"
 		// exec {*} $CLI -noinit test.db {.mode insert t1 --escape ascii} {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)} (unsupported command, not transpiled)
 	}

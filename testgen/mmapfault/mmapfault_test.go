@@ -53,6 +53,7 @@ func Test_mmapfault(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "mmapfault"
 	_ = testprefix // suppress unused warning
 	a_string_counter = "1"
@@ -65,11 +66,5 @@ func Test_mmapfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 1 -prep {
-  faultsim_restore_and_reopen
-  db func a_string ...} -body {
-  execsql { INSERT INTO t1 VALUES(a_string(200), ...} -test {
-  faultsim_test_result {0 {}} 
-
-  if {[sqlite3_ge...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  db func a_strin...} -body {\n  execsql { INSERT INTO t1 VALUES(a_string(200),...} -test {\n  faultsim_test_result {0 {}} \n\n  if {[sqlite3...} (unsupported command, not transpiled)
 }

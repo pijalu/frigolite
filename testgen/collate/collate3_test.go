@@ -237,6 +237,42 @@ func Test_collate3(t *testing.T) {
 		_res = db.Exec("\n    SELECT DISTINCT c1 FROM collate3t1;\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "collate3-2.9"
+		_res = db.Exec("\n      SELECT c1 FROM collate3t1 UNION SELECT c1 FROM collate3t1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-2.10"
+		_res = db.Exec("\n      SELECT c1 FROM collate3t1 EXCEPT SELECT c1 FROM collate3t1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-2.11"
+		_res = db.Exec("\n      SELECT c1 FROM collate3t1 INTERSECT SELECT c1 FROM collate3t1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-2.12"
+		_res = db.Exec("\n      SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-2.13"
+		_res = db.Exec("\n      SELECT 10 UNION ALL SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-2.14"
+		_res = db.Exec("\n      SELECT 10 INTERSECT SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-2.15"
+		_res = db.Exec("\n      SELECT 10 EXCEPT SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-2.16"
+		_res = db.Exec("\n      SELECT 10 UNION SELECT 20 ORDER BY 1 COLLATE string_compare;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-2.17"
+		_res = db.Exec("\n      SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1 ORDER BY 1;\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "collate3-3.0"
 		_res = db.Exec("\n    CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');\n  ")
 		if _res.Error != nil {
@@ -273,6 +309,10 @@ func Test_collate3(t *testing.T) {
 	}
 	{ // do_test "collate3-3.6"
 		_res = db.Exec("\n    DELETE FROM collate3t1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-3.8"
+		_res = db.Exec("\n      PRAGMA integrity_check\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-3.9"
@@ -332,6 +372,29 @@ func Test_collate3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	{ // do_test "collate3-4.9"
+		r = db.Query("\n    CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;\n  ")
+		}
+	}
+	{ // do_test "collate3-4.10"
+		_dbtmp13, err := frigolite.Open("test.db")
+		_ = _dbtmp13 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    SELECT * FROM collate3v1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-4.11"
+		_res = db.Exec("\n    SELECT * FROM collate3v1;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "collate3-4.12"
+		_res = db.Exec("\n    DROP TABLE collate3t1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE collate3t1;\n  ")
+		}
+	}
 	{ // do_test "collate3-5.0"
 		_res = db.Exec("\n    CREATE TABLE collate3t1(a);\n    INSERT INTO collate3t1 VALUES(10);\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		_ = _res // catchsql
@@ -364,8 +427,8 @@ func Test_collate3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);\n  ")
 		}
-		_dbtmp13, err := frigolite.Open("test.db")
-		_ = _dbtmp13 // sqlite3 db connection
+		_dbtmp14, err := frigolite.Open("test.db")
+		_ = _dbtmp14 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1;\n  ")
 		_ = _res // catchsql

@@ -55,10 +55,5 @@ func Test_schemafault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(aaa INTTT);\n  CREATE VIEW v2(xxx , yyy) AS SELECT aaa, aaa+1 FROM t2;\n")
 		}
 	}
-	// do_faultsim_test 1 -faults oom-* -prep {
-} -body {
-  execsql { SELECT * FROM v2 }
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom-* -prep {\n} -body {\n  execsql { SELECT * FROM v2 }\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 }

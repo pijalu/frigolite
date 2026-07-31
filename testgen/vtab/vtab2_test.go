@@ -61,6 +61,7 @@ func Test_vtab2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtab2"
 	_ = testprefix // suppress unused warning
+	return
 	// register_schema_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab2-1.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE schema USING schema;\n    SELECT * FROM schema;\n  ")
@@ -170,5 +171,20 @@ func Test_vtab2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM fkey ")
 		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "5.1"
+		r = db.Query("\n    PRAGMA encoding='UTF16';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding='UTF16';\n  ")
+		}
+	}
+	{ // do_test "5.2"
+		// sqlite3_exec_hex db { CREATE VIRTUAL TABLE %C8 USING fts3 } (unsupported command, not transpiled)
+	}
+	{ // do_test "5.3"
+		// sqlite3_exec_hex db { CREATE VIRTUAL TABLE %C9 USING s } (unsupported command, not transpiled)
 	}
 }

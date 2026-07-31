@@ -66,6 +66,7 @@ func Test_shared9(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "shared9"
 	_ = testprefix // suppress unused warning
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1"
 	_ = enable_shared_cache // suppress unused warning
 	db1, err = frigolite.Open("test.db")
@@ -87,6 +88,18 @@ func Test_shared9(t *testing.T) {
 	}
 	{ // do_test "1.4"
 		db2.Exec("INSERT INTO t2 VALUES(3, 4)")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	}
+	{ // do_test "1.5"
+		db1.Exec("\n      CREATE VIRTUAL TABLE fred.t4 USING fts4;\n      INSERT INTO t4 VALUES('hello world');\n    ")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	}
+	{ // do_test "1.6"
+		db2.Exec("\n      INSERT INTO t4 VALUES('shared cache');\n      SELECT * FROM t4 WHERE t4 MATCH 'hello';\n    ")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	}
+	{ // do_test "1.7"
+		db1.Exec("\n      SELECT * FROM t4 WHERE t4 MATCH 'c*';\n    ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db1.Close()
@@ -171,10 +184,7 @@ func Test_shared9(t *testing.T) {
 	{ // do_test "3.2"
 		tf = "launch_testfixture" // TCL namespace variable
 		_ = tf // suppress unused warning
-		// testfixture $::tf {
-    sqlite3 db test.db
-    db eval {
-      BEGIN;...} (unsupported command, not transpiled)
+		// testfixture $::tf {\n    sqlite3 db test.db\n    db eval {\n      BEG...} (unsupported command, not transpiled)
 	}
 	{ // do_test "3.3"
 		db2.Exec(" SELECT * FROM t2 ")

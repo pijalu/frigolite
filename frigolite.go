@@ -124,6 +124,7 @@ func execResult(er *exec.Result) *Result {
 	}
 }
 
+
 // Exec executes a SQL statement that does not return rows.
 // Multiple statements in the same string are all executed (consistent with
 // SQLite's sqlite3_prepare_v2 behavior for DDL/DML batches).
@@ -151,7 +152,10 @@ func (db *DB) Exec(sqlStr string) *Result {
 	if lastResult == nil {
 		return &Result{}
 	}
-	return execResult(lastResult)
+
+	result := execResult(lastResult)
+
+	return result
 }
 
 // Query executes a SQL query and returns rows.

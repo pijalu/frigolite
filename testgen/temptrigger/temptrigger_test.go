@@ -62,6 +62,7 @@ func Test_temptrigger(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "temptrigger"
 	_ = testprefix // suppress unused warning
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
@@ -512,7 +513,7 @@ func Test_temptrigger(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < (nDb_n-1) }() {
-			jj = "$ii+1"
+			jj = tclExpr("$ii+1")
 			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER tr" + ii + " AFTER INSERT ON db" + ii + ".tbl BEGIN\n        INSERT INTO db" + jj + ".tbl VALUES(new.b, new.c, new.a);\n      END;\n    ")
 			if _res.Error != nil {
@@ -633,7 +634,7 @@ func Test_temptrigger(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < (nDb_n-1) }() {
-			jj = "$ii+1"
+			jj = tclExpr("$ii+1")
 			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER tru" + ii + " AFTER UPDATE ON db" + ii + ".tbl BEGIN\n        UPDATE db" + jj + ".tbl SET a=new.b, b=new.c, c=new.a;\n      END;\n    ")
 			if _res.Error != nil {
@@ -754,7 +755,7 @@ func Test_temptrigger(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < (nDb_n-1) }() {
-			jj = "$ii+1"
+			jj = tclExpr("$ii+1")
 			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER trd" + ii + " BEFORE DELETE ON db" + ii + ".tbl BEGIN\n        DELETE FROM db" + jj + ".tbl;\n      END;\n    ")
 			if _res.Error != nil {

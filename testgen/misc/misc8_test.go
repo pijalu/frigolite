@@ -140,6 +140,8 @@ func Test_misc8(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	nosuch = "1 {ambiguous column name: rowid}"
+	_ = nosuch // suppress unused warning
 	{ // "misc8-3.0"
 		_res = db.Exec("\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
 		if _res.Error == nil {

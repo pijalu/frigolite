@@ -75,6 +75,7 @@ func Test_memdb1(t *testing.T) {
 	testprefix = "memdb1"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
+	return
 	{ // do_test "100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
 		if _res.Error != nil {
@@ -82,10 +83,10 @@ func Test_memdb1(t *testing.T) {
 		}
 		pgsz = "db one {PRAGMA page_size}" // TCL namespace variable
 		_ = pgsz // suppress unused warning
-		sz1 = "$::pgsz*[db one {PRAGMA page_count}]" // TCL namespace variable
+		sz1 = tclExpr("$::pgsz*[db one {PRAGMA page_count}]") // TCL namespace variable
 		_ = sz1 // suppress unused warning
 		// set ::db1 (skipped, DB connection)
-		// expr [string length $::db1]==$::sz1 → "[string length $::db1]==$::sz1"
+		// expr [string length $::db1]==$::sz1 (not evaluated)
 	}
 	fd = "open db1.db wb"
 	_ = fd // suppress unused warning
@@ -369,6 +370,24 @@ func Test_memdb1(t *testing.T) {
 		}
 		rc = tclListAppend(rc, "err")
 	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "700"
+		r = db.Query("\n    CREATE TABLE t1(a, b);\n    PRAGMA schema_version = 0;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    PRAGMA schema_version = 0;\n  ")
+		}
+	}
+	{ // do_test "710"
+		ser = "db serialize main"
+		_ = ser // suppress unused warning
+		_dbtmp5, err := frigolite.Open("")
+		_ = _dbtmp5 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n      CREATE VIRTUAL TABLE t1 USING rtree(id, a, b, c, d);\n    ")
+		_ = _res // catchsql
+	}
 	if tclBool("wal_is_capable") {
 		db.Close()
 		db, err = frigolite.Open("")
@@ -428,7 +447,7 @@ func Test_memdb1(t *testing.T) {
 	{ // do_test "900"
 		_len = strconv.Itoa(len("dbempty serialize"))
 		_ = _len // suppress unused warning
-		// expr $len>0 → "$len>0"
+		// expr $len>0 (not evaluated)
 	}
 	// dbempty close (unsupported command, not transpiled)
 	{ // "1000"

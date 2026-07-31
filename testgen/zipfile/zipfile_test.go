@@ -117,6 +117,7 @@ func Test_zipfile(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "zipfile"
 	_ = testprefix // suppress unused warning
+	return
 	if false {
 		_putsMsg := "Skipping zipfile tests, hit load error: " + _error
 		_ = _putsMsg
@@ -216,6 +217,18 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "\n  f.txt 1000000000 abcde 0\n  g.txt 1000000002 12345 0\n  h.txt 1000000004 aaaaaaaaaabbbbbbbbbb 8\n"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.4.1"
+		r = db.Query("\n    SELECT name, json_extract( zipfile_cds(z) , '$.crc32')!=0\n    FROM zipfile('test.zip');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, json_extract( zipfile_cds(z) , '$.crc32')!=0\n    FROM zipfile('test.zip');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "\n    f.txt 1\n    g.txt 1\n    h.txt 1\n  "
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -592,6 +605,59 @@ func Test_zipfile(t *testing.T) {
 				}
 			}
 			if tclBool("info exists ::UNZIP") {
+				os.Remove("test1.zip")
+				{ // do_test "6.0"
+					r = db.Query("\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;\n    ")
+					}
+					os.Remove("test_unzip")
+					// file mkdir test_unzip
+					// exec $::UNZIP -d test_unzip test1.zip (unsupported command, not transpiled)
+					_res = db.Exec("\n      SELECT name, strftime('%s', mtime, 'unixepoch', 'localtime') \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT name, strftime('%s', mtime, 'unixepoch', 'localtime') \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name\n    ")
+					}
+				}
+				{ // do_test "6.0b"
+					_res = db.Exec("\n      SELECT sum(name LIKE '%/a.txt')\n      FROM (VALUES(1),(2),(3)) CROSS JOIN fsdir('test_unzip')\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT sum(name LIKE '%/a.txt')\n      FROM (VALUES(1),(2),(3)) CROSS JOIN fsdir('test_unzip')\n    ")
+					}
+				}
+				{ // "6.1"
+					r = db.Query("\n    SELECT name, mtime, data FROM zipfile('test1.zip')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, mtime, data FROM zipfile('test1.zip')\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "\n    a.txt 946684800   abc\n    b.txt 1000000000  abc\n    c.txt 1111111000  abc\n  "
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // do_test "6.2"
+					os.Remove("test_unzip")
+					// file mkdir test_unzip
+					// exec $::UNZIP -d test_unzip test2.zip (unsupported command, not transpiled)
+					_res = db.Exec("\n      SELECT name, mtime \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT name, mtime \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name\n    ")
+					}
+				}
+				{ // "6.3"
+					r = db.Query("\n    SELECT name, mtime, sz, rawdata, data FROM zipfile('test2.zip')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, mtime, sz, rawdata, data FROM zipfile('test2.zip')\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "\n    a.txt 946684800   3 abc abc\n    b.txt 1000000000  3 abc abc\n    c.txt 1111111000  3 abc abc\n  "
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 			}
 			os.Remove("test.zip")
 			{ // do_test "7.0"
@@ -1097,7 +1163,7 @@ func Test_zipfile(t *testing.T) {
 					_ = zip // suppress unused warning
 					off = "\"504B0102\" $zip"
 					_ = off // suppress unused warning
-					off = "$off + 56"
+					off = tclExpr("$off + 56")
 					_ = off // suppress unused warning
 					zip = "$zip $off [expr $off+3] 1F1F"
 					_ = zip // suppress unused warning

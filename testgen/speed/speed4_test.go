@@ -73,7 +73,7 @@ func Test_speed4(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// speed_trial_init speed1 (unsupported command, not transpiled)
-	// expr srand(0) → "srand(0)"
+	// expr srand(0) (not evaluated)
 	sqlout = "open speed1.txt w"
 	_ = sqlout // suppress unused warning
 	// proc definition (not transpiled)
@@ -133,7 +133,7 @@ func Test_speed4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
-		sql += "SELECT * FROM v" + "($ii%3)+1" + " WHERE rowid = " + "$ii*3" + ";"
+		sql += "SELECT * FROM v" + tclExpr("($ii%3)+1") + " WHERE rowid = " + tclExpr("$ii*3") + ";"
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
@@ -148,7 +148,7 @@ func Test_speed4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
-		sql += "SELECT t FROM t" + "($ii%3)+1" + " WHERE rowid = " + "$ii*3" + ";"
+		sql += "SELECT t FROM t" + tclExpr("($ii%3)+1") + " WHERE rowid = " + tclExpr("$ii*3") + ";"
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
@@ -163,7 +163,7 @@ func Test_speed4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
-		sql += "\n    SELECT (SELECT t FROM t1 WHERE rowid = " + "$ii*3" + "), \n           (SELECT t FROM t2 WHERE rowid = " + "$ii*3" + "), \n           (SELECT t FROM t3 WHERE rowid = " + "$ii*3" + ")\n  ;"
+		sql += "\n    SELECT (SELECT t FROM t1 WHERE rowid = " + tclExpr("$ii*3") + "), \n           (SELECT t FROM t2 WHERE rowid = " + tclExpr("$ii*3") + "), \n           (SELECT t FROM t3 WHERE rowid = " + tclExpr("$ii*3") + ")\n  ;"
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
@@ -197,7 +197,7 @@ func Test_speed4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 = "$ii*2"
+		ii2 = tclExpr("$ii*2")
 		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2
@@ -252,7 +252,7 @@ func Test_speed4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 = "$ii*2"
+		ii2 = tclExpr("$ii*2")
 		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2

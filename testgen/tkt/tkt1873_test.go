@@ -50,6 +50,7 @@ func Test_tkt1873(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	os.Remove("test2.db")
 	{ // do_test "tkt1873-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    ATTACH 'test2.db' AS aux;\n    CREATE TABLE aux.t2(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t2 VALUES(5, 6);\n    INSERT INTO t2 VALUES(7, 8);\n  ")

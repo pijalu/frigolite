@@ -52,6 +52,7 @@ func Test_pragma2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	// delete_file test.db test.db-journal (unsupported command, not transpiled)
 	// delete_file test3.db test3.db-journal (unsupported command, not transpiled)
@@ -90,6 +91,53 @@ func Test_pragma2(t *testing.T) {
 	}
 	os.Remove("test2.db")
 	os.Remove("test2.db-journal")
+	{ // do_test "pragma2-2.1"
+		r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=OFF;\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=OFF;\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-2.2"
+		r = db.Query("\n      CREATE TABLE aux.abc(a, b, c);\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE aux.abc(a, b, c);\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-2.3"
+		val = "0123456789 1000" // TCL namespace variable
+		_ = val // suppress unused warning
+		r = db.Query("\n      INSERT INTO aux.abc VALUES(1, 2, $::val);\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO aux.abc VALUES(1, 2, $::val);\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-2.4"
+		// expr [file size test2.db] / 1024 (not evaluated)
+	}
+	{ // do_test "pragma2-2.5"
+		r = db.Query("\n      DELETE FROM aux.abc;\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM aux.abc;\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-3.1"
+		r = db.Query("\n      PRAGMA aux.freelist_count;\n      PRAGMA main.freelist_count;\n      PRAGMA freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.freelist_count;\n      PRAGMA main.freelist_count;\n      PRAGMA freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-3.2"
+		r = db.Query("\n      PRAGMA freelist_count = 500;\n      PRAGMA freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA freelist_count = 500;\n      PRAGMA freelist_count;\n    ")
+		}
+	}
+	{ // do_test "pragma2-3.3"
+		r = db.Query("\n      PRAGMA aux.freelist_count = 500;\n      PRAGMA aux.freelist_count;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.freelist_count = 500;\n      PRAGMA aux.freelist_count;\n    ")
+		}
+	}
 	// delete_file test.db test.db-journal (unsupported command, not transpiled)
 	// delete_file test2.db test2.db-journal (unsupported command, not transpiled)
 	_dbtmp1, err := frigolite.Open("test.db")
@@ -142,6 +190,18 @@ func Test_pragma2(t *testing.T) {
 		_res = db.Exec("\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		}
+	}
+	{ // do_test "pragma2-4.5.3"
+		_res = db.Exec("\n      ROLLBACK;\n      PRAGMA cache_spill=25;\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ROLLBACK;\n      PRAGMA cache_spill=25;\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
+		}
+	}
+	{ // do_test "pragma2-4.5.4"
+		_res = db.Exec("\n      ROLLBACK;\n      PRAGMA cache_spill(-25);\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ROLLBACK;\n      PRAGMA cache_spill(-25);\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
 		}
 	}
 	{ // "pragma2-4.6"

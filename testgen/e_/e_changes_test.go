@@ -85,15 +85,9 @@ func Test_e_changes(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 			}
 			// do_changes_test 1.$tn.1 { INSERT INTO t1 VALUES(0, 0) } 1 (unsupported command, not transpiled)
-			// do_changes_test 1.$tn.2 {
-    WITH rows(i, j) AS (
-        SELECT 1, 1 UNIO...} 10 (unsupported command, not transpiled)
-			// do_changes_test 1.$tn.3 {
-    UPDATE t1 SET b=b+1 WHERE a<5;
-  } 5 (unsupported command, not transpiled)
-			// do_changes_test 1.$tn.4 {
-    DELETE FROM t1 WHERE a>6
-  } 4 (unsupported command, not transpiled)
+			// do_changes_test 1.$tn.2 {\n    WITH rows(i, j) AS (\n        SELECT 1, 1 UN...} 10 (unsupported command, not transpiled)
+			// do_changes_test 1.$tn.3 {\n    UPDATE t1 SET b=b+1 WHERE a<5;\n  } 5 (unsupported command, not transpiled)
+			// do_changes_test 1.$tn.4 {\n    DELETE FROM t1 WHERE a>6\n  } 4 (unsupported command, not transpiled)
 			{ // do_test "1." + tn + ".5"
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -106,9 +100,7 @@ func Test_e_changes(t *testing.T) {
 			{ // do_test "1." + tn + ".6"
 			}
 			db2.Close()
-			// do_changes_test 1.$tn.7 {
-    CREATE UNIQUE INDEX i2 ON t1(a);
-  } 4 (unsupported command, not transpiled)
+			// do_changes_test 1.$tn.7 {\n    CREATE UNIQUE INDEX i2 ON t1(a);\n  } 4 (unsupported command, not transpiled)
 			{ // "1." + tn + ".8"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
@@ -131,11 +123,11 @@ func Test_e_changes(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// do_changes_test 2.1 { CREATE TABLE t1(x)          } 0 (unsupported command, not transpiled)
-		// do_changes_test 2.2 { 
-  WITH d(y) AS (SELECT 1 UNION ALL SELECT y+1 FR...} 47 (unsupported command, not transpiled)
+		// do_changes_test 2.2 { \n  WITH d(y) AS (SELECT 1 UNION ALL SELECT y+1 F...} 47 (unsupported command, not transpiled)
 		// do_changes_test 2.3 { SELECT count(x) FROM t1 } {47 47} (unsupported command, not transpiled)
 		// do_changes_test 2.4 { DROP TABLE t1               } 47 (unsupported command, not transpiled)
 		// do_changes_test 2.5 { CREATE TABLE t1(x)          } 47 (unsupported command, not transpiled)
+		// do_changes_test 2.6 { ALTER TABLE t1 ADD COLUMN b } 47 (unsupported command, not transpiled)
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -145,14 +137,9 @@ func Test_e_changes(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_ai AFTER INSERT ON p1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  CREATE TRIGGER tr_au AFTER UPDATE ON p1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n")
 			}
 		}
-		// do_changes_test 3.1.1 {
-  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('...} 3 (unsupported command, not transpiled)
-		// do_changes_test 3.1.2 {
-  UPDATE p1 SET two = two||two;
-} 3 (unsupported command, not transpiled)
-		// do_changes_test 3.1.3 {
-  DELETE FROM p1 WHERE one IN ('a', 'c');
-} 2 (unsupported command, not transpiled)
+		// do_changes_test 3.1.1 {\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), (...} 3 (unsupported command, not transpiled)
+		// do_changes_test 3.1.2 {\n  UPDATE p1 SET two = two||two;\n} 3 (unsupported command, not transpiled)
+		// do_changes_test 3.1.3 {\n  DELETE FROM p1 WHERE one IN ('a', 'c');\n} 2 (unsupported command, not transpiled)
 		{ // "3.1.4"
 			_res = db.Exec("\n  -- None of the inserts on table log were counted.\n  SELECT count(*) FROM log\n")
 			if _res.Error != nil {
@@ -301,17 +288,9 @@ func Test_e_changes(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(a, b);\n  CREATE TABLE log(x);\n\n  CREATE TRIGGER t1_i BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_i AFTER INSERT ON t2 BEGIN\n    INSERT INTO t3 VALUES(new.a, new.b), (new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_u AFTER UPDATE ON t1 BEGIN\n    UPDATE t2 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_u BEFORE UPDATE ON t2 BEGIN\n    UPDATE t3 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_d AFTER DELETE ON t1 BEGIN\n    DELETE FROM t2 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_d BEFORE DELETE ON t2 BEGIN\n    DELETE FROM t3 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n")
 			}
 		}
-		// do_changes_test 6.1 {
-  INSERT INTO t1 VALUES('+', 'o');
-  SELECT * FRO...} {t3->3 t3->3 t2->2 1} (unsupported command, not transpiled)
-		// do_changes_test 6.2 {
-  DELETE FROM log;
-  UPDATE t1 SET b='*';
-  SELEC...} {t3->6 t3->6 t2->2 1} (unsupported command, not transpiled)
-		// do_changes_test 6.3 {
-  DELETE FROM log;
-  DELETE FROM t1;
-  SELECT * F...} {t3->6 t3->0 t2->2 1} (unsupported command, not transpiled)
+		// do_changes_test 6.1 {\n  INSERT INTO t1 VALUES('+', 'o');\n  SELECT * F...} {t3->3 t3->3 t2->2 1} (unsupported command, not transpiled)
+		// do_changes_test 6.2 {\n  DELETE FROM log;\n  UPDATE t1 SET b='*';\n  SE...} {t3->6 t3->6 t2->2 1} (unsupported command, not transpiled)
+		// do_changes_test 6.3 {\n  DELETE FROM log;\n  DELETE FROM t1;\n  SELECT ...} {t3->6 t3->0 t2->2 1} (unsupported command, not transpiled)
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

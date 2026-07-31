@@ -4,6 +4,7 @@ package pagerfault
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -116,13 +117,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-1 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { SELECT count(*) FROM t1 }
-} -test {
-  faultsim_test_result {0 4} 
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT count(*) FROM t1 }\n} -test {\n  faultsim_test_result {0 4} \n  faultsim_integr...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-2-pre1"
 		// testvfs tv -default 1 (unsupported command, not transpiled)
 		// tv filter xSync (unsupported command, not transpiled)
@@ -135,12 +130,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// tv delete (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-2 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { SELECT * FROM abc }
-} -test {
-  set answer [split [string repeat "ottffs" 128] ...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT * FROM abc }\n} -test {\n  set answer [split [string repeat "ottffs" 128]...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-3-pre1"
 		// testvfs tstvfs -default 1 (unsupported command, not transpiled)
 		// tstvfs filter xDelete (unsupported command, not transpiled)
@@ -153,21 +143,8 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// tstvfs delete (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-3 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { 
-    ATTACH 'test.db2' AS aux;
-    SE...} -test {
-  faultsim_test_result {0 {4 4}} {1 {unable to op...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-4 -prep {
-  faultsim_delete_and_reopen
-} -body {
-  execsql { 
-    CREATE TABLE x(y);
-    INSERT IN...} -test {
-  faultsim_test_result {0 z}
-  faultsim_integrity...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    ATTACH 'test.db2' AS aux;\n   ...} -test {\n  faultsim_test_result {0 {4 4}} {1 {unable to o...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-4 -prep {\n  faultsim_delete_and_reopen\n} -body {\n  execsql { \n    CREATE TABLE x(y);\n    INSERT...} -test {\n  faultsim_test_result {0 z}\n  faultsim_integri...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-5-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n  ")
@@ -176,27 +153,9 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-5.1 -prep {
-  faultsim_restore_and_reopen
-  db func a_string ...} -body {
-  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-5.2 -prep {
-  faultsim_restore_and_reopen
-  db func a_string ...} -body {
-  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-5.3 -faults oom-transient -prep {
-  faultsim_restore_and_reopen
-  db func a_string ...} -body {
-  execsql {
-    BEGIN;
-      INSERT INTO t1 SELEC...} -test {
-  faultsim_test_result {0 {}}
-
-  catchsql { COMMI...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-5.1 -prep {\n  faultsim_restore_and_reopen\n  db func a_strin...} -body {\n  execsql { INSERT INTO t1 SELECT a_string(200),...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-5.2 -prep {\n  faultsim_restore_and_reopen\n  db func a_strin...} -body {\n  execsql { INSERT INTO t1 SELECT a_string(200),...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-5.3 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  db func a_strin...} -body {\n  execsql {\n    BEGIN;\n      INSERT INTO t1 SE...} -test {\n  faultsim_test_result {0 {}}\n\n  catchsql { CO...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-6-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n  ")
@@ -205,19 +164,9 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-6.1 -prep {
-  faultsim_restore_and_reopen
-  db func a_string ...} -body {
-  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-6.1 -prep {\n  faultsim_restore_and_reopen\n  db func a_strin...} -body {\n  execsql { INSERT INTO t1 SELECT a_string(200),...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	// do_faultsim_test pagerfault-6.2 -faults cantopen-* -prep {
-  shmfault filter xAccess
-  shmfault script xAcce...} -body {
-  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-6.2 -faults cantopen-* -prep {\n  shmfault filter xAccess\n  shmfault script xAc...} -body {\n  execsql { INSERT INTO t1 SELECT a_string(200),...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-7-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  4\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  8\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 16\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 32\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 64\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 SELECT * FROM t2;\n    DROP TABLE t2;\n  ")
@@ -226,13 +175,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-7 -prep {
-  faultsim_restore_and_reopen
-  execsql { 
-    PR...} -body {
-  execsql { UPDATE t1 SET a = 65, b = randomblob(...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-7 -prep {\n  faultsim_restore_and_reopen\n  execsql { \n   ...} -body {\n  execsql { UPDATE t1 SET a = 65, b = randomblob...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-8-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t1 VALUES(NULL, randomblob(1500));\n      INSERT INTO t1 VALUES(NULL, randomblob(1500));\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    --  4\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    --  8\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 16\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 32\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 64\n    COMMIT;\n  ")
@@ -250,16 +193,9 @@ func Test_pagerfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE a>32 ")
 		}
-		// expr [file size test.db] < $filesize → "[file size test.db] < $filesize"
+		// expr [file size test.db] < $filesize (not evaluated)
 	}
-	// do_faultsim_test pagerfault-8 -prep {
-  faultsim_restore_and_reopen
-  execsql { 
-    BE...} -body {
-  execsql COMMIT
-} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-8 -prep {\n  faultsim_restore_and_reopen\n  execsql { \n   ...} -body {\n  execsql COMMIT\n} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-9-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);\n\n    INSERT INTO t1 VALUES(randomblob(900));\n    INSERT INTO t1 VALUES(randomblob(900));\n    DELETE FROM t1;\n  ")
@@ -268,26 +204,10 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-9.1 -prep {
-  faultsim_restore_and_reopen
-  execsql { 
-    BE...} -body {
-  execsql {
-    ROLLBACK TO abc;
-    COMMIT;
-    ...} -test {
-  faultsim_test_result {0 2}
-  faultsim_integrity...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-9.1 -prep {\n  faultsim_restore_and_reopen\n  execsql { \n   ...} -body {\n  execsql {\n    ROLLBACK TO abc;\n    COMMIT;\n...} -test {\n  faultsim_test_result {0 2}\n  faultsim_integri...} (unsupported command, not transpiled)
 	for _, v := range tclSplitList("a b") {
 	_ = v // suppress unused warning
-		// do_faultsim_test pagerfault-10$v -prep {
-    sqlite3 db ""
-    db func a_string a_string;
-...} -body {
-    execsql { UPDATE xx SET a = a_string(300) }
- ...} -test {
-    faultsim_test_result {0 {}}
-    if {$::v == "...} (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-10$v -prep {\n    sqlite3 db ""\n    db func a_string a_string...} -body {\n    execsql { UPDATE xx SET a = a_string(300) }\...} -test {\n    faultsim_test_result {0 {}}\n    if {$::v ==...} (unsupported command, not transpiled)
 	}
 	{ // do_test "pagerfault-9-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -297,14 +217,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-11 -prep {
-  faultsim_restore_and_reopen
-  execsql { PRAGMA ...} -body {
-  execsql {
-    SAVEPOINT trans;
-      UPDATE t2 ...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-11 -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGM...} -body {\n  execsql {\n    SAVEPOINT trans;\n      UPDATE ...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-12-pre1"
 		// testvfs ss_layer -default 1 (unsupported command, not transpiled)
 		// ss_layer sectorsize 4096 (unsupported command, not transpiled)
@@ -315,13 +228,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-12a -prep {
-  faultsim_restore_and_reopen
-  execsql { PRAGMA ...} -body {
-  execsql {
-    UPDATE t1 SET x = a_string(length...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-12a -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGM...} -body {\n  execsql {\n    UPDATE t1 SET x = a_string(leng...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-12-pre2"
 		// faultsim_restore_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 10;\n  ")
@@ -330,13 +237,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-12b -prep {
-  faultsim_restore_and_reopen
-  db func a_string ...} -body {
-  set sql(1) { UPDATE t2 SET x = a_string(280) }
-...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-12b -prep {\n  faultsim_restore_and_reopen\n  db func a_strin...} -body {\n  set sql(1) { UPDATE t2 SET x = a_string(280) }...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -351,13 +252,7 @@ func Test_pagerfault(t *testing.T) {
 		os.Remove("test.db")
 		// faultsim_save (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-13 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { CREATE TABLE xx(a, b) }
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-13 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE TABLE xx(a, b) }\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-14-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA journal_mode = PERSIST;\n    ATTACH 'test.db2' AS two;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      CREATE TABLE two.t2(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t2 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
@@ -366,25 +261,9 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-14a -prep {
-  faultsim_restore_and_reopen
-} -body {
-  if {[catch {db backup test.db2} msg]} { error [...} -test {
-  faultsim_test_result {0 {}} {1 {}} {1 {SQL logi...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-14b -prep {
-  catch { db2 close }
-  faultsim_restore_and_reop...} -body {
-  sqlite3_backup B db2 main db main
-  B step 200
-...} -test {
-  faultsim_test_result {1 {attempt to write a rea...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-14c -prep {
-  catch { db2 close }
-  faultsim_restore_and_reop...} -body {
-  sqlite3_backup B db2 main db main
-  B step 200
-...} -test {
-  faultsim_test_result {0 {}} {1 {sqlite3_backup_...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-14a -prep {\n  faultsim_restore_and_reopen\n} -body {\n  if {[catch {db backup test.db2} msg]} { error ...} -test {\n  faultsim_test_result {0 {}} {1 {}} {1 {SQL log...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-14b -prep {\n  catch { db2 close }\n  faultsim_restore_and_re...} -body {\n  sqlite3_backup B db2 main db main\n  B step 20...} -test {\n  faultsim_test_result {1 {attempt to write a re...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-14c -prep {\n  catch { db2 close }\n  faultsim_restore_and_re...} -body {\n  sqlite3_backup B db2 main db main\n  B step 20...} -test {\n  faultsim_test_result {0 {}} {1 {sqlite3_backup...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-15-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n    COMMIT;\n  ")
@@ -393,13 +272,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-15 -prep {
-  faultsim_restore_and_reopen
-  db func a_string ...} -body {
-  db eval { SELECT * FROM t1 LIMIT 1 } {
-    exec...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-15 -prep {\n  faultsim_restore_and_reopen\n  db func a_strin...} -body {\n  db eval { SELECT * FROM t1 LIMIT 1 } {\n    ex...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-16-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" CREATE TABLE t1(x, y UNIQUE) ")
@@ -408,13 +281,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-16 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    PRAGMA locking_mode = exclusive;
-...} -test {
-  faultsim_test_result {0 {exclusive wal delete w...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-16 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    PRAGMA locking_mode = exclusive...} -test {\n  faultsim_test_result {0 {exclusive wal delete ...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-17-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1862, 'Botha');\n    INSERT INTO t1 VALUES(1870, 'Smuts');\n    INSERT INTO t1 VALUES(1866, 'Hertzog');\n  ")
@@ -423,44 +290,11 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-17a -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    PRAGMA journal_mode = wal;
-    PR...} -test {
-  faultsim_test_result {0 {wal delete}}
-  faultsi...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-17b -prep {
-  faultsim_restore_and_reopen
-  execsql { PRAGMA ...} -body {
-  execsql {
-    PRAGMA journal_mode = wal;
-    IN...} -test {
-  faultsim_test_result {0 {wal delete}}
-  faultsi...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-17c -prep {
-  faultsim_restore_and_reopen
-  execsql { 
-    PR...} -body {
-  execsql { PRAGMA journal_mode = delete }
-} -test {
-  faultsim_test_result {0 delete}
-  faultsim_inte...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-17d -prep {
-  catch { db2 close }
-  faultsim_restore_and_reop...} -body {
-  execsql { PRAGMA journal_mode = delete }
-} -test {
-  faultsim_test_result {1 {database is locked}}
- ...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-17e -prep {
-  catch { db2 close }
-  faultsim_restore_and_reop...} -body {
-  execsql { PRAGMA journal_mode = delete }
-} -test {
-  faultsim_test_result {0 delete}
-  faultsim_inte...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-17a -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    PRAGMA journal_mode = wal;\n   ...} -test {\n  faultsim_test_result {0 {wal delete}}\n  fault...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-17b -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGM...} -body {\n  execsql {\n    PRAGMA journal_mode = wal;\n   ...} -test {\n  faultsim_test_result {0 {wal delete}}\n  fault...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-17c -prep {\n  faultsim_restore_and_reopen\n  execsql { \n   ...} -body {\n  execsql { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {0 delete}\n  faultsim_in...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-17d -prep {\n  catch { db2 close }\n  faultsim_restore_and_re...} -body {\n  execsql { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {1 {database is locked}}\...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-17e -prep {\n  catch { db2 close }\n  faultsim_restore_and_re...} -body {\n  execsql { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {0 delete}\n  faultsim_in...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-18-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE qq(x);\n    INSERT INTO qq VALUES('Herbert');\n    INSERT INTO qq VALUES('Macalister');\n    INSERT INTO qq VALUES('Mackenzie');\n    INSERT INTO qq VALUES('Lilley');\n    INSERT INTO qq VALUES('Palmer');\n  ")
@@ -469,22 +303,8 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-18 -prep {
-  faultsim_restore_and_reopen
-  execsql {
-    PRA...} -body {
-  execsql { PRAGMA journal_mode = delete }
-} -test {
-  faultsim_test_result {0 delete}
-  faultsim_inte...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-19a -prep {
-  sqlite3 db :memory:
-  db func a_string a_string...} -body {
-  execsql { 
-    CREATE TABLE t2(a, b);
-    INSER...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-18 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    ...} -body {\n  execsql { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {0 delete}\n  faultsim_in...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-19a -prep {\n  sqlite3 db :memory:\n  db func a_string a_stri...} -body {\n  execsql { \n    CREATE TABLE t2(a, b);\n    IN...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-19-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(1);\n    CREATE TABLE t2(x); INSERT INTO t2 VALUES(2);\n    CREATE TABLE t3(x); INSERT INTO t3 VALUES(3);\n    CREATE TABLE t4(x); INSERT INTO t4 VALUES(4);\n    CREATE TABLE t5(x); INSERT INTO t5 VALUES(5);\n    CREATE TABLE t6(x); INSERT INTO t6 VALUES(6);\n  ")
@@ -493,14 +313,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-19b -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { 
-    BEGIN;
-      UPDATE t4 SET x = x...} -test {
-  faultsim_test_result {0 {3 5 7}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-19b -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    BEGIN;\n      UPDATE t4 SET x ...} -test {\n  faultsim_test_result {0 {3 5 7}}\n} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-20-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE t0(a, b);\n  ")
@@ -509,14 +322,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-20 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { 
-    BEGIN;
-      CREATE TABLE t1(a, ...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-20 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    BEGIN;\n      CREATE TABLE t1(...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-21-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    CREATE TABLE t0(a PRIMARY KEY, b);\n    INSERT INTO t0 VALUES(1, 2);\n  ")
@@ -525,13 +331,7 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-21 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  db eval { SELECT * FROM t0 LIMIT 1 } {
-    db e...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-21 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { SELECT * FROM t0 LIMIT 1 } {\n    db...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-21-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA journal_mode = DELETE;\n  ")
@@ -549,12 +349,45 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-21 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { INSERT INTO t0 SELECT a||'x', b||'x' ...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-21 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { INSERT INTO t0 SELECT a||'x', b||'x'...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
+	// faultsim_delete_and_reopen (unsupported command, not transpiled)
+	r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA journal_mode = DELETE;\n  ")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA journal_mode = DELETE;\n  ")
+	}
+	// hexio_write test.db 20 10 (unsupported command, not transpiled)
+	// hexio_write test.db 105 03F0 (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	_res = db.Exec("\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n  ")
+	}
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	iTest = "1"
+	_ = iTest // suppress unused warning
+	for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n < 50 }() {
+		{ // do_test "pagerfault-21.crash." + iTest + ".1"
+			// crashsql -delay 1 -file test.db -seed $iTest {\n        BEGIN;\n          CREATE TABLE t1(a PRIM...} (unsupported command, not transpiled)
+		}
+		{ // do_test "pagerfault-22." + iTest + ".2"
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
+			if err != nil { t.Fatal(err) }
+			r = db.Query(" PRAGMA integrity_check ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+			}
+		}
+		// incr iTest 1
+		{
+			_n, _err := strconv.Atoi(iTest)
+			if _err == nil {
+				iTest = strconv.Itoa(_n + 1)
+			}
+		}
+	}
 	{ // do_test "pagerfault-22-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(a_string(3000));\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n  ")
@@ -564,28 +397,9 @@ func Test_pagerfault(t *testing.T) {
 		// sql36231 { INSERT INTO t1 VALUES(a_string(3000)) } (unsupported command, not transpiled)
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-22 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { INSERT INTO t2 VALUES(2) }
-  execsql ...} -test {
-  faultsim_test_result {0 {1 2}}
-  faultsim_integ...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-23 -prep {
-  sqlite3 db :memory:
-  foreach f [glob -nocompla...} -body {
-  execsql { 
-    BEGIN;
-      INSERT INTO t1 VALU...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-24 -prep {
-  faultsim_delete_and_reopen
-  db eval { PRAGMA t...} -body {
-  execsql { CREATE TEMP TABLE t1(a, b) }
-} -test {
-  faultsim_test_result {0 {}} \
-    {1 {unable to...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-22 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { INSERT INTO t2 VALUES(2) }\n  execsq...} -test {\n  faultsim_test_result {0 {1 2}}\n  faultsim_int...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-23 -prep {\n  sqlite3 db :memory:\n  foreach f [glob -nocomp...} -body {\n  execsql { \n    BEGIN;\n      INSERT INTO t1 V...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-24 -prep {\n  faultsim_delete_and_reopen\n  db eval { PRAGMA...} -body {\n  execsql { CREATE TEMP TABLE t1(a, b) }\n} -test {\n  faultsim_test_result {0 {}} \\n    {1 {unable ...} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "pagerfault-25-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -595,24 +409,8 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-25 -prep {
-  faultsim_restore_and_reopen
-  db func a_string ...} -body {
-  lockrows 30
-} -test {
-  catch { lockrows 30 }
-  catch { db eval COMMIT ...} (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-26 -prep {
-  faultsim_delete_and_reopen
-  execsql {
-    PRAG...} -body {
-  execsql {
-    VACUUM;
-  }
-} -test {
-  faultsim_test_result {0 {}}
-
-  set contents [db...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-25 -prep {\n  faultsim_restore_and_reopen\n  db func a_strin...} -body {\n  lockrows 30\n} -test {\n  catch { lockrows 30 }\n  catch { db eval COMMI...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-26 -prep {\n  faultsim_delete_and_reopen\n  execsql {\n    P...} -body {\n  execsql {\n    VACUUM;\n  }\n} -test {\n  faultsim_test_result {0 {}}\n\n  set contents ...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-27-pre"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t1 VALUES (a_string(20000), a_string(20000));\n  ")
@@ -621,42 +419,23 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test pagerfault-27 -faults ioerr-persistent -prep {
-  faultsim_restore_and_reopen
-  db func a_string ...} -body {
-  puts $::channel [string repeat abc 6000]
-  flus...} -test {
-  catchsql { UPDATE t2 SET a = a_string(800), b =...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-27 -faults ioerr-persistent -prep {\n  faultsim_restore_and_reopen\n  db func a_strin...} -body {\n  puts $::channel [string repeat abc 6000]\n  fl...} -test {\n  catchsql { UPDATE t2 SET a = a_string(800), b ...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-28-pre"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 512;\n\n    PRAGMA journal_mode = wal;\n    PRAGMA wal_autocheckpoint = 0;\n    PRAGMA cache_size = 100000;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n\n    PRAGMA journal_mode = wal;\n    PRAGMA wal_autocheckpoint = 0;\n    PRAGMA cache_size = 100000;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
 		}
-		// expr [file size test.db-shm] >= 96*1024 → "[file size test.db-shm] >= 96*1024"
+		// expr [file size test.db-shm] >= 96*1024 (not evaluated)
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test pagerfault-28a -faults oom* -prep {
-  faultsim_restore_and_reopen
-  execsql { PRAGMA ...} -body {
-  execsql { ROLLBACK }
-} -test {
-  db2 close
-  sqlite3_finalize $::STMT
-  catchsql...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-28a -faults oom* -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGM...} -body {\n  execsql { ROLLBACK }\n} -test {\n  db2 close\n  sqlite3_finalize $::STMT\n  catch...} (unsupported command, not transpiled)
 	// faultsim_restore_and_reopen (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2.Exec("SELECT count(*) FROM t2")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	// do_faultsim_test pagerfault-28b -faults oom* -prep {
-  sqlite3 db test.db
-} -body {
-  execsql { SELECT count(*) FROM t2 }
-} -test {
-  faultsim_test_result {0 2048}
-  db close
-} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-28b -faults oom* -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { SELECT count(*) FROM t2 }\n} -test {\n  faultsim_test_result {0 2048}\n  db close\n} (unsupported command, not transpiled)
 	db2.Close()
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -670,35 +449,24 @@ func Test_pagerfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 5;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n  ")
 		}
-		// expr [file size test.db] >= 50*1024 → "[file size test.db] >= 50*1024"
+		// expr [file size test.db] >= 50*1024 (not evaluated)
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// foreach {tn tt} "\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n"
-	_items1 := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items3 := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
+	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+		tn := _items3[_idx3+0]
 		_ = tn // suppress unused warning
-		tt := _items1[_idx1+1]
+		tt := _items3[_idx3+1]
 		_ = tt // suppress unused warning
-		_ = _idx1
-			// do_faultsim_test pagerfault-$tn -faults custom -prep {
-    faultsim_restore_and_reopen
-      db func a_s...} -body {
-    catchsql ROLLBACK
-    catchsql ROLLBACK
-    c...} -test {
-    eval $::tt
-    if {"ok" != [db one {PRAGMA in...} (unsupported command, not transpiled)
+		_ = _idx3
+			// do_faultsim_test pagerfault-$tn -faults custom -prep {\n    faultsim_restore_and_reopen\n      db func a...} -body {\n    catchsql ROLLBACK\n    catchsql ROLLBACK\n  ...} -test {\n    eval $::tt\n    if {"ok" != [db one {PRAGMA ...} (unsupported command, not transpiled)
 		}
 		{ // do_test "pagerfault-31-pre"
 			// sqlite3_shutdown (unsupported command, not transpiled)
 			// sqlite3_config_uri 1 (unsupported command, not transpiled)
 		}
-		// do_faultsim_test pagerfault-31 -faults oom* -body {
-  sqlite3 db {file:one?mode=memory&cache=shared}
-...} -test {
-  faultsim_test_result {0 1} {1 {}}
-  catch { db ...} (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-31 -faults oom* -body {\n  sqlite3 db {file:one?mode=memory&cache=shared}...} -test {\n  faultsim_test_result {0 1} {1 {}}\n  catch { d...} (unsupported command, not transpiled)
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_uri 0 (unsupported command, not transpiled)
 		{ // do_test "pagerfault-32-pre"
@@ -711,31 +479,11 @@ func Test_pagerfault(t *testing.T) {
 			}
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
-		// do_faultsim_test pagerfault-32 -prep {
-  faultsim_restore_and_reopen
-  db eval { SELECT ...} -body {
-  execsql { SELECT * FROM t1; }
-} -test {
-  faultsim_test_result {0 one}
-} (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-32 -prep {\n  faultsim_restore_and_reopen\n  db eval { SELEC...} -body {\n  execsql { SELECT * FROM t1; }\n} -test {\n  faultsim_test_result {0 one}\n} (unsupported command, not transpiled)
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_uri 0 (unsupported command, not transpiled)
-		// do_faultsim_test pagerfault-33a -prep {
-  sqlite3 db :memory:
-  execsql {
-    CREATE TABL...} -body {
-  execsql { VACUUM }
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
-		// do_faultsim_test pagerfault-33b -prep {
-  sqlite3 db ""
-  execsql {
-    CREATE TABLE t1(a...} -body {
-  execsql { VACUUM }
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-33a -prep {\n  sqlite3 db :memory:\n  execsql {\n    CREATE T...} -body {\n  execsql { VACUUM }\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-33b -prep {\n  sqlite3 db ""\n  execsql {\n    CREATE TABLE t...} -body {\n  execsql { VACUUM }\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 		{ // do_test "pagerfault-34-pre"
 			db.Close()
 			db, err = frigolite.Open("")
@@ -746,14 +494,7 @@ func Test_pagerfault(t *testing.T) {
 			}
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
-		// do_faultsim_test pagerfault-34 -prep {
-  faultsim_restore_and_reopen
-  execsql {
-    BEG...} -body {
-  execsql COMMIT
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-34 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    ...} -body {\n  execsql COMMIT\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 		{ // do_test "pagerfault-35-pre"
 			// faultsim_delete_and_reopen (unsupported command, not transpiled)
 			_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
@@ -765,13 +506,7 @@ func Test_pagerfault(t *testing.T) {
 		// testvfs tv -default 1 (unsupported command, not transpiled)
 		// tv sectorsize 8192 (unsupported command, not transpiled)
 		// tv devchar [list] (unsupported command, not transpiled)
-		// do_faultsim_test pagerfault-35 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { UPDATE t1 SET x=randomblob(200) }
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-35 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { UPDATE t1 SET x=randomblob(200) }\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -787,12 +522,7 @@ func Test_pagerfault(t *testing.T) {
 			}
 			// faultsim_save_and_close (unsupported command, not transpiled)
 		}
-		// do_faultsim_test pagerfault-36 -prep {
-  faultsim_restore
-  sqlite3 db file:test.db?cach...} -body {
-  execsql ROLLBACK db
-} -test {
-  catch { db eval {UPDATE t1 SET x = randomblob(2...} (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-36 -prep {\n  faultsim_restore\n  sqlite3 db file:test.db?ca...} -body {\n  execsql ROLLBACK db\n} -test {\n  catch { db eval {UPDATE t1 SET x = randomblob(...} (unsupported command, not transpiled)
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_uri 0 (unsupported command, not transpiled)
 		// sqlite3_initialize (unsupported command, not transpiled)

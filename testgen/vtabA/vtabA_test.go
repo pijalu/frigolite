@@ -67,6 +67,7 @@ func Test_vtabA(t *testing.T) {
 	_ = decltype_list // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)

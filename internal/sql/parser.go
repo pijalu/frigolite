@@ -216,6 +216,10 @@ func (p *Parser) parseStatement() Stmt {
 		// $param or ? as a statement (e.g., $sql)
 		p.next()
 		return &RollbackStmt{} // placeholder
+	case TokenLParen:
+		// (SELECT ...) or (VALUES ...) as a top-level statement
+		sel := p.parseSelectBody()
+		return sel
 	default:
 		p.setErr("unexpected token: %s", tokenName(p.cur.Type, p.cur.Value))
 		return nil
@@ -359,6 +363,15 @@ func (p *Parser) parseSelect() *SelectStmt {
 
 	// ORDER BY and LIMIT apply to the outermost SELECT (or the compound result)
 	p.parseSelectOrderBy(s)
+
+	// If ORDER BY was consumed and there's another compound operator following,
+	// the ORDER BY was in the wrong place (between compound operators).
+	if len(s.OrderBy) > 0 && p.cur.Type == TokenKeyword &&
+		(p.cur.Value == "UNION" || p.cur.Value == "INTERSECT" || p.cur.Value == "EXCEPT") {
+		p.setErr("ORDER BY clause should come after %s not before", p.cur.Value)
+		return nil
+	}
+
 	p.parseSelectLimit(s)
 
 	return s
@@ -366,8 +379,46 @@ func (p *Parser) parseSelect() *SelectStmt {
 
 // parseSelectBody parses a SELECT statement body without consuming ORDER BY, LIMIT,
 // or compound UNION/INTERSECT/EXCEPT operators. Used for compound SELECT sub-queries.
+// It handles SELECT, VALUES(...), and parenthesized compound terms.
 // It recursively handles compound operators to build the correct tree structure.
 func (p *Parser) parseSelectBody() *SelectStmt {
+	// Handle VALUES(...) as a compound term
+	if p.cur.Type == TokenKeyword && p.cur.Value == "VALUES" {
+		return p.parseValuesSubquery()
+	}
+
+	// Handle (SELECT ...) or (VALUES ...) as a compound term
+	if p.cur.Type == TokenLParen {
+		p.next()
+		inner := p.parseSelectBody()
+		p.expect(TokenRParen)
+
+		// Check for compound operators after the closing paren
+		if p.cur.Type == TokenKeyword && (p.cur.Value == "UNION" || p.cur.Value == "INTERSECT" || p.cur.Value == "EXCEPT") {
+			s := &SelectStmt{}
+			// Copy the inner select into the new compound select
+			*s = *inner
+
+			switch p.cur.Value {
+			case "UNION":
+				s.SetOp = SetUnion
+				s.UnionAll = p.peekType(TokenKeyword, "ALL")
+				if s.UnionAll {
+					p.next() // skip ALL
+				}
+			case "INTERSECT":
+				s.SetOp = SetIntersect
+			case "EXCEPT":
+				s.SetOp = SetExcept
+			}
+			p.next() // skip UNION/INTERSECT/EXCEPT
+			s.Union = p.parseSelectBody()
+			return s
+		}
+
+		return inner
+	}
+
 	s := &SelectStmt{}
 	p.next() // skip SELECT
 
@@ -587,18 +638,23 @@ func (p *Parser) parseLimitOffset(limit, offset *Expr) {
 }
 
 // parseReturningClause parses a RETURNING clause: RETURNING expr [, expr]...
-// Stores the first returned expression in col and sets hasReturning to true.
+// All expressions are collected; multiple expressions are wrapped in a RowValue.
 func (p *Parser) parseReturningClause(col *SelectColumn, hasReturning *bool) {
 	p.next() // skip RETURNING
 	*hasReturning = true
-	// Parse first expression
-	if p.cur.Type == TokenStar {
-		// RETURNING * — special case, not handled by parseExpr
-		col.Expr = &ColumnRef{Name: "*"}
-		p.next()
-	} else if p.cur.Type != TokenKeyword || p.cur.Value != "ORDER" {
-		col.Expr = p.parseExpr()
-		// Optional alias
+	// Parse all expressions (handles *, expr, or *, expr combinations)
+	var exprs []Expr
+	for {
+		// Handle * as a standalone expression in multi-expression RETURNING.
+		// parseExpr does not accept * (it's a binary operator), so we handle it
+		// directly here.
+		if p.cur.Type == TokenStar {
+			exprs = append(exprs, &ColumnRef{Name: "*"})
+			p.next()
+		} else {
+			exprs = append(exprs, p.parseExpr())
+		}
+		// Optional alias on last expression (only meaningful for single-expr RETURNING)
 		if p.cur.Type == TokenKeyword && p.cur.Value == "AS" {
 			p.next()
 			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
@@ -606,22 +662,16 @@ func (p *Parser) parseReturningClause(col *SelectColumn, hasReturning *bool) {
 				p.next()
 			}
 		}
-	}
-	// Consume remaining expressions if any (ignore for now)
-	for p.cur.Type == TokenComma {
-		p.next()
-		if p.cur.Type == TokenStar {
-			p.next() // skip *
-		} else {
-			p.parseExpr()
-			// Consume optional alias: AS alias
-			if p.cur.Type == TokenKeyword && p.cur.Value == "AS" {
-				p.next()
-				if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-					p.next() // skip alias name
-				}
-			}
+		if p.cur.Type != TokenComma {
+			break
 		}
+		p.next()
+	}
+	// Wrap in RowValue if multiple expressions
+	if len(exprs) == 1 {
+		col.Expr = exprs[0]
+	} else {
+		col.Expr = &RowValue{Values: exprs}
 	}
 }
 
@@ -779,9 +829,11 @@ func isJoinKeyword(v string) bool {
 func (p *Parser) parseParenTableRef() TableRef {
 	ref := TableRef{}
 	p.next() // skip (
-	if p.cur.Type == TokenKeyword && (p.cur.Value == "SELECT" || p.cur.Value == "WITH") {
+	if p.cur.Type == TokenKeyword && (p.cur.Value == "SELECT" || p.cur.Value == "WITH" || p.cur.Value == "VALUES") {
 		if p.cur.Value == "SELECT" {
 			ref.Subquery = p.parseSelect()
+		} else if p.cur.Value == "VALUES" {
+			ref.Subquery = p.parseValuesSubquery()
 		} else {
 			sel := p.parseWithStatement()
 			if s, ok := sel.(*SelectStmt); ok {
@@ -808,7 +860,13 @@ func (p *Parser) parseParenTableRef() TableRef {
 	// Parenthesized join expression: (t2 JOIN t3 USING(a))
 	// Just skip tokens until the matching ')' is found
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		// Record the first table name if possible (for error messages etc.)
+		if p.cur.Type == TokenIdentifier || !isJoinKeyword(p.cur.Value) {
+			ref.Name = p.cur.Value
+		}
 		p.skipParenContent()
+		// Try to parse optional alias
+		ref = p.parseTableRefAlias(ref)
 		return ref
 	}
 	// Not recognized, return empty ref (content left unconsumed)
@@ -842,7 +900,7 @@ func (p *Parser) skipParenContent() {
 func (p *Parser) parseTableRefAlias(ref TableRef) TableRef {
 	if p.cur.Type == TokenKeyword && p.cur.Value == "AS" {
 		p.next()
-		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString {
 			ref.As = p.cur.Value
 			p.next()
 		}
@@ -1893,8 +1951,11 @@ func (p *Parser) parseValuesSubquery() *SelectStmt {
 			vs.SetOp = SetExcept
 			p.next()
 		}
-		vs.Union = p.parseSelect()
+		vs.Union = p.parseSelectBody()
 	}
+	// ORDER BY and LIMIT apply to the outermost compound result
+	p.parseSelectOrderBy(vs)
+	p.parseSelectLimit(vs)
 	return vs
 }
 
@@ -3322,6 +3383,10 @@ func (p *Parser) parseUnaryExpr() Expr {
 		p.next()
 		return &UnaryOp{Operand: p.parseUnaryExpr(), Operator: "-"}
 	}
+	if p.cur.Type == TokenTilde {
+		p.next()
+		return &UnaryOp{Operand: p.parseUnaryExpr(), Operator: "~"}
+	}
 	if p.cur.Type == TokenKeyword && p.cur.Value == "NOT" {
 		p.next()
 		return &UnaryOp{Operand: p.parseUnaryExpr(), Operator: "NOT"}
@@ -3556,8 +3621,16 @@ func (p *Parser) parseKeywordExpr() Expr {
 	case "NULL":
 		return &NullLit{}
 	case "TRUE":
+		// TRUE can be used as identifier (column name) in dot notation
+		if p.cur.Type == TokenDot {
+			return p.parseKeywordDotSuffix(kw, start, end)
+		}
 		return &NumericLit{Value: "1"}
 	case "FALSE":
+		// FALSE can be used as identifier (column name) in dot notation
+		if p.cur.Type == TokenDot {
+			return p.parseKeywordDotSuffix(kw, start, end)
+		}
 		return &NumericLit{Value: "0"}
 	case "CASE":
 		return p.parseCaseExpr()
@@ -3575,6 +3648,28 @@ func (p *Parser) parseKeywordExpr() Expr {
 		}
 		return &ColumnRef{Name: kw, NameTok: TokenInfo{Start: start, End: end}}
 	}
+}
+
+// parseKeywordDotSuffix handles table.column syntax when the table name
+// is a keyword (e.g., true.column or false.column).
+func (p *Parser) parseKeywordDotSuffix(tableName string, tableStart, tableEnd int) Expr {
+	p.next() // consume dot
+	tableTok := TokenInfo{Start: tableStart, End: tableEnd}
+	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		nameVal := p.cur.Value
+		nameStart, nameEnd := p.computeTokenBounds()
+		p.next()
+		return &ColumnRef{
+			Table:    tableName,
+			Name:     nameVal,
+			TableTok: tableTok,
+			NameTok:  TokenInfo{Start: nameStart, End: nameEnd},
+		}
+	} else if p.cur.Type == TokenStar {
+		p.next()
+		return &ColumnRef{Table: tableName, Name: "*", TableTok: tableTok}
+	}
+	return &ColumnRef{Name: tableName, NameTok: tableTok}
 }
 
 func (p *Parser) parseExistsExpr() Expr {
@@ -3658,7 +3753,7 @@ func (p *Parser) parseExprList() []Expr {
 
 func (p *Parser) parseIdentList() []string {
 	var list []string
-	for p.cur.Type == TokenIdentifier {
+	for p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
 		list = append(list, p.cur.Value)
 		p.next()
 		if p.cur.Type == TokenComma {

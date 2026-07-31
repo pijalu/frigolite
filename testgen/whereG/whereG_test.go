@@ -254,6 +254,12 @@ func Test_whereG(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE likely(b>?)\n")
 		}
 	}
+	{ // "5.3.1.stat4"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM t1 WHERE a=?\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM t1 WHERE a=?\n  ")
+		}
+	}
 	{ // "5.3.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE likelihood(a=?, 0.9)\n")
 		if r.Error != nil {

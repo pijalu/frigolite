@@ -125,4 +125,17 @@ func Test_auth3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n  ")
 		}
 	}
+	// proc definition (not transpiled)
+	{ // "auth3-3.0"
+		r = db.Query("\n    CREATE TEMPORARY TABLE TempTable (\n        key TEXT NOT NULL ON CONFLICT FAIL UNIQUE ON CONFLICT REPLACE,\n        value TEXT NOT NULL ON CONFLICT FAIL);\n    ALTER TABLE TempTable RENAME TO DoNotRead;\n    SELECT name FROM temp.sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMPORARY TABLE TempTable (\n        key TEXT NOT NULL ON CONFLICT FAIL UNIQUE ON CONFLICT REPLACE,\n        value TEXT NOT NULL ON CONFLICT FAIL);\n    ALTER TABLE TempTable RENAME TO DoNotRead;\n    SELECT name FROM temp.sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "DoNotRead sqlite_autoindex_DoNotRead_1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 }

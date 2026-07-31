@@ -95,6 +95,8 @@ func Test_corruptC(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*11,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*13,y FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x,2 as y FROM t1 WHERE rowid%5!=0;\n    COMMIT;\n  ")
 		}
 	}
+	_res = db.Exec("PRAGMA integrity_check")
+	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// proc definition (not transpiled)
 	tclFileCopy("test.db", "test.bu")
 	_dbtmp0, err := frigolite.Open("test.db")
@@ -109,7 +111,7 @@ func Test_corruptC(t *testing.T) {
 		qseed = "0"
 		_ = qseed // suppress unused warning
 	}
-	// expr srand($qseed) → "srand($qseed)"
+	// expr srand($qseed) (not evaluated)
 	{ // do_test "corruptC-2.1"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 2053 [format %02x 0x04] (unsupported command, not transpiled)
@@ -365,6 +367,18 @@ func Test_corruptC(t *testing.T) {
 				_ = _res // catchsql
 				x = ""
 				_ = x // suppress unused warning
+			}
+			res = "catchsql {PRAGMA integrity_check}"
+			_ = res // suppress unused warning
+			ans = tclLIndex(res, "1")
+			_ = ans // suppress unused warning
+			if tclBool("$ans \"ok\"" + " != 0") {
+				last = "-1"
+				_ = last // suppress unused warning
+			}
+			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 5 }() {
+				last = "-1"
+				_ = last // suppress unused warning
 			}
 			if false {
 				{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".11"

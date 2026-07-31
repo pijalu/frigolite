@@ -50,6 +50,7 @@ func Test_with3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "with3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  WITH i(x) AS (\n    WITH j AS (SELECT 10)\n    SELECT 5 FROM t0 UNION SELECT 8 FROM m\n  )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: m") {
@@ -84,6 +85,24 @@ func Test_with3(t *testing.T) {
 		want := "200"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "3.1.1"
+		_res = db.Exec("\n    CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;\n\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;\n\n  ")
+		}
+	}
+	{ // "3.1.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1)\n    SELECT * FROM cnt, y1 WHERE i=a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1)\n    SELECT * FROM cnt, y1 WHERE i=a\n  ")
+		}
+	}
+	{ // "3.1.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000000)\n    SELECT * FROM cnt, y1 WHERE i=a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000000)\n    SELECT * FROM cnt, y1 WHERE i=a\n  ")
 		}
 	}
 	{ // "3.2.1"

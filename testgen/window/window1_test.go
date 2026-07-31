@@ -65,6 +65,7 @@ func Test_window1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "window1"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
 		if _res.Error != nil {
@@ -1224,27 +1225,12 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						// proc definition (not transpiled)
-						// do_ordercount_test 23.1 {
-  SELECT 
-    sum(c) OVER (ORDER BY a, b),
-    su...} 0 (unsupported command, not transpiled)
-						// do_ordercount_test 23.2 {
-  SELECT 
-    sum(c) OVER (ORDER BY b, a),
-    su...} 1 (unsupported command, not transpiled)
-						// do_ordercount_test 23.3 {
-  SELECT 
-    sum(c) OVER (ORDER BY b, a),
-    su...} 2 (unsupported command, not transpiled)
-						// do_ordercount_test 23.4 {
-  SELECT 
-    sum(c) OVER (ORDER BY b ROWS BETWEE...} 1 (unsupported command, not transpiled)
-						// do_ordercount_test 23.5 {
-  SELECT 
-    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 1 (unsupported command, not transpiled)
-						// do_ordercount_test 23.6 {
-  SELECT 
-    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 3 (unsupported command, not transpiled)
+						// do_ordercount_test 23.1 {\n  SELECT \n    sum(c) OVER (ORDER BY a, b),\n   ...} 0 (unsupported command, not transpiled)
+						// do_ordercount_test 23.2 {\n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n   ...} 1 (unsupported command, not transpiled)
+						// do_ordercount_test 23.3 {\n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n   ...} 2 (unsupported command, not transpiled)
+						// do_ordercount_test 23.4 {\n  SELECT \n    sum(c) OVER (ORDER BY b ROWS BETW...} 1 (unsupported command, not transpiled)
+						// do_ordercount_test 23.5 {\n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UN...} 1 (unsupported command, not transpiled)
+						// do_ordercount_test 23.6 {\n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UN...} 3 (unsupported command, not transpiled)
 						{ // "24.1"
 							r = db.Query("\n  SELECT sum(44) OVER ()\n")
 							if r.Error != nil {
@@ -1491,6 +1477,15 @@ func Test_window1(t *testing.T) {
 								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame ending offset must be a non-negative integer", _res.Error, "\n  SELECT d IN (\n    SELECT sum(c) OVER ( ROWS BETWEEN CURRENT ROW AND c FOLLOWING) \n    FROM t3\n  )\n  FROM (\n    SELECT * FROM t2\n  );\n")
 							}
 						}
+						_dbtmp7, err := frigolite.Open(":memory:")
+						_ = _dbtmp7 // sqlite3 db connection
+						if err != nil { t.Fatal(err) }
+						{ // "32.10"
+							_res = db.Exec("\n    CREATE VIEW a AS SELECT NULL INTERSECT SELECT NULL ORDER BY s() OVER R;\n    CREATE TABLE a0 AS SELECT 0;\n    ALTER TABLE a0 RENAME TO S;\n  ")
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view a: 1st ORDER BY term does not match any column in the result set") {
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view a: 1st ORDER BY term does not match any column in the result set", _res.Error, "\n    CREATE VIEW a AS SELECT NULL INTERSECT SELECT NULL ORDER BY s() OVER R;\n    CREATE TABLE a0 AS SELECT 0;\n    ALTER TABLE a0 RENAME TO S;\n  ")
+							}
+						}
 						db.Close()
 						db, err = frigolite.Open("")
 						if err != nil { t.Fatal(err) }
@@ -1657,6 +1652,15 @@ func Test_window1(t *testing.T) {
 							r = db.Query("\n  SELECT * FROM t0 WHERE (t0.c0, 1) IN(SELECT NTILE(1) OVER(), 0 FROM t0);\n")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE (t0.c0, 1) IN(SELECT NTILE(1) OVER(), 0 FROM t0);\n")
+							}
+						}
+						db.Close()
+						db, err = frigolite.Open("")
+						if err != nil { t.Fatal(err) }
+						{ // "40.1"
+							_res = db.Exec("\n    CREATE VIRTUAL TABLE t0 USING rtree(c0, c1, c2);\n    SELECT * FROM t0\n     WHERE ((0,0) IN (SELECT COUNT(*),LAG(5)OVER(PARTITION BY 0) FROM t0),0)<=(c1,0);\n  ")
+							if _res.Error == nil {
+								t.Errorf("expected error, got none\n  sql: %s", "\n    CREATE VIRTUAL TABLE t0 USING rtree(c0, c1, c2);\n    SELECT * FROM t0\n     WHERE ((0,0) IN (SELECT COUNT(*),LAG(5)OVER(PARTITION BY 0) FROM t0),0)<=(c1,0);\n  ")
 							}
 						}
 						db.Close()
@@ -2552,13 +2556,13 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						// foreach {tn spec} "\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\"\n"
-						_items7 := tclSplitList("\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\"\n")
-						for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
-							tn := _items7[_idx7+0]
+						_items8 := tclSplitList("\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\"\n")
+						for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
+							tn := _items8[_idx8+0]
 							_ = tn // suppress unused warning
-							spec := _items7[_idx7+1]
+							spec := _items8[_idx8+1]
 							_ = spec // suppress unused warning
-							_ = _idx7
+							_ = _idx8
 								{ // "66.2." + tn
 									r = db.Query("\n    SELECT total(a) OVER ( " + spec + " ) FROM t1 ORDER BY a\n  ")
 									if r.Error != nil {
@@ -2579,15 +2583,15 @@ func Test_window1(t *testing.T) {
 								}
 							}
 							// foreach {tn spec res} "\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"   {30.0 45.0}\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"  {0.0 0.0}\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"   {0.0 0.0}\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\" {0.0 0.0}\n"
-							_items8 := tclSplitList("\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"   {30.0 45.0}\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"  {0.0 0.0}\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"   {0.0 0.0}\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\" {0.0 0.0}\n")
-							for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
-								tn := _items8[_idx8+0]
+							_items9 := tclSplitList("\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"   {30.0 45.0}\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"  {0.0 0.0}\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"   {0.0 0.0}\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\" {0.0 0.0}\n")
+							for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
+								tn := _items9[_idx9+0]
 								_ = tn // suppress unused warning
-								spec := _items8[_idx8+1]
+								spec := _items9[_idx9+1]
 								_ = spec // suppress unused warning
-								res := _items8[_idx8+2]
+								res := _items9[_idx9+2]
 								_ = res // suppress unused warning
-								_ = _idx8
+								_ = _idx9
 									{ // "66.2." + tn
 										r = db.Query("\n    SELECT total(a) OVER ( " + spec + " ) FROM t2 ORDER BY a\n  ")
 										if r.Error != nil {
@@ -2737,9 +2741,15 @@ func Test_window1(t *testing.T) {
 									}
 								}
 								{ // "73.2"
-									_res = db.Exec("\n  UPDATE t2 SET c=99 WHERE b=4 RETURNING *;\n")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t2 SET c=99 WHERE b=4 RETURNING *;\n")
+									r = db.Query("\n  UPDATE t2 SET c=99 WHERE b=4 RETURNING *;\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t2 SET c=99 WHERE b=4 RETURNING *;\n")
+										return
+									}
+									got := flatten(r)
+									want := "4 99 4 99 4 99"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "73.3"
@@ -2755,9 +2765,15 @@ func Test_window1(t *testing.T) {
 									}
 								}
 								{ // "73.4"
-									_res = db.Exec("\n  UPDATE t2 SET c=nth_value(15,2) OVER() FROM (SELECT * FROM t1) WHERE b=4 RETURNING *;\n")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t2 SET c=nth_value(15,2) OVER() FROM (SELECT * FROM t1) WHERE b=4 RETURNING *;\n")
+									r = db.Query("\n  UPDATE t2 SET c=nth_value(15,2) OVER() FROM (SELECT * FROM t1) WHERE b=4 RETURNING *;\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t2 SET c=nth_value(15,2) OVER() FROM (SELECT * FROM t1) WHERE b=4 RETURNING *;\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "73.5"

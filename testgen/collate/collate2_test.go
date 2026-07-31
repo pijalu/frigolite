@@ -290,6 +290,42 @@ func Test_collate2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM collate2t1 WHERE \n      CASE c WHEN 'aa' THEN 1 ELSE 0 END\n        ORDER BY 1, oid;\n  ")
 		}
 	}
+	{ // do_test "collate2-1.22"
+		r = db.Query("\n      SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb') ORDER BY 1, oid;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb') ORDER BY 1, oid;\n    ")
+		}
+	}
+	{ // do_test "collate2-1.23"
+		r = db.Query("\n      SELECT b FROM collate2t1 WHERE b IN ('aa', 'bb') ORDER BY 1, oid;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b FROM collate2t1 WHERE b IN ('aa', 'bb') ORDER BY 1, oid;\n    ")
+		}
+	}
+	{ // do_test "collate2-1.24"
+		r = db.Query("\n      SELECT c FROM collate2t1 WHERE c IN ('aa', 'bb') ORDER BY 1, oid;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM collate2t1 WHERE c IN ('aa', 'bb') ORDER BY 1, oid;\n    ")
+		}
+	}
+	{ // do_test "collate2-1.25"
+		r = db.Query("\n      SELECT a FROM collate2t1 \n        WHERE a IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM collate2t1 \n        WHERE a IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		}
+	}
+	{ // do_test "collate2-1.26"
+		r = db.Query("\n      SELECT b FROM collate2t1 \n        WHERE b IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b FROM collate2t1 \n        WHERE b IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		}
+	}
+	{ // do_test "collate2-1.27"
+		r = db.Query("\n      SELECT c FROM collate2t1 \n        WHERE c IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM collate2t1 \n        WHERE c IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		}
+	}
 	{ // do_test "collate2-2.1"
 		r = db.Query("\n    SELECT a FROM collate2t1 WHERE NOT a > 'aa' ORDER BY 1;\n  ")
 		if r.Error != nil {
@@ -416,6 +452,42 @@ func Test_collate2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c FROM collate2t1 WHERE NOT CASE c WHEN 'aa' THEN 1 ELSE 0 END;\n  ")
 		}
 	}
+	{ // do_test "collate2-2.22"
+		r = db.Query("\n      SELECT a FROM collate2t1 WHERE NOT a IN ('aa', 'bb');\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM collate2t1 WHERE NOT a IN ('aa', 'bb');\n    ")
+		}
+	}
+	{ // do_test "collate2-2.23"
+		r = db.Query("\n      SELECT b FROM collate2t1 WHERE NOT b IN ('aa', 'bb');\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b FROM collate2t1 WHERE NOT b IN ('aa', 'bb');\n    ")
+		}
+	}
+	{ // do_test "collate2-2.24"
+		r = db.Query("\n      SELECT c FROM collate2t1 WHERE NOT c IN ('aa', 'bb');\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM collate2t1 WHERE NOT c IN ('aa', 'bb');\n    ")
+		}
+	}
+	{ // do_test "collate2-2.25"
+		r = db.Query("\n      SELECT a FROM collate2t1 \n        WHERE NOT a IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM collate2t1 \n        WHERE NOT a IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		}
+	}
+	{ // do_test "collate2-2.26"
+		r = db.Query("\n      SELECT b FROM collate2t1 \n        WHERE NOT b IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b FROM collate2t1 \n        WHERE NOT b IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		}
+	}
+	{ // do_test "collate2-2.27"
+		r = db.Query("\n      SELECT c FROM collate2t1 \n        WHERE NOT c IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM collate2t1 \n        WHERE NOT c IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));\n    ")
+		}
+	}
 	{ // do_test "collate2-3.1"
 		r = db.Query("\n    SELECT a > 'aa' FROM collate2t1;\n  ")
 		if r.Error != nil {
@@ -540,6 +612,42 @@ func Test_collate2(t *testing.T) {
 		r = db.Query("\n    SELECT CASE c WHEN 'aa' THEN 1 ELSE 0 END FROM collate2t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CASE c WHEN 'aa' THEN 1 ELSE 0 END FROM collate2t1;\n  ")
+		}
+	}
+	{ // do_test "collate2-3.22"
+		r = db.Query("\n      SELECT a IN ('aa', 'bb') FROM collate2t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a IN ('aa', 'bb') FROM collate2t1;\n    ")
+		}
+	}
+	{ // do_test "collate2-3.23"
+		r = db.Query("\n      SELECT b IN ('aa', 'bb') FROM collate2t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b IN ('aa', 'bb') FROM collate2t1;\n    ")
+		}
+	}
+	{ // do_test "collate2-3.24"
+		r = db.Query("\n      SELECT c IN ('aa', 'bb') FROM collate2t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c IN ('aa', 'bb') FROM collate2t1;\n    ")
+		}
+	}
+	{ // do_test "collate2-3.25"
+		r = db.Query("\n      SELECT a IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb')) \n        FROM collate2t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb')) \n        FROM collate2t1;\n    ")
+		}
+	}
+	{ // do_test "collate2-3.26"
+		r = db.Query("\n      SELECT b IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb')) \n        FROM collate2t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb')) \n        FROM collate2t1;\n    ")
+		}
+	}
+	{ // do_test "collate2-3.27"
+		r = db.Query("\n      SELECT c IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb')) \n        FROM collate2t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb')) \n        FROM collate2t1;\n    ")
 		}
 	}
 	{ // do_test "collate2-4.0"

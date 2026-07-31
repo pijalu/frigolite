@@ -47,25 +47,10 @@ func Test_mallocH(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// do_malloc_test mallocH-1 -tclprep {
-  db close
-  sqlite3 db :memory:
-  db eval {
-    ...} -sqlbody {
-  INSERT INTO t1 SELECT x+1, y+100 FROM t1;
-} (unsupported command, not transpiled)
-	// do_malloc_test mallocH-2 -sqlbody {
-   SELECT CASE WHEN 1 THEN 1 END;
-} (unsupported command, not transpiled)
-	// do_malloc_test mallocH-3 -sqlbody {
-   SELECT 3+EXISTS(SELECT * FROM sqlite_master);
-} (unsupported command, not transpiled)
-	// do_malloc_test mallocH-3 -sqlbody {
-   SELECT replace('ababa','a','xyzzy');
-} (unsupported command, not transpiled)
-	// do_malloc_test mallocH-5 -sqlprep {
-   CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);
-   C...} -sqlbody {
-   PRAGMA integrity_check;
-} (unsupported command, not transpiled)
+	// do_malloc_test mallocH-1 -tclprep {\n  db close\n  sqlite3 db :memory:\n  db eval {\n...} -sqlbody {\n  INSERT INTO t1 SELECT x+1, y+100 FROM t1;\n} (unsupported command, not transpiled)
+	// do_malloc_test mallocH-2 -sqlbody {\n   SELECT CASE WHEN 1 THEN 1 END;\n} (unsupported command, not transpiled)
+	// do_malloc_test mallocH-3 -sqlbody {\n   SELECT 3+EXISTS(SELECT * FROM sqlite_master);...} (unsupported command, not transpiled)
+	// do_malloc_test mallocH-3 -sqlbody {\n   SELECT replace('ababa','a','xyzzy');\n} (unsupported command, not transpiled)
+	// do_malloc_test mallocH-4 -sqlprep {\n     CREATE TABLE abc(a PRIMARY KEY, b, c);\n  } -sqlbody {\n     EXPLAIN SELECT * FROM abc AS t2 WHERE rowid...} (unsupported command, not transpiled)
+	// do_malloc_test mallocH-5 -sqlprep {\n   CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  ...} -sqlbody {\n   PRAGMA integrity_check;\n} (unsupported command, not transpiled)
 }

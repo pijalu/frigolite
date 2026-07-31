@@ -111,6 +111,24 @@ func Test_join6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 NATURAL JOIN t2 JOIN t3 USING(z);\n  ")
 		}
 	}
+	{ // do_test "join6-4.1"
+		r = db.Query("\n      SELECT * FROM\n         (SELECT 1 AS a, 91 AS x, 92 AS y UNION SELECT 2, 93, 94)\n         NATURAL JOIN t2 NATURAL JOIN t3\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM\n         (SELECT 1 AS a, 91 AS x, 92 AS y UNION SELECT 2, 93, 94)\n         NATURAL JOIN t2 NATURAL JOIN t3\n    ")
+		}
+	}
+	{ // do_test "join6-4.2"
+		r = db.Query("\n      SELECT * FROM t1 NATURAL JOIN\n         (SELECT 3 AS b, 92 AS y, 93 AS z UNION SELECT 4, 94, 95)\n         NATURAL JOIN t3\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 NATURAL JOIN\n         (SELECT 3 AS b, 92 AS y, 93 AS z UNION SELECT 4, 94, 95)\n         NATURAL JOIN t3\n    ")
+		}
+	}
+	{ // do_test "join6-4.3"
+		r = db.Query("\n      SELECT * FROM t1 NATURAL JOIN t2 NATURAL JOIN\n         (SELECT 5 AS c, 91 AS x, 93 AS z UNION SELECT 6, 99, 95)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 NATURAL JOIN t2 NATURAL JOIN\n         (SELECT 5 AS c, 91 AS x, 93 AS z UNION SELECT 6, 99, 95)\n    ")
+		}
+	}
 	{ // "join6-5.1"
 		_res = db.Exec("\n  CREATE TABLE tx(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o PRIMARY KEY) \n  WITHOUT ROWID;\n  INSERT INTO tx VALUES(\n    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n  );\n")
 		if _res.Error != nil {

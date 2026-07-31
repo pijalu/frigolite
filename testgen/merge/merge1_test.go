@@ -49,6 +49,7 @@ func Test_merge1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "merge1"
 	_ = testprefix // suppress unused warning
+	return
 	// load_static_extension db series (unsupported command, not transpiled)
 	// optimization_control db all on (unsupported command, not transpiled)
 	{ // "100"

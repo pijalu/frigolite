@@ -49,6 +49,21 @@ func Test_func3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	{ // do_test "func3-1.1"
+		destroyed = "0"
+		_ = destroyed // suppress unused warning
+		// proc definition (not transpiled)
+		// sqlite3_create_function_v2 db f2 -1 any -func f2 -destroy destroy (unsupported command, not transpiled)
+	}
+	{ // do_test "func3-1.2"
+		// sqlite3_create_function_v2 db f2 -1 utf8 -func f2 (unsupported command, not transpiled)
+	}
+	{ // do_test "func3-1.3"
+		// sqlite3_create_function_v2 db f2 -1 utf16le -func f2 (unsupported command, not transpiled)
+	}
+	{ // do_test "func3-1.4"
+		// sqlite3_create_function_v2 db f2 -1 utf16be -func f2 (unsupported command, not transpiled)
+	}
 	{ // do_test "func3-2.1"
 		destroyed = "0"
 		_ = destroyed // suppress unused warning

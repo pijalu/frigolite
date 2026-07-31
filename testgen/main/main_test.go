@@ -60,6 +60,84 @@ func Test_main(t *testing.T) {
 	_ = hi // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	{ // do_test "main-1.1"
+	}
+	{ // do_test "main-1.2.0"
+	}
+	{ // do_test "main-1.2.1"
+	}
+	{ // do_test "main-1.3.0"
+	}
+	{ // do_test "main-1.3.1"
+	}
+	{ // do_test "main-1.4.0"
+	}
+	{ // do_test "main-1.4.1"
+	}
+	{ // do_test "main-1.4.2"
+	}
+	{ // do_test "main-1.5"
+	}
+	{ // do_test "main-1.6"
+	}
+	{ // do_test "main-1.7"
+	}
+	{ // do_test "main-1.8"
+	}
+	{ // do_test "main-1.9"
+	}
+	{ // do_test "main-1.10"
+	}
+	{ // do_test "main-1.11"
+	}
+	{ // do_test "main-1.12"
+	}
+	{ // do_test "main-1.13"
+	}
+	{ // do_test "main-1.14"
+	}
+	{ // do_test "main-1.15"
+	}
+	{ // do_test "main-1.16"
+	}
+	{ // do_test "main-1.17"
+	}
+	{ // do_test "main-1.17.2"
+	}
+	{ // do_test "main-1.17.3"
+	}
+	{ // do_test "main-1.18"
+	}
+	{ // do_test "main-1.19"
+	}
+	{ // do_test "main-1.20"
+	}
+	{ // do_test "main-1.21"
+	}
+	{ // do_test "main-1.22"
+	}
+	{ // do_test "main-1.23"
+	}
+	{ // do_test "main-1.24"
+	}
+	{ // do_test "main-1.25"
+	}
+	{ // do_test "main-1.26"
+	}
+	{ // do_test "main-1.27.1"
+	}
+	{ // do_test "main-1.27.2"
+	}
+	{ // do_test "main-1.27.3"
+	}
+	{ // do_test "main-1.27.4"
+	}
+	{ // do_test "main-1.27.5"
+	}
+	{ // do_test "main-1.28"
+	}
+	{ // do_test "main-1.29"
+	}
 	{ // do_test "main-1.30"
 	}
 	{ // do_test "main-1.31"
@@ -79,6 +157,12 @@ func Test_main(t *testing.T) {
 	{ // do_test "main-1.37"
 	}
 	{ // do_test "main-1.38"
+	}
+	{ // do_test "main-1.100"
+	}
+	{ // do_test "main-1.101"
+	}
+	{ // do_test "main-1.102"
 	}
 	if tclBool("permutation" + " == \"\"") {
 		{ // do_test "main-2.0"

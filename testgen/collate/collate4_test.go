@@ -289,6 +289,26 @@ func Test_collate4(t *testing.T) {
 	{ // do_test "collate4-2.1.5"
 		_ = db.Exec("\n    SELECT * FROM collate4t2, collate4t1 WHERE b = a;\n  ") // count (search count always 0)
 	}
+	{ // do_test "collate4-2.1.6"
+		_ = db.Exec("\n      SELECT a FROM collate4t1 WHERE a IN (SELECT * FROM collate4t2)\n       ORDER BY rowid\n    ") // count (search count always 0)
+	}
+	{ // do_test "collate4-2.1.7"
+		_res = db.Exec("\n      DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a);\n    ")
+		}
+		_ = db.Exec("\n      SELECT a FROM collate4t1 WHERE a IN (SELECT * FROM collate4t2)\n       ORDER BY rowid\n    ") // count (search count always 0)
+	}
+	{ // do_test "collate4-2.1.8"
+		_ = db.Exec("\n      SELECT a FROM collate4t1 WHERE a IN ('z', 'a');\n    ") // count (search count always 0)
+	}
+	{ // do_test "collate4-2.1.9"
+		_res = db.Exec("\n      DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);\n    ")
+		}
+		_ = db.Exec("\n      SELECT a FROM collate4t1 WHERE a IN ('z', 'a') ORDER BY rowid;\n    ") // count (search count always 0)
+	}
 	{ // do_test "collate4-2.1.10"
 		_res = db.Exec("\n    DROP TABLE collate4t1;\n    DROP TABLE collate4t2;\n  ")
 		if _res.Error != nil {

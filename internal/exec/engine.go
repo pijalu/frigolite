@@ -11,6 +11,7 @@ import (
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/vtab"
@@ -50,6 +51,7 @@ type Engine struct {
 	funcs    *function.Registry
 	vtabs    *vtab.Registry
 	lastRowID int64
+	lastChanges int64 // changes made by the last INSERT/UPDATE/DELETE
 	colCache  map[string][]sql.ColumnDef // cached column definitions (tableName -> colDefs)
 	stmtCache map[string][]sql.Stmt      // prepared statement cache (sqlText -> parsed stmts)
 	tableRootPages map[string]uint32     // tracked root pages (updated after splits)
@@ -399,11 +401,10 @@ func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
 		}
 	}
 
-	// Full parse
-	parser := sql.NewParser(sqlStr)
-	stmts := parser.Parse()
-	if parser.Err() != nil {
-		return nil, parser.Err()
+	// Full parse using go-lemon generated parser
+	stmts, err := parse.ParseSQL(sqlStr)
+	if err != nil {
+		return nil, err
 	}
 	e.stmtCache[sqlStr] = stmts
 
@@ -641,24 +642,33 @@ func (e *Engine) findIndex(name string) (*schema.Entry, *DatabaseContext, error)
 
 // Exec executes a single SQL statement and returns the result.
 func (e *Engine) Exec(stmt sql.Stmt) *Result {
+	var res *Result
 	switch s := stmt.(type) {
 	case *sql.SelectStmt:
-		return e.execSelect(s)
+		res = e.execSelect(s)
 	case *sql.InsertStmt:
-		return e.execInsert(s)
+		res = e.execInsert(s)
 	case *sql.UpdateStmt:
-		return e.execUpdate(s)
+		res = e.execUpdate(s)
 	case *sql.DeleteStmt:
-		return e.execDelete(s)
+		res = e.execDelete(s)
 	case *sql.CommitStmt:
-		return e.execCommit()
+		res = e.execCommit()
 	case *sql.BeginStmt:
-		return e.execBegin()
+		res = e.execBegin()
 	case *sql.RollbackStmt:
-		return e.execRollback()
+		res = e.execRollback()
 	default:
-		return e.execOtherDDL(stmt)
+		res = e.execOtherDDL(stmt)
 	}
+	// Track changes and last rowid for CHANGES() / LAST_INSERT_ROWID() functions
+	if res != nil {
+		e.lastChanges = res.Changes
+		if res.LastInsertRowID > 0 {
+			e.lastRowID = res.LastInsertRowID
+		}
+	}
+	return res
 }
 
 func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {

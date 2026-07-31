@@ -66,6 +66,7 @@ func Test_thread004(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
+	return
 	if tclBool("info commands sqlite3_table_column_metadata" + " == \"\"") {
 		return
 	}

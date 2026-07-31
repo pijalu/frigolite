@@ -90,4 +90,78 @@ func Test_lock6(t *testing.T) {
 	_putsMsg := f
 	_ = _putsMsg
 	// close $f
+	sqlite_hostid_num = "1"
+	_ = sqlite_hostid_num // suppress unused warning
+	using_proxy = "0"
+	_ = using_proxy // suppress unused warning
+	// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
+	_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		name := _items0[_idx0+0]
+		_ = name // suppress unused warning
+		value := _items0[_idx0+1]
+		_ = value // suppress unused warning
+		_ = _idx0
+			using_proxy = value
+			_ = using_proxy // suppress unused warning
+		}
+		env_SQLITE_FORCE_PROXY_LOCKING = "1"
+		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
+		{ // do_test "lock6-1.1"
+			tf1 = "launch_testfixture" // TCL namespace variable
+			_ = tf1 // suppress unused warning
+			// testfixture $::tf1 sqlite3_test_control_pending_byte $::sqlite_pendin... (unsupported command, not transpiled)
+			// testfixture $::tf1 {\n      set sqlite_hostid_num 2    \n      sqlite3...} (unsupported command, not transpiled)
+		}
+		sqlite_hostid_num = "3"
+		_ = sqlite_hostid_num // suppress unused warning
+		{ // do_test "lock6-1.2"
+			r = db.Query("pragma lock_status")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma lock_status")
+			}
+		}
+		// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
+		{ // do_test "lock6-1.3"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "lock6-1.4"
+			lockpath = "execsql {\n      PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;\n    } db"
+			_ = lockpath // suppress unused warning
+		}
+		{ // do_test "lock6-1.4.1"
+			_res = db.Exec("\n      PRAGMA lock_proxy_file=\"notmine\";\n      select * from sqlite_master;\n    ")
+			_ = _res // catchsql
+		}
+		{ // do_test "lock6-1.4.2"
+			r = db.Query("\n      PRAGMA lock_proxy_file;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file;\n    ")
+			}
+		}
+		{ // do_test "lock6-1.5"
+			// testfixture $::tf1 {\n      db eval {\n        BEGIN;\n        SELECT ...} (unsupported command, not transpiled)
+		}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			// testfixture $::tf1 {db close} (unsupported command, not transpiled)
+		}
+		{ // do_test "lock6-1.6"
+			r = db.Query("\n      PRAGMA lock_proxy_file=\"mine\";\n      select * from sqlite_master;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file=\"mine\";\n      select * from sqlite_master;\n    ")
+			}
+		}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			// close $::tf1
+		}
+		env_SQLITE_FORCE_PROXY_LOCKING = using_proxy
+		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
+		sqlite_hostid_num = "0"
+		_ = sqlite_hostid_num // suppress unused warning
+		// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

@@ -54,8 +54,5 @@ func Test_tkt_5d863f876e(t *testing.T) {
 	if tclBool("!" + "wal_is_capable") {
 		return
 	}
-	// do_multiclient_test tn {
-  do_test $tn.1 {
-    sql1 {
-      CREATE TABLE t...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  do_test $tn.1 {\n    sql1 {\n      CREATE TABL...} (unsupported command, not transpiled)
 }

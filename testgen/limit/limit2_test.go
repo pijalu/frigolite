@@ -94,7 +94,7 @@ func Test_limit2(t *testing.T) {
 	{ // do_test "limit2-100.3"
 		slow_count = sqlite_search_count
 		_ = slow_count // suppress unused warning
-		// expr $fast_count < 0.02*$slow_count → "$fast_count < 0.02*$slow_count"
+		// expr $fast_count < 0.02*$slow_count (not evaluated)
 	}
 	{ // "limit2-110"
 		_res = db.Exec("\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES('a',1),('a',2),('a',3),('a',4);\n  INSERT INTO t2(x,y) VALUES('b',1),('c',2),('d',3),('e',4);\n  CREATE INDEX t2xy ON t2(x,y);\n")
@@ -135,7 +135,7 @@ func Test_limit2(t *testing.T) {
 	slow_count = sqlite_search_count
 	_ = slow_count // suppress unused warning
 	{ // do_test "limit2-110.3"
-		// expr $fast_count < 0.02*$slow_count → "$fast_count < 0.02*$slow_count"
+		// expr $fast_count < 0.02*$slow_count (not evaluated)
 	}
 	{ // "limit2-120"
 		_res = db.Exec("\n  DROP INDEX t1ab;\n  CREATE INDEX t1ab ON t1(a,b DESC);\n")
@@ -176,7 +176,7 @@ func Test_limit2(t *testing.T) {
 	{ // do_test "limit2-120.3"
 		slow_count = sqlite_search_count
 		_ = slow_count // suppress unused warning
-		// expr $fast_count < 0.02*$slow_count → "$fast_count < 0.02*$slow_count"
+		// expr $fast_count < 0.02*$slow_count (not evaluated)
 	}
 	{ // "limit2-200"
 		r = db.Query("\n  CREATE TABLE t200(a, b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t200(a,b) SELECT x, x FROM c;\n  CREATE TABLE t201(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t201(x,y) VALUES(2,12345);\n\n  SELECT *, '|' FROM t200, t201 WHERE x=b ORDER BY y LIMIT 3;\n")

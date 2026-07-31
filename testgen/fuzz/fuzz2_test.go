@@ -58,8 +58,7 @@ func Test_fuzz2(t *testing.T) {
 		// fuzzcatch {SELECT 1 WHERE ( #61 NOT MATCH ROUND( 1 ) )} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.2"
-		// fuzzcatch {SELECT 1 LIMIT NOT #59 COLLATE AAAAAA NOT IN 
-    ...} (unsupported command, not transpiled)
+		// fuzzcatch {SELECT 1 LIMIT NOT #59 COLLATE AAAAAA NOT IN \n   ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.3"
 		// fuzzcatch {INSERT OR REPLACE INTO AAAAAA . "AAAAAA" ( "AAAAAA...} (unsupported command, not transpiled)
@@ -90,6 +89,15 @@ func Test_fuzz2(t *testing.T) {
 	}
 	{ // do_test "fuzz2-2.12"
 		// fuzzcatch {SELECT - #196} (unsupported command, not transpiled)
+	}
+	{ // do_test "fuzz2-3.0"
+		// fuzzcatch {CREATE TRIGGER "AAAAAA" . "AAAAAA" AFTER UPDATE OF...} (unsupported command, not transpiled)
+	}
+	{ // do_test "fuzz2-3.1"
+		// fuzzcatch {CREATE TRIGGER IF NOT EXISTS "AAAAAA" UPDATE ON "A...} (unsupported command, not transpiled)
+	}
+	{ // do_test "fuzz2-3.2"
+		// fuzzcatch {CREATE TEMP TRIGGER IF NOT EXISTS AAAAAA . "AAAAAA...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-4.0"
 		// fuzzcatch {ATTACH DATABASE #168 AS whatever} (unsupported command, not transpiled)

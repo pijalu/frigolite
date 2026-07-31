@@ -56,12 +56,14 @@ func Test_corruptA(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n  ")
 		}
-		// expr [file size test.db]>=1024 → "[file size test.db]>=1024"
+		// expr [file size test.db]>=1024 (not evaluated)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	tclFileCopy("test.db", "test.db-template")
 	unreadable_version = "02"
+	_ = unreadable_version // suppress unused warning
+	unreadable_version = "03"
 	_ = unreadable_version // suppress unused warning
 	{ // do_test "corruptA-2.1"
 		tclFileCopy("test.db-template", "test.db")

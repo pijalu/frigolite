@@ -80,17 +80,11 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2.1"
-		// diskquery test.db { 
-    SELECT * FROM t1;
-    SELECT * FROM t2;
-  } (unsupported command, not transpiled)
+		// diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2.2"
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
-		// diskquery test.db { 
-    SELECT * FROM t1;
-    SELECT * FROM t2;
-  } (unsupported command, not transpiled)
+		// diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n ...} (unsupported command, not transpiled)
 	}
 	{ // "1.3.0"
 		_res = db.Exec("\n  COMMIT;\n  CREATE TABLE t3(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t2 VALUES('c', 'd');\n    INSERT INTO t3 VALUES('i', 'ii');\n")
@@ -99,27 +93,18 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3.1"
-		// diskquery test.db { 
-    SELECT * FROM t1;
-    SELECT * FROM t2;
-    ...} (unsupported command, not transpiled)
+		// diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.2"
 		_res = db.Exec(" SELECT a FROM t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT a FROM t1 ")
 		}
-		// diskquery test.db { 
-    SELECT * FROM t1;
-    SELECT * FROM t2;
-    ...} (unsupported command, not transpiled)
+		// diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.2"
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
-		// diskquery test.db { 
-    SELECT * FROM t1;
-    SELECT * FROM t2;
-    ...} (unsupported command, not transpiled)
+		// diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n ...} (unsupported command, not transpiled)
 	}
 	{ // "1.4.0"
 		_res = db.Exec("\n  COMMIT;\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
@@ -132,25 +117,19 @@ func Test_cacheflush(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		// diskquery test.db { 
-    SELECT * FROM t1;
-  } (unsupported command, not transpiled)
+		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.2"
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	{ // do_test "1.4.3"
-		// diskquery test.db { 
-    SELECT * FROM t1;
-  } (unsupported command, not transpiled)
+		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.4"
 		db2.Close()
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
-		// diskquery test.db { 
-    SELECT * FROM t1;
-  } (unsupported command, not transpiled)
+		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}
 	{ // "1.4.5"
 		_res = db.Exec(" COMMIT ")
@@ -285,10 +264,7 @@ func Test_cacheflush(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE ta(a, aa);\n    CREATE TABLE tb(b, bb);\n    INSERT INTO ta VALUES('a', randomblob(500));\n    INSERT INTO tb VALUES('b', randomblob(500));\n    BEGIN;\n      UPDATE ta SET a = 'A';\n      SAVEPOINT one;\n        UPDATE tb SET b = 'B';\n  ")
 		}
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
-		// diskquery test.db {
-    SELECT a FROM ta;
-    SELECT b FROM tb;
-  } (unsupported command, not transpiled)
+		// diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "4.1"
 		_res = db.Exec(" \n    ROLLBACK TO one;\n  ")
@@ -296,10 +272,7 @@ func Test_cacheflush(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ROLLBACK TO one;\n  ")
 		}
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
-		// diskquery test.db {
-    SELECT a FROM ta;
-    SELECT b FROM tb;
-  } (unsupported command, not transpiled)
+		// diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "4.2"
 		_res = db.Exec(" \n    INSERT INTO tb VALUES('c', randomblob(10));\n    INSERT INTO tb VALUES('d', randomblob(10));\n    INSERT INTO tb VALUES('e', randomblob(10));\n  ")
@@ -307,10 +280,7 @@ func Test_cacheflush(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO tb VALUES('c', randomblob(10));\n    INSERT INTO tb VALUES('d', randomblob(10));\n    INSERT INTO tb VALUES('e', randomblob(10));\n  ")
 		}
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
-		// diskquery test.db {
-    SELECT a FROM ta;
-    SELECT b FROM tb;
-  } (unsupported command, not transpiled)
+		// diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "4.3"
 		_res = db.Exec(" \n    SAVEPOINT two;\n    UPDATE tb SET b = upper(b);\n  ")
@@ -318,10 +288,7 @@ func Test_cacheflush(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    SAVEPOINT two;\n    UPDATE tb SET b = upper(b);\n  ")
 		}
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
-		// diskquery test.db {
-    SELECT a FROM ta;
-    SELECT b FROM tb;
-  } (unsupported command, not transpiled)
+		// diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "4.4"
 		_res = db.Exec(" \n    ROLLBACK TO two;\n  ")
@@ -329,10 +296,7 @@ func Test_cacheflush(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ROLLBACK TO two;\n  ")
 		}
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
-		// diskquery test.db {
-    SELECT a FROM ta;
-    SELECT b FROM tb;
-  } (unsupported command, not transpiled)
+		// diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "4.4"
 		_res = db.Exec(" \n    ROLLBACK TO one;\n  ")
@@ -340,10 +304,7 @@ func Test_cacheflush(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ROLLBACK TO one;\n  ")
 		}
 		// sqlite3_db_cacheflush db (unsupported command, not transpiled)
-		// diskquery test.db {
-    SELECT a FROM ta;
-    SELECT b FROM tb;
-  } (unsupported command, not transpiled)
+		// diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "4.5"
 		r = db.Query(" \n    ROLLBACK;\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  ")

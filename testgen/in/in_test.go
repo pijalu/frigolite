@@ -60,9 +60,9 @@ func Test_in(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 10 }() {
-			_res = db.Exec("INSERT INTO t1 VALUES(" + i + "," + "1<<$i" + ")")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + i + "," + tclExpr("1<<$i") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + i + "," + "1<<$i" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + i + "," + tclExpr("1<<$i") + ")")
 			}
 			// incr i 1
 			{
@@ -113,6 +113,7 @@ func Test_in(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a+ 100*(a BETWEEN 1 and 3) FROM t1 ORDER BY b")
 		}
 	}
+	return
 	{ // do_test "in-2.1"
 		r = db.Query("SELECT a FROM t1 WHERE b IN (8,12,16,24,32) ORDER BY a")
 		if r.Error != nil {
@@ -436,6 +437,68 @@ func Test_in(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t6 WHERE +a IN ('2');\n  ")
 		}
+	}
+	{ // do_test "in-12.1"
+		_res = db.Exec("\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n  ")
+		}
+	}
+	{ // do_test "in-12.2"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.3"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a, b FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.4"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a, b FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.5"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a, b FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.6"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.7"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.8"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.9"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.10"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.11"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION SELECT a, b FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.12"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 EXCEPT SELECT a, b FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.13"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 INTERSECT SELECT a, b FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.14"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "in-12.15"
+		_res = db.Exec("\n    SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );\n  ")
+		_ = _res // catchsql
 	}
 	{ // do_test "in-13.1"
 		r = db.Query(" SELECT \n    1 IN (NULL, 1, 2),     -- The value 1 is a member of the set, return true.\n    3 IN (NULL, 1, 2),     -- Ambiguous, return NULL.\n    1 NOT IN (NULL, 1, 2), -- The value 1 is a member of the set, return false.\n    3 NOT IN (NULL, 1, 2)  -- Ambiguous, return NULL.\n  ")

@@ -68,6 +68,14 @@ func Test_aggerror(t *testing.T) {
 		_res = db.Exec("\n    SELECT x_count(a) FROM t1;\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "aggerror-1.4"
+		_res = db.Exec("\n      UPDATE t1 SET a=41 WHERE a=40\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET a=41 WHERE a=40\n    ")
+		}
+		_res = db.Exec("\n      SELECT x_count(a) FROM t1;\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "aggerror-1.5"
 		r = db.Query("\n    SELECT x_count(*) FROM t1\n  ")
 		if r.Error != nil {

@@ -73,7 +73,7 @@ func Test_pendingrace(t *testing.T) {
 	{ // do_test "1.1a"
 		nPg = "db one { PRAGMA page_count }"
 		_ = nPg // suppress unused warning
-		// expr ($nPg==20 → "($nPg==20"
+		// expr ($nPg==20 (not evaluated)
 	}
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

@@ -53,50 +53,14 @@ func Test_tempfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "tempfault"
 	_ = testprefix // suppress unused warning
-	// do_faultsim_test 1 -faults * -prep {
-  sqlite3 db ""
-  db eval {
-    PRAGMA page_size ...} -body {
-  execsql { INSERT INTO t1 VALUES(5, 6) }
-} -test {
-  faultsim_test_result {0 {}}
-  set rc [catch { e...} (unsupported command, not transpiled)
-	// do_faultsim_test 2 -faults * -prep {
-  sqlite3 db ""
-  db eval {
-    PRAGMA page_size ...} -body {
-  execsql { UPDATE t1 SET a = randomblob(99) }
-} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults * -prep {\n  sqlite3 db ""\n  db eval {\n    PRAGMA page_si...} -body {\n  execsql { INSERT INTO t1 VALUES(5, 6) }\n} -test {\n  faultsim_test_result {0 {}}\n  set rc [catch {...} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults * -prep {\n  sqlite3 db ""\n  db eval {\n    PRAGMA page_si...} -body {\n  execsql { UPDATE t1 SET a = randomblob(99) }\n} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	// do_faultsim_test 2.1 -faults * -prep {
-  if {[info commands db]==""} {
-    sqlite3 db ""...} -body {
-  execsql { UPDATE t1 SET a = randomblob(99) }
-} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
-	// do_faultsim_test 3 -faults * -prep {
-  sqlite3 db ""
-  db eval {
-    PRAGMA page_size ...} -body {
-  execsql { 
-    BEGIN;
-      UPDATE t1 SET a = r...} -test {
-  faultsim_test_result {0 {}}
-  faultsim_integrit...} (unsupported command, not transpiled)
-	// do_faultsim_test 4 -faults * -prep {
-  sqlite3 db ""
-  db eval {
-    PRAGMA page_size ...} -body {
-  execsql { 
-    BEGIN;
-      UPDATE t1 SET a = r...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 2.1 -faults * -prep {\n  if {[info commands db]==""} {\n    sqlite3 db ...} -body {\n  execsql { UPDATE t1 SET a = randomblob(99) }\n} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults * -prep {\n  sqlite3 db ""\n  db eval {\n    PRAGMA page_si...} -body {\n  execsql { \n    BEGIN;\n      UPDATE t1 SET a ...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integr...} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults * -prep {\n  sqlite3 db ""\n  db eval {\n    PRAGMA page_si...} -body {\n  execsql { \n    BEGIN;\n      UPDATE t1 SET a ...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	// sqlite3_memdebug_vfs_oom_test 1 (unsupported command, not transpiled)
 }

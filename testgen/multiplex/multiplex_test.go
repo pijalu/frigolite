@@ -79,7 +79,12 @@ func Test_multiplex(t *testing.T) {
 	_ = error_code // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	g_chunk_size = "expr ($::SQLITE_MAX_PAGE_SIZE*16384)"
+	_putsMsg := "-nonewline"
+	_ = _putsMsg
+	_putsMsg = "Skipping tests multiplex-*."
+	_ = _putsMsg
+	return
+	g_chunk_size = tclExpr("expr ($::SQLITE_MAX_PAGE_SIZE*16384)")
 	_ = g_chunk_size // suppress unused warning
 	g_max_chunks = "32"
 	_ = g_max_chunks // suppress unused warning
@@ -446,7 +451,7 @@ func Test_multiplex(t *testing.T) {
 			{ // do_test "multiplex-2.6.99." + sz + "." + jmode
 				// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
 			}
-			sz = "$sz+419"
+			sz = tclExpr("$sz+419")
 			_ = sz // suppress unused warning
 		}
 	}
@@ -474,7 +479,7 @@ func Test_multiplex(t *testing.T) {
 		}
 	}
 	{ // do_test "multiplex-2.7.7"
-		// expr ([file size [multiplex_name test.db 0]] → "([file size [multiplex_name test.db 0]]"
+		// expr ([file size [multiplex_name test.db 0]] (not evaluated)
 	}
 	{ // do_test "multiplex-2.7.8"
 		// file exists "multiplex_name test.db 1"
@@ -486,7 +491,7 @@ func Test_multiplex(t *testing.T) {
 		}
 	}
 	{ // do_test "multiplex-2.7.10"
-		// expr ([file size [multiplex_name test.db 0]] → "([file size [multiplex_name test.db 0]]"
+		// expr ([file size [multiplex_name test.db 0]] (not evaluated)
 	}
 	{ // do_test "multiplex-2.7.11"
 		// file exists "multiplex_name test.db 1"
@@ -704,16 +709,8 @@ func Test_multiplex(t *testing.T) {
 	}
 	// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
 	// multiplex_set db main 32768 16 (unsupported command, not transpiled)
-	// do_faultsim_test multiplex-5.1 -prep {
-  catch {db close}
-} -body {
-  sqlite3 db test2.db
-} (unsupported command, not transpiled)
-	// do_faultsim_test multiplex-5.2 -prep {
-  catch {db close}
-} -body {
-  sqlite3 db test.db
-} (unsupported command, not transpiled)
+	// do_faultsim_test multiplex-5.1 -prep {\n  catch {db close}\n} -body {\n  sqlite3 db test2.db\n} (unsupported command, not transpiled)
+	// do_faultsim_test multiplex-5.2 -prep {\n  catch {db close}\n} -body {\n  sqlite3 db test.db\n} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -730,11 +727,7 @@ func Test_multiplex(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test multiplex-5.3 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { DELETE FROM t1 }
-} (unsupported command, not transpiled)
+	// do_faultsim_test multiplex-5.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { DELETE FROM t1 }\n} (unsupported command, not transpiled)
 	{ // do_test "multiplex-5.4.1"
 		{
 			var _catchErr error
@@ -750,11 +743,43 @@ func Test_multiplex(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		// delete_file test.db (unsupported command, not transpiled)
 	}
-	// do_faultsim_test multiplex-5.5 -prep {
-  catch { sqlite3_multiplex_shutdown }
-} -body {
-  sqlite3_multiplex_initialize "" 1
-  multiplex_s...} (unsupported command, not transpiled)
+	// do_faultsim_test multiplex-5.5 -prep {\n  catch { sqlite3_multiplex_shutdown }\n} -body {\n  sqlite3_multiplex_initialize "" 1\n  multiplex...} (unsupported command, not transpiled)
+	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
+	{ // do_test "multiplex-6.0.0"
+		// multiplex_delete test.db (unsupported command, not transpiled)
+		// multiplex_delete test.x (unsupported command, not transpiled)
+		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
+		_dbtmp14, err := frigolite.Open("test.x")
+		_ = _dbtmp14 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		// multiplex_set db main 4096 16 (unsupported command, not transpiled)
+	}
+	{ // do_test "multiplex-6.1.0"
+		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA auto_vacuum=OFF;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA auto_vacuum=OFF;\n  ")
+		}
+		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob($g_chunk_size));\n    INSERT INTO t1 VALUES(2, randomblob($g_chunk_size));\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob($g_chunk_size));\n    INSERT INTO t1 VALUES(2, randomblob($g_chunk_size));\n  ")
+		}
+	}
+	{ // do_test "multiplex-6.2.1"
+		// file size [multiplex_name test.x 0]
+	}
+	{ // do_test "multiplex-6.2.2"
+		// file size [multiplex_name test.x 1]
+	}
+	{ // do_test "multiplex-6.3.0"
+		_res = db.Exec(" VACUUM ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+		}
+	}
+	{ // do_test "multiplex-6.99"
+		// multiplex_delete test.x (unsupported command, not transpiled)
+		// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
+	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

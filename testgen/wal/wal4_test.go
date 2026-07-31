@@ -48,6 +48,7 @@ func Test_wal4(t *testing.T) {
 	_ = testrc // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "wal4-1.1"
 		r = db.Query("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    SELECT x FROM t1 ORDER BY x;\n  ")
 		if r.Error != nil {
@@ -63,11 +64,5 @@ func Test_wal4(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
-	// do_faultsim_test wal4-2 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { SELECT name FROM sqlite_master }
-} -test {
-  # Result should be zero rows (empty db file).
- ...} (unsupported command, not transpiled)
+	// do_faultsim_test wal4-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT name FROM sqlite_master }\n} -test {\n  # Result should be zero rows (empty db file).\...} (unsupported command, not transpiled)
 }

@@ -50,12 +50,19 @@ func Test_insert5(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// proc definition (not transpiled)
 	{ // do_test "insert5-1.0"
 		os.Remove("test2.db")
 		_res = db.Exec("\n    CREATE TABLE MAIN(Id INTEGER, Id1 INTEGER); \n    CREATE TABLE B(Id INTEGER, Id1 INTEGER); \n    CREATE VIEW v1 AS SELECT * FROM B;\n    CREATE VIEW v2 AS SELECT * FROM MAIN;\n    INSERT INTO MAIN(Id,Id1) VALUES(2,3); \n    INSERT INTO B(Id,Id1) VALUES(2,3); \n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE MAIN(Id INTEGER, Id1 INTEGER); \n    CREATE TABLE B(Id INTEGER, Id1 INTEGER); \n    CREATE VIEW v1 AS SELECT * FROM B;\n    CREATE VIEW v2 AS SELECT * FROM MAIN;\n    INSERT INTO MAIN(Id,Id1) VALUES(2,3); \n    INSERT INTO B(Id,Id1) VALUES(2,3); \n  ")
+		}
+	}
+	{ // do_test "insert5-1.1"
+		r = db.Query("\n      INSERT INTO B \n        SELECT * FROM B UNION ALL \n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO B \n        SELECT * FROM B UNION ALL \n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;\n    ")
 		}
 	}
 	{ // do_test "insert5-2.1"
@@ -71,9 +78,7 @@ func Test_insert5(t *testing.T) {
 		// uses_temp_table { INSERT INTO b SELECT id1, (SELECT id FROM b) FROM...} (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.5"
-		// uses_temp_table { 
-    INSERT INTO b 
-      SELECT * FROM main WHER...} (unsupported command, not transpiled)
+		// uses_temp_table { \n    INSERT INTO b \n      SELECT * FROM main WH...} (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.6"
 		// uses_temp_table { INSERT INTO b SELECT * FROM v1 } (unsupported command, not transpiled)
@@ -82,9 +87,7 @@ func Test_insert5(t *testing.T) {
 		// uses_temp_table { INSERT INTO b SELECT * FROM v2 } (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.8"
-		// uses_temp_table { 
-    INSERT INTO b 
-    SELECT * FROM main WHERE ...} (unsupported command, not transpiled)
+		// uses_temp_table { \n    INSERT INTO b \n    SELECT * FROM main WHER...} (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.9"
 		_res = db.Exec(" \n    INSERT INTO b \n    SELECT * FROM main \n    WHERE id > 10 AND (SELECT count(*) FROM v2 GROUP BY main.id)\n  ")

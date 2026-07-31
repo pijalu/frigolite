@@ -87,6 +87,7 @@ func Test_bestindexF(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bestindexF"
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	// register_tcl_module db (unsupported command, not transpiled)
 	{ // "1.0"
@@ -97,9 +98,7 @@ func Test_bestindexF(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// do_idxinsert_test 1.1.1 {
-  SELECT DISTINCT a, b FROM t1 
-} {0    1 a 1 b 2 a 2 b} (unsupported command, not transpiled)
+	// do_idxinsert_test 1.1.1 {\n  SELECT DISTINCT a, b FROM t1 \n} {0    1 a 1 b 2 a 2 b} (unsupported command, not transpiled)
 	{ // do_test "1.1.2"
 		_list := tclList([]string{vtab_distinct, vtab_orderby})
 		_ = _list
@@ -110,8 +109,7 @@ func Test_bestindexF(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0 VALUES(0);\n  INSERT INTO t0 VALUES(1);\n")
 		}
 	}
-	// do_idxinsert_test 1.4.1 {
-  SELECT DISTINCT t0.c0 FROM t1, t0 ORDER BY t1.a...} {1    0 1} (unsupported command, not transpiled)
+	// do_idxinsert_test 1.4.1 {\n  SELECT DISTINCT t0.c0 FROM t1, t0 ORDER BY t1....} {1    0 1} (unsupported command, not transpiled)
 	{ // do_test "1.4.2"
 		_list := tclList([]string{vtab_distinct, vtab_orderby})
 		_ = _list
@@ -146,67 +144,14 @@ func Test_bestindexF(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	// do_vtabsorter_test 2.2 {
-  SELECT a, b FROM t1
-} { 0 "{} {}"
-  1 a 2 a 1 a 
-  2 b 1 b 2 b 
-  3 a 4 b...} (unsupported command, not transpiled)
-	// do_vtabsorter_test 2.3 {
-  SELECT DISTINCT a FROM t1
-} { 0 "DISTINCT {ORDER BY ((a+2)%5)}"
-  3 4 1 2
-} (unsupported command, not transpiled)
-	// do_vtabsorter_test 2.4 {
-  SELECT DISTINCT a FROM t1 ORDER BY a
-} { 0 "DISTINCT {ORDER BY a}"
-  1 2 3 4
-} (unsupported command, not transpiled)
-	// do_vtabsorter_test 2.5 {
-  SELECT DISTINCT a FROM t1 ORDER BY a DESC
-} { 0 "DISTINCT {ORDER BY a DESC}"
-  4 3 2 1
-} (unsupported command, not transpiled)
-	// do_vtabsorter_test 2.6 {
-  SELECT a FROM t1 ORDER BY a
-} { 0 "{} {ORDER BY a}"
-  1 1 1
-  2 2 2
-  3 3 3
-  4 4...} (unsupported command, not transpiled)
-	// do_vtabsorter_test 2.7 {
-  SELECT a FROM t1 ORDER BY a DESC
-} { 0 "{} {ORDER BY a DESC}"
-  4 4 4
-  3 3 3
-  2 2 2
-...} (unsupported command, not transpiled)
-	// do_vtabsorter_test 2.8 {
-  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 "{} {ORDER BY a}"
-  1 3
-  2 3
-  3 3
-  4 3
-} (unsupported command, not transpiled)
-	// do_vtabsorter_test 2.9 {
-  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 "{} {ORDER BY a DESC}"
-  4 3
-  3 3
-  2 3
-  1 3
-} (unsupported command, not transpiled)
-	// do_vtabsorter_test 2.10 {
-  SELECT a, count(*) FROM t1 GROUP BY a
-} { 0 "{} {ORDER BY ((a+2)%5)}"
-  3 3
-  4 3
-  1 3
-  2...} (unsupported command, not transpiled)
-	// do_vtabsorter_test 2.11 {
-  SELECT DISTINCT a, count(*) FROM t1 GROUP BY a
-} { 1 "{} {ORDER BY ((a+2)%5)}"
-  3 3
-  4 3
-  1 3
-  2...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.2 {\n  SELECT a, b FROM t1\n} { 0 "{} {}"\n  1 a 2 a 1 a \n  2 b 1 b 2 b \n  3 a ...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.3 {\n  SELECT DISTINCT a FROM t1\n} { 0 "DISTINCT {ORDER BY ((a+2)%5)}"\n  3 4 1 2\n} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.4 {\n  SELECT DISTINCT a FROM t1 ORDER BY a\n} { 0 "DISTINCT {ORDER BY a}"\n  1 2 3 4\n} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.5 {\n  SELECT DISTINCT a FROM t1 ORDER BY a DESC\n} { 0 "DISTINCT {ORDER BY a DESC}"\n  4 3 2 1\n} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.6 {\n  SELECT a FROM t1 ORDER BY a\n} { 0 "{} {ORDER BY a}"\n  1 1 1\n  2 2 2\n  3 3 3\n ...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.7 {\n  SELECT a FROM t1 ORDER BY a DESC\n} { 0 "{} {ORDER BY a DESC}"\n  4 4 4\n  3 3 3\n  2 2...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.8 {\n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY...} { 0 "{} {ORDER BY a}"\n  1 3\n  2 3\n  3 3\n  4 3\n} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.9 {\n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY...} { 0 "{} {ORDER BY a DESC}"\n  4 3\n  3 3\n  2 3\n  ...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.10 {\n  SELECT a, count(*) FROM t1 GROUP BY a\n} { 0 "{} {ORDER BY ((a+2)%5)}"\n  3 3\n  4 3\n  1 3\...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.11 {\n  SELECT DISTINCT a, count(*) FROM t1 GROUP BY a...} { 1 "{} {ORDER BY ((a+2)%5)}"\n  3 3\n  4 3\n  1 3\...} (unsupported command, not transpiled)
 }

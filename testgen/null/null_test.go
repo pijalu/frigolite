@@ -159,10 +159,60 @@ func Test_null(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select distinct b from t1 order by b;\n  ")
 		}
 	}
+	{ // do_test "null-6.1"
+		r = db.Query("\n      select b from t1 union select c from t1 order by b;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select b from t1 union select c from t1 order by b;\n    ")
+		}
+	}
+	{ // do_test "null-6.2"
+		r = db.Query("\n      select b from t1 union select c from t1 order by 1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select b from t1 union select c from t1 order by 1;\n    ")
+		}
+	}
+	{ // do_test "null-6.3"
+		r = db.Query("\n      select b from t1 union select c from t1 order by t1.b;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select b from t1 union select c from t1 order by t1.b;\n    ")
+		}
+	}
+	{ // do_test "null-6.4"
+		r = db.Query("\n      select b from t1 union select c from t1 order by main.t1.b;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select b from t1 union select c from t1 order by main.t1.b;\n    ")
+		}
+	}
+	{ // do_test "null-6.5"
+		_res = db.Exec("\n      select b from t1 union select c from t1 order by t1.a;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "null-6.6"
+		_res = db.Exec("\n      select b from t1 union select c from t1 order by main.t1.a;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "null-7.1"
+		r = db.Query("\n      create table t2(a, b unique on conflict ignore);\n      insert into t2 values(1,1);\n      insert into t2 values(2,null);\n      insert into t2 values(3,null);\n      insert into t2 values(4,1);\n      select a from t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      create table t2(a, b unique on conflict ignore);\n      insert into t2 values(1,1);\n      insert into t2 values(2,null);\n      insert into t2 values(3,null);\n      insert into t2 values(4,1);\n      select a from t2;\n    ")
+		}
+	}
+	{ // do_test "null-7.2"
+		r = db.Query("\n      create table t3(a, b, c, unique(b,c) on conflict ignore);\n      insert into t3 values(1,1,1);\n      insert into t3 values(2,null,1);\n      insert into t3 values(3,null,1);\n      insert into t3 values(4,1,1);\n      select a from t3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      create table t3(a, b, c, unique(b,c) on conflict ignore);\n      insert into t3 values(1,1,1);\n      insert into t3 values(2,null,1);\n      insert into t3 values(3,null,1);\n      insert into t3 values(4,1,1);\n      select a from t3;\n    ")
+		}
+	}
 	{ // do_test "null-8.1"
 		r = db.Query("\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,11);\n    INSERT INTO t4 VALUES(2,NULL);\n    SELECT x FROM t4 WHERE y=NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,11);\n    INSERT INTO t4 VALUES(2,NULL);\n    SELECT x FROM t4 WHERE y=NULL;\n  ")
+		}
+	}
+	{ // do_test "null-8.2"
+		r = db.Query("\n      SELECT x FROM t4 WHERE y IN (33,NULL);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT x FROM t4 WHERE y IN (33,NULL);\n    ")
 		}
 	}
 	{ // do_test "null-8.3"
@@ -187,6 +237,12 @@ func Test_null(t *testing.T) {
 		r = db.Query("\n    CREATE INDEX t4i1 ON t4(y);\n    SELECT x FROM t4 WHERE y=NULL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t4i1 ON t4(y);\n    SELECT x FROM t4 WHERE y=NULL;\n  ")
+		}
+	}
+	{ // do_test "null-8.12"
+		r = db.Query("\n      SELECT x FROM t4 WHERE y IN (33,NULL);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT x FROM t4 WHERE y IN (33,NULL);\n    ")
 		}
 	}
 	{ // do_test "null-8.13"

@@ -549,6 +549,42 @@ func Test_lock(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t1(a,b) SELECT 3, tx_exec('SELECT y FROM t2 LIMIT 1');\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "lock-5.3"
+		r = db.Query("\n      CREATE TEMP TABLE t3(x);\n      SELECT * FROM t3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE t3(x);\n      SELECT * FROM t3;\n    ")
+		}
+	}
+	{ // do_test "lock-5.4"
+		_res = db.Exec("\n      INSERT INTO t3 SELECT tx_exec('SELECT y FROM t2 LIMIT 1');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lock-5.5"
+		r = db.Query("\n      SELECT * FROM t3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3;\n    ")
+		}
+	}
+	{ // do_test "lock-5.6"
+		_res = db.Exec("\n      UPDATE t1 SET a=tx_exec('SELECT x FROM t2');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lock-5.7"
+		r = db.Query("\n      SELECT * FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1;\n    ")
+		}
+	}
+	{ // do_test "lock-5.8"
+		_res = db.Exec("\n      UPDATE t3 SET x=tx_exec('SELECT x FROM t2');\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "lock-5.9"
+		r = db.Query("\n      SELECT * FROM t3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3;\n    ")
+		}
+	}
 	{ // do_test "lock-6.1"
 		_res = db.Exec("\n    CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n  ")
 		if _res.Error != nil {

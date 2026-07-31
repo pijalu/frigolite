@@ -125,6 +125,24 @@ func Test_shell4(t *testing.T) {
 		_list := tclList([]string{"regexp {Memory Used} $res", "regexp {Heap Usage} $res", "regexp {Autoindex Inserts} $res"})
 		_ = _list
 	}
+	{ // do_test "shell4-2.1"
+		// catchcmd :memory: CREATE TABLE t1(x);\n.trace --unknown (unsupported command, not transpiled)
+	}
+	{ // do_test "shell4-2.2"
+		// catchcmd :memory: CREATE TABLE t1(x);\n.trace off\n.trace off\n (unsupported command, not transpiled)
+	}
+	{ // do_test "shell4-2.3"
+		// catchcmd :memory: .trace stdout\n.dump\n.trace off\n (unsupported command, not transpiled)
+	}
+	{ // do_test "shell4-2.4"
+		// catchcmd :memory: .trace stdout\nCREATE TABLE t1(x);SELECT * FROM t1... (unsupported command, not transpiled)
+	}
+	{ // do_test "shell4-2.5"
+		// catchcmd :memory: CREATE TABLE t1(x);\n.trace stdout\nSELECT * FROM ... (unsupported command, not transpiled)
+	}
+	{ // do_test "shell4-2.6"
+		// catchcmd :memory: {\nCREATE TABLE t1(x);\n.trace --stmt stdout\nSELEC...} (unsupported command, not transpiled)
+	}
 	{ // do_test "shell4-3.1"
 		fd = "open t1.txt wb"
 		_ = fd // suppress unused warning
@@ -133,9 +151,7 @@ func Test_shell4(t *testing.T) {
 		// close $fd
 		// exec $::CLI_ONLY --noinit :memory: --interactive .read t1.txt (unsupported command, not transpiled)
 	}
-	// do_test_with_ansi_output shell4-3.2 {
-  set fd [open t1.txt wb]
-  puts $fd ".mode list\...} {pound: £} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shell4-3.2 {\n  set fd [open t1.txt wb]\n  puts $fd ".mode lis...} {pound: £} (unsupported command, not transpiled)
 	{ // do_test "shell4-4.1"
 		fd = "open t1.txt wb"
 		_ = fd // suppress unused warning

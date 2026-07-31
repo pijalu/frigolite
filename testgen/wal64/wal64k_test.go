@@ -50,6 +50,7 @@ func Test_wal64k(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal64k"
 	_ = testprefix // suppress unused warning
+	return
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}

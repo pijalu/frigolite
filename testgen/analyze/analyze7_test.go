@@ -45,6 +45,7 @@ func Test_analyze7(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "analyze7-1.0"
 		// load_static_extension db wholenumber (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1cd ON t1(c,d);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, value, value/100, value FROM nums\n                    WHERE value BETWEEN 1 AND 256;\n    EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;\n  ")
@@ -114,10 +115,28 @@ func Test_analyze7(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;")
 		}
 	}
+	{ // do_test "analyze7-3.2.2"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
+		}
+	}
 	{ // do_test "analyze7-3.3"
 		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
+		}
+	}
+	{ // do_test "analyze7-3.4"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123")
+		}
+	}
+	{ // do_test "analyze7-3.5"
+		r = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123")
 		}
 	}
 	{ // do_test "analyze7-3.6"

@@ -134,13 +134,8 @@ func Test_misc7(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE abc(a PRIMARY KEY, b, c); ")
 	}
 	if tcl_platform_platform != "windows" {
-		// do_fileopen_test misc7-6.1 {
-    BEGIN;
-    INSERT INTO abc VALUES(1, 2, 3);
- ...} (unsupported command, not transpiled)
-		// do_fileopen_test misc7-6.2 {
-    PRAGMA temp.cache_size = 1000;
-  } (unsupported command, not transpiled)
+		// do_fileopen_test misc7-6.1 {\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);...} (unsupported command, not transpiled)
+		// do_fileopen_test misc7-6.2 {\n    PRAGMA temp.cache_size = 1000;\n  } (unsupported command, not transpiled)
 	}
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
@@ -157,11 +152,13 @@ func Test_misc7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN EXCLUSIVE;\n  ")
 		}
-		tm = "time {\n    set result [catchsql {\n        SELECT * FROM sqlite_master;\n      } db]\n  }"
+		result = "catchsql {\n        SELECT * FROM sqlite_master;\n      } db"
+		_ = result // suppress unused warning
+		tm = ""
 		_ = tm // suppress unused warning
-		delay = "lindex $tm 0"
+		delay = tclLIndex(tm, "0")
 		_ = delay // suppress unused warning
-		result = tclListAppend(result, "$delay>1500000 && $delay<4000000")
+		result = tclListAppend(result, tclExpr("$delay>1500000 && $delay<4000000"))
 	}
 	db2.Close()
 	{ // do_test "misc7-7.1"
@@ -194,28 +191,89 @@ func Test_misc7(t *testing.T) {
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
 	}
+	{ // do_test "misc7-8"
+		// encoding convertfrom unicode [sqlite3_errmsg16 0x00000000] (unsupported command, not transpiled)
+	}
 	{ // do_test "misc7-9"
 		r = db.Query("\n    SELECT * \n    FROM (SELECT name+1 AS one FROM sqlite_master LIMIT 1 OFFSET 1) \n    WHERE one LIKE 'hello%';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * \n    FROM (SELECT name+1 AS one FROM sqlite_master LIMIT 1 OFFSET 1) \n    WHERE one LIKE 'hello%';\n  ")
 		}
 	}
-	os.Remove("test.db")
-	os.Remove("test.db-journal")
-	_dbtmp3, err := frigolite.Open("test.db")
-	_ = _dbtmp3 // sqlite3 db connection
-	if err != nil { t.Fatal(err) }
+	{ // do_test "misc7-10"
+		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		r = db.Query("\n      CREATE VIRTUAL TABLE t1 USING echo(abc);\n      SELECT a FROM t1 WHERE a = 1 ORDER BY b;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIRTUAL TABLE t1 USING echo(abc);\n      SELECT a FROM t1 WHERE a = 1 ORDER BY b;\n    ")
+		}
+	}
+	sqlite_where_trace = "0"
+	_ = sqlite_where_trace // suppress unused warning
+	{ // "misc7-10.1"
+		_res = db.Exec("\n    INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UPSERT not implemented for virtual table \\\"t1\\\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UPSERT not implemented for virtual table \\\"t1\\\"", _res.Error, "\n    INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;\n  ")
+		}
+	}
+	{ // do_test "misc7-11"
+		r = db.Query("\n      SELECT t1.a, t2.a FROM t1, t1 AS t2 ORDER BY 2 LIMIT 1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT t1.a, t2.a FROM t1, t1 AS t2 ORDER BY 2 LIMIT 1;\n    ")
+		}
+	}
+	// do_ioerr_test misc7-12 -tclprep {\n    sqlite3 db2 test.db\n    register_echo_modul...} -tclbody {\n    register_echo_module [sqlite3_connection_poi...} (unsupported command, not transpiled)
+	{ // do_test "misc7-13"
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		echo_module_cost = "2.0e+99" // TCL namespace variable
+		_ = echo_module_cost // suppress unused warning
+		r = db.Query("SELECT * FROM t1 WHERE a = 1;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 WHERE a = 1;")
+		}
+	}
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
 	_dbtmp4, err := frigolite.Open("test.db")
 	_ = _dbtmp4 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // "misc7-14.0"
+		_res = db.Exec("\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n  ")
+		}
+	}
+	{ // "misc7-14.1"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM abc AS t2 WHERE rowid = 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM abc AS t2 WHERE rowid = 1;\n  ")
+		}
+	}
+	{ // "misc7-14.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM abc AS t2 WHERE a = 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM abc AS t2 WHERE a = 1;\n")
+		}
+	}
+	{ // "misc7-14.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM abc AS t2 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM abc AS t2 ORDER BY a;\n  ")
+		}
+	}
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	_dbtmp5, err := frigolite.Open("test.db")
+	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc7-15.1"
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc \n    VALUES(randstr(100,100), randstr(100,100), randstr(100,100));\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc \n    VALUES(randstr(100,100), randstr(100,100), randstr(100,100));\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    COMMIT;\n  ")
 		}
-		// expr [file size test.db]>10240 → "[file size test.db]>10240"
+		// expr [file size test.db]>10240 (not evaluated)
 	}
 	{ // do_test "misc7-15.2"
 		_res = db.Exec("\n    DELETE FROM abc WHERE rowid > 12;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n  ")
@@ -225,17 +283,12 @@ func Test_misc7(t *testing.T) {
 	}
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
-	_dbtmp5, err := frigolite.Open("test.db")
-	_ = _dbtmp5 // sqlite3 db connection
-	if err != nil { t.Fatal(err) }
-	// do_ioerr_test misc7-16 -sqlprep {
-   PRAGMA cache_size = 10;
-   PRAGMA default_cach...} -tclbody {
-  set rc [catch {db eval {
-    BEGIN;
-      PRAGM...} (unsupported command, not transpiled)
 	_dbtmp6, err := frigolite.Open("test.db")
 	_ = _dbtmp6 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	// do_ioerr_test misc7-16 -sqlprep {\n   PRAGMA cache_size = 10;\n   PRAGMA default_ca...} -tclbody {\n  set rc [catch {db eval {\n    BEGIN;\n      PR...} (unsupported command, not transpiled)
+	_dbtmp7, err := frigolite.Open("test.db")
+	_ = _dbtmp7 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc7-16.X"
 		r = db.Query("\n    SELECT count(*) FROM t3;\n  ")
@@ -289,7 +342,7 @@ func Test_misc7(t *testing.T) {
 				_res = db.Exec("\n        SELECT count(*) FROM t3;\n      ")
 				_ = _res // catchsql
 			}
-			pending_byte_page = "($::sqlite_pending_byte / 1024) + 1" // TCL namespace variable
+			pending_byte_page = tclExpr("($::sqlite_pending_byte / 1024) + 1") // TCL namespace variable
 			_ = pending_byte_page // suppress unused warning
 			// sqlite3_test_control_pending_byte $::sqlite_pending_byte (unsupported command, not transpiled)
 			{ // do_test "misc7-17.3"
@@ -352,15 +405,15 @@ func Test_misc7(t *testing.T) {
 	}
 	{ // do_test "misc7-22.1"
 		os.Remove("test.db")
-		_dbtmp7, err := frigolite.Open("test.db")
-		_ = _dbtmp7 // sqlite3 db connection
+		_dbtmp8, err := frigolite.Open("test.db")
+		_ = _dbtmp8 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		}
-		_dbtmp8, err := frigolite.Open("test.db")
-		_ = _dbtmp8 // sqlite3 db connection
+		_dbtmp9, err := frigolite.Open("test.db")
+		_ = _dbtmp9 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(5, 6);\n  ")
 		_ = _res // catchsql

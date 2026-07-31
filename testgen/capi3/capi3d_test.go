@@ -127,6 +127,8 @@ func Test_capi3d(t *testing.T) {
 	// test_is_readonly capi3d-2.3 {INSERT INTO t1 VALUES(5)} 0 (unsupported command, not transpiled)
 	// test_is_readonly capi3d-2.4 {UPDATE t1 SET x=x+1 WHERE x<0} 0 (unsupported command, not transpiled)
 	// test_is_readonly capi3d-2.5 {SELECT * FROM t1} 1 (unsupported command, not transpiled)
+	// test_is_readonly capi3d-2.6 {PRAGMA journal_mode=WAL} 0 (unsupported command, not transpiled)
+	// test_is_readonly capi3d-2.7 {PRAGMA wal_checkpoint} 0 (unsupported command, not transpiled)
 	// test_is_readonly capi3d-2.8 {PRAGMA application_id=1234} 0 (unsupported command, not transpiled)
 	// test_is_readonly capi3d-2.9 {VACUUM} 0 (unsupported command, not transpiled)
 	// test_is_readonly capi3d-2.10 {PRAGMA integrity_check} 1 (unsupported command, not transpiled)

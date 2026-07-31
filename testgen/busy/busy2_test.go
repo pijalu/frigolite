@@ -57,14 +57,7 @@ func Test_busy2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "busy2"
 	_ = testprefix // suppress unused warning
-	// do_multiclient_test tn {
-  do_test 1.$tn.0 {
-    sql2 {
-      CREATE TABLE...} (unsupported command, not transpiled)
-	// do_multiclient_test tn {
-  # Make the db a WAL mode db. And add a table an...} (unsupported command, not transpiled)
-	// do_multiclient_test tn {
-  code1 {
-    set ::busy_called 0
-    proc busy {...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  do_test 1.$tn.0 {\n    sql2 {\n      CREATE TA...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  # Make the db a WAL mode db. And add a table a...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {\n  code1 {\n    set ::busy_called 0\n    proc bus...} (unsupported command, not transpiled)
 }

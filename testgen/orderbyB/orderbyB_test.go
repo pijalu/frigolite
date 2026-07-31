@@ -61,22 +61,6 @@ func Test_orderbyB(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_eqp_execsql_test 1.1 {
-  WITH t3(x,y) AS (SELECT a, b FROM t1 ORDER BY a...} {
-  QUERY PLAN
-  |--CO-ROUTINE t3
-  |  |--SCAN t1
- ...} {
-  NULL  NULL  NULL
-  aa    bb    2
-  aa    GG    ...} (unsupported command, not transpiled)
-	// do_eqp_execsql_test 1.2 {
-  WITH t3(x,y) AS MATERIALIZED (SELECT a, b COLLA...} {
-  QUERY PLAN
-  |--MATERIALIZE t3
-  |  |--SCAN t1
-...} {
-  NULL  NULL  NULL
-  aa    bb    2
-  aa    GG    ...} (unsupported command, not transpiled)
+	// do_eqp_execsql_test 1.1 {\n  WITH t3(x,y) AS (SELECT a, b FROM t1 ORDER BY ...} {\n  QUERY PLAN\n  |--CO-ROUTINE t3\n  |  |--SCAN t...} {\n  NULL  NULL  NULL\n  aa    bb    2\n  aa    GG ...} (unsupported command, not transpiled)
+	// do_eqp_execsql_test 1.2 {\n  WITH t3(x,y) AS MATERIALIZED (SELECT a, b COLL...} {\n  QUERY PLAN\n  |--MATERIALIZE t3\n  |  |--SCAN ...} {\n  NULL  NULL  NULL\n  aa    bb    2\n  aa    GG ...} (unsupported command, not transpiled)
 }

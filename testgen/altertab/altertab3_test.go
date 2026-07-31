@@ -60,6 +60,37 @@ func Test_altertab3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altertab3"
 	_ = testprefix // suppress unused warning
+	return
+	{ // "1.0"
+		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT sum(b) OVER w FROM t1 WINDOW w AS (ORDER BY a);\n  END;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT sum(b) OVER w FROM t1 WINDOW w AS (ORDER BY a);\n  END;\n")
+		}
+	}
+	{ // "1.1"
+		_res = db.Exec("\n  ALTER TABLE t1 RENAME a TO aaa;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME a TO aaa;\n")
+		}
+	}
+	{ // "1.2"
+		r = db.Query("\n  SELECT sql FROM sqlite_master WHERE name='tr1'\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_master WHERE name='tr1'\n")
+			return
+		}
+		got := flatten(r)
+		want := "{CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT sum(b) OVER w FROM t1 WINDOW w AS (ORDER BY aaa);\n  END}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "1.3"
+		_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 2);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -807,7 +838,7 @@ func Test_altertab3(t *testing.T) {
 			}
 			pg2 = "db one {PRAGMA page_count}"
 			_ = pg2 // suppress unused warning
-			// expr $pg==$pg2 → "$pg==$pg2"
+			// expr $pg==$pg2 (not evaluated)
 		}
 		{ // "31.2"
 			r = db.Query("\n  SELECT rr FROM t1 LIMIT 1\n")

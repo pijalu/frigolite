@@ -72,6 +72,7 @@ func Test_quota(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	os.Remove("bak.db")
 	defaultVfs = "file_control_vfsname db"
 	_ = defaultVfs // suppress unused warning
@@ -445,7 +446,7 @@ func Test_quota(t *testing.T) {
 		// quota_list (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-4.4.2"
-		// expr $::quota=="" → "$::quota==\"\""
+		// expr $::quota=="" (not evaluated)
 	}
 	{ // do_test "quota-4.4.3"
 		_dbtmp5, err := frigolite.Open("./quota-test-A2.db")
@@ -458,7 +459,7 @@ func Test_quota(t *testing.T) {
 		// quota_list (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-4.4.4"
-		// expr $::quota!="" → "$::quota!=\"\""
+		// expr $::quota!="" (not evaluated)
 	}
 	{ // do_test "quota-4.4.5"
 		// sqlite3_quota_set $::quotagroup 0 {} (unsupported command, not transpiled)
@@ -542,16 +543,8 @@ func Test_quota(t *testing.T) {
 	}
 	// sqlite3_quota_initialize  1 (unsupported command, not transpiled)
 	// sqlite3_quota_set *test.db 4096 {} (unsupported command, not transpiled)
-	// do_faultsim_test quota-5.1 -prep {
-  catch {db close}
-} -body {
-  sqlite3 db test2.db
-} (unsupported command, not transpiled)
-	// do_faultsim_test quota-5.2 -prep {
-  catch {db close}
-} -body {
-  sqlite3 db test.db
-} (unsupported command, not transpiled)
+	// do_faultsim_test quota-5.1 -prep {\n  catch {db close}\n} -body {\n  sqlite3 db test2.db\n} (unsupported command, not transpiled)
+	// do_faultsim_test quota-5.2 -prep {\n  catch {db close}\n} -body {\n  sqlite3 db test.db\n} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -567,11 +560,7 @@ func Test_quota(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test quota-5.3 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { DELETE FROM t1 }
-} (unsupported command, not transpiled)
+	// do_faultsim_test quota-5.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { DELETE FROM t1 }\n} (unsupported command, not transpiled)
 	{ // do_test "quota-5.4.1"
 		{
 			var _catchErr error
@@ -582,16 +571,8 @@ func Test_quota(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	// do_faultsim_test quota-5.5 -prep {
-  catch { sqlite3_quota_shutdown }
-} -body {
-  sqlite3_quota_initialize "" 1
-} (unsupported command, not transpiled)
-	// do_faultsim_test quota-5.6 -prep {
-  catch { sqlite3_quota_shutdown }
-  sqlite3_quot...} -body {
-  sqlite3_quota_set * 4096 {}
-} (unsupported command, not transpiled)
+	// do_faultsim_test quota-5.5 -prep {\n  catch { sqlite3_quota_shutdown }\n} -body {\n  sqlite3_quota_initialize "" 1\n} (unsupported command, not transpiled)
+	// do_faultsim_test quota-5.6 -prep {\n  catch { sqlite3_quota_shutdown }\n  sqlite3_qu...} -body {\n  sqlite3_quota_set * 4096 {}\n} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

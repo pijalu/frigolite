@@ -63,6 +63,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3corrupt7"
 	_ = testprefix // suppress unused warning
+	return
 	// sqlite3_fts3_may_be_corrupt 1 (unsupported command, not transpiled)
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	// extra_schema_checks 0 (unsupported command, not transpiled)

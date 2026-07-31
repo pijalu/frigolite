@@ -91,9 +91,7 @@ func Test_auth(t *testing.T) {
 	if false {
 		return
 	}
-	// proc_real proc {name arguments script} {
-  proc_real $name $arguments $script
-  if {$name=...} (unsupported command, not transpiled)
+	// proc_real proc {name arguments script} {\n  proc_real $name $arguments $script\n  if {$nam...} (unsupported command, not transpiled)
 	{ // do_test "auth-1.1.1"
 		DB = "sqlite3 db test.db" // TCL namespace variable
 		_ = DB // suppress unused warning
@@ -132,6 +130,31 @@ func Test_auth(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
 		}
 	}
+	{ // do_test "auth-1.5"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE TEMP TABLE t1(a,b,c)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.6"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.7.1"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE TEMP TABLE t1(a,b,c)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.7.2"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.8"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
 	{ // do_test "auth-1.9"
 		// proc definition (not transpiled)
 		_res = db.Exec("CREATE TABLE t1(a,b,c)")
@@ -152,6 +175,39 @@ func Test_auth(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.13"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE TEMP TABLE t1(a,b,c)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.14"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.15"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE TEMP TABLE t1(a,b,c)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.16"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.17"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE TEMP TABLE t1(a,b,c)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.18"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
 		}
 	}
 	{ // do_test "auth-1.19.1"
@@ -198,6 +254,28 @@ func Test_auth(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
 		}
 	}
+	{ // do_test "auth-1.25"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TABLE t1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.26"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.27"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TABLE t1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.28"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
 	{ // do_test "auth-1.29"
 		// proc definition (not transpiled)
 		_res = db.Exec("INSERT INTO t2 VALUES(1,2,3)")
@@ -235,6 +313,18 @@ func Test_auth(t *testing.T) {
 		// proc definition (not transpiled)
 		_res = db.Exec("SELECT * FROM t2")
 		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.35.2"
+		_res = db.Exec("ATTACH DATABASE 'test.db' AS two")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH DATABASE 'test.db' AS two")
+		}
+		_res = db.Exec("SELECT * FROM two.t2")
+		_ = _res // catchsql
+	}
+	_res = db.Exec("DETACH DATABASE two")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH DATABASE two")
 	}
 	{ // do_test "auth-1.36"
 		// proc definition (not transpiled)
@@ -371,6 +461,28 @@ func Test_auth(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
 		}
 	}
+	{ // do_test "auth-1.67"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TABLE t1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.68"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.69"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TABLE t1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.70"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
 	{ // do_test "auth-1.71"
 		// proc definition (not transpiled)
 		_res = db.Exec("DROP TABLE t2")
@@ -391,6 +503,534 @@ func Test_auth(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.75"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TABLE t1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.76"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.77"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TABLE t1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.78"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.79"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE VIEW v1 AS SELECT a+1,b+1 FROM t2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.80"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.81"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.82"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE VIEW v1 AS SELECT a+1,b+1 FROM t2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.83"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.84"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.85"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE TEMPORARY VIEW v1 AS SELECT a+1,b+1 FROM t2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.86"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.87"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.88"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE TEMPORARY VIEW v1 AS SELECT a+1,b+1 FROM t2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.89"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.90"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.91"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE VIEW v1 AS SELECT a+1,b+1 FROM t2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.92"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.93"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE VIEW v1 AS SELECT a+1,b+1 FROM t2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.94"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.95"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE TEMPORARY VIEW v1 AS SELECT a+1,b+1 FROM t2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.96"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.97"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE TEMPORARY VIEW v1 AS SELECT a+1,b+1 FROM t2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.98"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.99"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE VIEW v2 AS SELECT a+1,b+1 FROM t2;\n    DROP VIEW v2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.100"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.101"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP VIEW v2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.102"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.103"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.104"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP VIEW v2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.105"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.106"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP VIEW v2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.107"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.108"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.109"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP VIEW v2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.110"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.111"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.112"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      CREATE TEMP VIEW v1 AS SELECT a+1,b+1 FROM t1;\n      DROP VIEW v1\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.113"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.114"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP VIEW v1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.115"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.116"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.117"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP VIEW v1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.118"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.119"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP VIEW v1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.120"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.121"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.122"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP VIEW v1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.123"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.124"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.125"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TRIGGER r2 DELETE on t2 BEGIN\n        SELECT NULL;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.126"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.127"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.128"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TRIGGER r2 DELETE on t2 BEGIN\n        SELECT NULL;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.129"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.130"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TRIGGER r2 DELETE on t2 BEGIN\n        SELECT NULL;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.131"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.132"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.133"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TRIGGER r2 DELETE on t2 BEGIN\n        SELECT NULL;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.134"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.135"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TABLE tx(id);\n    CREATE TRIGGER r2 AFTER INSERT ON t2 BEGIN\n       INSERT INTO tx VALUES(NEW.rowid);\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.136.1"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.136.2"
+		r = db.Query("\n    SELECT name FROM sqlite_master WHERE type='trigger'\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type='trigger'\n  ")
+		}
+	}
+	{ // do_test "auth-1.136.3"
+		// proc definition (not transpiled)
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n    INSERT INTO t2 VALUES(1,2,3);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(1,2,3);\n  ")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.136.4"
+		r = db.Query("\n    SELECT * FROM tx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tx;\n  ")
+		}
+	}
+	{ // do_test "auth-1.137"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.138"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TRIGGER r1 DELETE on t1 BEGIN\n        SELECT NULL;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.139"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.140"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.141"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TRIGGER r1 DELETE on t1 BEGIN\n        SELECT NULL;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.142"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.143"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TRIGGER r1 DELETE on t1 BEGIN\n        SELECT NULL;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.144"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.145"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.146"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TRIGGER r1 DELETE on t1 BEGIN\n        SELECT NULL;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.147"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.148"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    CREATE TRIGGER r1 DELETE on t1 BEGIN\n        SELECT NULL;\n    END;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.149"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.150"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.151"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.152"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.153"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.154"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.155"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.156"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.157"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.158"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.159"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.160"
+		r = db.Query("SELECT name FROM sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.161"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r2")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.162"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.163"
+		r = db.Query("\n    DROP TABLE tx;\n    DELETE FROM t2 WHERE a=1 AND b=2 AND c=3;\n    SELECT name FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE tx;\n    DELETE FROM t2 WHERE a=1 AND b=2 AND c=3;\n    SELECT name FROM sqlite_master;\n  ")
+		}
+	}
+	{ // do_test "auth-1.164"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.165"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.166"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.167"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.168"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.169"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.170"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.171"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.172"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.173"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.174"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP TRIGGER r1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.175"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.176"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
 		}
 	}
 	{ // do_test "auth-1.177"
@@ -455,6 +1095,70 @@ func Test_auth(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.190"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE INDEX i1 ON t1(a)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.191"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.192"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.193"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE INDEX i1 ON t1(b)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.194"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.195"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE INDEX i1 ON t1(b)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.196"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.197"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.198"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE INDEX i1 ON t1(c)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.199"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.200"
+		// proc definition (not transpiled)
+		_res = db.Exec("CREATE INDEX i1 ON t1(a)")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.201"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.202"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
 		}
 	}
 	{ // do_test "auth-1.203"
@@ -536,6 +1240,70 @@ func Test_auth(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.216"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP INDEX i1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.217"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.218"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP INDEX i1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.219"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.220"
+		r = db.Query("SELECT name FROM sqlite_temp_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master")
+		}
+	}
+	{ // do_test "auth-1.221"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP INDEX i1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.222"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.223"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP INDEX i1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.224"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.225"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
+		}
+	}
+	{ // do_test "auth-1.226"
+		// proc definition (not transpiled)
+		_res = db.Exec("DROP INDEX i1")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.227"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.228"
+		r = db.Query("SELECT name FROM temp.sqlite_master")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master")
 		}
 	}
 	{ // do_test "auth-1.229"
@@ -637,6 +1405,518 @@ func Test_auth(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
 		}
 	}
+	{ // do_test "auth-1.251"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      ATTACH DATABASE ':memory:' AS test1\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.252a"
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.252b"
+		_res = db.Exec("DETACH test1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH test1")
+		}
+		attachfilename = ":memory:" // TCL namespace variable
+		_ = attachfilename // suppress unused warning
+		_res = db.Exec("ATTACH $::attachfilename AS test1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH $::attachfilename AS test1")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.252c"
+		_res = db.Exec("DETACH test1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH test1")
+		}
+		_res = db.Exec("ATTACH ':mem' || 'ory:' AS test1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH ':mem' || 'ory:' AS test1")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.253"
+		_res = db.Exec("DETACH DATABASE test1")
+		_ = _res // catchsql
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      ATTACH DATABASE ':memory:' AS test1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.254"
+		_ = tclLIndex("execsql {PRAGMA database_list}", "7") // lindex result
+	}
+	{ // do_test "auth-1.255"
+		_res = db.Exec("DETACH DATABASE test1")
+		_ = _res // catchsql
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      ATTACH DATABASE ':memory:' AS test1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.256"
+		_ = tclLIndex("execsql {PRAGMA database_list}", "7") // lindex result
+	}
+	{ // do_test "auth-1.257"
+		// proc definition (not transpiled)
+		_res = db.Exec("ATTACH DATABASE ':memory:' AS test1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH DATABASE ':memory:' AS test1")
+		}
+		_res = db.Exec("\n      DETACH DATABASE test1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.258"
+		_ = tclLIndex("execsql {PRAGMA database_list}", "7") // lindex result
+	}
+	{ // do_test "auth-1.259"
+		_res = db.Exec("ATTACH DATABASE ':memory:' AS test1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH DATABASE ':memory:' AS test1")
+		}
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      DETACH DATABASE test1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.260"
+		_ = tclLIndex("execsql {PRAGMA database_list}", "7") // lindex result
+	}
+	{ // do_test "auth-1.261"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n        DETACH DATABASE test1;\n      ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.262"
+		_ = tclLIndex("execsql {PRAGMA database_list}", "7") // lindex result
+	}
+	_res = db.Exec("DETACH DATABASE test1")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH DATABASE test1")
+	}
+	{ // do_test "auth-1.263"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n          ALTER TABLE t1 RENAME TO t1x\n        ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.264"
+		r = db.Query("SELECT name FROM sqlite_temp_master WHERE type='table'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master WHERE type='table'")
+		}
+	}
+	{ // do_test "auth-1.265"
+	}
+	{ // do_test "auth-1.266"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n          ALTER TABLE t1x RENAME TO t1\n        ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.267"
+		r = db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM temp.sqlite_master WHERE type='table'")
+		}
+	}
+	{ // do_test "auth-1.268"
+	}
+	{ // do_test "auth-1.269"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n          ALTER TABLE t1x RENAME TO t1\n        ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.270"
+		r = db.Query("SELECT name FROM sqlite_temp_master WHERE type='table'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_temp_master WHERE type='table'")
+		}
+	}
+	{ // do_test "auth-1.271"
+	}
+	_res = db.Exec("ALTER TABLE t1x RENAME TO t1")
+	_ = _res // catchsql
+	{ // do_test "auth-1.272"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    ALTER TABLE t2 RENAME TO t2x\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.273"
+		r = db.Query("SELECT name FROM sqlite_master WHERE type='table'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type='table'")
+		}
+	}
+	{ // do_test "auth-1.274"
+	}
+	{ // do_test "auth-1.275"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    ALTER TABLE t2x RENAME TO t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.276"
+		r = db.Query("SELECT name FROM sqlite_master WHERE type='table'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type='table'")
+		}
+	}
+	{ // do_test "auth-1.277"
+	}
+	{ // do_test "auth-1.278"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n    ALTER TABLE t2x RENAME TO t2\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.279"
+		r = db.Query("SELECT name FROM sqlite_master WHERE type='table'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type='table'")
+		}
+	}
+	{ // do_test "auth-1.280"
+	}
+	_res = db.Exec("ALTER TABLE t2x RENAME TO t2")
+	_ = _res // catchsql
+	// proc definition (not transpiled)
+	{ // do_test "auth-1.281"
+		_res = db.Exec("\n    CREATE TABLE t3(a PRIMARY KEY, b, c);\n    CREATE INDEX t3_idx1 ON t3(c COLLATE BINARY);\n    CREATE INDEX t3_idx2 ON t3(b COLLATE NOCASE);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a PRIMARY KEY, b, c);\n    CREATE INDEX t3_idx1 ON t3(c COLLATE BINARY);\n    CREATE INDEX t3_idx2 ON t3(b COLLATE NOCASE);\n  ")
+		}
+	}
+	{ // do_test "auth-1.282"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n    REINDEX t3_idx1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    REINDEX t3_idx1;\n  ")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.283"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n    REINDEX BINARY;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    REINDEX BINARY;\n  ")
+		}
+		_ = tclSort("-unique") // lsort result
+	}
+	{ // do_test "auth-1.284"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n    REINDEX NOCASE;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    REINDEX NOCASE;\n  ")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.285"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n    REINDEX t3;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    REINDEX t3;\n  ")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.286"
+		_res = db.Exec("\n    DROP TABLE t3;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t3;\n  ")
+		}
+	}
+	{ // do_test "auth-1.287"
+		_res = db.Exec("\n      CREATE TEMP TABLE t3(a PRIMARY KEY, b, c);\n      CREATE INDEX t3_idx1 ON t3(c COLLATE BINARY);\n      CREATE INDEX t3_idx2 ON t3(b COLLATE NOCASE);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TABLE t3(a PRIMARY KEY, b, c);\n      CREATE INDEX t3_idx1 ON t3(c COLLATE BINARY);\n      CREATE INDEX t3_idx2 ON t3(b COLLATE NOCASE);\n    ")
+		}
+	}
+	{ // do_test "auth-1.288"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n      REINDEX temp.t3_idx1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      REINDEX temp.t3_idx1;\n    ")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.289"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n      REINDEX BINARY;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      REINDEX BINARY;\n    ")
+		}
+		_ = tclSort("-unique") // lsort result
+	}
+	{ // do_test "auth-1.290"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n      REINDEX NOCASE;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      REINDEX NOCASE;\n    ")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.291"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n      REINDEX temp.t3;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      REINDEX temp.t3;\n    ")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	// proc definition (not transpiled)
+	{ // do_test "auth-1.292"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n      REINDEX temp.t3;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.293"
+		_res = db.Exec("\n      DROP TABLE t3;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE t3;\n    ")
+		}
+	}
+	// proc definition (not transpiled)
+	{ // do_test "auth-1.294"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n      CREATE TABLE t4(a,b,c);\n      CREATE INDEX t4i1 ON t4(a);\n      CREATE INDEX t4i2 ON t4(b,a,c);\n      INSERT INTO t4 VALUES(1,2,3);\n      ANALYZE;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t4(a,b,c);\n      CREATE INDEX t4i1 ON t4(a);\n      CREATE INDEX t4i2 ON t4(b,a,c);\n      INSERT INTO t4 VALUES(1,2,3);\n      ANALYZE;\n    ")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-1.295"
+		r = db.Query("\n      SELECT count(*) FROM sqlite_stat1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM sqlite_stat1;\n    ")
+		}
+	}
+	// proc definition (not transpiled)
+	{ // do_test "auth-1.296"
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n      ANALYZE;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.297"
+		r = db.Query("\n      SELECT count(*) FROM sqlite_stat1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM sqlite_stat1;\n    ")
+		}
+	}
+	{ // do_test "auth-1.300"
+		_res = db.Exec("CREATE TABLE t5(x)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t5(x)")
+		}
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      ALTER TABLE t5 ADD COLUMN new_col_1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.301"
+		x = "execsql {SELECT sql FROM sqlite_master WHERE name='t5'}"
+		_ = x // suppress unused warning
+		tclRegexp("new_col_1", x)
+	}
+	{ // do_test "auth-1.302"
+	}
+	_res = db.Exec("BEGIN")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+	}
+	authargs = ""
+	_ = authargs // suppress unused warning
+	{ // "auth-1.302-drop-1"
+		_res = db.Exec("\n    ALTER TABLE t5 DROP COLUMN new_col_1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t5 DROP COLUMN new_col_1;\n  ")
+		}
+	}
+	_res = db.Exec("ROLLBACK")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+	}
+	{ // do_test "auth-1.302-drop-2"
+	}
+	{ // do_test "auth-1.303"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      ALTER TABLE t5 ADD COLUMN new_col_2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.304"
+		x = "execsql {SELECT sql FROM sqlite_master WHERE name='t5'}"
+		_ = x // suppress unused warning
+		tclRegexp("new_col_2", x)
+	}
+	{ // do_test "auth-1.305"
+	}
+	_res = db.Exec("BEGIN")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+	}
+	authargs = ""
+	_ = authargs // suppress unused warning
+	{ // "auth-1.305-drop-1"
+		r = db.Query("\n     ALTER TABLE t5 DROP COLUMN new_col_1;\n     SELECT 1 FROM sqlite_schema WHERE name='t5' AND sql LIKE '%new_col_1%';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     ALTER TABLE t5 DROP COLUMN new_col_1;\n     SELECT 1 FROM sqlite_schema WHERE name='t5' AND sql LIKE '%new_col_1%';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	_res = db.Exec("ROLLBACK")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+	}
+	{ // do_test "auth-1.305-drop-2"
+	}
+	{ // do_test "auth-1.306"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      ALTER TABLE t5 ADD COLUMN new_col_3\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "auth-1.307"
+		x = "execsql {SELECT sql FROM temp.sqlite_master WHERE type='t5'}"
+		_ = x // suppress unused warning
+		tclRegexp("new_col_3", x)
+	}
+	{ // do_test "auth-1.308"
+	}
+	_res = db.Exec("BEGIN")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+	}
+	authargs = ""
+	_ = authargs // suppress unused warning
+	{ // "auth-1.308-drop-1"
+		_res = db.Exec("\n    ALTER TABLE t5 DROP COLUMN new_col_1;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not authorized") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", _res.Error, "\n    ALTER TABLE t5 DROP COLUMN new_col_1;\n  ")
+		}
+	}
+	{ // "auth-1.308-drop-2"
+		r = db.Query("\n    SELECT 1 FROM sqlite_schema WHERE name='t5' AND sql LIKE '%new_col_1%';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 1 FROM sqlite_schema WHERE name='t5' AND sql LIKE '%new_col_1%';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "auth-1.308-drop-3"
+	}
+	_res = db.Exec("ROLLBACK")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+	}
+	_res = db.Exec("DROP TABLE t5")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t5")
+	}
+	{ // do_test "auth-1.310"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n       DROP TABLE IF EXISTS t1;\n       CREATE TABLE t1(a,b);\n       INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       DROP TABLE IF EXISTS t1;\n       CREATE TABLE t1(a,b);\n       INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n    ")
+		}
+	}
+	{ // "auth-1.311"
+		_res = db.Exec("\n    WITH\n       auth1311(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT * FROM auth1311 ORDER BY x;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    WITH\n       auth1311(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT * FROM auth1311 ORDER BY x;\n  ")
+		}
+	}
+	{ // "auth-1.312"
+		_res = db.Exec("\n    WITH RECURSIVE\n       auth1312(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT x, y FROM auth1312 ORDER BY x;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    WITH RECURSIVE\n       auth1312(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT x, y FROM auth1312 ORDER BY x;\n  ")
+		}
+	}
+	{ // "auth-1.313"
+		_res = db.Exec("\n    WITH RECURSIVE\n       auth1313(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM auth1313 WHERE x<5)\n    SELECT * FROM t1;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    WITH RECURSIVE\n       auth1313(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM auth1313 WHERE x<5)\n    SELECT * FROM t1;\n  ")
+		}
+	}
+	{ // "auth-1.314"
+		_res = db.Exec("\n    WITH RECURSIVE\n       auth1314(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM auth1314 WHERE x<5)\n    SELECT * FROM t1 LEFT JOIN auth1314;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not authorized") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not authorized", _res.Error, "\n    WITH RECURSIVE\n       auth1314(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM auth1314 WHERE x<5)\n    SELECT * FROM t1 LEFT JOIN auth1314;\n  ")
+		}
+	}
+	{ // do_test "auth-1.350"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      ALTER TABLE t1 RENAME COLUMN b TO bcdefg;\n    ")
+		_ = _res // catchsql
+	}
+	{ // "auth-1.351"
+		r = db.Query("\n    SELECT name FROM pragma_table_info('t1') ORDER BY cid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM pragma_table_info('t1') ORDER BY cid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a bcdefg"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "auth-1.352"
+	}
+	{ // do_test "auth-1.353"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      ALTER TABLE t1 RENAME COLUMN bcdefg TO b;\n    ")
+		_ = _res // catchsql
+	}
+	{ // "auth-1.354"
+		r = db.Query("\n    SELECT name FROM pragma_table_info('t1') ORDER BY cid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM pragma_table_info('t1') ORDER BY cid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a bcdefg"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "auth-1.355"
+	}
+	{ // do_test "auth-1.356"
+		// proc definition (not transpiled)
+		_res = db.Exec("\n      ALTER TABLE t1 RENAME COLUMN bcdefg TO b;\n    ")
+		_ = _res // catchsql
+	}
+	{ // "auth-1.357"
+		r = db.Query("\n    SELECT name FROM pragma_table_info('t1') ORDER BY cid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM pragma_table_info('t1') ORDER BY cid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a bcdefg"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "auth-1.358"
+	}
+	{ // do_test "auth-1.359"
+		// proc definition (not transpiled)
+		_res = db.Exec("SELECT * FROM pragma_table_list WHERE name='xyzzy';")
+		_ = _res // catchsql
+	}
 	{ // do_test "auth-2.1"
 		// proc definition (not transpiled)
 		_res = db.Exec("CREATE TABLE t3(x INTEGER PRIMARY KEY, y, z)")
@@ -707,11 +1987,100 @@ func Test_auth(t *testing.T) {
 		_res = db.Exec("SELECT * FROM t2, t3")
 		_ = _res // catchsql
 	}
+	{ // do_test "auth-3.1"
+		// proc definition (not transpiled)
+		r = db.Query("\n      CREATE TABLE tx(a1,a2,b1,b2,c1,c2);\n      CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n        INSERT INTO tx VALUES(OLD.a,NEW.a,OLD.b,NEW.b,OLD.c,NEW.c);\n      END;\n      UPDATE t2 SET a=a+1;\n      SELECT * FROM tx;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE tx(a1,a2,b1,b2,c1,c2);\n      CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n        INSERT INTO tx VALUES(OLD.a,NEW.a,OLD.b,NEW.b,OLD.c,NEW.c);\n      END;\n      UPDATE t2 SET a=a+1;\n      SELECT * FROM tx;\n    ")
+		}
+	}
+	{ // do_test "auth-3.2"
+		// proc definition (not transpiled)
+		r = db.Query("\n      DELETE FROM tx;\n      UPDATE t2 SET a=a+100;\n      SELECT * FROM tx;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM tx;\n      UPDATE t2 SET a=a+100;\n      SELECT * FROM tx;\n    ")
+		}
+	}
+	{ // do_test "auth-4.1"
+		// proc definition (not transpiled)
+		authargs = ""
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n    UPDATE t2 SET a=a+1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t2 SET a=a+1;\n  ")
+		}
+	}
+	{ // do_test "auth-4.2"
+		r = db.Query("\n    CREATE VIEW v1 AS SELECT a+b AS x FROM t2;\n    CREATE TABLE v1chng(x1,x2);\n    CREATE TRIGGER r2 INSTEAD OF UPDATE ON v1 BEGIN\n      INSERT INTO v1chng VALUES(OLD.x,NEW.x);\n    END;\n    SELECT * FROM v1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v1 AS SELECT a+b AS x FROM t2;\n    CREATE TABLE v1chng(x1,x2);\n    CREATE TRIGGER r2 INSTEAD OF UPDATE ON v1 BEGIN\n      INSERT INTO v1chng VALUES(OLD.x,NEW.x);\n    END;\n    SELECT * FROM v1;\n  ")
+		}
+	}
+	{ // do_test "auth-4.3"
+		authargs = ""
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n    UPDATE v1 SET x=1 WHERE x=117\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE v1 SET x=1 WHERE x=117\n  ")
+		}
+	}
+	{ // do_test "auth-4.4"
+		r = db.Query("\n    CREATE TRIGGER r3 INSTEAD OF DELETE ON v1 BEGIN\n      INSERT INTO v1chng VALUES(OLD.x,NULL);\n    END;\n    SELECT * FROM v1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER r3 INSTEAD OF DELETE ON v1 BEGIN\n      INSERT INTO v1chng VALUES(OLD.x,NULL);\n    END;\n    SELECT * FROM v1;\n  ")
+		}
+	}
+	{ // do_test "auth-4.5"
+		authargs = ""
+		_ = authargs // suppress unused warning
+		_res = db.Exec("\n    DELETE FROM v1 WHERE x=117\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM v1 WHERE x=117\n  ")
+		}
+	}
 	{ // do_test "auth-5.1"
 		// proc definition (not transpiled)
 		r = db.Query("\n    SELECT count(a) AS cnt FROM t4 ORDER BY cnt\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(a) AS cnt FROM t4 ORDER BY cnt\n  ")
+		}
+	}
+	_res = db.Exec("\n      DROP TABLE tx;\n    ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE tx;\n    ")
+	}
+	_res = db.Exec("\n        DROP TABLE v1chng;\n      ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        DROP TABLE v1chng;\n      ")
+	}
+	stat4 = "sqlite_stat4 "
+	_ = stat4 // suppress unused warning
+	{ // do_test "auth-5.2"
+		r = db.Query("\n      SELECT name FROM (\n        SELECT * FROM sqlite_master UNION ALL SELECT * FROM temp.sqlite_master)\n      WHERE type='table'\n      ORDER BY name\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT name FROM (\n        SELECT * FROM sqlite_master UNION ALL SELECT * FROM temp.sqlite_master)\n      WHERE type='table'\n      ORDER BY name\n    ")
+		}
+	}
+	{ // do_test "auth-5.3.1"
+		_res = db.Exec("\n      CREATE TABLE t5 ( x );\n      CREATE TRIGGER t5_tr1 AFTER INSERT ON t5 BEGIN \n        UPDATE t5 SET x = 1 WHERE NEW.x = 0;\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t5 ( x );\n      CREATE TRIGGER t5_tr1 AFTER INSERT ON t5 BEGIN \n        UPDATE t5 SET x = 1 WHERE NEW.x = 0;\n      END;\n    ")
+		}
+	}
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
+	// proc definition (not transpiled)
+	{ // do_test "auth-5.3.2"
+		_res = db.Exec(" INSERT INTO t5 (x) values(0) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t5 (x) values(0) ")
+		}
+		_ = authargs // TCL namespace variable (query)
+	}
+	{ // do_test "auth-5.3.2"
+		r = db.Query(" SELECT * FROM t5 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t5 ")
 		}
 	}
 	{ // do_test "auth-6.1"

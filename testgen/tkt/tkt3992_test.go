@@ -67,4 +67,22 @@ func Test_tkt3992(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parameters2 SET mountcnt = mountcnt + 1;\n    SELECT * FROM parameters2;\n  ")
 		}
 	}
+	{ // do_test "tkt3992-2.1"
+		r = db.Query("\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      ALTER TABLE t1 ADD COLUMN c DEFAULT 3;\n      SELECT * FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      ALTER TABLE t1 ADD COLUMN c DEFAULT 3;\n      SELECT * FROM t1;\n    ")
+		}
+	}
+	{ // do_test "tkt3992-2.2"
+		r = db.Query("\n      UPDATE t1 SET a = 'one';\n      SELECT * FROM t1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET a = 'one';\n      SELECT * FROM t1;\n    ")
+		}
+	}
+	{ // do_test "tkt3992-2.3"
+		_res = db.Exec("\n      CREATE TABLE t2(a REAL, b REAL, c REAL);\n      INSERT INTO t2 VALUES(1, 2, 3);\n      CREATE TRIGGER tr2 BEFORE UPDATE ON t2 BEGIN\n        SELECT tcl('set res', typeof(new.c));\n      END;\n  \n      UPDATE t2 SET a = 'I';\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t2(a REAL, b REAL, c REAL);\n      INSERT INTO t2 VALUES(1, 2, 3);\n      CREATE TRIGGER tr2 BEFORE UPDATE ON t2 BEGIN\n        SELECT tcl('set res', typeof(new.c));\n      END;\n  \n      UPDATE t2 SET a = 'I';\n    ")
+		}
+	}
 }

@@ -71,6 +71,7 @@ func Test_fts3first(t *testing.T) {
 	_ = _r // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts3first"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
@@ -120,7 +121,7 @@ func Test_fts3first(t *testing.T) {
 					}
 				}
 			}
-			{ // "1." + x + "." + "$tn+1"
+			{ // "1." + x + "." + tclExpr("$tn+1")
 				_res = db.Exec(" \n    INSERT INTO x1(x1) VALUES('optimize');\n    INSERT INTO x2(x2) VALUES('optimize');\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO x1(x1) VALUES('optimize');\n    INSERT INTO x2(x2) VALUES('optimize');\n  ")

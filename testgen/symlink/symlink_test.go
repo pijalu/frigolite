@@ -144,7 +144,7 @@ func Test_symlink(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.5"
-		_r = "510 - [string length test.db] - [string length [pwd]]"
+		_r = tclExpr("510 - [string length test.db] - [string length [pwd]]")
 		_ = _r // suppress unused warning
 		name = "test.db" + "x $r"
 		_ = name // suppress unused warning

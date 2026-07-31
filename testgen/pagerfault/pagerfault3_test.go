@@ -62,12 +62,5 @@ func Test_pagerfault3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 1024;\n    VACUUM;\n    PRAGMA page_count;\n  ")
 		}
 	}
-	// do_faultsim_test pagerfault3-1 -faults ioerr-transient -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { 
-    PRAGMA page_size = 1024;
-    VAC...} -test {
-  faultsim_test_result {0 {}} 
-  faultsim_integri...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault3-1 -faults ioerr-transient -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    PRAGMA page_size = 1024;\n    ...} -test {\n  faultsim_test_result {0 {}} \n  faultsim_integ...} (unsupported command, not transpiled)
 }

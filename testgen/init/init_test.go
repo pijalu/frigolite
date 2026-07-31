@@ -103,14 +103,7 @@ func Test_init(t *testing.T) {
 			}
 		}
 		if tclBool(MEMDEBUG) {
-			// do_malloc_test init-2 -tclprep {
-    db close
-    init_wrapper_install
-  } -tclbody {
-    set rc [sqlite3_initialize]
-    if {[string m...} -cleanup {
-    set zRepeat "transient"
-    if {$::iRepeat} {...} (unsupported command, not transpiled)
+			// do_malloc_test init-2 -tclprep {\n    db close\n    init_wrapper_install\n  } -tclbody {\n    set rc [sqlite3_initialize]\n    if {[string...} -cleanup {\n    set zRepeat "transient"\n    if {$::iRepeat}...} (unsupported command, not transpiled)
 		}
 		// autoinstall_test_functions (unsupported command, not transpiled)
 }

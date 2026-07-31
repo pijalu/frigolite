@@ -56,6 +56,8 @@ func Test_walsetlk3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walsetlk3"
 	_ = testprefix // suppress unused warning
+	return
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 		if _res.Error != nil {
@@ -63,9 +65,7 @@ func Test_walsetlk3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	// sql_block_on_close {
-  INSERT INTO t1 VALUES(5, 6);
-  INSERT INTO t1 V...} (unsupported command, not transpiled)
+	// sql_block_on_close {\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1...} (unsupported command, not transpiled)
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
@@ -76,9 +76,7 @@ func Test_walsetlk3(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  SELECT * FROM t1\n")
 		}
 	}
-	// sql_block_on_close {
-  INSERT INTO t1 VALUES(9, 10);
-  INSERT INTO t1 ...} (unsupported command, not transpiled)
+	// sql_block_on_close {\n  INSERT INTO t1 VALUES(9, 10);\n  INSERT INTO t...} (unsupported command, not transpiled)
 	_dbtmp1, err := frigolite.Open("test.db")
 	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
@@ -99,9 +97,7 @@ func Test_walsetlk3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	// sql_block_on_write {
-  INSERT INTO x1 VALUES(4);
-} (unsupported command, not transpiled)
+	// sql_block_on_write {\n  INSERT INTO x1 VALUES(4);\n} (unsupported command, not transpiled)
 	_dbtmp2, err := frigolite.Open("test.db")
 	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }

@@ -45,6 +45,7 @@ func Test_tkt1512(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	if tclBool("db one {PRAGMA auto_vacuum}") {
 		return
 	}

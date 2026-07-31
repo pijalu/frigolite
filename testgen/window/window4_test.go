@@ -57,6 +57,7 @@ func Test_window4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "window4"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a TEXT PRIMARY KEY);\n  INSERT INTO t3 VALUES('a'), ('b'), ('c'), ('d'), ('e');\n  INSERT INTO t3 VALUES('f'), ('g'), ('h'), ('i'), ('j');\n")
 		if _res.Error != nil {

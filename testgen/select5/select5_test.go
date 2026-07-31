@@ -70,9 +70,9 @@ func Test_select5(t *testing.T) {
 				}
 			}
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(" + "32-$i" + "," + "10-$j" + ")")
+		_res = db.Exec("INSERT INTO t1 VALUES(" + tclExpr("32-$i") + "," + tclExpr("10-$j") + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + "32-$i" + "," + "10-$j" + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + tclExpr("32-$i") + "," + tclExpr("10-$j") + ")")
 		}
 		// incr i 1
 		{

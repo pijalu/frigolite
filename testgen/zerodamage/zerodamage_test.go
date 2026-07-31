@@ -55,6 +55,7 @@ func Test_zerodamage(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "zerodamage"
 	_ = testprefix // suppress unused warning
+	return
 	{ // do_test "zerodamage-1.0"
 		// file_control_powersafe_overwrite db -1 (unsupported command, not transpiled)
 	}

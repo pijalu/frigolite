@@ -52,6 +52,18 @@ func Test_json502(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "json502"
 	_ = testprefix // suppress unused warning
+	{ // "1.1"
+		r = db.Query("\n  CREATE TABLE t1(x JSON);\n  INSERT INTO t1(x) VALUES('{a:{b:{c:\"hello\",},},}');\n  SELECT fullkey FROM t1, json_tree(x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x JSON);\n  INSERT INTO t1(x) VALUES('{a:{b:{c:\"hello\",},},}');\n  SELECT fullkey FROM t1, json_tree(x);\n")
+			return
+		}
+		got := flatten(r)
+		want := "{$} {$.a} {$.a.b} {$.a.b.c}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "2.1"
 		r = db.Query("\n  SELECT json_error_position('{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}');\n")
 		if r.Error != nil {
@@ -120,6 +132,18 @@ func Test_json502(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "4.1"
+		r = db.Query("\n    SELECT * FROM json_tree('{\"\\u0017\":1}','$.\"\\x17\"');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM json_tree('{\"\\u0017\":1}','$.\"\\x17\"');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{\\x17} 1 integer 1 1 null {$.\"\\x17\"} {$}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

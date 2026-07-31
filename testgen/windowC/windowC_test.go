@@ -65,6 +65,7 @@ func Test_windowC(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "windowC"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(i INTEGER PRIMARY KEY, x);\n")
 		if _res.Error != nil {

@@ -56,8 +56,6 @@ func Test_mallocE(t *testing.T) {
 	}
 	PREP = " \n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);\n"
 	_ = PREP // suppress unused warning
-	// do_malloc_test mallocE-1 -sqlprep $PREP -sqlbody { 
-  SELECT p, q FROM (SELECT a+b AS p, b+c AS q FR...} (unsupported command, not transpiled)
-	// do_malloc_test mallocE-2 -sqlprep $PREP -sqlbody { 
-  SELECT x, y2 FROM (SELECT a+b AS x, b+c AS y2 ...} (unsupported command, not transpiled)
+	// do_malloc_test mallocE-1 -sqlprep $PREP -sqlbody { \n  SELECT p, q FROM (SELECT a+b AS p, b+c AS q F...} (unsupported command, not transpiled)
+	// do_malloc_test mallocE-2 -sqlprep $PREP -sqlbody { \n  SELECT x, y2 FROM (SELECT a+b AS x, b+c AS y2...} (unsupported command, not transpiled)
 }

@@ -514,6 +514,10 @@ func Test_intpkey(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t1 VALUES('1.5',3,4);\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "intpkey-13.4"
+		_res = db.Exec("\n      INSERT INTO t1 VALUES(x'123456',3,4);\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "intpkey-13.5"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES('+1234567890',3,4);\n  ")
 		_ = _res // catchsql

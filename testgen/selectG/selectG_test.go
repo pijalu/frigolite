@@ -74,7 +74,7 @@ func Test_selectG(t *testing.T) {
 			}
 		}
 		sql += "(" + i + ");"
-		microsec = "lindex [time {db eval $sql}] 0"
+		microsec = tclLIndex("time", "{db")
 		_ = microsec // suppress unused warning
 		_res = db.Exec("\n    SELECT count(x), sum(x), avg(x), $microsec<10000000 FROM t1;\n  ")
 		if _res.Error != nil {
@@ -105,6 +105,6 @@ func Test_selectG(t *testing.T) {
 	{ // do_test "120"
 		n = "llength [split [db eval \"explain $sql\"] \\n]"
 		_ = n // suppress unused warning
-		// expr $n<10 → "$n<10"
+		// expr $n<10 (not evaluated)
 	}
 }

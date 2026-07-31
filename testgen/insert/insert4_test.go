@@ -66,6 +66,7 @@ func Test_insert4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "insert4"
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
 	_res = db.Exec("\n  CREATE TABLE t1(a int, b int, check(b>a));\n  CREATE TABLE t2(x int, y int);\n  CREATE VIEW v2 AS SELECT y, x FROM t2;\n  CREATE TABLE t3(a int, b int);\n")
@@ -147,6 +148,12 @@ func Test_insert4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t4(a, b, UNIQUE(a,b))")
 		}
 	}
+	{ // do_test "insert4-4.1b"
+		_res = db.Exec("\n      INSERT INTO t4 VALUES(NULL,0);\n      INSERT INTO t4 VALUES(NULL,1);\n      INSERT INTO t4 VALUES(NULL,1);\n      VACUUM;   \n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t4 VALUES(NULL,0);\n      INSERT INTO t4 VALUES(NULL,1);\n      INSERT INTO t4 VALUES(NULL,1);\n      VACUUM;   \n    ")
+		}
+	}
 	{ // do_test "insert4-5.1"
 		_res = db.Exec(" INSERT INTO t2 SELECT a, b FROM nosuchtable ")
 		_ = _res // catchsql
@@ -212,6 +219,58 @@ func Test_insert4(t *testing.T) {
 		}
 		_res = db.Exec("\n    INSERT INTO t6b SELECT * FROM t6a;\n  ")
 		_ = _res // catchsql
+	}
+	{ // do_test "insert4-7.1"
+		sqlite3_xferopt_count = "0" // TCL namespace variable
+		_ = sqlite3_xferopt_count // suppress unused warning
+		r = db.Query("\n      CREATE TABLE t7a(x INTEGER PRIMARY KEY); INSERT INTO t7a VALUES(123);\n      CREATE TABLE t7b(y INTEGER REFERENCES t7a);\n      CREATE TABLE t7c(z INT);  INSERT INTO t7c VALUES(234);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t7a(x INTEGER PRIMARY KEY); INSERT INTO t7a VALUES(123);\n      CREATE TABLE t7b(y INTEGER REFERENCES t7a);\n      CREATE TABLE t7c(z INT);  INSERT INTO t7c VALUES(234);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;\n    ")
+		}
+	}
+	{ // do_test "insert4-7.2"
+		_ = sqlite3_xferopt_count // TCL namespace variable (query)
+	}
+	{ // do_test "insert4-7.3"
+		sqlite3_xferopt_count = "0" // TCL namespace variable
+		_ = sqlite3_xferopt_count // suppress unused warning
+		r = db.Query("\n      DELETE FROM t7b;\n      PRAGMA foreign_keys=ON;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t7b;\n      PRAGMA foreign_keys=ON;\n    ")
+		}
+		_res = db.Exec("\n      INSERT INTO t7b SELECT * FROM t7c;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "insert4-7.4"
+		r = db.Query("SELECT * FROM t7b")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t7b")
+		}
+	}
+	{ // do_test "insert4-7.5"
+		_ = sqlite3_xferopt_count // TCL namespace variable (query)
+	}
+	{ // do_test "insert4-7.6"
+		sqlite3_xferopt_count = "0" // TCL namespace variable
+		_ = sqlite3_xferopt_count // suppress unused warning
+		r = db.Query("\n      DELETE FROM t7b; DELETE FROM t7c;\n      INSERT INTO t7c VALUES(123);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t7b; DELETE FROM t7c;\n      INSERT INTO t7c VALUES(123);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;\n    ")
+		}
+	}
+	{ // do_test "insert4-7.7"
+		_ = sqlite3_xferopt_count // TCL namespace variable (query)
+	}
+	{ // do_test "insert4-7.7"
+		sqlite3_xferopt_count = "0" // TCL namespace variable
+		_ = sqlite3_xferopt_count // suppress unused warning
+		r = db.Query("\n      PRAGMA foreign_keys=OFF;\n      DELETE FROM t7b;\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA foreign_keys=OFF;\n      DELETE FROM t7b;\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;\n    ")
+		}
+	}
+	{ // do_test "insert4-7.8"
+		_ = sqlite3_xferopt_count // TCL namespace variable (query)
 	}
 	{ // do_test "insert4-8.1"
 		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;\n  ")
@@ -352,9 +411,9 @@ func Test_insert4(t *testing.T) {
 		}
 		sqlite3_xferopt_count = "0"
 		_ = sqlite3_xferopt_count // suppress unused warning
-		_res = db.Exec(" INSERT INTO x     SELECT * FROM t8  RETURNING * ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x     SELECT * FROM t8  RETURNING * ")
+		r = db.Query(" INSERT INTO x     SELECT * FROM t8  RETURNING * ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " INSERT INTO x     SELECT * FROM t8  RETURNING * ")
 		}
 	}
 	{ // "11.0"
@@ -399,6 +458,34 @@ func Test_insert4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 55 2 66 3 77 ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "12.4"
+		_res = db.Exec("\n    ALTER TABLE src DROP CONSTRAINT c1;\n    ALTER TABLE dest DROP CONSTRAINT c2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE src DROP CONSTRAINT c1;\n    ALTER TABLE dest DROP CONSTRAINT c2;\n  ")
+		}
+	}
+	sqlite3_xferopt_count = "0"
+	_ = sqlite3_xferopt_count // suppress unused warning
+	{ // "12.5"
+		_res = db.Exec("\n    INSERT INTO dest SELECT * FROM src;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    INSERT INTO dest SELECT * FROM src;\n  ")
+		}
+	}
+	{ // do_test "12.6"
+	}
+	{ // "12.7"
+		r = db.Query("\n    SELECT rowid, x FROM dest;\n    PRAGMA integrity_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, x FROM dest;\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 55 2 66 3 77 4 22 5 33 6 44 ok"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

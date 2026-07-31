@@ -47,22 +47,9 @@ func Test_mallocJ(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// do_malloc_test mallocJ-2 -sqlprep {
-  CREATE TABLE t1(a,b);
-  INSERT INTO t1 VALUES(1...} -sqlbody {
-  SELECT a, b, 'abc' FROM t1
-    UNION
-    SELECT...} (unsupported command, not transpiled)
-	// do_malloc_test mallocJ-3 -sqlbody {
-  EXPLAIN COMMIT
-} (unsupported command, not transpiled)
-	// do_malloc_test mallocJ-4 -sqlprep {
-  CREATE TABLE t1(a,b,c);
-  CREATE TABLE t2(x,y,z...} -sqlbody {
-  SELECT * FROM (SELECT a,b FROM t1 UNION ALL SEL...} (unsupported command, not transpiled)
-	// do_malloc_test mallocJ-5 -sqlprep {
-  CREATE TABLE t1(["a"]);
-} -sqlbody {
-  SELECT * FROM t1
-} (unsupported command, not transpiled)
+	// do_malloc_test mallocJ-1 -sqlprep {\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t...} -sqlbody {\n    UPDATE t1 SET x=1 ORDER BY y LIMIT 2 OFFSET ...} (unsupported command, not transpiled)
+	// do_malloc_test mallocJ-2 -sqlprep {\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES...} -sqlbody {\n  SELECT a, b, 'abc' FROM t1\n    UNION\n    SEL...} (unsupported command, not transpiled)
+	// do_malloc_test mallocJ-3 -sqlbody {\n  EXPLAIN COMMIT\n} (unsupported command, not transpiled)
+	// do_malloc_test mallocJ-4 -sqlprep {\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(x,y...} -sqlbody {\n  SELECT * FROM (SELECT a,b FROM t1 UNION ALL SE...} (unsupported command, not transpiled)
+	// do_malloc_test mallocJ-5 -sqlprep {\n  CREATE TABLE t1(["a"]);\n} -sqlbody {\n  SELECT * FROM t1\n} (unsupported command, not transpiled)
 }

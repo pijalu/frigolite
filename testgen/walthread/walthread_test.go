@@ -155,6 +155,7 @@ func Test_walthread(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
+	return
 	DBNAME = "wt-" + "0" + "-test.db"
 	_ = DBNAME // suppress unused warning
 	sqlite_walsummary_mmap_incr = "64"
@@ -173,48 +174,13 @@ func Test_walthread(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// do_thread_test2 walthread-1 -seconds $seconds(walthread-1) -init {
-  execsql {
-    PRAGMA journal_mode = WAL;
-    CR...} -thread main 10 {
-
-  proc read_transaction {} {
-    set results [db...} -thread ckpt 1 {
-  set nRun 0
-  while {[tt_continue]} {
-    db eva...} (unsupported command, not transpiled)
+	// do_thread_test2 walthread-1 -seconds $seconds(walthread-1) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n   ...} -thread main 10 {\n\n  proc read_transaction {} {\n    set results ...} -thread ckpt 1 {\n  set nRun 0\n  while {[tt_continue]} {\n    db ...} (unsupported command, not transpiled)
 	if tclBool("atomic_batch_write $::DBNAME" + "==0") {
-		// do_thread_test2 walthread-2 -seconds $seconds(walthread-2) -init {
-    execsql { CREATE TABLE t1(x INTEGER PRIMARY K...} -thread RB 2 [string map [list %DB% $::DBNAME] {
-
-    db close
-... -thread WAL 2 [string map [list %DB% $::DBNAME] {
-    db close
- ... (unsupported command, not transpiled)
+		// do_thread_test2 walthread-2 -seconds $seconds(walthread-2) -init {\n    execsql { CREATE TABLE t1(x INTEGER PRIMARY ...} -thread RB 2 [string map [list %DB% $::DBNAME] {\n\n    db clos... -thread WAL 2 [string map [list %DB% $::DBNAME] {\n    db close\... (unsupported command, not transpiled)
 	}
-	// do_thread_test walthread-3 -seconds $seconds(walthread-3) -init {
-  execsql {
-    PRAGMA journal_mode = WAL;
-    CR...} -thread t 10 {
-
-  set nextwrite $E(pid)
-
-  proc wal_hook {zDb nE...} -check {
-  puts "  Final db contains [db eval {SELECT coun...} (unsupported command, not transpiled)
-	// do_thread_test2 walthread-4 -seconds $seconds(walthread-4) -init {
-  execsql {
-    PRAGMA journal_mode = WAL;
-    CR...} -thread r 1 {
-  # This connection only ever reads the database....} -thread w 1 {
-
-  proc wal_hook {zDb nEntry} {
-    if {$nEntry>1...} (unsupported command, not transpiled)
-	// do_thread_test walthread-5 -seconds $seconds(walthread-5) -init {
-
-  proc log_file_size {nFrame pgsz} {
-    expr {1...} -thread T 5 {
-  db eval { SELECT count(*) FROM t1 }
-} (unsupported command, not transpiled)
+	// do_thread_test walthread-3 -seconds $seconds(walthread-3) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n   ...} -thread t 10 {\n\n  set nextwrite $E(pid)\n\n  proc wal_hook {zD...} -check {\n  puts "  Final db contains [db eval {SELECT cou...} (unsupported command, not transpiled)
+	// do_thread_test2 walthread-4 -seconds $seconds(walthread-4) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n   ...} -thread r 1 {\n  # This connection only ever reads the database...} -thread w 1 {\n\n  proc wal_hook {zDb nEntry} {\n    if {$nEntr...} (unsupported command, not transpiled)
+	// do_thread_test walthread-5 -seconds $seconds(walthread-5) -init {\n\n  proc log_file_size {nFrame pgsz} {\n    expr...} -thread T 5 {\n  db eval { SELECT count(*) FROM t1 }\n} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

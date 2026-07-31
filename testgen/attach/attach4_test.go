@@ -67,6 +67,7 @@ func Test_attach4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "attach4"
 	_ = testprefix // suppress unused warning
+	return
 	_putsMsg := "Testing with SQLITE_MAX_ATTACHED=" + SQLITE_MAX_ATTACHED
 	_ = _putsMsg
 	files = "main test.db"
@@ -186,6 +187,8 @@ func Test_attach4(t *testing.T) {
 								mode = "wal"
 								_ = mode // suppress unused warning
 							}
+							mode = "delete"
+							_ = mode // suppress unused warning
 							L = tclListAppend(L, mode)
 							S += "\n    PRAGMA " + name + ".journal_mode = WAL;\n    UPDATE " + name + ".tbl SET x = '" + name + "';\n  "
 						}

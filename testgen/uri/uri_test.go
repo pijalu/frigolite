@@ -112,6 +112,10 @@ func Test_uri(t *testing.T) {
 		file := _items0[_idx0+2]
 		_ = file // suppress unused warning
 		_ = _idx0
+			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 3 }() {
+			}
+			if tclBool("%00 $uri" + ">=0") {
+			}
 			if tcl_platform_platform == "windows" {
 				if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n > 14 }() {
 				}
@@ -164,6 +168,8 @@ func Test_uri(t *testing.T) {
 			kvlist := _items2[_idx2+2]
 			_ = kvlist // suppress unused warning
 			_ = _idx2
+				if tclBool("%00 $uri" + ">=0") {
+				}
 				if tclBool(tcl_platform_platform + " == \"windows\" && " + tn + ">12") {
 					continue
 				}
@@ -253,75 +259,147 @@ func Test_uri(t *testing.T) {
 						_ = _list
 					}
 				}
-				{ // do_test "4.3.1"
-					_list := tclList([]string{"0", msg})
-					_ = _list
-				}
-				{ // do_test "4.3.2"
-					_list := tclList([]string{"0", msg})
-					_ = _list
-				}
-				{
-					var _catchErr error
-					_ = _catchErr // suppress unused warning
-				}
-				// foreach {tn uri res} "\n  1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}\n"
-				_items7 := tclSplitList("\n  1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}\n")
-				for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
+				orig = "sqlite3_enable_shared_cache"
+				_ = orig // suppress unused warning
+				// foreach {tn options sc_default is_shared} "\n  1    \"\"                1   1\n  2    \"cache=private\"   1   0\n  3    \"cache=shared\"    1   1\n  4    \"\"                0   0\n  5    \"cache=private\"   0   0\n  6    \"cache=shared\"    0   1\n"
+				_items7 := tclSplitList("\n  1    \"\"                1   1\n  2    \"cache=private\"   1   0\n  3    \"cache=shared\"    1   1\n  4    \"\"                0   0\n  5    \"cache=private\"   0   0\n  6    \"cache=shared\"    0   1\n")
+				for _idx7 := 0; _idx7+4 <= len(_items7); _idx7 += 4 {
 					tn := _items7[_idx7+0]
 					_ = tn // suppress unused warning
-					uri := _items7[_idx7+1]
-					_ = uri // suppress unused warning
-					res := _items7[_idx7+2]
-					_ = res // suppress unused warning
+					options := _items7[_idx7+1]
+					_ = options // suppress unused warning
+					sc_default := _items7[_idx7+2]
+					_ = sc_default // suppress unused warning
+					is_shared := _items7[_idx7+3]
+					_ = is_shared // suppress unused warning
 					_ = _idx7
-						if tcl_platform_platform == "windows" {
-							uri = ""
-							_ = uri // suppress unused warning
-						} else {
-							uri = ""
-							_ = uri // suppress unused warning
-						}
-						{ // do_test "6." + tn
-							DB = ""
-							_ = DB // suppress unused warning
-							// sqlite3_errmsg $DB (unsupported command, not transpiled)
-						}
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
-							// sqlite3_close $DB (unsupported command, not transpiled)
 						}
-					}
-					os.Remove("test.db")
-					{ // do_test "7.1"
-						_dbtmp8, err := frigolite.Open("test.db")
+						os.Remove("test.db")
+						// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
+						db2, err = frigolite.Open("test.db")
+						if err != nil { t.Fatal(err) }
+						db2.Exec("CREATE TABLE t1(a, b)")
+						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+						// sqlite3_enable_shared_cache $sc_default (unsupported command, not transpiled)
+						_dbtmp8, err := frigolite.Open("file:test.db?" + options)
 						_ = _dbtmp8 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
-						_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
+						_res = db.Exec("SELECT * FROM t1")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
 						}
+						A_1 = "1 {database table is locked: t1}"
+						_ = A_1 // suppress unused warning
+						A_0 = "0 {}"
+						_ = A_0 // suppress unused warning
+						{ // do_test "4.2." + tn
+							db2.Exec("BEGIN; INSERT INTO t1 VALUES(1, 2);")
+							if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+							_res = db.Exec(" SELECT * FROM t1 ")
+							_ = _res // catchsql
+						}
+						db2.Close()
 					}
-					{ // do_test "7.2"
-						_dbtmp9, err := frigolite.Open("file:test.db?mode=ro")
+					{ // do_test "4.3.1"
+						_list := tclList([]string{"0", msg})
+						_ = _list
+					}
+					{ // do_test "4.3.2"
+						_list := tclList([]string{"0", msg})
+						_ = _list
+					}
+					// testvfs tvfs1 (unsupported command, not transpiled)
+					// tvfs1 filter {xOpen xDelete xAccess xFullPathname} (unsupported command, not transpiled)
+					// tvfs1 script tvfs1_callback (unsupported command, not transpiled)
+					// proc definition (not transpiled)
+					// testvfs tvfs2 (unsupported command, not transpiled)
+					// tvfs2 filter {xOpen xDelete xAccess xFullPathname} (unsupported command, not transpiled)
+					// tvfs2 script tvfs2_callback (unsupported command, not transpiled)
+					// proc definition (not transpiled)
+					{
+						var _catchErr error
+						_ = _catchErr // suppress unused warning
+					}
+					// eval (dynamic, not transpiled)
+					{ // do_test "5.1.1"
+						_dbtmp9, err := frigolite.Open("file:test.db1?vfs=tvfs1")
 						_ = _dbtmp9 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
-						_res = db.Exec(" ATTACH 'file:test.db2?mode=rw' AS aux ")
+						_res = db.Exec("\n      ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');\n    ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'file:test.db2?mode=rw' AS aux ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');\n    ")
 						}
+						_ = tclSort("array names ::T1") // lsort result
 					}
-					{ // "7.3"
-						_res = db.Exec(" \n  INSERT INTO t2 VALUES('c', 'd') \n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO t2 VALUES('c', 'd') \n")
+					{ // do_test "5.1.2"
+						_ = tclSort("array names ::T2") // lsort result
+					}
+					// tvfs1 delete (unsupported command, not transpiled)
+					// tvfs2 delete (unsupported command, not transpiled)
+					{
+						var _catchErr error
+						_ = _catchErr // suppress unused warning
+					}
+					// foreach {tn uri res} "\n  1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}\n"
+					_items10 := tclSplitList("\n  1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}\n")
+					for _idx10 := 0; _idx10+3 <= len(_items10); _idx10 += 3 {
+						tn := _items10[_idx10+0]
+						_ = tn // suppress unused warning
+						uri := _items10[_idx10+1]
+						_ = uri // suppress unused warning
+						res := _items10[_idx10+2]
+						_ = res // suppress unused warning
+						_ = _idx10
+							if tcl_platform_platform == "windows" {
+								uri = ""
+								_ = uri // suppress unused warning
+							} else {
+								uri = ""
+								_ = uri // suppress unused warning
+							}
+							{ // do_test "6." + tn
+								DB = ""
+								_ = DB // suppress unused warning
+								// sqlite3_errmsg $DB (unsupported command, not transpiled)
+							}
+							{
+								var _catchErr error
+								_ = _catchErr // suppress unused warning
+								// sqlite3_close $DB (unsupported command, not transpiled)
+							}
 						}
-					}
-					{ // "7.4"
-						_res = db.Exec(" \n  INSERT INTO t1 VALUES(3, 4) \n")
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, " \n  INSERT INTO t1 VALUES(3, 4) \n")
+						os.Remove("test.db")
+						{ // do_test "7.1"
+							_dbtmp11, err := frigolite.Open("test.db")
+							_ = _dbtmp11 // sqlite3 db connection
+							if err != nil { t.Fatal(err) }
+							_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
+							}
 						}
-					}
+						{ // do_test "7.2"
+							_dbtmp12, err := frigolite.Open("file:test.db?mode=ro")
+							_ = _dbtmp12 // sqlite3 db connection
+							if err != nil { t.Fatal(err) }
+							_res = db.Exec(" ATTACH 'file:test.db2?mode=rw' AS aux ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'file:test.db2?mode=rw' AS aux ")
+							}
+						}
+						{ // "7.3"
+							_res = db.Exec(" \n  INSERT INTO t2 VALUES('c', 'd') \n")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO t2 VALUES('c', 'd') \n")
+							}
+						}
+						{ // "7.4"
+							_res = db.Exec(" \n  INSERT INTO t1 VALUES(3, 4) \n")
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "attempt to write a readonly database") {
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, " \n  INSERT INTO t1 VALUES(3, 4) \n")
+							}
+						}
 }

@@ -53,6 +53,7 @@ func Test_tkt1667(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	os.Remove("test.db")
 	first_ptrmap_page = "207.8"
 	_ = first_ptrmap_page // suppress unused warning

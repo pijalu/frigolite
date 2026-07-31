@@ -168,18 +168,9 @@ func Test_mjournal(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS dbfile;\n  ATTACH ''         AS dbtemp;\n  ATTACH ':memory:'  AS dbmem;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE dbfile.t2(x);\n  CREATE TABLE dbtemp.t3(x);\n  CREATE TABLE dbmem.t4(x);\n")
 		}
 	}
-	// do_hasmj_test 2.1 {
-  BEGIN;
-    INSERT INTO t1 VALUES(1);
-    INSERT...} {1} (unsupported command, not transpiled)
-	// do_hasmj_test 2.2 {
-  BEGIN;
-    INSERT INTO t1 VALUES(1);
-    INSERT...} {0} (unsupported command, not transpiled)
-	// do_hasmj_test 2.3 {
-  BEGIN;
-    INSERT INTO t1 VALUES(1);
-    INSERT...} {0} (unsupported command, not transpiled)
+	// do_hasmj_test 2.1 {\n  BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INS...} {1} (unsupported command, not transpiled)
+	// do_hasmj_test 2.2 {\n  BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INS...} {0} (unsupported command, not transpiled)
+	// do_hasmj_test 2.3 {\n  BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INS...} {0} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -268,6 +259,8 @@ func Test_mjournal(t *testing.T) {
 	// proc definition (not transpiled)
 	c = "0"
 	_ = c // suppress unused warning
+	c = "1"
+	_ = c // suppress unused warning
 	tests = "1 notamasterjournal   0\n  2 master.9FF          " + c + "\n  3 master-mj1234569AA  1\n  4 master-mj123456_AA  0\n  5 abc                 0\n  6 masterr9FF          0\n  7 master-fj123456_AA  0\n  8 -mj1234569AA        1\n  9 1-mj1234569AA       1\n  10 .9AB               0\n  11 master.9X2         0\n  12 master.92X         0\n  13 master-mj12G4569AA 0"
 	_ = tests // suppress unused warning
 	// foreach {tn mjname bDel} tests
@@ -304,7 +297,7 @@ func Test_mjournal(t *testing.T) {
 					_ = _putsMsg
 					_putsMsg = "-nonewline"
 					_ = _putsMsg
-					mjexists = "!$bDel"
+					mjexists = tclExpr("!$bDel")
 					_ = mjexists // suppress unused warning
 				} else {
 					_putsMsg := "-nonewline"

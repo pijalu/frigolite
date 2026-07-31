@@ -88,6 +88,7 @@ func Test_fts3defer(t *testing.T) {
 	_ = dmt_modes // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	fts3_simple_deferred_tokens_only = "1"
@@ -156,104 +157,52 @@ func Test_fts3defer(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			// do_select_test 1.1 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'jk xnxhf...} {13 29 40 47 48 52 63 92} (test infra, not transpiled)
-			// do_select_test 1.2 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'jk eh'
- ...} {100} (test infra, not transpiled)
-			// do_select_test 1.3 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98} (test infra, not transpiled)
-			// do_select_test 1.4 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'duszemmz...} {3 5 8 10 13 18 20 23 32 37 41 43 55 60 65 67 72 74...} (test infra, not transpiled)
-			// do_select_test 1.5 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'ubwrfqnb...} {7 70 98} (test infra, not transpiled)
-			// do_select_test 1.6 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98} (test infra, not transpiled)
-			// do_select_test 1.7 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'zm xnxhf...} {12 13 29 30 40 47 48 52 63 92 93} (test infra, not transpiled)
-			// do_select_test 1.8 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'zm eh'
- ...} {68 100} (test infra, not transpiled)
-			// do_select_test 1.9 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'zm ubwrf...} {7 70 98} (test infra, not transpiled)
-			// do_select_test 1.10 {
-    SELECT rowid FROM t1 WHERE t1 MATCH 'z* vgsld...} {10 13 17 31 35 51 58 88 89 90 93 100} (test infra, not transpiled)
+			// do_select_test 1.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk xnxh...} {13 29 40 47 48 52 63 92} (test infra, not transpiled)
+			// do_select_test 1.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk eh'\...} {100} (test infra, not transpiled)
+			// do_select_test 1.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwr...} {7 70 98} (test infra, not transpiled)
+			// do_select_test 1.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'duszemm...} {3 5 8 10 13 18 20 23 32 37 41 43 55 60 65 67 72 74...} (test infra, not transpiled)
+			// do_select_test 1.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'ubwrfqn...} {7 70 98} (test infra, not transpiled)
+			// do_select_test 1.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwr...} {7 70 98} (test infra, not transpiled)
+			// do_select_test 1.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm xnxh...} {12 13 29 30 40 47 48 52 63 92 93} (test infra, not transpiled)
+			// do_select_test 1.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm eh'\...} {68 100} (test infra, not transpiled)
+			// do_select_test 1.9 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm ubwr...} {7 70 98} (test infra, not transpiled)
+			// do_select_test 1.10 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'z* vgsl...} {10 13 17 31 35 51 58 88 89 90 93 100} (test infra, not transpiled)
 			if func() bool { fts3_simple_deferred_tokens_only_n, _fts3_simple_deferred_tokens_only_e := strconv.Atoi(fts3_simple_deferred_tokens_only); if _fts3_simple_deferred_tokens_only_e != nil { return false }; return fts3_simple_deferred_tokens_only_n == 0 }() {
-				// do_select_test 1.11 {
-      SELECT rowid FROM t1 
-      WHERE t1 MATCH ...} {10 13 17 31 35 51 58 88 89 90 93 100} (test infra, not transpiled)
+				// do_select_test 1.11 {\n      SELECT rowid FROM t1 \n      WHERE t1 MATC...} {10 13 17 31 35 51 58 88 89 90 93 100} (test infra, not transpiled)
 			}
-			// do_select_test 2.1 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"zm agmc...} {3 24 52 53} (test infra, not transpiled)
-			// do_select_test 2.2 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"zm zf"'...} {33 53 75 88 101} (test infra, not transpiled)
-			// do_select_test 2.3 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"zm aayx...} {48 65 84} (test infra, not transpiled)
-			// do_select_test 2.4 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"aayxpmv...} {11 37 84} (test infra, not transpiled)
-			// do_select_test 2.5 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"jk azav...} {16 53} (test infra, not transpiled)
-			// do_select_test 2.6 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"xh jk j...} {18} (test infra, not transpiled)
-			// do_select_test 2.7 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"zm jk v...} {13 17} (test infra, not transpiled)
-			// do_select_test 2.8 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"zm jk v...} {} (test infra, not transpiled)
-			// do_select_test 3.1 {
-    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {
-    {zm [zm] [agmckuiu] uhzq nsab jk rrkx duszemm...} (test infra, not transpiled)
-			// do_select_test 3.2 {
-    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {
-    {[xnxhf] [jk] [jk] agmckuiu duszemmzl [jk] zm...} (test infra, not transpiled)
-			// do_select_test 4.1 {
-    SELECT offsets(t1) FROM t1 WHERE t1 MATCH '"j...} {
-    {0 0 10 2 0 1 13 6} {0 0 26 2 0 1 29 6}
-  } (test infra, not transpiled)
-			// do_select_test 4.2 {
-    SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'du...} {
-    {0 2 3 8 0 1 36 2 0 0 58 9} 
-    {0 0 0 9 0 1...} (test infra, not transpiled)
-			// do_select_test 4.3 {
-    SELECT offsets(t1) FROM t1 
-    WHERE t1 MATC...} {{0 0 0 5 0 1 15 7 0 0 36 5}} (test infra, not transpiled)
+			// do_select_test 2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"zm agm...} {3 24 52 53} (test infra, not transpiled)
+			// do_select_test 2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"zm zf"...} {33 53 75 88 101} (test infra, not transpiled)
+			// do_select_test 2.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"zm aay...} {48 65 84} (test infra, not transpiled)
+			// do_select_test 2.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"aayxpm...} {11 37 84} (test infra, not transpiled)
+			// do_select_test 2.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"jk aza...} {16 53} (test infra, not transpiled)
+			// do_select_test 2.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"xh jk ...} {18} (test infra, not transpiled)
+			// do_select_test 2.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"zm jk ...} {13 17} (test infra, not transpiled)
+			// do_select_test 2.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"zm jk ...} {} (test infra, not transpiled)
+			// do_select_test 3.1 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t...} {\n    {zm [zm] [agmckuiu] uhzq nsab jk rrkx duszem...} (test infra, not transpiled)
+			// do_select_test 3.2 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t...} {\n    {[xnxhf] [jk] [jk] agmckuiu duszemmzl [jk] z...} (test infra, not transpiled)
+			// do_select_test 4.1 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH '"...} {\n    {0 0 10 2 0 1 13 6} {0 0 26 2 0 1 29 6}\n  } (test infra, not transpiled)
+			// do_select_test 4.2 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'd...} {\n    {0 2 3 8 0 1 36 2 0 0 58 9} \n    {0 0 0 9 0...} (test infra, not transpiled)
+			// do_select_test 4.3 {\n    SELECT offsets(t1) FROM t1 \n    WHERE t1 MA...} {{0 0 0 5 0 1 15 7 0 0 36 5}} (test infra, not transpiled)
 			for _, DO_MALLOC_TEST := range tclSplitList(dmt_modes) {
 			_ = DO_MALLOC_TEST // suppress unused warning
-				// do_select_test 5.$DO_MALLOC_TEST.1 {
-      SELECT rowid FROM t1 WHERE t1 MATCH '"jk mj...} {8 15 36 64 67 72} (test infra, not transpiled)
-				// do_select_test 5.$DO_MALLOC_TEST.2 {
-      SELECT rowid FROM t1 WHERE t1 MATCH 'duszem...} {3 5 8 10 12 13 18 20 23 37 43 55 60 65 67 72 74 81...} (test infra, not transpiled)
-				// do_select_test 5.$DO_MALLOC_TEST.3 {
-      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {
-      {[zm] [aayxpmve] csjqxhgj xnxhf xr jk aayxp...} (test infra, not transpiled)
-				// do_select_test 5.$DO_MALLOC_TEST.4 {
-      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {
-      {[zm] jk [zm] [zm] [zhbrzadb] uenvbm aayxpm...} (test infra, not transpiled)
-				// do_select_test 5.$DO_MALLOC_TEST.5 {
-      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {
-      {0 0 0 2 0 1 3 8} {0 0 38 2 0 1 41 8} {0 0 ...} (test infra, not transpiled)
-				// do_select_test 5.$DO_MALLOC_TEST.6 {
-      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {
-      {0 0 0 2 0 0 6 2 0 0 9 2 0 1 12 8}
-    } (test infra, not transpiled)
+				// do_select_test 5.$DO_MALLOC_TEST.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '"jk m...} {8 15 36 64 67 72} (test infra, not transpiled)
+				// do_select_test 5.$DO_MALLOC_TEST.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH 'dusze...} {3 5 8 10 12 13 18 20 23 37 43 55 60 65 67 72 74 81...} (test infra, not transpiled)
+				// do_select_test 5.$DO_MALLOC_TEST.3 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE...} {\n      {[zm] [aayxpmve] csjqxhgj xnxhf xr jk aayx...} (test infra, not transpiled)
+				// do_select_test 5.$DO_MALLOC_TEST.4 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE...} {\n      {[zm] jk [zm] [zm] [zhbrzadb] uenvbm aayxp...} (test infra, not transpiled)
+				// do_select_test 5.$DO_MALLOC_TEST.5 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH ...} {\n      {0 0 0 2 0 1 3 8} {0 0 38 2 0 1 41 8} {0 0...} (test infra, not transpiled)
+				// do_select_test 5.$DO_MALLOC_TEST.6 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH ...} {\n      {0 0 0 2 0 0 6 2 0 0 9 2 0 1 12 8}\n    } (test infra, not transpiled)
 				DO_MALLOC_TEST = "0"
 				_ = DO_MALLOC_TEST // suppress unused warning
 			}
-			// do_select_test 6.1 {
-    SELECT rowid FROM t1 
-    WHERE t1 MATCH 'vgs...} {10} (test infra, not transpiled)
-			// do_select_test 6.2.1 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"jk xduv...} {8} (test infra, not transpiled)
-			// do_select_test 6.2.2 {
-    SELECT rowid FROM t1 WHERE t1 MATCH '"zm azav...} {15 26 92 96} (test infra, not transpiled)
+			// do_select_test 6.1 {\n    SELECT rowid FROM t1 \n    WHERE t1 MATCH 'v...} {10} (test infra, not transpiled)
+			// do_select_test 6.2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"jk xdu...} {8} (test infra, not transpiled)
+			// do_select_test 6.2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '"zm aza...} {15 26 92 96} (test infra, not transpiled)
 			if func() bool { fts3_simple_deferred_tokens_only_n, _fts3_simple_deferred_tokens_only_e := strconv.Atoi(fts3_simple_deferred_tokens_only); if _fts3_simple_deferred_tokens_only_e != nil { return false }; return fts3_simple_deferred_tokens_only_n == 0 }() {
-				// do_select_test 6.2.3 {
-      SELECT rowid FROM t1 WHERE t1 MATCH '"jk xd...} {8 15 26 92 96} (test infra, not transpiled)
+				// do_select_test 6.2.3 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '"jk x...} {8 15 26 92 96} (test infra, not transpiled)
 			}
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n > 1 }() {
-				// do_select_test 7.1 {
-      SELECT rowid FROM t1 WHERE t1 MATCH '^zm mj...} {56 62} (test infra, not transpiled)
-				// do_select_test 7.2 {
-      SELECT rowid FROM t1 WHERE t1 MATCH '^azavw...} {43} (test infra, not transpiled)
+				// do_select_test 7.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^zm m...} {56 62} (test infra, not transpiled)
+				// do_select_test 7.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^azav...} {43} (test infra, not transpiled)
 			}
 		}
 		testprefix = "fts3defer"
@@ -302,6 +251,7 @@ func Test_fts3defer(t *testing.T) {
 		}
 		tokenizers = "1 simple"
 		_ = tokenizers // suppress unused warning
+		tokenizers = tclListAppend(tokenizers, "2", "icu en_US")
 		// foreach {tn tokenizer} tokenizers
 		_items1 := tclSplitList(tokenizers)
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {

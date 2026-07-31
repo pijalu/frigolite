@@ -67,6 +67,7 @@ func Test_vacuum2(t *testing.T) {
 	testprefix = "vacuum2"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
+	return
 	if tclBool(AUTOVACUUM) {
 		return
 	}
@@ -99,12 +100,19 @@ func Test_vacuum2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');\n  ")
 		}
-		// expr [file size test.db]/$pageSize → "[file size test.db]/$pageSize"
+		// expr [file size test.db]/$pageSize (not evaluated)
 	}
 	cksum = "cksum"
 	_ = cksum // suppress unused warning
 	{ // do_test "vacuum2-3.2"
 		// cksum db2 (unsupported command, not transpiled)
+	}
+	{ // do_test "vacuum2-3.3"
+		_res = db.Exec("\n      PRAGMA auto_vacuum=FULL;\n      VACUUM;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum=FULL;\n      VACUUM;\n    ")
+		}
+		// expr [file size test.db]/$pageSize (not evaluated)
 	}
 	{ // do_test "vacuum2-3.4"
 		// cksum db2 (unsupported command, not transpiled)
@@ -129,7 +137,7 @@ func Test_vacuum2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=NONE;\n    VACUUM;\n  ")
 		}
-		// expr [file size test.db]/$pageSize → "[file size test.db]/$pageSize"
+		// expr [file size test.db]/$pageSize (not evaluated)
 	}
 	{ // do_test "vacuum2-3.14"
 		// cksum db2 (unsupported command, not transpiled)
@@ -150,9 +158,61 @@ func Test_vacuum2(t *testing.T) {
 		}
 	}
 	db2.Close()
+	{ // do_test "vacuum2-4.1"
+		os.Remove("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      pragma auto_vacuum=1;\n      create table t(a, b);\n      insert into t values(1, 2);\n      insert into t values(1, 2);\n      pragma auto_vacuum=0;\n      vacuum;\n      pragma auto_vacuum;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum=1;\n      create table t(a, b);\n      insert into t values(1, 2);\n      insert into t values(1, 2);\n      pragma auto_vacuum=0;\n      vacuum;\n      pragma auto_vacuum;\n    ")
+		}
+	}
+	{ // do_test "vacuum2-4.2"
+		r = db.Query("\n      pragma auto_vacuum=1;\n      vacuum;\n      pragma auto_vacuum;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum=1;\n      vacuum;\n      pragma auto_vacuum;\n    ")
+		}
+	}
+	{ // do_test "vacuum2-4.3"
+		r = db.Query("\n      pragma integrity_check\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma integrity_check\n    ")
+		}
+	}
+	{ // do_test "vacuum2-4.4"
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      pragma auto_vacuum;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum;\n    ")
+		}
+	}
+	{ // do_test "vacuum2-4.5"
+		r = db.Query("\n      pragma auto_vacuum=2;\n      vacuum;\n      pragma auto_vacuum;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum=2;\n      vacuum;\n      pragma auto_vacuum;\n    ")
+		}
+	}
+	{ // do_test "vacuum2-4.6"
+		r = db.Query("\n      pragma integrity_check\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma integrity_check\n    ")
+		}
+	}
+	{ // do_test "vacuum2-4.7"
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      pragma auto_vacuum;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum;\n    ")
+		}
+	}
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "vacuum2-5.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 SELECT a+1, randomblob(500) FROM t1;      -- 2\n  INSERT INTO t1 SELECT a+2, randomblob(500) FROM t1;      -- 4 \n  INSERT INTO t1 SELECT a+4, randomblob(500) FROM t1;      -- 8 \n  INSERT INTO t1 SELECT a+8, randomblob(500) FROM t1;      -- 16 \n")

@@ -60,10 +60,7 @@ func Test_malloc7(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
-	// do_malloc_test malloc7-1 -sqlprep {
-  CREATE TABLE t1(a,b,c,d);
-  CREATE INDEX i1 ON ...} -tclbody {
-  set sql16 [encoding convertto unicode "SELECT *...} (unsupported command, not transpiled)
+	// do_malloc_test malloc7-1 -sqlprep {\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX i1 O...} -tclbody {\n  set sql16 [encoding convertto unicode "SELECT ...} (unsupported command, not transpiled)
 	{ // do_test "malloc-99.X"
 		{
 			var _catchErr error

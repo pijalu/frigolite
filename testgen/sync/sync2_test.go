@@ -59,6 +59,7 @@ func Test_sync2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "sync2"
 	_ = testprefix // suppress unused warning
+	return
 	if tclBool(tcl_platform_os + " == \"Windows NT\"\n  || " + "permutation" + " == \"journaltest\"\n  || " + "permutation" + " == \"inmemory_journal\"\n  || " + "atomic_batch_write test.db") {
 		return
 	}

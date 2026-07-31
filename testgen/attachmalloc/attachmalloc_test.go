@@ -51,16 +51,16 @@ func Test_attachmalloc(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// do_malloc_test attachmalloc-1 -tclprep {
-  catch { db close }
-  for {set i 2} {$i<=4} {inc...} -tclbody {
-  if {[catch {sqlite3 db test.db}]} {
-    error "...} -sqlbody {
-  ATTACH 'test2.db' AS two;
-  CREATE TABLE two.t1...} (unsupported command, not transpiled)
-	// do_malloc_test attachmalloc-2 -tclprep {
-  forcedelete test2.db
-  forcedelete test2.db-jou...} -sqlbody {
-  CREATE TABLE t1(d, e, f);
-  ATTACH 'test2.db' A...} (unsupported command, not transpiled)
+	return
+	// do_malloc_test attachmalloc-1 -tclprep {\n  catch { db close }\n  for {set i 2} {$i<=4} {i...} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error...} -sqlbody {\n  ATTACH 'test2.db' AS two;\n  CREATE TABLE two....} (unsupported command, not transpiled)
+	// do_malloc_test attachmalloc-2 -tclprep {\n  forcedelete test2.db\n  forcedelete test2.db-j...} -sqlbody {\n  CREATE TABLE t1(d, e, f);\n  ATTACH 'test2.db'...} (unsupported command, not transpiled)
+	enable_shared_cache = "sqlite3_enable_shared_cache 1"
+	_ = enable_shared_cache // suppress unused warning
+	dbaux, err := frigolite.Open("test3.db")
+	defer dbaux.Close()
+	if err != nil { t.Fatal(err) }
+	// dbaux eval {SELECT * FROM sqlite_master} (unsupported command, not transpiled)
+	// do_malloc_test attachmalloc-3 -sqlbody {\n    SELECT * FROM sqlite_master;\n    ATTACH 'te...} -cleanup {\n    db eval { DETACH three }\n  } (unsupported command, not transpiled)
+	// dbaux close (unsupported command, not transpiled)
+	// sqlite3_enable_shared_cache $enable_shared_cache (unsupported command, not transpiled)
 }

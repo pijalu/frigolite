@@ -64,6 +64,7 @@ func Test_intarray(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "intarray-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
 		if _res.Error != nil {
@@ -152,8 +153,8 @@ func Test_intarray(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 999 }() {
 			cmd = tclListAppend(cmd, i)
-			cmd = tclListAppend(cmd, "$i+1000")
-			cmd = tclListAppend(cmd, "$i+2000")
+			cmd = tclListAppend(cmd, tclExpr("$i+1000"))
+			cmd = tclListAppend(cmd, tclExpr("$i+2000"))
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

@@ -3,6 +3,7 @@ package select7
 
 import (
 "github.com/pijalu/frigolite"
+"strconv"
 "strings"
 "testing"
 )
@@ -58,7 +59,79 @@ func Test_select7(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "select7"
 	_ = testprefix // suppress unused warning
+	{ // do_test "select7-1.1"
+		r = db.Query("\n      create temp table t1(x);\n      insert into t1 values('amx');\n      insert into t1 values('anx');\n      insert into t1 values('amy');\n      insert into t1 values('bmy');\n      select * from t1 where x like 'a__'\n        intersect select * from t1 where x like '_m_'\n        intersect select * from t1 where x like '__x';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      create temp table t1(x);\n      insert into t1 values('amx');\n      insert into t1 values('anx');\n      insert into t1 values('amy');\n      insert into t1 values('bmy');\n      select * from t1 where x like 'a__'\n        intersect select * from t1 where x like '_m_'\n        intersect select * from t1 where x like '__x';\n    ")
+		}
+	}
+	{ // do_test "select7-2.1"
+		r = db.Query("\n    CREATE TABLE x(id integer primary key, a TEXT NULL);\n    INSERT INTO x (a) VALUES ('first');\n    CREATE TABLE tempx(id integer primary key, a TEXT NULL);\n    INSERT INTO tempx (a) VALUES ('t-first');\n    CREATE VIEW tv1 AS SELECT x.id, tx.id FROM x JOIN tempx tx ON tx.id=x.id;\n    CREATE VIEW tv1b AS SELECT x.id, tx.id FROM x JOIN tempx tx on tx.id=x.id;\n    CREATE VIEW tv2 AS SELECT * FROM tv1 UNION SELECT * FROM tv1b;\n    SELECT * FROM tv2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE x(id integer primary key, a TEXT NULL);\n    INSERT INTO x (a) VALUES ('first');\n    CREATE TABLE tempx(id integer primary key, a TEXT NULL);\n    INSERT INTO tempx (a) VALUES ('t-first');\n    CREATE VIEW tv1 AS SELECT x.id, tx.id FROM x JOIN tempx tx ON tx.id=x.id;\n    CREATE VIEW tv1b AS SELECT x.id, tx.id FROM x JOIN tempx tx on tx.id=x.id;\n    CREATE VIEW tv2 AS SELECT * FROM tv1 UNION SELECT * FROM tv1b;\n    SELECT * FROM tv2;\n  ")
+		}
+	}
+	{ // do_test "select7-3.1"
+		_res = db.Exec("\n      SELECT * FROM (SELECT * FROM sqlite_master) GROUP BY name\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select7-4.1"
+		r = db.Query("\n      CREATE TABLE IF NOT EXISTS photo(pk integer primary key, x);\n      CREATE TABLE IF NOT EXISTS tag(pk integer primary key, fk int, name);\n    \n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE IF NOT EXISTS photo(pk integer primary key, x);\n      CREATE TABLE IF NOT EXISTS tag(pk integer primary key, fk int, name);\n    \n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );\n    ")
+		}
+	}
+	{ // do_test "select7-4.2"
+		r = db.Query("\n      INSERT INTO photo VALUES(1,1);\n      INSERT INTO photo VALUES(2,2);\n      INSERT INTO photo VALUES(3,3);\n      INSERT INTO tag VALUES(11,1,'one');\n      INSERT INTO tag VALUES(12,1,'two');\n      INSERT INTO tag VALUES(21,1,'one-b');\n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO photo VALUES(1,1);\n      INSERT INTO photo VALUES(2,2);\n      INSERT INTO photo VALUES(3,3);\n      INSERT INTO tag VALUES(11,1,'one');\n      INSERT INTO tag VALUES(12,1,'two');\n      INSERT INTO tag VALUES(21,1,'one-b');\n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );\n    ")
+		}
+	}
+	{ // do_test "select7-5.1"
+		_res = db.Exec("\n      CREATE TABLE t2(a,b);\n      SELECT 5 IN (SELECT a,b FROM t2);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select7-5.2"
+		_res = db.Exec("\n      SELECT 5 IN (SELECT * FROM t2);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select7-5.3"
+		_res = db.Exec("\n      SELECT 5 IN (SELECT a,b FROM t2 UNION SELECT b,a FROM t2);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "select7-5.4"
+		_res = db.Exec("\n      SELECT 5 IN (SELECT * FROM t2 UNION SELECT * FROM t2);\n    ")
+		_ = _res // catchsql
+	}
 	if tclBool("clang_sanitize_address" + "==0") {
+		if func() bool { SQLITE_MAX_COMPOUND_SELECT_n, _SQLITE_MAX_COMPOUND_SELECT_e := strconv.Atoi(SQLITE_MAX_COMPOUND_SELECT); if _SQLITE_MAX_COMPOUND_SELECT_e != nil { return false }; return SQLITE_MAX_COMPOUND_SELECT_n > 0 }() {
+			sql = "SELECT 0"
+			_ = sql // suppress unused warning
+			result = "0"
+			_ = result // suppress unused warning
+			i = "1"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; SQLITE_MAX_COMPOUND_SELECT_n, _SQLITE_MAX_COMPOUND_SELECT_e := strconv.Atoi(SQLITE_MAX_COMPOUND_SELECT); if _SQLITE_MAX_COMPOUND_SELECT_e != nil { return false }; return i_n < SQLITE_MAX_COMPOUND_SELECT_n }() {
+				sql += " UNION ALL SELECT " + i
+				result = tclListAppend(result, i)
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			{ // do_test "select7-6.1"
+				_res = db.Exec(sql)
+				_ = _res // catchsql
+			}
+			sql += " UNION ALL SELECT 99999999"
+			{ // do_test "select7-6.2"
+				_res = db.Exec(sql)
+				_ = _res // catchsql
+			}
+		}
 	}
 	{ // "select7-6.5"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n")

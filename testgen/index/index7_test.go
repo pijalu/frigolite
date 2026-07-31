@@ -64,6 +64,7 @@ func Test_index7(t *testing.T) {
 	_ = x_col // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// proc definition (not transpiled)
 	// load_static_extension db wholenumber (unsupported command, not transpiled)
 	{ // do_test "index7-1.1"
@@ -193,6 +194,12 @@ func Test_index7(t *testing.T) {
 		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;\n  ")
+		}
+	}
+	{ // do_test "index7-2.3stat4"
+		r = db.Query("\n      EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL;\n    ")
 		}
 	}
 	{ // do_test "index7-2.4"

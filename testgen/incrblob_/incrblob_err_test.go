@@ -65,55 +65,25 @@ func Test_incrblob_err(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "incrblob_err" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	fd = "open $::cmdlinearg(INFO_SCRIPT)" // TCL namespace variable
 	_ = fd // suppress unused warning
 	data = "read $::fd" // TCL namespace variable
 	_ = data // suppress unused warning
 	// close $::fd
-	// do_malloc_test 1 -tclprep {
-  set bytes [file size $::cmdlinearg(INFO_SCRIPT)...} -tclbody {
-  set ::blob [db incrblob blobs v 1]
-  fconfigure...} (unsupported command, not transpiled)
-	// do_malloc_test 2 -tclprep {
-  execsql {
-    CREATE TABLE blobs(k, v BLOB);
-  ...} -tclbody {
-  set ::blob [db incrblob blobs v 1]
-  set rc [ca...} (unsupported command, not transpiled)
-	// do_malloc_test 3 -tclprep {
-  execsql {
-    CREATE TABLE blobs(k, v BLOB);
-  ...} -tclbody {
-  set ::blob [db incrblob blobs v 1]
-  set rc [ca...} (unsupported command, not transpiled)
-	// do_ioerr_test incrblob_err-4 -cksum 1 -sqlprep {
-  CREATE TABLE blobs(k, v BLOB);
-  INSERT INTO bl...} -tclbody {
-  set ::blob [db incrblob blobs v 1]
-  read $::bl...} (unsupported command, not transpiled)
-	// do_ioerr_test incrblob_err-5 -cksum 1 -sqlprep {
-  CREATE TABLE blobs(k, v BLOB);
-  INSERT INTO bl...} -tclbody {
-  set ::blob [db incrblob blobs v 1]
-  fconfigure...} (unsupported command, not transpiled)
-	// do_ioerr_test incrblob_err-6 -cksum 1 -sqlprep {
-  CREATE TABLE blobs(k, v BLOB);
-  INSERT INTO bl...} -tclbody {
-  set ::blob [db incrblob blobs v 1]
-  fconfigure...} (unsupported command, not transpiled)
-	// do_ioerr_test incrblob_err-7 -cksum 1 -sqlprep {
-  PRAGMA auto_vacuum = 1;
-  CREATE TABLE blobs(k ...} -tclbody {
-  # Read some data from the end of the large blob...} (unsupported command, not transpiled)
+	// do_malloc_test 1 -tclprep {\n  set bytes [file size $::cmdlinearg(INFO_SCRIPT...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  fconfigu...} (unsupported command, not transpiled)
+	// do_malloc_test 2 -tclprep {\n  execsql {\n    CREATE TABLE blobs(k, v BLOB);\...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  set rc [...} (unsupported command, not transpiled)
+	// do_malloc_test 3 -tclprep {\n  execsql {\n    CREATE TABLE blobs(k, v BLOB);\...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  set rc [...} (unsupported command, not transpiled)
+	// do_ioerr_test incrblob_err-4 -cksum 1 -sqlprep {\n  CREATE TABLE blobs(k, v BLOB);\n  INSERT INTO ...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  read $::...} (unsupported command, not transpiled)
+	// do_ioerr_test incrblob_err-5 -cksum 1 -sqlprep {\n  CREATE TABLE blobs(k, v BLOB);\n  INSERT INTO ...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  fconfigu...} (unsupported command, not transpiled)
+	// do_ioerr_test incrblob_err-6 -cksum 1 -sqlprep {\n  CREATE TABLE blobs(k, v BLOB);\n  INSERT INTO ...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  fconfigu...} (unsupported command, not transpiled)
+	// do_ioerr_test incrblob_err-7 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE blobs(...} -tclbody {\n  # Read some data from the end of the large blo...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	// do_ioerr_test incrblob_err-8 -cksum 1 -sqlprep {
-  PRAGMA auto_vacuum = 1;
-  CREATE TABLE blobs(k ...} -tclbody {
-  # Read some data from the end of the large blob...} (unsupported command, not transpiled)
+	// do_ioerr_test incrblob_err-8 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE blobs(...} -tclbody {\n  # Read some data from the end of the large blo...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

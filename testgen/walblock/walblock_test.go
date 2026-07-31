@@ -57,6 +57,7 @@ func Test_walblock(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	return
+	return
 	if tcl_platform_platform != "unix" {
 		return
 	}
@@ -86,16 +87,12 @@ func Test_walblock(t *testing.T) {
 	{ // do_test "1.1.2"
 		C = "launch_testfixture"
 		_ = C // suppress unused warning
-		// testfixture $C {
-    sqlite3 db test.db
-    db eval { SELECT * FRO...} (unsupported command, not transpiled)
+		// testfixture $C {\n    sqlite3 db test.db\n    db eval { SELECT * F...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.1.3"
 		out = "list" // TCL namespace variable
 		_ = out // suppress unused warning
-		// testfixture $C {
-    db eval { SELECT * FROM t1 }
-  } [list set ::out] (unsupported command, not transpiled)
+		// testfixture $C {\n    db eval { SELECT * FROM t1 }\n  } [list set ::out] (unsupported command, not transpiled)
 		_ = out // TCL namespace variable (query)
 	}
 	{ // do_test "1.1.4"

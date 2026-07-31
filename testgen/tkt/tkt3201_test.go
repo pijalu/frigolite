@@ -105,4 +105,10 @@ func Test_tkt3201(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b, c, d FROM t1, t3 WHERE a < c ")
 		}
 	}
+	{ // do_test "tkt3201-4.0"
+		_res = db.Exec("\n     CREATE TABLE t4(x);\n     CREATE TABLE t4_log(x);\n     CREATE TRIGGER r4_1 AFTER INSERT ON t4 WHEN new.x=1 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     CREATE TRIGGER r4_2 AFTER INSERT ON t4 WHEN new.x=2 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     CREATE TRIGGER r4_3 AFTER INSERT ON t4 WHEN new.x=3 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     CREATE TRIGGER r4_4 AFTER INSERT ON t4 WHEN new.x=4 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     INSERT INTO t4 VALUES(1);\n     INSERT INTO t4 VALUES(2);\n     INSERT INTO t4 VALUES(3);\n     INSERT INTO t4 VALUES(4);\n     SELECT * FROM t4_log;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t4(x);\n     CREATE TABLE t4_log(x);\n     CREATE TRIGGER r4_1 AFTER INSERT ON t4 WHEN new.x=1 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     CREATE TRIGGER r4_2 AFTER INSERT ON t4 WHEN new.x=2 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     CREATE TRIGGER r4_3 AFTER INSERT ON t4 WHEN new.x=3 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     CREATE TRIGGER r4_4 AFTER INSERT ON t4 WHEN new.x=4 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     INSERT INTO t4 VALUES(1);\n     INSERT INTO t4 VALUES(2);\n     INSERT INTO t4 VALUES(3);\n     INSERT INTO t4 VALUES(4);\n     SELECT * FROM t4_log;\n    ")
+		}
+	}
 }

@@ -151,11 +151,290 @@ func Test_io(t *testing.T) {
 		}
 		// nWrite db (unsupported command, not transpiled)
 	}
+	{ // do_test "io-2.1"
+		_res = db.Exec(" DELETE FROM abc; VACUUM; ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM abc; VACUUM; ")
+		}
+	}
+	// nWrite db (unsupported command, not transpiled)
+	// nSync (unsupported command, not transpiled)
+	{ // do_test "io-2.2"
+		_res = db.Exec(" INSERT INTO abc VALUES(1, 2) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc VALUES(1, 2) ")
+		}
+		_list := tclList([]string{"nWrite db", "nSync"})
+		_ = _list
+	}
+	// sqlite3_simulate_device -char atomic (unsupported command, not transpiled)
+	{ // do_test "io-2.3"
+		_res = db.Exec(" INSERT INTO abc VALUES(3, 4) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc VALUES(3, 4) ")
+		}
+		_list := tclList([]string{"nWrite db", "nSync"})
+		_ = _list
+	}
+	{ // do_test "io-2.4.1"
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6);\n  ")
+		}
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		r = db.Query(" SELECT * FROM abc ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+		}
+	}
+	{ // do_test "io-2.4.2"
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.4.3"
+		_res = db.Exec(" COMMIT ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		}
+		r = db.Query(" SELECT * FROM abc ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+		}
+	}
+	db2.Close()
+	{ // do_test "io-2.5.1"
+		_res = db.Exec(" CREATE TABLE def(d, e) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE def(d, e) ")
+		}
+		// nWrite db (unsupported command, not transpiled)
+		// nSync (unsupported command, not transpiled)
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(7, 8);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO abc VALUES(7, 8);\n  ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.5.2"
+		_res = db.Exec(" INSERT INTO def VALUES('a', 'b'); ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO def VALUES('a', 'b'); ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.5.3"
+		_res = db.Exec(" COMMIT ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		}
+		_list := tclList([]string{"nWrite db", "nSync"})
+		_ = _list
+	}
+	{ // do_test "io-2.6.1"
+		_res = db.Exec("\n    BEGIN IMMEDIATE;\n    -- INSERT INTO abc VALUES(9, randstr(1000,1000));\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN IMMEDIATE;\n    -- INSERT INTO abc VALUES(9, randstr(1000,1000));\n  ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.6.2"
+		// file mkdir test.db-journal
+		_res = db.Exec("\n    INSERT INTO abc VALUES(9, randstr(1000,1000));\n    COMMIT\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "io-2.6.3"
+		os.Remove("test.db-journal")
+		_res = db.Exec(" COMMIT ")
+		_ = _res // catchsql
+	}
+	{ // do_test "io-2.6.4"
+		r = db.Query(" SELECT * FROM abc ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+		}
+	}
+	os.Remove("test2.db")
+	{ // do_test "io-2.7.1"
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_size = 1024;\n      CREATE TABLE aux.abc2(a, b);\n      BEGIN;\n      INSERT INTO abc VALUES(9, 10);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_size = 1024;\n      CREATE TABLE aux.abc2(a, b);\n      BEGIN;\n      INSERT INTO abc VALUES(9, 10);\n    ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.7.2"
+		_res = db.Exec(" INSERT INTO abc2 SELECT * FROM abc ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc2 SELECT * FROM abc ")
+		}
+		// file exists "test2.db-journal"
+	}
+	{ // do_test "io-2.7.3"
+		r = db.Query(" SELECT * FROM abc UNION ALL SELECT * FROM abc2 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc UNION ALL SELECT * FROM abc2 ")
+		}
+	}
+	{ // do_test "io-2.7.4"
+		// file mkdir test2.db-journal
+		_res = db.Exec(" COMMIT ")
+		_ = _res // catchsql
+	}
+	{ // do_test "io-2.7.5"
+		os.Remove("test2.db-journal")
+		_res = db.Exec(" COMMIT ")
+		_ = _res // catchsql
+	}
+	{ // do_test "io-2.7.6"
+		r = db.Query(" SELECT * FROM abc UNION ALL SELECT * FROM abc2 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc UNION ALL SELECT * FROM abc2 ")
+		}
+	}
+	{ // do_test "io-2.8.1"
+		_res = db.Exec("\n    BEGIN;\n    DELETE FROM abc;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM abc;\n  ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.8.2"
+		r = db.Query(" SELECT * FROM abc ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+		}
+	}
+	{ // do_test "io-2.8.3"
+		r = db.Query("\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
+		}
+	}
+	{ // do_test "io-2.9.1"
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		// sqlite3_simulate_device -char atomic -sectorsize 2048 (unsupported command, not transpiled)
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(9, 10);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO abc VALUES(9, 10);\n  ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.9.2"
+		_res = db.Exec(" ROLLBACK; ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK; ")
+		}
+		os.Remove("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 2048;\n    CREATE TABLE abc(a, b);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 2048;\n    CREATE TABLE abc(a, b);\n  ")
+		}
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(9, 10);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO abc VALUES(9, 10);\n  ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.9.3"
+		_res = db.Exec(" COMMIT ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		}
+	}
+	{ // do_test "io-2.10.1"
+		// sqlite3_simulate_device -char atomic1k (unsupported command, not transpiled)
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(11, 12);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO abc VALUES(11, 12);\n  ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.10.2"
+		_res = db.Exec(" ROLLBACK ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
+		}
+		// sqlite3_simulate_device -char atomic2k (unsupported command, not transpiled)
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(11, 12);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO abc VALUES(11, 12);\n  ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.10.3"
+		_res = db.Exec(" ROLLBACK ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
+		}
+	}
+	{ // do_test "io-2.11.0"
+		r = db.Query(" \n    PRAGMA locking_mode = exclusive;\n    PRAGMA locking_mode;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA locking_mode = exclusive;\n    PRAGMA locking_mode;\n  ")
+		}
+	}
+	{ // do_test "io-2.11.1"
+		_res = db.Exec(" \n    INSERT INTO abc VALUES(11, 12);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO abc VALUES(11, 12);\n  ")
+		}
+		// file exists "test.db-journal"
+	}
+	{ // do_test "io-2.11.2"
+		_res = db.Exec(" \n    PRAGMA locking_mode = normal;\n    INSERT INTO abc VALUES(13, 14);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA locking_mode = normal;\n    INSERT INTO abc VALUES(13, 14);\n  ")
+		}
+		// file exists "test.db-journal"
+	}
 	// sqlite3_simulate_device -char sequential -sectorsize 0 (unsupported command, not transpiled)
+	{ // do_test "io-3.1"
+		os.Remove("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n      PRAGMA auto_vacuum=OFF;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum=OFF;\n    ")
+		}
+		// expr [file size test.db]>1 (not evaluated)
+	}
+	{ // do_test "io-3.2"
+		_res = db.Exec(" CREATE TABLE abc(a, b) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE abc(a, b) ")
+		}
+		// nSync (unsupported command, not transpiled)
+		_res = db.Exec("\n      PRAGMA temp_store = memory;\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO abc VALUES('hello', 'world');\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA temp_store = memory;\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO abc VALUES('hello', 'world');\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n    ")
+		}
+		_list := tclList([]string{tclExpr("[file size test.db]>20000"), "nSync"})
+		_ = _list
+	}
+	{ // do_test "io-3.3"
+		_res = db.Exec(" COMMIT ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		}
+		_list := tclList([]string{"file size test.db", "nSync"})
+		_ = _list
+	}
 	// sqlite3_simulate_device -char safe_append (unsupported command, not transpiled)
 	expected_sync_count = "2"
 	_ = expected_sync_count // suppress unused warning
 	if tcl_platform_os != "Windows NT" {
+		// incr expected_sync_count 1
+		{
+			_n, _err := strconv.Atoi(expected_sync_count)
+			if _err == nil {
+				expected_sync_count = strconv.Itoa(_n + 1)
+			}
+		}
 	}
 	{ // do_test "io-4.1"
 		_res = db.Exec(" DELETE FROM abc ")
@@ -198,7 +477,13 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
 		}
-		// expr [file size test.db]/1024 → "[file size test.db]/1024"
+		// expr [file size test.db]/1024 (not evaluated)
+	}
+	{ // do_test "io-4.3.2"
+		r = db.Query("\n      PRAGMA synchronous = full;\n      PRAGMA cache_size = 10;\n      PRAGMA synchronous;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA synchronous = full;\n      PRAGMA cache_size = 10;\n      PRAGMA synchronous;\n    ")
+		}
 	}
 	{ // do_test "io-4.3.3"
 		_res = db.Exec("\n    BEGIN;\n    UPDATE abc SET a = 'x';\n  ")
@@ -215,15 +500,15 @@ func Test_io(t *testing.T) {
 	tn = "0"
 	_ = tn // suppress unused warning
 	// foreach {char sectorsize pgsize} "\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n"
-	_items1 := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
-	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-		char := _items1[_idx1+0]
+	_items4 := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
+	for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+		char := _items4[_idx4+0]
 		_ = char // suppress unused warning
-		sectorsize := _items1[_idx1+1]
+		sectorsize := _items4[_idx4+1]
 		_ = sectorsize // suppress unused warning
-		pgsize := _items1[_idx1+2]
+		pgsize := _items4[_idx4+2]
 		_ = pgsize // suppress unused warning
-		_ = _idx1
+		_ = _idx4
 			// incr tn 1
 			{
 				_n, _err := strconv.Atoi(tn)
@@ -235,26 +520,28 @@ func Test_io(t *testing.T) {
 			}
 			os.Remove("test.db")
 			// sqlite3_simulate_device -char $char -sectorsize $sectorsize (unsupported command, not transpiled)
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			_dbtmp5, err := frigolite.Open("test.db")
+			_ = _dbtmp5 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n  ")
+			}
+			if tclBool("regexp {^atomic} $char") {
 			}
 			{ // do_test "io-5." + tn
 				_res = db.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE abc(a, b, c);\n    ")
 				}
-				// expr [file size test.db]/2 → "[file size test.db]/2"
+				// expr [file size test.db]/2 (not evaluated)
 			}
 		}
 		{ // do_test "io-6.1"
 			// sqlite3_simulate_device -char atomic (unsupported command, not transpiled)
 			os.Remove("test.db")
-			_dbtmp3, err := frigolite.Open("test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			_dbtmp6, err := frigolite.Open("test.db")
+			_ = _dbtmp6 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n  ")
 			if _res.Error != nil {
@@ -263,18 +550,18 @@ func Test_io(t *testing.T) {
 			// db_save_and_close (unsupported command, not transpiled)
 		}
 		// foreach {tn sql} "\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n"
-		_items4 := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
-		for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
-			tn := _items4[_idx4+0]
+		_items7 := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
+		for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
+			tn := _items7[_idx7+0]
 			_ = tn // suppress unused warning
-			sql := _items4[_idx4+1]
+			sql := _items7[_idx7+1]
 			_ = sql // suppress unused warning
-			_ = _idx4
+			_ = _idx7
 				if tclBool("permutation" + " == \"memsubsys1\"") {
 				}
 				// db_restore (unsupported command, not transpiled)
-				_dbtmp5, err := frigolite.Open("test.db")
-				_ = _dbtmp5 // sqlite3 db connection
+				_dbtmp8, err := frigolite.Open("test.db")
+				_ = _dbtmp8 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    PRAGMA cache_size = 2000;\n    PRAGMA mmap_size = 0;\n    SELECT x FROM t3 ORDER BY rowid;\n    SELECT x FROM t3 ORDER BY x;\n  ")
 				if r.Error != nil {

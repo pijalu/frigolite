@@ -69,9 +69,7 @@ func Test_mallocAll(t *testing.T) {
 
 	// proc definition (not transpiled)
 	for tclBool("set arg [lshift argv]" + " != \"\"") {
-		// switch -- $arg {
-    -sharedpagercache {
-      sqlite3_enable_shar...} (test infra, not transpiled)
+		// switch -- $arg {\n    -sharedpagercache {\n      sqlite3_enable_sh...} (test infra, not transpiled)
 	}
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)

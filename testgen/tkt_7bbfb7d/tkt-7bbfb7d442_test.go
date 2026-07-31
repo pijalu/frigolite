@@ -73,6 +73,18 @@ func Test_tkt_7bbfb7d442(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t3 ")
 		}
 	}
+	{ // "1.4"
+		r = db.Query("\n    INSERT INTO t3(t3_a) SELECT 1 UNION SELECT 2 UNION SELECT 3;\n    SELECT * FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3(t3_a) SELECT 1 UNION SELECT 2 UNION SELECT 3;\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 I 2 II 3 III"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE InventoryControl (\n    InventoryControlId INTEGER PRIMARY KEY AUTOINCREMENT,\n    SKU INTEGER NOT NULL,\n    Variant INTEGER NOT NULL DEFAULT 0,\n    ControlDate DATE NOT NULL,\n    ControlState INTEGER NOT NULL DEFAULT -1,\n    DeliveredQty VARCHAR(30)\n  );\n  \n  CREATE TRIGGER TGR_InventoryControl_AfterInsert\n  AFTER INSERT ON InventoryControl \n  FOR EACH ROW WHEN NEW.ControlState=-1 BEGIN \n\n  INSERT OR REPLACE INTO InventoryControl(\n        InventoryControlId,SKU,Variant,ControlDate,ControlState,DeliveredQty\n  ) SELECT\n          T1.InventoryControlId AS InventoryControlId,\n          T1.SKU AS SKU,\n          T1.Variant AS Variant,\n          T1.ControlDate AS ControlDate,\n          1 AS ControlState,\n          COALESCE(T2.DeliveredQty,0) AS DeliveredQty\n      FROM (\n          SELECT\n              NEW.InventoryControlId AS InventoryControlId,\n              II.SKU AS SKU,\n              II.Variant AS Variant,\n              COALESCE(LastClosedIC.ControlDate,NEW.ControlDate) AS ControlDate\n          FROM\n              InventoryItem II\n          LEFT JOIN\n              InventoryControl LastClosedIC\n              ON  LastClosedIC.InventoryControlId IN ( SELECT 99999 )\n          WHERE\n              II.SKU=NEW.SKU AND\n              II.Variant=NEW.Variant\n      )   T1\n      LEFT JOIN (\n          SELECT\n              TD.SKU AS SKU,\n              TD.Variant AS Variant,\n              10 AS DeliveredQty\n          FROM\n              TransactionDetail TD\n          WHERE\n              TD.SKU=NEW.SKU AND\n              TD.Variant=NEW.Variant\n      )   T2\n      ON  T2.SKU=T1.SKU AND\n          T2.Variant=T1.Variant;\n  END;\n  \n  CREATE TABLE InventoryItem (\n    SKU INTEGER NOT NULL,\n    Variant INTEGER NOT NULL DEFAULT 0,\n    DeptCode INTEGER NOT NULL,\n    GroupCode INTEGER NOT NULL,\n    ItemDescription VARCHAR(120) NOT NULL,\n    PRIMARY KEY(SKU, Variant)\n  );\n  \n  INSERT INTO InventoryItem VALUES(220,0,1,170,'Scoth Tampon Recurer');\n  INSERT INTO InventoryItem VALUES(31,0,1,110,'Fromage');\n  \n  CREATE TABLE TransactionDetail (\n    TransactionId INTEGER NOT NULL,\n    SKU INTEGER NOT NULL,\n    Variant INTEGER NOT NULL DEFAULT 0,\n    PRIMARY KEY(TransactionId, SKU, Variant)\n  );\n  INSERT INTO TransactionDetail(TransactionId, SKU, Variant) VALUES(44, 31, 0);\n  \n  \n  INSERT INTO InventoryControl(SKU, Variant, ControlDate) SELECT \n      II.SKU AS SKU, II.Variant AS Variant, '2011-08-30' AS ControlDate \n      FROM InventoryItem II;\n")
 		if _res.Error != nil {

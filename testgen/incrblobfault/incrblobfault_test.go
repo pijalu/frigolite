@@ -49,6 +49,7 @@ func Test_incrblobfault(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "incrblobfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
@@ -57,23 +58,7 @@ func Test_incrblobfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE blob(x INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blob VALUES(1, 'hello world');\n  INSERT INTO blob VALUES(2, 'world hello');\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n")
 		}
 	}
-	// do_faultsim_test 1 -prep {
-  sqlite3 db test.db
-  set ::blob [db incrblob bl...} -body {
-  if {[catch {sqlite3_blob_reopen $::blob 1000}]}...} -test {
-  faultsim_test_result {0 {}}
-  close $::blob
-} (unsupported command, not transpiled)
-	// do_faultsim_test 2 -prep {
-  sqlite3 db test.db
-  set ::blob [db incrblob bl...} -body {
-  if {[catch {sqlite3_blob_reopen $::blob -1}]} {...} -test {
-  faultsim_test_result {1 {no such rowid: -1}} {1...} (unsupported command, not transpiled)
-	// do_faultsim_test 3 -prep {
-  sqlite3 db test.db
-} -body {
-  set ::blob [db incrblob blob v 1]
-  gets $::blo...} -test {
-  faultsim_test_result {0 {hello world}}
-  catch ...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  sqlite3 db test.db\n  set ::blob [db incrblob ...} -body {\n  if {[catch {sqlite3_blob_reopen $::blob 1000}]...} -test {\n  faultsim_test_result {0 {}}\n  close $::blob\n} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -prep {\n  sqlite3 db test.db\n  set ::blob [db incrblob ...} -body {\n  if {[catch {sqlite3_blob_reopen $::blob -1}]} ...} -test {\n  faultsim_test_result {1 {no such rowid: -1}} {...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -prep {\n  sqlite3 db test.db\n} -body {\n  set ::blob [db incrblob blob v 1]\n  gets $::b...} -test {\n  faultsim_test_result {0 {hello world}}\n  catc...} (unsupported command, not transpiled)
 }

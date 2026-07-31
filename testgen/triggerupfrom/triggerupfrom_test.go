@@ -158,6 +158,18 @@ func Test_triggerupfrom(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(k, a, b);\n  INSERT INTO t1 VALUES('a', 1, 'one');\n  INSERT INTO t1 VALUES('b', 2, 'two');\n  INSERT INTO t1 VALUES('c', 3, 'three');\n  INSERT INTO t1 VALUES('d', 4, 'four');\n\n  CREATE TABLE log(x);\n  CREATE VIEW v1 AS SELECT k, a, b AS __hidden__b FROM t1;\n  CREATE TRIGGER tr1 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES(\n      '('||old.a||','||old.__hidden__b||')->('||new.a||','||new.__hidden__b||')'\n    );\n  END;\n")
 		}
 	}
+	{ // "4.1-hc-enabled"
+		r = db.Query("\n    SELECT * FROM v1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a 1 b 2 c 3 d 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "4.2"
 		_res = db.Exec("\n  UPDATE v1 SET a='xyz' WHERE k IN ('a', 'c');\n  SELECT * FROM log;\n  DELETE FROM log;\n")
 		if _res.Error != nil {

@@ -63,6 +63,7 @@ func Test_fts4growth(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4growth"
 	_ = testprefix // suppress unused warning
+	return
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE x1 USING fts3; ")

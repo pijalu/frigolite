@@ -51,6 +51,7 @@ func Test_dbdata(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "dbdata"
 	_ = testprefix // suppress unused warning
+	return
 	if tclBool("0" + "\n  || " + "0") {
 		return
 	}

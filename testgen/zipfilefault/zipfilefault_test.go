@@ -52,18 +52,14 @@ func Test_zipfilefault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "zipfilefault"
 	_ = testprefix // suppress unused warning
+	return
 	if false {
 		_putsMsg := "Skipping zipfile2 tests, hit load error: " + _error
 		_ = _putsMsg
 		return
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -prep {
-  faultsim_restore_and_reopen
-  load_static_exten...} -body {
-  execsql { CREATE VIRTUAL TABLE aaa USING zipfil...} -test {
-  faultsim_test_result {0 {}} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  load_static_ext...} -body {\n  execsql { CREATE VIRTUAL TABLE aaa USING zipfi...} -test {\n  faultsim_test_result {0 {}} \n} (unsupported command, not transpiled)
 	os.Remove("test.zip")
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
@@ -75,10 +71,8 @@ func Test_zipfilefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', '1234567890');\n")
 		}
 	}
-	// do_faultsim_test 2.1 -faults oom* -body {
-  execsql { SELECT name,data FROM zipfile('test.z...} -test {
-  faultsim_test_result {0 {a.txt 1234567890}} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test 2.1 -faults oom* -body {\n  execsql { SELECT name,data FROM zipfile('test....} -test {\n  faultsim_test_result {0 {a.txt 1234567890}} \n} (unsupported command, not transpiled)
+	// do_faultsim_test 2.2 -faults oom* -body {\n    execsql { \n      SELECT json_extract( zipfi...} -test {\n    faultsim_test_result {0 798}\n  } (unsupported command, not transpiled)
 	os.Remove("test.zip")
 	db.Close()
 	db, err = frigolite.Open("")
@@ -90,14 +84,8 @@ func Test_zipfilefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa');\n")
 		}
 	}
-	// do_faultsim_test 3 -faults oom* -body {
-  execsql { SELECT name,data FROM zipfile('test.z...} -test {
-  faultsim_test_result {0 {a.txt aaaaaaaaaaaaaaaa...} (unsupported command, not transpiled)
-	// do_faultsim_test 4 -faults oom* -body {
-  execsql {
-    WITH c(n, d) AS (
-      SELECT 1,...} -test {
-  faultsim_test_result {0 {1 aaaaaaaaaaabbbbbbbbb...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults oom* -body {\n  execsql { SELECT name,data FROM zipfile('test....} -test {\n  faultsim_test_result {0 {a.txt aaaaaaaaaaaaaaa...} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      SELECT...} -test {\n  faultsim_test_result {0 {1 aaaaaaaaaaabbbbbbbb...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -109,48 +97,12 @@ func Test_zipfilefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip') \n")
 		}
 	}
-	// do_faultsim_test 5.1 -faults oom* -prep {
-  forcedelete test.zip
-} -body {
-  execsql {
-    INSERT INTO setup(name, data) 
-  ...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 5.2 -faults oom* -prep {
-  forcedelete test.zip
-} -body {
-  execsql {
-    INSERT INTO setup(name, data) VAL...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 5.3 -faults oom* -prep {
-  forcedelete test.zip
-  execsql { 
-    DROP TABL...} -body {
-  execsql {
-    INSERT INTO setup(name, data) VAL...} -test {
-  catchsql { COMMIT }
-  faultsim_test_result {0 {...} (unsupported command, not transpiled)
-	// do_faultsim_test 6.1 -faults oom* -body {
-  execsql {
-    WITH c(n, d) AS (
-      VALUES('a...} -test {
-  faultsim_test_result {0 0}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 5.1 -faults oom* -prep {\n  forcedelete test.zip\n} -body {\n  execsql {\n    INSERT INTO setup(name, data) \...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 5.2 -faults oom* -prep {\n  forcedelete test.zip\n} -body {\n  execsql {\n    INSERT INTO setup(name, data) V...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 5.3 -faults oom* -prep {\n  forcedelete test.zip\n  execsql { \n    DROP T...} -body {\n  execsql {\n    INSERT INTO setup(name, data) V...} -test {\n  catchsql { COMMIT }\n  faultsim_test_result {0...} (unsupported command, not transpiled)
+	// do_faultsim_test 6.1 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      VALUES...} -test {\n  faultsim_test_result {0 0}\n} (unsupported command, not transpiled)
 	big = "0123456789 1000"
 	_ = big // suppress unused warning
-	// do_faultsim_test 6.2 -faults oom* -body {
-  execsql {
-    WITH c(n, d) AS (
-      VALUES('a...} -test {
-  faultsim_test_result {0 0}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 7.0 -faults oom* -prep {
-  catch { db close }
-  sqlite3 db ""
-} -body {
-  load_static_extension db zipfile
-} -test {
-} (unsupported command, not transpiled)
+	// do_faultsim_test 6.2 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      VALUES...} -test {\n  faultsim_test_result {0 0}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 7.0 -faults oom* -prep {\n  catch { db close }\n  sqlite3 db ""\n} -body {\n  load_static_extension db zipfile\n} -test {\n} (unsupported command, not transpiled)
 }

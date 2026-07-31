@@ -78,10 +78,26 @@ func Test_rollback(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;\n  ")
 		}
 	}
+	{ // do_test "rollback-1.2"
+		_res = db.Exec("\n      CREATE TABLE t3(a unique on conflict rollback);\n      INSERT INTO t3 SELECT a FROM t1;\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t3(a unique on conflict rollback);\n      INSERT INTO t3 SELECT a FROM t1;\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;\n    ")
+		}
+	}
 	{ // do_test "rollback-1.3"
 		STMT = "sqlite3_prepare $DB \"SELECT a FROM t1\" -1 TAIL"
 		_ = STMT // suppress unused warning
 		// sqlite3_step $STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "rollback-1.4"
+		_res = db.Exec("\n      INSERT INTO t3 SELECT a FROM t1;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "rollback-1.5"
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "rollback-1.6"
+		// sqlite3_reset $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "rollback-1.7"
 		// sqlite3_step $STMT (unsupported command, not transpiled)
@@ -120,11 +136,11 @@ func Test_rollback(t *testing.T) {
 				}
 			}
 		}
-		mj_pgno = "$sqlite_pending_byte / 1024"
+		mj_pgno = tclExpr("$sqlite_pending_byte / 1024")
 		_ = mj_pgno // suppress unused warning
 		zAppend = "binary format Ia*IIa8 $mj_pgno $mj [string length $mj] $cksum \\\n    \"\\xd9\\xd5\\x05\\xf9\\x20\\xa1\\x63\\xd7\""
 		_ = zAppend // suppress unused warning
-		iOffset = "(([file size testA.db-journal] + 511)/512)*512"
+		iOffset = tclExpr("(([file size testA.db-journal] + 511)/512)*512")
 		_ = iOffset // suppress unused warning
 		fd = "open testA.db-journal a+"
 		_ = fd // suppress unused warning

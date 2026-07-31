@@ -189,7 +189,7 @@ func Test_index(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			sql = "CREATE INDEX " + "format index%02d $i" + " ON test1(f" + "($i%5)+1" + ")"
+			sql = "CREATE INDEX " + "format index%02d $i" + " ON test1(f" + tclExpr("($i%5)+1") + ")"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -210,6 +210,12 @@ func Test_index(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "index-3.2.2"
+		_res = db.Exec("REINDEX")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX")
+		}
+	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "index-3.3"
@@ -230,9 +236,9 @@ func Test_index(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			_res = db.Exec("INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")")
+			_res = db.Exec("INSERT INTO test1 VALUES(" + i + "," + tclExpr("1<<$i") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(" + i + "," + tclExpr("1<<$i") + ")")
 			}
 			// incr i 1
 			{
@@ -468,9 +474,9 @@ func Test_index(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			_res = db.Exec("INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")")
+			_res = db.Exec("INSERT INTO test1 VALUES(" + i + "," + tclExpr("1<<$i") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(" + i + "," + tclExpr("1<<$i") + ")")
 			}
 			// incr i 1
 			{
@@ -531,6 +537,10 @@ func Test_index(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tab1(a int)")
 		}
+		r = db.Query("EXPLAIN CREATE INDEX idx1 ON tab1(a)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN CREATE INDEX idx1 ON tab1(a)")
+		}
 		r = db.Query("SELECT name FROM sqlite_master WHERE tbl_name='tab1'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE tbl_name='tab1'")
@@ -579,6 +589,10 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-10.5"
+		_res = db.Exec(" DELETE FROM t1 WHERE b IN (2, 4, 6, 8); ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE b IN (2, 4, 6, 8); ")
+		}
 		r = db.Query("\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;\n  ")
@@ -693,7 +707,7 @@ func Test_index(t *testing.T) {
 	_ = i // suppress unused warning
 	for tclBool(i + "<" + "llength $::idxlist") {
 		{ // do_test "index-13.3." + i
-			_res = db.Exec("\n      DROP INDEX '" + "lindex $::idxlist $i" + "';\n    ")
+			_res = db.Exec("\n      DROP INDEX '" + tclLIndex(idxlist, i) + "';\n    ")
 			_ = _res // catchsql
 		}
 		// incr i 1
@@ -861,10 +875,50 @@ func Test_index(t *testing.T) {
 		_res = db.Exec("\n    CREATE INDEX sqlite_i1 ON t7(c);\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "index-18.3"
+		_res = db.Exec("\n    CREATE VIEW sqlite_v1 AS SELECT * FROM t7;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "index-18.4"
+		_res = db.Exec("\n      CREATE TRIGGER sqlite_tr1 BEFORE INSERT ON t7 BEGIN SELECT 1; END;\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "index-18.5"
 		_res = db.Exec("\n    DROP TABLE t7;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t7;\n  ")
+		}
+	}
+	{ // do_test "index-19.1"
+		_res = db.Exec("\n      CREATE TABLE t7(a UNIQUE PRIMARY KEY);\n      CREATE TABLE t8(a UNIQUE PRIMARY KEY ON CONFLICT ROLLBACK);\n      INSERT INTO t7 VALUES(1);\n      INSERT INTO t8 VALUES(1);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t7(a UNIQUE PRIMARY KEY);\n      CREATE TABLE t8(a UNIQUE PRIMARY KEY ON CONFLICT ROLLBACK);\n      INSERT INTO t7 VALUES(1);\n      INSERT INTO t8 VALUES(1);\n    ")
+		}
+	}
+	{ // do_test "index-19.2"
+		_res = db.Exec("\n      BEGIN;\n      INSERT INTO t7 VALUES(1);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "index-19.3"
+		_res = db.Exec("\n      BEGIN;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "index-19.4"
+		_res = db.Exec("\n      INSERT INTO t8 VALUES(1);\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "index-19.5"
+		_res = db.Exec("\n      BEGIN;\n      COMMIT;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "index-19.6"
+		_res = db.Exec("\n      DROP TABLE t7;\n      DROP TABLE t8;\n      CREATE TABLE t7(\n         a PRIMARY KEY ON CONFLICT FAIL, \n         UNIQUE(a) ON CONFLICT IGNORE\n      );\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "index-19.7"
+		_res = db.Exec("REINDEX")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")

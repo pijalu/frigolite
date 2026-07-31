@@ -150,7 +150,7 @@ func Test_whereF(t *testing.T) {
 					}
 				}
 				{ // do_test "5.2"
-					// expr [db status vmstep]<200 → "[db status vmstep]<200"
+					// expr [db status vmstep]<200 (not evaluated)
 				}
 				{ // "5.3"
 					r = db.Query("\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR t2.f2 = t1.f1\n  )\n")
@@ -165,7 +165,7 @@ func Test_whereF(t *testing.T) {
 					}
 				}
 				{ // do_test "5.4"
-					// expr [db status vmstep]>1000 → "[db status vmstep]>1000"
+					// expr [db status vmstep]>1000 (not evaluated)
 				}
 				{ // "5.5"
 					r = db.Query("\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR (t2.f2 = t1.f1 AND t1.f1!=-1)\n  )\n")
@@ -180,7 +180,43 @@ func Test_whereF(t *testing.T) {
 					}
 				}
 				{ // do_test "5.6"
-					// expr [db status vmstep]<200 → "[db status vmstep]<200"
+					// expr [db status vmstep]<200 (not evaluated)
+				}
+				{ // "6.1"
+					r = db.Query("\n    CREATE TABLE t6(x);\n    SELECT * FROM t6 WHERE 1 IN (SELECT value FROM json_each(x));\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(x);\n    SELECT * FROM t6 WHERE 1 IN (SELECT value FROM json_each(x));\n  ")
+					}
+				}
+				{ // "6.2"
+					r = db.Query("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 {} {{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}}"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "6.3"
+					r = db.Query("\n    DROP TABLE IF EXISTS t;\n    CREATE TABLE t(json JSON);\n    SELECT * FROM t\n     WHERE(EXISTS(SELECT 1 FROM json_each(t.json,\"$.foo\") j\n                   WHERE j.value = 'meep'));\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t;\n    CREATE TABLE t(json JSON);\n    SELECT * FROM t\n     WHERE(EXISTS(SELECT 1 FROM json_each(t.json,\"$.foo\") j\n                   WHERE j.value = 'meep'));\n  ")
+					}
+				}
+				{ // "6.4"
+					r = db.Query("\n    INSERT INTO t VALUES('{\"xyzzy\":null}');\n    INSERT INTO t VALUES('{\"foo\":\"meep\",\"other\":12345}');\n    INSERT INTO t VALUES('{\"foo\":\"bingo\",\"alt\":5.25}');\n    SELECT * FROM t\n     WHERE(EXISTS(SELECT 1 FROM json_each(t.json,\"$.foo\") j\n                   WHERE j.value = 'meep'));\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t VALUES('{\"xyzzy\":null}');\n    INSERT INTO t VALUES('{\"foo\":\"meep\",\"other\":12345}');\n    INSERT INTO t VALUES('{\"foo\":\"bingo\",\"alt\":5.25}');\n    SELECT * FROM t\n     WHERE(EXISTS(SELECT 1 FROM json_each(t.json,\"$.foo\") j\n                   WHERE j.value = 'meep'));\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "{{\"foo\":\"meep\",\"other\":12345}}"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
 				}
 				{ // "7.1"
 					r = db.Query("\n  DROP TABLE IF EXISTS cd;\n  CREATE TABLE cd ( cdid INTEGER PRIMARY KEY NOT NULL, genreid integer );\n  CREATE INDEX cd_idx_genreid ON cd (genreid);\n  INSERT INTO cd  ( cdid, genreid ) VALUES\n                     ( 1,    1 ),\n                     ( 2, NULL ),\n                     ( 3, NULL ),\n                     ( 4, NULL ),\n                     ( 5, NULL );\n  \n  SELECT cdid\n    FROM cd me\n  WHERE 2 > (\n    SELECT COUNT( * )\n      FROM cd rownum__emulation\n    WHERE\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NULL\n      )\n        OR\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid < me.genreid\n      )\n        OR\n      (\n        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL\n  AND rownum__emulation.genreid IS NULL ) )\n          AND\n        rownum__emulation.cdid > me.cdid\n      )\n  );\n")

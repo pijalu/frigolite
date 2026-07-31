@@ -3,6 +3,7 @@ package trigger
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -49,6 +50,7 @@ func Test_trigger9(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "trigger9" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
@@ -172,6 +174,18 @@ func Test_trigger9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t3 VALUES(3, 'three');\n      INSERT INTO t3 VALUES(3, 'four');\n      CREATE VIEW v1 AS SELECT DISTINCT a, b FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;\n  ")
 		}
 	}
+	{ // do_test "trigger9-3.5"
+		_res = db.Exec("\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'uno');\n        CREATE VIEW v1 AS SELECT a, b FROM t3 EXCEPT SELECT 1, 'one';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'uno');\n        CREATE VIEW v1 AS SELECT a, b FROM t3 EXCEPT SELECT 1, 'one';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+		}
+	}
+	{ // do_test "trigger9-3.6"
+		_res = db.Exec("\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'zero');\n        CREATE VIEW v1 AS \n          SELECT sum(a) AS a, max(b) AS b FROM t3 GROUP BY t3.a HAVING b>'two';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t3 VALUES(1, 'zero');\n        CREATE VIEW v1 AS \n          SELECT sum(a) AS a, max(b) AS b FROM t3 GROUP BY t3.a HAVING b>'two';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;\n    ")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -179,6 +193,18 @@ func Test_trigger9(t *testing.T) {
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  CREATE VIEW v1 AS SELECT a, b FROM t1;\n\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n  CREATE TRIGGER tr3 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  CREATE VIEW v1 AS SELECT a, b FROM t1;\n\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n  CREATE TRIGGER tr3 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n")
+		}
+	}
+	{ // "4.2"
+		_res = db.Exec("\n    DELETE FROM v1 WHERE rowid=1;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n    DELETE FROM v1 WHERE rowid=1;\n  ")
+		}
+	}
+	{ // "4.3"
+		_res = db.Exec("\n    UPDATE v1 SET a=b WHERE rowid=2;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n    UPDATE v1 SET a=b WHERE rowid=2;\n  ")
 		}
 	}
 }

@@ -69,7 +69,7 @@ func Test_rowhash(t *testing.T) {
 	// do_keyset_test rowhash-2.2 {0 1 2 3} (unsupported command, not transpiled)
 	// do_keyset_test rowhash-2.3 {62 125 188} (unsupported command, not transpiled)
 	if tclBool("working_64bit_int") {
-		// expr srand(1) → "srand(1)"
+		// expr srand(1) (not evaluated)
 		i = "4"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {

@@ -70,9 +70,7 @@ func Test_mallocK(t *testing.T) {
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 		sql += " AND b=y"
-		// do_malloc_test mallocK-1.$x -sqlbody $sql -sqlprep {
-    CREATE TABLE t1(a,b);
-    CREATE TABLE t2(x,y...} (unsupported command, not transpiled)
+		// do_malloc_test mallocK-1.$x -sqlbody $sql -sqlprep {\n    CREATE TABLE t1(a,b);\n    CREATE TABLE t2(x...} (unsupported command, not transpiled)
 		// incr x 1
 		{
 			_n, _err := strconv.Atoi(x)
@@ -87,9 +85,7 @@ func Test_mallocK(t *testing.T) {
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 		sql += " AND b!=" + x
-		// do_malloc_test mallocK-2.$x -sqlbody $sql -sqlprep {
-    CREATE TABLE t1(a,b);
-  } (unsupported command, not transpiled)
+		// do_malloc_test mallocK-2.$x -sqlbody $sql -sqlprep {\n    CREATE TABLE t1(a,b);\n  } (unsupported command, not transpiled)
 		// incr x 1
 		{
 			_n, _err := strconv.Atoi(x)
@@ -104,9 +100,7 @@ func Test_mallocK(t *testing.T) {
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 		sql += " AND b=" + x
-		// do_malloc_test mallocK-3.$x -sqlbody $sql -sqlprep {
-    CREATE TABLE t1(a,b);
-  } (unsupported command, not transpiled)
+		// do_malloc_test mallocK-3.$x -sqlbody $sql -sqlprep {\n    CREATE TABLE t1(a,b);\n  } (unsupported command, not transpiled)
 		// incr x 1
 		{
 			_n, _err := strconv.Atoi(x)
@@ -135,9 +129,22 @@ func Test_mallocK(t *testing.T) {
 			}
 		}
 		sql += " OR " + term + ")"
-		// do_malloc_test mallocK-4.$x -sqlbody $sql -sqlprep {
-    CREATE TABLE t1(a,b);
-  } (unsupported command, not transpiled)
+		// do_malloc_test mallocK-4.$x -sqlbody $sql -sqlprep {\n    CREATE TABLE t1(a,b);\n  } (unsupported command, not transpiled)
+		// incr x 1
+		{
+			_n, _err := strconv.Atoi(x)
+			if _err == nil {
+				x = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	sql = "SELECT * FROM t2 WHERE a MATCH 'xyz'"
+	_ = sql // suppress unused warning
+	x = "1"
+	_ = x // suppress unused warning
+	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
+		sql += " AND b!=" + x
+		// do_malloc_test mallocK-5.$x -sqlbody $sql -tclprep {\n      register_echo_module [sqlite3_connection_p...} (unsupported command, not transpiled)
 		// incr x 1
 		{
 			_n, _err := strconv.Atoi(x)
@@ -159,21 +166,20 @@ func Test_mallocK(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// do_faultsim_test 6 -faults oom* -body {
-  db cache flush
-  db eval { SELECT DISTINCT c FR...} -test {
-  faultsim_test_result {0 {12 13 14 15}} 
-} (unsupported command, not transpiled)
+	{ // "6.1"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT DISTINCT c FROM t3 WHERE b BETWEEN '.xx..' AND '.xxxx';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT DISTINCT c FROM t3 WHERE b BETWEEN '.xx..' AND '.xxxx';\n  ")
+		}
+	}
+	// do_faultsim_test 6 -faults oom* -body {\n  db cache flush\n  db eval { SELECT DISTINCT c ...} -test {\n  faultsim_test_result {0 {12 13 14 15}} \n} (unsupported command, not transpiled)
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n")
 		}
 	}
-	// do_faultsim_test 7.2 -faults oom* -body {
-  execsql { SELECT * FROM x1 WHERE a = (SELECT 1)...} -test {
-  faultsim_test_result [list 0 {}]
-} (unsupported command, not transpiled)
+	// do_faultsim_test 7.2 -faults oom* -body {\n  execsql { SELECT * FROM x1 WHERE a = (SELECT 1...} -test {\n  faultsim_test_result [list 0 {}]\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -185,8 +191,5 @@ func Test_mallocK(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	// do_faultsim_test 8 -faults oom* -body {
-  execsql { SELECT * FROM x2 WHERE x = str('19') ...} -test {
-  faultsim_test_result [list 0 {}]
-} (unsupported command, not transpiled)
+	// do_faultsim_test 8 -faults oom* -body {\n  execsql { SELECT * FROM x2 WHERE x = str('19')...} -test {\n  faultsim_test_result [list 0 {}]\n} (unsupported command, not transpiled)
 }

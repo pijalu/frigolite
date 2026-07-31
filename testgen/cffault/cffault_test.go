@@ -69,20 +69,8 @@ func Test_cffault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1.1 -prep {
-  faultsim_restore_and_reopen
-  db eval {
-    BEG...} -body {
-  sqlite3_db_cacheflush db
-} -test {
-  if {[sqlite3_get_autocommit db]} { error "Trans...} (unsupported command, not transpiled)
-	// do_faultsim_test 1.2 -prep {
-  faultsim_restore_and_reopen
-  db eval {
-    BEG...} -body {
-  set result [list]
-  db eval { SELECT * FROM t1 ...} -test {
-  faultsim_test_result {0 {1 3 3 5 5 7 7 9}} {1 {...} (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    ...} -body {\n  sqlite3_db_cacheflush db\n} -test {\n  if {[sqlite3_get_autocommit db]} { error "Tran...} (unsupported command, not transpiled)
+	// do_faultsim_test 1.2 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    ...} -body {\n  set result [list]\n  db eval { SELECT * FROM t...} -test {\n  faultsim_test_result {0 {1 3 3 5 5 7 7 9}} {1 ...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -93,32 +81,8 @@ func Test_cffault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 2.1 -prep {
-  faultsim_restore_and_reopen
-  db eval {
-    BEG...} -body {
-  set result [list]
-  db eval { SELECT * FROM t1 ...} -test {
-  faultsim_test_result {0 {1 3 3 5 5 7 7 9 9 11}}...} (unsupported command, not transpiled)
-	// do_faultsim_test 2.2 -prep {
-  faultsim_restore_and_reopen
-  db eval {
-    BEG...} -body {
-  sqlite3_db_cacheflush db
-} -test {
-  if {[sqlite3_get_autocommit db]} { error "Trans...} (unsupported command, not transpiled)
-	// do_faultsim_test 2.3 -prep {
-  faultsim_restore_and_reopen
-  db eval {
-    BEG...} -body {
-  sqlite3_db_cacheflush db
-} -test {
-  if {[sqlite3_get_autocommit db]} { error "Trans...} (unsupported command, not transpiled)
-	// do_faultsim_test 2.4 -prep {
-  faultsim_restore_and_reopen
-  db eval {
-    BEG...} -body {
-  catch { sqlite3_db_cacheflush db }
-  catch { sq...} -test {
-  faultsim_test_result {0 {1 1 3 3 5 5 7 7 9 9}} ...} (unsupported command, not transpiled)
+	// do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    ...} -body {\n  set result [list]\n  db eval { SELECT * FROM t...} -test {\n  faultsim_test_result {0 {1 3 3 5 5 7 7 9 9 11}...} (unsupported command, not transpiled)
+	// do_faultsim_test 2.2 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    ...} -body {\n  sqlite3_db_cacheflush db\n} -test {\n  if {[sqlite3_get_autocommit db]} { error "Tran...} (unsupported command, not transpiled)
+	// do_faultsim_test 2.3 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    ...} -body {\n  sqlite3_db_cacheflush db\n} -test {\n  if {[sqlite3_get_autocommit db]} { error "Tran...} (unsupported command, not transpiled)
+	// do_faultsim_test 2.4 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    ...} -body {\n  catch { sqlite3_db_cacheflush db }\n  catch { ...} -test {\n  faultsim_test_result {0 {1 1 3 3 5 5 7 7 9 9}}...} (unsupported command, not transpiled)
 }

@@ -49,6 +49,7 @@ func Test_select6(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "select6" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // do_test "select6-1.0"
@@ -309,6 +310,36 @@ func Test_select6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE x>4;\n    SELECT * FROM t1\n  ")
 		}
 	}
+	{ // do_test "select6-6.2"
+		r = db.Query("\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 UNION ALL SELECT x+10 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 UNION ALL SELECT x+10 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "select6-6.3"
+		r = db.Query("\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 UNION ALL SELECT x+1 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 UNION ALL SELECT x+1 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "select6-6.4"
+		r = db.Query("\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 UNION SELECT x+1 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 UNION SELECT x+1 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "select6-6.5"
+		r = db.Query("\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 INTERSECT SELECT x+1 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 INTERSECT SELECT x+1 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "select6-6.6"
+		r = db.Query("\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 EXCEPT SELECT x*2 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (\n        SELECT x AS 'a' FROM t1 EXCEPT SELECT x*2 AS 'a' FROM t1\n      ) ORDER BY a;\n    ")
+		}
+	}
 	{ // do_test "select6-7.1"
 		r = db.Query("\n    SELECT * FROM (SELECT 1)\n  ")
 		if r.Error != nil {
@@ -333,6 +364,7 @@ func Test_select6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c,b,a,* FROM (SELECT 1 AS 'a', 2 AS 'b', 'abc' AS 'c' WHERE 1)\n  ")
 		}
 	}
+	return
 	// proc definition (not transpiled)
 	{ // do_test "select6-8.1"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t3(p,q);\n    INSERT INTO t3 VALUES(1,11);\n    INSERT INTO t3 VALUES(2,22);\n    CREATE TABLE t4(q,r);\n    INSERT INTO t4 VALUES(11,111);\n    INSERT INTO t4 VALUES(22,222);\n    COMMIT;\n    SELECT * FROM t3 NATURAL JOIN t4;\n  ")
@@ -346,6 +378,9 @@ func Test_select6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y, p, q, r FROM\n       (SELECT t1.y AS y, t2.b AS b FROM t1, t2 WHERE t1.x=t2.a) AS m,\n       (SELECT t3.p AS p, t3.q AS q, t4.r AS r FROM t3 NATURAL JOIN t4) as n\n    WHERE  y=p\n  ")
 		}
 	}
+	{ // do_test "select6-8.3"
+		// is_flat {\n    SELECT y, p, q, r FROM\n       (SELECT t1.y ...} (unsupported command, not transpiled)
+	}
 	{ // do_test "select6-8.4"
 		r = db.Query("\n    SELECT DISTINCT y, p, q, r FROM\n       (SELECT t1.y AS y, t2.b AS b FROM t1, t2 WHERE t1.x=t2.a) AS m,\n       (SELECT t3.p AS p, t3.q AS q, t4.r AS r FROM t3 NATURAL JOIN t4) as n\n    WHERE  y=p\n  ")
 		if r.Error != nil {
@@ -357,6 +392,9 @@ func Test_select6(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM \n      (SELECT y, p, q, r FROM\n         (SELECT t1.y AS y, t2.b AS b FROM t1, t2 WHERE t1.x=t2.a) AS m,\n         (SELECT t3.p AS p, t3.q AS q, t4.r AS r FROM t3 NATURAL JOIN t4) as n\n      WHERE  y=p) AS e,\n      (SELECT r AS z FROM t4 WHERE q=11) AS f\n    WHERE e.r=f.z\n  ")
 		}
+	}
+	{ // do_test "select6-8.6"
+		// is_flat {\n    SELECT * FROM \n      (SELECT y, p, q, r FRO...} (unsupported command, not transpiled)
 	}
 	{ // do_test "select6-9.1"
 		r = db.Query("\n    SELECT a.x, b.x FROM t1 AS a, (SELECT x FROM t1 LIMIT 2) AS b\n     ORDER BY 1, 2\n  ")

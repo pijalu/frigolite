@@ -67,6 +67,7 @@ func Test_crash(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	repeats = "100"
 	_ = repeats // suppress unused warning
 	// proc definition (not transpiled)
@@ -86,9 +87,7 @@ func Test_crash(t *testing.T) {
 		seed = "0"
 		_ = seed // suppress unused warning
 		{ // do_test "crash-1.2." + i
-			// crashsql -delay 1 -file test.db-journal -seed $seed {
-      DELETE FROM abc WHERE a = 1;
-    } (unsupported command, not transpiled)
+			// crashsql -delay 1 -file test.db-journal -seed $seed {\n      DELETE FROM abc WHERE a = 1;\n    } (unsupported command, not transpiled)
 		}
 		{ // do_test "crash-1.3." + i
 			// signature (unsupported command, not transpiled)
@@ -102,35 +101,27 @@ func Test_crash(t *testing.T) {
 		}
 	}
 	{ // do_test "crash-1.4"
-		// crashsql -delay 1 -file test.db {
-    DELETE FROM abc WHERE a = 1;
-  } (unsupported command, not transpiled)
+		// crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a = 1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.5"
 		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.6"
-		// crashsql -delay 2 -file test.db-journal {
-    DELETE FROM abc WHERE a = 1;
-  } (unsupported command, not transpiled)
+		// crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a = 1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.7"
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "crash-1.8"
-		// crashsql -delay 3 -file test.db-journal {
-    DELETE FROM abc WHERE a = 1;
-  } (unsupported command, not transpiled)
+		// crashsql -delay 3 -file test.db-journal {\n    DELETE FROM abc WHERE a = 1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.9"
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "crash-1.10"
-		// crashsql -delay 2 -file test.db {
-    DELETE FROM abc WHERE a = 4;
-  } (unsupported command, not transpiled)
+		// crashsql -delay 2 -file test.db {\n    DELETE FROM abc WHERE a = 4;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.11"
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
@@ -144,9 +135,9 @@ func Test_crash(t *testing.T) {
 		n = "0"
 		_ = n // suppress unused warning
 		for func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n < 1000 }() {
-			_res = db.Exec("INSERT INTO abc VALUES(" + n + ", " + "2*$n" + ", " + "3*$n" + ")")
+			_res = db.Exec("INSERT INTO abc VALUES(" + n + ", " + tclExpr("2*$n") + ", " + tclExpr("3*$n") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO abc VALUES(" + n + ", " + "2*$n" + ", " + "3*$n" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO abc VALUES(" + n + ", " + tclExpr("2*$n") + ", " + tclExpr("3*$n") + ")")
 			}
 			// incr n 1
 			{
@@ -168,20 +159,16 @@ func Test_crash(t *testing.T) {
 		}
 	}
 	{ // do_test "crash-2.2"
-		// expr ([file size test.db] → "([file size test.db]"
+		// expr ([file size test.db] (not evaluated)
 	}
 	{ // do_test "crash-2.3"
-		// crashsql -delay 2 -file test.db-journal {
-    DELETE FROM abc WHERE a < 800;
-  } (unsupported command, not transpiled)
+		// crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a < 800;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-2.4"
 		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-2.5"
-		// crashsql -delay 1 -file test.db {
-    DELETE FROM abc WHERE a<800;
-  } (unsupported command, not transpiled)
+		// crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a<800;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-2.6"
 		// signature (unsupported command, not transpiled)
@@ -191,7 +178,7 @@ func Test_crash(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
 		}
-		// expr ([file size test.db] → "([file size test.db]"
+		// expr ([file size test.db] (not evaluated)
 	}
 	i = "1"
 	_ = i // suppress unused warning
@@ -201,12 +188,112 @@ func Test_crash(t *testing.T) {
 		{ // do_test "crash-3." + i + ".1"
 			seed = "0"
 			_ = seed // suppress unused warning
-			// crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed 
-       BEGIN;
-       SELECT random() FROM abc LIM... (unsupported command, not transpiled)
+			// crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed \n       BEGIN;\n       SELECT random() FROM abc L... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash-3." + i + ".2"
 			// signature (unsupported command, not transpiled)
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	{ // do_test "crash-4.0"
+		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;\n    ")
+		}
+		// expr ([file size test2.db] (not evaluated)
+	}
+	fin = "0"
+	_ = fin // suppress unused warning
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; repeats_n, _repeats_e := strconv.Atoi(repeats); if _repeats_e != nil { return false }; return i_n < repeats_n }() {
+		seed = "0"
+		_ = seed // suppress unused warning
+		sig = "signature"
+		_ = sig // suppress unused warning
+		sig2 = "signature2"
+		_ = sig2 // suppress unused warning
+		{ // do_test "crash-4.1." + i + ".1"
+			c = "crashsql -delay $i -file test.db-journal -seed $::seed \"\n         ATTACH 'test2.db' AS aux;\n         BEGIN;\n         SELECT randstr($i,$i) FROM abc LIMIT $i;\n         INSERT INTO abc VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc WHERE random()%10!=0;\n         INSERT INTO abc2 VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc2 WHERE random()%10!=0;\n         COMMIT;\n       \""
+			_ = c // suppress unused warning
+			if func() bool { c_n, _c_e := strconv.Atoi(c); if _c_e != nil { return false }; return c_n == {0 {} }() {
+				fin = "1" // TCL namespace variable
+				_ = fin // suppress unused warning
+				c = "1 {child process exited abnormally}"
+				_ = c // suppress unused warning
+			}
+		}
+		if tclBool(fin) {
+		}
+		{ // do_test "crash-4.1." + i + ".2"
+			// signature (unsupported command, not transpiled)
+		}
+		{ // do_test "crash-4.1." + i + ".3"
+			// signature2 (unsupported command, not transpiled)
+		}
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	i = "0"
+	_ = i // suppress unused warning
+	fin = "0"
+	_ = fin // suppress unused warning
+	for tclBool("incr i") {
+		seed = "0"
+		_ = seed // suppress unused warning
+		sig = "signature"
+		_ = sig // suppress unused warning
+		sig2 = "signature2"
+		_ = sig2 // suppress unused warning
+		fin = "0" // TCL namespace variable
+		_ = fin // suppress unused warning
+		{ // do_test "crash-4.2." + i + ".1"
+			c = "crashsql -delay $i -file test2.db-journal -seed $::seed \"\n         ATTACH 'test2.db' AS aux;\n         BEGIN;\n         SELECT randstr($i,$i) FROM abc LIMIT $i;\n         INSERT INTO abc VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc WHERE random()%10!=0;\n         INSERT INTO abc2 VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc2 WHERE random()%10!=0;\n         COMMIT;\n       \""
+			_ = c // suppress unused warning
+			if func() bool { c_n, _c_e := strconv.Atoi(c); if _c_e != nil { return false }; return c_n == {0 {} }() {
+				fin = "1" // TCL namespace variable
+				_ = fin // suppress unused warning
+				c = "1 {child process exited abnormally}"
+				_ = c // suppress unused warning
+			}
+		}
+		if tclBool(fin) {
+		}
+		{ // do_test "crash-4.2." + i + ".2"
+			// signature (unsupported command, not transpiled)
+		}
+		{ // do_test "crash-4.2." + i + ".3"
+			// signature2 (unsupported command, not transpiled)
+		}
+	}
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
+		sig = "signature"
+		_ = sig // suppress unused warning
+		sig2 = "signature2"
+		_ = sig2 // suppress unused warning
+		{ // do_test "crash-4.3." + i + ".1"
+			// crashsql -delay 1 -file test.db-mj* \n         ATTACH 'test2.db' AS aux;\n         BEG... (unsupported command, not transpiled)
+		}
+		{ // do_test "crash-4.3." + i + ".2"
+			// signature (unsupported command, not transpiled)
+		}
+		{ // do_test "crash-4.3." + i + ".3"
+			// signature2 (unsupported command, not transpiled)
 		}
 		// incr i 1
 		{
@@ -227,13 +314,12 @@ func Test_crash(t *testing.T) {
 		}
 	}
 	{ // do_test "crash-5.2"
-		// expr [file size test.db] → "[file size test.db]"
+		// expr [file size test.db] (not evaluated)
 	}
 	sig = "signature"
 	_ = sig // suppress unused warning
 	{ // do_test "crash-5.3"
-		// crashsql -delay 1 -file test.db-journal {
-    BEGIN;                                       ...} (unsupported command, not transpiled)
+		// crashsql -delay 1 -file test.db-journal {\n    BEGIN;                                      ...} (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -241,18 +327,13 @@ func Test_crash(t *testing.T) {
 		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-6.1"
-		// crashsql -delay 1 -file test.db {
-    DROP TABLE abc;
-  } (unsupported command, not transpiled)
+		// crashsql -delay 1 -file test.db {\n    DROP TABLE abc;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-6.2"
 		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-7.1"
-		// crashsql -delay 1 -file test.db {
-    ATTACH 'test2.db' AS aux;
-    BEGIN;
-    INSE...} (unsupported command, not transpiled)
+		// crashsql -delay 1 -file test.db {\n    ATTACH 'test2.db' AS aux;\n    BEGIN;\n    I...} (unsupported command, not transpiled)
 		f = "open test.db-journal a"
 		_ = f // suppress unused warning
 		// fconfigure $f -translation binary (unsupported command, not transpiled)

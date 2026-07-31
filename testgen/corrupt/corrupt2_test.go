@@ -278,44 +278,22 @@ func Test_corrupt2(t *testing.T) {
 	}
 	db2.Close()
 	// proc definition (not transpiled)
+	// corruption_test -sqlprep {\n    PRAGMA auto_vacuum = incremental;\n    PRAGM...} -corrupt {\n    hexio_write corrupt.db [expr 1024*5] 0000000...} -test {\n    do_test corrupt2-6.1 {\n      catchsql " $::...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {\n    PRAGMA auto_vacuum = incremental;\n    PRAGM...} -corrupt {\n    hexio_write corrupt.db [expr 1024*2 + 8] 000...} -test {\n    do_test corrupt2-6.2 {\n      catchsql " $::...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {\n    PRAGMA auto_vacuum = incremental;\n    PRAGM...} -corrupt {\n    set nPage [expr [file size corrupt.db] / 102...} -test {\n    do_test corrupt2-6.3 {\n      catchsql " $::...} (unsupported command, not transpiled)
+	if tclBool("!" + "nonzero_reserved_bytes") {
+		// corruption_test -sqlprep {\n      PRAGMA auto_vacuum = 1;\n      PRAGMA page...} -corrupt {\n      set nAppend [expr 1024*207 - [file size co...} -test {\n      do_test corrupt2-6.4 {\n        catchsql "...} (unsupported command, not transpiled)
+	}
 	sqlprep = "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1(b);\n  INSERT INTO t1 VALUES(1, randomblob(50));\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n"
 	_ = sqlprep // suppress unused warning
-	// corruption_test -sqlprep $sqlprep -corrupt {
-  # Set the page-flags of one of the leaf pages o...} -test {
-  do_test corrupt2-7.1 {
-    catchsql " $::presql...} (unsupported command, not transpiled)
-	// corruption_test -sqlprep $sqlprep -corrupt {
-  # Mess up the page-header of one of the leaf pa...} -test {
-  do_test corrupt2-7.1 {
-    catchsql " $::presql...} (unsupported command, not transpiled)
-	// corruption_test -sqlprep $sqlprep -corrupt {
-  # Set the page-flags of one of the leaf pages o...} -test {
-  do_test corrupt2-8.1 {
-    catchsql " $::presql...} (unsupported command, not transpiled)
-	// corruption_test -sqlprep {
-  CREATE TABLE t1(a, b, c); CREATE TABLE t8(a, b,...} -corrupt {
-  set fd [open corrupt.db r+]
-  fconfigure $fd -t...} -test {
-  do_test corrupt2-9.1 {
-    catchsql " $::presql...} (unsupported command, not transpiled)
-	// corruption_test -sqlprep {
-  CREATE TABLE t1(a, b, c);
-  CREATE TABLE t2(a, ...} -test {
-  do_test corrupt2-10.1 {
-    catchsql " $::presq...} (unsupported command, not transpiled)
-	// corruption_test -sqlprep {
-  PRAGMA auto_vacuum = incremental;
-  CREATE TABL...} -corrupt {
-  set offset [expr [file size corrupt.db] - 1024]...} -test {
-  do_test corrupt2-11.1 {
-    catchsql " $::presq...} (unsupported command, not transpiled)
-	// corruption_test -sqlprep {
-  PRAGMA auto_vacuum = incremental;
-  CREATE TABL...} -corrupt {
-  set pgno [expr [file size corrupt.db] / 1024]
- ...} -test {
-  do_test corrupt2-12.1 {
-    catchsql " $::presq...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep $sqlprep -corrupt {\n  # Set the page-flags of one of the leaf pages ...} -test {\n  do_test corrupt2-7.1 {\n    catchsql " $::pres...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep $sqlprep -corrupt {\n  # Mess up the page-header of one of the leaf p...} -test {\n  do_test corrupt2-7.1 {\n    catchsql " $::pres...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep $sqlprep -corrupt {\n  # Set the page-flags of one of the leaf pages ...} -test {\n  do_test corrupt2-8.1 {\n    catchsql " $::pres...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {\n  CREATE TABLE t1(a, b, c); CREATE TABLE t8(a, b...} -corrupt {\n  set fd [open corrupt.db r+]\n  fconfigure $fd ...} -test {\n  do_test corrupt2-9.1 {\n    catchsql " $::pres...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a...} -test {\n  do_test corrupt2-10.1 {\n    catchsql " $::pre...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TA...} -corrupt {\n  set offset [expr [file size corrupt.db] - 1024...} -test {\n  do_test corrupt2-11.1 {\n    catchsql " $::pre...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TA...} -corrupt {\n  set pgno [expr [file size corrupt.db] / 1024]\...} -test {\n  do_test corrupt2-12.1 {\n    catchsql " $::pre...} (unsupported command, not transpiled)
+	// corruption_test -tclprep {\n    db eval { \n      PRAGMA auto_vacuum = full;...} -corrupt {\n    do_test corrupt2-13.1 {\n      file size cor...} -test {\n    do_test corrupt2-13.2 {\n      file size cor...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

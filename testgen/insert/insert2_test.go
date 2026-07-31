@@ -101,6 +101,10 @@ func Test_insert2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(log int, cnt int);\n    PRAGMA count_changes=on;\n  ")
 		}
+		r = db.Query("\n      EXPLAIN INSERT INTO t1 SELECT log, count(*) FROM d1 GROUP BY log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      EXPLAIN INSERT INTO t1 SELECT log, count(*) FROM d1 GROUP BY log;\n    ")
+		}
 		_res = db.Exec("\n    INSERT INTO t1 SELECT log, count(*) FROM d1 GROUP BY log;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 SELECT log, count(*) FROM d1 GROUP BY log;\n  ")
@@ -112,6 +116,42 @@ func Test_insert2(t *testing.T) {
 		r = db.Query("SELECT * FROM t1 ORDER BY log")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 ORDER BY log")
+		}
+	}
+	{ // do_test "insert2-1.2.1"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_res = db.Exec("DROP TABLE t1")
+			if _res.Error != nil { _catchErr = _res.Error }
+		}
+		_res = db.Exec("\n    CREATE TABLE t1(log int, cnt int);\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       EXCEPT SELECT n-1,log FROM d1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(log int, cnt int);\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       EXCEPT SELECT n-1,log FROM d1;\n  ")
+		}
+	}
+	{ // do_test "insert2-1.2.2"
+		r = db.Query("\n    SELECT * FROM t1 ORDER BY log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 ORDER BY log;\n  ")
+		}
+	}
+	{ // do_test "insert2-1.3.1"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			_res = db.Exec("DROP TABLE t1")
+			if _res.Error != nil { _catchErr = _res.Error }
+		}
+		_res = db.Exec("\n    CREATE TABLE t1(log int, cnt int);\n    PRAGMA count_changes=off;\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       INTERSECT SELECT n-1,log FROM d1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(log int, cnt int);\n    PRAGMA count_changes=off;\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       INTERSECT SELECT n-1,log FROM d1;\n  ")
+		}
+	}
+	{ // do_test "insert2-1.3.2"
+		r = db.Query("\n    SELECT * FROM t1 ORDER BY log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 ORDER BY log;\n  ")
 		}
 	}
 	r = db.Query("PRAGMA count_changes=off;")
@@ -169,7 +209,7 @@ func Test_insert2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t4 VALUES(2,4);\n    INSERT INTO t4 VALUES(3,6);\n    INSERT INTO t4 VALUES(4,8);\n    INSERT INTO t4 VALUES(5,10);\n    INSERT INTO t4 VALUES(6,12);\n    INSERT INTO t4 VALUES(7,14);\n    INSERT INTO t4 VALUES(8,16);\n    INSERT INTO t4 VALUES(9,18);\n    INSERT INTO t4 VALUES(10,20);\n    COMMIT;\n  ")
 		}
-		// expr [db total_changes] → "[db total_changes]"
+		// expr [db total_changes] (not evaluated)
 	}
 	{ // do_test "insert2-3.2.1"
 		r = db.Query("\n    SELECT count(*) FROM t4;\n  ")
@@ -178,6 +218,10 @@ func Test_insert2(t *testing.T) {
 		}
 	}
 	{ // do_test "insert2-3.3"
+		r = db.Query("\n      BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      COMMIT;\n      SELECT count(*) FROM t4;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      COMMIT;\n      SELECT count(*) FROM t4;\n    ")
+		}
 	}
 	{ // do_test "insert2-3.4"
 		r = db.Query("\n    BEGIN;\n    UPDATE t4 SET y='lots of data for the row where x=' || x\n                     || ' and y=' || y || ' - even more data to fill space';\n    COMMIT;\n    SELECT count(*) FROM t4;\n  ")
@@ -186,6 +230,10 @@ func Test_insert2(t *testing.T) {
 		}
 	}
 	{ // do_test "insert2-3.5"
+		_res = db.Exec("\n      BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x)+1 FROM t4),y FROM t4;\n      SELECT count(*) from t4;\n      ROLLBACK;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x)+1 FROM t4),y FROM t4;\n      SELECT count(*) from t4;\n      ROLLBACK;\n    ")
+		}
 	}
 	{ // do_test "insert2-3.6"
 		r = db.Query("\n    SELECT count(*) FROM t4;\n  ")
@@ -203,10 +251,22 @@ func Test_insert2(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	{ // do_test "insert2-4.1"
+		_res = db.Exec("\n      CREATE TABLE Dependencies(depId integer primary key,\n        class integer, name str, flag str);\n      CREATE TEMPORARY TABLE DepCheck(troveId INT, depNum INT,\n        flagCount INT, isProvides BOOL, class INTEGER, name STRING,\n        flag STRING);\n      INSERT INTO DepCheck \n         VALUES(-1, 0, 1, 0, 2, 'libc.so.6', 'GLIBC_2.0');\n      INSERT INTO Dependencies \n         SELECT DISTINCT \n             NULL, \n             DepCheck.class, \n             DepCheck.name, \n             DepCheck.flag \n         FROM DepCheck LEFT OUTER JOIN Dependencies ON \n             DepCheck.class == Dependencies.class AND \n             DepCheck.name == Dependencies.name AND \n             DepCheck.flag == Dependencies.flag \n         WHERE \n             Dependencies.depId is NULL;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE Dependencies(depId integer primary key,\n        class integer, name str, flag str);\n      CREATE TEMPORARY TABLE DepCheck(troveId INT, depNum INT,\n        flagCount INT, isProvides BOOL, class INTEGER, name STRING,\n        flag STRING);\n      INSERT INTO DepCheck \n         VALUES(-1, 0, 1, 0, 2, 'libc.so.6', 'GLIBC_2.0');\n      INSERT INTO Dependencies \n         SELECT DISTINCT \n             NULL, \n             DepCheck.class, \n             DepCheck.name, \n             DepCheck.flag \n         FROM DepCheck LEFT OUTER JOIN Dependencies ON \n             DepCheck.class == Dependencies.class AND \n             DepCheck.name == Dependencies.name AND \n             DepCheck.flag == Dependencies.flag \n         WHERE \n             Dependencies.depId is NULL;\n    ")
+		}
+	}
 	{ // do_test "insert2-5.1"
 		r = db.Query("\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE INDEX t2i1 ON t2(a);\n    INSERT INTO t2 SELECT a, 3 FROM t2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE INDEX t2i1 ON t2(a);\n    INSERT INTO t2 SELECT a, 3 FROM t2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
+		}
+	}
+	{ // do_test "insert2-5.2"
+		r = db.Query("\n      INSERT INTO t2 SELECT (SELECT a FROM t2), 4;\n      SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t2 SELECT (SELECT a FROM t2), 4;\n      SELECT * FROM t2;\n    ")
 		}
 	}
 	{ // "6.0"
@@ -223,6 +283,24 @@ func Test_insert2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "123 {} c {}   456 {} c {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "6.2"
+		_res = db.Exec("\n    CREATE VIRTUAL TABLE t0 USING fts4(a);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t0 USING fts4(a);\n  ")
+		}
+	}
+	{ // "6.3"
+		r = db.Query("\n    INSERT INTO t0 SELECT 0 UNION SELECT 0 AS 'x' ORDER BY x;\n    SELECT * FROM t0;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t0 SELECT 0 UNION SELECT 0 AS 'x' ORDER BY x;\n    SELECT * FROM t0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

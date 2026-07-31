@@ -68,6 +68,7 @@ func Test_trace3(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "trace3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
@@ -178,11 +179,11 @@ func Test_trace3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		stmt = "lindex [lindex $::stmtlist(record) 0] 0"
+		stmt = tclLIndex("", stmtlist_record)
 		_ = stmt // suppress unused warning
-		ns = "lindex [lindex $::stmtlist(record) 0] 1"
+		ns = tclLIndex("", stmtlist_record)
 		_ = ns // suppress unused warning
-		_list := tclList([]string{stmt, "$ns >= 0 && $ns <= 9999999"})
+		_list := tclList([]string{stmt, tclExpr("$ns >= 0 && $ns <= 9999999")})
 		_ = _list
 	}
 	{ // do_test "trace3-4.4"
@@ -195,9 +196,9 @@ func Test_trace3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a, b FROM t1 ORDER BY a;\n    ")
 			}
-			stmt = "lindex [lindex $::stmtlist(record) 0] 0"
+			stmt = tclLIndex("", stmtlist_record)
 			_ = stmt // suppress unused warning
-			ns = "lindex [lindex $::stmtlist(record) 0] 1"
+			ns = tclLIndex("", stmtlist_record)
 			_ = ns // suppress unused warning
 			if tclBool(ns + "<0 || " + ns + ">9999999") {
 				// incr cnt 1

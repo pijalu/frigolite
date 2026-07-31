@@ -78,6 +78,8 @@ func Test_memleak(t *testing.T) {
 	_ = LeakList // suppress unused warning
 	EXCLUDE = "\n  all.test\n  quick.test\n  misuse.test\n  memleak.test\n  btree2.test\n  trans.test\n  crash.test\n  autovacuum_crash.test\n"
 	_ = EXCLUDE // suppress unused warning
+	EXCLUDE = tclListAppend(EXCLUDE, "btree2.test")
+	EXCLUDE = tclListAppend(EXCLUDE, "btree4.test")
 	if tclBool("sqlite3 -has-codec") {
 	}
 	if tclBool("llength $argv" + ">0") {
@@ -116,7 +118,7 @@ func Test_memleak(t *testing.T) {
 			_ = _putsMsg
 			for _, x := range tclSplitList(LeakList) {
 			_ = x // suppress unused warning
-				if tclBool(x + "!=" + "lindex $LeakList 0") {
+				if tclBool(x + "!=" + tclLIndex(LeakList, "0")) {
 					_putsMsg = " failed! (" + LeakList + ")"
 					_ = _putsMsg
 					// fail_test memory-leak-test-$tail (unsupported command, not transpiled)

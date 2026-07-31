@@ -74,7 +74,7 @@ func Test_dataversion1(t *testing.T) {
 		}
 		dv2 = "file_control_data_version db"
 		_ = dv2 // suppress unused warning
-		// expr $::dv1==$dv2 → "$::dv1==$dv2"
+		// expr $::dv1==$dv2 (not evaluated)
 	}
 	dv1 = "file_control_data_version db main"
 	_ = dv1 // suppress unused warning
@@ -99,7 +99,7 @@ func Test_dataversion1(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		dv2 = "file_control_data_version db"
 		_ = dv2 // suppress unused warning
-		// expr $::dv1==$dv2 → "$::dv1==$dv2"
+		// expr $::dv1==$dv2 (not evaluated)
 	}
 	{ // do_test "dataversion1-133"
 		_res = db.Exec("SELECT * FROM t1")
@@ -108,6 +108,6 @@ func Test_dataversion1(t *testing.T) {
 		}
 		dv2 = "file_control_data_version db"
 		_ = dv2 // suppress unused warning
-		// expr $::dv1==$dv2 → "$::dv1==$dv2"
+		// expr $::dv1==$dv2 (not evaluated)
 	}
 }

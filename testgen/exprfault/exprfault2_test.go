@@ -56,10 +56,5 @@ func Test_exprfault2(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-  UPDATE t3 SET (d,d,d,d, a )=(SELECT...} -test {
-  faultsim_test_result {1 {near ")": syntax error...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n  UPDATE t3 SET (d,d,d,d, a )=(SELE...} -test {\n  faultsim_test_result {1 {near ")": syntax erro...} (unsupported command, not transpiled)
 }

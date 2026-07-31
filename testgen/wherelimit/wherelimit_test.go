@@ -54,4 +54,525 @@ func Test_wherelimit(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
+	_res = db.Exec(" CREATE TABLE t1(x, y) ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(x, y) ")
+	}
+	{ // do_test "wherelimit-0.1"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x")
+		_ = _res // catchsql
+	}
+	{ // do_test "wherelimit-0.2"
+		_res = db.Exec("DELETE FROM t1 WHERE x=1 ORDER BY x")
+		_ = _res // catchsql
+	}
+	{ // do_test "wherelimit-0.3"
+		_res = db.Exec("UPDATE t1 SET y=1 WHERE x=1 ORDER BY x")
+		_ = _res // catchsql
+	}
+	{ // do_test "wherelimit-0.4"
+		_res = db.Exec("DELETE FROM t1 AS a WHERE a.x=1")
+		_ = _res // catchsql
+	}
+	{ // do_test "wherelimit-0.5.1"
+		_res = db.Exec("UPDATE t1 AS a SET y=1 WHERE x=1")
+		_ = _res // catchsql
+	}
+	{ // do_test "wherelimit-0.5.2"
+		_res = db.Exec("UPDATE t1 AS a SET y=1 WHERE t1.x=1")
+		_ = _res // catchsql
+	}
+	{ // do_test "wherelimit-0.6"
+		_res = db.Exec("DELETE FROM t1 WHERE x=1 OFFSET 2")
+		_ = _res // catchsql
+	}
+	{ // do_test "wherelimit-0.7"
+		_res = db.Exec("UPDATE t1 SET y=1 WHERE x=1 OFFSET 2")
+		_ = _res // catchsql
+	}
+	_res = db.Exec(" DROP TABLE t1 ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
+	}
+	// create_test_data 5 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-1.0"
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.1"
+		_res = db.Exec("DELETE FROM t1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	// create_test_data 5 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-1.2"
+		_res = db.Exec("DELETE FROM t1 LIMIT 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 LIMIT 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.3"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	// create_test_data 4 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-1.3b"
+		r = db.Query("DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5")
+		}
+	}
+	{ // do_test "wherelimit-1.3c"
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.4"
+		r = db.Query("DELETE FROM t1 RETURNING x, y, '|' ORDER BY x  LIMIT 5 OFFSET 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x  LIMIT 5 OFFSET 2")
+		}
+	}
+	{ // do_test "wherelimit-1.4cnt"
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.5"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET -2")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET -2")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.6"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT 2, -5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT 2, -5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.7"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT -2, 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT -2, 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	// create_test_data 5 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-1.8"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT -2, -5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT -2, -5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	// create_test_data 3 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-1.9"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT 2, 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT 2, 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.10"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.11"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 30")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 30")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.12"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT 30, 50")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT 30, 50")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-1.13"
+		_res = db.Exec("DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 50")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 50")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	// create_test_data 6 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-2.0"
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.1"
+		_res = db.Exec("DELETE FROM t1 WHERE x=1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=1")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	// create_test_data 6 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-2.2"
+		_res = db.Exec("DELETE FROM t1 WHERE x=1 LIMIT 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=1 LIMIT 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.3"
+		_res = db.Exec("DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.4"
+		_res = db.Exec("DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.5"
+		_res = db.Exec("DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.6"
+		_res = db.Exec("DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 2, -5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 2, -5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.7"
+		_res = db.Exec("DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT -2, 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT -2, 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.8"
+		_res = db.Exec("DELETE FROM t1 WHERE x=4 ORDER BY x LIMIT -2, -5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=4 ORDER BY x LIMIT -2, -5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	// create_test_data 6 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-2.9"
+		_res = db.Exec("DELETE FROM t1 WHERE x=5 ORDER BY x LIMIT 2, 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=5 ORDER BY x LIMIT 2, 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.10"
+		_res = db.Exec("DELETE FROM t1 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.11"
+		_res = db.Exec("DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.12"
+		_res = db.Exec("DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 30, 50")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 30, 50")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-2.13"
+		_res = db.Exec("DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50")
+		}
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	// create_test_data 6 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-3.0"
+		r = db.Query("SELECT count(*) FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
+		}
+	}
+	{ // do_test "wherelimit-3.1"
+		_res = db.Exec("UPDATE t1 SET y=1 WHERE x=1")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=1 WHERE x=1")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
+		}
+	}
+	// create_test_data 6 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-3.2"
+		r = db.Query("UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5")
+		}
+	}
+	{ // do_test "wherelimit-3.2cnt"
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
+		}
+	}
+	{ // do_test "wherelimit-3.3"
+		_res = db.Exec("UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=2")
+		}
+	}
+	// create_test_data 6 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-3.4"
+		_res = db.Exec("UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
+		}
+	}
+	{ // do_test "wherelimit-3.5"
+		_res = db.Exec("UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
+		}
+	}
+	{ // do_test "wherelimit-3.6"
+		_res = db.Exec("UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT 2, -5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT 2, -5")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=3")
+		}
+	}
+	{ // do_test "wherelimit-3.7"
+		_res = db.Exec("UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT -2, 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT -2, 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=3")
+		}
+	}
+	{ // do_test "wherelimit-3.8"
+		_res = db.Exec("UPDATE t1 SET y=4 WHERE x=4 ORDER BY x LIMIT -2, -5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=4 WHERE x=4 ORDER BY x LIMIT -2, -5")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=4")
+		}
+	}
+	// create_test_data 6 (unsupported command, not transpiled)
+	{ // do_test "wherelimit-3.9"
+		_res = db.Exec("UPDATE t1 SET y=4 WHERE x=5 ORDER BY x LIMIT 2, 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=4 WHERE x=5 ORDER BY x LIMIT 2, 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=4")
+		}
+	}
+	{ // do_test "wherelimit-3.10"
+		_res = db.Exec("UPDATE t1 SET y=4 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=4 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
+		}
+	}
+	{ // do_test "wherelimit-3.11"
+		_res = db.Exec("UPDATE t1 SET y=1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
+		}
+	}
+	{ // do_test "wherelimit-3.12"
+		_res = db.Exec("UPDATE t1 SET y=1 WHERE x=2 ORDER BY x LIMIT 30, 50")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=1 WHERE x=2 ORDER BY x LIMIT 30, 50")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
+		}
+	}
+	{ // do_test "wherelimit-3.13"
+		_res = db.Exec("UPDATE t1 SET y=1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET y=1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50")
+		}
+		r = db.Query("SELECT count(*) FROM t1 WHERE y=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
+		}
+	}
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	{ // "wherelimit-4.1"
+		_res = db.Exec("\n    CREATE TABLE t1(a int);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(a int);\n    INSERT INTO t2 SELECT a+100 FROM t1;\n    CREATE VIEW tv(r,a) AS\n       SELECT rowid, a FROM t2 UNION ALL SELECT rowid, a FROM t1;\n    CREATE TRIGGER tv_del INSTEAD OF DELETE ON tv\n    BEGIN\n      DELETE FROM t1 WHERE rowid=old.r;\n      DELETE FROM t2 WHERE rowid=old.r;\n    END;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a int);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(a int);\n    INSERT INTO t2 SELECT a+100 FROM t1;\n    CREATE VIEW tv(r,a) AS\n       SELECT rowid, a FROM t2 UNION ALL SELECT rowid, a FROM t1;\n    CREATE TRIGGER tv_del INSTEAD OF DELETE ON tv\n    BEGIN\n      DELETE FROM t1 WHERE rowid=old.r;\n      DELETE FROM t2 WHERE rowid=old.r;\n    END;\n  ")
+		}
+	}
+	{ // "wherelimit-4.2"
+		_res = db.Exec("\n    DELETE FROM tv WHERE 1 LIMIT 2;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    DELETE FROM tv WHERE 1 LIMIT 2;\n  ")
+		}
+	}
+	{ // "wherelimit-4.3"
+		_res = db.Exec("\n    DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;\n  ")
+		}
+	}
+	{ // "wherelimit-4.10"
+		_res = db.Exec("\n    CREATE TABLE t3(a,b,c,d TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4),(5,6,7,8),(9,10,11,12);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a,b,c,d TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4),(5,6,7,8),(9,10,11,12);\n  ")
+		}
+	}
+	{ // "wherelimit-4.11"
+		_res = db.Exec("\n    DELETE FROM t3 WHERE a=5 LIMIT 2;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    DELETE FROM t3 WHERE a=5 LIMIT 2;\n  ")
+		}
+	}
+	{ // "wherelimit-4.12"
+		r = db.Query("\n    SELECT a,b,c,d FROM t3 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d FROM t3 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 9 10 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 }

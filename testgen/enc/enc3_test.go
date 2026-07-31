@@ -3,6 +3,7 @@ package enc
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -47,6 +48,12 @@ func Test_enc3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	{ // do_test "enc3-1.1"
+		r = db.Query("\n      PRAGMA encoding=utf16le;\n      PRAGMA encoding;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA encoding=utf16le;\n      PRAGMA encoding;\n    ")
+		}
+	}
 	{ // do_test "enc3-1.2"
 		r = db.Query("\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES('abc''123',5);\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
@@ -59,4 +66,63 @@ func Test_enc3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(x) || ' ' || quote(y) FROM t1\n  ")
 		}
 	}
+	{ // do_test "enc3-1.4"
+		r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(x'616263646566',NULL);\n      SELECT * FROM t1\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(x'616263646566',NULL);\n      SELECT * FROM t1\n    ")
+		}
+	}
+	{ // do_test "enc3-1.5"
+		r = db.Query("\n      SELECT quote(x) || ' ' || quote(y) FROM t1\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT quote(x) || ' ' || quote(y) FROM t1\n    ")
+		}
+	}
+	{ // do_test "enc3-2.1"
+		r = db.Query("\n      PRAGMA encoding\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA encoding\n    ")
+		}
+	}
+	{ // do_test "enc3-2.2"
+		r = db.Query("\n      CREATE TABLE t2(a);\n      INSERT INTO t2 VALUES(x'61006200630064006500');\n      SELECT CAST(a AS text) FROM t2 WHERE CAST(a AS text) LIKE 'abc%';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t2(a);\n      INSERT INTO t2 VALUES(x'61006200630064006500');\n      SELECT CAST(a AS text) FROM t2 WHERE CAST(a AS text) LIKE 'abc%';\n    ")
+		}
+	}
+	{ // do_test "enc3-2.3"
+		r = db.Query("\n      SELECT CAST(x'61006200630064006500' AS text);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT CAST(x'61006200630064006500' AS text);\n    ")
+		}
+	}
+	{ // do_test "enc3-2.4"
+		r = db.Query("\n      SELECT rowid FROM t2\n       WHERE CAST(a AS text) LIKE CAST(x'610062002500' AS text);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t2\n       WHERE CAST(a AS text) LIKE CAST(x'610062002500' AS text);\n    ")
+		}
+	}
+	os.Remove("test8.db")
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	dbaux, err := frigolite.Open("test8.db")
+	defer dbaux.Close()
+	if err != nil { t.Fatal(err) }
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	_res = db.Exec("SELECT 1 FROM sqlite_master LIMIT 1")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1 FROM sqlite_master LIMIT 1")
+	}
+	{ // do_test "enc3-3.1"
+		// dbaux eval {\n      PRAGMA encoding='utf8';\n      CREATE TABL...} (unsupported command, not transpiled)
+	}
+	{ // do_test "enc3-3.2"
+		_res = db.Exec("\n      ATTACH 'test.db' AS utf16;\n      SELECT 1 FROM utf16.sqlite_master LIMIT 1;\n    ")
+		_ = _res // catchsql
+	}
+	// dbaux close (unsupported command, not transpiled)
+	os.Remove("test8.db")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

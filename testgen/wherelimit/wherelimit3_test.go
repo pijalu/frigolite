@@ -63,12 +63,26 @@ func Test_wherelimit3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT 5;\n")
 		}
 	}
+	{ // "1.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT -1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT -1;\n  ")
+		}
+	}
 	N = "5"
 	_ = N // suppress unused warning
 	{ // "1.3"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT $::N;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT $::N;\n")
+		}
+	}
+	N = "-1"
+	_ = N // suppress unused warning
+	{ // "1.4"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT $::N;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT $::N;\n  ")
 		}
 	}
 }

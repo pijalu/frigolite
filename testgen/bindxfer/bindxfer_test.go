@@ -92,6 +92,22 @@ func Test_bindxfer(t *testing.T) {
 	{ // do_test "bindxfer-1.4"
 		// sqlite3_bind_parameter_count $VM2 (unsupported command, not transpiled)
 	}
+	{ // do_test "bindxfer-1.5"
+		// sqlite_bind $VM1 1 one normal (unsupported command, not transpiled)
+		sqlite_static_bind_value = "two"
+		_ = sqlite_static_bind_value // suppress unused warning
+		// sqlite_bind $VM1 2 {} static (unsupported command, not transpiled)
+		// sqlite_bind $VM1 3 {} null (unsupported command, not transpiled)
+		// sqlite3_transfer_bindings $VM1 $VM2 (unsupported command, not transpiled)
+		// sqlite_step $VM1 VALUES COLNAMES (unsupported command, not transpiled)
+	}
+	{ // do_test "bindxfer-1.6"
+	}
+	{ // do_test "bindxfer-1.7"
+		// sqlite_step $VM2 VALUES COLNAMES (unsupported command, not transpiled)
+	}
+	{ // do_test "bindxfer-1.8"
+	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

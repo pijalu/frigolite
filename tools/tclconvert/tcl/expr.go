@@ -26,7 +26,7 @@ func EvalExpr(expr string, interp *Interp, localVars map[string]string) (string,
 	p := &exprParser{input: expr, pos: 0}
 	result, err := p.parseExpr()
 	if err != nil {
-		return expr, nil // fallback: return raw expression as-is
+		return "", err
 	}
 	return formatExprResult(result), nil
 }

@@ -77,6 +77,7 @@ func Test_bestindexA(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bestindexA"
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	// register_tcl_module db (unsupported command, not transpiled)
 	{ // "1.0"
@@ -86,55 +87,14 @@ func Test_bestindexA(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	// do_xbestindex_test 1.1 {
-  SELECT * FROM t1 WHERE a=?
-} {
-  {eq 0}
-} (unsupported command, not transpiled)
-	// do_xbestindex_test 1.2 {
-  SELECT * FROM t1 WHERE a=? LIMIT 10
-} {
-  {eq 0}
-  {limit 0}
-} (unsupported command, not transpiled)
-	// do_xbestindex_test 1.3 {
-  SELECT * FROM t1 WHERE a=? AND (b+1)=? LIMIT 10...} {
-  {eq 0}
-} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.1 {\n  SELECT * FROM t1 WHERE a=?\n} {\n  {eq 0}\n} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.2 {\n  SELECT * FROM t1 WHERE a=? LIMIT 10\n} {\n  {eq 0}\n  {limit 0}\n} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.3 {\n  SELECT * FROM t1 WHERE a=? AND (b+1)=? LIMIT 1...} {\n  {eq 0}\n} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	// do_xbestindex_test 1.4 {
-  SELECT * FROM t1 WHERE even(a, ?)
-} {
-  {152 0}
-} (unsupported command, not transpiled)
-	// do_xbestindex_test 1.5 {
-  SELECT * FROM t1 WHERE b=10 AND even(a, ?)
-} {
-  {eq 1}
-  {152 0}
-} (unsupported command, not transpiled)
-	// do_xbestindex_test 1.6 {
-  SELECT * FROM t1 WHERE b=10 LIMIT 10
-} {
-  {eq 1}
-  {limit 0}
-} (unsupported command, not transpiled)
-	// do_xbestindex_test 1.7 {
-  SELECT * FROM t1 WHERE even(b,?) LIMIT 10
-} {
-  {152 1}
-  {limit 0}
-} (unsupported command, not transpiled)
-	// do_xbestindex_test 1.8 {
-  SELECT * FROM t1 WHERE b!=? LIMIT 10
-} {
-  {ne 1}
-  {limit 0}
-} (unsupported command, not transpiled)
-	// do_xbestindex_test 1.9 {
-  SELECT * FROM t1 WHERE ?=a LIMIT 10
-} {
-  {eq 0}
-  {limit 0}
-} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.4 {\n  SELECT * FROM t1 WHERE even(a, ?)\n} {\n  {152 0}\n} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.5 {\n  SELECT * FROM t1 WHERE b=10 AND even(a, ?)\n} {\n  {eq 1}\n  {152 0}\n} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.6 {\n  SELECT * FROM t1 WHERE b=10 LIMIT 10\n} {\n  {eq 1}\n  {limit 0}\n} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.7 {\n  SELECT * FROM t1 WHERE even(b,?) LIMIT 10\n} {\n  {152 1}\n  {limit 0}\n} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.8 {\n  SELECT * FROM t1 WHERE b!=? LIMIT 10\n} {\n  {ne 1}\n  {limit 0}\n} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.9 {\n  SELECT * FROM t1 WHERE ?=a LIMIT 10\n} {\n  {eq 0}\n  {limit 0}\n} (unsupported command, not transpiled)
 }

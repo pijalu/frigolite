@@ -47,6 +47,16 @@ func Test_join4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	{ // do_test "join4-1.1"
+		_res = db.Exec("\n      create temp table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create temp table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      create temp table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create temp table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');\n    ")
+		}
+		r = db.Query("\n      select * from t1 left outer join t2 on t1.a=t2.x where t2.z='ok'\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select * from t1 left outer join t2 on t1.a=t2.x where t2.z='ok'\n    ")
+		}
+	}
 	{ // do_test "join4-1.2"
 		r = db.Query("\n    select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'\n  ")
 		if r.Error != nil {
@@ -79,6 +89,18 @@ func Test_join4(t *testing.T) {
 		r = db.Query("\n    select * from t1 left outer join t2 on t1.a=t2.x and t2.z>='ok'\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from t1 left outer join t2 on t1.a=t2.x and t2.z>='ok'\n  ")
+		}
+	}
+	{ // do_test "join4-1.6"
+		r = db.Query("\n      select * from t1 left outer join t2 on t1.a=t2.x where t2.z IN ('ok')\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select * from t1 left outer join t2 on t1.a=t2.x where t2.z IN ('ok')\n    ")
+		}
+	}
+	{ // do_test "join4-1.7"
+		r = db.Query("\n      select * from t1 left outer join t2 on t1.a=t2.x and t2.z IN ('ok')\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      select * from t1 left outer join t2 on t1.a=t2.x and t2.z IN ('ok')\n    ")
 		}
 	}
 }

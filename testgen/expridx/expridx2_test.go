@@ -65,13 +65,10 @@ func Test_expridx2(t *testing.T) {
 		// nWrite { UPDATE t1 SET b = json_set(b, '$.a', b->>'a' + 1)...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
-		// nWrite { 
-    UPDATE t1 SET b = json_set( 
-        json_se...} (unsupported command, not transpiled)
+		// nWrite { \n    UPDATE t1 SET b = json_set( \n        json_...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3"
-		// nWrite { 
-    UPDATE t1 SET b = '{a:1, b:2, c:3}' WHERE ro...} (unsupported command, not transpiled)
+		// nWrite { \n    UPDATE t1 SET b = '{a:1, b:2, c:3}' WHERE r...} (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }

@@ -343,6 +343,12 @@ func Test_insert(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM test2 WHERE f1=22 AND f2=-4.44")
 		}
 	}
+	{ // do_test "insert-3.5"
+		_res = db.Exec("REINDEX")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX")
+		}
+	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "insert-4.1"
@@ -352,12 +358,24 @@ func Test_insert(t *testing.T) {
 		}
 	}
 	{ // do_test "insert-4.2"
+		_res = db.Exec("INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,5,6);")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,5,6);")
+		}
 		r = db.Query("\n    SELECT * FROM t3 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 ORDER BY a;\n  ")
 		}
 	}
+	{ // do_test "insert-4.3"
+		_res = db.Exec("\n      INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,t3.a,6);\n      SELECT * FROM t3 ORDER BY a;\n    ")
+		_ = _res // catchsql
+	}
 	{ // do_test "insert-4.4"
+		_res = db.Exec("INSERT INTO t3 VALUES((SELECT b FROM t3 WHERE a=0),6,7);")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3 VALUES((SELECT b FROM t3 WHERE a=0),6,7);")
+		}
 		r = db.Query("\n    SELECT * FROM t3 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 ORDER BY a;\n  ")
@@ -379,6 +397,82 @@ func Test_insert(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES(min(1,2,3),max(1,2,3),99);\n    SELECT * FROM t3 WHERE c=99;\n  ")
 		}
 	}
+	{ // do_test "insert-5.1"
+		r = db.Query("\n      CREATE TEMP TABLE t4(x);\n      INSERT INTO t4 VALUES(1);\n      SELECT * FROM t4;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TABLE t4(x);\n      INSERT INTO t4 VALUES(1);\n      SELECT * FROM t4;\n    ")
+		}
+	}
+	{ // do_test "insert-5.2"
+		r = db.Query("\n      INSERT INTO t4 SELECT x+1 FROM t4;\n      SELECT * FROM t4;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 SELECT x+1 FROM t4;\n      SELECT * FROM t4;\n    ")
+		}
+	}
+	{ // do_test "insert-5.3"
+		x = "execsql {\n        EXPLAIN INSERT INTO t4 SELECT x+2 FROM t4;\n      }"
+		_ = x // suppress unused warning
+		// expr [lsearch $x OpenEphemeral]>0 (not evaluated)
+	}
+	{ // do_test "insert-5.4"
+		r = db.Query("\n      SELECT rootpage FROM sqlite_master WHERE name='test1';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rootpage FROM sqlite_master WHERE name='test1';\n    ")
+		}
+	}
+	{ // do_test "insert-5.5"
+		r = db.Query("\n      SELECT rootpage FROM sqlite_temp_master WHERE name='t4';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rootpage FROM sqlite_temp_master WHERE name='t4';\n    ")
+		}
+	}
+	{ // do_test "insert-5.6"
+		r = db.Query("\n      INSERT INTO t4 SELECT one FROM test1 WHERE three=7;\n      SELECT * FROM t4\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t4 SELECT one FROM test1 WHERE three=7;\n      SELECT * FROM t4\n    ")
+		}
+	}
+	{ // do_test "insert-5.7"
+		x = "execsql {\n        EXPLAIN INSERT INTO t4 SELECT one FROM test1;\n      }"
+		_ = x // suppress unused warning
+		// expr [lsearch $x OpenTemp]>0 (not evaluated)
+	}
+	{ // do_test "insert-6.1"
+		r = db.Query("\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t1 VALUES(2,3);\n      SELECT b FROM t1 WHERE b=2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t1 VALUES(2,3);\n      SELECT b FROM t1 WHERE b=2;\n    ")
+		}
+	}
+	{ // do_test "insert-6.2"
+		r = db.Query("\n      REPLACE INTO t1 VALUES(1,4);\n      SELECT b FROM t1 WHERE b=2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      REPLACE INTO t1 VALUES(1,4);\n      SELECT b FROM t1 WHERE b=2;\n    ")
+		}
+	}
+	{ // do_test "insert-6.3"
+		r = db.Query("\n      UPDATE OR REPLACE t1 SET a=2 WHERE b=4;\n      SELECT * FROM t1 WHERE b=4;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE OR REPLACE t1 SET a=2 WHERE b=4;\n      SELECT * FROM t1 WHERE b=4;\n    ")
+		}
+	}
+	{ // do_test "insert-6.4"
+		r = db.Query("\n      SELECT * FROM t1 WHERE b=3;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 WHERE b=3;\n    ")
+		}
+	}
+	{ // do_test "insert-6.5"
+		_res = db.Exec("REINDEX")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX")
+		}
+	}
+	{ // do_test "insert-6.6"
+		_res = db.Exec("\n      DROP TABLE t1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE t1;\n    ")
+		}
+	}
 	{ // do_test "insert-7.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    CREATE INDEX i1 ON t1(a);\n  ")
 		if _res.Error != nil {
@@ -397,6 +491,12 @@ func Test_insert(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1;\n  ")
 		}
 	}
+	{ // do_test "insert-8.1"
+		_res = db.Exec("\n      INSERT INTO t3 SELECT * FROM (SELECT * FROM t3 UNION ALL SELECT 1,2,3)\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3 SELECT * FROM (SELECT * FROM t3 UNION ALL SELECT 1,2,3)\n    ")
+		}
+	}
 	{ // do_test "insert-9.1"
 		r = db.Query("\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(2);\n    INSERT INTO t5 VALUES(3);\n    INSERT INTO t5(rowid, x) SELECT nullif(x*2+10,14), x+100 FROM t5;\n    SELECT rowid, x FROM t5;\n  ")
 		if r.Error != nil {
@@ -408,6 +508,16 @@ func Test_insert(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,2);\n    INSERT INTO t6 VALUES(3,3);\n    INSERT INTO t6 SELECT nullif(y*2+10,14), y+100 FROM t6;\n    SELECT x, y FROM t6;\n  ")
 		}
+	}
+	{ // do_test "insert-10.1"
+		r = db.Query("\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,2,3), (4,5,6), (7,8,9);\n      SELECT * FROM t10;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,2,3), (4,5,6), (7,8,9);\n      SELECT * FROM t10;\n    ")
+		}
+	}
+	{ // do_test "insert-10.2"
+		_res = db.Exec("\n      INSERT INTO t10 VALUES(11,12,13), (14,15), (16,17,28);\n    ")
+		_ = _res // catchsql
 	}
 	{ // "insert-11.1"
 		r = db.Query("\n  CREATE TABLE t11a AS SELECT '123456789' AS x;\n  CREATE TABLE t11b (a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t11b SELECT x, x, x FROM t11a;\n  SELECT quote(a), quote(b), quote(c) FROM t11b;\n")

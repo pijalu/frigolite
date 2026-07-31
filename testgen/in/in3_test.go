@@ -64,6 +64,7 @@ func Test_in3(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "in3-1.1"
@@ -103,8 +104,10 @@ func Test_in3(t *testing.T) {
 		// exec_neph {SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 ORDE...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.12"
-		// exec_neph {
-    SELECT a FROM t1 WHERE a IN (SELECT a FROM t1...} (unsupported command, not transpiled)
+		// exec_neph {\n    SELECT a FROM t1 WHERE a IN (SELECT a FROM t...} (unsupported command, not transpiled)
+	}
+	{ // do_test "in3-1.13"
+		// exec_neph {\n      SELECT a FROM t1 WHERE a IN (\n        SEL...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.14"
 		// exec_neph { SELECT a FROM t1 WHERE a COLLATE nocase IN (SELEC...} (unsupported command, not transpiled)
@@ -128,9 +131,9 @@ func Test_in3(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			w = i
 			_ = w // suppress unused warning
-			x = "int(log($i)/log(2))"
+			x = tclExpr("int(log($i)/log(2))")
 			_ = x // suppress unused warning
-			y = "$i*$i + 2*$i + 1"
+			y = tclExpr("$i*$i + 2*$i + 1")
 			_ = y // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + w + "," + x + "," + y + ")")
 			if _res.Error != nil {

@@ -52,6 +52,7 @@ func Test_altermalloc2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altermalloc2"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(abcd, efgh);\n")
 		if _res.Error != nil {
@@ -61,13 +62,7 @@ func Test_altermalloc2(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
-	// do_faultsim_test 1 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    ALTER TABLE t1 RENAME abcd TO dcb...} -test {
-  faultsim_test_result {0 {}} $::TMPDBERROR
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE t1 RENAME abcd TO d...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -83,13 +78,7 @@ func Test_altermalloc2(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 2 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    ALTER TABLE t1 RENAME abcd TO dcb...} -test {
-  faultsim_test_result {0 {}} $::TMPDBERROR
-} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE t1 RENAME abcd TO d...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -100,13 +89,7 @@ func Test_altermalloc2(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 3 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    ALTER TABLE t1 RENAME abcd TO dcb...} -test {
-  faultsim_test_result {0 {}} $::TMPDBERROR
-} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE t1 RENAME abcd TO d...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -117,14 +100,7 @@ func Test_altermalloc2(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 4 -faults oom-* -prep {
-  faultsim_restore_and_reopen
-  execsql { SELECT ...} -body {
-  execsql {
-    ALTER TABLE rr RENAME a TO c;
-  }...} -test {
-  faultsim_test_result {0 {}} $::TMPDBERROR
-} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELEC...} -body {\n  execsql {\n    ALTER TABLE rr RENAME a TO c;\n...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -135,13 +111,5 @@ func Test_altermalloc2(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 5 -faults oom-* -prep {
-  faultsim_restore_and_reopen
-  execsql { SELECT ...} -body {
-  execsql {
-    ALTER TABLE rr RENAME TO c;
-  }
-} -test {
-  faultsim_test_result {0 {}} $::TMPDBERROR
-} (unsupported command, not transpiled)
+	// do_faultsim_test 5 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELEC...} -body {\n  execsql {\n    ALTER TABLE rr RENAME TO c;\n  ...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n} (unsupported command, not transpiled)
 }

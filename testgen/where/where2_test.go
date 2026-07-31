@@ -96,12 +96,16 @@ func Test_where2(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			w = i
 			_ = w // suppress unused warning
-			x = "int(log($i)/log(2))"
+			x = tclExpr("int(log($i)/log(2))")
 			_ = x // suppress unused warning
-			y = "$i*$i + 2*$i + 1"
+			y = tclExpr("$i*$i + 2*$i + 1")
 			_ = y // suppress unused warning
-			z = "$x+$y"
+			z = tclExpr("$x+$y")
 			_ = z // suppress unused warning
+			_res = db.Exec("INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)")
+			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -119,24 +123,19 @@ func Test_where2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "where2-1.1"
-		// queryplan {
-    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=73...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-1.3"
-		// queryplan {
-    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=73...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-2.1"
-		// queryplan {
-    SELECT * FROM t1 WHERE w=85 ORDER BY random()...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w=85 ORDER BY random(...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-2.2"
-		// queryplan {
-    SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER B...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER ...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-2.3"
-		// queryplan {
-    SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE rowid=85 AND x=6 AND ...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-2.4"
 		_res = db.Exec("\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);\n  ")
@@ -151,7 +150,7 @@ func Test_where2(t *testing.T) {
 		_ = out2 // suppress unused warning
 		out3 = "db eval $sql"
 		_ = out3 // suppress unused warning
-		// expr $out1!=$out2 && $out2!=$out3 → "$out1!=$out2 && $out2!=$out3"
+		// expr $out1!=$out2 && $out2!=$out3 (not evaluated)
 	}
 	{ // "where2-2.5"
 		_res = db.Exec("\n  -- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();\n")
@@ -178,57 +177,87 @@ func Test_where2(t *testing.T) {
 		}
 	}
 	{ // do_test "where2-3.1"
-		// queryplan {
-    SELECT * FROM t1 ORDER BY rowid LIMIT 2
-  } (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 ORDER BY rowid LIMIT 2\n  } (test infra, not transpiled)
 	}
 	{ // do_test "where2-3.2"
-		// queryplan {
-    SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2
-...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.1"
+		// queryplan {\n      SELECT * FROM t1 WHERE z IN (10207,10006) ...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.2"
+		// queryplan {\n      SELECT * FROM t1 WHERE z IN (10207,10006) ...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.3"
+		// queryplan {\n      SELECT * FROM t1 WHERE z=10006 AND y IN (1...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.4"
+		// queryplan {\n        SELECT * FROM t1 WHERE z IN (SELECT 1020...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.5"
+		// queryplan {\n        SELECT * FROM t1 WHERE z IN (SELECT 1020...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.6a"
+		// queryplan {\n      SELECT * FROM t1\n       WHERE x IN (1,2,3...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.6b"
+		// queryplan {\n      SELECT * FROM t1\n       WHERE x IN (1,2,3...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.6c"
+		// queryplan {\n      SELECT * FROM t1\n       WHERE x IN (1,2,3...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.6d"
+		// queryplan {\n      SELECT * FROM t1\n       WHERE x IN (1,2,3...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.6x"
+		// queryplan {\n      SELECT * FROM t1 WHERE z IN (10207,10006,1...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.6y"
+		// queryplan {\n      SELECT * FROM t1 WHERE z IN (10207,10006,1...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-4.7"
+		// queryplan {\n        SELECT * FROM t1 WHERE z IN (\n         ...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-5.1"
-		// queryplan {
-    SELECT * FROM t1 WHERE w=99 ORDER BY w
-  } (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w=99 ORDER BY w\n  } (test infra, not transpiled)
+	}
+	{ // do_test "where2-5.2a"
+		// queryplan {\n      SELECT * FROM t1 WHERE w IN (99) ORDER BY ...} (test infra, not transpiled)
+	}
+	{ // do_test "where2-5.2b"
+		// queryplan {\n      SELECT * FROM t1 WHERE w IN (99) ORDER BY ...} (test infra, not transpiled)
 	}
 	idx = "" // TCL namespace variable
+	_ = idx // suppress unused warning
+	idx = "i1w" // TCL namespace variable
 	_ = idx // suppress unused warning
 	{ // do_test "where2-6.1.1"
-		// queryplan {
-    SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.1.2"
-		// queryplan {
-    SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE 99=w OR 100=w ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.2"
-		// queryplan {
-    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w O...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w ...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.3"
-		// queryplan {
-    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ...} (test infra, not transpiled)
+		// queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.4"
-		// queryplan {
-    SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR...} (test infra, not transpiled)
+		// queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 O...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.5"
-		// queryplan {
-    SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 O...} (test infra, not transpiled)
+		// queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 ...} (test infra, not transpiled)
 	}
 	idx = "" // TCL namespace variable
 	_ = idx // suppress unused warning
+	idx = "i1zyx" // TCL namespace variable
+	_ = idx // suppress unused warning
 	{ // do_test "where2-6.5"
-		// queryplan {
-    SELECT b.* FROM t1 a, t1 b
-     WHERE a.w=1 A...} (test infra, not transpiled)
+		// queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.6"
-		// queryplan {
-    SELECT b.* FROM t1 a, t1 b
-     WHERE a.w=1 A...} (test infra, not transpiled)
+		// queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1...} (test infra, not transpiled)
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where2-6.7"
@@ -236,36 +265,40 @@ func Test_where2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);\n  ")
 			}
-			// queryplan {
-    -- Because a is type TEXT and b is type INTEG...} (test infra, not transpiled)
+			// queryplan {\n    -- Because a is type TEXT and b is type INTE...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.9"
-			// queryplan {
-    -- The + operator removes affinity from the r...} (test infra, not transpiled)
+			// queryplan {\n    -- The + operator removes affinity from the ...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.9.2"
-			// queryplan {
-    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
+			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.10"
-			// queryplan {
-    -- Use + on both sides of the comparison to d...} (test infra, not transpiled)
+			// queryplan {\n    -- Use + on both sides of the comparison to ...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.11"
-			// queryplan {
-    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
+			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.11.2"
-			// queryplan {
-    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
+			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.11.3"
-			// queryplan {
-    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
+			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.11.4"
-			// queryplan {
-    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
+			// queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHE...} (test infra, not transpiled)
+		}
+		{ // do_test "where2-6.12"
+			// queryplan {\n      SELECT b,a FROM t2249b CROSS JOIN t2249a W...} (test infra, not transpiled)
+		}
+		{ // do_test "where2-6.12.2"
+			// queryplan {\n      SELECT b,a FROM t2249b CROSS JOIN t2249a W...} (test infra, not transpiled)
+		}
+		{ // do_test "where2-6.12.3"
+			// queryplan {\n      SELECT b,a FROM t2249b CROSS JOIN t2249a W...} (test infra, not transpiled)
+		}
+		{ // do_test "where2-6.13"
+			// queryplan {\n      SELECT b,a FROM t2249b CROSS JOIN t2249a W...} (test infra, not transpiled)
 		}
 		{ // "where2-6.14.1"
 			r = db.Query("\n  CREATE TABLE t614a(a TEXT COLLATE NOCASE, b TEXT COLLATE NOCASE);\n  INSERT INTO t614a VALUES('AAA','BBB');\n  CREATE TABLE t614b(x,y,c TEXT);\n  INSERT INTO t614b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t614b_c ON t614b(c);\n  SELECT c FROM t614a, t614b WHERE a=c OR b=c;\n")
@@ -418,8 +451,16 @@ func Test_where2(t *testing.T) {
 			}
 		}
 		{ // do_test "where2-6.20"
-			// queryplan {
-    SELECT x.a, y.a FROM t2249a x CROSS JOIN t224...} (test infra, not transpiled)
+			// queryplan {\n    SELECT x.a, y.a FROM t2249a x CROSS JOIN t22...} (test infra, not transpiled)
+		}
+		{ // do_test "where2-6.21"
+			// queryplan {\n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2...} (test infra, not transpiled)
+		}
+		{ // do_test "where2-6.22"
+			// queryplan {\n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2...} (test infra, not transpiled)
+		}
+		{ // do_test "where2-6.23"
+			// queryplan {\n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-7.1"
 			_ = db.Exec("\n    create table t8(a unique, b, c);\n    insert into t8 values(1,2,3);\n    insert into t8 values(2,3,4);\n    create table t9(x,y);\n    insert into t9 values(2,4);\n    insert into t9 values(2,3);\n    select y from t8, t9 where a=1 order by a, y;\n  ") // cksort
@@ -433,6 +474,158 @@ func Test_where2(t *testing.T) {
 		{ // do_test "where2-7.4"
 			_ = db.Exec("\n    create unique index i9y on t9(y);\n    select * from t8, t9 where a=1 and y=3 order by b, x\n  ") // cksort
 		}
+	}
+	{ // do_test "where2-8.1"
+		r = db.Query("\n      SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)\n    ")
+		}
+	}
+	{ // do_test "where2-8.2"
+		r = db.Query("\n      SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)\n    ")
+		}
+	}
+	_res = db.Exec("CREATE TABLE tx AS SELECT * FROM t1")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tx AS SELECT * FROM t1")
+	}
+	{ // do_test "where2-8.3"
+		r = db.Query("\n      SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)\n    ")
+		}
+	}
+	{ // do_test "where2-8.4"
+		r = db.Query("\n      SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)\n    ")
+		}
+	}
+	{ // do_test "where2-8.5"
+		r = db.Query("\n      CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)\n    ")
+		}
+	}
+	{ // do_test "where2-8.6"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.7"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.8"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.9"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)\n    ")
+		}
+	}
+	{ // do_test "where2-8.10"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.11"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.12"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)\n    ")
+		}
+	}
+	{ // do_test "where2-8.13"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.14"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.15"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)\n    ")
+		}
+	}
+	{ // do_test "where2-8.16"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.17"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.18"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)\n    ")
+		}
+	}
+	{ // do_test "where2-8.19"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-8.20"
+		r = db.Query("\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)\n    ")
+		}
+	}
+	{ // do_test "where2-9.1"
+		_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);\n    ")
+		}
+		i = "4"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
+			_res = db.Exec("INSERT INTO t10 VALUES(1,$i,$i)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t10 VALUES(1,$i,$i)")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		r = db.Query("\n      CREATE INDEX i10 ON t10(a,b);\n      COMMIT;\n      SELECT count(*) FROM t10;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE INDEX i10 ON t10(a,b);\n      COMMIT;\n      SELECT count(*) FROM t10;\n    ")
+		}
+	}
+	{ // do_test "where2-9.2"
+		_ = db.Exec("\n        SELECT * FROM t10 WHERE a=1 AND (b=2 OR b=3)\n      ") // count (search count always 0)
 	}
 	{ // do_test "where2-11.1"
 		r = db.Query("\n    CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;\n  ")

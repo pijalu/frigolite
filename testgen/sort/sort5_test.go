@@ -175,7 +175,7 @@ func Test_sort5(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")
 				}
-				// expr [array names F]!="" → "[array names F]!=\"\""
+				// expr [array names F]!="" (not evaluated)
 			}
 		}
 }

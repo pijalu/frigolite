@@ -55,9 +55,7 @@ func Test_rowallock(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	mmap_res = "1000000"
 	_ = mmap_res // suppress unused warning
-	// do_multiclient_test tn {
-  code2 { db2 close }
-  code3 { db3 close }
-  
-  ...} (unsupported command, not transpiled)
+	mmap_res = "0"
+	_ = mmap_res // suppress unused warning
+	// do_multiclient_test tn {\n  code2 { db2 close }\n  code3 { db3 close }\n  ...} (unsupported command, not transpiled)
 }

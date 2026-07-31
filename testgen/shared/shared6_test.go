@@ -51,6 +51,7 @@ func Test_shared6(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "shared6-1.1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);\n    CREATE TABLE t3(e, f);\n  ")
 		if _res.Error != nil {

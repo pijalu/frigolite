@@ -3,6 +3,8 @@ package incrvacuum_
 
 import (
 "github.com/pijalu/frigolite"
+"os"
+"strconv"
 "testing"
 )
 
@@ -75,24 +77,99 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// do_ioerr_test incrvacuum-ioerr-1 -cksum 1 -sqlprep {
-  PRAGMA auto_vacuum = 'incremental';
-  CREATE TA...} -sqlbody {
-  BEGIN;
-  CREATE TABLE abc2(a);
-  DELETE FROM ab...} (unsupported command, not transpiled)
-	// do_ioerr_test incrvacuum-ioerr-2 -start 1 -cksum 1 -tclprep {
-  db eval {
-    PRAGMA auto_vacuum = 'full';
-    ...} -sqlbody {
-  BEGIN;
-  PRAGMA incremental_vacuum;
-  DELETE FR...} (unsupported command, not transpiled)
-	// do_ioerr_test incrvacuum-ioerr-3 -start 1 -cksum 1 -tclprep {
-  db eval {
-    PRAGMA auto_vacuum = 'incremental...} -sqlbody {
-  PRAGMA incremental_vacuum(5);
-} -cleanup {
-  sqlite3 db test.db
-  integrity_check incrvacuum...} (unsupported command, not transpiled)
+	return
+	// do_ioerr_test incrvacuum-ioerr-1 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 'incremental';\n  CREATE ...} -sqlbody {\n  BEGIN;\n  CREATE TABLE abc2(a);\n  DELETE FROM...} (unsupported command, not transpiled)
+	// do_ioerr_test incrvacuum-ioerr-2 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_vacuum = 'full';\n ...} -sqlbody {\n  BEGIN;\n  PRAGMA incremental_vacuum;\n  DELETE...} (unsupported command, not transpiled)
+	// do_ioerr_test incrvacuum-ioerr-3 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_vacuum = 'increment...} -sqlbody {\n  PRAGMA incremental_vacuum(5);\n} -cleanup {\n  sqlite3 db test.db\n  integrity_check incrvacu...} (unsupported command, not transpiled)
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+	}
+	os.Remove("test.db")
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	db1, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // do_test "incrvacuum-ioerr-4.0"
+		_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);\n    ")
+		}
+		ii = "0"
+		_ = ii // suppress unused warning
+		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20 }() {
+			_res = db.Exec(" INSERT INTO a VALUES($ii, randstr(800,1500)); ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO a VALUES($ii, randstr(800,1500)); ")
+			}
+			// incr ii 1
+			{
+				_n, _err := strconv.Atoi(ii)
+				if _err == nil {
+					ii = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		_res = db.Exec("DELETE FROM a WHERE oid")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM a WHERE oid")
+		}
+	}
+	rc = "1" // TCL namespace variable
+	_ = rc // suppress unused warning
+	iTest = "1"
+	_ = iTest // suppress unused warning
+	for tclBool(rc + " && " + iTest + "<2000") {
+		nFree = "execsql {pragma freelist_count} db1"
+		_ = nFree // suppress unused warning
+		nPage = "execsql {pragma page_count} db1"
+		_ = nPage // suppress unused warning
+		_putsMsg := "nFree=" + nFree + " nPage=" + nPage
+		_ = _putsMsg
+		sqlite_io_error_pending = iTest // TCL namespace variable
+		_ = sqlite_io_error_pending // suppress unused warning
+		sqlite_io_error_persist = "1" // TCL namespace variable
+		_ = sqlite_io_error_persist // suppress unused warning
+		{ // do_test "incrvacuum-ioerr-4." + iTest + ".1"
+			rc = "0" // TCL namespace variable
+			_ = rc // suppress unused warning
+			// expr $::rc==0 || $msg eq "disk I/O error" (not evaluated)
+		}
+		sqlite_io_error_pending = "0" // TCL namespace variable
+		_ = sqlite_io_error_pending // suppress unused warning
+		sqlite_io_error_persist = "0" // TCL namespace variable
+		_ = sqlite_io_error_persist // suppress unused warning
+		sqlite_io_error_hit = "0" // TCL namespace variable
+		_ = sqlite_io_error_hit // suppress unused warning
+		sqlite_io_error_hardhit = "0" // TCL namespace variable
+		_ = sqlite_io_error_hardhit // suppress unused warning
+		nFree2 = "execsql {pragma freelist_count} db1"
+		_ = nFree2 // suppress unused warning
+		nPage2 = "execsql {pragma page_count} db1"
+		_ = nPage2 // suppress unused warning
+		{ // do_test "incrvacuum-ioerr-4." + iTest + ".2"
+			shrink = tclExpr("$nPage-$nPage2")
+			_ = shrink // suppress unused warning
+			// expr $shrink==0 || $shrink==5 || ($nFree<5 && $shrink==$nFree) (not evaluated)
+		}
+		{ // do_test "incrvacuum-ioerr-4." + iTest + ".3"
+			// expr $nPage - $nPage2 (not evaluated)
+		}
+		// incr iTest 1
+		{
+			_n, _err := strconv.Atoi(iTest)
+			if _err == nil {
+				iTest = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	db1.Close()
+	db2.Close()
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

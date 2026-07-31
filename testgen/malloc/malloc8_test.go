@@ -54,28 +54,12 @@ func Test_malloc8(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
-	// do_malloc_test malloc8-1 -sqlprep {
-  PRAGMA encoding='UTF-16';
-  CREATE TABLE t1(a);...} -sqlbody {
-  SELECT lower(a), upper(a), quote(a), trim(a), t...} (unsupported command, not transpiled)
-	// do_malloc_test malloc8-2 -sqlprep {
-  PRAGMA encoding='UTF-16';
-  CREATE TABLE t1(a);...} -sqlbody {
-  SELECT replace(a,'x','y'), replace('x',a,'y'), ...} (unsupported command, not transpiled)
-	// do_malloc_test malloc8-3 -sqlprep {
-  PRAGMA encoding='UTF-16';
-  CREATE TABLE t1(a);...} -sqlbody {
-  SELECT length(a), substr(a, 4, 4) FROM t1;
-} (unsupported command, not transpiled)
-	// do_malloc_test malloc8-5 -sqlprep {
-  PRAGMA encoding='UTF-16';
-  CREATE TABLE t1(a);...} -sqlbody {
-  SELECT 1 FROM t1 WHERE a LIKE 'hello' ESCAPE NU...} (unsupported command, not transpiled)
-	// do_malloc_test malloc8-6 -sqlprep {
-  PRAGMA encoding='UTF-16';
-  CREATE TABLE t1(a);...} -sqlbody {
-  SELECT hex(randomblob(100));
-} (unsupported command, not transpiled)
+	// do_malloc_test malloc8-1 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a...} -sqlbody {\n  SELECT lower(a), upper(a), quote(a), trim(a), ...} (unsupported command, not transpiled)
+	// do_malloc_test malloc8-2 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a...} -sqlbody {\n  SELECT replace(a,'x','y'), replace('x',a,'y'),...} (unsupported command, not transpiled)
+	// do_malloc_test malloc8-3 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a...} -sqlbody {\n  SELECT length(a), substr(a, 4, 4) FROM t1;\n} (unsupported command, not transpiled)
+	// do_malloc_test malloc8-4 -sqlprep {\n    PRAGMA encoding='UTF-16';\n    CREATE TABLE ...} -sqlbody {\n    SELECT julianday(a,a) FROM t1;\n  } (unsupported command, not transpiled)
+	// do_malloc_test malloc8-5 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a...} -sqlbody {\n  SELECT 1 FROM t1 WHERE a LIKE 'hello' ESCAPE N...} (unsupported command, not transpiled)
+	// do_malloc_test malloc8-6 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a...} -sqlbody {\n  SELECT hex(randomblob(100));\n} (unsupported command, not transpiled)
 	{ // do_test "malloc-99.X"
 		{
 			var _catchErr error

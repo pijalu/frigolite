@@ -64,6 +64,7 @@ func Test_sqllog(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "sqllog"
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

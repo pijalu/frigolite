@@ -59,22 +59,9 @@ func Test_tkt2820(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	// test_schema_change 1 {
-  CREATE TABLE t1(a);
-} {
-  DROP TABLE t1
-} {t1} (unsupported command, not transpiled)
-	// test_schema_change 2 {
-  CREATE TABLE t1(a);
-  CREATE TABLE t2(b);
-} {
-  DROP TABLE t2
-} {t1 t2} (unsupported command, not transpiled)
-	// test_schema_change 3 {
-  CREATE TABLE t1(a);
-  CREATE INDEX i1 ON t1(a);...} {
-  DROP INDEX i1
-} {i1 t1} (unsupported command, not transpiled)
+	// test_schema_change 1 {\n  CREATE TABLE t1(a);\n} {\n  DROP TABLE t1\n} {t1} (unsupported command, not transpiled)
+	// test_schema_change 2 {\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n} {\n  DROP TABLE t2\n} {t1 t2} (unsupported command, not transpiled)
+	// test_schema_change 3 {\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a...} {\n  DROP INDEX i1\n} {i1 t1} (unsupported command, not transpiled)
 	{ // do_test "tkt2820-4.1"
 		os.Remove("test.db")
 		_dbtmp0, err := frigolite.Open("test.db")

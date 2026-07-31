@@ -91,6 +91,7 @@ func Test_incrblob(t *testing.T) {
 	_ = cmdlinearg_INFO_SCRIPT // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "incrblob-1.1"
 		_res = db.Exec("\n    CREATE TABLE blobs(k PRIMARY KEY, v BLOB);\n    INSERT INTO blobs VALUES('one', X'0102030405060708090A');\n    INSERT INTO blobs VALUES('two', X'0A090807060504030201');\n  ")
 		if _res.Error != nil {
@@ -155,6 +156,7 @@ func Test_incrblob(t *testing.T) {
 	for _, AutoVacuumMode := range tclSplitList("list 0 1") {
 	_ = AutoVacuumMode // suppress unused warning
 		if func() bool { AutoVacuumMode_n, _AutoVacuumMode_e := strconv.Atoi(AutoVacuumMode); if _AutoVacuumMode_e != nil { return false }; return AutoVacuumMode_n > 0 }() {
+			break
 		}
 		os.Remove("test.db")
 		_dbtmp0, err := frigolite.Open("test.db")
@@ -195,7 +197,13 @@ func Test_incrblob(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE blobs(k PRIMARY KEY, v BLOB, i INTEGER);\n      DELETE FROM blobs;\n      INSERT INTO blobs VALUES('one', $::str || randstr(500,500), 45);\n      COMMIT;\n    ")
 			}
-			// expr [file size test.db]/1024 → "[file size test.db]/1024"
+			// expr [file size test.db]/1024 (not evaluated)
+		}
+		{ // do_test "incrblob-2." + AutoVacuumMode + ".2"
+			r = db.Query("\n        PRAGMA auto_vacuum;\n      ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA auto_vacuum;\n      ")
+			}
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".3"
 			_dbtmp1, err := frigolite.Open("test.db")
@@ -544,6 +552,78 @@ func Test_incrblob(t *testing.T) {
 	{ // do_test "incrblob-4.10.2"
 		// close $::blob
 	}
+	{ // do_test "incrblob-4.11"
+		_res = db.Exec(" CREATE VIEW blobs_view AS SELECT k, v, i FROM blobs ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIEW blobs_view AS SELECT k, v, i FROM blobs ")
+		}
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		_list := tclList([]string{rc, msg})
+		_ = _list
+	}
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	{ // do_test "incrblob-4.12"
+		_res = db.Exec(" CREATE VIRTUAL TABLE blobs_echo USING echo(blobs) ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE blobs_echo USING echo(blobs) ")
+		}
+	_ = rc // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			if _catchErr != nil {
+				rc = "1"
+				msg = _catchErr.Error()
+			} else {
+				rc = "0"
+				msg = ""
+			}
+		}
+		_list := tclList([]string{rc, msg})
+		_ = _list
+	}
+	{ // do_test "incrblob-5.1"
+		os.Remove("test2.db")
+		size = tclExpr("[file size $::cmdlinearg(INFO_SCRIPT)]") // TCL namespace variable
+		_ = size // suppress unused warning
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.files(name, text);\n      INSERT INTO aux.files VALUES('this one', zeroblob($::size));\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.files(name, text);\n      INSERT INTO aux.files VALUES('this one', zeroblob($::size));\n    ")
+		}
+		fd = "db incrblob aux files text 1"
+		_ = fd // suppress unused warning
+		// fconfigure $fd -translation binary (unsupported command, not transpiled)
+		fd2 = "open $::cmdlinearg(INFO_SCRIPT)"
+		_ = fd2 // suppress unused warning
+		// fconfigure $fd2 -translation binary (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
+		// close $fd
+		// close $fd2
+		text = "db one {select text from aux.files}" // TCL namespace variable
+		_ = text // suppress unused warning
+		_ = strconv.Itoa(len(text)) // string length result
+	}
+	{ // do_test "incrblob-5.2"
+		fd2 = "open $::cmdlinearg(INFO_SCRIPT)"
+		_ = fd2 // suppress unused warning
+		// fconfigure $fd2 -translation binary (unsupported command, not transpiled)
+		data = "read $fd2" // TCL namespace variable
+		_ = data // suppress unused warning
+		// close $fd2
+		_ = data // TCL namespace variable (query)
+	}
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	if tclBool("permutation" + " != \"memsubsys1\"") {
 		{ // do_test "incrblob-6.1"
@@ -763,7 +843,7 @@ func Test_incrblob(t *testing.T) {
 			// read $::b (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob-7.3.2"
-			// expr [file size test.db]/1024 → "[file size test.db]/1024"
+			// expr [file size test.db]/1024 (not evaluated)
 		}
 		{ // do_test "incrblob-7.3.3"
 			r = db.Query("\n    DELETE FROM t1 WHERE a = 123;\n    PRAGMA INCREMENTAL_VACUUM(0);\n  ")

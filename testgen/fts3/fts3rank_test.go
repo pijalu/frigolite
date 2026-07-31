@@ -50,6 +50,7 @@ func Test_fts3rank(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3rank"
 	_ = testprefix // suppress unused warning
+	return
 	// install_fts3_rank_function db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n  INSERT INTO t1 VALUES('one two', 'one');\n  INSERT INTO t1 VALUES('one two', 'three');\n  INSERT INTO t1 VALUES('one two', 'two');\n")

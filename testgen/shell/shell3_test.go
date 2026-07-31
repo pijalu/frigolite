@@ -127,9 +127,6 @@ func Test_shell3(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell3-3.2"
-		// catchcmd  {
-.open xyz.db
-SELECT ;
-  } (unsupported command, not transpiled)
+		// catchcmd  {\n.open xyz.db\nSELECT ;\n  } (unsupported command, not transpiled)
 	}
 }

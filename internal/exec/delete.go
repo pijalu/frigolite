@@ -26,13 +26,22 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 
 	tree := e.tableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 
+	// Collect deleted row data for RETURNING clause before deletion
+	var deletedRows []RowMap
+
 	deleted, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil {
 			return false
 		}
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
-		return e.rowMatchesWhere(s.Where, row)
+		if e.rowMatchesWhere(s.Where, row) {
+			if s.HasReturning {
+				deletedRows = append(deletedRows, row)
+			}
+			return true
+		}
+		return false
 	})
 	if err != nil {
 		return &Result{Error: err}
@@ -41,6 +50,20 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 	// Fire AFTER DELETE triggers
 	if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, nil); trigResult.Error != nil {
 		return trigResult
+	}
+
+	// Handle RETURNING clause — evaluate against deleted rows
+	if s.HasReturning {
+		var returningRows [][]interface{}
+		for _, row := range deletedRows {
+			values, err := e.evalReturningExprs(s.Returning, row, colDefs)
+			if err != nil {
+				return &Result{Error: err}
+			}
+			returningRows = append(returningRows, values)
+		}
+		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+		return &Result{Columns: columns, Rows: returningRows}
 	}
 
 	return &Result{Changes: deleted}

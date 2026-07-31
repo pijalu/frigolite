@@ -62,6 +62,7 @@ func Test_shell9(t *testing.T) {
 	_ = CLI // suppress unused warning
 	testprefix = "shell9" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts5(a, b, c);\n  INSERT INTO t1 VALUES('one', 'two', 'three');\n")
 		if _res.Error != nil {

@@ -87,7 +87,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-1.1.1"
 		res = "catchcmd \"-bad test.db\" \"\""
 		_ = res // suppress unused warning
-		rc = "lindex $res 0"
+		rc = tclLIndex(res, "0")
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Error: unknown option: -bad} $res"})
 		_ = _list
@@ -95,7 +95,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-1.1.1b"
 		res = "catchcmd \"test.db -bad\" \"\""
 		_ = res // suppress unused warning
-		rc = "lindex $res 0"
+		rc = tclLIndex(res, "0")
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Error: unknown option: -bad} $res"})
 		_ = _list
@@ -109,7 +109,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-1.2.1"
 		res = "catchcmd \"-help test.db\" \"\""
 		_ = res // suppress unused warning
-		rc = "lindex $res 0"
+		rc = tclLIndex(res, "0")
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Usage} $res", "regexp {\\-init} $res", "regexp {\\-version} $res"})
 		_ = _list
@@ -144,7 +144,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-1.7.1"
 		res = "catchcmd \"-interactive test.db\" \".quit\""
 		_ = res // suppress unused warning
-		rc = "lindex $res 0"
+		rc = tclLIndex(res, "0")
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {SQLite version} $res", "regexp {Enter \".help\" for usage hints} $res"})
 		_ = _list
@@ -186,7 +186,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-1.14.3"
 		res = "catchcmd \"-separator\" \"\""
 		_ = res // suppress unused warning
-		rc = "lindex $res 0"
+		rc = tclLIndex(res, "0")
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Error: missing argument to -separator} $res"})
 		_ = _list
@@ -203,7 +203,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-1.15.3"
 		res = "catchcmd \"-nullvalue\" \"\""
 		_ = res // suppress unused warning
-		rc = "lindex $res 0"
+		rc = tclLIndex(res, "0")
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Error: missing argument to -nullvalue} $res"})
 		_ = _list
@@ -304,6 +304,12 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-3.2.4"
 		// catchcmd test.db .bail OFF BAD (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-3.3.1"
+		// catchcmd -csv test.db .databases (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-3.3.2"
+		// catchcmd test.db .databases BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.4.1"
 		res = "catchcmd \"test.db\" \".dump\""
@@ -447,14 +453,10 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test.db .nullvalue FOO BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.15.1"
-		// catchcmd test.db .output
-.print x (unsupported command, not transpiled)
+		// catchcmd test.db .output\n.print x (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.15.2"
-		// catchcmd test.db .mode batch\n.output FOO
-.print x
-.output
-SELECT r... (unsupported command, not transpiled)
+		// catchcmd test.db .mode batch\n.output FOO\n.print x\n.output\nSELEC... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.15.3"
 		// catchcmd test.db .output FOO BAD (unsupported command, not transpiled)
@@ -505,6 +507,25 @@ SELECT r... (unsupported command, not transpiled)
 	{ // do_test "shell1-3.20.4"
 		// catchcmd test.db .restore FOO BAR BAD (unsupported command, not transpiled)
 	}
+	{ // do_test "shell1-3.21.1"
+		// catchcmd test.db .schema (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-3.21.2"
+		// catchcmd test.db .schema FOO (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-3.21.3"
+		// catchcmd test.db .schema FOO BAD (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-3.21.4"
+		// catchcmd test.db {\n     CREATE TABLE t1(x);\n     CREATE VIEW v2 AS...} (unsupported command, not transpiled)
+		// catchcmd test.db .schema (unsupported command, not transpiled)
+	}
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+		_res = db.Exec("DROP VIEW v1; DROP VIEW v2; DROP TABLE t1;")
+		if _res.Error != nil { _catchErr = _res.Error }
+	}
 	{ // do_test "shell1-3.21.5"
 		// exec {*} $CLI -noinit test.db {CREATE TABLE t2(a INTEGER PRIMARY KEY, b BLOB DEFA...} {.schema -indent t2} (unsupported command, not transpiled)
 	}
@@ -542,8 +563,7 @@ SELECT r... (unsupported command, not transpiled)
 		// catchcmd test.db .stats OFF BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.23b.5"
-		// catchcmd test.db [string map {"\n    " "\n"} {.mode batch
-    CREAT... (unsupported command, not transpiled)
+		// catchcmd test.db [string map {"\n    " "\n"} {.mode batch\n    CREA... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.24.1"
 		// catchcmd test.db .tables (unsupported command, not transpiled)
@@ -619,10 +639,57 @@ SELECT r... (unsupported command, not transpiled)
 		}
 		// catchcmd test.db {.dump} (unsupported command, not transpiled)
 	}
-	{ // do_test "shell1-4.1.7"
+	{ // do_test "shell1-4.1.1"
+		// catchcmd test.db {.dump --preserve-rowids} (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-4.1.2"
 		os.Remove("test2.db")
 		_dbtmp2, err := frigolite.Open("test2.db")
 		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(1,null), (2,''), (3,1),\n                         (4,2.25), (5,'hello'), (6,x'807f');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(1,null), (2,''), (3,1),\n                         (4,2.25), (5,'hello'), (6,x'807f');\n  ")
+		}
+		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-4.1.3"
+		os.Remove("test2.db")
+		_dbtmp3, err := frigolite.Open("test2.db")
+		_ = _dbtmp3 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    CREATE TABLE [table](x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO [table] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE [table](x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO [table] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+		}
+		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-4.1.4"
+		os.Remove("test2.db")
+		_dbtmp4, err := frigolite.Open("test2.db")
+		_ = _dbtmp4 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    CREATE TABLE [ta<>ble](x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO [ta<>ble] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE [ta<>ble](x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO [ta<>ble] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+		}
+		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-4.1.5"
+		os.Remove("test2.db")
+		_dbtmp5, err := frigolite.Open("test2.db")
+		_ = _dbtmp5 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n    CREATE TABLE t1(_ROWID_,rowid,oid);\n    INSERT INTO t1 VALUES(1,null,'alpha'), (12,'',99), (23,1,x'b0b1b2');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(_ROWID_,rowid,oid);\n    INSERT INTO t1 VALUES(1,null,'alpha'), (12,'',99), (23,1,x'b0b1b2');\n  ")
+		}
+		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-4.1.7"
+		os.Remove("test2.db")
+		_dbtmp6, err := frigolite.Open("test2.db")
+		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n  ")
 		if _res.Error != nil {
@@ -632,8 +699,8 @@ SELECT r... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.8"
 		os.Remove("test2.db")
-		_dbtmp3, err := frigolite.Open("test2.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp7, err := frigolite.Open("test2.db")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
@@ -643,8 +710,8 @@ SELECT r... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.9"
 		os.Remove("test2.db")
-		_dbtmp4, err := frigolite.Open("test2.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		_dbtmp8, err := frigolite.Open("test2.db")
+		_ = _dbtmp8 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    INSERT INTO sqlite_sequence VALUES('extra',999);\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
@@ -666,8 +733,8 @@ SELECT r... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.3"
 		os.Remove("test.db")
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		_dbtmp9, err := frigolite.Open("test.db")
+		_ = _dbtmp9 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n  ")
 		if _res.Error != nil {
@@ -734,9 +801,9 @@ SELECT r... (unsupported command, not transpiled)
 				_ = char // suppress unused warning
 				x = "catchcmdex test.db \".print \\\"$char\\\"\\n\""
 				_ = x // suppress unused warning
-				code = "lindex $x 0"
+				code = tclLIndex(x, "0")
 				_ = code // suppress unused warning
-				res = "lindex $x 1"
+				res = tclLIndex(x, "1")
 				_ = res // suppress unused warning
 				if code != "0" {
 					t.Errorf("TCL error: %s", "failed with error: " + res)
@@ -775,9 +842,9 @@ SELECT r... (unsupported command, not transpiled)
 			}
 			x = "catchcmdex $fileName \"CREATE TABLE t1(x);\\n.schema\\n\""
 			_ = x // suppress unused warning
-			code = "lindex $x 0"
+			code = tclLIndex(x, "0")
 			_ = code // suppress unused warning
-			res = strings.TrimSpace("lindex $x 1")
+			res = strings.TrimSpace(tclLIndex(x, "1"))
 			_ = res // suppress unused warning
 			if code != "0" {
 				t.Errorf("TCL error: %s", "failed with error: " + res)
@@ -798,9 +865,9 @@ SELECT r... (unsupported command, not transpiled)
 			}
 			x = "catchcmdex test3.db \\\n      \"CREATE TABLE [encoding convertto utf-8 $test](x);\\n.schema\\n\""
 			_ = x // suppress unused warning
-			code = "lindex $x 0"
+			code = tclLIndex(x, "0")
 			_ = code // suppress unused warning
-			res = strings.TrimSpace("lindex $x 1")
+			res = strings.TrimSpace(tclLIndex(x, "1"))
 			_ = res // suppress unused warning
 			if code != "0" {
 				t.Errorf("TCL error: %s", "failed with error: " + res)
@@ -812,64 +879,61 @@ SELECT r... (unsupported command, not transpiled)
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp6, err := frigolite.Open("test.db")
-	_ = _dbtmp6 // sqlite3 db connection
+	_dbtmp10, err := frigolite.Open("test.db")
+	_ = _dbtmp10 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	{ // do_test "shell1-8.1"
-		// catchcmd :memory: {.mode batch
-    -- The pow2 table will hold all th...} (unsupported command, not transpiled)
+	{ // do_test "shell1-7.1.1"
+		_res = db.Exec("\n    CREATE TABLE Z (x TEXT PRIMARY KEY);\n    CREATE TABLE _ (x TEXT PRIMARY KEY);\n    CREATE TABLE YY (x TEXT PRIMARY KEY);\n    CREATE TABLE __ (x TEXT PRIMARY KEY);\n    CREATE TABLE WWW (x TEXT PRIMARY KEY);\n    CREATE TABLE ___ (x TEXT PRIMARY KEY);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE Z (x TEXT PRIMARY KEY);\n    CREATE TABLE _ (x TEXT PRIMARY KEY);\n    CREATE TABLE YY (x TEXT PRIMARY KEY);\n    CREATE TABLE __ (x TEXT PRIMARY KEY);\n    CREATE TABLE WWW (x TEXT PRIMARY KEY);\n    CREATE TABLE ___ (x TEXT PRIMARY KEY);\n  ")
+		}
 	}
-	// do_test_with_ansi_output shell1-8.2 {
-  catchcmd :memory: {
-.mode box
-SELECT ieee754(47...} {0 {╭──────────────�...} (unsupported command, not transpiled)
-	// do_test_with_ansi_output shell1-8.3 {
-  catchcmd ":memory: --box" {
-    select ieee754(...} {0 {╭───────╮
-│   x   │
-╞�...} (unsupported command, not transpiled)
+	{ // do_test "shell1-7.1.2"
+		// catchcmd test.db .schema _ (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-7.1.3"
+		// catchcmd test.db .schema \"\\\\_\" (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-7.1.4"
+		// catchcmd test.db .schema __ (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-7.1.5"
+		// catchcmd test.db .schema \"\\\\_\\\\_\" (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-7.1.6"
+		// catchcmd test.db .schema ___ (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-7.1.7"
+		// catchcmd test.db .schema \"\\\\_\\\\_\\\\_\" (unsupported command, not transpiled)
+	}
+	{ // do_test "shell1-8.1"
+		// catchcmd :memory: {.mode batch\n    -- The pow2 table will hold all t...} (unsupported command, not transpiled)
+	}
+	// do_test_with_ansi_output shell1-8.2 {\n  catchcmd :memory: {\n.mode box\nSELECT ieee754...} {0 {╭──────────────�...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shell1-8.3 {\n  catchcmd ":memory: --box" {\n    select ieee75...} {0 {╭───────╮\n│   x   │\n╞...} (unsupported command, not transpiled)
 	{ // do_test "shell1-8.4"
 		// catchcmd :memory: --table {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-8.4b"
 		// catchcmd :memory: --psql {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...} (unsupported command, not transpiled)
 	}
-	// do_test_with_ansi_output shell1-8.5 {
-  catchcmd ":memory: --box" {
-create table t(a te...} {0 {╭────────────┬─�...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shell1-8.5 {\n  catchcmd ":memory: --box" {\ncreate table t(a ...} {0 {╭────────────┬─�...} (unsupported command, not transpiled)
 	{ // do_test "shell1-9.1"
-		// catchcmd :memory: {
-.mode csv --rowsep "\n"
-/*
-x */ select 1,2; --x
- ...} (unsupported command, not transpiled)
+		// catchcmd :memory: {\n.mode csv --rowsep "\n"\n/*\nx */ select 1,2; --...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-10.1"
-		// catchcmd :memory: {
-.mode list
-.header off
-select base64(base64(cast(...} (unsupported command, not transpiled)
+		// catchcmd :memory: {\n.mode list\n.header off\nselect base64(base64(ca...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-11.1"
-		// catchcmd :memory: {
-.mode list
-.header off
-select base64(zeroblob(200...} (unsupported command, not transpiled)
+		// catchcmd :memory: {\n.mode list\n.header off\nselect base64(zeroblob(...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-11.2"
-		// catchcmd :memory: {
-.mode list
-.header off
-select base85(zeroblob(200...} (unsupported command, not transpiled)
+		// catchcmd :memory: {\n.mode list\n.header off\nselect base85(zeroblob(...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-12.1"
-		// catchcmd :memory: {.mode tty -quote sql
-.print
-SELECT jsonb(1234) AS ...} (unsupported command, not transpiled)
+		// catchcmd :memory: {.mode tty -quote sql\n.print\nSELECT jsonb(1234) A...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-12.2"
-		// catchcmd :memory: {.mode box --textjsonb on
-.print
-SELECT jsonb(1234)...} (unsupported command, not transpiled)
+		// catchcmd :memory: {.mode box --textjsonb on\n.print\nSELECT jsonb(123...} (unsupported command, not transpiled)
 	}
 }

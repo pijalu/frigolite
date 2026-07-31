@@ -85,7 +85,7 @@ func Test_speed1(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// speed_trial_init speed1 (unsupported command, not transpiled)
-	// expr srand(0) → "srand(0)"
+	// expr srand(0) (not evaluated)
 	sqlout = "open speed1.txt w"
 	_ = sqlout // suppress unused warning
 	// proc definition (not transpiled)
@@ -159,9 +159,9 @@ func Test_speed1(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-		lwr = "$i*100"
+		lwr = tclExpr("$i*100")
 		_ = lwr // suppress unused warning
-		upr = "($i+10)*100"
+		upr = tclExpr("($i+10)*100")
 		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
@@ -208,9 +208,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	// speed_trial speed1-createidx 150000 row {
-  CREATE INDEX i1a ON t1(a);
-  CREATE INDEX i1b O...} (unsupported command, not transpiled)
+	// speed_trial speed1-createidx 150000 row {\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b...} (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -220,9 +218,9 @@ func Test_speed1(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr = "$i*100"
+		lwr = tclExpr("$i*100")
 		_ = lwr // suppress unused warning
-		upr = "($i+10)*100"
+		upr = tclExpr("($i+10)*100")
 		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
@@ -313,9 +311,9 @@ func Test_speed1(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr = "$i*2"
+		lwr = tclExpr("$i*2")
 		_ = lwr // suppress unused warning
-		upr = "($i+1)*2"
+		upr = tclExpr("($i+1)*2")
 		_ = upr // suppress unused warning
 		sql += "UPDATE t1 SET b=b*2 WHERE a>=" + lwr + " AND a<" + upr + ";"
 		// incr i 1
@@ -360,9 +358,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	// speed_trial speed1-update3 50000 row {
-  UPDATE t1 SET c=a;
-} (unsupported command, not transpiled)
+	// speed_trial speed1-update3 50000 row {\n  UPDATE t1 SET c=a;\n} (unsupported command, not transpiled)
 	sql = ""
 	_ = sql // suppress unused warning
 	i = "1"
@@ -396,24 +392,17 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	// speed_trial speed1-drop1 50000 row {
-   DROP TABLE t1;
-   CREATE TABLE t1(a INTEGER, b...} (unsupported command, not transpiled)
+	// speed_trial speed1-drop1 50000 row {\n   DROP TABLE t1;\n   CREATE TABLE t1(a INTEGER,...} (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
 	// speed_trial speed1-copy3 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
-	// speed_trial speed1-random1 50000 row {
-  SELECT rowid FROM t1 ORDER BY random() LIMIT 20...} (unsupported command, not transpiled)
-	// speed_trial speed1-random-del1 20000 row {
-  DELETE FROM t1 WHERE rowid IN
-    (SELECT rowid...} (unsupported command, not transpiled)
+	// speed_trial speed1-random1 50000 row {\n  SELECT rowid FROM t1 ORDER BY random() LIMIT 2...} (unsupported command, not transpiled)
+	// speed_trial speed1-random-del1 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT row...} (unsupported command, not transpiled)
 	{ // do_test "speed1-1.1"
 	}
-	// speed_trial speed1-random-del2 20000 row {
-  DELETE FROM t1 WHERE rowid IN
-    (SELECT rowid...} (unsupported command, not transpiled)
+	// speed_trial speed1-random-del2 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT row...} (unsupported command, not transpiled)
 	{ // do_test "speed1-1.2"
 	}
 	// speed_trial_summary speed1 (unsupported command, not transpiled)

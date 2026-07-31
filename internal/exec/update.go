@@ -35,6 +35,19 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// Handle RETURNING clause — evaluate against updated rows before applying
+	var returningRows [][]interface{}
+	if s.HasReturning {
+		for _, ch := range changes {
+			row := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+			values, err := e.evalReturningExprs(s.Returning, row, colDefs)
+			if err != nil {
+				return &Result{Error: err}
+			}
+			returningRows = append(returningRows, values)
+		}
+	}
+
 	result := e.applyUpdateChanges(tableEntry.RootPage, changes)
 	if result.Error != nil {
 		return result
@@ -43,6 +56,12 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	// Fire AFTER UPDATE triggers
 	if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name, nil, nil); trigResult.Error != nil {
 		return trigResult
+	}
+
+	// If RETURNING clause was present, return result rows instead of change count
+	if s.HasReturning {
+		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+		return &Result{Columns: columns, Rows: returningRows}
 	}
 
 	return result

@@ -3,6 +3,7 @@ package misc
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "strings"
 "testing"
@@ -130,7 +131,7 @@ func Test_misc1(t *testing.T) {
 			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 99 }() {
-				cmd += "," + "$i+$j"
+				cmd += "," + tclExpr("$i+$j")
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -483,6 +484,18 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(a INT UNIQUE, b TEXT UNIQUE);\n    INSERT INTO t6 VALUES('0','0.0');\n    SELECT * FROM t6;\n  ")
 		}
 	}
+	{ // do_test "misc1-12.5"
+		r = db.Query("\n      INSERT OR IGNORE INTO t6 VALUES(0.0,'x');\n      SELECT * FROM t6;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT OR IGNORE INTO t6 VALUES(0.0,'x');\n      SELECT * FROM t6;\n    ")
+		}
+	}
+	{ // do_test "misc1-12.6"
+		r = db.Query("\n      INSERT OR IGNORE INTO t6 VALUES('y',0);\n      SELECT * FROM t6;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT OR IGNORE INTO t6 VALUES('y',0);\n      SELECT * FROM t6;\n    ")
+		}
+	}
 	{ // do_test "misc1-12.7"
 		r = db.Query("\n    CREATE TABLE t7(x INTEGER, y TEXT, z);\n    INSERT INTO t7 VALUES(0,0,1);\n    INSERT INTO t7 VALUES(0.0,0,2);\n    INSERT INTO t7 VALUES(0,0.0,3);\n    INSERT INTO t7 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t7 ORDER BY z;\n  ")
 		if r.Error != nil {
@@ -517,6 +530,46 @@ func Test_misc1(t *testing.T) {
 		r = db.Query("\n    SELECT min(z), max(z), count(z) FROM t8 GROUP BY y ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(z), max(z), count(z) FROM t8 GROUP BY y ORDER BY 1;\n  ")
+		}
+	}
+	{ // do_test "misc1-13.1"
+		r = db.Query("\n       CREATE TABLE t9(x,y);\n       INSERT INTO t9 VALUES('one',1);\n       INSERT INTO t9 VALUES('two',2);\n       INSERT INTO t9 VALUES('three',3);\n       INSERT INTO t9 VALUES('four',4);\n       INSERT INTO t9 VALUES('five',5);\n       INSERT INTO t9 VALUES('six',6);\n       INSERT INTO t9 VALUES('seven',7);\n       INSERT INTO t9 VALUES('eight',8);\n       INSERT INTO t9 VALUES('nine',9);\n       INSERT INTO t9 VALUES('ten',10);\n       INSERT INTO t9 VALUES('eleven',11);\n       SELECT y FROM t9\n       WHERE x=(SELECT x FROM t9 WHERE y=1)\n          OR x=(SELECT x FROM t9 WHERE y=2)\n          OR x=(SELECT x FROM t9 WHERE y=3)\n          OR x=(SELECT x FROM t9 WHERE y=4)\n          OR x=(SELECT x FROM t9 WHERE y=5)\n          OR x=(SELECT x FROM t9 WHERE y=6)\n          OR x=(SELECT x FROM t9 WHERE y=7)\n          OR x=(SELECT x FROM t9 WHERE y=8)\n          OR x=(SELECT x FROM t9 WHERE y=9)\n          OR x=(SELECT x FROM t9 WHERE y=10)\n          OR x=(SELECT x FROM t9 WHERE y=11)\n          OR x=(SELECT x FROM t9 WHERE y=12)\n          OR x=(SELECT x FROM t9 WHERE y=13)\n          OR x=(SELECT x FROM t9 WHERE y=14)\n       ;\n     ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n       CREATE TABLE t9(x,y);\n       INSERT INTO t9 VALUES('one',1);\n       INSERT INTO t9 VALUES('two',2);\n       INSERT INTO t9 VALUES('three',3);\n       INSERT INTO t9 VALUES('four',4);\n       INSERT INTO t9 VALUES('five',5);\n       INSERT INTO t9 VALUES('six',6);\n       INSERT INTO t9 VALUES('seven',7);\n       INSERT INTO t9 VALUES('eight',8);\n       INSERT INTO t9 VALUES('nine',9);\n       INSERT INTO t9 VALUES('ten',10);\n       INSERT INTO t9 VALUES('eleven',11);\n       SELECT y FROM t9\n       WHERE x=(SELECT x FROM t9 WHERE y=1)\n          OR x=(SELECT x FROM t9 WHERE y=2)\n          OR x=(SELECT x FROM t9 WHERE y=3)\n          OR x=(SELECT x FROM t9 WHERE y=4)\n          OR x=(SELECT x FROM t9 WHERE y=5)\n          OR x=(SELECT x FROM t9 WHERE y=6)\n          OR x=(SELECT x FROM t9 WHERE y=7)\n          OR x=(SELECT x FROM t9 WHERE y=8)\n          OR x=(SELECT x FROM t9 WHERE y=9)\n          OR x=(SELECT x FROM t9 WHERE y=10)\n          OR x=(SELECT x FROM t9 WHERE y=11)\n          OR x=(SELECT x FROM t9 WHERE y=12)\n          OR x=(SELECT x FROM t9 WHERE y=13)\n          OR x=(SELECT x FROM t9 WHERE y=14)\n       ;\n     ")
+		}
+	}
+	if tclBool("atomic_batch_write test.db" + "==0") {
+		{ // do_test "misc1-14.1"
+			// file mkdir tempdir
+			// cd tempdir (unsupported command, not transpiled)
+			_res = db.Exec("BEGIN")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+			}
+			// file exists "./test.db-journal"
+		}
+		{ // do_test "misc1-14.2a"
+			_res = db.Exec("UPDATE t1 SET a=a||'x' WHERE 0")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=a||'x' WHERE 0")
+			}
+			// file exists "../test.db-journal"
+		}
+		{ // do_test "misc1-14.2b"
+			_res = db.Exec("UPDATE t1 SET a=a||'y' WHERE 1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=a||'y' WHERE 1")
+			}
+			// file exists "../test.db-journal"
+		}
+		{ // do_test "misc1-14.3"
+			// cd .. (unsupported command, not transpiled)
+			os.Remove("tempdir")
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+			// file exists "./test.db-journal"
 		}
 	}
 	{ // do_test "misc1-15.1.1"
@@ -567,10 +620,16 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO test VALUES(NULL);\n    SELECT rowid, a FROM test;\n  ")
 		}
 	}
+	{ // do_test "misc1-17.1"
+		r = db.Query("\n    BEGIN;\n    CREATE TABLE RealTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TABLE TempTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TRIGGER trigTest_1 AFTER UPDATE ON TempTable BEGIN\n      INSERT INTO RealTable(TestString) \n         SELECT new.TestString FROM TempTable LIMIT 1;\n    END;\n    INSERT INTO TempTable(TestString) VALUES ('1');\n    INSERT INTO TempTable(TestString) VALUES ('2');\n    UPDATE TempTable SET TestString = TestString + 1 WHERE TestID=1 OR TestId=2;\n    COMMIT;\n    SELECT TestString FROM RealTable ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE RealTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TABLE TempTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TRIGGER trigTest_1 AFTER UPDATE ON TempTable BEGIN\n      INSERT INTO RealTable(TestString) \n         SELECT new.TestString FROM TempTable LIMIT 1;\n    END;\n    INSERT INTO TempTable(TestString) VALUES ('1');\n    INSERT INTO TempTable(TestString) VALUES ('2');\n    UPDATE TempTable SET TestString = TestString + 1 WHERE TestID=1 OR TestId=2;\n    COMMIT;\n    SELECT TestString FROM RealTable ORDER BY 1;\n  ")
+		}
+	}
 	{ // do_test "misc1-18.1"
 		n = "sqlite3_sleep 100"
 		_ = n // suppress unused warning
-		// expr $n>=100 → "$n>=100"
+		// expr $n>=100 (not evaluated)
 	}
 	{ // do_test "misc1-18.2"
 		// sqlite3_sleep -100 (unsupported command, not transpiled)

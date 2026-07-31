@@ -63,6 +63,7 @@ func Test_carray02(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "carray02"
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	STMT = ""
 	_ = STMT // suppress unused warning

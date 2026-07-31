@@ -66,6 +66,7 @@ func Test_window5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "window5"
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

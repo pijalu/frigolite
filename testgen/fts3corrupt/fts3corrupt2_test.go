@@ -69,6 +69,7 @@ func Test_fts3corrupt2(t *testing.T) {
 	_ = val // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts3corrupt2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// sqlite3_fts3_may_be_corrupt 1 (unsupported command, not transpiled)

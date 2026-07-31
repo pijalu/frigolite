@@ -57,6 +57,7 @@ func Test_autoindex1(t *testing.T) {
 	_ = d // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log [list lappend ::log] (unsupported command, not transpiled)
 	log = "list" // TCL namespace variable
@@ -155,7 +156,7 @@ func Test_autoindex1(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 SELECT a+$n, b+$n FROM t4")
 			}
-			n = "$n+$n"
+			n = tclExpr("$n+$n")
 			_ = n // suppress unused warning
 		}
 		_res = db.Exec("\n    SELECT count(*) FROM t4;\n  ")

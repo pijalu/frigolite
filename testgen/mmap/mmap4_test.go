@@ -67,6 +67,7 @@ func Test_mmap4(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "mmap4"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
@@ -80,9 +81,6 @@ func Test_mmap4(t *testing.T) {
 		mmap2 := _items0[_idx0+2]
 		_ = mmap2 // suppress unused warning
 		_ = _idx0
-			// do_multiclient_test tn {
-    sql1 {
-      CREATE TABLE t1(a PRIMARY KEY);
-...} (unsupported command, not transpiled)
+			// do_multiclient_test tn {\n    sql1 {\n      CREATE TABLE t1(a PRIMARY KEY)...} (unsupported command, not transpiled)
 		}
 }

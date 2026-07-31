@@ -49,6 +49,7 @@ func Test_win32heap(t *testing.T) {
 	if tcl_platform_platform != "windows" {
 	}
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "win32heap"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.1"

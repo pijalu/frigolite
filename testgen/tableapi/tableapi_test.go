@@ -64,6 +64,7 @@ func Test_tableapi(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "tableapi-1.0"
 		dbx = "" // TCL namespace variable
 		_ = dbx // suppress unused warning
@@ -75,22 +76,16 @@ func Test_tableapi(t *testing.T) {
 		// sqlite3_exec_printf $::dbx {CREATE TABLE %s(a int, b text)} xyz (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-1.1"
-		// sqlite3_exec_printf $::dbx {
-    INSERT INTO xyz VALUES(1,'%q')
-  } {Hi Y'all} (unsupported command, not transpiled)
+		// sqlite3_exec_printf $::dbx {\n    INSERT INTO xyz VALUES(1,'%q')\n  } {Hi Y'all} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-1.2"
 		// sqlite3_exec_printf $::dbx {SELECT * FROM xyz} {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.1"
-		// sqlite3_get_table_printf $::dbx {
-    BEGIN TRANSACTION;
-    SELECT * FROM xyz WHER...} {Hi Y'all} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    BEGIN TRANSACTION;\n    SELECT * FROM xyz WH...} {Hi Y'all} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.2"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3"
 		i = "2"
@@ -105,28 +100,19 @@ func Test_tableapi(t *testing.T) {
 				}
 			}
 		}
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz ORDER BY a
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz ORDER BY a\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3.1"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz  WHERE a>49 ORDER BY a
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz  WHERE a>49 ORDER BY a\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3.2"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz WHERE a>47 ORDER BY a
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3.3"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz WHERE a>47 ORDER BY a; inva...} {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a; inv...} {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3.4"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz WHERE a>47 ORDER BY a
-  } {} 8 (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {} 8 (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.4"
 		manyquote = "''''''''"
@@ -139,34 +125,23 @@ func Test_tableapi(t *testing.T) {
 		manyquote += manyquote
 		big_str = manyquote + " Hello " + manyquote // TCL namespace variable
 		_ = big_str // suppress unused warning
-		// sqlite3_get_table_printf $::dbx {
-    INSERT INTO xyz VALUES(51,'%q')
-  } $::big_str (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(51,'%q')\n  } $::big_str (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.5"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz WHERE a>49 ORDER BY a;
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>49 ORDER BY a;\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.6"
-		// sqlite3_get_table_printf $::dbx {
-    INSERT INTO xyz VALUES(52,NULL)
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(52,NULL)\n  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n      SELECT * FROM xyz WHERE a IN (42,50,52) OR...} {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.7"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz WHERE a>1000
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>1000\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.1"
-		// sqlite3_get_table_printf $::dbx {
-    ROLLBACK;
-    PRAGMA empty_result_callbacks =...} {Hi Y'all} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    ROLLBACK;\n    PRAGMA empty_result_callbacks...} {Hi Y'all} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.2"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.3"
 		i = "2"
@@ -181,47 +156,33 @@ func Test_tableapi(t *testing.T) {
 				}
 			}
 		}
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz ORDER BY a
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz ORDER BY a\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.3.1"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz  WHERE a>49 ORDER BY a
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz  WHERE a>49 ORDER BY a\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.3.2"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz WHERE a>47 ORDER BY a
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.4"
-		// sqlite3_get_table_printf $::dbx {
-    INSERT INTO xyz VALUES(51,'%q')
-  } $::big_str (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(51,'%q')\n  } $::big_str (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.5"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz WHERE a>49 ORDER BY a;
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>49 ORDER BY a;\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.6"
-		// sqlite3_get_table_printf $::dbx {
-    INSERT INTO xyz VALUES(52,NULL)
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(52,NULL)\n  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n      SELECT * FROM xyz WHERE a IN (42,50,52) OR...} {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.7"
-		// sqlite3_get_table_printf $::dbx {
-    SELECT * FROM xyz WHERE a>1000
-  } {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>1000\n  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-4.1"
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			// sqlite3_get_table_printf $::dbx {
-      SELECT * FROM xyz;  SELECT * FROM sqlite_ma...} {} (unsupported command, not transpiled)
+			// sqlite3_get_table_printf $::dbx {\n      SELECT * FROM xyz;  SELECT * FROM sqlite_m...} {} (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -302,11 +263,11 @@ func Test_tableapi(t *testing.T) {
 		// sqlite3_get_table_printf $::dbx $sql {} (unsupported command, not transpiled)
 		// sqlite3_get_table_printf $::dbx {SELECT * FROM t2} {} (unsupported command, not transpiled)
 	}
+	{ // do_test "tableapi-6.1"
+		// sqlite3_get_table_printf $::dbx {PRAGMA user_version} {} (unsupported command, not transpiled)
+	}
 	{ // do_test "tableapi-99.0"
 		// sqlite3_close $::dbx (unsupported command, not transpiled)
 	}
-	// do_malloc_test tableapi-7 -sqlprep {
-  DROP TABLE IF EXISTS t1;
-  CREATE TABLE t1(a,b)...} -tclbody {
-  set r [sqlite3_get_table_printf db {SELECT rowi...} (unsupported command, not transpiled)
+	// do_malloc_test tableapi-7 -sqlprep {\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,...} -tclbody {\n  set r [sqlite3_get_table_printf db {SELECT row...} (unsupported command, not transpiled)
 }

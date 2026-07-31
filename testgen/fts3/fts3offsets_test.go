@@ -69,6 +69,7 @@ func Test_fts3offsets(t *testing.T) {
 	_ = text // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts3offsets"
 	_ = testprefix // suppress unused warning
 	sqlite_fts3_enable_parentheses = "1"

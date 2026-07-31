@@ -3,6 +3,7 @@ package select1
 
 import (
 "github.com/pijalu/frigolite"
+"strconv"
 "strings"
 "testing"
 )
@@ -1440,12 +1441,87 @@ func Test_select1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA short_column_names=ON;\n  PRAGMA full_column_names=OFF;\n")
 	}
+	{ // do_test "select1-6.10"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT f1 FROM test1 UNION SELECT f2 FROM test1\n    ORDER BY f2;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select1-6.11"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n    SELECT f1 FROM test1 UNION SELECT f2+100 FROM test1\n    ORDER BY f2+101;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select1-6.20"
+		r = db.Query("\n     CREATE TABLE t6(a TEXT, b TEXT);\n     INSERT INTO t6 VALUES('a','0');\n     INSERT INTO t6 VALUES('b','1');\n     INSERT INTO t6 VALUES('c','2');\n     INSERT INTO t6 VALUES('d','3');\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 LIMIT 1)\n   ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE TABLE t6(a TEXT, b TEXT);\n     INSERT INTO t6 VALUES('a','0');\n     INSERT INTO t6 VALUES('b','1');\n     INSERT INTO t6 VALUES('c','2');\n     INSERT INTO t6 VALUES('d','3');\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 LIMIT 1)\n   ")
+		}
+	}
+	{ // do_test "select1-6.21"
+		r = db.Query("\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 DESC LIMIT 1)\n   ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 DESC LIMIT 1)\n   ")
+		}
+	}
+	{ // do_test "select1-6.22"
+		r = db.Query("\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY b LIMIT 2)\n     ORDER BY a;\n   ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY b LIMIT 2)\n     ORDER BY a;\n   ")
+		}
+	}
+	{ // do_test "select1-6.23"
+		r = db.Query("\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY x DESC LIMIT 2)\n     ORDER BY a;\n   ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY x DESC LIMIT 2)\n     ORDER BY a;\n   ")
+		}
+	}
 	{ // do_test "select1-7.1"
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n     SELECT f1 FROM test1 WHERE f2=;\n  ")
+			if r.Error != nil { _catchErr = r.Error }
+			if _catchErr != nil {
+				v = "1"
+				msg = _catchErr.Error()
+			} else {
+				v = "0"
+				msg = ""
+			}
+		}
+		v = tclListAppend(v, msg)
+	}
+	{ // do_test "select1-7.2"
+	_ = v // suppress unused warning
+	_ = msg // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			r = db.Query("\n     SELECT f1 FROM test1 UNION SELECT WHERE;\n  ")
 			if r.Error != nil { _catchErr = r.Error }
 			if _catchErr != nil {
 				v = "1"
@@ -1611,6 +1687,14 @@ func Test_select1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM test1 WHERE f1<0")
 		}
 	}
+	{ // do_test "select1-9.3"
+		_r_arr = ""
+		_ = _r_arr // suppress unused warning
+		_res = db.Exec("SELECT * FROM test1 WHERE f1<(select count(*) from test2)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM test1 WHERE f1<(select count(*) from test2)")
+		}
+	}
 	{ // do_test "select1-9.4"
 		_r_arr = ""
 		_ = _r_arr // suppress unused warning
@@ -1737,6 +1821,30 @@ func Test_select1(t *testing.T) {
 		_res = db.Exec("\n    SELECT t3.* FROM t3 AS x, t4;\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "select1-11.12"
+		r = db.Query("\n      SELECT t3.* FROM t3, (SELECT max(a), max(b) FROM t4)\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT t3.* FROM t3, (SELECT max(a), max(b) FROM t4)\n    ")
+		}
+	}
+	{ // do_test "select1-11.13"
+		r = db.Query("\n      SELECT t3.* FROM (SELECT max(a), max(b) FROM t4), t3\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT t3.* FROM (SELECT max(a), max(b) FROM t4), t3\n    ")
+		}
+	}
+	{ // do_test "select1-11.14"
+		r = db.Query("\n      SELECT * FROM t3, (SELECT max(a), max(b) FROM t4) AS 'tx'\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3, (SELECT max(a), max(b) FROM t4) AS 'tx'\n    ")
+		}
+	}
+	{ // do_test "select1-11.15"
+		r = db.Query("\n      SELECT y.*, t3.* FROM t3, (SELECT max(a), max(b) FROM t4) AS y\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT y.*, t3.* FROM t3, (SELECT max(a), max(b) FROM t4) AS y\n    ")
+		}
+	}
 	{ // do_test "select1-11.16"
 		r = db.Query("\n    SELECT y.* FROM t3 as y, t4 as z\n  ")
 		if r.Error != nil {
@@ -1765,6 +1873,71 @@ func Test_select1(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t3;\n    INSERT INTO t3 VALUES(1,2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t3;\n    INSERT INTO t3 VALUES(1,2);\n  ")
+		}
+	}
+	{ // do_test "select1-12.5"
+		r = db.Query("\n    SELECT * FROM t3 UNION SELECT 3 AS 'a', 4 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 UNION SELECT 3 AS 'a', 4 ORDER BY a;\n  ")
+		}
+	}
+	{ // do_test "select1-12.6"
+		r = db.Query("\n    SELECT 3, 4 UNION SELECT * FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 3, 4 UNION SELECT * FROM t3;\n  ")
+		}
+	}
+	{ // do_test "select1-12.7"
+		r = db.Query("\n      SELECT * FROM t3 WHERE a=(SELECT 1);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3 WHERE a=(SELECT 1);\n    ")
+		}
+	}
+	{ // do_test "select1-12.8"
+		r = db.Query("\n      SELECT * FROM t3 WHERE a=(SELECT 2);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3 WHERE a=(SELECT 2);\n    ")
+		}
+	}
+	{ // do_test "select1-12.9"
+		r = db.Query("\n      SELECT x FROM (\n        SELECT a AS x, b AS y FROM t3 UNION SELECT a,b FROM t4 ORDER BY a,b\n      ) ORDER BY x;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT x FROM (\n        SELECT a AS x, b AS y FROM t3 UNION SELECT a,b FROM t4 ORDER BY a,b\n      ) ORDER BY x;\n    ")
+		}
+	}
+	{ // do_test "select1-12.10"
+		r = db.Query("\n      SELECT z.x FROM (\n        SELECT a AS x,b AS y FROM t3 UNION SELECT a, b FROM t4 ORDER BY a,b\n      ) AS 'z' ORDER BY x;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT z.x FROM (\n        SELECT a AS x,b AS y FROM t3 UNION SELECT a, b FROM t4 ORDER BY a,b\n      ) AS 'z' ORDER BY x;\n    ")
+		}
+	}
+	{ // do_test "select1-13.1"
+		_res = db.Exec("\n      BEGIN;\n      create TABLE abc(a, b, c, PRIMARY KEY(a, b));\n      INSERT INTO abc VALUES(1, 1, 1);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      create TABLE abc(a, b, c, PRIMARY KEY(a, b));\n      INSERT INTO abc VALUES(1, 1, 1);\n    ")
+		}
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
+			_res = db.Exec("\n        INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;\n      ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;\n      ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec("COMMIT")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		}
+		r = db.Query("\n      SELECT count(\n        (SELECT a FROM abc WHERE a = NULL AND b >= upper.c) \n      ) FROM abc AS upper;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(\n        (SELECT a FROM abc WHERE a = NULL AND b >= upper.c) \n      ) FROM abc AS upper;\n    ")
 		}
 	}
 	// skip: foreach over unresolved TCL command

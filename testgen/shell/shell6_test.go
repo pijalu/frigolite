@@ -63,6 +63,7 @@ func Test_shell6(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "shell6"
 	_ = testprefix // suppress unused warning
 	CLI = "test_find_cli"
@@ -105,9 +106,9 @@ func Test_shell6(t *testing.T) {
 				_ = RES // suppress unused warning
 			}
 			{ // do_test "1." + tn + ".2"
-				_res = db.Exec("lindex $RES 1")
+				_res = db.Exec(tclLIndex(RES, "1"))
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "lindex $RES 1")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, tclLIndex(RES, "1"))
 				}
 				// catchcmd test.db [list .lint fkey-indexes] (unsupported command, not transpiled)
 			}

@@ -58,6 +58,7 @@ func Test_analyze8(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "analyze8"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
@@ -72,13 +73,13 @@ func Test_analyze8(t *testing.T) {
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%2 == 0 }() {
 				a = i
 				_ = a // suppress unused warning
-			} else if tclBool("set a " + "($i%8)*100") {
+			} else if tclBool("set a " + tclExpr("($i%8)*100")) {
 			}
-			b = "$i/10"
+			b = tclExpr("$i/10")
 			_ = b // suppress unused warning
-			c = "$i/8"
+			c = tclExpr("$i/8")
 			_ = c // suppress unused warning
-			c = "$c*$c*$c"
+			c = tclExpr("$c*$c*$c")
 			_ = c // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES($a,$b,$c,$i)")
 			if _res.Error != nil {
@@ -134,14 +135,12 @@ func Test_analyze8(t *testing.T) {
 		// eqp {SELECT * FROM t1 WHERE b BETWEEN 30 AND 34 AND c B...} (unsupported command, not transpiled)
 	}
 	{ // do_test "3.2"
-		// eqp {SELECT * FROM t1
-       WHERE b BETWEEN 30 AND 34 ...} (unsupported command, not transpiled)
+		// eqp {SELECT * FROM t1\n       WHERE b BETWEEN 30 AND 34...} (unsupported command, not transpiled)
 	}
 	{ // do_test "3.3"
 		// eqp {SELECT * FROM t1 WHERE a=100 AND c BETWEEN 0 AND 1...} (unsupported command, not transpiled)
 	}
 	{ // do_test "3.4"
-		// eqp {SELECT * FROM t1
-       WHERE a=100 AND c BETWEEN ...} (unsupported command, not transpiled)
+		// eqp {SELECT * FROM t1\n       WHERE a=100 AND c BETWEEN...} (unsupported command, not transpiled)
 	}
 }

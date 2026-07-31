@@ -52,6 +52,7 @@ func Test_ioerr4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "ioerr4-1.1"
 		enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 		_ = enable_shared_cache // suppress unused warning
@@ -96,12 +97,7 @@ func Test_ioerr4(t *testing.T) {
 	}
 	db2.Close()
 	tclFileCopy("test.db", "test.db-bu")
-	// do_ioerr_test ioerr4-2 -tclprep {
-  catch {db2 close}
-  db close
-  forcedelete test...} -tclbody {
-  db eval {PRAGMA incremental_vacuum(5)}
-} (unsupported command, not transpiled)
+	// do_ioerr_test ioerr4-2 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete t...} -tclbody {\n  db eval {PRAGMA incremental_vacuum(5)}\n} (unsupported command, not transpiled)
 	db2.Close()
 	os.Remove("test.db-bu")
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)

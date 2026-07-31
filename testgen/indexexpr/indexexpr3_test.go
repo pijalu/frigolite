@@ -66,30 +66,12 @@ func Test_indexexpr3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	// do_hasfunction_test 1.1 {
-  SELECT json_extract(j, '$.x') FROM t1 ORDER BY ...} {
-  0 one three two
-} (unsupported command, not transpiled)
-	// do_hasfunction_test 1.2 {
-  SELECT json_extract(j, '$.x') FROM t1 WHERE a=2...} {
-  0 two
-} (unsupported command, not transpiled)
-	// do_hasfunction_test 1.3 {
-  SELECT coalesce(json_extract(j, '$.x'), 'five')...} {
-  0 two
-} (unsupported command, not transpiled)
-	// do_hasfunction_test 1.4 {
-  SELECT json_extract(j, '$.x') || '.two' FROM t1...} {
-  0 two.two
-} (unsupported command, not transpiled)
-	// do_hasfunction_test 1.5 {
-  SELECT json_insert( '{}', '$.y', json_extract(j...} {
-  2 {{"y":"two"}}
-} (unsupported command, not transpiled)
-	// do_hasfunction_test 1.6 {
-  SELECT json_insert( '{}', '$.y', coalesce( json...} {
-  2 {{"y":"two"}}
-} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.1 {\n  SELECT json_extract(j, '$.x') FROM t1 ORDER BY...} {\n  0 one three two\n} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.2 {\n  SELECT json_extract(j, '$.x') FROM t1 WHERE a=...} {\n  0 two\n} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.3 {\n  SELECT coalesce(json_extract(j, '$.x'), 'five'...} {\n  0 two\n} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.4 {\n  SELECT json_extract(j, '$.x') || '.two' FROM t...} {\n  0 two.two\n} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.5 {\n  SELECT json_insert( '{}', '$.y', json_extract(...} {\n  2 {{"y":"two"}}\n} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.6 {\n  SELECT json_insert( '{}', '$.y', coalesce( jso...} {\n  2 {{"y":"two"}}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

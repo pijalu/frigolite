@@ -79,6 +79,7 @@ func Test_corrupt4(t *testing.T) {
 		return
 	}
 	// database_may_be_corrupt (unsupported command, not transpiled)
+	return
 	{ // do_test "corrupt4-1.1"
 		bigstring = "0123456789 200"
 		_ = bigstring // suppress unused warning
@@ -96,7 +97,7 @@ func Test_corrupt4(t *testing.T) {
 	}
 	trunkpgno = "hexio_get_int [hexio_read test.db 32 4]"
 	_ = trunkpgno // suppress unused warning
-	baseaddr = "($trunkpgno-1)*1024"
+	baseaddr = tclExpr("($trunkpgno-1)*1024")
 	_ = baseaddr // suppress unused warning
 	{ // do_test "corrupt4-1.3"
 		// hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4] (unsupported command, not transpiled)

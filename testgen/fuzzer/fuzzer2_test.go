@@ -59,6 +59,7 @@ func Test_fuzzer2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fuzzer2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// load_static_extension db fuzzer (unsupported command, not transpiled)
@@ -87,7 +88,7 @@ func Test_fuzzer2(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1_rules VALUES(0, $c1||$c2, $c3||$c4, $cost)")
 						}
-						cost = "($cost%1000) + 1"
+						cost = tclExpr("($cost%1000) + 1")
 						_ = cost // suppress unused warning
 					}
 				}

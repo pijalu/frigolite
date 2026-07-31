@@ -42,7 +42,7 @@ func (e *Engine) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 				return nil, err
 			}
 			if ev == nil {
-				parts = append(parts, "NULL")
+				parts = append(parts, "{}")
 			} else {
 				parts = append(parts, fmt.Sprintf("%v", ev))
 			}
@@ -685,6 +685,17 @@ func (e *Engine) evalUnaryOp(v *sql.UnaryOp, row Row) (interface{}, error) {
 		return numericValue(operand)
 	case "NOT":
 		return boolToInt(!toBool(operand)), nil
+	case "~":
+		// Bitwise NOT: ~x = ^(int64(x))
+		switch v := operand.(type) {
+		case int64:
+			return ^v, nil
+		case float64:
+			return ^int64(v), nil
+		default:
+			// Try numeric conversion (SQLite: ~'text' = ~0 = -1)
+			return ^int64(0), nil
+		}
 	default:
 		return nil, nil
 	}
@@ -843,6 +854,15 @@ func (e *Engine) evalBool(expr sql.Expr, row Row) (bool, error) {
 }
 
 func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
+	// Engine-specific functions that need engine state
+	upper := strings.ToUpper(f.Name)
+	switch upper {
+	case "CHANGES":
+		return e.lastChanges, nil
+	case "LAST_INSERT_ROWID":
+		return e.lastRowID, nil
+	}
+
 	fn, ok := e.funcs.Find(f.Name)
 	if !ok {
 		return nil, fmt.Errorf("unknown function: %s", f.Name)

@@ -50,6 +50,17 @@ func Test_format4(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
+	if tclBool("db one {PRAGMA auto_vacuum}") {
+		small = "3072"
+		_ = small // suppress unused warning
+		large = "5120"
+		_ = large // suppress unused warning
+	} else {
+		small = "2048"
+		_ = small // suppress unused warning
+		large = "4096"
+		_ = large // suppress unused warning
+	}
 	{ // do_test "format4-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);\n    INSERT INTO t1 VALUES(0,0,0,0,0,0,0,0,0,0);\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
 		if _res.Error != nil {

@@ -113,10 +113,5 @@ func Test_mmapwarm(t *testing.T) {
 		}
 		// sqlite3_mmap_warm db main (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 3 -faults oom* -prep {
-  sqlite3 db test.db
-  sqlite3_db_config_lookasid...} -body {
-  sqlite3_mmap_warm db "main"
-} -test {
-  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_NO...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults oom* -prep {\n  sqlite3 db test.db\n  sqlite3_db_config_lookas...} -body {\n  sqlite3_mmap_warm db "main"\n} -test {\n  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_N...} (unsupported command, not transpiled)
 }

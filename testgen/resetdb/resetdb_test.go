@@ -56,6 +56,7 @@ func Test_resetdb(t *testing.T) {
 	testprefix = "resetdb"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
+	return
 	if tclBool("permutation" + "==\"inmemory_journal\"\n || " + "permutation" + "==\"journaltest\"") {
 		return
 	}
@@ -153,8 +154,7 @@ func Test_resetdb(t *testing.T) {
 	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "500"
-		// sqlite3_finalize [
-    sqlite3_prepare db "SELECT 1 FROM sqlite_mas... (unsupported command, not transpiled)
+		// sqlite3_finalize [\n    sqlite3_prepare db "SELECT 1 FROM sqlite_ma... (unsupported command, not transpiled)
 		// sqlite3_db_config db RESET_DB 1 (unsupported command, not transpiled)
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
@@ -253,5 +253,56 @@ func Test_resetdb(t *testing.T) {
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "800"
+		r = db.Query("\n    PRAGMA encoding = 'utf8';\n    CREATE TABLE t1(a, b);\n    PRAGMA encoding;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'utf8';\n    CREATE TABLE t1(a, b);\n    PRAGMA encoding;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "UTF-8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
+	if err != nil { t.Fatal(err) }
+	db2, err = frigolite.Open("test.db")
+	if err != nil { t.Fatal(err) }
+	{ // "-db"
+		_res = db.Exec("db2")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+		}
+	}
+	{ // do_test "820"
+		_res = db.Exec("PRAGMA encoding = 'utf16'")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = 'utf16'")
+		}
+		// sqlite3_db_config db RESET_DB 1 (unsupported command, not transpiled)
+	}
+	{ // do_test "830"
+		_res = db.Exec("VACUUM")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+		}
+		// sqlite3_db_config db RESET_DB 0 (unsupported command, not transpiled)
+	}
+	{ // do_test "840"
+		_ = tclStringRange("db eval {\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('one', 'two');\n      PRAGMA encoding;\n    }", "0", "5") // string range result
+	}
+	{ // do_test "850"
+		_res = db.Exec(" SELECT * FROM t1; ")
+		_ = _res // catchsql
+	}
+	{ // do_test "860"
+		_res = db.Exec(" SELECT * FROM t2; ")
+		_ = _res // catchsql
 	}
 }

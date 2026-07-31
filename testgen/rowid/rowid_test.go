@@ -116,9 +116,9 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.2"
 		_r = "execsql {SELECT rowid FROM t1 ORDER BY x}"
 		_ = _r // suppress unused warning
-		x2rowid_1 = "lindex $r 0"
+		x2rowid_1 = tclLIndex(_r, "0")
 		_ = x2rowid_1 // suppress unused warning
-		x2rowid_3 = "lindex $r 1"
+		x2rowid_3 = tclLIndex(_r, "1")
 		_ = x2rowid_3 // suppress unused warning
 		rowid2x_x2rowid_1_ = "1"
 		_ = rowid2x_x2rowid_1_ // suppress unused warning
@@ -183,21 +183,21 @@ func Test_rowid(t *testing.T) {
 		_ = v // suppress unused warning
 		v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
 		_ = v2 // suppress unused warning
-		// expr $v==$v2 → "$v==$v2"
+		// expr $v==$v2 (not evaluated)
 	}
 	{ // do_test "rowid-1.9"
 		v = "execsql {SELECT x, RowID FROM t1 order by x}"
 		_ = v // suppress unused warning
 		v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
 		_ = v2 // suppress unused warning
-		// expr $v==$v2 → "$v==$v2"
+		// expr $v==$v2 (not evaluated)
 	}
 	{ // do_test "rowid-1.10"
 		v = "execsql {SELECT x, _rowid_ FROM t1 order by x}"
 		_ = v // suppress unused warning
 		v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
 		_ = v2 // suppress unused warning
-		// expr $v==$v2 → "$v==$v2"
+		// expr $v==$v2 (not evaluated)
 	}
 	{ // do_test "rowid-2.1"
 		_res = db.Exec("\n    INSERT INTO t1(rowid,x,y) VALUES(1234,5,6);\n    SELECT rowid, * FROM t1;\n  ")
@@ -342,11 +342,10 @@ func Test_rowid(t *testing.T) {
 		r2 = "execsql {SELECT _rowid_, rowid FROM t2 ORDER BY x DESC}"
 		_ = r2 // suppress unused warning
 		// foreach u,v,w,x,y,z r2 (no body)
-		// expr $u==$e && $w==$c && $y==$a → "$u==$e && $w==$c && $y==$a"
+		// expr $u==$e && $w==$c && $y==$a (not evaluated)
 	}
 	if false {
-		// do_probtest rowid-3.5 {
-  set r1 [execsql {SELECT _rowid_, rowid FROM t2 ...} {1} (unsupported command, not transpiled)
+		// do_probtest rowid-3.5 {\n  set r1 [execsql {SELECT _rowid_, rowid FROM t2...} {1} (unsupported command, not transpiled)
 	}
 	{ // do_test "rowid-4.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
@@ -356,9 +355,9 @@ func Test_rowid(t *testing.T) {
 		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
-			_res = db.Exec("INSERT INTO t1(x,y) VALUES(" + i + "," + "$i*$i" + ")")
+			_res = db.Exec("INSERT INTO t1(x,y) VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x,y) VALUES(" + i + "," + "$i*$i" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x,y) VALUES(" + i + "," + tclExpr("$i*$i") + ")")
 			}
 			// incr i 1
 			{
@@ -494,6 +493,10 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-5.1.1"
+		_res = db.Exec("DELETE FROM t1 WHERE _rowid_ IN (SELECT oid FROM t1 WHERE x>8)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE _rowid_ IN (SELECT oid FROM t1 WHERE x>8)")
+		}
 	}
 	{ // do_test "rowid-5.1.2"
 		r = db.Query("SELECT max(x) FROM t1")
@@ -568,11 +571,75 @@ func Test_rowid(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2(a,b) VALUES(2147483647,99);\n    INSERT INTO t2(b) VALUES(11);\n    SELECT b FROM t2 ORDER BY b;\n  ")
 		}
 	}
+	{ // do_test "rowid-7.6"
+		r = db.Query("\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647);\n    ")
+		}
+	}
+	{ // do_test "rowid-7.7"
+		r = db.Query("\n      INSERT INTO t2(b) VALUES(22);\n      INSERT INTO t2(b) VALUES(33);\n      INSERT INTO t2(b) VALUES(44);\n      INSERT INTO t2(b) VALUES(55);\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647) \n          ORDER BY b;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t2(b) VALUES(22);\n      INSERT INTO t2(b) VALUES(33);\n      INSERT INTO t2(b) VALUES(44);\n      INSERT INTO t2(b) VALUES(55);\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647) \n          ORDER BY b;\n    ")
+		}
+	}
 	{ // do_test "rowid-7.8"
 		r = db.Query("\n    DELETE FROM t2 WHERE a!=2;\n    INSERT INTO t2(b) VALUES(111);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2 WHERE a!=2;\n    INSERT INTO t2(b) VALUES(111);\n    SELECT * FROM t2;\n  ")
 		}
+	}
+	{ // do_test "rowid-8.1"
+		r = db.Query("\n    CREATE TABLE t3(a integer primary key);\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    CREATE TRIGGER r3 AFTER INSERT on t3 FOR EACH ROW BEGIN\n      INSERT INTO t4 VALUES(NEW.a+10);\n    END;\n    SELECT * FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a integer primary key);\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    CREATE TRIGGER r3 AFTER INSERT on t3 FOR EACH ROW BEGIN\n      INSERT INTO t4 VALUES(NEW.a+10);\n    END;\n    SELECT * FROM t3;\n  ")
+		}
+	}
+	{ // do_test "rowid-8.2"
+		r = db.Query("\n    SELECT rowid, * FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t4;\n  ")
+		}
+	}
+	{ // do_test "rowid-8.3"
+		r = db.Query("\n    INSERT INTO t3 VALUES(123);\n    SELECT last_insert_rowid();\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES(123);\n    SELECT last_insert_rowid();\n  ")
+		}
+	}
+	{ // do_test "rowid-8.4"
+		r = db.Query("\n    SELECT * FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3;\n  ")
+		}
+	}
+	{ // do_test "rowid-8.5"
+		r = db.Query("\n    SELECT rowid, * FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t4;\n  ")
+		}
+	}
+	{ // do_test "rowid-8.6"
+		r = db.Query("\n    INSERT INTO t3 VALUES(NULL);\n    SELECT last_insert_rowid();\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES(NULL);\n    SELECT last_insert_rowid();\n  ")
+		}
+	}
+	{ // do_test "rowid-8.7"
+		r = db.Query("\n    SELECT * FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3;\n  ")
+		}
+	}
+	{ // do_test "rowid-8.8"
+		r = db.Query("\n    SELECT rowid, * FROM t4;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t4;\n  ")
+		}
+	}
+	_res = db.Exec("\n    CREATE TABLE t3(a integer primary key);\n    INSERT INTO t3 VALUES(123);\n    INSERT INTO t3 VALUES(124);\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a integer primary key);\n    INSERT INTO t3 VALUES(123);\n    INSERT INTO t3 VALUES(124);\n  ")
 	}
 	{ // do_test "rowid-9.1"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a<123.5\n  ")
@@ -1104,6 +1171,74 @@ func Test_rowid(t *testing.T) {
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT x FROM t1;\n  CREATE TABLE t3(z);\n\n  INSERT INTO t1(rowid, x) VALUES(1, 1);\n  INSERT INTO t2(y) VALUES(2);\n  INSERT INTO t3(rowid, z) VALUES(3, 3);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT x FROM t1;\n  CREATE TABLE t3(z);\n\n  INSERT INTO t1(rowid, x) VALUES(1, 1);\n  INSERT INTO t2(y) VALUES(2);\n  INSERT INTO t3(rowid, z) VALUES(3, 3);\n")
+		}
+	}
+	nosuch = "1 {ambiguous column name: rowid}"
+	_ = nosuch // suppress unused warning
+	{ // "16.1"
+		r = db.Query(" SELECT rowid FROM t1, t2; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1, t2; ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "16.2"
+		_res = db.Exec(" SELECT rowid FROM t1, v1; ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM t1, v1; ")
+		}
+	}
+	{ // "16.3"
+		_res = db.Exec(" SELECT rowid FROM t3, v1; ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM t3, v1; ")
+		}
+	}
+	{ // "16.4"
+		_res = db.Exec(" SELECT rowid FROM t3, (SELECT 123); ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM t3, (SELECT 123); ")
+		}
+	}
+	{ // "16.5"
+		r = db.Query(" SELECT rowid FROM t2, t1; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t2, t1; ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "16.6"
+		_res = db.Exec(" SELECT rowid FROM v1, t1; ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM v1, t1; ")
+		}
+	}
+	{ // "16.7"
+		_res = db.Exec(" SELECT rowid FROM v1, t3; ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM v1, t3; ")
+		}
+	}
+	{ // "16.8"
+		r = db.Query(" SELECT rowid FROM (SELECT 123), t3; ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM (SELECT 123), t3; ")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "16.9"

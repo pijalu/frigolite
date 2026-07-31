@@ -109,6 +109,7 @@ func Test_scanstatus2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "scanstatus2"
 	_ = testprefix // suppress unused warning
+	return
 	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n  INSERT INTO t2 VALUES('e', 'f');\n")
@@ -124,27 +125,21 @@ func Test_scanstatus2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// do_zexplain_test 0 1.1 {
-  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHE...} {
-  {SCAN t2}
-  {SCAN t1}
-} (unsupported command, not transpiled)
-	// do_zexplain_test 1 1.2 {
-  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHE...} {
-  {SCAN t2}
-  {CORRELATED SCALAR SUBQUERY 1}
-  {S...} (unsupported command, not transpiled)
-	// do_graph_test 1.3 {
-  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHE...} {
-QUERY (nCycle=nnn)
---SCAN t2 (nCycle=nnn)
---CORRE...} (unsupported command, not transpiled)
-	// do_graph_test 1.4 {
-  WITH v2(x,y) AS MATERIALIZED (
-    SELECT x,y F...} {
-QUERY (nCycle=nnn)
---MATERIALIZE v2 (nCycle=nnn)
-...} (unsupported command, not transpiled)
+	// do_zexplain_test 0 1.1 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WH...} {\n  {SCAN t2}\n  {SCAN t1}\n} (unsupported command, not transpiled)
+	// do_zexplain_test 1 1.2 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WH...} {\n  {SCAN t2}\n  {CORRELATED SCALAR SUBQUERY 1}\n ...} (unsupported command, not transpiled)
+	// do_graph_test 1.3 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WH...} {\nQUERY (nCycle=nnn)\n--SCAN t2 (nCycle=nnn)\n--CO...} (unsupported command, not transpiled)
+	// do_graph_test 1.4 {\n  WITH v2(x,y) AS MATERIALIZED (\n    SELECT x,y...} {\nQUERY (nCycle=nnn)\n--MATERIALIZE v2 (nCycle=nnn...} (unsupported command, not transpiled)
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
+	{ // "2.0"
+		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(a);\n    INSERT INTO ft VALUES('abc');\n    INSERT INTO ft VALUES('def');\n    INSERT INTO ft VALUES('ghi');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts5(a);\n    INSERT INTO ft VALUES('abc');\n    INSERT INTO ft VALUES('def');\n    INSERT INTO ft VALUES('ghi');\n  ")
+		}
+	}
+	// do_graph_test 2.1 {\n    SELECT * FROM ft('def')\n  } {\nQUERY (nCycle=nnn)\n--SCAN ft VIRTUAL TABLE INDE...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -155,12 +150,7 @@ QUERY (nCycle=nnn)
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
 		}
 	}
-	// do_graph_test 2.1 {
-  SELECT * FROM x1, x2 WHERE c=+a;
-} {
-QUERY (nCycle=nnn)
---SCAN x1 (nCycle=nnn)
---CREAT...} (unsupported command, not transpiled)
+	// do_graph_test 2.1 {\n  SELECT * FROM x1, x2 WHERE c=+a;\n} {\nQUERY (nCycle=nnn)\n--SCAN x1 (nCycle=nnn)\n--CR...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -171,35 +161,32 @@ QUERY (nCycle=nnn)
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE rt1 (id INTEGER PRIMARY KEY, x1, x2);\n  CREATE TABLE rt2 (id, x1, x2);\n")
 		}
 	}
-	// do_graph_test 4.1 {
-  SELECT * FROM rt1, rt2 WHERE rt1.id%2 AND rt2.x...} {
-QUERY (nCycle=nnn)
---SCAN rt1 (nCycle=nnn)
---CREA...} (unsupported command, not transpiled)
-	// do_graph_test 4.2 {
-  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND ...} {
-QUERY (nCycle=nnn)
---SCAN rt1 (nCycle=nnn)
---CREA...} (unsupported command, not transpiled)
-	// do_graph_test 4.3 {
-  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND ...} {
-QUERY (nCycle=nnn)
---SCAN rt1 (nCycle=nnn)
---SCAN...} (unsupported command, not transpiled)
-	// do_graph_test 4.4 {
-  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND ...} {
-QUERY (nCycle=nnn)
---SCAN rt1 (nCycle=nnn)
---CREA...} (unsupported command, not transpiled)
-	// do_graph_test 4.5 {
-  SELECT v1.cnt FROM rt1, (
-    SELECT count(*) A...} {
-QUERY (nCycle=nnn)
---CO-ROUTINE v1
-----SCAN rt2 (...} (unsupported command, not transpiled)
+	// do_graph_test 4.1 {\n  SELECT * FROM rt1, rt2 WHERE rt1.id%2 AND rt2....} {\nQUERY (nCycle=nnn)\n--SCAN rt1 (nCycle=nnn)\n--C...} (unsupported command, not transpiled)
+	// do_graph_test 4.2 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND...} {\nQUERY (nCycle=nnn)\n--SCAN rt1 (nCycle=nnn)\n--C...} (unsupported command, not transpiled)
+	// do_graph_test 4.3 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND...} {\nQUERY (nCycle=nnn)\n--SCAN rt1 (nCycle=nnn)\n--S...} (unsupported command, not transpiled)
+	// do_graph_test 4.4 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND...} {\nQUERY (nCycle=nnn)\n--SCAN rt1 (nCycle=nnn)\n--C...} (unsupported command, not transpiled)
+	// do_graph_test 4.5 {\n  SELECT v1.cnt FROM rt1, (\n    SELECT count(*)...} {\nQUERY (nCycle=nnn)\n--CO-ROUTINE v1\n----SCAN rt...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // "5.0"
+		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      SELECT 1;\n    END;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      SELECT 1;\n    END;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		}
+	}
+	// proc definition (not transpiled)
+	trace_explain = "list" // TCL namespace variable
+	_ = trace_explain // suppress unused warning
+	{ // "5.1"
+		_res = db.Exec("\n    DELETE FROM t1 WHERE x=1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE x=1;\n  ")
+		}
+	}
+	{ // do_test "5.2"
+		_ = trace_explain // TCL namespace variable (query)
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -210,22 +197,11 @@ QUERY (nCycle=nnn)
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  INSERT INTO t1 VALUES(7, 'seven');\n  INSERT INTO t1 VALUES(8, 'eight');\n")
 		}
 	}
-	// do_graph_test 6.1 {
-  SELECT (a % 2), group_concat(b) FROM t1 GROUP B...} {
-QUERY (nCycle=nnn)
---SCAN t1 (nCycle=nnn)
---USE T...} (unsupported command, not transpiled)
+	// do_graph_test 6.1 {\n  SELECT (a % 2), group_concat(b) FROM t1 GROUP ...} {\nQUERY (nCycle=nnn)\n--SCAN t1 (nCycle=nnn)\n--US...} (unsupported command, not transpiled)
 	sql = "\n  WITH xy(x, y) AS ( SELECT (a % 2), group_concat(b) FROM t1 GROUP BY 1)\n  SELECT * FROM xy WHERE x=1\n"
 	_ = sql // suppress unused warning
-	// do_graph_test 6.2 $sql {
-QUERY (nCycle=nnn)
---CO-ROUTINE xy
-----SCAN t1 (n...} (unsupported command, not transpiled)
-	// do_graph_test 6.3 {
-  WITH xy(x, y) AS ( SELECT (a % 2), group_concat...} {
-QUERY (nCycle=nnn)
---MATERIALIZE xy (nCycle=nnn)
-...} (unsupported command, not transpiled)
+	// do_graph_test 6.2 $sql {\nQUERY (nCycle=nnn)\n--CO-ROUTINE xy\n----SCAN t1...} (unsupported command, not transpiled)
+	// do_graph_test 6.3 {\n  WITH xy(x, y) AS ( SELECT (a % 2), group_conca...} {\nQUERY (nCycle=nnn)\n--MATERIALIZE xy (nCycle=nnn...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

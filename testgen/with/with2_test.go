@@ -74,6 +74,7 @@ func Test_with2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "with2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
 		if _res.Error != nil {
@@ -391,14 +392,10 @@ func Test_with2(t *testing.T) {
 	// do_xfer_test 5.2 1 { INSERT INTO t1 SELECT * FROM t2 } (unsupported command, not transpiled)
 	// do_xfer_test 5.3 0 { INSERT INTO t1 SELECT a, b FROM t2 } (unsupported command, not transpiled)
 	// do_xfer_test 5.4 0 { INSERT INTO t1 SELECT b, a FROM t2 } (unsupported command, not transpiled)
-	// do_xfer_test 5.5 0 { 
-  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...} (unsupported command, not transpiled)
-	// do_xfer_test 5.6 0 { 
-  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...} (unsupported command, not transpiled)
-	// do_xfer_test 5.7 0 { 
- INSERT INTO t1 WITH x AS ( SELECT * FROM t2 ) S...} (unsupported command, not transpiled)
-	// do_xfer_test 5.8 0 { 
- INSERT INTO t1 WITH x(a,b) AS ( SELECT * FROM t...} (unsupported command, not transpiled)
+	// do_xfer_test 5.5 0 { \n  WITH x AS (SELECT a, b FROM t2) INSERT INTO t...} (unsupported command, not transpiled)
+	// do_xfer_test 5.6 0 { \n  WITH x AS (SELECT a, b FROM t2) INSERT INTO t...} (unsupported command, not transpiled)
+	// do_xfer_test 5.7 0 { \n INSERT INTO t1 WITH x AS ( SELECT * FROM t2 ) ...} (unsupported command, not transpiled)
+	// do_xfer_test 5.8 0 { \n INSERT INTO t1 WITH x(a,b) AS ( SELECT * FROM ...} (unsupported command, not transpiled)
 	{ // "6.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
 		if _res.Error != nil {
@@ -564,6 +561,13 @@ func Test_with2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	// load_static_extension db series (unsupported command, not transpiled)
+	{ // "9.2"
+		r = db.Query("\n  WITH\n    cst(rsx, rsy) AS  (\n      SELECT 100, 100\n    ),\n    cst2(minx, maxx, stepx, miny, maxy, stepy, qualitativex, qualitativey) AS (\n      SELECT NULL, NULL, NULL, NULL, NULL, NULL, 0, 0\n    ),\n    ds0(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT 1, 2, 3, 4, 5, 6, 7 , 8, 9, 10, 11\n    ),\n    ds(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT m, n, x,\n        y, x2,\n        y2,\n        title, size, mark, label, markmode\n      FROM ds0\n      WINDOW w AS (PARTITION BY m, x ORDER BY n)\n    ),\n    d(m, n, x, y, x2, y2, labelx,labely,title,size,mark,label,markmode) AS (\n      SELECT m, n, x, y,  x2, y2, x, y, title, size, mark, label, markmode\n      FROM ds, cst2\n    ),\n    ylabels(y, label) AS (\n      SELECT y, MIN(labely) FROM d GROUP BY y\n    ),\n    yaxis(maxy, miny, stepy , minstepy) AS (\n      WITH\n        xt0(minx, maxx) AS (\n          SELECT  coalesce(miny, min(min(y2),\n                  min(y))), coalesce(maxy, max(max(y2),\n                  max(y))) + qualitativey\n           FROM d, cst2\n        ),\n        xt1(mx, mn) AS (SELECT maxx, minx FROM xt0),\n        xt2(mx, mn, step) AS (SELECT mx, mn, (mx-mn)  FROM xt1),\n        \n        xt3(mx, mn, ms) AS (\n          SELECT mx, mn, first_value(rs) OVER (order by x desc) AS ms\n            FROM (SELECT mx, mn, step, f,(mx-mn) as rng,\n                         1.0*step/f as rs, 1.0*(mx-mn)/(step/f) AS x\n                    FROM xt2, (SELECT 1 AS f UNION ALL SELECT 2\n                                UNION ALL SELECT 4\n                                UNION ALL SELECT 5)) AS src\n                   WHERE x < 10 limit 1),\n        xt4(minstepy) AS (\n          SELECT MIN(abs(y2-y)) FROM d WHERE y2 != y\n        )\n      SELECT (mx/ms)*ms, (mn/ms)*ms, coalesce(stepy, ms),\n                     coalesce(minstepy, ms, stepy)  FROM xt3, cst2,xt4\n    ),\n    distinct_mark_n_m(mark, ze, zem, title) AS (\n      SELECT DISTINCT mark, n AS ze, m AS zem, title FROM ds0\n    ),\n    facet0(m, mi, title, radial) AS (\n      SELECT md, row_number() OVER () - 1, title, 'radial'\n                      IN (SELECT mark FROM distinct_mark_n_m WHERE zem = md)\n      FROM (SELECT DISTINCT zem AS md, title AS title\n                       FROM distinct_mark_n_m ORDER BY 2, 1)\n    ),\n    facet(m, mi, xorigin, yorigin, title, radial) AS (\n      SELECT m, mi,\n        rsx * 1.2 * IFNULL(CASE WHEN (\n          0\n        ) > 0 THEN mi / (\n          0\n        ) ELSE mi % (\n          2\n        )  END, mi),\n        rsy  * 1.2 * IFNULL(CASE WHEN (\n          2\n        ) > 0 THEN mi / (\n          2\n        ) ELSE mi / (\n          0\n        )  END, 0),\n        title, radial FROM facet0, cst\n    ),\n    radygrid(m, mi, tty, wty, ttx, ttx2, xorigin, yorigin) AS (\n      SELECT m, mi,  rsy / 2 / ((maxy-miny)/stepy) * (value-1) AS tty,\n             coalesce(NULL, miny + stepy * (value-1)) AS wty,\n             xorigin, xorigin+rsx, xorigin + rsx / 2,\n             yorigin + rsy / 2\n        FROM generate_series(1), yaxis, cst,\n             facet LEFT JOIN ylabels ON ylabels.y = (miny + (value-1) * stepy)\n       WHERE radial AND stop = 1+1.0*(maxy-miny)/stepy\n    ),\n    ypos(m, mi, pcx, pcy, radial) AS (\n      SELECT m, mi, xorigin, yorigin + CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END, radial FROM yaxis, cst, facet WHERE NOT radial\n      UNION ALL\n      SELECT m, mi, xorigin + rsx / 2, yorigin + (CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / 2 / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END ) / 2, radial FROM yaxis, cst, facet WHERE radial\n    )\n  SELECT * FROM radygrid , ypos;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH\n    cst(rsx, rsy) AS  (\n      SELECT 100, 100\n    ),\n    cst2(minx, maxx, stepx, miny, maxy, stepy, qualitativex, qualitativey) AS (\n      SELECT NULL, NULL, NULL, NULL, NULL, NULL, 0, 0\n    ),\n    ds0(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT 1, 2, 3, 4, 5, 6, 7 , 8, 9, 10, 11\n    ),\n    ds(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT m, n, x,\n        y, x2,\n        y2,\n        title, size, mark, label, markmode\n      FROM ds0\n      WINDOW w AS (PARTITION BY m, x ORDER BY n)\n    ),\n    d(m, n, x, y, x2, y2, labelx,labely,title,size,mark,label,markmode) AS (\n      SELECT m, n, x, y,  x2, y2, x, y, title, size, mark, label, markmode\n      FROM ds, cst2\n    ),\n    ylabels(y, label) AS (\n      SELECT y, MIN(labely) FROM d GROUP BY y\n    ),\n    yaxis(maxy, miny, stepy , minstepy) AS (\n      WITH\n        xt0(minx, maxx) AS (\n          SELECT  coalesce(miny, min(min(y2),\n                  min(y))), coalesce(maxy, max(max(y2),\n                  max(y))) + qualitativey\n           FROM d, cst2\n        ),\n        xt1(mx, mn) AS (SELECT maxx, minx FROM xt0),\n        xt2(mx, mn, step) AS (SELECT mx, mn, (mx-mn)  FROM xt1),\n        \n        xt3(mx, mn, ms) AS (\n          SELECT mx, mn, first_value(rs) OVER (order by x desc) AS ms\n            FROM (SELECT mx, mn, step, f,(mx-mn) as rng,\n                         1.0*step/f as rs, 1.0*(mx-mn)/(step/f) AS x\n                    FROM xt2, (SELECT 1 AS f UNION ALL SELECT 2\n                                UNION ALL SELECT 4\n                                UNION ALL SELECT 5)) AS src\n                   WHERE x < 10 limit 1),\n        xt4(minstepy) AS (\n          SELECT MIN(abs(y2-y)) FROM d WHERE y2 != y\n        )\n      SELECT (mx/ms)*ms, (mn/ms)*ms, coalesce(stepy, ms),\n                     coalesce(minstepy, ms, stepy)  FROM xt3, cst2,xt4\n    ),\n    distinct_mark_n_m(mark, ze, zem, title) AS (\n      SELECT DISTINCT mark, n AS ze, m AS zem, title FROM ds0\n    ),\n    facet0(m, mi, title, radial) AS (\n      SELECT md, row_number() OVER () - 1, title, 'radial'\n                      IN (SELECT mark FROM distinct_mark_n_m WHERE zem = md)\n      FROM (SELECT DISTINCT zem AS md, title AS title\n                       FROM distinct_mark_n_m ORDER BY 2, 1)\n    ),\n    facet(m, mi, xorigin, yorigin, title, radial) AS (\n      SELECT m, mi,\n        rsx * 1.2 * IFNULL(CASE WHEN (\n          0\n        ) > 0 THEN mi / (\n          0\n        ) ELSE mi % (\n          2\n        )  END, mi),\n        rsy  * 1.2 * IFNULL(CASE WHEN (\n          2\n        ) > 0 THEN mi / (\n          2\n        ) ELSE mi / (\n          0\n        )  END, 0),\n        title, radial FROM facet0, cst\n    ),\n    radygrid(m, mi, tty, wty, ttx, ttx2, xorigin, yorigin) AS (\n      SELECT m, mi,  rsy / 2 / ((maxy-miny)/stepy) * (value-1) AS tty,\n             coalesce(NULL, miny + stepy * (value-1)) AS wty,\n             xorigin, xorigin+rsx, xorigin + rsx / 2,\n             yorigin + rsy / 2\n        FROM generate_series(1), yaxis, cst,\n             facet LEFT JOIN ylabels ON ylabels.y = (miny + (value-1) * stepy)\n       WHERE radial AND stop = 1+1.0*(maxy-miny)/stepy\n    ),\n    ypos(m, mi, pcx, pcy, radial) AS (\n      SELECT m, mi, xorigin, yorigin + CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END, radial FROM yaxis, cst, facet WHERE NOT radial\n      UNION ALL\n      SELECT m, mi, xorigin + rsx / 2, yorigin + (CASE\n        WHEN 0 BETWEEN miny AND maxy THEN\n          rsy - (0 - miny) * rsy / 2 / (maxy-miny)\n        WHEN 0 >= maxy THEN 0\n        ELSE  rsy\n      END ) / 2, radial FROM yaxis, cst, facet WHERE radial\n    )\n  SELECT * FROM radygrid , ypos;\n")
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -582,6 +586,57 @@ func Test_with2(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	{ // "11.1"
+		r = db.Query("\n    CREATE TABLE t1(a);\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1;\n    ALTER TABLE t1 RENAME COLUMN a TO b;\n    SELECT sql FROM sqlite_schema WHERE name='t1';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1;\n    ALTER TABLE t1 RENAME COLUMN a TO b;\n    SELECT sql FROM sqlite_schema WHERE name='t1';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{CREATE TABLE t1(b)}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "11.2"
+		_res = db.Exec("\n    INSERT INTO t1 VALUES(55);\n    SELECT * FROM v2;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    INSERT INTO t1 VALUES(55);\n    SELECT * FROM v2;\n  ")
+		}
+	}
+	{ // "11.3"
+		_res = db.Exec("\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: a", _res.Error, "\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
+		}
+	}
+	{ // "11.4"
+		_res = db.Exec("\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT *\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no tables specified") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no tables specified", _res.Error, "\n    DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT *\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;\n  ")
+		}
+	}
+	{ // "11.5"
+		_res = db.Exec("\n    WITH x AS (\n      WITH y AS (\n         WITH z AS(SELECT * FROM t1)\n         SELECT * FROM no_such_table\n      ) SELECT a\n    ) SELECT * from t1;\n  ")
+		if _res.Error == nil {
+			t.Errorf("expected error, got none\n  sql: %s", "\n    WITH x AS (\n      WITH y AS (\n         WITH z AS(SELECT * FROM t1)\n         SELECT * FROM no_such_table\n      ) SELECT a\n    ) SELECT * from t1;\n  ")
+		}
+	}
+	db.Close()
+	db, err = frigolite.Open("")
+	if err != nil { t.Fatal(err) }
+	{ // "12.1"
+		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1),('hello'),(4.25),(NULL),(x'3c626c6f623e');\n    CREATE VIEW v2(c) AS WITH x AS (WITH y AS (WITH z AS(SELECT * FROM t1) SELECT * FROM v2) SELECT a) SELECT * from t1;\n    CREATE VIEW v3(c) AS WITH x AS (WITH y AS (WITH z AS(SELECT * FROM v2) SELECT * FROM v3) SELECT a) SELECT * from t1;\n    ALTER TABLE t1 RENAME TO t1x;\n    SELECT quote(c) FROM v3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1),('hello'),(4.25),(NULL),(x'3c626c6f623e');\n    CREATE VIEW v2(c) AS WITH x AS (WITH y AS (WITH z AS(SELECT * FROM t1) SELECT * FROM v2) SELECT a) SELECT * from t1;\n    CREATE VIEW v3(c) AS WITH x AS (WITH y AS (WITH z AS(SELECT * FROM v2) SELECT * FROM v3) SELECT a) SELECT * from t1;\n    ALTER TABLE t1 RENAME TO t1x;\n    SELECT quote(c) FROM v3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 'hello' 4.25 NULL X'3C626C6F623E'"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

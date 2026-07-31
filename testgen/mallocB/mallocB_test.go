@@ -56,7 +56,7 @@ func Test_mallocB(t *testing.T) {
 	// do_malloc_test mallocB-2 -sqlbody {SELECT - 456.1} (unsupported command, not transpiled)
 	// do_malloc_test mallocB-3 -sqlbody {SELECT random()} (unsupported command, not transpiled)
 	// do_malloc_test mallocB-4 -sqlbody {SELECT length(zeroblob(1000))} (unsupported command, not transpiled)
+	// do_malloc_test mallocB-5 -sqlbody {SELECT * FROM (SELECT 1) GROUP BY 1;} (unsupported command, not transpiled)
 	// do_malloc_test mallocB-6 -sqlbody { SELECT test_auxdata('hello world'); } (unsupported command, not transpiled)
-	// do_malloc_test mallocB-7 -sqlbody {
-  SELECT strftime(hex(randomblob(50)) || '%Y', 'n...} (unsupported command, not transpiled)
+	// do_malloc_test mallocB-7 -sqlbody {\n  SELECT strftime(hex(randomblob(50)) || '%Y', '...} (unsupported command, not transpiled)
 }

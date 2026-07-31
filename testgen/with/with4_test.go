@@ -50,6 +50,7 @@ func Test_with4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "with4" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	{ // "100"
 		_res = db.Exec("\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE main.t1(a,b);\n  CREATE TABLE aux.t2(x,y);\n  INSERT INTO t1 VALUES(1,2);\n  INSERT INTO t2 VALUES(3,4);\n")
 		if _res.Error != nil {

@@ -188,6 +188,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "TOTAL_CHANGES", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, ScalarFn: fnCHANGES})
 	r.register(&Func{Name: "REPEAT", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREPEAT})
 	r.register(&Func{Name: "LIKELIHOOD", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnIDENTITY2})
+	r.register(&Func{Name: "VALUES", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnVALUES})
 	r.register(&Func{Name: "Ieee754", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnIeee754})
 	r.register(&Func{Name: "Ieee754_from_blob", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnIeee754FromBlob})
 	r.register(&Func{Name: "Ieee754_inc", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnIeee754Inc})
@@ -1389,4 +1390,13 @@ func fnIeee754Inc(args []interface{}) (interface{}, error) {
 		bits -= uint64(-n)
 	}
 	return math.Float64frombits(bits), nil
+}
+
+// fnVALUES implements the VALUES(...) function used as a scalar expression.
+// SQLite's VALUES returns the first value when used as a scalar function.
+func fnVALUES(args []interface{}) (interface{}, error) {
+	if len(args) >= 1 {
+		return args[0], nil
+	}
+	return nil, nil
 }

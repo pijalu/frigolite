@@ -133,9 +133,7 @@ func Test_nulls1(t *testing.T) {
 					}
 				}
 			}
-			// switch $a {
-    0 {
-      execsql { CREATE INDEX i1 ON t3(a) ...} (test infra, not transpiled)
+			// switch $a {\n    0 {\n      execsql { CREATE INDEX i1 ON t3(a...} (test infra, not transpiled)
 			// incr a 1
 			{
 				_n, _err := strconv.Atoi(a)
@@ -211,6 +209,61 @@ func Test_nulls1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "\n  200 100\n  300 200\n  400 300\n"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			// register_echo_module db (unsupported command, not transpiled)
+			{ // "4.0"
+				_res = db.Exec("\n    CREATE TABLE tx(a INTEGER PRIMARY KEY, b, c);\n    CREATE INDEX i1 ON tx(b);\n    INSERT INTO tx VALUES(1, 1, 1);\n    INSERT INTO tx VALUES(2, NULL, 2);\n    INSERT INTO tx VALUES(3, 3, 3);\n    INSERT INTO tx VALUES(4, NULL, 4);\n    INSERT INTO tx VALUES(5, 5, 5);\n    CREATE VIRTUAL TABLE te USING echo(tx);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tx(a INTEGER PRIMARY KEY, b, c);\n    CREATE INDEX i1 ON tx(b);\n    INSERT INTO tx VALUES(1, 1, 1);\n    INSERT INTO tx VALUES(2, NULL, 2);\n    INSERT INTO tx VALUES(3, 3, 3);\n    INSERT INTO tx VALUES(4, NULL, 4);\n    INSERT INTO tx VALUES(5, 5, 5);\n    CREATE VIRTUAL TABLE te USING echo(tx);\n  ")
+				}
+			}
+			{ // "4.1"
+				r = db.Query("\n    SELECT * FROM tx ORDER BY b NULLS FIRST;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tx ORDER BY b NULLS FIRST;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2 {} 2  4 {} 4  1 1 1  3 3 3  5 5 5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4.2"
+				r = db.Query("\n    SELECT * FROM te ORDER BY b NULLS FIRST;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM te ORDER BY b NULLS FIRST;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2 {} 2  4 {} 4  1 1 1  3 3 3  5 5 5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4.3"
+				r = db.Query("\n    SELECT * FROM tx ORDER BY b NULLS LAST;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tx ORDER BY b NULLS LAST;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 1 1  3 3 3  5 5 5  2 {} 2  4 {} 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4.4"
+				r = db.Query("\n    SELECT * FROM te ORDER BY b NULLS LAST;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM te ORDER BY b NULLS LAST;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 1 1  3 3 3  5 5 5  2 {} 2  4 {} 4"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

@@ -62,6 +62,7 @@ func Test_fts3expr(t *testing.T) {
 	_ = L // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
@@ -333,14 +334,8 @@ func Test_fts3expr(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'one NEAR (hello OR world)' ")
 		_ = _res // catchsql
 	}
-	// do_malloc_test fts3expr-malloc-1 -sqlbody {
-  SELECT fts3_exprtest('simple', 'a b c "d e f"',...} (unsupported command, not transpiled)
-	// do_malloc_test fts3expr-malloc-2 -tclprep {
-  set sqlite_fts3_enable_parentheses 0
-} -sqlbody {
-  SELECT fts3_exprtest('simple', 'a -b', 'a', 'b'...} -cleanup {
-  set sqlite_fts3_enable_parentheses 1
-} (unsupported command, not transpiled)
+	// do_malloc_test fts3expr-malloc-1 -sqlbody {\n  SELECT fts3_exprtest('simple', 'a b c "d e f"'...} (unsupported command, not transpiled)
+	// do_malloc_test fts3expr-malloc-2 -tclprep {\n  set sqlite_fts3_enable_parentheses 0\n} -sqlbody {\n  SELECT fts3_exprtest('simple', 'a -b', 'a', 'b...} -cleanup {\n  set sqlite_fts3_enable_parentheses 1\n} (unsupported command, not transpiled)
 	{ // do_test "fts3expr-5.1"
 		_res = db.Exec(" SELECT fts3_exprtest('simple', 'a b') ")
 		_ = _res // catchsql

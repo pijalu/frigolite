@@ -540,6 +540,10 @@ func Test_table(t *testing.T) {
 	_ = _dbtmp7 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "table-5.3"
+		r = db.Query("EXPLAIN CREATE TABLE test1(f1 int)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN CREATE TABLE test1(f1 int)")
+		}
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta'")
@@ -549,6 +553,10 @@ func Test_table(t *testing.T) {
 		_res = db.Exec("CREATE TABLE test1(f1 int)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(f1 int)")
+		}
+		r = db.Query("EXPLAIN DROP TABLE test1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN DROP TABLE test1")
 		}
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta'")
 		if r.Error != nil {
@@ -620,6 +628,12 @@ func Test_table(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE name='t4\"abc'\n  ")
 		}
 	}
+	{ // do_test "table-8.4"
+		r = db.Query("\n      CREATE TEMPORARY TABLE t5 AS SELECT count(*) AS [y'all] FROM [t3\"xyz];\n      SELECT * FROM t5;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMPORARY TABLE t5 AS SELECT count(*) AS [y'all] FROM [t3\"xyz];\n      SELECT * FROM t5;\n    ")
+		}
+	}
 	{ // do_test "table-8.5"
 		_dbtmp8, err := frigolite.Open("test.db")
 		_ = _dbtmp8 // sqlite3 db connection
@@ -663,6 +677,66 @@ func Test_table(t *testing.T) {
 		_res = db.Exec("\n    CREATE TABLE t6(a varchar(100), b blob, a integer);\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "table-10.1"
+		_res = db.Exec("\n    CREATE TABLE t6(a REFERENCES t4(a) NOT NULL);\n    INSERT INTO t6 VALUES(NULL);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.2"
+		_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a REFERENCES t4(a) MATCH PARTIAL);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.3"
+		_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a REFERENCES t4 MATCH FULL ON DELETE SET NULL NOT NULL);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.4"
+		_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a REFERENCES t4 MATCH FULL ON UPDATE SET DEFAULT DEFAULT 1);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.5"
+		_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a NOT NULL NOT DEFERRABLE INITIALLY IMMEDIATE);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.6"
+		_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a NOT NULL DEFERRABLE INITIALLY DEFERRED);\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.7"
+		_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,\n      FOREIGN KEY (a) REFERENCES t4(b) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.8"
+		_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c,\n      FOREIGN KEY (b,c) REFERENCES t4(x,y) MATCH PARTIAL\n        ON UPDATE SET NULL ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.9"
+		_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c,\n      FOREIGN KEY (b,c) REFERENCES t4(x)\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.10"
+		_res = db.Exec("DROP TABLE t6")
+		_ = _res // catchsql
+		_res = db.Exec("\n    CREATE TABLE t6(a,b,c,\n      FOREIGN KEY (b,c) REFERENCES t4(x,y,z)\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.11"
+		_res = db.Exec("DROP TABLE t6")
+		_ = _res // catchsql
+		_res = db.Exec("\n    CREATE TABLE t6(a,b, c REFERENCES t4(x,y));\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.12"
+		_res = db.Exec("DROP TABLE t6")
+		_ = _res // catchsql
+		_res = db.Exec("\n    CREATE TABLE t6(a,b,c,\n      FOREIGN KEY (b,x) REFERENCES t4(x,y)\n    );\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "table-10.13"
+		_res = db.Exec("DROP TABLE t6")
+		_ = _res // catchsql
+		_res = db.Exec("\n    CREATE TABLE t6(a,b,c,\n      FOREIGN KEY (x,b) REFERENCES t4(x,y)\n    );\n  ")
+		_ = _res // catchsql
+	}
 	{ // do_test "table-11.1"
 		r = db.Query("\n    CREATE TABLE t7(\n       a integer primary key,\n       b number(5,10),\n       c character varying (8),\n       d VARCHAR(9),\n       e clob,\n       f BLOB,\n       g Text,\n       h\n    );\n    INSERT INTO t7(a) VALUES(1);\n    SELECT typeof(a), typeof(b), typeof(c), typeof(d),\n           typeof(e), typeof(f), typeof(g), typeof(h)\n    FROM t7 LIMIT 1;\n  ")
 		if r.Error != nil {
@@ -676,6 +750,10 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-12.1"
+		_res = db.Exec("\n      CREATE TABLE t8 AS SELECT b, h, a as i, (SELECT f FROM t7) as j FROM t7;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t8 AS SELECT b, h, a as i, (SELECT f FROM t7) as j FROM t7;\n    ")
+		}
 	}
 	{ // do_test "table-12.2"
 		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE tbl_name = 't8'\n  ")
@@ -726,6 +804,24 @@ func Test_table(t *testing.T) {
 			_ = result // suppress unused warning
 		}
 		{ // do_test "table-14.2"
+			rc = "0"
+			_ = rc // suppress unused warning
+			result = "list $rc $msg"
+			_ = result // suppress unused warning
+		}
+		{ // do_test "table-14.3"
+			os.Remove("test2.db")
+			os.Remove("test2.db-journal")
+			_res = db.Exec("\n      ATTACH 'test2.db' as aux;\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' as aux;\n    ")
+			}
+			_res = db.Exec("SELECT * FROM tablet8 LIMIT 1")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM tablet8 LIMIT 1")
+			}
+		}
+		{ // do_test "table-14.4"
 			rc = "0"
 			_ = rc // suppress unused warning
 			result = "list $rc $msg"

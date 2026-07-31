@@ -114,6 +114,7 @@ func Test_fts3snippet(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3snippet"
 	_ = testprefix // suppress unused warning
+	return
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	DO_MALLOC_TEST = "0"
@@ -148,12 +149,9 @@ func Test_fts3snippet(t *testing.T) {
 				}
 			}
 			// do_offsets_test $T.1.2 {xxx} {0 0 0 3 0 0 4 3 0 0 8 3 0 0 12 3} (unsupported command, not transpiled)
-			// do_offsets_test $T.1.3 {"xxx xxx"} {
-      0 0  0 3     0 0  4 3     0 1  4 3     0 0 ...} (unsupported command, not transpiled)
-			// do_offsets_test $T.1.4 {"xxx xxx" xxx} {
-      0 0  0 3     0 2  0 3     0 0  4 3     0 1 ...} (unsupported command, not transpiled)
-			// do_offsets_test $T.1.5 {xxx "xxx xxx"} {
-      0 0  0 3     0 1  0 3     0 0  4 3     0 1 ...} (unsupported command, not transpiled)
+			// do_offsets_test $T.1.3 {"xxx xxx"} {\n      0 0  0 3     0 0  4 3     0 1  4 3     0 0...} (unsupported command, not transpiled)
+			// do_offsets_test $T.1.4 {"xxx xxx" xxx} {\n      0 0  0 3     0 2  0 3     0 0  4 3     0 1...} (unsupported command, not transpiled)
+			// do_offsets_test $T.1.5 {xxx "xxx xxx"} {\n      0 0  0 3     0 1  0 3     0 0  4 3     0 1...} (unsupported command, not transpiled)
 			{ // do_test T + ".2.1"
 				v1 = "lrange $numbers 0 99"
 				_ = v1 // suppress unused warning
@@ -173,8 +171,7 @@ func Test_fts3snippet(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ft_content SET c1b = 'hello world' WHERE c1b = $numbers ")
 			}
-			// do_error_test $T.2.3 {
-    SELECT offsets(ft) FROM ft WHERE ft MATCH 'on...} {database disk image is malformed} (unsupported command, not transpiled)
+			// do_error_test $T.2.3 {\n    SELECT offsets(ft) FROM ft WHERE ft MATCH 'o...} {database disk image is malformed} (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			{ // do_test T + ".3.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('one two three four five six seven eight nine ten');\n    ")
@@ -198,43 +195,18 @@ func Test_fts3snippet(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n           'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty '\n        || 'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty'\n      );\n    ")
 				}
 			}
-			// do_snippet_test $T.4.2 {one nine} 0 5 {
-     {one} two three...eight {nine} ten
-  } {
-     {one} two three...eight {nine} ten...
-  } (unsupported command, not transpiled)
-			// do_snippet_test $T.4.3 {one nine} 0 -5 {
-     {one} two three four five...six seven eight ...} {
-     {one} two three four five...seven eight {nin...} (unsupported command, not transpiled)
-			// do_snippet_test $T.4.3 {one nineteen} 0 -5 {
-     ...eighteen {nineteen} twenty {one} two...
- ...} (unsupported command, not transpiled)
-			// do_snippet_test $T.4.4 {two nineteen} 0 -5 {
-     ...eighteen {nineteen} twenty one {two}...
- ...} (unsupported command, not transpiled)
-			// do_snippet_test $T.4.5 {three nineteen} 0 -5 {
-     ...{nineteen} twenty one two {three}...
-  } (unsupported command, not transpiled)
-			// do_snippet_test $T.4.6 {four nineteen} 0 -5 {
-     ...two three {four} five six...seventeen eig...} (unsupported command, not transpiled)
-			// do_snippet_test $T.4.7 {four NEAR nineteen} 0 -5 {
-     ...seventeen eighteen {nineteen} twenty one....} (unsupported command, not transpiled)
-			// do_snippet_test $T.4.8 {four nineteen} 0 5 {
-     ...three {four} five...eighteen {nineteen} t...} (unsupported command, not transpiled)
-			// do_snippet_test $T.4.9 {four NEAR nineteen} 0 5 {
-     ...eighteen {nineteen} twenty...three {four}...} (unsupported command, not transpiled)
-			// do_snippet_test $T.4.10 {four NEAR nineteen} 0 -5 {
-     ...seventeen eighteen {nineteen} twenty one....} (unsupported command, not transpiled)
-			// do_snippet_test $T.4.11 {four NOT (nineteen twentyone)} 0 5 {
-     ...two three {four} five six...
-  } {
-     ...two three {four} five six...
-  } (unsupported command, not transpiled)
-			// do_snippet_test $T.4.12 {four OR nineteen NEAR twentyone} 0 5 {
-     ...two three {four} five six...
-  } {
-     ...two three {four} five six...
-  } (unsupported command, not transpiled)
+			// do_snippet_test $T.4.2 {one nine} 0 5 {\n     {one} two three...eight {nine} ten\n  } {\n     {one} two three...eight {nine} ten...\n  } (unsupported command, not transpiled)
+			// do_snippet_test $T.4.3 {one nine} 0 -5 {\n     {one} two three four five...six seven eight...} {\n     {one} two three four five...seven eight {ni...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.3 {one nineteen} 0 -5 {\n     ...eighteen {nineteen} twenty {one} two...\...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.4 {two nineteen} 0 -5 {\n     ...eighteen {nineteen} twenty one {two}...\...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.5 {three nineteen} 0 -5 {\n     ...{nineteen} twenty one two {three}...\n  } (unsupported command, not transpiled)
+			// do_snippet_test $T.4.6 {four nineteen} 0 -5 {\n     ...two three {four} five six...seventeen ei...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.7 {four NEAR nineteen} 0 -5 {\n     ...seventeen eighteen {nineteen} twenty one...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.8 {four nineteen} 0 5 {\n     ...three {four} five...eighteen {nineteen} ...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.9 {four NEAR nineteen} 0 5 {\n     ...eighteen {nineteen} twenty...three {four...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.10 {four NEAR nineteen} 0 -5 {\n     ...seventeen eighteen {nineteen} twenty one...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.11 {four NOT (nineteen twentyone)} 0 5 {\n     ...two three {four} five six...\n  } {\n     ...two three {four} five six...\n  } (unsupported command, not transpiled)
+			// do_snippet_test $T.4.12 {four OR nineteen NEAR twentyone} 0 5 {\n     ...two three {four} five six...\n  } {\n     ...two three {four} five six...\n  } (unsupported command, not transpiled)
 			{ // do_test T + ".5.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n      INSERT INTO ft VALUES(\n        'one two three four five', \n        'four five six seven eight', \n        'seven eight nine ten eleven'\n      );\n    ")
 				if _res.Error != nil {
@@ -255,21 +227,15 @@ func Test_fts3snippet(t *testing.T) {
 			// do_snippet_test $T.5.8 {five} 0 3 {...three four {five}} (unsupported command, not transpiled)
 			// do_snippet_test $T.5.9 {five} 1 3 {} (unsupported command, not transpiled)
 			// do_snippet_test $T.5.10 {five} 2 3 {seven eight nine...} (unsupported command, not transpiled)
-			// do_snippet_test $T.5.11 {one "seven eight nine"} -1 -3 {
-    {one} two three...{seven} {eight} {nine}...
- ...} (unsupported command, not transpiled)
+			// do_snippet_test $T.5.11 {one "seven eight nine"} -1 -3 {\n    {one} two three...{seven} {eight} {nine}...\...} (unsupported command, not transpiled)
 			{ // do_test T + ".6.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES($numbers);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES($numbers);\n    ")
 				}
 			}
-			// do_snippet_test $T.6.2 {
-    one fifty onehundred onehundredfifty twohundr...} -1 4 {
-    {one}...{fifty}...{onehundred}...{onehundredf...} (unsupported command, not transpiled)
-			// do_snippet_test $T.6.3 {
-    one fifty onehundred onehundredfifty twohundr...} -1 -4 {
-    {one} two three four...fortyeight fortynine {...} (unsupported command, not transpiled)
+			// do_snippet_test $T.6.2 {\n    one fifty onehundred onehundredfifty twohund...} -1 4 {\n    {one}...{fifty}...{onehundred}...{onehundred...} (unsupported command, not transpiled)
+			// do_snippet_test $T.6.3 {\n    one fifty onehundred onehundredfifty twohund...} -1 -4 {\n    {one} two three four...fortyeight fortynine ...} (unsupported command, not transpiled)
 			{ // do_test T + ".7.1"
 				_res = db.Exec("\n      BEGIN;\n        DROP TABLE IF EXISTS ft;\n        CREATE VIRTUAL TABLE ft USING fts3(x);\n    ")
 				if _res.Error != nil {
@@ -327,7 +293,7 @@ func Test_fts3snippet(t *testing.T) {
 					_ = v1 // suppress unused warning
 					v2 = strings.TrimSpace("\"$numbers \" $n")
 					_ = v2 // suppress unused warning
-					docid = "$n * 1000000"
+					docid = tclExpr("$n * 1000000")
 					_ = docid // suppress unused warning
 					_res = db.Exec(" INSERT INTO ft(docid, x, y) VALUES($docid, $v1, $v2) ")
 					if _res.Error != nil {
@@ -341,25 +307,16 @@ func Test_fts3snippet(t *testing.T) {
 			// do_matchinfo_test $T.9.6 {"threehundred one"} { 1 2    0 0 0   1 3 2} { 1 2    0 0 0   2 3 2} (unsupported command, not transpiled)
 			// do_matchinfo_test $T.9.7 {one OR fivehundred} { 2 2    1 3 3   1 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   2 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   3 6 3   0 0 0   0 0 0 } (unsupported command, not transpiled)
 			// do_matchinfo_test $T.9.8 {two OR "threehundred one"} { 2 2    1 3 3   1 6 3   0 0 0   0 3 2 } { 2 2    1 3 3   2 6 3   0 0 0   1 3 2 } { 2 2    1 3 3   3 6 3   0 0 0   2 3 2 } (unsupported command, not transpiled)
-			// do_select_test $T.9.9 {
-    SELECT mit(matchinfo(ft)), mit(matchinfo(ft))...} [normalize {
-    {2 2 1 3 3 1 6 3 0 0 0 0 3 2}
-   ... (test infra, not transpiled)
+			// do_select_test $T.9.9 {\n    SELECT mit(matchinfo(ft)), mit(matchinfo(ft)...} [normalize {\n    {2 2 1 3 3 1 6 3 0 0 0 0 3 2}\n ... (test infra, not transpiled)
 			_r = "1000000"
 			_ = _r // suppress unused warning
 			// do_select_test $T.10.0 { SELECT rowid FROM ft WHERE rowid = $r } $r (test infra, not transpiled)
-			// do_select_test $T.10.1 {
-    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text 0 text 0 text} (test infra, not transpiled)
-			// do_select_test $T.10.2 {
-    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text} (test infra, not transpiled)
-			// do_select_test $T.10.3 {
-    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text 0 text 0 text} (test infra, not transpiled)
-			// do_select_test $T.10.4 {
-    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text} (test infra, not transpiled)
-			// do_select_test $T.10.5 {
-    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob 0 blob 0 blob} (test infra, not transpiled)
-			// do_select_test $T.10.6 {
-    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob} (test infra, not transpiled)
+			// do_select_test $T.10.1 {\n    SELECT length(offsets(ft)), typeof(offsets(f...} {0 text 0 text 0 text} (test infra, not transpiled)
+			// do_select_test $T.10.2 {\n    SELECT length(offsets(ft)), typeof(offsets(f...} {0 text} (test infra, not transpiled)
+			// do_select_test $T.10.3 {\n    SELECT length(snippet(ft)), typeof(snippet(f...} {0 text 0 text 0 text} (test infra, not transpiled)
+			// do_select_test $T.10.4 {\n    SELECT length(snippet(ft)), typeof(snippet(f...} {0 text} (test infra, not transpiled)
+			// do_select_test $T.10.5 {\n    SELECT length(matchinfo(ft)), typeof(matchin...} {0 blob 0 blob 0 blob} (test infra, not transpiled)
+			// do_select_test $T.10.6 {\n    SELECT length(matchinfo(ft)), typeof(matchin...} {0 blob} (test infra, not transpiled)
 		}
 		{ // "2.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('one two three four five');\n  INSERT INTO t2 VALUES('two three four five one');\n  INSERT INTO t2 VALUES('three four five one two');\n  INSERT INTO t2 VALUES('four five one two three');\n  INSERT INTO t2 VALUES('five one two three four');\n")

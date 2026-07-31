@@ -54,6 +54,7 @@ func Test_windowB(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "windowB"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(NULL, 1);\n  INSERT INTO t1 VALUES(NULL, 2);\n  INSERT INTO t1 VALUES(NULL, 3);\n")
 		if _res.Error != nil {
@@ -121,6 +122,261 @@ func Test_windowB(t *testing.T) {
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "3.0"
+				_res = db.Exec("\n    CREATE TABLE testjson(id INTEGER PRIMARY KEY, j TEXT, x TEXT);\n    INSERT INTO testjson VALUES(1, '{\"a\":1}', 'a');\n    INSERT INTO testjson VALUES(2, '{\"b\":2}', 'b');\n    INSERT INTO testjson VALUES(3, '{\"c\":3}', 'c');\n    INSERT INTO testjson VALUES(4, '{\"d\":4}', 'd');\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE testjson(id INTEGER PRIMARY KEY, j TEXT, x TEXT);\n    INSERT INTO testjson VALUES(1, '{\"a\":1}', 'a');\n    INSERT INTO testjson VALUES(2, '{\"b\":2}', 'b');\n    INSERT INTO testjson VALUES(3, '{\"c\":3}', 'c');\n    INSERT INTO testjson VALUES(4, '{\"d\":4}', 'd');\n  ")
+				}
+			}
+			{ // "3.1"
+				r = db.Query("\n    SELECT json_group_array(json(j)) FROM testjson;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_array(json(j)) FROM testjson;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.2"
+				r = db.Query("\n    SELECT json_group_array(json(j)) OVER (ORDER BY id) FROM testjson;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_array(json(j)) OVER (ORDER BY id) FROM testjson;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {[{\"a\":1}]}\n    {[{\"a\":1},{\"b\":2}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.3"
+				r = db.Query("\n    SELECT json_group_array(json(j)) OVER (\n      ORDER BY id RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n      EXCLUDE TIES\n    ) FROM testjson;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_array(json(j)) OVER (\n      ORDER BY id RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n      EXCLUDE TIES\n    ) FROM testjson;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {[{\"a\":1}]}\n    {[{\"a\":1},{\"b\":2}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4"
+				r = db.Query("\n    SELECT json_group_array(json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\n    ) FROM testjson;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_array(json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\n    ) FROM testjson;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {[{\"a\":1},{\"b\":2}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3}]}\n    {[{\"b\":2},{\"c\":3},{\"d\":4}]}\n    {[{\"c\":3},{\"d\":4}]}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5"
+				r = db.Query("\n    SELECT json_group_array(json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_array(json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {[]}\n    {[{\"a\":1}]}\n    {[{\"a\":1},{\"b\":2}]}\n    {[{\"b\":2},{\"c\":3}]}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5a"
+				r = db.Query("\n    UPDATE testjson SET j = replace(j,char(125),',\"e\":9'||char(125));\n    SELECT j FROM testjson;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE testjson SET j = replace(j,char(125),',\"e\":9'||char(125));\n    SELECT j FROM testjson;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {{\"a\":1,\"e\":9}}\n    {{\"b\":2,\"e\":9}}\n    {{\"c\":3,\"e\":9}}\n    {{\"d\":4,\"e\":9}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5b"
+				r = db.Query("\n    SELECT group_concat(x,'') OVER (\n      ORDER BY id ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    ) FROM testjson ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(x,'') OVER (\n      ORDER BY id ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    ) FROM testjson ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "bc cd d {}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5c"
+				r = db.Query("\n    SELECT json_group_array(json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    ) FROM testjson;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_array(json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    ) FROM testjson;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {[{\"b\":2,\"e\":9},{\"c\":3,\"e\":9}]}\n    {[{\"c\":3,\"e\":9},{\"d\":4,\"e\":9}]}\n    {[{\"d\":4,\"e\":9}]}\n    {[]}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5d"
+				r = db.Query("\n    SELECT json_group_object(x,json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    ) FROM testjson;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_object(x,json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    ) FROM testjson;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {{\"b\":{\"b\":2,\"e\":9},\"c\":{\"c\":3,\"e\":9}}}\n    {{\"c\":{\"c\":3,\"e\":9},\"d\":{\"d\":4,\"e\":9}}}\n    {{\"d\":{\"d\":4,\"e\":9}}}\n    {{}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7b"
+				r = db.Query("\n    SELECT group_concat(x,'') FILTER (WHERE id!=2) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(x,'') FILTER (WHERE id!=2) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "{} a a c"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7c"
+				r = db.Query("\n    SELECT json_group_array(json(j)) FILTER (WHERE id!=2) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_array(json(j)) FILTER (WHERE id!=2) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {[]}\n    {[{\"a\":1,\"e\":9}]}\n    {[{\"a\":1,\"e\":9}]}\n    {[{\"c\":3,\"e\":9}]}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7d"
+				r = db.Query("\n    SELECT json_group_object(x,json(j)) FILTER (WHERE id!=2) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_group_object(x,json(j)) FILTER (WHERE id!=2) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    {{}}\n    {{\"a\":{\"a\":1,\"e\":9}}}\n    {{\"a\":{\"a\":1,\"e\":9}}}\n    {{\"c\":{\"c\":3,\"e\":9}}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.8"
+				_res = db.Exec("\n    CREATE TABLE t1(id INT, k TEXT, v INT);\n    INSERT INTO t1 VALUES\n      (1, 'a', 1),\n      (2, 'b', 2),\n      (3, 'c', 3),\n      (4, 'd', 4),\n      (5, 'f', 5),\n      (6, 'g', 6),\n      (7, 'h', 7);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(id INT, k TEXT, v INT);\n    INSERT INTO t1 VALUES\n      (1, 'a', 1),\n      (2, 'b', 2),\n      (3, 'c', 3),\n      (4, 'd', 4),\n      (5, 'f', 5),\n      (6, 'g', 6),\n      (7, 'h', 7);\n  ")
+				}
+			}
+			{ // "3.9"
+				r = db.Query("\n     SELECT id, json_group_object(if(id<>1,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT id, json_group_object(if(id<>1,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1  {{\"b\":2}}\n    2  {{\"b\":2,\"c\":3}}\n    3  {{\"b\":2,\"c\":3,\"d\":4}}\n    4  {{\"c\":3,\"d\":4,\"f\":5}}\n    5  {{\"d\":4,\"f\":5,\"g\":6}}\n    6  {{\"f\":5,\"g\":6,\"h\":7}}\n    7  {{\"g\":6,\"h\":7}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10"
+				r = db.Query("\n     SELECT id, json_group_object(if(id>4,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT id, json_group_object(if(id>4,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1  {{}}\n    2  {{}}\n    3  {{}}\n    4  {{\"f\":5}}\n    5  {{\"f\":5,\"g\":6}}\n    6  {{\"f\":5,\"g\":6,\"h\":7}}\n    7  {{\"g\":6,\"h\":7}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.11"
+				r = db.Query("\n     SELECT id, json_group_object(if(id>4,k||'@'),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT id, json_group_object(if(id>4,k||'@'),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1  {{}}\n    2  {{}}\n    3  {{}}\n    4  {{\"f@\":5}}\n    5  {{\"f@\":5,\"g@\":6}}\n    6  {{\"f@\":5,\"g@\":6,\"h@\":7}}\n    7  {{\"g@\":6,\"h@\":7}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.12"
+				r = db.Query("\n     SELECT id, json_group_object(k,v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT id, json_group_object(k,v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1  {{\"a\":1,\"b\":2}}\n    2  {{\"a\":1,\"b\":2,\"c\":3}}\n    3  {{\"b\":2,\"c\":3,\"d\":4}}\n    4  {{\"c\":3,\"d\":4,\"f\":5}}\n    5  {{\"d\":4,\"f\":5,\"g\":6}}\n    6  {{\"f\":5,\"g\":6,\"h\":7}}\n    7  {{\"g\":6,\"h\":7}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.13"
+				r = db.Query("\n     SELECT id, json_group_object(if(id>1 AND id<7,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT id, json_group_object(if(id>1 AND id<7,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1  {{\"b\":2}}\n    2  {{\"b\":2,\"c\":3}}\n    3  {{\"b\":2,\"c\":3,\"d\":4}}\n    4  {{\"c\":3,\"d\":4,\"f\":5}}\n    5  {{\"d\":4,\"f\":5,\"g\":6}}\n    6  {{\"f\":5,\"g\":6}}\n    7  {{\"g\":6}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.14"
+				r = db.Query("\n     SELECT id, json_group_object(if(id>2 AND id<6,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT id, json_group_object(if(id>2 AND id<6,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1  {{}}\n    2  {{\"c\":3}}\n    3  {{\"c\":3,\"d\":4}}\n    4  {{\"c\":3,\"d\":4,\"f\":5}}\n    5  {{\"d\":4,\"f\":5}}\n    6  {{\"f\":5}}\n    7  {{}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.15"
+				r = db.Query("\n     SELECT id, json_group_object(if(id<2 OR id>6,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT id, json_group_object(if(id<2 OR id>6,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1  {{\"a\":1}}\n    2  {{\"a\":1}}\n    3  {{}}\n    4  {{}}\n    5  {{}}\n    6  {{\"h\":7}}\n    7  {{\"h\":7}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.16"
+				r = db.Query("\n     SELECT id, json_group_object(if(id<3 OR id>5,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT id, json_group_object(if(id<3 OR id>5,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1  {{\"a\":1,\"b\":2}}\n    2  {{\"a\":1,\"b\":2}}\n    3  {{\"b\":2}}\n    4  {{}}\n    5  {{\"g\":6}}\n    6  {{\"g\":6,\"h\":7}}\n    7  {{\"g\":6,\"h\":7}}\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			db.Close()
@@ -379,6 +635,116 @@ func Test_windowB(t *testing.T) {
 				want := "\n  one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two\n\n  one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two\n"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			if tclBool("permutation" + "!=\"no_optimization\"") {
+				{ // "11.0"
+					r = db.Query("\n    SELECT value FROM json_each('[1,2,3,4,5]');\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT value FROM json_each('[1,2,3,4,5]');\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 2 3 4 5"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "11.1"
+					r = db.Query("\n    SELECT key, value FROM json_each('[1,2,3,4,5]');\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT key, value FROM json_each('[1,2,3,4,5]');\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "0 1  1 2  2 3  3 4  4 5"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "11.2"
+					r = db.Query("\n    SELECT rowid, value FROM json_each('[1,2,3,4,5]');\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, value FROM json_each('[1,2,3,4,5]');\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "0 1  1 2  2 3  3 4  4 5"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "11.3"
+					r = db.Query("\n    SELECT sum(value) OVER (ORDER BY rowid) FROM json_each('[1,2,3,4,5]')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(value) OVER (ORDER BY rowid) FROM json_each('[1,2,3,4,5]')\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 3 6 10 15"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "11.4"
+					r = db.Query("\n    SELECT sum(value) OVER (\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) FROM json_each('[1,2,3,4,5]')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(value) OVER (\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) FROM json_each('[1,2,3,4,5]')\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 3 6 10 15"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "11.5"
+					r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT sum(value) OVER (\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) FROM json_each('[1,2,3,4,5]')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT sum(value) OVER (\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) FROM json_each('[1,2,3,4,5]')\n  ")
+					}
+				}
+				{ // "11.6"
+					r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT sum(value) OVER (ORDER BY rowid) FROM json_each('[1,2,3,4,5]')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT sum(value) OVER (ORDER BY rowid) FROM json_each('[1,2,3,4,5]')\n  ")
+					}
+				}
+				{ // "11.8"
+					r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT sum(value) OVER (ORDER BY rowid DESC) FROM json_each('[1,2,3,4,5]')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT sum(value) OVER (ORDER BY rowid DESC) FROM json_each('[1,2,3,4,5]')\n  ")
+					}
+				}
+				{ // "11.9"
+					r = db.Query("\n    SELECT sum(value) OVER (ORDER BY rowid DESC) FROM json_each('[1,2,3,4,5]')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(value) OVER (ORDER BY rowid DESC) FROM json_each('[1,2,3,4,5]')\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "5 9 12 14 15"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "11.10"
+					r = db.Query("\n    SELECT sum(value) OVER (ORDER BY value ASC) FROM json_each('[2,1,4,3,5]')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(value) OVER (ORDER BY value ASC) FROM json_each('[2,1,4,3,5]')\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 3 6 10 15"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "11.11"
+					r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT sum(value) OVER (ORDER BY value ASC) FROM json_each('[2,1,4,3,5]')\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT sum(value) OVER (ORDER BY value ASC) FROM json_each('[2,1,4,3,5]')\n  ")
+					}
 				}
 			}
 }

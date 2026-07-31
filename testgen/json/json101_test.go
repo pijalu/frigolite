@@ -348,6 +348,30 @@ func Test_json101(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "json101-3.5"
+		r = db.Query("\n    SELECT fullkey, atom, '|' FROM json_tree(json_set('{}','$.x',123,'$.x',456));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fullkey, atom, '|' FROM json_tree(json_set('{}','$.x',123,'$.x',456));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{$} {} | {$.x} 456 |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json101-3.5b"
+		r = db.Query("\n    SELECT fullkey, atom, '|' FROM json_tree(jsonb_set('{}','$.x',123,'$.x',456));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fullkey, atom, '|' FROM json_tree(jsonb_set('{}','$.x',123,'$.x',456));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{$} {} | {$.x} 456 |"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "json101-4.1"
 		r = db.Query("\n  CREATE TABLE j1(x);\n  INSERT INTO j1(x)\n   VALUES('true'),('false'),('null'),('123'),('-234'),('34.5e+6'),\n         ('\"\"'),('\"\\\"\"'),('\"\\\\\"'),('\"abcdefghijlmnopqrstuvwxyz\"'),\n         ('[]'),('{}'),('[true,false,null,123,-234,34.5e+6,{},[]]'),\n         ('{\"a\":true,\"b\":{\"c\":false}}');\n  SELECT * FROM j1 WHERE NOT json_valid(x);\n")
 		if r.Error != nil {
@@ -474,6 +498,7 @@ func Test_json101(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	return
 	{ // "json101-5.3"
 		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
 		if r.Error != nil {

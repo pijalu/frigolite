@@ -51,24 +51,8 @@ func Test_backup_malloc(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// do_malloc_test backup_malloc-1 -tclprep {
-  execsql {
-    PRAGMA cache_size = 10;
-    BEGIN...} -tclbody {
-
-  # Create a backup object.
-  #
-  set rc [catch ...} -cleanup {
-  catch { B finish }
-  catch { db2 close }
-} (unsupported command, not transpiled)
-	// do_malloc_test backup_malloc-2 -tclprep {
-  sqlite3 db2 test2.db
-} -tclbody {
-  set rc [catch {sqlite3_backup B db2 temp db mai...} -cleanup {
-  catch { B finish }
-  db2 close
-} (unsupported command, not transpiled)
+	// do_malloc_test backup_malloc-1 -tclprep {\n  execsql {\n    PRAGMA cache_size = 10;\n    BE...} -tclbody {\n\n  # Create a backup object.\n  #\n  set rc [ca...} -cleanup {\n  catch { B finish }\n  catch { db2 close }\n} (unsupported command, not transpiled)
+	// do_malloc_test backup_malloc-2 -tclprep {\n  sqlite3 db2 test2.db\n} -tclbody {\n  set rc [catch {sqlite3_backup B db2 temp db ma...} -cleanup {\n  catch { B finish }\n  db2 close\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -78,14 +62,5 @@ func Test_backup_malloc(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 16384;\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  COMMIT;\n")
 		}
 	}
-	// do_faultsim_test 3 -faults oom* -prep {
-  catch { db close }
-  catch { db2 close }
-
-  for...} -body {
-
-  set rc [B step 50]
-  if {$rc == "SQLITE_NOMEM"...} -test {
-  faultsim_test_result {0 {}} 
-  faultsim_integri...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults oom* -prep {\n  catch { db close }\n  catch { db2 close }\n\n ...} -body {\n\n  set rc [B step 50]\n  if {$rc == "SQLITE_NOM...} -test {\n  faultsim_test_result {0 {}} \n  faultsim_integ...} (unsupported command, not transpiled)
 }

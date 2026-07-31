@@ -55,43 +55,12 @@ func Test_rowvaluefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE xyz(one, two, thr, fou);\n  INSERT INTO xyz VALUES('A', 'A', 'A',  1);\n  INSERT INTO xyz VALUES('B', 'B', 'B',  2);\n  INSERT INTO xyz VALUES('C', 'C', 'C',  3);\n  INSERT INTO xyz VALUES('D', 'D', 'D',  4);\n\n  CREATE UNIQUE INDEX xyz_one_two ON xyz(one, two);\n")
 		}
 	}
-	// do_faultsim_test 1 -faults oom* -body {
-  execsql { SELECT fou FROM xyz WHERE (one, two, ...} -test {
-  faultsim_test_result {0 2} 
-} (unsupported command, not transpiled)
-	// do_faultsim_test 2 -faults oom* -body {
-  execsql { SELECT fou FROM xyz WHERE (two, thr) ...} -test {
-  faultsim_test_result {0 3} 
-} (unsupported command, not transpiled)
-	// do_faultsim_test 3 -faults oom* -body {
-  execsql { SELECT fou FROM xyz WHERE (one, two, ...} -test {
-  faultsim_test_result {0 {3 4}} 
-} (unsupported command, not transpiled)
-	// do_faultsim_test 4 -faults oom* -body {
-  execsql { SELECT fou FROM xyz WHERE (one, two) ...} -test {
-  faultsim_test_result {0 {1 2 3 4}} 
-} (unsupported command, not transpiled)
-	// do_faultsim_test 5 -faults oom* -body {
-  execsql { 
-    SELECT fou FROM xyz 
-    WHERE (...} -test {
-  faultsim_test_result {0 {1 2 3 4}} 
-} (unsupported command, not transpiled)
-	// do_faultsim_test 6 -faults oom* -body {
-  execsql { 
-    SELECT fou FROM xyz 
-    WHERE (...} -test {
-  faultsim_test_result {0 {2 3}} 
-} (unsupported command, not transpiled)
-	// do_faultsim_test 7 -faults oom* -body {
-  execsql { 
-    SELECT fou FROM xyz 
-    WHERE (...} -test {
-  faultsim_test_result {0 1}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 8 -faults oom* -body {
-  execsql { 
-    SELECT fou FROM xyz 
-    WHERE (...} -test {
-  faultsim_test_result {1 {IN(...) element has 3 ...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom* -body {\n  execsql { SELECT fou FROM xyz WHERE (one, two,...} -test {\n  faultsim_test_result {0 2} \n} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults oom* -body {\n  execsql { SELECT fou FROM xyz WHERE (two, thr)...} -test {\n  faultsim_test_result {0 3} \n} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults oom* -body {\n  execsql { SELECT fou FROM xyz WHERE (one, two,...} -test {\n  faultsim_test_result {0 {3 4}} \n} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults oom* -body {\n  execsql { SELECT fou FROM xyz WHERE (one, two)...} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n} (unsupported command, not transpiled)
+	// do_faultsim_test 5 -faults oom* -body {\n  execsql { \n    SELECT fou FROM xyz \n    WHER...} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n} (unsupported command, not transpiled)
+	// do_faultsim_test 6 -faults oom* -body {\n  execsql { \n    SELECT fou FROM xyz \n    WHER...} -test {\n  faultsim_test_result {0 {2 3}} \n} (unsupported command, not transpiled)
+	// do_faultsim_test 7 -faults oom* -body {\n  execsql { \n    SELECT fou FROM xyz \n    WHER...} -test {\n  faultsim_test_result {0 1}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 8 -faults oom* -body {\n  execsql { \n    SELECT fou FROM xyz \n    WHER...} -test {\n  faultsim_test_result {1 {IN(...) element has 3...} (unsupported command, not transpiled)
 }

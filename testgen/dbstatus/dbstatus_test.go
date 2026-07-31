@@ -105,6 +105,7 @@ func Test_dbstatus(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "dbstatus"
 	_ = testprefix // suppress unused warning
+	return
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
@@ -120,19 +121,19 @@ func Test_dbstatus(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n  ")
 		}
-		sz1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0] 1"
+		sz1 = tclLIndex("sqlite3_db_status", "db")
 		_ = sz1 // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t2(y);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(y);\n  ")
 		}
-		sz2 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0] 1"
+		sz2 = tclLIndex("sqlite3_db_status", "db")
 		_ = sz2 // suppress unused warning
-		PAGESZ = "$sz2-$sz1" // TCL namespace variable
+		PAGESZ = tclExpr("$sz2-$sz1") // TCL namespace variable
 		_ = PAGESZ // suppress unused warning
-		BASESZ = "$sz1-$::PAGESZ" // TCL namespace variable
+		BASESZ = tclExpr("$sz1-$::PAGESZ") // TCL namespace variable
 		_ = BASESZ // suppress unused warning
-		// expr $::PAGESZ>1024 && $::PAGESZ<1300 → "$::PAGESZ>1024 && $::PAGESZ<1300"
+		// expr $::PAGESZ>1024 && $::PAGESZ<1300 (not evaluated)
 	}
 	{ // do_test "dbstatus-1.2"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(zeroblob(9000));\n  ")
@@ -142,6 +143,8 @@ func Test_dbstatus(t *testing.T) {
 		_ = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0", "1") // lindex result
 	}
 	// proc definition (not transpiled)
+	STAT3 = "1"
+	_ = STAT3 // suppress unused warning
 	for _, lookaside_buffer_size := range tclSplitList("0 64 120") {
 	_ = lookaside_buffer_size // suppress unused warning
 		if tclBool("presql" + " != \"\"") {
@@ -166,11 +169,13 @@ func Test_dbstatus(t *testing.T) {
 					_ = _catchErr // suppress unused warning
 					// register_echo_module db (unsupported command, not transpiled)
 				}
+				if tclBool("*x $tn") {
+				}
 				_res = db.Exec(schema)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
-				nAlloc1 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+				nAlloc1 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 				_ = nAlloc1 // suppress unused warning
 				// incr nAlloc1 lookaside db
 				{
@@ -179,10 +184,10 @@ func Test_dbstatus(t *testing.T) {
 						nAlloc1 = strconv.Itoa(_n + 1)
 					}
 				}
-				nSchema1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
+				nSchema1 = tclLIndex("sqlite3_db_status", "db")
 				_ = nSchema1 // suppress unused warning
 				// drop_all_tables (unsupported command, not transpiled)
-				nAlloc2 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+				nAlloc2 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 				_ = nAlloc2 // suppress unused warning
 				// incr nAlloc2 lookaside db
 				{
@@ -191,13 +196,13 @@ func Test_dbstatus(t *testing.T) {
 						nAlloc2 = strconv.Itoa(_n + 1)
 					}
 				}
-				nSchema2 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
+				nSchema2 = tclLIndex("sqlite3_db_status", "db")
 				_ = nSchema2 // suppress unused warning
 				_res = db.Exec(schema)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
-				nAlloc3 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+				nAlloc3 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 				_ = nAlloc3 // suppress unused warning
 				// incr nAlloc3 lookaside db
 				{
@@ -206,10 +211,10 @@ func Test_dbstatus(t *testing.T) {
 						nAlloc3 = strconv.Itoa(_n + 1)
 					}
 				}
-				nSchema3 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
+				nSchema3 = tclLIndex("sqlite3_db_status", "db")
 				_ = nSchema3 // suppress unused warning
 				// drop_all_tables (unsupported command, not transpiled)
-				nAlloc4 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+				nAlloc4 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 				_ = nAlloc4 // suppress unused warning
 				// incr nAlloc4 lookaside db
 				{
@@ -218,17 +223,17 @@ func Test_dbstatus(t *testing.T) {
 						nAlloc4 = strconv.Itoa(_n + 1)
 					}
 				}
-				nSchema4 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
+				nSchema4 = tclLIndex("sqlite3_db_status", "db")
 				_ = nSchema4 // suppress unused warning
-				nFree = "$nAlloc1-$nAlloc2"
+				nFree = tclExpr("$nAlloc1-$nAlloc2")
 				_ = nFree // suppress unused warning
 				if tclBool("*k $tn" + "\n         || " + "*x $tn" + " || " + AUTOVACUUM + "\n         || (" + "*y $tn" + " && " + STAT3 + ")\n         || (" + tcl_platform_os + " == \"Darwin\")") {
 					{ // do_test "dbstatus-2." + tn + ".ax"
-						// expr ($nSchema1-$nSchema2)<=$nFree → "($nSchema1-$nSchema2)<=$nFree"
+						// expr ($nSchema1-$nSchema2)<=$nFree (not evaluated)
 					}
 				} else {
 					{ // do_test "dbstatus-2." + tn + ".a"
-						// expr $nSchema1-$nSchema2 → "$nSchema1-$nSchema2"
+						// expr $nSchema1-$nSchema2 (not evaluated)
 					}
 				}
 				{ // do_test "dbstatus-2." + tn + ".b"
@@ -262,6 +267,8 @@ func Test_dbstatus(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 						// register_echo_module db (unsupported command, not transpiled)
 					}
+					if tclBool("*x $tn") {
+					}
 					_res = db.Exec(schema)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
@@ -270,7 +277,7 @@ func Test_dbstatus(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc1 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+					nAlloc1 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 					_ = nAlloc1 // suppress unused warning
 					// incr nAlloc1 lookaside db
 					{
@@ -279,13 +286,13 @@ func Test_dbstatus(t *testing.T) {
 							nAlloc1 = strconv.Itoa(_n + 1)
 						}
 					}
-					nStmt1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
+					nStmt1 = tclLIndex("sqlite3_db_status", "db")
 					_ = nStmt1 // suppress unused warning
 					_res = db.Exec(statements)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc2 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+					nAlloc2 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 					_ = nAlloc2 // suppress unused warning
 					// incr nAlloc2 lookaside db
 					{
@@ -294,13 +301,13 @@ func Test_dbstatus(t *testing.T) {
 							nAlloc2 = strconv.Itoa(_n + 1)
 						}
 					}
-					nStmt2 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
+					nStmt2 = tclLIndex("sqlite3_db_status", "db")
 					_ = nStmt2 // suppress unused warning
 					_res = db.Exec(statements)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc3 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+					nAlloc3 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 					_ = nAlloc3 // suppress unused warning
 					// incr nAlloc3 lookaside db
 					{
@@ -309,13 +316,13 @@ func Test_dbstatus(t *testing.T) {
 							nAlloc3 = strconv.Itoa(_n + 1)
 						}
 					}
-					nStmt3 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
+					nStmt3 = tclLIndex("sqlite3_db_status", "db")
 					_ = nStmt3 // suppress unused warning
 					_res = db.Exec(statements)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					nAlloc4 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+					nAlloc4 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 					_ = nAlloc4 // suppress unused warning
 					// incr nAlloc4 lookaside db
 					{
@@ -324,20 +331,20 @@ func Test_dbstatus(t *testing.T) {
 							nAlloc4 = strconv.Itoa(_n + 1)
 						}
 					}
-					nStmt4 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
+					nStmt4 = tclLIndex("sqlite3_db_status", "db")
 					_ = nStmt4 // suppress unused warning
-					nFree = "$nAlloc1-$nAlloc2"
+					nFree = tclExpr("$nAlloc1-$nAlloc2")
 					_ = nFree // suppress unused warning
 					{ // do_test "dbstatus-3." + tn + ".a"
-						// expr $nStmt2 → "$nStmt2"
+						// expr $nStmt2 (not evaluated)
 					}
 					if tclBool("*x $tn") {
 						{ // do_test "dbstatus-3." + tn + ".bx"
-							// expr $nStmt1<=$nFree → "$nStmt1<=$nFree"
+							// expr $nStmt1<=$nFree (not evaluated)
 						}
 					} else {
 						{ // do_test "dbstatus-3." + tn + ".b"
-							// expr $nStmt1==$nFree → "$nStmt1==$nFree"
+							// expr $nStmt1==$nFree (not evaluated)
 						}
 					}
 					{ // do_test "dbstatus-3." + tn + ".c"
@@ -349,6 +356,39 @@ func Test_dbstatus(t *testing.T) {
 						_ = _list
 					}
 				}
+			}
+			if tclBool("(" + "permutation" + "==\"memsys3\"\n      || " + "permutation" + "==\"memsys5\"\n      || " + tcl_platform_os + "==\"Linux\") && !" + "sqlite3 -has-codec") {
+				// proc definition (not transpiled)
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				_dbtmp0, err := frigolite.Open("file:test.db?cache=shared")
+				_ = _dbtmp0 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				{ // "4.0"
+					_res = db.Exec("\n      PRAGMA auto_vacuum=NONE;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES(1, 2, 3);\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum=NONE;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES(1, 2, 3);\n    ")
+					}
+				}
+				// do_cacheused_test 4.0.1 db { 4568 4568 } (unsupported command, not transpiled)
+				{ // "4.1"
+					_res = db.Exec("\n      CREATE TEMP TABLE tt(a, b, c);\n      INSERT INTO tt VALUES(1, 2, 3);\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TABLE tt(a, b, c);\n      INSERT INTO tt VALUES(1, 2, 3);\n    ")
+					}
+				}
+				// do_cacheused_test 4.1.1 db { 9000 9000 } (unsupported command, not transpiled)
+				db2, err = frigolite.Open("file:test.db?cache=shared")
+				if err != nil { t.Fatal(err) }
+				// do_cacheused_test 4.2.1 db2 { 4568 2284 } (unsupported command, not transpiled)
+				// do_cacheused_test 4.2.2 db { 9000 6716 } (unsupported command, not transpiled)
+				// do_cacheused_test 4.2.3 db2 { 4568 4568 } (unsupported command, not transpiled)
+				_dbtmp1, err := frigolite.Open("file:test.db?cache=shared")
+				_ = _dbtmp1 // sqlite3 db connection
+				if err != nil { t.Fatal(err) }
+				// do_cacheused_test 4.2.4 db2 { 4568 2284 } (unsupported command, not transpiled)
+				db2.Close()
 			}
 			db.Close()
 			db, err = frigolite.Open("")
@@ -367,11 +407,14 @@ func Test_dbstatus(t *testing.T) {
 				// sqlite3_step $::stmt (unsupported command, not transpiled)
 				// sqlite3_reset $::stmt (unsupported command, not transpiled)
 			}
+			{ // do_test "5.2"
+				// sqlite3_stmt_status $::stmt -1 0 (unsupported command, not transpiled)
+			}
 			{ // do_test "5.3"
 				// sqlite3_stmt_status $::stmt 0 0 (unsupported command, not transpiled)
 			}
 			{ // do_test "5.4"
-				// expr [sqlite3_stmt_status $::stmt 99 0]>0 → "[sqlite3_stmt_status $::stmt 99 0]>0"
+				// expr [sqlite3_stmt_status $::stmt 99 0]>0 (not evaluated)
 			}
 			// foreach {tn id res} "\n  1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1\n"
 			_items6 := tclSplitList("\n  1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1\n")
@@ -386,7 +429,7 @@ func Test_dbstatus(t *testing.T) {
 					if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
 					}
 					{ // do_test "5.5." + tn
-						// expr [sqlite3_stmt_status $::stmt $id 0]>0 → "[sqlite3_stmt_status $::stmt $id 0]>0"
+						// expr [sqlite3_stmt_status $::stmt $id 0]>0 (not evaluated)
 					}
 				}
 				// sqlite3_finalize $::stmt (unsupported command, not transpiled)

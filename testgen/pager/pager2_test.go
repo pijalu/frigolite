@@ -3,6 +3,7 @@ package pager
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -190,4 +191,22 @@ func Test_pager2(t *testing.T) {
 		}
 		// file size test.db
 	}
+	{ // do_test "pager2-3.1"
+		os.Remove("test.db")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_uri 1 (unsupported command, not transpiled)
+		db1, err = frigolite.Open("file:test.db?mode=memory&cache=shared")
+		if err != nil { t.Fatal(err) }
+		db2, err = frigolite.Open("file:test.db?mode=memory&cache=shared")
+		if err != nil { t.Fatal(err) }
+		db3, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		db1.Exec(" CREATE TABLE t1(a, b) ")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+		db2.Exec(" INSERT INTO t1 VALUES(1, 2) ")
+		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+		_list := tclList([]string{"0", msg})
+		_ = _list
+	}
+	db1.Close()
 }

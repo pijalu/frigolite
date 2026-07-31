@@ -214,6 +214,7 @@ func Test_wal2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal2"
 	_ = testprefix // suppress unused warning
+	return
 	sqlite_sync_count = "0"
 	_ = sqlite_sync_count // suppress unused warning
 	// proc definition (not transpiled)
@@ -989,7 +990,7 @@ func Test_wal2(t *testing.T) {
 						_ = I // suppress unused warning
 						for _, p := range tclSplitList(L) {
 						_ = p // suppress unused warning
-							I = tclListAppend(I, "$p ? $p : 400")
+							I = tclListAppend(I, tclExpr("$p ? $p : 400"))
 						}
 						blob += "binary format t* $I"
 						// tvfs shm $::filename $blob (unsupported command, not transpiled)
@@ -1153,6 +1154,8 @@ func Test_wal2(t *testing.T) {
 								reslist := _items20[_idx20+2]
 								_ = reslist // suppress unused warning
 								_ = _idx20
+									if tclBool(strings.TrimSpace(sql) + "==\"\"") {
+									}
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
 									r = db.Query("PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;")
 									if r.Error != nil {
@@ -1259,9 +1262,9 @@ func Test_wal2(t *testing.T) {
 										_ = _dbtmp22 // sqlite3 db connection
 										if err != nil { t.Fatal(err) }
 										{ // "15." + tn + ".1"
-											r = db.Query("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = " + "lindex $settings 0" + ";\n    PRAGMA fullfsync = " + "lindex $settings 1" + ";\n    PRAGMA synchronous = " + "lindex $settings 2" + ";\n  ")
+											r = db.Query("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = " + tclLIndex(settings, "0") + ";\n    PRAGMA fullfsync = " + tclLIndex(settings, "1") + ";\n    PRAGMA synchronous = " + tclLIndex(settings, "2") + ";\n  ")
 											if r.Error != nil {
-												t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = " + "lindex $settings 0" + ";\n    PRAGMA fullfsync = " + "lindex $settings 1" + ";\n    PRAGMA synchronous = " + "lindex $settings 2" + ";\n  ")
+												t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = " + tclLIndex(settings, "0") + ";\n    PRAGMA fullfsync = " + tclLIndex(settings, "1") + ";\n    PRAGMA synchronous = " + tclLIndex(settings, "2") + ";\n  ")
 												return
 											}
 											got := flatten(r)

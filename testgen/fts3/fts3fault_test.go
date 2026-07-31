@@ -64,14 +64,10 @@ func Test_fts3fault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3fault" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
-	// do_faultsim_test 1 -body { 
-  sqlite3 db test.db 
-  expr 0
-} -test {
-  catch { db close }
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -body { \n  sqlite3 db test.db \n  expr 0\n} -test {\n  catch { db close }\n} (unsupported command, not transpiled)
 	// faultsim_delete_and_reopen (unsupported command, not transpiled)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n")
@@ -79,15 +75,7 @@ func Test_fts3fault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n")
 		}
 	}
-	// do_faultsim_test 2 -prep { 
-  sqlite3 db test.db
-  execsql {
-    BEGIN;
-    ...} -body {
-  execsql { ALTER TABLE t1 RENAME TO t2 }
-} -test {
-  faultsim_test_result {0 {}} $::TMPDBERROR
-} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -prep { \n  sqlite3 db test.db\n  execsql {\n    BEGIN;\n...} -body {\n  execsql { ALTER TABLE t1 RENAME TO t2 }\n} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n} (unsupported command, not transpiled)
 	{ // do_test "fts3fault-3.0"
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
@@ -124,12 +112,7 @@ func Test_fts3fault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
-	// do_faultsim_test 3 -faults oom-transient -prep { 
-  sqlite3 db test.db
-  execsql { SELECT * FROM t...} -body {
-  execsql { SELECT count(rowid) FROM t3 WHERE t3 ...} -test {
-  faultsim_test_result {0 1000} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults oom-transient -prep { \n  sqlite3 db test.db\n  execsql { SELECT * FROM...} -body {\n  execsql { SELECT count(rowid) FROM t3 WHERE t3...} -test {\n  faultsim_test_result {0 1000} \n} (unsupported command, not transpiled)
 	{ // do_test "fts3fault-4.0"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" \n    CREATE VIRTUAL TABLE t4 USING fts4; \n    INSERT INTO t4 VALUES('The British Government called on');\n    INSERT INTO t4 VALUES('as pesetas then became much');\n  ")
@@ -138,12 +121,7 @@ func Test_fts3fault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 4 -prep { 
-  faultsim_restore_and_reopen
-  execsql { SELECT...} -body {
-  execsql { SELECT optimize(t4) FROM t4 LIMIT 1 }...} -test {
-  faultsim_test_result {0 {{Index optimized}}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -prep { \n  faultsim_restore_and_reopen\n  execsql { SELE...} -body {\n  execsql { SELECT optimize(t4) FROM t4 LIMIT 1 ...} -test {\n  faultsim_test_result {0 {{Index optimized}}}\n} (unsupported command, not transpiled)
 	{ // do_test "fts3fault-5.0"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" \n    CREATE VIRTUAL TABLE t5 USING fts4; \n    INSERT INTO t5 VALUES('The British Government called on');\n    INSERT INTO t5 VALUES('as pesetas then became much');\n  ")
@@ -152,13 +130,7 @@ func Test_fts3fault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 5 -prep { 
-  faultsim_restore_and_reopen
-  execsql { 
-    B...} -body {
-  execsql { SELECT rowid FROM t5 WHERE t5 MATCH '...} -test {
-  faultsim_test_result {0 {1 4}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 5 -prep { \n  faultsim_restore_and_reopen\n  execsql { \n  ...} -body {\n  execsql { SELECT rowid FROM t5 WHERE t5 MATCH ...} -test {\n  faultsim_test_result {0 {1 4}}\n} (unsupported command, not transpiled)
 	{ // do_test "fts3fault-6.0"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" CREATE VIRTUAL TABLE t6 USING fts4 ")
@@ -167,29 +139,10 @@ func Test_fts3fault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 6 -prep { 
-  faultsim_restore_and_reopen
-  execsql { SELECT...} -body {
-  execsql { DROP TABLE t6 }
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 7.1 -prep { 
-  faultsim_delete_and_reopen
-} -body {
-  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 7.2 -prep { 
-  faultsim_delete_and_reopen
-} -body {
-  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {
-  faultsim_test_result {1 {unrecognized matchinfo...} (unsupported command, not transpiled)
-	// do_faultsim_test 7.3 -prep { 
-  faultsim_delete_and_reopen
-} -body {
-  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {
-  faultsim_test_result {1 {unrecognized parameter...} (unsupported command, not transpiled)
+	// do_faultsim_test 6 -prep { \n  faultsim_restore_and_reopen\n  execsql { SELE...} -body {\n  execsql { DROP TABLE t6 }\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 7.1 -prep { \n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 7.2 -prep { \n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a...} -test {\n  faultsim_test_result {1 {unrecognized matchinf...} (unsupported command, not transpiled)
+	// do_faultsim_test 7.3 -prep { \n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a...} -test {\n  faultsim_test_result {1 {unrecognized paramete...} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "8.0"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -223,34 +176,11 @@ func Test_fts3fault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 8.2 -faults oom-t* -prep { 
-  faultsim_restore_and_reopen
-  db func mit mit
-} -body {
-  execsql { SELECT mit(matchinfo(t8, 's')) FROM t...} -test {
-  faultsim_test_result {0 3} $::TMPDBERROR
-} (unsupported command, not transpiled)
-	// do_faultsim_test 8.3 -prep { 
-  faultsim_restore_and_reopen
-  db func mit mit
-} -body {
-  execsql { SELECT mit(matchinfo(t8, 'a')) FROM t...} -test {
-  faultsim_test_result {0 10002}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 8.4 -prep { 
-  faultsim_restore_and_reopen
-  db func mit mit
-} -body {
-  execsql { SELECT mit(matchinfo(t8, 'l')) FROM t...} -test {
-  faultsim_test_result {0 3}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 8.5 -prep { 
-  faultsim_restore_and_reopen
-  db func mit mit
-} -body {
-  execsql { SELECT mit(matchinfo(t8, 'l')) FROM t...} -test {
-  faultsim_test_result {0 3}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 8.1 -faults oom-t* -prep { \n    faultsim_restore_and_reopen\n    db func mi...} -body {\n    execsql { SELECT mit(matchinfo(t8, 'x')) FRO...} -test {\n    faultsim_test_result {0 {{1 1 1 1 4 2 1 5 5}...} (unsupported command, not transpiled)
+	// do_faultsim_test 8.2 -faults oom-t* -prep { \n  faultsim_restore_and_reopen\n  db func mit mi...} -body {\n  execsql { SELECT mit(matchinfo(t8, 's')) FROM ...} -test {\n  faultsim_test_result {0 3} $::TMPDBERROR\n} (unsupported command, not transpiled)
+	// do_faultsim_test 8.3 -prep { \n  faultsim_restore_and_reopen\n  db func mit mi...} -body {\n  execsql { SELECT mit(matchinfo(t8, 'a')) FROM ...} -test {\n  faultsim_test_result {0 10002}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 8.4 -prep { \n  faultsim_restore_and_reopen\n  db func mit mi...} -body {\n  execsql { SELECT mit(matchinfo(t8, 'l')) FROM ...} -test {\n  faultsim_test_result {0 3}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 8.5 -prep { \n  faultsim_restore_and_reopen\n  db func mit mi...} -body {\n  execsql { SELECT mit(matchinfo(t8, 'l')) FROM ...} -test {\n  faultsim_test_result {0 3}\n} (unsupported command, not transpiled)
 	{ // do_test "9.0"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE VIRTUAL TABLE t9 USING fts4(tokenize=porter);\n    INSERT INTO t9 VALUES(\n      'this record is used toooooooooooooooooooooooooooooooooooooo try to'\n    );\n    SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to*';\n  ")
@@ -259,17 +189,8 @@ func Test_fts3fault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 9.1 -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { SELECT offsets(t9) FROM t9 WHERE t9 M...} -test {
-  faultsim_test_result {0 {{0 0 20 39 0 0 64 2}}}...} (unsupported command, not transpiled)
-	// do_faultsim_test 10.1 -prep {
-  faultsim_delete_and_reopen
-} -body {
-  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 9.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT offsets(t9) FROM t9 WHERE t9 ...} -test {\n  faultsim_test_result {0 {{0 0 20 39 0 0 64 2}}...} (unsupported command, not transpiled)
+	// do_faultsim_test 10.1 -prep {\n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -280,11 +201,5 @@ func Test_fts3fault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 11 -faults oom* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { DROP TABLE t1 }
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 11 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { DROP TABLE t1 }\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 }

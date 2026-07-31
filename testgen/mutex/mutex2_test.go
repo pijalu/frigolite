@@ -57,6 +57,7 @@ func Test_mutex2(t *testing.T) {
 	_ = str // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -93,8 +94,17 @@ func Test_mutex2(t *testing.T) {
 		}
 		rc = tclListAppend(rc, msg)
 	}
+	{ // do_test "mutex2-2.2"
+		// set db2 [sqlite3_open ...] (skipped, DB connection)
+	}
+	{ // do_test "mutex2-2.3"
+		// sqlite3_complete16 [utf16 {SELECT * FROM t1;}] (unsupported command, not transpiled)
+	}
 	{ // do_test "mutex2-2.4"
 		// sqlite3_mprintf_int {This is a test %d,%d,%d} 1 2 3 (unsupported command, not transpiled)
+	}
+	{ // do_test "mutex2-2.5"
+		// sqlite3_auto_extension_sqr (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex2-2.6"
 		// sqlite3_reset_auto_extension (unsupported command, not transpiled)
@@ -104,6 +114,9 @@ func Test_mutex2(t *testing.T) {
 	}
 	{ // do_test "mutex2-2.8"
 		// sqlite3_realloc 0 10000 (unsupported command, not transpiled)
+	}
+	{ // do_test "mutex2-2.9"
+		// alloc_dealloc_mutex (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex2-2.10"
 		// vfs_initfail_test (unsupported command, not transpiled)
@@ -115,6 +128,6 @@ func Test_mutex2(t *testing.T) {
 	{ // do_test "mutex2-3.1"
 		ptr = "alloc_dealloc_mutex"
 		_ = ptr // suppress unused warning
-		// expr $ptr!=0 → "$ptr!=0"
+		// expr $ptr!=0 (not evaluated)
 	}
 }

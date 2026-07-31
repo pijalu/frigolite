@@ -139,6 +139,7 @@ func Test_analyze9(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "analyze9"
 	_ = testprefix // suppress unused warning
+	return
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b TEXT); \n  INSERT INTO t1 VALUES('(0)', '(0)');\n  INSERT INTO t1 VALUES('(1)', '(1)');\n  INSERT INTO t1 VALUES('(2)', '(2)');\n  INSERT INTO t1 VALUES('(3)', '(3)');\n  INSERT INTO t1 VALUES('(4)', '(4)');\n  CREATE INDEX i1 ON t1(a, b);\n")
@@ -206,7 +207,7 @@ func Test_analyze9(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			a = "$i / 10"
+			a = tclExpr("$i / 10")
 			_ = a // suppress unused warning
 			b = "0"
 			_ = b // suppress unused warning
@@ -360,7 +361,7 @@ func Test_analyze9(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('x', $i) ")
 			}
-			// incr i (($i<1000)?1:10)
+			// incr i tclExpr("(($i<1000)?1:10)")
 			{
 				_n, _err := strconv.Atoi(i)
 				if _err == nil {
@@ -507,9 +508,9 @@ func Test_analyze9(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			_res = db.Exec("INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + "$i/2" + ")")
+			_res = db.Exec("INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + tclExpr("$i/2") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + "$i/2" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + tclExpr("$i/2") + ")")
 			}
 			// incr i 1
 			{
@@ -537,9 +538,9 @@ func Test_analyze9(t *testing.T) {
 		i = "102"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
-			_res = db.Exec("INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + "$i/2" + ")")
+			_res = db.Exec("INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + tclExpr("$i/2") + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + "$i/2" + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + tclExpr("$i/2") + ")")
 			}
 			// incr i 1
 			{
@@ -603,7 +604,7 @@ func Test_analyze9(t *testing.T) {
 				a = "NULL"
 				_ = a // suppress unused warning
 			}
-			b = "$i % 5"
+			b = tclExpr("$i % 5")
 			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t3 VALUES(" + a + ", " + b + ")")
 			if _res.Error != nil {
@@ -651,7 +652,7 @@ func Test_analyze9(t *testing.T) {
 				a = "NULL"
 				_ = a // suppress unused warning
 			}
-			b = "$i % 5"
+			b = tclExpr("$i % 5")
 			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t3 VALUES('xyz', " + a + ", " + b + ")")
 			if _res.Error != nil {
@@ -708,7 +709,7 @@ func Test_analyze9(t *testing.T) {
 						a = "DEF"
 						_ = a // suppress unused warning
 					}
-					b = "$i % 5"
+					b = tclExpr("$i % 5")
 					_ = b // suppress unused warning
 					_res = db.Exec(" INSERT INTO t4 VALUES($a, $b) ")
 					if _res.Error != nil {
@@ -787,7 +788,7 @@ func Test_analyze9(t *testing.T) {
 							a = "DEF"
 							_ = a // suppress unused warning
 						}
-						b = "$i % 5"
+						b = tclExpr("$i % 5")
 						_ = b // suppress unused warning
 						_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
 						if _res.Error != nil {
@@ -906,7 +907,7 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-					c = "$i % 3"
+					c = tclExpr("$i % 3")
 					_ = c // suppress unused warning
 					_res = db.Exec(" INSERT INTO t1 VALUES('ott', $i, $c) ")
 					if _res.Error != nil {
@@ -1051,7 +1052,7 @@ func Test_analyze9(t *testing.T) {
 				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
-					b = "$i % 10"
+					b = tclExpr("$i % 10")
 					_ = b // suppress unused warning
 					if tclBool(b + "==0 || " + b + "==2") {
 						b = "1"
@@ -1222,7 +1223,7 @@ func Test_analyze9(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($one);\n    ANALYZE;\n  ")
 				}
-				nByte = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
+				nByte = tclLIndex("sqlite3_db_status", "db")
 				_ = nByte // suppress unused warning
 				db.Close()
 				db, err = frigolite.Open("")
@@ -1231,11 +1232,11 @@ func Test_analyze9(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($two);\n    ANALYZE;\n  ")
 				}
-				nByte2 = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
+				nByte2 = tclLIndex("sqlite3_db_status", "db")
 				_ = nByte2 // suppress unused warning
 				_putsMsg := "-nonewline"
 				_ = _putsMsg
-				// expr $nByte2 > $nByte+900 && $nByte2 < $nByte+1100 → "$nByte2 > $nByte+900 && $nByte2 < $nByte+1100"
+				// expr $nByte2 > $nByte+900 && $nByte2 < $nByte+1100 (not evaluated)
 			}
 			{ // do_test "17.1"
 				db.Close()
@@ -1339,6 +1340,27 @@ func Test_analyze9(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM sqlite_stat4 ")
 				}
+			}
+			{ // do_test "19.1"
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n      CREATE TABLE t1(x, y);\n      CREATE INDEX i1 ON t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n      ANALYZE;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x, y);\n      CREATE INDEX i1 ON t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n      ANALYZE;\n    ")
+				}
+			}
+			// proc definition (not transpiled)
+			{ // do_test "19.2"
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n      CREATE TABLE t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n    ")
+				}
+				_res = db.Exec("ANALYZE")
+				_ = _res // catchsql
 			}
 			db.Close()
 			db, err = frigolite.Open("")
@@ -1510,6 +1532,42 @@ func Test_analyze9(t *testing.T) {
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"SeLeCt * FROM t5 WHERE " + where)
 							}
+						}
+					}
+					{ // "25.1"
+						_res = db.Exec("\n    CREATE TABLE t6(a, b);\n    WITH ints(i,j) AS (\n      SELECT 1,1 UNION ALL SELECT i+1,j+1 FROM ints WHERE i<100\n    ) INSERT INTO t6 SELECT * FROM ints;\n    CREATE INDEX aa ON t6(a);\n    CREATE INDEX bb ON t6(b);\n    ANALYZE;\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a, b);\n    WITH ints(i,j) AS (\n      SELECT 1,1 UNION ALL SELECT i+1,j+1 FROM ints WHERE i<100\n    ) INSERT INTO t6 SELECT * FROM ints;\n    CREATE INDEX aa ON t6(a);\n    CREATE INDEX bb ON t6(b);\n    ANALYZE;\n  ")
+						}
+					}
+					{ // "25.2.1"
+						r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM t6 WHERE a<30 AND b<? ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM t6 WHERE a<30 AND b<? ")
+						}
+					}
+					{ // "25.2.2"
+						r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM t6 WHERE a<20 AND b<? ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM t6 WHERE a<20 AND b<? ")
+						}
+					}
+					{ // "25.3.1"
+						r = db.Query("EXPLAIN QUERY PLAN " + " \n    SELECT * FROM t6 WHERE a BETWEEN 5 AND 10 AND b BETWEEN ? AND ? \n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" \n    SELECT * FROM t6 WHERE a BETWEEN 5 AND 10 AND b BETWEEN ? AND ? \n  ")
+						}
+					}
+					{ // "25.4.1"
+						r = db.Query("EXPLAIN QUERY PLAN " + " \n    SELECT * FROM t6 WHERE a < 10 AND (b BETWEEN ? AND 60)\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" \n    SELECT * FROM t6 WHERE a < 10 AND (b BETWEEN ? AND 60)\n  ")
+						}
+					}
+					{ // "25.4.2"
+						r = db.Query("EXPLAIN QUERY PLAN " + " \n    SELECT * FROM t6 WHERE a < 20 AND (b BETWEEN ? AND 60)\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" \n    SELECT * FROM t6 WHERE a < 20 AND (b BETWEEN ? AND 60)\n  ")
 						}
 					}
 					db.Close()

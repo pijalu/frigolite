@@ -30,6 +30,7 @@ var internalLayers = map[string]int{
 	"github.com/pijalu/frigolite/internal/btree":          3, // B-tree
 	"github.com/pijalu/frigolite/internal/sql":            4, // parser/lexer
 	"github.com/pijalu/frigolite/internal/rename":         4, // rename utilities
+	"github.com/pijalu/frigolite/internal/parse":          4, // LALR parser
 	"github.com/pijalu/frigolite/internal/schema":         5, // schema
 	"github.com/pijalu/frigolite/internal/function":       5, // functions
 	"github.com/pijalu/frigolite/internal/vtab":           5, // virtual tables

@@ -2124,6 +2124,134 @@ func Test_json102(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	{ // "json102-1000"
+		r = db.Query("\n  CREATE TABLE user(name,phone,phoneb);\n  INSERT INTO user(name,phone) VALUES\n     ('Alice','[\"919-555-2345\",\"804-555-3621\"]'),\n     ('Bob','[\"201-555-8872\"]'),\n     ('Cindy','[\"704-555-9983\"]'),\n     ('Dave','[\"336-555-8421\",\"704-555-4321\",\"803-911-4421\"]');\n  UPDATE user SET phoneb=jsonb(phone);\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE user(name,phone,phoneb);\n  INSERT INTO user(name,phone) VALUES\n     ('Alice','[\"919-555-2345\",\"804-555-3621\"]'),\n     ('Bob','[\"201-555-8872\"]'),\n     ('Cindy','[\"704-555-9983\"]'),\n     ('Dave','[\"336-555-8421\",\"704-555-4321\",\"803-911-4421\"]');\n  UPDATE user SET phoneb=jsonb(phone);\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "Cindy Dave"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json102-1000b"
+		r = db.Query("\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phoneb)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phoneb)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "Cindy Dave"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json102-1010"
+		r = db.Query("\n  UPDATE user\n     SET phone=json_extract(phone,'$[0]')\n   WHERE json_array_length(phone)<2;\n  SELECT name, substr(phone,1,5) FROM user ORDER BY name;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE user\n     SET phone=json_extract(phone,'$[0]')\n   WHERE json_array_length(phone)<2;\n  SELECT name, substr(phone,1,5) FROM user ORDER BY name;\n")
+			return
+		}
+		got := flatten(r)
+		want := "Alice {[\"919} Bob 201-5 Cindy 704-5 Dave {[\"336}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json102-1011"
+		r = db.Query("\n  SELECT name FROM user WHERE phone LIKE '704-%'\n  UNION\n  SELECT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_valid(user.phone)\n     AND json_each.value LIKE '704-%';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM user WHERE phone LIKE '704-%'\n  UNION\n  SELECT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_valid(user.phone)\n     AND json_each.value LIKE '704-%';\n")
+			return
+		}
+		got := flatten(r)
+		want := "Cindy Dave"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json102-1100"
+		_res = db.Exec("\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":[1,2,3,4],\n    \"partlist\":[\n       {\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}\n    ]\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":[\"hello\",\"world\",\"xyzzy\"],\n    \"partlist\":[\n       {\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}\n    ]\n  }');\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":[1,2,3,4],\n    \"partlist\":[\n       {\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}\n    ]\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":[\"hello\",\"world\",\"xyzzy\"],\n    \"partlist\":[\n       {\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}\n    ]\n  }');\n")
+		}
+	}
+	correct_answer = "list \\\n    1 {$.id} 123 \\\n    1 {$.stuff[0]} 1 \\\n    1 {$.stuff[1]} 2 \\\n    1 {$.stuff[2]} 3 \\\n    1 {$.stuff[3]} 4 \\\n    1 {$.partlist[0].uuid} bb108722-572e-11e5-9320-7f3b63a4ca74 \\\n    1 {$.partlist[1].uuid} c690dc14-572e-11e5-95f9-dfc8861fd535 \\\n    1 {$.partlist[2].subassembly[0].uuid} 6fa5181e-5721-11e5-a04e-57f3d7b32808 \\\n    2 {$.id} 456 \\\n    2 {$.stuff[0]} hello \\\n    2 {$.stuff[1]} world \\\n    2 {$.stuff[2]} xyzzy \\\n    2 {$.partlist[0].uuid} 0 \\\n    2 {$.partlist[1].uuid} c690dc14-572e-11e5-95f9-dfc8861fd535"
+	_ = correct_answer // suppress unused warning
+	{ // "json102-1110"
+		r = db.Query("\n  SELECT big.rowid, fullkey, value\n    FROM big, json_tree(big.json)\n   WHERE json_tree.type NOT IN ('object','array')\n   ORDER BY +big.rowid, +json_tree.id\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT big.rowid, fullkey, value\n    FROM big, json_tree(big.json)\n   WHERE json_tree.type NOT IN ('object','array')\n   ORDER BY +big.rowid, +json_tree.id\n")
+			return
+		}
+		got := flatten(r)
+		want := correct_answer
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json102-1110b"
+		r = db.Query("\n  SELECT big.rowid, fullkey, value\n    FROM big, json_tree(jsonb(big.json))\n   WHERE json_tree.type NOT IN ('object','array')\n   ORDER BY +big.rowid, +json_tree.id\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT big.rowid, fullkey, value\n    FROM big, json_tree(jsonb(big.json))\n   WHERE json_tree.type NOT IN ('object','array')\n   ORDER BY +big.rowid, +json_tree.id\n")
+			return
+		}
+		got := flatten(r)
+		want := correct_answer
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json102-1120"
+		r = db.Query("\n  SELECT big.rowid, fullkey, atom\n    FROM big, json_tree(big.json)\n   WHERE atom IS NOT NULL\n   ORDER BY +big.rowid, +json_tree.id\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT big.rowid, fullkey, atom\n    FROM big, json_tree(big.json)\n   WHERE atom IS NOT NULL\n   ORDER BY +big.rowid, +json_tree.id\n")
+			return
+		}
+		got := flatten(r)
+		want := correct_answer
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json102-1130"
+		r = db.Query("\n  SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json,'$.partlist')\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json,'$.partlist')\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';\n")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json102-1131"
+		r = db.Query("\n  SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json,'$')\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json,'$')\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';\n")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "json102-1132"
+		r = db.Query("\n  SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json)\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json)\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';\n")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
 	{ // "json102-1201"
 		r = db.Query(" SELECT json_valid(char(32)  || '\"xyz\"') ")
 		if r.Error != nil {

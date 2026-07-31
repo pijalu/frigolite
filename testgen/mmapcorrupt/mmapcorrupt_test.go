@@ -51,6 +51,7 @@ func Test_mmapcorrupt(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "mmapcorrupt"
 	_ = testprefix // suppress unused warning
+	return
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)

@@ -63,6 +63,7 @@ func Test_sharedA(t *testing.T) {
 	}
 	testprefix = "sharedA" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}

@@ -221,77 +221,42 @@ func Test_e_select2(t *testing.T) {
 			// test_join $tn.2.5 t2, t1 ON (1.1-1.1) {t2 t1 -on te_false} (unsupported command, not transpiled)
 			// test_join $tn.2.6 t1, t2 ON (1.1-1.0) {t1 t2 -on te_true} (unsupported command, not transpiled)
 			// test_join $tn.3 t1 LEFT JOIN t2 ON (t1.a=t2.a) {t1 t2 -left -on {te_equals a a}} (unsupported command, not transpiled)
-			// test_join $tn.4 t1 LEFT JOIN t2 USING (a) {
-    t1 t2 -left -using a -on {te_equals a a}
-  } (unsupported command, not transpiled)
-			// test_join $tn.5 t1 CROSS JOIN t2 USING(b, a) {
-    t1 t2 -using {a b} -on {te_and {te_equals a a...} (unsupported command, not transpiled)
-			// test_join $tn.6 t1 NATURAL JOIN t2 {
-    t1 t2 -using {a b} -on {te_and {te_equals a a...} (unsupported command, not transpiled)
-			// test_join $tn.7 t1 NATURAL INNER JOIN t2 {
-    t1 t2 -using {a b} -on {te_and {te_equals a a...} (unsupported command, not transpiled)
-			// test_join $tn.8 t1 NATURAL CROSS JOIN t2 {
-    t1 t2 -using {a b} -on {te_and {te_equals a a...} (unsupported command, not transpiled)
-			// test_join $tn.9 t1 NATURAL INNER JOIN t2 {
-    t1 t2 -using {a b} -on {te_and {te_equals a a...} (unsupported command, not transpiled)
-			// test_join $tn.10 t1 NATURAL LEFT JOIN t2 {
-    t1 t2 -left -using {a b} -on {te_and {te_equa...} (unsupported command, not transpiled)
-			// test_join $tn.11 t1 NATURAL LEFT OUTER JOIN t2 {
-    t1 t2 -left -using {a b} -on {te_and {te_equa...} (unsupported command, not transpiled)
-			// test_join $tn.12 t2 NATURAL JOIN t1 {
-    t2 t1 -using {a b} -on {te_and {te_equals a a...} (unsupported command, not transpiled)
-			// test_join $tn.13 t2 NATURAL INNER JOIN t1 {
-    t2 t1 -using {a b} -on {te_and {te_equals a a...} (unsupported command, not transpiled)
-			// test_join $tn.14 t2 NATURAL CROSS JOIN t1 {
-    t2 t1 -using {a b} -on {te_and {te_equals a a...} (unsupported command, not transpiled)
-			// test_join $tn.15 t2 NATURAL INNER JOIN t1 {
-    t2 t1 -using {a b} -on {te_and {te_equals a a...} (unsupported command, not transpiled)
-			// test_join $tn.16 t2 NATURAL LEFT JOIN t1 {
-    t2 t1 -left -using {a b} -on {te_and {te_equa...} (unsupported command, not transpiled)
-			// test_join $tn.17 t2 NATURAL LEFT OUTER JOIN t1 {
-    t2 t1 -left -using {a b} -on {te_and {te_equa...} (unsupported command, not transpiled)
-			// test_join $tn.18 t1 LEFT JOIN t2 USING (b) {
-    t1 t2 -left -using b -on {te_equals b b}
-  } (unsupported command, not transpiled)
+			// test_join $tn.4 t1 LEFT JOIN t2 USING (a) {\n    t1 t2 -left -using a -on {te_equals a a}\n  } (unsupported command, not transpiled)
+			// test_join $tn.5 t1 CROSS JOIN t2 USING(b, a) {\n    t1 t2 -using {a b} -on {te_and {te_equals a ...} (unsupported command, not transpiled)
+			// test_join $tn.6 t1 NATURAL JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a ...} (unsupported command, not transpiled)
+			// test_join $tn.7 t1 NATURAL INNER JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a ...} (unsupported command, not transpiled)
+			// test_join $tn.8 t1 NATURAL CROSS JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a ...} (unsupported command, not transpiled)
+			// test_join $tn.9 t1 NATURAL INNER JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a ...} (unsupported command, not transpiled)
+			// test_join $tn.10 t1 NATURAL LEFT JOIN t2 {\n    t1 t2 -left -using {a b} -on {te_and {te_equ...} (unsupported command, not transpiled)
+			// test_join $tn.11 t1 NATURAL LEFT OUTER JOIN t2 {\n    t1 t2 -left -using {a b} -on {te_and {te_equ...} (unsupported command, not transpiled)
+			// test_join $tn.12 t2 NATURAL JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a ...} (unsupported command, not transpiled)
+			// test_join $tn.13 t2 NATURAL INNER JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a ...} (unsupported command, not transpiled)
+			// test_join $tn.14 t2 NATURAL CROSS JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a ...} (unsupported command, not transpiled)
+			// test_join $tn.15 t2 NATURAL INNER JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a ...} (unsupported command, not transpiled)
+			// test_join $tn.16 t2 NATURAL LEFT JOIN t1 {\n    t2 t1 -left -using {a b} -on {te_and {te_equ...} (unsupported command, not transpiled)
+			// test_join $tn.17 t2 NATURAL LEFT OUTER JOIN t1 {\n    t2 t1 -left -using {a b} -on {te_and {te_equ...} (unsupported command, not transpiled)
+			// test_join $tn.18 t1 LEFT JOIN t2 USING (b) {\n    t1 t2 -left -using b -on {te_equals b b}\n  } (unsupported command, not transpiled)
 			// test_join $tn.19 t1 JOIN t3 USING(b) {t1 t3 -using b -on {te_equals b b}} (unsupported command, not transpiled)
-			// test_join $tn.20 t3 JOIN t1 USING(b) {
-    t3 t1 -using b -on {te_equals -nocase b b}
-  } (unsupported command, not transpiled)
-			// test_join $tn.21 t1 NATURAL JOIN t3 {
-    t1 t3 -using b -on {te_equals b b}
-  } (unsupported command, not transpiled)
-			// test_join $tn.22 t3 NATURAL JOIN t1 {
-    t3 t1 -using b -on {te_equals -nocase b b}
-  } (unsupported command, not transpiled)
-			// test_join $tn.23 t1 NATURAL LEFT JOIN t3 {
-    t1 t3 -left -using b -on {te_equals b b}
-  } (unsupported command, not transpiled)
-			// test_join $tn.24 t3 NATURAL LEFT JOIN t1 {
-    t3 t1 -left -using b -on {te_equals -nocase b...} (unsupported command, not transpiled)
-			// test_join $tn.25 t1 LEFT JOIN t3 ON (t3.b=t1.b) {
-    t1 t3 -left -on {te_equals -nocase b b}
-  } (unsupported command, not transpiled)
-			// test_join $tn.26 t1 LEFT JOIN t3 ON (t1.b=t3.b) {
-    t1 t3 -left -on {te_equals b b}
-  } (unsupported command, not transpiled)
+			// test_join $tn.20 t3 JOIN t1 USING(b) {\n    t3 t1 -using b -on {te_equals -nocase b b}\n...} (unsupported command, not transpiled)
+			// test_join $tn.21 t1 NATURAL JOIN t3 {\n    t1 t3 -using b -on {te_equals b b}\n  } (unsupported command, not transpiled)
+			// test_join $tn.22 t3 NATURAL JOIN t1 {\n    t3 t1 -using b -on {te_equals -nocase b b}\n...} (unsupported command, not transpiled)
+			// test_join $tn.23 t1 NATURAL LEFT JOIN t3 {\n    t1 t3 -left -using b -on {te_equals b b}\n  } (unsupported command, not transpiled)
+			// test_join $tn.24 t3 NATURAL LEFT JOIN t1 {\n    t3 t1 -left -using b -on {te_equals -nocase ...} (unsupported command, not transpiled)
+			// test_join $tn.25 t1 LEFT JOIN t3 ON (t3.b=t1.b) {\n    t1 t3 -left -on {te_equals -nocase b b}\n  } (unsupported command, not transpiled)
+			// test_join $tn.26 t1 LEFT JOIN t3 ON (t1.b=t3.b) {\n    t1 t3 -left -on {te_equals b b}\n  } (unsupported command, not transpiled)
 			// test_join $tn.27 t1 JOIN t3 ON (t1.b=t3.b) { t1 t3 -on {te_equals b b} } (unsupported command, not transpiled)
 			t3_natural_left_join_t2 = "te_tbljoin db t3 t2 -left -using {b} -on {te_equals -nocase b b}"
 			_ = t3_natural_left_join_t2 // suppress unused warning
 			t1 = "te_read_tbl db t1"
 			_ = t1 // suppress unused warning
-			// te_dataset_eq_unordered $tn.28a [
-    te_read_sql db "SELECT * FROM t3 NATURAL LEF... [te_join $t3_natural_left_join_t2 $t1             ... (unsupported command, not transpiled)
-			// te_dataset_eq_unordered $tn.28b [
-    te_read_sql db "SELECT * FROM (t3 NATURAL LE... [te_join $t3_natural_left_join_t2 $t1             ... (unsupported command, not transpiled)
-			// te_dataset_ne_unordered $tn.28c [
-    te_read_sql db "SELECT * FROM (t3 NATURAL LE... [
-    te_read_sql db "SELECT * FROM t3 NATURAL LEF... (unsupported command, not transpiled)
+			// te_dataset_eq_unordered $tn.28a [\n    te_read_sql db "SELECT * FROM t3 NATURAL LE... [te_join $t3_natural_left_join_t2 $t1             ... (unsupported command, not transpiled)
+			// te_dataset_eq_unordered $tn.28b [\n    te_read_sql db "SELECT * FROM (t3 NATURAL L... [te_join $t3_natural_left_join_t2 $t1             ... (unsupported command, not transpiled)
+			// te_dataset_ne_unordered $tn.28c [\n    te_read_sql db "SELECT * FROM (t3 NATURAL L... [\n    te_read_sql db "SELECT * FROM t3 NATURAL LE... (unsupported command, not transpiled)
 			t2_natural_join_t1 = "te_tbljoin db t2 t1 -using {a b}                 \\\n        -using {a b} -on {te_and {te_equals a a} {te_equals -nocase b b}}  \\"
 			_ = t2_natural_join_t1 // suppress unused warning
 			t3 = "te_read_tbl db t3"
 			_ = t3 // suppress unused warning
-			// te_dataset_eq_unordered $tn.28d [
-    te_read_sql db "SELECT * FROM t3 NATURAL LEF... [te_join $t3 $t2_natural_join_t1                  ... (unsupported command, not transpiled)
+			// te_dataset_eq_unordered $tn.28d [\n    te_read_sql db "SELECT * FROM t3 NATURAL LE... [te_join $t3 $t2_natural_join_t1                  ... (unsupported command, not transpiled)
 		}
 		{ // "e_select-2.2.0"
 			_res = db.Exec("\n  CREATE TABLE t4(x TEXT COLLATE nocase);\n  CREATE TABLE t5(y INTEGER, z TEXT COLLATE binary);\n\n  INSERT INTO t4 VALUES('2.0');\n  INSERT INTO t4 VALUES('TWO');\n  INSERT INTO t5 VALUES(2, 'two');\n")
@@ -321,7 +286,6 @@ func Test_e_select2(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE '%ss%'")
 				}
-				// te_dataset_eq_unordered e_select-2.2.1.$tn [
-    te_read_sql db [string map [list %ss% "($sub... $te (unsupported command, not transpiled)
+				// te_dataset_eq_unordered e_select-2.2.1.$tn [\n    te_read_sql db [string map [list %ss% "($su... $te (unsupported command, not transpiled)
 			}
 }

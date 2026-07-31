@@ -114,9 +114,9 @@ func Test_fallocate(t *testing.T) {
 	{ // do_test "fallocate-1.8"
 		nPg = "db one {PRAGMA page_count}"
 		_ = nPg // suppress unused warning
-		nFile = "[file size test.db] / 1024"
+		nFile = tclExpr("[file size test.db] / 1024")
 		_ = nFile // suppress unused warning
-		_list := tclList([]string{"$nPg<100", "$nFile>100"})
+		_list := tclList([]string{tclExpr("$nPg<100"), tclExpr("$nFile>100")})
 		_ = _list
 	}
 	{ // "fallocate-1.9"
@@ -131,7 +131,9 @@ func Test_fallocate(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	skipwaltests = "[permutation]==\"journaltest\" || [permutation]==\"inmemory_journal\""
+	skipwaltests = tclExpr("\n  [permutation]==\"journaltest\" || [permutation]==\"inmemory_journal\"\n")
+	_ = skipwaltests // suppress unused warning
+	skipwaltests = "1"
 	_ = skipwaltests // suppress unused warning
 	if tclBool("!" + skipwaltests) {
 		os.Remove("test.db")

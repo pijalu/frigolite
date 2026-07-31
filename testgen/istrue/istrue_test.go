@@ -319,7 +319,7 @@ func Test_istrue(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "$tn in [list 5 6] ? {1} : {0}"
+				want := tclExpr("$tn in [list 5 6] ? {1} : {0}")
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -335,6 +335,18 @@ func Test_istrue(t *testing.T) {
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
+			}
+		}
+		{ // "istrue-700"
+			r = db.Query("\n    CREATE TABLE t7(\n      a INTEGER PRIMARY KEY,\n      b BOOLEAN DEFAULT false,\n      c BOOLEAN DEFAULT true\n    );\n    INSERT INTO t7(a) VALUES(1);\n    INSERT INTO t7(a,b,c) VALUES(2,true,false);\n    ALTER TABLE t7 ADD COLUMN d BOOLEAN DEFAULT false;\n    ALTER TABLE t7 ADD COLUMN e BOOLEAN DEFAULT true;\n    INSERT INTO t7(a,b,c) VALUES(3,true,false);\n    INSERT INTO t7 VALUES(4,false,true,true,false);\n    SELECT *,'x' FROM t7 ORDER BY a;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7(\n      a INTEGER PRIMARY KEY,\n      b BOOLEAN DEFAULT false,\n      c BOOLEAN DEFAULT true\n    );\n    INSERT INTO t7(a) VALUES(1);\n    INSERT INTO t7(a,b,c) VALUES(2,true,false);\n    ALTER TABLE t7 ADD COLUMN d BOOLEAN DEFAULT false;\n    ALTER TABLE t7 ADD COLUMN e BOOLEAN DEFAULT true;\n    INSERT INTO t7(a,b,c) VALUES(3,true,false);\n    INSERT INTO t7 VALUES(4,false,true,true,false);\n    SELECT *,'x' FROM t7 ORDER BY a;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 0 1 0 1 x 2 1 0 0 1 x 3 1 0 0 1 x 4 0 1 1 0 x"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "istrue-710"

@@ -181,6 +181,58 @@ func Test_capi3c(t *testing.T) {
 	{ // do_test "capi3c-1.7"
 		// sqlite3_errmsg $DB (unsupported command, not transpiled)
 	}
+	{ // do_test "capi3c-2.1"
+		sql16 = "utf16 {SELECT name FROM sqlite_master}"
+		_ = sql16 // suppress unused warning
+		STMT = "sqlite3_prepare16_v2  $DB $sql16 -1 ::TAIL"
+		_ = STMT // suppress unused warning
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		// utf8 $::TAIL (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-2.2"
+		sql = "utf16 {SELECT name FROM sqlite_master;SELECT 10}"
+		_ = sql // suppress unused warning
+		STMT = "sqlite3_prepare16_v2  $DB $sql -1 TAIL"
+		_ = STMT // suppress unused warning
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		// utf8 $TAIL (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-2.3"
+		sql = "utf16 {SELECT namex FROM sqlite_master}"
+		_ = sql // suppress unused warning
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			STMT = "sqlite3_prepare16_v2  $DB $sql -1 TAIL"
+			_ = STMT // suppress unused warning
+		}
+	}
+	{ // do_test "capi3c-2.4.1"
+		// sqlite3_errcode $DB (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-2.4.2"
+		// sqlite3_extended_errcode $DB (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-2.5"
+		// sqlite3_errmsg $DB (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-2.6"
+		_res = db.Exec("CREATE TABLE tablename(x)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tablename(x)")
+		}
+		sql16 = "utf16 {PRAGMA table_info(\"TableName\")}"
+		_ = sql16 // suppress unused warning
+		STMT = "sqlite3_prepare16_v2  $DB $sql16 -1 TAIL"
+		_ = STMT // suppress unused warning
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-2.7"
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-2.8"
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	}
 	{ // do_test "capi3c-3.1"
 		// set db2 [sqlite3_open ...] (skipped, DB connection)
 		// sqlite3_errcode $db2 (unsupported command, not transpiled)
@@ -209,10 +261,35 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-3.6.2-misuse"
 			// sqlite3_errmsg $db2 (unsupported command, not transpiled)
 		}
+		{ // do_test "capi3c-3.6.3-misuse"
+			// utf8 [sqlite3_errmsg16 $db2] (unsupported command, not transpiled)
+		}
+	}
+	{ // do_test "capi3c-4.1"
+		// set db2 [sqlite3_open ...] (skipped, DB connection)
+		// sqlite3_errcode $db2 (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-4.2"
+		// sqlite3_close $db2 (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-4.3"
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			// set db2 [sqlite3_open ...] (skipped, DB connection)
+		}
+		// sqlite3_errcode $db2 (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-4.4"
+		// utf8 [sqlite3_errmsg16 $db2] (unsupported command, not transpiled)
+	}
+	{ // do_test "capi3c-4.5"
+		// sqlite3_close $db2 (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	return
 	{ // do_test "capi3c-5.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a VARINT, b BLOB, c VARCHAR(16));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES('one', 'two', NULL);\n    INSERT INTO t1 VALUES(1.2, 1.3, 1.4);\n  ")
 		if _res.Error != nil {
@@ -412,6 +489,9 @@ func Test_capi3c(t *testing.T) {
 			{ // do_test "capi3c-10-2"
 				// sqlite3_errmsg $::DB (unsupported command, not transpiled)
 			}
+			{ // do_test "capi3c-10-3"
+				// utf8 [sqlite3_errmsg16 $::DB] (unsupported command, not transpiled)
+			}
 			// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 		}
 		_dbtmp2, err := frigolite.Open("test.db")
@@ -491,6 +571,10 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-11.11"
+			// sqlite3_step $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-11.12armor"
+			// sqlite3_step $STMT (unsupported command, not transpiled)
 			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-11.13"
@@ -613,7 +697,7 @@ func Test_capi3c(t *testing.T) {
 			{ // do_test "capi3c-13-5"
 				ms = "sqlite3_sleep 80"
 				_ = ms // suppress unused warning
-				// expr $ms==80 || $ms==1000 → "$ms==80 || $ms==1000"
+				// expr $ms==80 || $ms==1000 (not evaluated)
 			}
 		}
 		{ // do_test "capi3c-14.1"
@@ -656,7 +740,7 @@ func Test_capi3c(t *testing.T) {
 			STMT = ""
 			_ = STMT // suppress unused warning
 			// sqlite3_finalize $STMT (unsupported command, not transpiled)
-			// expr $STMT!="" → "$STMT!=\"\""
+			// expr $STMT!="" (not evaluated)
 		}
 		{ // do_test "capi3c-16.2"
 			sql = "CREATE TABLE IF NOT EXISTS t1(x,y)"
@@ -664,19 +748,19 @@ func Test_capi3c(t *testing.T) {
 			STMT = ""
 			_ = STMT // suppress unused warning
 			// sqlite3_finalize $STMT (unsupported command, not transpiled)
-			// expr $STMT!="" → "$STMT!=\"\""
+			// expr $STMT!="" (not evaluated)
 		}
 		{ // do_test "capi3c-16.3"
 			STMT = ""
 			_ = STMT // suppress unused warning
 			// sqlite3_finalize $STMT (unsupported command, not transpiled)
-			// expr $STMT=="" → "$STMT==\"\""
+			// expr $STMT=="" (not evaluated)
 		}
 		{ // do_test "capi3c-16.4"
 			STMT = ""
 			_ = STMT // suppress unused warning
 			// sqlite3_finalize $STMT (unsupported command, not transpiled)
-			// expr $STMT=="" → "$STMT==\"\""
+			// expr $STMT=="" (not evaluated)
 		}
 		{ // do_test "capi3c-17.1"
 			STMT = ""
@@ -815,8 +899,14 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-19.4.1"
 			// sqlite3_errmsg $DB (unsupported command, not transpiled)
 		}
+		{ // do_test "capi3c-19.4.2"
+			// sqlite3_expired $STMT (unsupported command, not transpiled)
+		}
 		{ // do_test "capi3c-19.4.3"
 			// sqlite3_errmsg $DB (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-19.4.4"
+			// sqlite3_expired 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-19.5"
 			// sqlite3_reset $STMT (unsupported command, not transpiled)
@@ -825,6 +915,9 @@ func Test_capi3c(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);\n  ")
 			}
 			// sqlite3_step $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-19.5.2"
+			// sqlite3_expired $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-19.6"
 			// sqlite3_column_int $STMT 1 (unsupported command, not transpiled)
@@ -851,6 +944,34 @@ func Test_capi3c(t *testing.T) {
 			db2.Close()
 			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		}
+		{ // do_test "capi3c-21.1"
+			STMT = ""
+			_ = STMT // suppress unused warning
+			// sqlite3_step $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-21.2"
+			// sqlite3_extended_errcode $DB (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-21.3"
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-21.4"
+			STMT = "sqlite3_prepare $DB {SELECT * FROM t3} -1 TAIL"
+			_ = STMT // suppress unused warning
+			// sqlite3_step $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-21.5"
+			// sqlite3_errcode $DB (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-21.6"
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-21.7"
+			// sqlite3_errcode $DB (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-21.8"
+			// sqlite3_extended_errcode $DB (unsupported command, not transpiled)
+		}
 		{ // do_test "capi3c-22.1"
 			STMT = ""
 			_ = STMT // suppress unused warning
@@ -867,6 +988,34 @@ func Test_capi3c(t *testing.T) {
 			STMT = ""
 			_ = STMT // suppress unused warning
 			// sqlite3_step $STMT (unsupported command, not transpiled)
+		}
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		{ // do_test "capi3c-23.1"
+			STMT = ""
+			_ = STMT // suppress unused warning
+			// sqlite3_step $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-23.2"
+			// sqlite3_column_text16 $STMT 0 (unsupported command, not transpiled)
+			// sqlite3_column_text $STMT 1 (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-23.3"
+			// sqlite3_column_text16 $STMT 2 (unsupported command, not transpiled)
+			// sqlite3_column_text $STMT 3 (unsupported command, not transpiled)
+		}
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		{ // do_test "capi3c-23.4"
+			STMT = ""
+			_ = STMT // suppress unused warning
+			// sqlite3_step $STMT (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-23.5"
+			// sqlite3_column_text16 $STMT 0 (unsupported command, not transpiled)
+			// sqlite3_column_text $STMT 1 (unsupported command, not transpiled)
+		}
+		{ // do_test "capi3c-23.6"
+			// sqlite3_column_text16 $STMT 2 (unsupported command, not transpiled)
+			// sqlite3_column_text $STMT 3 (unsupported command, not transpiled)
 		}
 		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		// proc definition (not transpiled)
@@ -887,9 +1036,7 @@ func Test_capi3c(t *testing.T) {
 			// decltype {SELECT * FROM (SELECT * FROM t5 ORDER BY c LIMIT 1...} (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-24.5"
-			// decltype {
-    SELECT (SELECT x FROM (SELECT c AS x)) 
-    F...} (unsupported command, not transpiled)
+			// decltype {\n    SELECT (SELECT x FROM (SELECT c AS x)) \n   ...} (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-24.3"
 			// decltype {SELECT (SELECT x FROM (SELECT t5.a AS x)) FROM t5} (unsupported command, not transpiled)

@@ -3701,7 +3701,7 @@ func Test_printf(t *testing.T) {
 			nFail = "sqlite3_memdebug_fail -1 -benign nBenign"
 			_ = nFail // suppress unused warning
 			{ // do_test "printf-malloc-" + iRepeat + "." + nTestNum
-				// expr ($nFail>0 && $z eq "") || ($nFail==$nBenign && $z eq $zSuccess) → "($nFail>0 && $z eq \"\") || ($nFail==$nBenign && $z eq $zSuccess)"
+				// expr ($nFail>0 && $z eq "") || ($nFail==$nBenign && $z eq $zSuccess) (not evaluated)
 			}
 			if func() bool { nFail_n, _nFail_e := strconv.Atoi(nFail); if _nFail_e != nil { return false }; return nFail_n == 0 }() {
 			}

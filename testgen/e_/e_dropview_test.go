@@ -70,12 +70,7 @@ func Test_e_dropview(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// do_dropview_tests 1 -repair {
-  dropview_reopen_db
-} -tclquery {
-  list_all_views
-} {
-  1   "DROP VIEW v1"                  {main.v1 ma...} (unsupported command, not transpiled)
+	// do_dropview_tests 1 -repair {\n  dropview_reopen_db\n} -tclquery {\n  list_all_views\n} {\n  1   "DROP VIEW v1"                  {main.v1 m...} (unsupported command, not transpiled)
 	// dropview_reopen_db (unsupported command, not transpiled)
 	{ // "2.1"
 		r = db.Query("\n  CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y;\n  SELECT * FROM \"new view\";\n")
@@ -295,17 +290,6 @@ func Test_e_dropview(t *testing.T) {
 	{ // do_test "3.6.4"
 		strings.Compare("list_all_data", databasedata)
 	}
-	// do_dropview_tests 4 -repair {
-  dropview_reopen_db 
-} -errorformat {
-  no such view: %s
-} {
-  1   "DROP VIEW xx"                  xx
-  2   "D...} (unsupported command, not transpiled)
-	// do_dropview_tests 5 -repair {
-  dropview_reopen_db
-} -tclquery {
-  list_all_views
-  #expr {[list_all_views] == "ma...} {
-  1    "DROP VIEW IF EXISTS xx" "main.v1 main.v2 ...} (unsupported command, not transpiled)
+	// do_dropview_tests 4 -repair {\n  dropview_reopen_db \n} -errorformat {\n  no such view: %s\n} {\n  1   "DROP VIEW xx"                  xx\n  2   ...} (unsupported command, not transpiled)
+	// do_dropview_tests 5 -repair {\n  dropview_reopen_db\n} -tclquery {\n  list_all_views\n  #expr {[list_all_views] == "...} {\n  1    "DROP VIEW IF EXISTS xx" "main.v1 main.v2...} (unsupported command, not transpiled)
 }

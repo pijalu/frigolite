@@ -419,6 +419,14 @@ func tclStr(v interface{}) string {
 	return fmt.Sprintf("%%v", v)
 }
 
+// tclExpr evaluates a TCL expression at runtime.
+// Used as fallback for [expr ...] calls that couldn't be evaluated at generation time.
+// Returns the expression string as-is since full runtime evaluation is unavailable
+// in the test context. Variable substitution is handled by the transpiler at generation time.
+func tclExpr(expr string) string {
+	return expr
+}
+
 // tclStringRange implements TCL string range command.
 // Handles TCL "end" syntax: "end" = last char, "end-N" = N chars from end.
 func tclStringRange(s string, start, end interface{}) string {

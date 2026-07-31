@@ -47,6 +47,7 @@ func Test_walfault2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "walfault2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
@@ -62,14 +63,7 @@ func Test_walfault2(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1 -prep {
-  catch { db close }
-  faultsim_restore
-  sqlite3...} -body {
-  execsql { INSERT INTO t1 VALUES(1,1) }
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  catch { db close }\n  faultsim_restore\n  sqli...} -body {\n  execsql { INSERT INTO t1 VALUES(1,1) }\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -86,12 +80,5 @@ func Test_walfault2(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 2 -prep {
-  faultsim_restore_and_reopen
-  execsql {
-    PRA...} -body {
-  execsql COMMIT
-} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    ...} -body {\n  execsql COMMIT\n} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 }

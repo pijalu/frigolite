@@ -359,6 +359,12 @@ func Test_collate1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  INSERT INTO p1 VALUES('abc'); \n  INSERT INTO c1 VALUES(1, 'ABC'); \n")
 		}
 	}
+	{ // "6.7"
+		_res = db.Exec(" \n    DELETE FROM p1 WHERE rowid = 1 \n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, " \n    DELETE FROM p1 WHERE rowid = 1 \n  ")
+		}
+	}
 	{ // "6.8"
 		r = db.Query(" \n  INSERT INTO p1 VALUES('abb');\n  INSERT INTO p1 VALUES('wxz');\n  INSERT INTO p1 VALUES('wxy');\n\n  INSERT INTO c1 VALUES(2, 'abb');\n  INSERT INTO c1 VALUES(3, 'wxz');\n  INSERT INTO c1 VALUES(4, 'WXY');\n  SELECT x, y FROM c1 ORDER BY y COLLATE \"\"\"\"\"\"\"\";\n")
 		if r.Error != nil {
@@ -449,12 +455,7 @@ func Test_collate1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n")
 		}
 	}
-	// do_faultsim_test 9.1 -faults oom* -body {
-  execsql {
-    SELECT * FROM (
-        SELECT b ...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 9.1 -faults oom* -body {\n  execsql {\n    SELECT * FROM (\n        SELECT...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

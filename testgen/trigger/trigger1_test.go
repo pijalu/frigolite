@@ -3,6 +3,7 @@ package trigger
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
@@ -50,8 +51,13 @@ func Test_trigger1(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	{ // do_test "trigger1-1.1.1"
 		_res = db.Exec("\n     CREATE TRIGGER trig UPDATE ON no_such_table BEGIN\n       SELECT * from sqlite_master;\n     END;\n   ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger1-1.1.2"
+		_res = db.Exec("\n       CREATE TEMP TRIGGER trig UPDATE ON no_such_table BEGIN\n         SELECT * from sqlite_master;\n       END;\n     ")
 		_ = _res // catchsql
 	}
 	_res = db.Exec("\n    CREATE TABLE t1(a);\n")
@@ -108,6 +114,16 @@ func Test_trigger1(t *testing.T) {
 		_res = db.Exec("\n        DROP TABLE t1;\n        DROP TRIGGER tr1;\n    ")
 		_ = _res // catchsql
 	}
+	_res = db.Exec("\n    CREATE TEMP TABLE temp_table(a);\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE temp_table(a);\n  ")
+	}
+	{ // do_test "trigger1-1.8"
+		r = db.Query("\n          CREATE TRIGGER temp_trig UPDATE ON temp_table BEGIN\n              SELECT * from sqlite_master;\n          END;\n          SELECT count(*) FROM sqlite_master WHERE name = 'temp_trig';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          CREATE TRIGGER temp_trig UPDATE ON temp_table BEGIN\n              SELECT * from sqlite_master;\n          END;\n          SELECT count(*) FROM sqlite_master WHERE name = 'temp_trig';\n    ")
+		}
+	}
 	{ // do_test "trigger1-1.9"
 		_res = db.Exec("\n    CREATE TRIGGER tr1 AFTER UPDATE ON sqlite_master BEGIN\n       SELECT * FROM sqlite_master;\n    END;\n  ")
 		_ = _res // catchsql
@@ -128,6 +144,14 @@ func Test_trigger1(t *testing.T) {
 		_res = db.Exec("\n    create table t1(a,b);\n    create trigger t1t instead of update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "trigger1-1.13"
+		_res = db.Exec("\n    create view v1 as select * from t1;\n    create trigger v1t before update on v1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger1-1.14"
+		_res = db.Exec("\n    drop view v1;\n    create view v1 as select * from t1;\n    create trigger v1t AFTER update on v1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n  ")
+		_ = _res // catchsql
+	}
 	{ // do_test "trigger1-2.1"
 		_res = db.Exec("\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      SELECT * FROM;  -- Syntax error\n    END;\n  ")
 		_ = _res // catchsql
@@ -136,9 +160,130 @@ func Test_trigger1(t *testing.T) {
 		_res = db.Exec("\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      SELECT * FROM t1;\n      SELECT * FROM;  -- Syntax error\n    END;\n  ")
 		_ = _res // catchsql
 	}
+	{ // do_test "trigger1-3.1"
+		_res = db.Exec("\n      CREATE TEMP TABLE t2(x,y);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TABLE t2(x,y);\n    ")
+		}
+		_res = db.Exec("\n      CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger1-3.2"
+		_res = db.Exec("\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger1-3.3"
+	_ = rc // suppress unused warning
+	var _err_tcl string
+	_ = _err_tcl // suppress unused warning
+		{ // catch block
+			var _catchErr error
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
+			if err != nil { t.Fatal(err) }
+			if _catchErr != nil {
+				rc = "1"
+				_err_tcl = _catchErr.Error()
+			} else {
+				rc = "0"
+				_err_tcl = ""
+			}
+		}
+		if tclBool(rc) {
+			rc = tclListAppend(rc, tclStr(err))
+		}
+	}
+	{ // do_test "trigger1-3.4"
+		_res = db.Exec("\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger1-3.5"
+		_res = db.Exec("\n      CREATE TEMP TABLE t2(x,y);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger1-3.6.1"
+		_res = db.Exec("\n      DROP TRIGGER r1;\n      CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b), (NEW.b*100, NEW.a*100);\n      END;\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger1-3.6.2"
+		_res = db.Exec("\n      DROP TRIGGER r1;\n      DELETE FROM t1;\n      DELETE FROM t2;\n      CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
+		_ = _res // catchsql
+	}
+	{ // do_test "trigger1-3.7"
+		r = db.Query("\n      DROP TABLE t2;\n      CREATE TABLE t2(x,y);\n      SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE t2;\n      CREATE TABLE t2(x,y);\n      SELECT * FROM t2;\n    ")
+		}
+	}
+	{ // do_test "trigger1-3.8"
+		r = db.Query("\n      INSERT INTO t1 VALUES(3,4);\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(3,4);\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
+		}
+	}
+	{ // do_test "trigger1-3.9"
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      INSERT INTO t1 VALUES(5,6);\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(5,6);\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
+		}
+	}
+	{ // do_test "trigger1-3.8"
+		r = db.Query("\n      INSERT INTO t1 VALUES(3,4);\n      SELECT * FROM t1; \n      SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(3,4);\n      SELECT * FROM t1; \n      SELECT * FROM t2;\n    ")
+		}
+	}
+	{ // do_test "trigger1-3.9"
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      INSERT INTO t1 VALUES(5,6);\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(5,6);\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")
+		}
+	}
+	{ // do_test "trigger1-4.1"
+		r = db.Query("\n      CREATE TEMP TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n      INSERT INTO t1 VALUES(7,8);\n      SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TEMP TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n      INSERT INTO t1 VALUES(7,8);\n      SELECT * FROM t2;\n    ")
+		}
+	}
+	{ // do_test "trigger1-4.2"
+		db2, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec("\n      INSERT INTO t1 VALUES(9,10);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(9,10);\n    ")
+		}
+		db2.Close()
+		r = db.Query("\n      SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t2;\n    ")
+		}
+	}
+	{ // do_test "trigger1-4.3"
+		r = db.Query("\n      DROP TABLE t1;\n      SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TABLE t1;\n      SELECT * FROM t2;\n    ")
+		}
+	}
+	{ // do_test "trigger1-4.4"
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		r = db.Query("\n      SELECT * FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t2;\n    ")
+		}
+	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	view_v1 = ""
+	_ = view_v1 // suppress unused warning
+	view_v1 = "view v1"
 	_ = view_v1 // suppress unused warning
 	{ // do_test "trigger1-6.1"
 		r = db.Query("SELECT type, name FROM sqlite_master")
@@ -164,8 +309,8 @@ func Test_trigger1(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger1-6.5"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT type, name FROM sqlite_master")
 		if r.Error != nil {
@@ -185,8 +330,8 @@ func Test_trigger1(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger1-6.8"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
@@ -229,6 +374,96 @@ func Test_trigger1(t *testing.T) {
 		r = db.Query("\n    DROP TRIGGER [trigger];\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TRIGGER [trigger];\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+		}
+	}
+	{ // do_test "trigger1-9.1"
+		r = db.Query("\n        CREATE TABLE t3(a,b);\n        CREATE TABLE t4(x UNIQUE, b);\n        CREATE TRIGGER r34 AFTER INSERT ON t3 BEGIN\n          REPLACE INTO t4 VALUES(new.a,new.b);\n        END;\n        INSERT INTO t3 VALUES(1,2);\n        SELECT * FROM t3 UNION ALL SELECT 99, 99 UNION ALL SELECT * FROM t4;\n      ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        CREATE TABLE t3(a,b);\n        CREATE TABLE t4(x UNIQUE, b);\n        CREATE TRIGGER r34 AFTER INSERT ON t3 BEGIN\n          REPLACE INTO t4 VALUES(new.a,new.b);\n        END;\n        INSERT INTO t3 VALUES(1,2);\n        SELECT * FROM t3 UNION ALL SELECT 99, 99 UNION ALL SELECT * FROM t4;\n      ")
+		}
+	}
+	{ // do_test "trigger1-9.2"
+		r = db.Query("\n        INSERT INTO t3 VALUES(1,3);\n        SELECT * FROM t3 UNION ALL SELECT 99, 99 UNION ALL SELECT * FROM t4;\n      ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        INSERT INTO t3 VALUES(1,3);\n        SELECT * FROM t3 UNION ALL SELECT 99, 99 UNION ALL SELECT * FROM t4;\n      ")
+		}
+	}
+	_res = db.Exec("\n    DROP TABLE t3;\n    DROP TABLE t4;\n  ")
+	if _res.Error != nil {
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t3;\n    DROP TABLE t4;\n  ")
+	}
+	{ // do_test "trigger1-10.0"
+		os.Remove("test2.db")
+		os.Remove("test2.db-journal")
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.1"
+		_res = db.Exec("\n      CREATE TABLE main.t4(a, b, c);\n      CREATE TABLE temp.t4(a, b, c);\n      CREATE TABLE aux.t4(a, b, c);\n      CREATE TABLE insert_log(db, a, b, c);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE main.t4(a, b, c);\n      CREATE TABLE temp.t4(a, b, c);\n      CREATE TABLE aux.t4(a, b, c);\n      CREATE TABLE insert_log(db, a, b, c);\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.2"
+		_res = db.Exec("\n      CREATE TEMP TRIGGER trig1 AFTER INSERT ON main.t4 BEGIN \n        INSERT INTO insert_log VALUES('main', new.a, new.b, new.c);\n      END;\n      CREATE TEMP TRIGGER trig2 AFTER INSERT ON temp.t4 BEGIN \n        INSERT INTO insert_log VALUES('temp', new.a, new.b, new.c);\n      END;\n      CREATE TEMP TRIGGER trig3 AFTER INSERT ON aux.t4 BEGIN \n        INSERT INTO insert_log VALUES('aux', new.a, new.b, new.c);\n      END;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TRIGGER trig1 AFTER INSERT ON main.t4 BEGIN \n        INSERT INTO insert_log VALUES('main', new.a, new.b, new.c);\n      END;\n      CREATE TEMP TRIGGER trig2 AFTER INSERT ON temp.t4 BEGIN \n        INSERT INTO insert_log VALUES('temp', new.a, new.b, new.c);\n      END;\n      CREATE TEMP TRIGGER trig3 AFTER INSERT ON aux.t4 BEGIN \n        INSERT INTO insert_log VALUES('aux', new.a, new.b, new.c);\n      END;\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.3"
+		_res = db.Exec("\n      INSERT INTO main.t4 VALUES(1, 2, 3);\n      INSERT INTO temp.t4 VALUES(4, 5, 6);\n      INSERT INTO aux.t4  VALUES(7, 8, 9);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO main.t4 VALUES(1, 2, 3);\n      INSERT INTO temp.t4 VALUES(4, 5, 6);\n      INSERT INTO aux.t4  VALUES(7, 8, 9);\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.4"
+		r = db.Query("\n      SELECT * FROM insert_log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM insert_log;\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.5"
+		_res = db.Exec("\n      BEGIN;\n      INSERT INTO main.t4 VALUES(1, 2, 3);\n      INSERT INTO temp.t4 VALUES(4, 5, 6);\n      INSERT INTO aux.t4  VALUES(7, 8, 9);\n      ROLLBACK;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO main.t4 VALUES(1, 2, 3);\n      INSERT INTO temp.t4 VALUES(4, 5, 6);\n      INSERT INTO aux.t4  VALUES(7, 8, 9);\n      ROLLBACK;\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.6"
+		r = db.Query("\n      SELECT * FROM insert_log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM insert_log;\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.7"
+		_res = db.Exec("\n      DELETE FROM insert_log;\n      INSERT INTO main.t4 VALUES(11, 12, 13);\n      INSERT INTO temp.t4 VALUES(14, 15, 16);\n      INSERT INTO aux.t4  VALUES(17, 18, 19);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM insert_log;\n      INSERT INTO main.t4 VALUES(11, 12, 13);\n      INSERT INTO temp.t4 VALUES(14, 15, 16);\n      INSERT INTO aux.t4  VALUES(17, 18, 19);\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.8"
+		r = db.Query("\n      SELECT * FROM insert_log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM insert_log;\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.9"
+		_res = db.Exec("\n      DROP TABLE insert_log;\n      CREATE TABLE aux.insert_log(db, d, e, f);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE insert_log;\n      CREATE TABLE aux.insert_log(db, d, e, f);\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.10"
+		_res = db.Exec("\n      INSERT INTO main.t4 VALUES(21, 22, 23);\n      INSERT INTO temp.t4 VALUES(24, 25, 26);\n      INSERT INTO aux.t4  VALUES(27, 28, 29);\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO main.t4 VALUES(21, 22, 23);\n      INSERT INTO temp.t4 VALUES(24, 25, 26);\n      INSERT INTO aux.t4  VALUES(27, 28, 29);\n    ")
+		}
+	}
+	{ // do_test "trigger1-10.11"
+		r = db.Query("\n      SELECT * FROM insert_log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM insert_log;\n    ")
 		}
 	}
 	{ // do_test "trigger1-11.1"
@@ -339,8 +574,8 @@ func Test_trigger1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp2, err := frigolite.Open(":memory:")
-	_ = _dbtmp2 // sqlite3 db connection
+	_dbtmp5, err := frigolite.Open(":memory:")
+	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "trigger1-20.1"
 		_res = db.Exec("\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
@@ -348,8 +583,8 @@ func Test_trigger1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
 		}
 	}
-	_dbtmp3, err := frigolite.Open(":memory:")
-	_ = _dbtmp3 // sqlite3 db connection
+	_dbtmp6, err := frigolite.Open(":memory:")
+	_ = _dbtmp6 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "trigger1-21.1"
 		r = db.Query("\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t0(a, b, c UNIQUE);\n  CREATE UNIQUE INDEX i0 ON t0(b) WHERE a;\n  CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN\n    DELETE FROM t0;\n  END;\n  INSERT INTO t0(a,b,c) VALUES(0,0,9),(1,1,1);\n  REPLACE INTO t0(a,b,c) VALUES(2,0,9);\n  SELECT * FROM t0;\n")

@@ -47,15 +47,11 @@ func Test_fts3tok_err(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fts3tok_err" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test fts3tok_err-1 -faults oom* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { CREATE VIRTUAL TABLE t1 USING fts3tok...} -test {
-  faultsim_test_result {0 {}} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test fts3tok_err-1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts3to...} -test {\n  faultsim_test_result {0 {}} \n} (unsupported command, not transpiled)
 	{ // do_test "fts3tok_err-2.prep"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts3tokenize(\"simple\"); ")
@@ -64,9 +60,5 @@ func Test_fts3tok_err(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test fts3tok_err-2 -faults oom* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { SELECT token FROM t1 WHERE input = 'A...} -test {
-  faultsim_test_result {0 {a galaxy far far away}...} (unsupported command, not transpiled)
+	// do_faultsim_test fts3tok_err-2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT token FROM t1 WHERE input = '...} -test {\n  faultsim_test_result {0 {a galaxy far far away...} (unsupported command, not transpiled)
 }

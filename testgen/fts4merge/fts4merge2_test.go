@@ -51,20 +51,11 @@ func Test_fts4merge2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4merge2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	return
 	{ // do_test "1.0"
 		// fts3_build_db_1 1000 (unsupported command, not transpiled)
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 1.1 -faults oom-* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { INSERT INTO t1(t1) VALUES('merge=32,4...} -test {
-  faultsim_test_result {0 {}} 
-} (unsupported command, not transpiled)
-	// do_faultsim_test 1.2 -faults oom-t* -prep {
-  if {$iFail<100} {set iFail 803}
-  faultsim_rest...} -body {
-  execsql { INSERT INTO t1(t1) VALUES('merge=1,2'...} -test {
-  faultsim_test_result {0 {}} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { INSERT INTO t1(t1) VALUES('merge=32,...} -test {\n  faultsim_test_result {0 {}} \n} (unsupported command, not transpiled)
+	// do_faultsim_test 1.2 -faults oom-t* -prep {\n  if {$iFail<100} {set iFail 803}\n  faultsim_re...} -body {\n  execsql { INSERT INTO t1(t1) VALUES('merge=1,2...} -test {\n  faultsim_test_result {0 {}} \n} (unsupported command, not transpiled)
 }

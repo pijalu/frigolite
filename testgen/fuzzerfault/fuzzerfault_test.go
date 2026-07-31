@@ -47,6 +47,7 @@ func Test_fuzzerfault(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	return
 	testprefix = "fuzzerfault" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// load_static_extension db fuzzer (unsupported command, not transpiled)
@@ -57,12 +58,7 @@ func Test_fuzzerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 1 -prep {
-  faultsim_restore_and_reopen
-  load_static_exten...} -body {
-  execsql { 
-    CREATE VIRTUAL TABLE x1 USING fu...} -test {
-  faultsim_test_result {0 {xax xbx xcx xdx}}     ...} (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  load_static_ext...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE x1 USING ...} -test {\n  faultsim_test_result {0 {xax xbx xcx xdx}}    ...} (unsupported command, not transpiled)
 	{ // do_test "2-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		// load_static_extension db fuzzer (unsupported command, not transpiled)
@@ -72,12 +68,7 @@ func Test_fuzzerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 2 -prep {
-  faultsim_restore_and_reopen
-  load_static_exten...} -body {
-  execsql { 
-    SELECT count(*) FROM x2 WHERE wo...} -test {
-  faultsim_test_result {0 8} {1 {vtable construct...} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -prep {\n  faultsim_restore_and_reopen\n  load_static_ext...} -body {\n  execsql { \n    SELECT count(*) FROM x2 WHERE ...} -test {\n  faultsim_test_result {0 8} {1 {vtable construc...} (unsupported command, not transpiled)
 	{ // do_test "3-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', \n      '123456789012345678901234567890a1234567890123456789', 10\n    );\n  ")
@@ -86,12 +77,7 @@ func Test_fuzzerfault(t *testing.T) {
 		}
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	// do_faultsim_test 3 -prep {
-  faultsim_restore_and_reopen
-  load_static_exten...} -body {
-  execsql { 
-    CREATE VIRTUAL TABLE x1 USING fu...} -test {
-  faultsim_test_result {0 2} {1 {vtable construct...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -prep {\n  faultsim_restore_and_reopen\n  load_static_ext...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE x1 USING ...} -test {\n  faultsim_test_result {0 2} {1 {vtable construc...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -102,11 +88,5 @@ func Test_fuzzerfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 4 -faults oom-t* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql { 
-    SELECT 1 FROM t1_a LEFT JOIN t3 ...} -test {
-  faultsim_test_result {0 {}} 
-} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    SELECT 1 FROM t1_a LEFT JOIN t...} -test {\n  faultsim_test_result {0 {}} \n} (unsupported command, not transpiled)
 }

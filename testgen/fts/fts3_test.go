@@ -47,4 +47,5 @@ func Test_fts3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	// run_test_suite fts3 (unsupported command, not transpiled)
 }

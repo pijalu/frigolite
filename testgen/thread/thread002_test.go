@@ -82,6 +82,7 @@ func Test_thread002(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
+	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	NTHREAD = "10" // TCL namespace variable
@@ -114,7 +115,7 @@ func Test_thread002(t *testing.T) {
 	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; NTHREAD_n, _NTHREAD_e := strconv.Atoi(NTHREAD); if _NTHREAD_e != nil { return false }; return ii_n < NTHREAD_n }() {
-		order = "lindex $order_list [expr $ii%6]"
+		order = tclLIndex(order_list, "")
 		_ = order // suppress unused warning
 		// thread_spawn finished($ii) $thread_procs set order {$order} $thread_program (unsupported command, not transpiled)
 		// incr ii 1

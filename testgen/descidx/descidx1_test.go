@@ -171,6 +171,54 @@ func Test_descidx1(t *testing.T) {
 	{ // do_test "descidx1-3.26"
 		_ = db.Exec("SELECT b FROM t1 WHERE a>3 AND a<8 ORDER BY a DESC") // cksort
 	}
+	{ // do_test "descidx1-4.1"
+		r = db.Query("\n      CREATE TABLE t2(a INT, b TEXT, c BLOB, d REAL);\n      CREATE INDEX i3 ON t2(a ASC, b DESC, c ASC);\n      CREATE INDEX i4 ON t2(b DESC, a ASC, d DESC);\n      INSERT INTO t2 VALUES(1,'one',x'31',1.0);\n      INSERT INTO t2 VALUES(2,'two',x'3232',2.0);\n      INSERT INTO t2 VALUES(3,'three',x'333333',3.0);\n      INSERT INTO t2 VALUES(4,'four',x'34343434',4.0);\n      INSERT INTO t2 VALUES(5,'five',x'3535353535',5.0);\n      INSERT INTO t2 VALUES(6,'six',x'363636363636',6.0);\n      INSERT INTO t2 VALUES(2,'two',x'323232',2.1);\n      INSERT INTO t2 VALUES(2,'zwei',x'3232',2.2);\n      INSERT INTO t2 VALUES(2,NULL,NULL,2.3);\n      SELECT count(*) FROM t2;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t2(a INT, b TEXT, c BLOB, d REAL);\n      CREATE INDEX i3 ON t2(a ASC, b DESC, c ASC);\n      CREATE INDEX i4 ON t2(b DESC, a ASC, d DESC);\n      INSERT INTO t2 VALUES(1,'one',x'31',1.0);\n      INSERT INTO t2 VALUES(2,'two',x'3232',2.0);\n      INSERT INTO t2 VALUES(3,'three',x'333333',3.0);\n      INSERT INTO t2 VALUES(4,'four',x'34343434',4.0);\n      INSERT INTO t2 VALUES(5,'five',x'3535353535',5.0);\n      INSERT INTO t2 VALUES(6,'six',x'363636363636',6.0);\n      INSERT INTO t2 VALUES(2,'two',x'323232',2.1);\n      INSERT INTO t2 VALUES(2,'zwei',x'3232',2.2);\n      INSERT INTO t2 VALUES(2,NULL,NULL,2.3);\n      SELECT count(*) FROM t2;\n    ")
+		}
+	}
+	{ // do_test "descidx1-4.2"
+		r = db.Query("\n      SELECT d FROM t2 ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "descidx1-4.3"
+		r = db.Query("\n      SELECT d FROM t2 WHERE a>=2 ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a>=2 ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "descidx1-4.4"
+		r = db.Query("\n      SELECT d FROM t2 WHERE a>2 ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a>2 ORDER BY a;\n    ")
+		}
+	}
+	{ // do_test "descidx1-4.5"
+		r = db.Query("\n      SELECT d FROM t2 WHERE a=2 AND b>'two';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a=2 AND b>'two';\n    ")
+		}
+	}
+	{ // do_test "descidx1-4.6"
+		r = db.Query("\n      SELECT d FROM t2 WHERE a=2 AND b>='two';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a=2 AND b>='two';\n    ")
+		}
+	}
+	{ // do_test "descidx1-4.7"
+		r = db.Query("\n      SELECT d FROM t2 WHERE a=2 AND b<'two';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a=2 AND b<'two';\n    ")
+		}
+	}
+	{ // do_test "descidx1-4.8"
+		r = db.Query("\n      SELECT d FROM t2 WHERE a=2 AND b<='two';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t2 WHERE a=2 AND b<='two';\n    ")
+		}
+	}
 	{ // do_test "descidx1-5.1"
 		r = db.Query("\n    CREATE TABLE t3(a,b,c,d);\n    CREATE INDEX t3i1 ON t3(a DESC, b ASC, c DESC, d ASC);\n    INSERT INTO t3 VALUES(0,0,0,0);\n    INSERT INTO t3 VALUES(0,0,0,1);\n    INSERT INTO t3 VALUES(0,0,1,0);\n    INSERT INTO t3 VALUES(0,0,1,1);\n    INSERT INTO t3 VALUES(0,1,0,0);\n    INSERT INTO t3 VALUES(0,1,0,1);\n    INSERT INTO t3 VALUES(0,1,1,0);\n    INSERT INTO t3 VALUES(0,1,1,1);\n    INSERT INTO t3 VALUES(1,0,0,0);\n    INSERT INTO t3 VALUES(1,0,0,1);\n    INSERT INTO t3 VALUES(1,0,1,0);\n    INSERT INTO t3 VALUES(1,0,1,1);\n    INSERT INTO t3 VALUES(1,1,0,0);\n    INSERT INTO t3 VALUES(1,1,0,1);\n    INSERT INTO t3 VALUES(1,1,1,0);\n    INSERT INTO t3 VALUES(1,1,1,1);\n    SELECT count(*) FROM t3;\n  ")
 		if r.Error != nil {
@@ -201,6 +249,13 @@ func Test_descidx1(t *testing.T) {
 	{ // do_test "descidx1-5.9"
 		_ = db.Exec("\n    SELECT a||b||c FROM t3 WHERE d=0 ORDER BY a DESC, b DESC, c ASC\n  ") // cksort
 	}
+	{ // do_test "descidx1-6.1"
+		os.Remove("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		// sqlite3_db_config db LEGACY_FILE_FORMAT (unsupported command, not transpiled)
+	}
 	{ // do_test "descidx1-6.2"
 		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
 		// sqlite3_db_config db LEGACY_FILE_FORMAT (unsupported command, not transpiled)
@@ -212,10 +267,17 @@ func Test_descidx1(t *testing.T) {
 		}
 		// get_file_format (unsupported command, not transpiled)
 	}
+	{ // do_test "descidx1-6.3.1"
+		_res = db.Exec("VACUUM")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+		}
+		// get_file_format (unsupported command, not transpiled)
+	}
 	{ // do_test "descidx1-6.4"
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
 		// sqlite3_db_config db LEGACY_FILE_FORMAT (unsupported command, not transpiled)
@@ -224,6 +286,21 @@ func Test_descidx1(t *testing.T) {
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a ASC, b DESC, c ASC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,1,0);\n    INSERT INTO t1 VALUES(1,2,1);\n    INSERT INTO t1 VALUES(1,3,4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a ASC, b DESC, c ASC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,1,0);\n    INSERT INTO t1 VALUES(1,2,1);\n    INSERT INTO t1 VALUES(1,3,4);\n  ")
+		}
+		// get_file_format (unsupported command, not transpiled)
+	}
+	{ // do_test "descidx1-6.6"
+		_res = db.Exec("VACUUM")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+		}
+		// get_file_format (unsupported command, not transpiled)
+	}
+	{ // do_test "descidx1-6.7"
+		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
+		_res = db.Exec("\n      VACUUM;\n    ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      VACUUM;\n    ")
 		}
 		// get_file_format (unsupported command, not transpiled)
 	}

@@ -59,7 +59,7 @@ func Test_shrink(t *testing.T) {
 		baseline = "sqlite3_memory_used" // TCL namespace variable
 		_ = baseline // suppress unused warning
 		// sqlite3_db_release_memory db (unsupported command, not transpiled)
-		// expr $::baseline > [sqlite3_memory_used]+500000 → "$::baseline > [sqlite3_memory_used]+500000"
+		// expr $::baseline > [sqlite3_memory_used]+500000 (not evaluated)
 	}
 	{ // do_test "shrink-1.2"
 		baseline = "sqlite3_memory_used"
@@ -68,7 +68,7 @@ func Test_shrink(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET y=y+1;\n  ")
 		}
-		// expr $::baseline+500000 < [sqlite3_memory_used] → "$::baseline+500000 < [sqlite3_memory_used]"
+		// expr $::baseline+500000 < [sqlite3_memory_used] (not evaluated)
 	}
 	{ // do_test "shrink-1.3"
 		baseline = "sqlite3_memory_used"
@@ -77,7 +77,7 @@ func Test_shrink(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA shrink_memory")
 		}
-		// expr $::baseline > [sqlite3_memory_used]+500000 → "$::baseline > [sqlite3_memory_used]+500000"
+		// expr $::baseline > [sqlite3_memory_used]+500000 (not evaluated)
 	}
 	// test_restore_config_pagecache (unsupported command, not transpiled)
 }

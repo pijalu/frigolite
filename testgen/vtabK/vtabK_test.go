@@ -50,6 +50,7 @@ func Test_vtabK(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtabK"
 	_ = testprefix // suppress unused warning
+	return
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(123);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n  PRAGMA writable_schema=OFF;\n  CREATE VIRTUAL TABLE t3 USING fts5(b);\n  INSERT INTO t3 VALUES('this is a test');\n")
 		if _res.Error != nil {

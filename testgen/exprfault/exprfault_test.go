@@ -56,21 +56,8 @@ func Test_exprfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 1.1 -faults oom* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT a = ( SELECT d FROM (SELEC...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
-	// do_faultsim_test 2 -faults oom* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    SELECT hex ( unhex('ABCDEF') );
- ...} -test {
-  faultsim_test_result {0 ABCDEF}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT a = ( SELECT d FROM (SEL...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT hex ( unhex('ABCDEF') );...} -test {\n  faultsim_test_result {0 ABCDEF}\n} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -81,12 +68,5 @@ func Test_exprfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// do_faultsim_test 3 -faults oom* -prep {
-  faultsim_restore_and_reopen
-} -body {
-  execsql {
-    UPDATE t1 SET b=randomblob(500);
-...} -test {
-  faultsim_test_result {0 {}}
-} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    UPDATE t1 SET b=randomblob(500)...} -test {\n  faultsim_test_result {0 {}}\n} (unsupported command, not transpiled)
 }
