@@ -6,6 +6,7 @@ package whereK
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -71,9 +72,9 @@ func Test_whereK(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1bc/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1bc"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.2"
@@ -95,9 +96,9 @@ func Test_whereK(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1bc/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1bc"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.3"
@@ -119,9 +120,9 @@ func Test_whereK(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1bc/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1bc"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.4"
@@ -143,9 +144,9 @@ func Test_whereK(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1bc/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1bc"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.5"
@@ -167,9 +168,9 @@ func Test_whereK(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1bc/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1bc"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.1"
