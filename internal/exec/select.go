@@ -466,6 +466,25 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 		}
 		rowMaps = append(rowMaps, rowMap)
 	}
+
+	// Handle outer JOINs: the outer query may join the view against other
+	// tables/views (e.g. FROM v1 RIGHT JOIN t ON v1.x=t.x).
+	if len(s.Joins) > 0 {
+		var err error
+		rowMaps, viewColDefs, err = e.execJoins(s, rowMaps, viewColDefs)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		if s.Where != nil {
+			filtered := rowMaps[:0]
+			for _, rowMap := range rowMaps {
+				if e.rowPassesWhere(s.Where, rowMap, nil) {
+					filtered = append(filtered, rowMap)
+				}
+			}
+			rowMaps = filtered
+		}
+	}
 	// Handle aggregates in outer SELECT
 	if aggResult := e.handleSelectAggregates(s, rowMaps, viewColDefs); aggResult != nil {
 		return aggResult
@@ -670,6 +689,25 @@ func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 
 	// 	// Apply WHERE filter
 	_, allRowMaps = e.filterSubqueryRows(allRows, allRowMaps, s.Where)
+
+	// Handle outer JOINs: the outer query may join the subquery against other
+	// tables/views (e.g. FROM (SELECT ...) v RIGHT JOIN t ON v.x=t.x).
+	if len(s.Joins) > 0 {
+		var err error
+		allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		if s.Where != nil {
+			filtered := allRowMaps[:0]
+			for _, rowMap := range allRowMaps {
+				if e.rowPassesWhere(s.Where, rowMap, nil) {
+					filtered = append(filtered, rowMap)
+				}
+			}
+			allRowMaps = filtered
+		}
+	}
 
 	// Handle aggregate functions
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
