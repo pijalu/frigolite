@@ -2684,25 +2684,51 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 	hasJoins := len(s.Joins) > 0
 
 	// Determine which columns need affinity wrappers by collecting column
-	// references from expressions (WHERE, ORDER BY, etc.). Columns not referenced
-	// in comparisons can skip the ColumnValue wrapper for faster row building.
+	// references from expressions (WHERE, SELECT list, ORDER BY, etc.).
+	// Columns not referenced in comparisons can skip the ColumnValue wrapper
+	// for faster row building.
 	var affinityCols map[string]bool
-	if s.Where != nil {
-		// Collect column references from WHERE clause — only these need affinity
-		affinityCols = make(map[string]bool)
+	collectRefs := func(exprs ...sql.Expr) {
+		if affinityCols == nil {
+			affinityCols = make(map[string]bool)
+		}
 		var refs []string
-		collectExprRefs(s.Where, &refs)
+		for _, expr := range exprs {
+			if expr != nil {
+				collectExprRefs(expr, &refs)
+			}
+		}
 		for _, name := range refs {
 			affinityCols[name] = true
 		}
-	} else if needMaps {
-		// When needMaps is true but no WHERE, all columns need affinity since
-		// maps may be used in expression evaluation downstream.
+	}
+	if s.Where != nil {
+		// Collect column references from WHERE clause.
+		collectRefs(s.Where)
+	}
+	// Also collect from SELECT columns: expressions like "xt==+xi" need the
+	// affinity of xt even when xt is not referenced in WHERE/ORDER BY.
+	if affinityCols == nil && len(s.Columns) > 0 {
+		affinityCols = make(map[string]bool)
+	}
+	if len(s.Columns) > 0 {
+		for _, col := range s.Columns {
+			collectRefs(col.Expr)
+		}
+	}
+	if len(s.OrderBy) > 0 {
+		for _, ob := range s.OrderBy {
+			collectRefs(ob.Expr)
+		}
+	}
+	if affinityCols == nil && needMaps {
+		// When needMaps is true but nothing was collected, all columns need
+		// affinity since maps may be used in expression evaluation downstream.
 		affinityCols = make(map[string]bool)
 		for _, cd := range colDefs {
 			affinityCols[cd.Name] = true
 		}
-	} else {
+	} else if affinityCols == nil {
 		// No WHERE and no needMaps: no affinity wrappers needed at all.
 		affinityCols = nil
 	}
@@ -3110,24 +3136,22 @@ func (e *Engine) fillStructRowFromTypes(sr *structRow, payload []byte, dataStart
 	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, serialTypes, colIndices)
 
 	// Apply affinity wrappers for columns specified in affinityCols.
+	// Match buildRowMap: wrap ALL columns (including INTEGER/REAL) with their
+	// affinity so comparison logic applies the same SQLite affinity rules on
+	// both the fast structRow path and the map path. Skipping I/R here made
+	// results differ when ORDER BY forced the structRow path.
 	if affinityCols != nil {
 		for i := 0; i < len(values); i++ {
 			if values[i] != nil && affinityCols[colDefs[i].Name] {
 				aff := util.Affinity(colDefs[i].Type)
-				if aff != 'I' && aff != 'R' {
-					values[i] = &util.ColumnValue{Value: values[i], Affinity: aff}
-				}
+				values[i] = &util.ColumnValue{Value: values[i], Affinity: aff}
 			}
 		}
 		// Handle rowid and PRIMARY KEY for affinity columns
 		for i, cd := range colDefs {
 			if cd.PrimaryKey && values[i] == nil && affinityCols[cd.Name] {
 				aff := util.Affinity(cd.Type)
-				if aff != 'I' && aff != 'R' {
-					values[i] = &util.ColumnValue{Value: rowID, Affinity: aff}
-				} else {
-					values[i] = rowID
-				}
+				values[i] = &util.ColumnValue{Value: rowID, Affinity: aff}
 			}
 		}
 	}

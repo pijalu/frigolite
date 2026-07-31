@@ -183,8 +183,15 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (interface{}, error) {
 		case float64:
 			return int64(x), nil
 		case string:
-			// Simple conversion
-			return int64(len(x)), nil
+			// SQLite: CAST(text AS INTEGER) parses the text as a number;
+			// non-numeric text coerces to 0.
+			if i, err := strconv.ParseInt(strings.TrimSpace(x), 10, 64); err == nil {
+				return i, nil
+			}
+			if f, err := strconv.ParseFloat(strings.TrimSpace(x), 64); err == nil {
+				return int64(f), nil
+			}
+			return int64(0), nil
 		default:
 			return int64(0), nil
 		}
@@ -195,12 +202,36 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (interface{}, error) {
 		case int64:
 			return float64(x), nil
 		case string:
-			return float64(len(x)), nil
+			// SQLite: CAST(text AS REAL) parses the text as a number;
+			// non-numeric text coerces to 0.0.
+			if f, err := strconv.ParseFloat(strings.TrimSpace(x), 64); err == nil {
+				return f, nil
+			}
+			return float64(0), nil
 		default:
 			return float64(0), nil
 		}
 	case "TEXT":
 		return fmt.Sprintf("%v", val), nil
+	case "NUMERIC":
+		// SQLite: CAST(x AS NUMERIC) coerces text to a number; non-numeric
+		// text becomes 0.
+		switch x := val.(type) {
+		case int64:
+			return x, nil
+		case float64:
+			return x, nil
+		case string:
+			if i, err := strconv.ParseInt(strings.TrimSpace(x), 10, 64); err == nil {
+				return i, nil
+			}
+			if f, err := strconv.ParseFloat(strings.TrimSpace(x), 64); err == nil {
+				return f, nil
+			}
+			return int64(0), nil
+		default:
+			return int64(0), nil
+		}
 	default:
 		return val, nil
 	}
@@ -306,6 +337,7 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// Most operators return NULL when either operand is NULL.
 	// AND/OR need Kleene logic (handled in evalArithmeticOp).
 	// IS / IS NOT are NULL-safe: NULL IS NULL is true.

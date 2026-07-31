@@ -781,6 +781,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Right:    &sql.StringLit{Value: collation},
 		}
 
+	// Rule 188: expr ::= CAST LP expr AS typetoken RP
+	case 188:
+		return &sql.CastExpr{
+			Operand: getExpr(getRHS(p, ruleNo, 3)),
+			AsType:  getString(getRHS(p, ruleNo, 5)),
+		}
+
 	// Rule 189: expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP (function call)
 	case 189:
 		name := getString(getRHS(p, ruleNo, 1))
@@ -991,11 +998,14 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 216: expr ::= PLUS|MINUS expr (unary)
 	case 216:
 		operand := getExpr(getRHS(p, ruleNo, 2))
-		if lookahead == TK_MINUS {
+		// Read the operator from the RHS token value (lookahead is the NEXT
+		// token at reduce time, so it cannot distinguish + from -).
+		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok && tok.Value == "-" {
 			return &sql.UnaryOp{Operand: operand, Operator: "-"}
 		}
-		// Unary + is a no-op
-		return operand
+		// Unary + is a no-op at parse level (SQLite semantics: +expr is
+		// equivalent to expr but the result has NO affinity).
+		return &sql.UnaryOp{Operand: operand, Operator: "+"}
 
 	// Rule 220: expr ::= expr between_op expr AND expr
 	case 220:
