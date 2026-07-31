@@ -209,13 +209,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		name := getString(getRHS(p, ruleNo, 4))
 		return &sql.DropTableStmt{Name: name, IfExists: ifExists}
 
-	// Rule 80: ifexists ::=
+	// Rule 80: ifexists ::= IF EXISTS
 	case 80:
-		return false
-
-	// Rule 81: ifexists ::= IF EXISTS
-	case 81:
 		return true
+
+	// Rule 81: ifexists ::=
+	case 81:
+		return false
 
 	// Rule 82: cmd ::= DROP TABLE ifexists fullname (with dbnm handled in fullname)
 	// (falls through to default pass-through if not matched)
@@ -483,6 +483,16 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 117:
 		return getString(getRHS(p, ruleNo, 2))
 
+	// Rule 118: fullname ::= nm
+	case 118:
+		return getString(getRHS(p, ruleNo, 1))
+
+	// Rule 119: fullname ::= nm DOT nm
+	case 119:
+		a := getString(getRHS(p, ruleNo, 1))
+		b := getString(getRHS(p, ruleNo, 3))
+		return a + "." + b
+
 	// Rule 124: joinop ::= COMMA|JOIN
 	case 124:
 		return joinOp{Comma: true}
@@ -605,12 +615,44 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Where: where,
 		}
 
+	// Rule 159: cmd ::= with UPDATE orconf xfullname indexed_opt SET setlist from where_opt
+	case 159:
+		tbl := getString(getRHS(p, ruleNo, 4))
+		setlist := getAssignments(getRHS(p, ruleNo, 7))
+		where := getExpr(getRHS(p, ruleNo, 9))
+		return &sql.UpdateStmt{
+			Table:       tbl,
+			Assignments: setlist,
+			Where:       where,
+		}
+
+	// Rule 160: setlist ::= setlist COMMA nm EQ expr
+	case 160:
+		acc := getAssignments(getRHS(p, ruleNo, 1))
+		col := getString(getRHS(p, ruleNo, 3))
+		val := getExpr(getRHS(p, ruleNo, 5))
+		return append(acc, sql.Assignment{Column: col, Value: val})
+
+	// Rule 162: setlist ::= nm EQ expr
+	case 162:
+		col := getString(getRHS(p, ruleNo, 1))
+		val := getExpr(getRHS(p, ruleNo, 3))
+		return []sql.Assignment{{Column: col, Value: val}}
+
 	// Rule 153: where_opt ::=
 	case 153:
 		return nil
 
 	// Rule 154: where_opt ::= WHERE expr
 	case 154:
+		return getExpr(getRHS(p, ruleNo, 2))
+
+	// Rule 155: where_opt_ret ::=
+	case 155:
+		return nil
+
+	// Rule 156: where_opt_ret ::= WHERE expr
+	case 156:
 		return getExpr(getRHS(p, ruleNo, 2))
 
 	// Rule 164: cmd ::= with insert_cmd INTO xfullname idlist_opt select upsert
@@ -1006,9 +1048,25 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 239: cmd ::= createkw uniqueflag INDEX ifnotexists nm dbnm ON nm LP sortlist RP where_opt
 	case 239:
-		return nil // CREATE INDEX - minimal support
+		name := getString(getRHS(p, ruleNo, 5))
+		table := getString(getRHS(p, ruleNo, 8))
+		sortlist := getOrderByList(getRHS(p, ruleNo, 10))
+		where := getExpr(getRHS(p, ruleNo, 12))
+		// The sortlist is []OrderByTerm; convert to []IndexColumn.
+		var cols []sql.IndexColumn
+		for _, term := range sortlist {
+			if ref, ok := term.Expr.(*sql.ColumnRef); ok {
+				cols = append(cols, sql.IndexColumn{Name: ref.Name, Desc: term.Desc})
+			}
+		}
+		return &sql.CreateIndexStmt{
+			Name:    name,
+			Table:   table,
+			Columns: cols,
+			Where:   where,
+		}
 
-		// Rule 248: cmd ::= DROP INDEX ifexists fullname
+	// Rule 248: cmd ::= DROP INDEX ifexists fullname
 	case 248:
 		ifExists := getBool(getRHS(p, ruleNo, 3))
 		name := getString(getRHS(p, ruleNo, 4))
@@ -1514,6 +1572,18 @@ func getOrderByList(v interface{}) []sql.OrderByTerm {
 	return nil
 }
 
+// getAssignments extracts a []sql.Assignment from a stack value.
+func getAssignments(v interface{}) []sql.Assignment {
+	if v == nil {
+		return nil
+	}
+	if a, ok := v.([]sql.Assignment); ok {
+		return a
+	}
+	return nil
+}
+
+// getStringList extracts a []string from a stack value.
 func getStringList(v interface{}) []string {
 	if v == nil {
 		return nil
