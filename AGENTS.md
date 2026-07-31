@@ -77,7 +77,9 @@ Frigolite supports a useful subset of SQLite SQL:
 # No TCL execution happens at generation time. All control flow (foreach, for,
 # while, if) becomes Go control flow running at test runtime.
 go run ./tools/tcl2go/            # generate all test files in testgen/ (~0.5s)
-go test ./testgen/... -count=1    # run all generated tests
+# Generated tests are opt-in via the testgen build tag, so 'go test ./...'
+# (and the SOLID verify command) builds only hand-written, non-generated code.
+go test -tags testgen ./testgen/... -count=1    # run all generated tests
 ```
 
 ## Source Cleanup Guidelines

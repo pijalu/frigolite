@@ -43,6 +43,8 @@ release: quality test cross-build
 test:
 	go test -timeout 60s -count=1 -run "^Test[^C]" ./...
 	go test -timeout 60s -count=1 -run "^TestSQLite" .
+	# Generated tests are opt-in via the testgen build tag
+	go test -timeout 60s -count=1 -tags testgen ./testgen/...
 
 # Test with race detection (excludes compat tests using subprocesses)
 test-race:
