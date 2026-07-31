@@ -53,7 +53,6 @@ func Test_triggerB(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "triggerB-1.1"
 		r = db.Query("\n    CREATE TABLE x(x INTEGER PRIMARY KEY, y INT NOT NULL);\n    INSERT INTO x(y) VALUES(1);\n    INSERT INTO x(y) VALUES(1);\n    CREATE TEMP VIEW vx AS SELECT x, y, 0 AS yy FROM x;\n    CREATE TEMP TRIGGER tx INSTEAD OF UPDATE OF y ON vx\n    BEGIN\n      UPDATE x SET y = new.y WHERE x = new.x;\n    END;\n    SELECT * FROM vx;\n  ")
 		if r.Error != nil {

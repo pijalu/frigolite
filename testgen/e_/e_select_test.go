@@ -82,7 +82,6 @@ func Test_e_select(t *testing.T) {
 	_ = select_ // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // "e_select-1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES('a', 'one');\n  INSERT INTO t1 VALUES('b', 'two');\n  INSERT INTO t1 VALUES('c', 'three');\n\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES('a', 'I');\n  INSERT INTO t2 VALUES('b', 'II');\n  INSERT INTO t2 VALUES('c', 'III');\n\n  CREATE TABLE t3(a, c);\n  INSERT INTO t3 VALUES('a', 1);\n  INSERT INTO t3 VALUES('b', 2);\n\n  CREATE TABLE t4(a, c);\n  INSERT INTO t4 VALUES('a', NULL);\n  INSERT INTO t4 VALUES('b', 2);\n")
 		if _res.Error != nil {

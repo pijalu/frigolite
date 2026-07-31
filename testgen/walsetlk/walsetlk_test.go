@@ -71,7 +71,6 @@ func Test_walsetlk(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walsetlk"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 VALUES(7, 8);\n")
 		if _res.Error != nil {

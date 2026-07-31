@@ -67,7 +67,6 @@ func Test_selectB(t *testing.T) {
 	_ = results // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	{ // do_test "selectB-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n\n    INSERT INTO t1 VALUES( 2,  4,  6);\n    INSERT INTO t1 VALUES( 8, 10, 12);\n    INSERT INTO t1 VALUES(14, 16, 18);\n\n    INSERT INTO t2 VALUES(3,   6,  9);\n    INSERT INTO t2 VALUES(12, 15, 18);\n    INSERT INTO t2 VALUES(21, 24, 27);\n  ")

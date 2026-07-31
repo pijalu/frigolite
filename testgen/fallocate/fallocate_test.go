@@ -136,8 +136,6 @@ func Test_fallocate(t *testing.T) {
 	}
 	skipwaltests = tclExpr("\n  [permutation]==\"journaltest\" || [permutation]==\"inmemory_journal\"\n")
 	_ = skipwaltests // suppress unused warning
-	skipwaltests = "1"
-	_ = skipwaltests // suppress unused warning
 	if tclBool("!" + skipwaltests) {
 		os.Remove("test.db")
 		_dbtmp0, err := frigolite.Open("test.db")

@@ -60,7 +60,6 @@ func Test_walblock(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	return
-	return
 	if tcl_platform_platform != "unix" {
 		return
 	}

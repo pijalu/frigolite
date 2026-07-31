@@ -66,7 +66,6 @@ func Test_shell6(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "shell6"
 	_ = testprefix // suppress unused warning
 	CLI = "test_find_cli"

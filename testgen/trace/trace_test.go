@@ -80,7 +80,6 @@ func Test_trace(t *testing.T) {
 	_ = t6null // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	stmtlist = "" // TCL namespace variable
 	_ = stmtlist // suppress unused warning
 	{ // do_test "trace-1.1"

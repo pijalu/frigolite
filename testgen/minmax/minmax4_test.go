@@ -56,7 +56,6 @@ func Test_minmax4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "minmax4"
 	_ = testprefix // suppress unused warning
-	return
 	{ // do_test "minmax4-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(p,q);\n    SELECT p, max(q) FROM t1;\n  ")
 		if _res.Error != nil {

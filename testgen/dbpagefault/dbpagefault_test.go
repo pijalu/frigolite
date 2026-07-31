@@ -57,7 +57,6 @@ func Test_dbpagefault(t *testing.T) {
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
 		return
 	}
-	return
 	testprefix = "dbpagefault"
 	_ = testprefix // suppress unused warning
 	// faultsim_save_and_close (unsupported command, not transpiled)

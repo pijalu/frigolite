@@ -710,10 +710,6 @@ func Test_tclsqlite(t *testing.T) {
 		}
 		rc = tclListAppend(rc, msg)
 	}
-	_res = db.Exec("INSERT INTO t1 VALUES(99,510)")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(99,510)")
-	}
 	{ // do_test "tcl-4.1"
 		// proc definition (not transpiled)
 	}

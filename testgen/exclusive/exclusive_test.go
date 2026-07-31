@@ -76,7 +76,6 @@ func Test_exclusive(t *testing.T) {
 	_ = fname // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	os.Remove("test2.db-journal")
 	os.Remove("test2.db")
 	os.Remove("test3.db-journal")

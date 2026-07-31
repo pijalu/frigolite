@@ -97,7 +97,6 @@ func Test_skipscan5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "skipscan5"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {

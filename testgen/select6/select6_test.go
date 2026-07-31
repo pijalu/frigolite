@@ -52,7 +52,6 @@ func Test_select6(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "select6" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // do_test "select6-1.0"
@@ -367,7 +366,6 @@ func Test_select6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c,b,a,* FROM (SELECT 1 AS 'a', 2 AS 'b', 'abc' AS 'c' WHERE 1)\n  ")
 		}
 	}
-	return
 	// proc definition (not transpiled)
 	{ // do_test "select6-8.1"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t3(p,q);\n    INSERT INTO t3 VALUES(1,11);\n    INSERT INTO t3 VALUES(2,22);\n    CREATE TABLE t4(q,r);\n    INSERT INTO t4 VALUES(11,111);\n    INSERT INTO t4 VALUES(22,222);\n    COMMIT;\n    SELECT * FROM t3 NATURAL JOIN t4;\n  ")

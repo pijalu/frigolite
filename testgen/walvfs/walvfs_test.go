@@ -69,7 +69,6 @@ func Test_walvfs(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walvfs"
 	_ = testprefix // suppress unused warning
-	return
 	// testvfs tvfs (unsupported command, not transpiled)
 	// tvfs script xSync (unsupported command, not transpiled)
 	// tvfs filter xSync (unsupported command, not transpiled)

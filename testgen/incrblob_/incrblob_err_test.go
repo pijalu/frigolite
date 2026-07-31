@@ -68,7 +68,6 @@ func Test_incrblob_err(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "incrblob_err" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	fd = "open $::cmdlinearg(INFO_SCRIPT)" // TCL namespace variable
 	_ = fd // suppress unused warning
 	data = "read $::fd" // TCL namespace variable

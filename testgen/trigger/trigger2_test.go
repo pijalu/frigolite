@@ -102,7 +102,6 @@ func Test_trigger2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "trigger2"
 	_ = testprefix // suppress unused warning
-	return
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
 	ii = "0"

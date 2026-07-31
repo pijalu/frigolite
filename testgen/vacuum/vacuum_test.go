@@ -63,8 +63,6 @@ func Test_vacuum(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// omit_test vacuum.test {Compiled with SQLITE_OMIT_VACUUM} (unsupported command, not transpiled)
-	return
 	if tclBool(AUTOVACUUM) {
 		// omit_test vacuum.test {Auto-vacuum is enabled} (unsupported command, not transpiled)
 		return
@@ -99,10 +97,6 @@ func Test_vacuum(t *testing.T) {
 	}
 	{ // do_test "vacuum-1.4"
 		sql_script = "\n    BEGIN;\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    CREATE VIEW v1 AS SELECT b, c FROM t3;\n    CREATE TRIGGER r1 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    COMMIT;\n    DROP TABLE t2;\n  "
-		_ = sql_script // suppress unused warning
-		sql_script = tclRegsub("CREATE VIEW", sql_script, "-- CREATE VIEW")
-		_ = sql_script // suppress unused warning
-		sql_script = tclRegsub("CREATE TRIGGER", sql_script, "-- CREATE TRIGGER")
 		_ = sql_script // suppress unused warning
 		_res = db.Exec(sql_script)
 		if _res.Error != nil {

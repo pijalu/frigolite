@@ -63,7 +63,6 @@ func Test_corrupt8(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
 	// database_may_be_corrupt (unsupported command, not transpiled)
-	return
 	{ // do_test "corrupt8-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n    INSERT INTO t1(x) SELECT x+16 FROM t1;\n    INSERT INTO t1(x) SELECT x+32 FROM t1;\n    INSERT INTO t1(x) SELECT x+64 FROM t1;\n    INSERT INTO t1(x) SELECT x+128 FROM t1;\n    INSERT INTO t1(x) SELECT x+256 FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 SELECT x, x*x FROM t1;\n  ")
 		if _res.Error != nil {

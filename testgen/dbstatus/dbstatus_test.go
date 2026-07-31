@@ -108,7 +108,6 @@ func Test_dbstatus(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "dbstatus"
 	_ = testprefix // suppress unused warning
-	return
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
@@ -171,8 +170,6 @@ func Test_dbstatus(t *testing.T) {
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
 					// register_echo_module db (unsupported command, not transpiled)
-				}
-				if tclBool("*x $tn") {
 				}
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -269,8 +266,6 @@ func Test_dbstatus(t *testing.T) {
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
 						// register_echo_module db (unsupported command, not transpiled)
-					}
-					if tclBool("*x $tn") {
 					}
 					_res = db.Exec(schema)
 					if _res.Error != nil {

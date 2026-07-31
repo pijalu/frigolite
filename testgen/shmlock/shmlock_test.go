@@ -91,7 +91,6 @@ func Test_shmlock(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "shmlock"
 	_ = testprefix // suppress unused warning
-	return
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db3, err = frigolite.Open("test.db")

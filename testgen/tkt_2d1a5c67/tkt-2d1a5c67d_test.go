@@ -62,7 +62,6 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "tkt-2d1a5c67d"
 	_ = testprefix // suppress unused warning
-	return
 	if tclBool("wal_is_capable" + "==0") {
 		return
 	}

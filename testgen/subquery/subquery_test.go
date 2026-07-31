@@ -52,7 +52,6 @@ func Test_subquery(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "subquery-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);\n    INSERT INTO t1 VALUES(7,8);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,1);\n    INSERT INTO t2 VALUES(3,9);\n    INSERT INTO t2 VALUES(5,25);\n    INSERT INTO t2 VALUES(7,49);\n    COMMIT;\n  ")
 		if _res.Error != nil {

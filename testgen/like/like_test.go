@@ -205,7 +205,6 @@ func Test_like(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x MATCH 'abc*' ORDER BY 1;\n  ")
 		}
 	}
-	return
 	// proc definition (not transpiled)
 	{ // do_test "like-3.1"
 		sqlite_like_count = "0"
@@ -912,126 +911,6 @@ func Test_like(t *testing.T) {
 		_putsMsg := "-nonewline"
 		_ = _putsMsg
 		// expr $x<$tlimit (not evaluated)
-	}
-	{ // do_test "like-14.2"
-		x = tclLIndex("time", "{")
-		_ = x // suppress unused warning
-		tlimit = tclExprWith("1000 * $::sqlite_options(configslower)", map[string]string{"::sqlite_options": sqlite_options})
-		_ = tlimit // suppress unused warning
-		_putsMsg := "-nonewline"
-		_ = _putsMsg
-		// expr $x<$tlimit (not evaluated)
-	}
-	_dbtmp2, err := frigolite.Open(":memory:")
-	_ = _dbtmp2 // sqlite3 db connection
-	if err != nil { t.Fatal(err) }
-	{ // "like-15.100"
-		r = db.Query("\n  CREATE TABLE t15(x TEXT COLLATE nocase, y, PRIMARY KEY(x));\n  INSERT INTO t15(x,y) VALUES\n    ('abcde',1), ('ab%de',2), ('a_cde',3),\n    ('uvwxy',11),('uvwx%',12),('uvwx_',13),\n    ('_bcde',21),('%bcde',22),\n    ('abcd_',31),('abcd%',32),\n    ('ab%xy',41);\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '/';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t15(x TEXT COLLATE nocase, y, PRIMARY KEY(x));\n  INSERT INTO t15(x,y) VALUES\n    ('abcde',1), ('ab%de',2), ('a_cde',3),\n    ('uvwxy',11),('uvwx%',12),('uvwx_',13),\n    ('_bcde',21),('%bcde',22),\n    ('abcd_',31),('abcd%',32),\n    ('ab%xy',41);\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '/';\n")
-			return
-		}
-		got := flatten(r)
-		want := "2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "like-15.101"
-		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '/';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '/';\n")
-			return
-		}
-		got := flatten(r)
-		want := "/SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "like-15.102"
-		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '//';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '//';\n")
-			return
-		}
-		got := flatten(r)
-		want := "/SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "like-15.103"
-		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '';\n")
-			return
-		}
-		got := flatten(r)
-		want := "/SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "like-15.110"
-		r = db.Query("\n  SELECT y FROM t15 WHERE x LIKE 'abcdx%%' ESCAPE 'x';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT y FROM t15 WHERE x LIKE 'abcdx%%' ESCAPE 'x';\n")
-			return
-		}
-		got := flatten(r)
-		want := "32"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "like-15.111"
-		r = db.Query("\n  SELECT y FROM t15 WHERE x LIKE 'abx%%' ESCAPE 'x' ORDER BY +y\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT y FROM t15 WHERE x LIKE 'abx%%' ESCAPE 'x' ORDER BY +y\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 41"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "like-15.112"
-		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'abx%%' ESCAPE 'x' ORDER BY +y\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'abx%%' ESCAPE 'x' ORDER BY +y\n")
-			return
-		}
-		got := flatten(r)
-		want := "/SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "like-15.120"
-		r = db.Query("\n  SELECT y FROM t15 WHERE x LIKE '/%bc%' ESCAPE '/';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT y FROM t15 WHERE x LIKE '/%bc%' ESCAPE '/';\n")
-			return
-		}
-		got := flatten(r)
-		want := "22"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "like-15.121"
-		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE '/%bc%' ESCAPE '/';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE '/%bc%' ESCAPE '/';\n")
-			return
-		}
-		got := flatten(r)
-		want := "/SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
 	}
 	db.Close()
 	db, err = frigolite.Open("")

@@ -54,7 +54,6 @@ func Test_spellfix2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "spellfix2"
 	_ = testprefix // suppress unused warning
-	return
 	// load_static_extension db spellfix nextchar (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE demo USING spellfix1;\n  INSERT INTO demo(word) VALUES ('amsterdam');\n  INSERT INTO demo(word) VALUES ('amsterdammetje');\n  INSERT INTO demo(word) VALUES ('amsterdamania');\n  INSERT INTO demo(word) VALUES ('amsterdamweg');\n  INSERT INTO demo(word) VALUES ('amsterdamsestraat');\n  INSERT INTO demo(word) VALUES ('amsterdamlaan');\n")

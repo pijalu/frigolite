@@ -50,7 +50,6 @@ func Test_analyze(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "analyze-1.1"
 		_res = db.Exec("\n    ANALYZE no_such_table\n  ")
 		_ = _res // catchsql

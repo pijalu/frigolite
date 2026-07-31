@@ -66,7 +66,6 @@ func Test_fkey8(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fkey8"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		r = db.Query(" PRAGMA foreign_keys = 1; ")
 		if r.Error != nil {

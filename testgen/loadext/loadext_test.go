@@ -77,7 +77,6 @@ func Test_loadext(t *testing.T) {
 	_ = mused // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tcl_platform_platform == "windows" {
 		testextension = "./testloadext.dll"
 		_ = testextension // suppress unused warning

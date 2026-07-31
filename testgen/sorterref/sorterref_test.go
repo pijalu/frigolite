@@ -52,7 +52,6 @@ func Test_sorterref(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "sorterref"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  ALTER TABLE t1 ADD COLUMN d DEFAULT 'string';\n  INSERT INTO t1 VALUES(7, 8, 9, 'text');\n")
 		if _res.Error != nil {

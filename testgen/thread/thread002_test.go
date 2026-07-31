@@ -85,7 +85,6 @@ func Test_thread002(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	NTHREAD = "10" // TCL namespace variable

@@ -58,7 +58,6 @@ func Test_fts3al(t *testing.T) {
 	_ = DB // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "fts3al-1.1"
 		_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(content, \\x80)")
 		if _res.Error != nil {

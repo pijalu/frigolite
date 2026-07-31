@@ -53,7 +53,6 @@ func Test_fkey6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fkey6"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "fkey6-1.0"
 		r = db.Query("\n  PRAGMA defer_foreign_keys;\n")
 		if r.Error != nil {

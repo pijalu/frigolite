@@ -53,7 +53,6 @@ func Test_altercorrupt(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altercorrupt"
 	_ = testprefix // suppress unused warning
-	return
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")

@@ -71,7 +71,6 @@ func Test_fts3malloc(t *testing.T) {
 	_ = l // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }

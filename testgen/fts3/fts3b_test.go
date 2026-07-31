@@ -57,7 +57,6 @@ func Test_fts3b(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (c) VALUES('this is a test');\n  INSERT INTO t1 (c) VALUES('that was a test');\n  INSERT INTO t1 (c) VALUES('this is fun');\n  DELETE FROM t1 WHERE c = 'that was a test';\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (c) VALUES('this is a test');\n  INSERT INTO t1 (c) VALUES('that was a test');\n  INSERT INTO t1 (c) VALUES('this is fun');\n  DELETE FROM t1 WHERE c = 'that was a test';\n")

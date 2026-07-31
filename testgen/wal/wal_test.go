@@ -138,7 +138,6 @@ func Test_wal(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal"
 	_ = testprefix // suppress unused warning
-	return
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	blobcnt = "0" // TCL namespace variable

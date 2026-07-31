@@ -235,20 +235,6 @@ func Test_bind(t *testing.T) {
 	_ = v2 // suppress unused warning
 	v3 = "$x(-z-)"
 	_ = v3 // suppress unused warning
-	{ // do_test "bind-2.1"
-		_res = db.Exec("\n      DELETE FROM t1;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n    ")
-		}
-		VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(:one,:two,:_)} -1 TX"
-		_ = VM // suppress unused warning
-	}
-	v1 = ":one"
-	_ = v1 // suppress unused warning
-	v2 = ":two"
-	_ = v2 // suppress unused warning
-	v3 = ":_"
-	_ = v3 // suppress unused warning
 	{ // do_test "bind-2.1.1"
 		// sqlite3_bind_parameter_count $VM (unsupported command, not transpiled)
 	}
@@ -719,15 +705,6 @@ func Test_bind(t *testing.T) {
 	v1 = "$abc"
 	_ = v1 // suppress unused warning
 	v2 = "$ab"
-	_ = v2 // suppress unused warning
-	{ // do_test "bind-10.1"
-		VM = "sqlite3_prepare $DB {\n        INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,:xyz,:abc,:xy,:xyz,:abc)\n      } -1 TAIL"
-		_ = VM // suppress unused warning
-		// sqlite3_bind_parameter_count $VM (unsupported command, not transpiled)
-	}
-	v1 = ":xyz"
-	_ = v1 // suppress unused warning
-	v2 = ":xy"
 	_ = v2 // suppress unused warning
 	{ // do_test "bind-10.2"
 		// sqlite3_bind_parameter_index $VM :abc (unsupported command, not transpiled)

@@ -66,7 +66,6 @@ func Test_corrupt9(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
 	// database_may_be_corrupt (unsupported command, not transpiled)
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "corrupt9-1.1"

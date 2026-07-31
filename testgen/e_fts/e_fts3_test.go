@@ -119,7 +119,6 @@ func Test_e_fts3(t *testing.T) {
 	_ = end // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

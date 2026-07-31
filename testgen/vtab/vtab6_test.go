@@ -56,7 +56,6 @@ func Test_vtab6(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	_res = db.Exec("\n  CREATE TABLE real_t1(a,b,c);\n  CREATE TABLE real_t2(b,c,d);\n  CREATE TABLE real_t3(c,d,e);\n  CREATE TABLE real_t4(d,e,f);\n  CREATE TABLE real_t5(a INTEGER PRIMARY KEY);\n  CREATE TABLE real_t6(a INTEGER);\n  CREATE TABLE real_t7 (x, y);\n  CREATE TABLE real_t8 (a integer primary key, b);\n  CREATE TABLE real_t9(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE real_t10(x INTEGER PRIMARY KEY, y);\n  CREATE TABLE real_t11(p INTEGER PRIMARY KEY, q);\n  CREATE TABLE real_t12(a,b);\n  CREATE TABLE real_t13(b,c);\n  CREATE TABLE real_t21(a,b,c);\n  CREATE TABLE real_t22(p,q);\n")
 	if _res.Error != nil {

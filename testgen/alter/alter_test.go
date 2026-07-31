@@ -83,7 +83,6 @@ func Test_alter(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "alter-1.1"
 		temp = "TEMP" // TCL namespace variable
 		_ = temp // suppress unused warning

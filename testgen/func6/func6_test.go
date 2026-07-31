@@ -85,7 +85,6 @@ func Test_func6(t *testing.T) {
 	_ = hexrec // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	bNullTrim = "0"
 	_ = bNullTrim // suppress unused warning
 	bNullTrim = "1"

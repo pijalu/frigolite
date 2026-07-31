@@ -48,7 +48,6 @@ func Test_without_rowid2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "without_rowid2-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      a INT PRIMARY KEY,\n      b INT\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    ) WITHOUT rowid;\n  ")
 		if _res.Error != nil {

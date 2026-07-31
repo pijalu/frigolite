@@ -67,7 +67,6 @@ func Test_jrnlmode(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tclBool("info exists TEMP_STORE" + " && " + TEMP_STORE + ">=2") {
 		temp_persist = "memory"
 		_ = temp_persist // suppress unused warning

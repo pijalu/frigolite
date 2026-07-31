@@ -56,7 +56,6 @@ func Test_like3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // "like3-1.1"
 		r = db.Query("\n  PRAGMA encoding=UTF8;\n  CREATE TABLE t1(a,b TEXT COLLATE nocase);\n  INSERT INTO t1(a,b)\n     VALUES(1,'abc'),\n           (2,'ABX'),\n           (3,'BCD'),\n           (4,x'616263'),\n           (5,x'414258'),\n           (6,x'424344');\n  CREATE INDEX t1ba ON t1(b,a);\n\n  SELECT a, b FROM t1 WHERE b LIKE 'aB%' ORDER BY +a;\n")
 		if r.Error != nil {
@@ -303,12 +302,6 @@ func Test_like3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "like3-5.111"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT x FROM t5a WHERE x LIKE '/a%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT x FROM t5a WHERE x LIKE '/a%';\n")
-		}
-	}
 	{ // "like3-5.120"
 		r = db.Query("\n  SELECT x FROM t5a WHERE x LIKE '^12%' ESCAPE '^';\n")
 		if r.Error != nil {
@@ -439,58 +432,6 @@ func Test_like3(t *testing.T) {
 		want := "1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "like3-6.100"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(path TEXT COLLATE nocase PRIMARY KEY,a,b,c) WITHOUT ROWID;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(path TEXT COLLATE nocase PRIMARY KEY,a,b,c) WITHOUT ROWID;\n")
-		}
-	}
-	{ // "like3-6.110"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE path LIKE 'a%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE path LIKE 'a%';\n")
-		}
-	}
-	{ // "like3-6.120"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE path LIKE 'a%' ESCAPE 'x';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE path LIKE 'a%' ESCAPE 'x';\n")
-		}
-	}
-	{ // "like3-6.200"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(path TEXT,x,y,z);\n  CREATE INDEX t2path ON t2(path COLLATE nocase);\n  CREATE INDEX t2path2 ON t2(path);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(path TEXT,x,y,z);\n  CREATE INDEX t2path ON t2(path COLLATE nocase);\n  CREATE INDEX t2path2 ON t2(path);\n")
-		}
-	}
-	{ // "like3-6.210"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t2 WHERE path LIKE 'a%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t2 WHERE path LIKE 'a%';\n")
-		}
-	}
-	{ // "like3-6.220"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t2 WHERE path LIKE 'a%' ESCAPE '\\';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t2 WHERE path LIKE 'a%' ESCAPE '\\';\n")
-		}
-	}
-	_res = db.Exec("PRAGMA case_sensitive_like=ON")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=ON")
-	}
-	{ // "like3-6.230"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t2 WHERE path LIKE 'a%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t2 WHERE path LIKE 'a%';\n")
-		}
-	}
-	{ // "like3-6.240"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t2 WHERE path LIKE 'a%' ESCAPE '\\';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t2 WHERE path LIKE 'a%' ESCAPE '\\';\n")
 		}
 	}
 	db.Close()

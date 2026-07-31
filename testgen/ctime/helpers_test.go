@@ -436,13 +436,53 @@ func isTclIdent(c byte) bool {
 	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
 
+// convertShifts resolves "A<<N" and "A>>N" to their numeric values when both
+// operands are integer literals (e.g. "1<<2" -> "4"). The simple arithmetic
+// evaluator only handles + - * / ( ), so shift operators are pre-computed.
+func convertShifts(s string) string {
+	for i := 0; i < len(s)-1; i++ {
+		if (s[i] == '<' && s[i+1] == '<') || (s[i] == '>' && s[i+1] == '>') {
+			// Find left operand start (scan back over digits/spaces).
+			j := i - 1
+			for j >= 0 && (s[j] >= '0' && s[j] <= '9' || s[j] == ' ') {
+				j--
+			}
+			left := strings.TrimSpace(s[j+1 : i])
+			// Find right operand end (scan forward over digits/spaces).
+			k := i + 2
+			for k < len(s) && (s[k] >= '0' && s[k] <= '9' || s[k] == ' ') {
+				k++
+			}
+			right := strings.TrimSpace(s[i+2 : k])
+			l, lerr := strconv.ParseInt(left, 10, 64)
+			r, rerr := strconv.ParseInt(right, 10, 64)
+			if lerr != nil || rerr != nil {
+				return s // can't compute — leave for the char check to reject
+			}
+			val := int64(0)
+			if s[i] == '<' {
+				val = l << uint(r)
+			} else {
+				val = l >> uint(r)
+			}
+			s = s[:j+1] + strconv.FormatInt(val, 10) + s[k:]
+			i = j + 1
+		}
+	}
+	return s
+}
+
 // evalSimpleArith evaluates a simple numeric arithmetic expression string
-// containing +, -, *, /, parentheses, and integer/float literals.
+// containing +, -, *, /, <<, >>, parentheses, and integer/float literals.
 func evalSimpleArith(s string) (string, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return "", fmt.Errorf("empty")
 	}
+	// Convert bit-shift subexpressions "A<<N" / "A>>N" into multiplication
+	// by powers of two, since the operator stack below only handles
+	// + - * / ( ). A<<N == A * (1<<N), A>>N == A / (1<<N).
+	s = convertShifts(s)
 	// Only accept expressions made of digits, spaces, operators, parens, and dots.
 	for i := 0; i < len(s); i++ {
 		c := s[i]

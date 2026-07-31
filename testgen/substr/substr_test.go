@@ -66,7 +66,6 @@ func Test_substr(t *testing.T) {
 	_ = idx // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	_res = db.Exec(" \n  CREATE TABLE t1(t text, b blob)\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(t text, b blob)\n")

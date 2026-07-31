@@ -158,7 +158,6 @@ func Test_walthread(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	return
 	DBNAME = "wt-" + "0" + "-test.db"
 	_ = DBNAME // suppress unused warning
 	sqlite_walsummary_mmap_incr = "64"

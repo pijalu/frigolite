@@ -63,7 +63,6 @@ func Test_alter3(t *testing.T) {
 	_ = fname // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tclBool("0" + " || " + _r) {
 		var has_codec = "1"
 		_ = has_codec // suppress unused warning

@@ -73,7 +73,6 @@ func Test_fts4aa(t *testing.T) {
 	_ = code // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	fts4aa_queries = "\n  {abraham}\n  {the king}\n  {\"the king\"}\n  {abraham OR joseph}\n  {ab* OR jos*}\n  {lived t*}\n  {spake hebrew}\n  {melchizedek}\n  {t* melchizedek}\n  {melchizedek t*}\n"
 	_ = fts4aa_queries // suppress unused warning
 	{ // do_test "fts4aa-1.0"

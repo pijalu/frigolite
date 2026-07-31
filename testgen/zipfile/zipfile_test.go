@@ -120,7 +120,6 @@ func Test_zipfile(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "zipfile"
 	_ = testprefix // suppress unused warning
-	return
 	if false {
 		_putsMsg := "Skipping zipfile tests, hit load error: " + _error
 		_ = _putsMsg

@@ -66,7 +66,6 @@ func Test_cursorhint(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "cursorhint"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(x,y,z);\n  INSERT INTO t1(a,b) VALUES(10, 15);\n  INSERT INTO t1(a,b) VALUES(20, 25);\n  INSERT INTO t2(x,y) VALUES('ten', 'fifteen');\n  INSERT INTO t2(x,y) VALUES('twenty', 'twentyfive');\n  CREATE TABLE t3(id TEXT PRIMARY KEY, a, b, c, d) WITHOUT ROWID;\n  INSERT INTO t3(id,a,b,c,d) SELECT rowid, a, b, c, d FROM t1;\n  PRAGMA automatic_index = 0;\n")
 		if r.Error != nil {

@@ -60,7 +60,6 @@ func Test_fts4umlaut(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4umlaut"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(x, tokenize=unicode61);\n  CREATE VIRTUAL TABLE t2 USING fts4(\n      x, \n      tokenize=unicode61 \"remove_diacritics=2\"\n  );\n")
 		if _res.Error != nil {

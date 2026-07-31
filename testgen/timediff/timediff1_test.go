@@ -70,7 +70,6 @@ func Test_timediff1(t *testing.T) {
 	_ = result // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	var tcl_precision = "15"
 	_ = tcl_precision // suppress unused warning

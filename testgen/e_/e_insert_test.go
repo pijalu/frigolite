@@ -59,7 +59,6 @@ func Test_e_insert(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // "e_insert-0.0"
 		_res = db.Exec("\n  CREATE TABLE a1(a, b);\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n  CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);\n  CREATE TABLE a4(c UNIQUE, d);\n")
 		if _res.Error != nil {

@@ -60,7 +60,6 @@ func Test_mutex2(t *testing.T) {
 	_ = str // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

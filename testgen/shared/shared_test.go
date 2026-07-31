@@ -129,7 +129,6 @@ func Test_shared(t *testing.T) {
 	_ = c // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	for _, av := range tclSplitList("list 0 1") {

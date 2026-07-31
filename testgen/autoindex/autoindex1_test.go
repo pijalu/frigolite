@@ -60,7 +60,6 @@ func Test_autoindex1(t *testing.T) {
 	_ = d // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log [list lappend ::log] (unsupported command, not transpiled)
 	log = "list" // TCL namespace variable

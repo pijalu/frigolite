@@ -52,7 +52,6 @@ func Test_with6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "with6" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "100"
 		r = db.Query("\n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;\n")
 		if r.Error != nil {

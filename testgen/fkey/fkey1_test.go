@@ -57,7 +57,6 @@ func Test_fkey1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fkey1"
 	_ = testprefix // suppress unused warning
-	return
 	{ // do_test "fkey1-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b INTEGER\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    );\n  ")
 		if _res.Error != nil {

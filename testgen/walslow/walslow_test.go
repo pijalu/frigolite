@@ -78,7 +78,6 @@ func Test_walslow(t *testing.T) {
 	_ = nByte // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "walslow"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

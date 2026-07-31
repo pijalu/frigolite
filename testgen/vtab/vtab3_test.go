@@ -70,7 +70,6 @@ func Test_vtab3(t *testing.T) {
 	_ = arg4 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	auth_fail = "0" // TCL namespace variable
 	_ = auth_fail // suppress unused warning
 	auth_log = "list" // TCL namespace variable

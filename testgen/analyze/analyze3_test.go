@@ -87,7 +87,6 @@ func Test_analyze3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "analyze3"
 	_ = testprefix // suppress unused warning
-	return
 	if tclBool("permutation" + "==\"prepare\"") {
 		return
 	}

@@ -52,7 +52,6 @@ func Test_utf16align(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "utf16align-1.0"
 		unaligned_string_counter = "0"
 		_ = unaligned_string_counter // suppress unused warning

@@ -49,7 +49,6 @@ func Test_trigger4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "trigger4-1.1"
 		r = db.Query("\n    create table test1(id integer primary key,a);\n    create table test2(id integer,b);\n    create view test as\n      select test1.id as id,a as a,b as b\n      from test1 join test2 on test2.id =  test1.id;\n    create trigger I_test instead of insert on test\n      begin\n        insert into test1 (id,a) values (NEW.id,NEW.a);\n        insert into test2 (id,b) values (NEW.id,NEW.b);\n      end;\n    insert into test values(1,2,3);\n    select * from test1;\n  ")
 		if r.Error != nil {

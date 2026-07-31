@@ -63,7 +63,6 @@ func Test_cache(t *testing.T) {
 	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	if tclBool("permutation" + " == \"\"") {

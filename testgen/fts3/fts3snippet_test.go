@@ -117,7 +117,6 @@ func Test_fts3snippet(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3snippet"
 	_ = testprefix // suppress unused warning
-	return
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	DO_MALLOC_TEST = "0"

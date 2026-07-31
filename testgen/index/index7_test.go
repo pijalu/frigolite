@@ -67,7 +67,6 @@ func Test_index7(t *testing.T) {
 	_ = x_col // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	// load_static_extension db wholenumber (unsupported command, not transpiled)
 	{ // do_test "index7-1.1"

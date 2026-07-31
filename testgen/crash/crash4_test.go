@@ -72,7 +72,6 @@ func Test_crash4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	sql_cmd_list = "\n  {CREATE TABLE a(id INTEGER, name CHAR(50))}\n  {INSERT INTO a(id,name) VALUES(1,'one')}\n  {INSERT INTO a(id,name) VALUES(2,'two')}\n  {INSERT INTO a(id,name) VALUES(3,'three')}\n  {INSERT INTO a(id,name) VALUES(4,'four')}\n  {INSERT INTO a(id,name) VALUES(5,'five')}\n  {INSERT INTO a(id,name) VALUES(6,'six')}\n  {INSERT INTO a(id,name) VALUES(7,'seven')}\n  {INSERT INTO a(id,name) VALUES(8,'eight')}\n  {INSERT INTO a(id,name) VALUES(9,'nine')}\n  {INSERT INTO a(id,name) VALUES(10,'ten')}\n  {UPDATE A SET name='new text for row 3' WHERE id=3}\n"
 	_ = sql_cmd_list // suppress unused warning
 	crash4_cksum_set = ""

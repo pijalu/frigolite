@@ -379,10 +379,6 @@ func Test_corruptC(t *testing.T) {
 				last = "-1"
 				_ = last // suppress unused warning
 			}
-			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 5 }() {
-				last = "-1"
-				_ = last // suppress unused warning
-			}
 			if false {
 				{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".11"
 					bt = "btree_from_db db"

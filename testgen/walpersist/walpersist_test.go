@@ -56,7 +56,6 @@ func Test_walpersist(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walpersist" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // do_test "walpersist-1.0"
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		if _res.Error != nil {

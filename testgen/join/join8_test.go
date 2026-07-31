@@ -49,7 +49,6 @@ func Test_join8(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // "join8-10"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(x,y);\n  CREATE INDEX t2x ON t2(x);\n  SELECT avg(DISTINCT b) FROM (SELECT * FROM t2 LEFT RIGHT JOIN t1 ON c);\n")
 		if r.Error != nil {

@@ -96,7 +96,6 @@ func Test_wal5(t *testing.T) {
 	_ = x // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_not_use_codec (unsupported command, not transpiled)
 	testprefix = "wal5"
 	_ = testprefix // suppress unused warning

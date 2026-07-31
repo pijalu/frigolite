@@ -97,7 +97,6 @@ func Test_without_rowid4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
 	ii = "0"

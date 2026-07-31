@@ -61,7 +61,6 @@ func Test_alter4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "alter4-1.1"
 		r = db.Query("\n    CREATE TEMP TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_temp_master;\n  ")
 		if r.Error != nil {

@@ -77,7 +77,6 @@ func Test_speed3(t *testing.T) {
 	_ = stats2_write // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// speed_trial_init speed1 (unsupported command, not transpiled)
 	// expr srand(0) (not evaluated)
 	NROW = "1000" // TCL namespace variable

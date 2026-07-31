@@ -217,7 +217,6 @@ func Test_wal2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal2"
 	_ = testprefix // suppress unused warning
-	return
 	sqlite_sync_count = "0"
 	_ = sqlite_sync_count // suppress unused warning
 	// proc definition (not transpiled)

@@ -76,7 +76,6 @@ func Test_e_droptrigger(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "e_droptrigger" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

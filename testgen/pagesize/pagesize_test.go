@@ -53,7 +53,6 @@ func Test_pagesize(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "pagesize-1.1"
 		r = db.Query("PRAGMA page_size")
 		if r.Error != nil {

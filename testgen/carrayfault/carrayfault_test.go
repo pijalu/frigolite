@@ -60,7 +60,6 @@ func Test_carrayfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "carrayfault"
 	_ = testprefix // suppress unused warning
-	return
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }

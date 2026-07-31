@@ -48,7 +48,6 @@ func Test_jrnlmode2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}

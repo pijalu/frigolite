@@ -80,7 +80,6 @@ func Test_triggerC(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "triggerC"
 	_ = testprefix // suppress unused warning
-	return
 	r = db.Query(" PRAGMA recursive_triggers = on ")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA recursive_triggers = on ")

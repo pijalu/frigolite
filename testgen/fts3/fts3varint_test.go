@@ -60,7 +60,6 @@ func Test_fts3varint(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3varint"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// do_fts3_varint_test 1.0 {\n  1 10 100 1000 10000 100000 1000000 \n  1000000...} (unsupported command, not transpiled)

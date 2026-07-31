@@ -76,7 +76,6 @@ func Test_crash3(t *testing.T) {
 	_ = tcl // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	tn = "1"
 	_ = tn // suppress unused warning

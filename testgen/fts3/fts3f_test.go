@@ -58,7 +58,6 @@ func Test_fts3f(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3f"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts3(x);\n  BEGIN;\n    INSERT INTO ft VALUES('a one'), ('b one'), ('c one');\n")
 		if _res.Error != nil {

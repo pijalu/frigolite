@@ -60,7 +60,6 @@ func Test_fts4merge5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4merge5"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.1"
 		_res = db.Exec(" \n  CREATE TABLE t1(docid, words);\n")
 		if _res.Error != nil {

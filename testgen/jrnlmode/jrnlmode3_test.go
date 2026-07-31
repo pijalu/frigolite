@@ -60,7 +60,6 @@ func Test_jrnlmode3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "jrnlmode3-1.1"
 		_res = db.Exec("\n    PRAGMA journal_mode=OFF;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {

@@ -58,7 +58,6 @@ func Test_walcrash(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	seed = "0"
 	_ = seed // suppress unused warning
 	REPEATS = "100"

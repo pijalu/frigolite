@@ -56,7 +56,6 @@ func Test_fts4merge3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4merge3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	if tclBool("\"\" == " + "bc_find_binaries backcompat.test") {
 		return
 	}

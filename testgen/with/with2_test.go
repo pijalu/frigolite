@@ -77,7 +77,6 @@ func Test_with2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "with2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
 		if _res.Error != nil {

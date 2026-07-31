@@ -56,6 +56,5 @@ func Test_schema3(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_multiclient_test tn {\n\n  # Have connections [db1] and [db2] load the ...} (unsupported command, not transpiled)
 }

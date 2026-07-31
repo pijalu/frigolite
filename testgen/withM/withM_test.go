@@ -52,7 +52,6 @@ func Test_withM(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "withM" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(123, 456);\n")
 		if _res.Error != nil {

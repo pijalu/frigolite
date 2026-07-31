@@ -60,7 +60,6 @@ func Test_vtabE(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// register_tclvar_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	vtabE_vtabE1 = "11"
 	_ = vtabE_vtabE1 // suppress unused warning

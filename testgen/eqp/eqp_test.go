@@ -64,7 +64,6 @@ func Test_eqp(t *testing.T) {
 	_ = res // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "eqp"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

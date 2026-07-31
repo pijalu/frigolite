@@ -75,6 +75,5 @@ func Test_all(t *testing.T) {
 	// run_test_suite prepare (unsupported command, not transpiled)
 	// run_test_suite mmap (unsupported command, not transpiled)
 	if tcl_platform_platform == "unix" {
-		// run_test_suite autovacuum_crash (unsupported command, not transpiled)
 	}
 }

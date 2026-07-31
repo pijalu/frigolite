@@ -64,7 +64,6 @@ func Test_swarmvtab2(t *testing.T) {
 	testprefix = "swarmvtab2"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
-	return
 	for _, name := range tclSplitList("glob -nocomplain test*.db") {
 	_ = name // suppress unused warning
 		os.Remove(name)

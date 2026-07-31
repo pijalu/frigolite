@@ -67,7 +67,6 @@ func Test_in3(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "in3-1.1"

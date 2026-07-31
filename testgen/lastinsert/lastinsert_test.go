@@ -72,7 +72,6 @@ func Test_lastinsert(t *testing.T) {
 		_res = db.Exec("\n        create view v as select * from t1;\n        select last_insert_rowid();\n    ")
 		_ = _res // catchsql
 	}
-	return
 	{ // do_test "lastinsert-2.1"
 		_res = db.Exec("\n        delete from t2;\n        create trigger r1 after insert on t1 for each row begin\n            insert into t2 values (NEW.k*2, last_insert_rowid(), NULL, NULL);\n            update t2 set k=k+10, val2=100+last_insert_rowid();\n            update t2 set val3=1000+last_insert_rowid();\n        end;\n        insert into t1 values (13);\n        select last_insert_rowid();\n    ")
 		_ = _res // catchsql

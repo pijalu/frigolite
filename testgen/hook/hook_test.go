@@ -353,7 +353,6 @@ func Test_hook(t *testing.T) {
 	{ // do_test "hook-6.2"
 		_ = hooks // TCL namespace variable (query)
 	}
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	os.Remove("test.db")

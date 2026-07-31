@@ -64,8 +64,6 @@ func Test_fts3ai(t *testing.T) {
 	_ = DB // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
-	return
 	// proc definition (not transpiled)
 	_res = db.Exec("\n  PRAGMA encoding = \"UTF-16le\";\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n")
 	if _res.Error != nil {

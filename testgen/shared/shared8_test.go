@@ -56,7 +56,6 @@ func Test_shared8(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "shared8"
 	_ = testprefix // suppress unused warning
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable

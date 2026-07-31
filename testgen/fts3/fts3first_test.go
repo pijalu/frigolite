@@ -74,7 +74,6 @@ func Test_fts3first(t *testing.T) {
 	_ = _r // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "fts3first"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

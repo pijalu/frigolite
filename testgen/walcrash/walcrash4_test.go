@@ -61,7 +61,6 @@ func Test_walcrash4(t *testing.T) {
 	_ = sqlite_pending_byte // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "walcrash4"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)

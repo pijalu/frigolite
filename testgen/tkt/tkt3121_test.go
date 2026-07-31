@@ -50,7 +50,6 @@ func Test_tkt3121(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtabD-1.1"
 		_res = db.Exec("\n    PRAGMA encoding = 'utf16';\n\n    CREATE TABLE r1(field);\n    CREATE TABLE r2(col PRIMARY KEY, descr);\n\n    INSERT INTO r1 VALUES('abcd');\n    INSERT INTO r2 VALUES('abcd', 'A nice description');\n    INSERT INTO r2 VALUES('efgh', 'Another description');\n\n    CREATE VIRTUAL TABLE t1 USING echo(r1);\n    CREATE VIRTUAL TABLE t2 USING echo(r2);\n  ")

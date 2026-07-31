@@ -63,7 +63,6 @@ func Test_walsetlk_recover(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walsetlk_recover"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n")
 		if _res.Error != nil {

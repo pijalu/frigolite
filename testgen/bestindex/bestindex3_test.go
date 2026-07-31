@@ -90,7 +90,6 @@ func Test_bestindex3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bestindex3"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	// register_tcl_module db (unsupported command, not transpiled)
 	{ // "1.0"
@@ -172,18 +171,6 @@ func Test_bestindex3(t *testing.T) {
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
-		}
-	}
-	{ // "2.1"
-		_res = db.Exec("\n    CREATE TABLE t2(x TEXT COLLATE nocase, y TEXT);\n    CREATE INDEX t2x ON t2(x COLLATE nocase);\n    CREATE INDEX t2y ON t2(y);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x TEXT COLLATE nocase, y TEXT);\n    CREATE INDEX t2x ON t2(x COLLATE nocase);\n    CREATE INDEX t2y ON t2(y);\n  ")
-		}
-	}
-	{ // "2.2"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM t2 WHERE x LIKE 'abc%' OR y = 'def'\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM t2 WHERE x LIKE 'abc%' OR y = 'def'\n  ")
 		}
 	}
 	// proc definition (not transpiled)

@@ -93,7 +93,6 @@ func Test_shared_err(t *testing.T) {
 
 	// proc definition (not transpiled)
 	// set testdir: test directory (not used in Go test context)
-	return
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	// do_ioerr_test shared_ioerr-1 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA r...} ... (unsupported command, not transpiled)

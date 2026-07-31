@@ -56,7 +56,6 @@ func Test_cast(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "cast-1.1"
 		r = db.Query("SELECT x'616263'")
 		if r.Error != nil {

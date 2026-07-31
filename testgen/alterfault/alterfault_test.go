@@ -56,7 +56,6 @@ func Test_alterfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "alterfault"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);                 \n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 123;\n  END;\n")
 		if _res.Error != nil {

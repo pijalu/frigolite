@@ -62,7 +62,6 @@ func Test_tkt_f67b41381a(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "tkt-f67b41381a"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  ALTER TABLE t1 ADD COLUMN b DEFAULT 2;\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT * FROM t2;\n")
 		if r.Error != nil {

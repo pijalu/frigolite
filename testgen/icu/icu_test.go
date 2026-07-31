@@ -71,7 +71,6 @@ func Test_icu(t *testing.T) {
 	_ = result // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	_res = db.Exec("CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)")

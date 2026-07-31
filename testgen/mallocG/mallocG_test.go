@@ -64,7 +64,6 @@ func Test_mallocG(t *testing.T) {
 	// do_malloc_test mallocG-1 -tclbody {\n  db close\n  sqlite3 db test.db\n} (unsupported command, not transpiled)
 	// do_malloc_test mallocG-2 -sqlprep {\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x IN...} -sqlb... (unsupported command, not transpiled)
 	// do_malloc_test mallocG-3 -sqlprep {\n  CREATE TABLE t1(x UNIQUE);\n  INSERT INTO t1 V...} -sqlb... (unsupported command, not transpiled)
-	return
 	// proc definition (not transpiled)
 	// do_malloc_test mallocG-4 -tclbody {\n  set rc [sqlite3_complete16 [utf16 "SELECT * FR...} (unsupported command, not transpiled)
 }

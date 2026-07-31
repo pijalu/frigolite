@@ -62,7 +62,6 @@ func Test_fts3defer3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "fts3defer3"
 	_ = testprefix // suppress unused warning
 	nDoclist = "3204"

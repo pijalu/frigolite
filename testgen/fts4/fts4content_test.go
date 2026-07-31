@@ -75,7 +75,6 @@ func Test_fts4content(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4content" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('w x', 'x y', 'y z');\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1);\n")
 		if _res.Error != nil {

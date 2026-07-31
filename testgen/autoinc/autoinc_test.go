@@ -65,7 +65,6 @@ func Test_autoinc(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "autoinc"
 	_ = testprefix // suppress unused warning
-	return
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}
@@ -453,12 +452,6 @@ func Test_autoinc(t *testing.T) {
 		r = db.Query("\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(2147483647,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(2147483647,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
-		}
-	}
-	{ // do_test "autoinc-6.1"
-		r = db.Query("\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(9223372036854775807,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(9223372036854775807,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';\n    ")
 		}
 	}
 	{ // do_test "autoinc-6.2"

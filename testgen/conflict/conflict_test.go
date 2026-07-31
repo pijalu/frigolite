@@ -76,7 +76,6 @@ func Test_conflict(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "conflict-1.0"
 		r = db.Query("\n    CREATE TABLE t1(a, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
 		if r.Error != nil {

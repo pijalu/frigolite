@@ -52,7 +52,6 @@ func Test_altermalloc(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_malloc_test altermalloc-1 -tclprep {\n  db close\n} -tclbody {\n  if {[catch {sqlite3 db tes... (unsupported command, not transpiled)
 	// do_malloc_test altermalloc-vtab -tclprep {\n    sqlite3 db2 test.db \n    sqlite3_db_config_...... (unsupported command, not transpiled)
 }

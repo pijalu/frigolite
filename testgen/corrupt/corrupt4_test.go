@@ -82,7 +82,6 @@ func Test_corrupt4(t *testing.T) {
 		return
 	}
 	// database_may_be_corrupt (unsupported command, not transpiled)
-	return
 	{ // do_test "corrupt4-1.1"
 		bigstring = "0123456789 200"
 		_ = bigstring // suppress unused warning

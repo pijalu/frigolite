@@ -67,7 +67,6 @@ func Test_fts4opt(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4opt" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec(" CREATE TABLE t1(docid, words) ")
 		if _res.Error != nil {

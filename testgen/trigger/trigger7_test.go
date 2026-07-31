@@ -52,7 +52,6 @@ func Test_trigger7(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "trigger7-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n  ")
 		if _res.Error != nil {

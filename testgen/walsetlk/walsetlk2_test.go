@@ -60,8 +60,6 @@ func Test_walsetlk2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walsetlk2"
 	_ = testprefix // suppress unused warning
-	return
-	return
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

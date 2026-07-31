@@ -61,7 +61,6 @@ func Test_vtabL(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtabL"
 	_ = testprefix // suppress unused warning
-	return
 	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// foreach {tn cts} "\n  1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}\n"

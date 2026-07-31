@@ -54,7 +54,6 @@ func Test_loadext2(t *testing.T) {
 	_ = errmsg // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tclBool("info command sqlite3_auto_extension_sqr" + "==\"\"") {
 		return
 	}

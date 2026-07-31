@@ -52,9 +52,7 @@ func Test_walbig(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_not_use_codec (unsupported command, not transpiled)
-	return
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)

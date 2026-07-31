@@ -83,7 +83,6 @@ func Test_attach2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "attach2"
 	_ = testprefix // suppress unused warning
-	return
 	{ // do_test "attach2-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);\n  ")
 		if _res.Error != nil {

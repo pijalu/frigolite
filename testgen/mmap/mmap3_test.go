@@ -52,7 +52,6 @@ func Test_mmap3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "mmap3"
 	_ = testprefix // suppress unused warning
 	if tclBool("nonzero_reserved_bytes") {

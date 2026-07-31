@@ -60,7 +60,6 @@ func Test_vacuum6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vacuum6"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(1, 1);\n")
 		if _res.Error != nil {

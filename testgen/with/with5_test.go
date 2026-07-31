@@ -53,7 +53,6 @@ func Test_with5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "with5" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE link(aa INT, bb INT);\n  CREATE INDEX link_f ON link(aa,bb);\n  CREATE INDEX link_t ON link(bb,aa);\n  INSERT INTO link(aa,bb) VALUES\n    (1,3),\n    (5,3),\n    (7,1),\n    (7,9),\n    (9,9),\n    (5,11),\n    (11,7),\n    (2,4),\n    (4,6),\n    (8,6);\n")
 		if _res.Error != nil {

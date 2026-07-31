@@ -51,7 +51,6 @@ func Test_wal4(t *testing.T) {
 	_ = testrc // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "wal4-1.1"
 		r = db.Query("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    SELECT x FROM t1 ORDER BY x;\n  ")
 		if r.Error != nil {

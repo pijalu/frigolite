@@ -70,7 +70,6 @@ func Test_vacuum2(t *testing.T) {
 	testprefix = "vacuum2"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
-	return
 	if tclBool(AUTOVACUUM) {
 		return
 	}

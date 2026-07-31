@@ -631,7 +631,6 @@ func Test_func2(t *testing.T) {
 			}
 		}
 	}
-	return
 	{ // do_test "func2-3.1.1"
 		blob = tclExecSQL(db, "\"SELECT x'1234'\"")
 		_ = blob // suppress unused warning

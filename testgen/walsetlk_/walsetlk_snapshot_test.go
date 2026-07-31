@@ -63,8 +63,6 @@ func Test_walsetlk_snapshot(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walsetlk_snapshot"
 	_ = testprefix // suppress unused warning
-	return
-	return
 	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection

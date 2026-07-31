@@ -104,7 +104,6 @@ func Test_shell8(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "shell8"
 	_ = testprefix // suppress unused warning
-	return
 	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	if tclBool("{*unknown command*} [catchcmd :memory: .archive]") {

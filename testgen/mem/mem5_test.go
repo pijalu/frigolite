@@ -48,7 +48,6 @@ func Test_mem5(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tclBool("info exists ::G(perm:presql)") {
 		return
 	}

@@ -82,7 +82,6 @@ func Test_tabfunc01(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "tabfunc01"
 	_ = testprefix // suppress unused warning
-	return
 	// load_static_extension db series (unsupported command, not transpiled)
 	// load_static_extension db remember (unsupported command, not transpiled)
 	{ // "tabfunc01-1.1"

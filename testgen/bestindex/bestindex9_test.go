@@ -74,7 +74,6 @@ func Test_bestindex9(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bestindex9"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// do_bestindex9_test 1.0 {\n  CREATE TABLE x(k1, k2, v1, PRIMARY KEY(k1, k2)...} {\n  SELECT DISTINCT... (unsupported command, not transpiled)

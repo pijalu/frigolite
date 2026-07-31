@@ -62,7 +62,6 @@ func Test_walhook(t *testing.T) {
 	_ = nEntry // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	wal_hook = "list" // TCL namespace variable
 	_ = wal_hook // suppress unused warning
 	// proc definition (not transpiled)

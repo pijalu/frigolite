@@ -50,7 +50,6 @@ func Test_view3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "view3"
 	_ = testprefix // suppress unused warning
 	_dbtmp0, err := frigolite.Open(":memory:")

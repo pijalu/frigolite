@@ -53,7 +53,6 @@ func Test_insert5(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	{ // do_test "insert5-1.0"
 		os.Remove("test2.db")

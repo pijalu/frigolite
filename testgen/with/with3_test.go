@@ -53,7 +53,6 @@ func Test_with3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "with3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  WITH i(x) AS (\n    WITH j AS (SELECT 10)\n    SELECT 5 FROM t0 UNION SELECT 8 FROM m\n  )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: m") {

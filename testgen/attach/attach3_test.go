@@ -61,7 +61,6 @@ func Test_attach3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
 	_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n")
@@ -256,10 +255,6 @@ func Test_attach3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	// proc definition (not transpiled)
-	_res = db.Exec("create temp table dummy(dummy)")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "create temp table dummy(dummy)")
-	}
 	{ // do_test "attach3-12.1"
 		// db_list (unsupported command, not transpiled)
 	}

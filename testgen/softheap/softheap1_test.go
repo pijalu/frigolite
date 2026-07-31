@@ -52,7 +52,6 @@ func Test_softheap1(t *testing.T) {
 	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "softheap1-1.0"
 		r = db.Query("PRAGMA soft_heap_limit")
 		if r.Error != nil {

@@ -62,7 +62,6 @@ func Test_fts3corrupt5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3corrupt5"
 	_ = testprefix // suppress unused warning
-	return
 	// sqlite3_fts3_may_be_corrupt 1 (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n    INSERT INTO ft VALUES('one', 'one', 'one');\n  COMMIT;\n")

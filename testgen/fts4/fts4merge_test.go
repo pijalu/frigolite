@@ -78,7 +78,6 @@ func Test_fts4merge(t *testing.T) {
 	_ = tbl // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	for _, mod := range tclSplitList("fts3 fts4") {
 	_ = mod // suppress unused warning

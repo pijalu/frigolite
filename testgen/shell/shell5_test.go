@@ -121,9 +121,6 @@ func Test_shell5(t *testing.T) {
 		res = "catchcmd \"test.db\" {CREATE TABLE t1(a, b);\n.import FOO t1}"
 		_ = res // suppress unused warning
 	}
-	_putsMsg := "Skipping subsequent tests due to SQLITE_OMIT_VIRTUALTABLE"
-	_ = _putsMsg
-	return
 	{ // do_test "shell5-1.4.2"
 		os.Remove("shell5.csv")
 		in = "open shell5.csv w"
@@ -135,7 +132,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.3"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \":memory:\" {ATTACH 'test.db' AS test;\n.import -schema test shell5.csv t1}"
@@ -144,7 +141,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.4"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \":memory: --list\" {ATTACH 'test.db' AS test;\n.import --schema test shell5.csv t1}"
@@ -153,7 +150,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.5"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {DELETE FROM t1;\n.import shell5.csv t1\nSELECT COUNT(*) FROM t1;}"
@@ -162,7 +159,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.6"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		_putsMsg = in
 		_ = _putsMsg
@@ -173,7 +170,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.7"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \":memory:\" {\n.mode list\nATTACH 'test.db' AS test;\n.separator ,\n.import --schema test shell5.csv t1\nSELECT COUNT(*) FROM test.t1;}"
@@ -182,7 +179,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.8.1"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db\" {.mode list\n.import shell5.csv t1\nSELECT COUNT(*) FROM t1;}"
@@ -194,7 +191,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.9.1"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {.import shell5.csv t1\nSELECT COUNT(*) FROM t1;}"
@@ -206,7 +203,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.10.1"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {.import shell5.csv t1\nSELECT COUNT(*) FROM t1;}"
@@ -218,7 +215,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.11"
 		in = "open shell5.csv wb"
 		_ = in // suppress unused warning
-		_putsMsg = "-nonewline"
+		_putsMsg := "-nonewline"
 		_ = _putsMsg
 		_putsMsg = in
 		_ = _putsMsg
@@ -232,7 +229,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.4.12"
 		in = "open shell5.csv wb"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		_putsMsg = in
 		_ = _putsMsg
@@ -246,7 +243,7 @@ func Test_shell5(t *testing.T) {
 		_ = str // suppress unused warning
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {.import shell5.csv t1\nSELECT length(b) FROM t1 WHERE a='8';}"
@@ -285,7 +282,7 @@ func Test_shell5(t *testing.T) {
 		data += cols
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		// close $in
 		res = "catchcmd \"test.db -list\" {DROP TABLE IF EXISTS t2;\n.import shell5.csv t2\nSELECT COUNT(*) FROM t2;}"
@@ -296,7 +293,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.7.1"
 		in = "open shell5.csv w"
 		_ = in // suppress unused warning
-		_putsMsg = in
+		_putsMsg := in
 		_ = _putsMsg
 		i = "1"
 		_ = i // suppress unused warning
@@ -325,7 +322,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg = out
+		_putsMsg := out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
@@ -368,7 +365,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg = out
+		_putsMsg := out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
@@ -389,7 +386,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg = out
+		_putsMsg := out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
@@ -408,7 +405,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation binary (unsupported command, not transpiled)
-		_putsMsg = out
+		_putsMsg := out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
@@ -440,7 +437,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-2.1"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg = fd
+		_putsMsg := fd
 		_ = _putsMsg
 		// close $fd
 		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t1(a, b);\... (unsupported command, not transpiled)
@@ -452,7 +449,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-2.2"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg = fd
+		_putsMsg := fd
 		_ = _putsMsg
 		// close $fd
 		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t2(a, b);\... (unsupported command, not transpiled)
@@ -464,7 +461,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-2.3"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg = fd
+		_putsMsg := fd
 		_ = _putsMsg
 		// close $fd
 		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t3(a, b);\... (unsupported command, not transpiled)
@@ -476,7 +473,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-2.4"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg = fd
+		_putsMsg := fd
 		_ = _putsMsg
 		// close $fd
 		// catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t4(a, b);\... (unsupported command, not transpiled)
@@ -488,7 +485,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-2.5"
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg = fd
+		_putsMsg := fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
@@ -503,7 +500,7 @@ func Test_shell5(t *testing.T) {
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
 		// fconfigure $fd -translation binary (unsupported command, not transpiled)
-		_putsMsg = "-nonewline"
+		_putsMsg := "-nonewline"
 		_ = _putsMsg
 		_putsMsg = "-nonewline"
 		_ = _putsMsg
@@ -524,7 +521,7 @@ func Test_shell5(t *testing.T) {
 		os.Remove("shell5.csv")
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg = fd
+		_putsMsg := fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
@@ -541,7 +538,7 @@ func Test_shell5(t *testing.T) {
 		os.Remove("shell5.csv")
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg = fd
+		_putsMsg := fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
@@ -558,7 +555,7 @@ func Test_shell5(t *testing.T) {
 		os.Remove("shell5.csv")
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg = fd
+		_putsMsg := fd
 		_ = _putsMsg
 		_putsMsg = fd
 		_ = _putsMsg
@@ -573,7 +570,7 @@ func Test_shell5(t *testing.T) {
 		os.Remove("shell5.csv")
 		fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		_putsMsg = fd
+		_putsMsg := fd
 		_ = _putsMsg
 		// close $fd
 		// catchcmd test.db [string trim {\n.mode csv\nCREATE TEMP TABLE t8(a,... (unsupported command, not transpiled)
@@ -582,7 +579,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg = out
+		_putsMsg := out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
@@ -594,7 +591,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg = out
+		_putsMsg := out
 		_ = _putsMsg
 		_putsMsg = out
 		_ = _putsMsg
@@ -608,7 +605,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg = out
+		_putsMsg := out
 		_ = _putsMsg
 		// close $out
 		os.Remove("test.db")
@@ -618,7 +615,7 @@ func Test_shell5(t *testing.T) {
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
 		// fconfigure $out -translation lf (unsupported command, not transpiled)
-		_putsMsg = out
+		_putsMsg := out
 		_ = _putsMsg
 		// close $out
 		// catchcmd :memory: {.import --csv shell5.csv '""""""""""""""""""""""""...} (unsupported command, not transpiled)

@@ -141,7 +141,6 @@ func Test_avfs(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "avfs" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
 	// load_static_extension db appendvfs (unsupported command, not transpiled)

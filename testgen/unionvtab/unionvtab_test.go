@@ -77,7 +77,6 @@ func Test_unionvtab(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "unionvtab"
 	_ = testprefix // suppress unused warning
-	return
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	os.Remove("test.db2")
 	{ // "1.0"

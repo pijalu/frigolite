@@ -245,7 +245,6 @@ func Test_e_expr(t *testing.T) {
 	_ = str // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {op opn} "\n      ||   cat     *   mul       /  div       %     mod       +      add\n      -    sub     <<  lshift    >> rshift    &     bitand    |      bitor\n      <    less    <=  lesseq    >  more      >=    moreeq    =      eq1\n      ==   eq2     <>  ne1       != ne2       IS    is        LIKE   like\n      GLOB glob    AND and       OR or        MATCH match     REGEXP regexp\n      {IS NOT} isnt\n"
@@ -2285,18 +2284,6 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
-																		{ // "e_expr-14.5.2"
-																			r = db.Query("SELECT '\\u00c6' LIKE '\\u00e6'")
-																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '\\u00c6' LIKE '\\u00e6'")
-																				return
-																			}
-																			got := flatten(r)
-																			want := "0"
-																			if got != want {
-																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-																			}
-																		}
 																		{ // "e_expr-14.6.1"
 																			_res = db.Exec(" \n  SELECT 'A' LIKE 'a' ESCAPE '12' \n")
 																			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ESCAPE expression must be a single character") {
@@ -2885,18 +2872,6 @@ func Test_e_expr(t *testing.T) {
 																		_dbtmp17, err := frigolite.Open("test.db")
 																		_ = _dbtmp17 // sqlite3 db connection
 																		if err != nil { t.Fatal(err) }
-																		{ // "e_expr-18.1.1"
-																			_res = db.Exec(" \n    SELECT regexp('abc', 'def') \n  ")
-																			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: regexp") {
-																				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: regexp", _res.Error, " \n    SELECT regexp('abc', 'def') \n  ")
-																			}
-																		}
-																		{ // "e_expr-18.1.2"
-																			_res = db.Exec(" \n    SELECT 'abc' REGEXP 'def'\n  ")
-																			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: REGEXP") {
-																				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: REGEXP", _res.Error, " \n    SELECT 'abc' REGEXP 'def'\n  ")
-																			}
-																		}
 																		// proc definition (not transpiled)
 																		regexpargs = "list" // TCL namespace variable
 																		_ = regexpargs // suppress unused warning

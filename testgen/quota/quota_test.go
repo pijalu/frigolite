@@ -75,7 +75,6 @@ func Test_quota(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	os.Remove("bak.db")
 	defaultVfs = "file_control_vfsname db"
 	_ = defaultVfs // suppress unused warning

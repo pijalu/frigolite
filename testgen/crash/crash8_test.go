@@ -76,7 +76,6 @@ func Test_crash8(t *testing.T) {
 	_ = _len // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_not_use_codec (unsupported command, not transpiled)
 	{ // do_test "crash8-1.1"
 		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n    INSERT INTO t1 VALUES(3, randstr(1000,1000));\n    INSERT INTO t1 VALUES(4, randstr(1000,1000));\n    INSERT INTO t1 VALUES(5, randstr(1000,1000));\n    INSERT INTO t1 VALUES(6, randstr(1000,1000));\n    CREATE TABLE t2(a, b);\n    CREATE TABLE t3(a, b);\n    CREATE TABLE t4(a, b);\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(a, b);\n    CREATE TABLE t7(a, b);\n    CREATE TABLE t8(a, b);\n    CREATE TABLE t9(a, b);\n    CREATE TABLE t10(a, b);\n    PRAGMA integrity_check\n  ")

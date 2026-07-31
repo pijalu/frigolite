@@ -110,7 +110,6 @@ func Test_fts4langid(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "fts4langid" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "1.1"

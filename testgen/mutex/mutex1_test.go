@@ -79,7 +79,6 @@ func Test_mutex1(t *testing.T) {
 	_ = counters_static_main // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tclBool("info exists tester_do_binarylog") {
 		return
 	}
@@ -163,8 +162,6 @@ func Test_mutex1(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO abc VALUES(1, 2, 3);\n      ")
 				}
 			}
-			mutexes = tclRegsub(" static_lru", mutexes, "")
-			_ = mutexes // suppress unused warning
 			if mode != "singlethread" {
 				{ // do_test "mutex1.2." + mode + ".3"
 					// enter_static_mutex static_app1 (unsupported command, not transpiled)
@@ -201,30 +198,13 @@ func Test_mutex1(t *testing.T) {
 				}
 			}
 			// sqlite3_enable_shared_cache $enable_shared_cache (unsupported command, not transpiled)
-			{ // do_test "mutex1.3.1"
-				{
-					var _catchErr error
-					_ = _catchErr // suppress unused warning
-				}
-				// clear_mutex_counters (unsupported command, not transpiled)
-				_dbtmp3, err := frigolite.Open("test.db")
-				_ = _dbtmp3 // sqlite3 db connection
-				if err != nil { t.Fatal(err) }
-				r = db.Query(" SELECT * FROM abc ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
-				}
-			}
-			{ // do_test "mutex1.3.2"
-				// mutex_counters counters (unsupported command, not transpiled)
-			}
 			{ // do_test "mutex1.4.1"
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
 				}
-				_dbtmp4, err := frigolite.Open("test.db")
-				_ = _dbtmp4 // sqlite3 db connection
+				_dbtmp3, err := frigolite.Open("test.db")
+				_ = _dbtmp3 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				// enter_db_mutex db (unsupported command, not transpiled)
 				_res = db.Exec("SELECT 1, 2, 3")
@@ -244,8 +224,8 @@ func Test_mutex1(t *testing.T) {
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
 				}
-				_dbtmp5, err := frigolite.Open("test.db")
-				_ = _dbtmp5 // sqlite3 db connection
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				// enter_db_mutex db (unsupported command, not transpiled)
 				_res = db.Exec("SELECT 1, 2, 3")

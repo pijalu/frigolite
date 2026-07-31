@@ -58,7 +58,6 @@ func Test_columncount(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "columncount"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n")

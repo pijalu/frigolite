@@ -68,7 +68,6 @@ func Test_view(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "view-1.0"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(4,5,6);\n    INSERT INTO t1 VALUES(7,8,9);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {

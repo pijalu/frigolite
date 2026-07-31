@@ -142,7 +142,6 @@ func Test_analyze9(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "analyze9"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b TEXT); \n  INSERT INTO t1 VALUES('(0)', '(0)');\n  INSERT INTO t1 VALUES('(1)', '(1)');\n  INSERT INTO t1 VALUES('(2)', '(2)');\n  INSERT INTO t1 VALUES('(3)', '(3)');\n  INSERT INTO t1 VALUES('(4)', '(4)');\n  CREATE INDEX i1 ON t1(a, b);\n")

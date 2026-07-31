@@ -69,7 +69,6 @@ func Test_ctime(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "ctime-1.1.1"
 		_res = db.Exec("\n    PRAGMA compile_options();\n  ")
 		_ = _res // catchsql

@@ -64,7 +64,6 @@ func Test_waloverwrite(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "waloverwrite"
 	_ = testprefix // suppress unused warning
-	return
 	// foreach {tn xtra} "\n  1 {}\n  2 { UPDATE t1 SET y = randomblob(799) WHERE x=4 }\n"
 	_items0 := tclSplitList("\n  1 {}\n  2 { UPDATE t1 SET y = randomblob(799) WHERE x=4 }\n")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {

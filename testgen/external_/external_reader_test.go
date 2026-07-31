@@ -56,7 +56,6 @@ func Test_external_reader(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "external_reader"
 	_ = testprefix // suppress unused warning
-	return
 	if tcl_platform_os == "Windows NT" {
 		return
 	}

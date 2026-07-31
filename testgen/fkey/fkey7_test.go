@@ -67,7 +67,6 @@ func Test_fkey7(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fkey7"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA foreign_keys = 1;\n\n  CREATE TABLE s1(a PRIMARY KEY, b);\n  CREATE TABLE par(a, b REFERENCES s1, c UNIQUE, PRIMARY KEY(a));\n\n  CREATE TABLE c1(a, b REFERENCES par);\n  CREATE TABLE c2(a, b REFERENCES par);\n  CREATE TABLE c3(a, b REFERENCES par(c));\n")
 		if _res.Error != nil {

@@ -56,7 +56,6 @@ func Test_fts3corrupt3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "fts3corrupt3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "1.0"

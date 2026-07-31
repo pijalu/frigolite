@@ -52,7 +52,6 @@ func Test_wherelfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wherelfault"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'f');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'd');\n  INSERT INTO t1 VALUES(4, 'c');\n  INSERT INTO t1 VALUES(5, 'b');\n  INSERT INTO t1 VALUES(6, 'a');\n\n  CREATE VIEW v1 AS SELECT a,b FROM t1;\n  CREATE TABLE log(op, a);\n\n  CREATE TRIGGER v1del INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete', old.a);\n  END;\n\n  CREATE TRIGGER v1upd INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update', old.a);\n  END;\n")
 		if _res.Error != nil {

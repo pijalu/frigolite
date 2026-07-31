@@ -91,7 +91,6 @@ func Test_swarmvtab3(t *testing.T) {
 	testprefix = "swarmvtab3"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
-	return
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	nFile = sqlite_open_file_count
 	_ = nFile // suppress unused warning

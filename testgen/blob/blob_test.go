@@ -66,7 +66,6 @@ func Test_blob(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	{ // do_test "blob-1.0"
 		blob = tclExecSQL(db, "{SELECT X'01020304';}")

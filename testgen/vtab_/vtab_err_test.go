@@ -50,7 +50,6 @@ func Test_vtab_err(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_ioerr_test vtab_err-1 -tclprep {\n  register_echo_module [sqlite3_connection_point...} -sql... (unsupported command, not transpiled)
 	// do_malloc_test vtab_err-2 -tclprep { \n  register_echo_module [sqlite3_connection_poin...} -sql... (unsupported command, not transpiled)
 	// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)

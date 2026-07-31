@@ -87,7 +87,6 @@ func Test_superlock(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	return
 	{ // do_test "1.2"
 		// sqlite3demo_superlock unlock test.db (unsupported command, not transpiled)
 	}

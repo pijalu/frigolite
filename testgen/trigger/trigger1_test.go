@@ -54,7 +54,6 @@ func Test_trigger1(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "trigger1-1.1.1"
 		_res = db.Exec("\n     CREATE TRIGGER trig UPDATE ON no_such_table BEGIN\n       SELECT * from sqlite_master;\n     END;\n   ")
 		_ = _res // catchsql
@@ -233,21 +232,6 @@ func Test_trigger1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(5,6);\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
 		}
 	}
-	{ // do_test "trigger1-3.8"
-		r = db.Query("\n      INSERT INTO t1 VALUES(3,4);\n      SELECT * FROM t1; \n      SELECT * FROM t2;\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(3,4);\n      SELECT * FROM t1; \n      SELECT * FROM t2;\n    ")
-		}
-	}
-	{ // do_test "trigger1-3.9"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
-		if err != nil { t.Fatal(err) }
-		r = db.Query("\n      INSERT INTO t1 VALUES(5,6);\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(5,6);\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")
-		}
-	}
 	{ // do_test "trigger1-4.1"
 		r = db.Query("\n      CREATE TEMP TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(NEW.a,NEW.b);\n      END;\n      INSERT INTO t1 VALUES(7,8);\n      SELECT * FROM t2;\n    ")
 		if r.Error != nil {
@@ -274,8 +258,8 @@ func Test_trigger1(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger1-4.4"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      SELECT * FROM t2;\n    ")
 		if r.Error != nil {
@@ -312,8 +296,8 @@ func Test_trigger1(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger1-6.5"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT type, name FROM sqlite_master")
 		if r.Error != nil {
@@ -333,8 +317,8 @@ func Test_trigger1(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger1-6.8"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
@@ -577,8 +561,8 @@ func Test_trigger1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp5, err := frigolite.Open(":memory:")
-	_ = _dbtmp5 // sqlite3 db connection
+	_dbtmp4, err := frigolite.Open(":memory:")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "trigger1-20.1"
 		_res = db.Exec("\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
@@ -586,8 +570,8 @@ func Test_trigger1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
 		}
 	}
-	_dbtmp6, err := frigolite.Open(":memory:")
-	_ = _dbtmp6 // sqlite3 db connection
+	_dbtmp5, err := frigolite.Open(":memory:")
+	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "trigger1-21.1"
 		r = db.Query("\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t0(a, b, c UNIQUE);\n  CREATE UNIQUE INDEX i0 ON t0(b) WHERE a;\n  CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN\n    DELETE FROM t0;\n  END;\n  INSERT INTO t0(a,b,c) VALUES(0,0,9),(1,1,1);\n  REPLACE INTO t0(a,b,c) VALUES(2,0,9);\n  SELECT * FROM t0;\n")

@@ -104,10 +104,6 @@ func Test_memsubsys1(t *testing.T) {
 	// build_test_db memsubsys1-2 {PRAGMA page_size=1024; PRAGMA mmap_size=0} (unsupported command, not transpiled)
 	MEMORY_MANAGEMENT = sqlite_options_memorymanage
 	_ = MEMORY_MANAGEMENT // suppress unused warning
-	{ // do_test "memsubsys1-2.3"
-		pg_ovfl = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_OVERFLOW")
-		_ = pg_ovfl // suppress unused warning
-	}
 	{ // do_test "memsubsys1-2.4"
 		pg_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_USED")
 		_ = pg_used // suppress unused warning

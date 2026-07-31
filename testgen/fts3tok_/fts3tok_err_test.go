@@ -50,7 +50,6 @@ func Test_fts3tok_err(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "fts3tok_err" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// faultsim_save_and_close (unsupported command, not transpiled)

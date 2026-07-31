@@ -64,7 +64,6 @@ func Test_mmap2(t *testing.T) {
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}
-	return
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log xLog (unsupported command, not transpiled)
 	// proc definition (not transpiled)

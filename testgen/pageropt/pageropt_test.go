@@ -69,7 +69,6 @@ func Test_pageropt(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
-	return
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}

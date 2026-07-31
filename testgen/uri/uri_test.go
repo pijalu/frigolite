@@ -115,8 +115,6 @@ func Test_uri(t *testing.T) {
 		file := _items0[_idx0+2]
 		_ = file // suppress unused warning
 		_ = _idx0
-			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 3 }() {
-			}
 			if func() bool { l_n, l_e := strconv.Atoi("%00 $uri"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n >= r_n }() {
 			}
 			if tcl_platform_platform == "windows" {

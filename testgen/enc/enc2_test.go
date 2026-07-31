@@ -92,7 +92,6 @@ func Test_enc2(t *testing.T) {
 	_ = utf8 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	dbcontents = "\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES('one', 'I', 1);\n"
 	_ = dbcontents // suppress unused warning

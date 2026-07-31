@@ -59,7 +59,6 @@ func Test_alterdropcol(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "alterdropcol"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y, z UNIQUE);\n  CREATE INDEX t2y ON t2(y);\n\n  CREATE TABLE t3(q, r, s);\n  CREATE INDEX t3rs ON t3(r+s);\n")
 		if _res.Error != nil {

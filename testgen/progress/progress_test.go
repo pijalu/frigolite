@@ -68,7 +68,6 @@ func Test_progress(t *testing.T) {
 	_ = c // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	_res = db.Exec("\n  BEGIN;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n  INSERT INTO t1 VALUES(5);\n  INSERT INTO t1 VALUES(6);\n  INSERT INTO t1 VALUES(7);\n  INSERT INTO t1 VALUES(8);\n  INSERT INTO t1 VALUES(9);\n  INSERT INTO t1 VALUES(10);\n  COMMIT;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n  INSERT INTO t1 VALUES(5);\n  INSERT INTO t1 VALUES(6);\n  INSERT INTO t1 VALUES(7);\n  INSERT INTO t1 VALUES(8);\n  INSERT INTO t1 VALUES(9);\n  INSERT INTO t1 VALUES(10);\n  COMMIT;\n")

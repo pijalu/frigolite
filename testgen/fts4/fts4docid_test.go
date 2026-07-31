@@ -75,7 +75,6 @@ func Test_fts4docid(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4docid" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4; ")
 		if _res.Error != nil {

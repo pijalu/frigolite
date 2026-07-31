@@ -82,7 +82,6 @@ func Test_vtabJ(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtabJ"
 	_ = testprefix // suppress unused warning
-	return
 	// register_tclvar_module db (unsupported command, not transpiled)
 	{ // do_test "100"
 		vtabJ_1 = "this"

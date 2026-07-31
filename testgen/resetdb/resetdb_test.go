@@ -59,7 +59,6 @@ func Test_resetdb(t *testing.T) {
 	testprefix = "resetdb"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
-	return
 	if tclBool("permutation" + "==\"inmemory_journal\"\n || " + "permutation" + "==\"journaltest\"") {
 		return
 	}

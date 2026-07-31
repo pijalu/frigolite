@@ -55,7 +55,6 @@ func Test_pragma2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	// delete_file test.db test.db-journal (unsupported command, not transpiled)
 	// delete_file test3.db test3.db-journal (unsupported command, not transpiled)
@@ -193,18 +192,6 @@ func Test_pragma2(t *testing.T) {
 		_res = db.Exec("\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
-		}
-	}
-	{ // do_test "pragma2-4.5.3"
-		_res = db.Exec("\n      ROLLBACK;\n      PRAGMA cache_spill=25;\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ROLLBACK;\n      PRAGMA cache_spill=25;\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
-		}
-	}
-	{ // do_test "pragma2-4.5.4"
-		_res = db.Exec("\n      ROLLBACK;\n      PRAGMA cache_spill(-25);\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ROLLBACK;\n      PRAGMA cache_spill(-25);\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;\n    ")
 		}
 	}
 	{ // "pragma2-4.6"

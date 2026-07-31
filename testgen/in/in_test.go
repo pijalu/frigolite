@@ -116,7 +116,6 @@ func Test_in(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a+ 100*(a BETWEEN 1 and 3) FROM t1 ORDER BY b")
 		}
 	}
-	return
 	{ // do_test "in-2.1"
 		r = db.Query("SELECT a FROM t1 WHERE b IN (8,12,16,24,32) ORDER BY a")
 		if r.Error != nil {

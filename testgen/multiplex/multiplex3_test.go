@@ -69,11 +69,6 @@ func Test_multiplex3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "multiplex3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	_putsMsg := "-nonewline"
-	_ = _putsMsg
-	_putsMsg = "Skipping tests multiplex3-*."
-	_ = _putsMsg
-	return
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	// autoinstall_test_functions (unsupported command, not transpiled)

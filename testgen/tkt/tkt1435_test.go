@@ -50,7 +50,6 @@ func Test_tkt1435(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt1435-1.0"
 		_dbtmp0, err := frigolite.Open(":memory:")
 		_ = _dbtmp0 // sqlite3 db connection

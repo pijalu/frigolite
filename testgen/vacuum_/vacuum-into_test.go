@@ -60,8 +60,6 @@ func Test_vacuum_into(t *testing.T) {
 	_ = flags // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// omit_test vacuum.test {Compiled with SQLITE_OMIT_VACUUM} (unsupported command, not transpiled)
-	return
 	os.Remove("out.db")
 	{ // "vacuum-into-100"
 		r = db.Query("\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b ANY,\n    c INT AS (b+1),                          --- See \"2024-04-09\" block\n    CHECK( typeof(b)!='integer' OR b>a-5 )   --- comment below\n  );\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1(a,b) SELECT x, randomblob(600) FROM c;\n  CREATE INDEX t1b ON t1(b);\n  DELETE FROM t1 WHERE a%2;\n  SELECT count(*), sum(a), sum(length(b)) FROM t1;\n")

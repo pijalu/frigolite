@@ -54,7 +54,6 @@ func Test_attachmalloc(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_malloc_test attachmalloc-1 -tclprep {\n  catch { db close }\n  for {set i 2} {$i<=4} {i...} ... (unsupported command, not transpiled)
 	// do_malloc_test attachmalloc-2 -tclprep {\n  forcedelete test2.db\n  forcedelete test2.db-j...} ... (unsupported command, not transpiled)
 	enable_shared_cache = "sqlite3_enable_shared_cache 1"

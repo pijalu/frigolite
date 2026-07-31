@@ -56,7 +56,6 @@ func Test_mmapfault(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "mmapfault"
 	_ = testprefix // suppress unused warning
 	a_string_counter = "1"

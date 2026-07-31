@@ -84,7 +84,6 @@ func Test_fts3sort(t *testing.T) {
 	_ = X_docid // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	testprefix = "fts3sort"
 	_ = testprefix // suppress unused warning

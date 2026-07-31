@@ -58,7 +58,6 @@ func Test_incrvacuum2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "incrvacuum2"
 	_ = testprefix // suppress unused warning
 	{ // do_test "incrvacuum2-1.1"

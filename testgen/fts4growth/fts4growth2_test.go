@@ -61,7 +61,6 @@ func Test_fts4growth2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4growth2"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec(" CREATE TABLE t1(docid, words); ")
 		if _res.Error != nil {

@@ -99,7 +99,6 @@ func Test_fkey2(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	r = db.Query(" PRAGMA foreign_keys = on ")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = on ")

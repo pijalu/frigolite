@@ -66,7 +66,6 @@ func Test_alterauth2(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "alterauth2"
 	_ = testprefix // suppress unused warning
 	auth = "list" // TCL namespace variable

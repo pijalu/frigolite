@@ -89,7 +89,6 @@ func Test_incrblob2(t *testing.T) {
 	_ = handles_3 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "incrblob2-1.0"
 		_res = db.Exec("\n    CREATE TABLE blobs(id INTEGER PRIMARY KEY, data BLOB);\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n  ")
 		if _res.Error != nil {

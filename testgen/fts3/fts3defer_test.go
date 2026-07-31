@@ -92,7 +92,6 @@ func Test_fts3defer(t *testing.T) {
 	_ = dmt_modes // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	fts3_simple_deferred_tokens_only = "1"

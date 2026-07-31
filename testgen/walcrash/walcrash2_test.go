@@ -53,7 +53,6 @@ func Test_walcrash2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "walcrash2-1.1"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = off;\n    PRAGMA journal_mode = WAL;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(x);\n      CREATE TABLE t3(x);\n      CREATE TABLE t4(x);\n      CREATE TABLE t5(x);\n      CREATE TABLE t6(x);\n      CREATE TABLE t7(x);\n    COMMIT;\n  ")
 		if _res.Error != nil {

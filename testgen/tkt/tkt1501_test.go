@@ -48,7 +48,6 @@ func Test_tkt1501(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt1501-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT a, b, 'abc' FROM t1\n      UNION\n      SELECT b, a, 'xyz' FROM t1\n      ORDER BY 2, 3;\n  ")
 		if r.Error != nil {

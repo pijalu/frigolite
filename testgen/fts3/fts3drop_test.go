@@ -52,7 +52,6 @@ func Test_fts3drop(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3drop"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f1 USING fts3;\n  INSERT INTO f1 VALUES('a b c');\n")
 		if _res.Error != nil {

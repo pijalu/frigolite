@@ -246,7 +246,6 @@ func Test_fts3auto(t *testing.T) {
 	_ = p // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "fts3auto"
 	_ = testprefix // suppress unused warning
 	sfep = sqlite_fts3_enable_parentheses

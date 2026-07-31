@@ -184,7 +184,6 @@ func Test_pager1(t *testing.T) {
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}
-	return
 	// do_not_use_codec (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	a_string_counter = "1"
@@ -1765,105 +1764,9 @@ func Test_pager1(t *testing.T) {
 									}
 								}
 							}
-							{ // do_test "pager1-18.1"
-								// faultsim_delete_and_reopen (unsupported command, not transpiled)
-								_res = db.Exec(" \n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(500), a_string(200));\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(500), a_string(200));\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n    INSERT INTO t1 SELECT a_string(500), a_string(200) FROM t1;\n  ")
-								}
-							}
-							{ // do_test "pager1-18.2"
-								root = "db one \"SELECT rootpage FROM sqlite_master\""
-								_ = root // suppress unused warning
-								lockingpage = "65"
-								_ = lockingpage // suppress unused warning
-								// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
-								_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = $lockingpage;\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = $lockingpage;\n  ")
-								}
-								db2, err = frigolite.Open("test.db")
-								if err != nil { t.Fatal(err) }
-								_res = db.Exec(" SELECT count(*) FROM t1 ")
-								_ = _res // catchsql
-							}
-							db2.Close()
-							{ // do_test "pager1-18.3.1"
-								_res = db.Exec("\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(a_string(5000));\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(a_string(5000));\n  ")
-								}
-								pgno = tclExpr("([file size test.db] / 1024)-2")
-								_ = pgno // suppress unused warning
-								// hexio_write test.db [expr ($pgno-1)*1024] 00000000 (unsupported command, not transpiled)
-								db2, err = frigolite.Open("test.db")
-								if err != nil { t.Fatal(err) }
-								_res = db.Exec(" SELECT typeof(x) FROM t2 ")
-								_ = _res // catchsql
-							}
-							{ // do_test "pager1-18.3.2"
-								_res = db.Exec(" SELECT length(x||'') FROM t2 ")
-								_ = _res // catchsql
-							}
-							db2.Close()
-							{ // do_test "pager1-18.3.3"
-								_res = db.Exec("\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(randomblob(5000));\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(randomblob(5000));\n  ")
-								}
-								pgno = tclExpr("([file size test.db] / 1024)-2")
-								_ = pgno // suppress unused warning
-								// hexio_write test.db [expr ($pgno-1)*1024] 00000000 (unsupported command, not transpiled)
-								db2, err = frigolite.Open("test.db")
-								if err != nil { t.Fatal(err) }
-								_res = db.Exec(" SELECT length(x), typeof(x) FROM t2 ")
-								_ = _res // catchsql
-							}
-							{ // do_test "pager1-18.3.4"
-								_res = db.Exec(" SELECT length(x||'') FROM t2 ")
-								_ = _res // catchsql
-							}
-							db2.Close()
-							{ // do_test "pager1-18.4"
-								// hexio_write test.db [expr ($pgno-1)*1024] 90000000 (unsupported command, not transpiled)
-								db2, err = frigolite.Open("test.db")
-								if err != nil { t.Fatal(err) }
-								_res = db.Exec(" SELECT length(x||'') FROM t2 ")
-								_ = _res // catchsql
-							}
-							db2.Close()
-							// extra_schema_checks 0 (unsupported command, not transpiled)
-							{ // do_test "pager1-18.5"
+							{ // do_test "pager1-19.1"
 								_dbtmp16, err := frigolite.Open("")
 								_ = _dbtmp16 // sqlite3 db connection
-								if err != nil { t.Fatal(err) }
-								// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
-								_res = db.Exec("\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        PRAGMA writable_schema = 1;\n        UPDATE sqlite_master SET rootpage=5 WHERE tbl_name = 't1';\n        PRAGMA writable_schema = 0;\n        ALTER TABLE t1 RENAME TO x1;\n      ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        PRAGMA writable_schema = 1;\n        UPDATE sqlite_master SET rootpage=5 WHERE tbl_name = 't1';\n        PRAGMA writable_schema = 0;\n        ALTER TABLE t1 RENAME TO x1;\n      ")
-								}
-								_res = db.Exec(" SELECT * FROM x1 ")
-								_ = _res // catchsql
-							}
-							// extra_schema_checks 1 (unsupported command, not transpiled)
-							{ // do_test "pager1-18.6"
-								// faultsim_delete_and_reopen (unsupported command, not transpiled)
-								_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(a_string(800));\n    INSERT INTO t1 VALUES(a_string(800));\n  ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(a_string(800));\n    INSERT INTO t1 VALUES(a_string(800));\n  ")
-								}
-								root = "db one \"SELECT rootpage FROM sqlite_master\""
-								_ = root // suppress unused warning
-								// hexio_write test.db [expr ($root-1)*1024 + 8] 00000000 (unsupported command, not transpiled)
-								_dbtmp17, err := frigolite.Open("test.db")
-								_ = _dbtmp17 // sqlite3 db connection
-								if err != nil { t.Fatal(err) }
-								_res = db.Exec(" SELECT length(x) FROM t1 ")
-								_ = _res // catchsql
-							}
-							{ // do_test "pager1-19.1"
-								_dbtmp18, err := frigolite.Open("")
-								_ = _dbtmp18 // sqlite3 db connection
 								if err != nil { t.Fatal(err) }
 								_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
 								if _res.Error != nil {
@@ -1875,8 +1778,8 @@ func Test_pager1(t *testing.T) {
 									var _catchErr error
 									_ = _catchErr // suppress unused warning
 								}
-								_dbtmp19, err := frigolite.Open(":memory:")
-								_ = _dbtmp19 // sqlite3 db connection
+								_dbtmp17, err := frigolite.Open(":memory:")
+								_ = _dbtmp17 // sqlite3 db connection
 								if err != nil { t.Fatal(err) }
 								_res = db.Exec("\n    CREATE TABLE one(two, three);\n    INSERT INTO one VALUES('a', 'b');\n  ")
 								if _res.Error != nil {
@@ -1963,8 +1866,8 @@ func Test_pager1(t *testing.T) {
 								// proc definition (not transpiled)
 								synccount = "0" // TCL namespace variable
 								_ = synccount // suppress unused warning
-								_dbtmp20, err := frigolite.Open("test.db")
-								_ = _dbtmp20 // sqlite3 db connection
+								_dbtmp18, err := frigolite.Open("test.db")
+								_ = _dbtmp18 // sqlite3 db connection
 								if err != nil { t.Fatal(err) }
 								_res = db.Exec("\n      PRAGMA synchronous = off;\n      PRAGMA journal_mode = WAL;\n      INSERT INTO ko DEFAULT VALUES;\n    ")
 								if _res.Error != nil {
@@ -2056,20 +1959,20 @@ func Test_pager1(t *testing.T) {
 							}
 							{ // do_test "pager1-23.5.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
-								_dbtmp21, err := frigolite.Open(":memory:")
-								_ = _dbtmp21 // sqlite3 db connection
+								_dbtmp19, err := frigolite.Open(":memory:")
+								_ = _dbtmp19 // sqlite3 db connection
 								if err != nil { t.Fatal(err) }
 							}
 							// foreach {tn mode possible} "\n  2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0\n"
-							_items22 := tclSplitList("\n  2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0\n")
-							for _idx22 := 0; _idx22+3 <= len(_items22); _idx22 += 3 {
-								tn := _items22[_idx22+0]
+							_items20 := tclSplitList("\n  2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0\n")
+							for _idx20 := 0; _idx20+3 <= len(_items20); _idx20 += 3 {
+								tn := _items20[_idx20+0]
 								_ = tn // suppress unused warning
-								mode := _items22[_idx22+1]
+								mode := _items20[_idx20+1]
 								_ = mode // suppress unused warning
-								possible := _items22[_idx22+2]
+								possible := _items20[_idx20+2]
 								_ = possible // suppress unused warning
-								_ = _idx22
+								_ = _idx20
 									{ // do_test "pager1-23.5." + tn + ".1"
 										r = db.Query("PRAGMA journal_mode = off")
 										if r.Error != nil {
@@ -2237,8 +2140,8 @@ func Test_pager1(t *testing.T) {
 									_putsMsg := "-nonewline"
 									_ = _putsMsg
 									// close $fd
-									_dbtmp23, err := frigolite.Open("test.db")
-									_ = _dbtmp23 // sqlite3 db connection
+									_dbtmp21, err := frigolite.Open("test.db")
+									_ = _dbtmp21 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									r = db.Query("\n    PRAGMA locking_mode=EXCLUSIVE;\n    SELECT count(*) FROM sqlite_master;\n    PRAGMA lock_status;\n  ")
 									if r.Error != nil {
@@ -2269,15 +2172,15 @@ func Test_pager1(t *testing.T) {
 								}
 								os.Remove("test.db")
 								{ // do_test "pager1-32.1"
-									_dbtmp24, err := frigolite.Open("test.db")
-									_ = _dbtmp24 // sqlite3 db connection
+									_dbtmp22, err := frigolite.Open("test.db")
+									_ = _dbtmp22 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									_res = db.Exec("\n    CREATE TABLE t1(x, y);\n  ")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n  ")
 									}
-									_dbtmp25, err := frigolite.Open("test.db")
-									_ = _dbtmp25 // sqlite3 db connection
+									_dbtmp23, err := frigolite.Open("test.db")
+									_ = _dbtmp23 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(1, randomblob(10000));\n  ")
 									if _res.Error != nil {
@@ -2315,15 +2218,15 @@ func Test_pager1(t *testing.T) {
 									}
 								}
 								// foreach {tn pragma strsize} "\n  1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400\n"
-								_items26 := tclSplitList("\n  1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400\n")
-								for _idx26 := 0; _idx26+3 <= len(_items26); _idx26 += 3 {
-									tn := _items26[_idx26+0]
+								_items24 := tclSplitList("\n  1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400\n")
+								for _idx24 := 0; _idx24+3 <= len(_items24); _idx24 += 3 {
+									tn := _items24[_idx24+0]
 									_ = tn // suppress unused warning
-									pragma := _items26[_idx26+1]
+									pragma := _items24[_idx24+1]
 									_ = pragma // suppress unused warning
-									strsize := _items26[_idx26+2]
+									strsize := _items24[_idx24+2]
 									_ = strsize // suppress unused warning
-									_ = _idx26
+									_ = _idx24
 										db.Close()
 										db, err = frigolite.Open("")
 										if err != nil { t.Fatal(err) }
@@ -2354,8 +2257,8 @@ func Test_pager1(t *testing.T) {
 									db, err = frigolite.Open("")
 									if err != nil { t.Fatal(err) }
 									{ // do_test "35"
-										_dbtmp27, err := frigolite.Open("test.db")
-										_ = _dbtmp27 // sqlite3 db connection
+										_dbtmp25, err := frigolite.Open("test.db")
+										_ = _dbtmp25 // sqlite3 db connection
 										if err != nil { t.Fatal(err) }
 										_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 										if _res.Error != nil {
@@ -2372,13 +2275,13 @@ func Test_pager1(t *testing.T) {
 									// do_multiclient_test tn {\n  sql1 {\n    PRAGMA auto_vacuum = 0;\n    CREAT...} (unsupported command, not transpiled)
 									os.Remove("test1")
 									// foreach {tn uri} "\n  1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}\n"
-									_items28 := tclSplitList("\n  1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}\n")
-									for _idx28 := 0; _idx28+2 <= len(_items28); _idx28 += 2 {
-										tn := _items28[_idx28+0]
+									_items26 := tclSplitList("\n  1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}\n")
+									for _idx26 := 0; _idx26+2 <= len(_items26); _idx26 += 2 {
+										tn := _items26[_idx26+0]
 										_ = tn // suppress unused warning
-										uri := _items28[_idx28+1]
+										uri := _items26[_idx26+1]
 										_ = uri // suppress unused warning
-										_ = _idx28
+										_ = _idx26
 											{ // do_test "37." + tn
 												{
 													var _catchErr error
@@ -2386,8 +2289,8 @@ func Test_pager1(t *testing.T) {
 												}
 												// sqlite3_shutdown (unsupported command, not transpiled)
 												// sqlite3_config_uri 1 (unsupported command, not transpiled)
-												_dbtmp29, err := frigolite.Open(uri)
-												_ = _dbtmp29 // sqlite3 db connection
+												_dbtmp27, err := frigolite.Open(uri)
+												_ = _dbtmp27 // sqlite3 db connection
 												if err != nil { t.Fatal(err) }
 												_res = db.Exec("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      SELECT * FROM t1;\n    ")
 												if _res.Error != nil {
@@ -2420,8 +2323,8 @@ func Test_pager1(t *testing.T) {
 											_putsMsg := fd
 											_ = _putsMsg
 											// close $fd
-											_dbtmp30, err := frigolite.Open("test.db")
-											_ = _dbtmp30 // sqlite3 db connection
+											_dbtmp28, err := frigolite.Open("test.db")
+											_ = _dbtmp28 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											_res = db.Exec(" CREATE TABLE t1(x) ")
 											_ = _res // catchsql
@@ -2434,8 +2337,8 @@ func Test_pager1(t *testing.T) {
 											os.Remove("test.db")
 										}
 										{ // do_test "39.1"
-											_dbtmp31, err := frigolite.Open("test.db")
-											_ = _dbtmp31 // sqlite3 db connection
+											_dbtmp29, err := frigolite.Open("test.db")
+											_ = _dbtmp29 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('xxx');\n    INSERT INTO t1 VALUES('two');\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 VALUES(randomblob(400));\n    BEGIN;\n    UPDATE t1 SET x = 'one' WHERE rowid=1;\n  ")
 											if _res.Error != nil {
@@ -2468,8 +2371,8 @@ func Test_pager1(t *testing.T) {
 											}
 										}
 										{ // do_test "39.5"
-											_dbtmp32, err := frigolite.Open("test.db")
-											_ = _dbtmp32 // sqlite3 db connection
+											_dbtmp30, err := frigolite.Open("test.db")
+											_ = _dbtmp30 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											r = db.Query("\n    PRAGMA cache_size = 1;\n    PRAGMA incremental_vacuum;\n    PRAGMA integrity_check;\n  ")
 											if r.Error != nil {
@@ -2492,8 +2395,8 @@ func Test_pager1(t *testing.T) {
 											}
 										}
 										{ // do_test "40.3"
-											_dbtmp33, err := frigolite.Open("test.db")
-											_ = _dbtmp33 // sqlite3 db connection
+											_dbtmp31, err := frigolite.Open("test.db")
+											_ = _dbtmp31 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											r = db.Query("\n    PRAGMA cache_size = 1;\n    CREATE TABLE t2(x);\n    PRAGMA integrity_check;\n  ")
 											if r.Error != nil {
@@ -2513,8 +2416,8 @@ func Test_pager1(t *testing.T) {
 											// testvfs tv -default 1 (unsupported command, not transpiled)
 											// tv sectorsize 16384 (unsupported command, not transpiled)
 											// tv devchar [list] (unsupported command, not transpiled)
-											_dbtmp34, err := frigolite.Open("test.db")
-											_ = _dbtmp34 // sqlite3 db connection
+											_dbtmp32, err := frigolite.Open("test.db")
+											_ = _dbtmp32 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											r = db.Query("\n    PRAGMA cache_size = 1;\n    DELETE FROM t1 WHERE rowid%4;\n    PRAGMA integrity_check;\n  ")
 											if r.Error != nil {
@@ -2533,8 +2436,8 @@ func Test_pager1(t *testing.T) {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
 											}
 											// sqlite3_test_control_pending_byte 0x0010000 (unsupported command, not transpiled)
-											_dbtmp35, err := frigolite.Open("test.db")
-											_ = _dbtmp35 // sqlite3 db connection
+											_dbtmp33, err := frigolite.Open("test.db")
+											_ = _dbtmp33 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											_res = db.Exec(" PRAGMA mmap_size = 0 ")
 											if _res.Error != nil {
@@ -2554,8 +2457,8 @@ func Test_pager1(t *testing.T) {
 											// testvfs tv -default 1 (unsupported command, not transpiled)
 											// tv sectorsize 16384 (unsupported command, not transpiled)
 											// tv devchar [list] (unsupported command, not transpiled)
-											_dbtmp36, err := frigolite.Open("test.db")
-											_ = _dbtmp36 // sqlite3 db connection
+											_dbtmp34, err := frigolite.Open("test.db")
+											_ = _dbtmp34 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											_res = db.Exec(" UPDATE t1 SET x = randomblob(200) ")
 											if _res.Error != nil {
@@ -2572,8 +2475,8 @@ func Test_pager1(t *testing.T) {
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE TABLE t3(x, y);\n    INSERT INTO t3 VALUES(1, 2);\n  ")
 											}
-											_dbtmp37, err := frigolite.Open("test.db")
-											_ = _dbtmp37 // sqlite3 db connection
+											_dbtmp35, err := frigolite.Open("test.db")
+											_ = _dbtmp35 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											_res = db.Exec(" PRAGMA mmap_size = 0 ")
 											if _res.Error != nil {
@@ -2599,8 +2502,8 @@ func Test_pager1(t *testing.T) {
 											}
 											// sqlite3_db_status db CACHE_MISS 0 (unsupported command, not transpiled)
 										}
-										_dbtmp38, err := frigolite.Open(":memory:")
-										_ = _dbtmp38 // sqlite3 db connection
+										_dbtmp36, err := frigolite.Open(":memory:")
+										_ = _dbtmp36 // sqlite3 db connection
 										if err != nil { t.Fatal(err) }
 										{ // "44.1"
 											r = db.Query("\n  PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b ANY);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n  INSERT INTO t1(a,b) SELECT x, zeroblob(1000) FROM c;\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  PRAGMA page_count;\n")

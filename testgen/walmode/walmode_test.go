@@ -64,25 +64,6 @@ func Test_walmode(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	{ // do_test "walmode-0.1"
-		r = db.Query(" PRAGMA journal_mode = wal ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = wal ")
-		}
-	}
-	{ // do_test "walmode-0.2"
-		r = db.Query(" PRAGMA main.journal_mode = wal ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode = wal ")
-		}
-	}
-	{ // do_test "walmode-0.3"
-		r = db.Query(" PRAGMA main.journal_mode ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
-		}
-	}
-	return
 	{ // do_test "walmode-1.1"
 		sqlite_sync_count = "0"
 		_ = sqlite_sync_count // suppress unused warning

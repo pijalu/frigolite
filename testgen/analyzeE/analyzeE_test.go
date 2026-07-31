@@ -52,7 +52,6 @@ func Test_analyzeE(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "analyzeE" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "analyzeE-1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
 		if _res.Error != nil {

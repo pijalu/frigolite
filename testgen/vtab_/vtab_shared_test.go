@@ -66,7 +66,6 @@ func Test_vtab_shared(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtab_shared"
 	_ = testprefix // suppress unused warning
-	return
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection

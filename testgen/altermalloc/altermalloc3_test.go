@@ -54,7 +54,6 @@ func Test_altermalloc3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altermalloc3"
 	_ = testprefix // suppress unused warning
-	return
 	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)

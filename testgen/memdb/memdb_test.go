@@ -204,8 +204,6 @@ func Test_memdb(t *testing.T) {
 		t2 := _items1[_idx1+5]
 		_ = t2 // suppress unused warning
 		_ = _idx1
-			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 1 }() {
-			}
 			{ // do_test "memdb-4." + i
 				if conf != "" {
 					conf = "ON CONFLICT " + conf
@@ -266,8 +264,6 @@ func Test_memdb(t *testing.T) {
 			t2 := _items2[_idx2+6]
 			_ = t2 // suppress unused warning
 			_ = _idx2
-				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 1 }() {
-				}
 				if tclBool(t0) {
 					t1 = "UNIQUE constraint failed: t1.a"
 					_ = t1 // suppress unused warning

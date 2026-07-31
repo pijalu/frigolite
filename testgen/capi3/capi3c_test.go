@@ -292,7 +292,6 @@ func Test_capi3c(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	return
 	{ // do_test "capi3c-5.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a VARINT, b BLOB, c VARCHAR(16));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES('one', 'two', NULL);\n    INSERT INTO t1 VALUES(1.2, 1.3, 1.4);\n  ")
 		if _res.Error != nil {
@@ -574,10 +573,6 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-11.11"
-			// sqlite3_step $STMT (unsupported command, not transpiled)
-		}
-		{ // do_test "capi3c-11.12armor"
-			// sqlite3_step $STMT (unsupported command, not transpiled)
 			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-11.13"

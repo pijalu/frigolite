@@ -49,18 +49,11 @@ func Test_dbfuzz001(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "dbfuzz001-100"
 		_dbtmp0, err := frigolite.Open("")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	}
-	{ // do_test "dbfuzz001-101a"
-		_res = db.Exec("PRAGMA writable_schema=on; PRAGMA integrity_check")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA writable_schema=on; PRAGMA integrity_check")
-		}
 	}
 	{ // "dbfuzz001-110"
 		_res = db.Exec("\n  DELETE FROM t3 WHERE x IS NOT NULL AND +rowid=6;\n")

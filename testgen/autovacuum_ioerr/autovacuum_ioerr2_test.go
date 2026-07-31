@@ -55,7 +55,6 @@ func Test_autovacuum_ioerr2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a)... (unsupported command, not transpiled)
 	// do_ioerr_test autovacuum-ioerr2-2 -tclprep {\n  execsql {\n    PRAGMA auto_vacuum = 1;\n    PR... (unsupported command, not transpiled)
 	// do_ioerr_test autovacuum-ioerr2-3 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a)... (unsupported command, not transpiled)

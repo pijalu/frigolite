@@ -64,7 +64,6 @@ func Test_rowvaluevtab(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "rowvaluevtab" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	// register_echo_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES('one', 1, 1);\n  INSERT INTO t1 VALUES('two', 1, 2);\n  INSERT INTO t1 VALUES('three', 1, 3);\n  INSERT INTO t1 VALUES('four', 2, 1);\n  INSERT INTO t1 VALUES('five', 2, 2);\n  INSERT INTO t1 VALUES('six', 2, 3);\n  INSERT INTO t1 VALUES('seven', 3, 1);\n  INSERT INTO t1 VALUES('eight', 3, 2);\n  INSERT INTO t1 VALUES('nine', 3, 3);\n\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  ) INSERT INTO t1 SELECT NULL, NULL, NULL FROM s;\n  CREATE VIRTUAL TABLE e1 USING echo(t1);\n")

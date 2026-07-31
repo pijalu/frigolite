@@ -61,7 +61,6 @@ func Test_crash2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "crash2-1.1"
 		// crashsql -delay 500 -file test.db -blocksize 2048 {\n    PRAGMA auto_vacuum=OFF;\n    PRA... (unsupported command, not transpiled)
 		// file size test.db

@@ -64,7 +64,6 @@ func Test_vtab2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtab2"
 	_ = testprefix // suppress unused warning
-	return
 	// register_schema_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab2-1.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE schema USING schema;\n    SELECT * FROM schema;\n  ")

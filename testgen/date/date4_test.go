@@ -55,7 +55,6 @@ func Test_date4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tcl_platform_os == "Linux" {
 		if tclBool("\"\" == " + "strftime {%P} 1") {
 			FMT = "%d,%e,%F,%H,%I,%j,%m,%M,%u,%w,%W,%Y,%%,%p,%U,%V,%G,%g"

@@ -94,7 +94,6 @@ func Test_fts3query(t *testing.T) {
 	_ = _r // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	DO_MALLOC_TEST = "0"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	testprefix = "fts3query"

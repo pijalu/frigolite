@@ -85,7 +85,6 @@ func Test_laststmtchanges(t *testing.T) {
 		_res = db.Exec("\n        delete from t0 where x=2;\n        select changes();\n    ")
 		_ = _res // catchsql
 	}
-	return
 	{ // do_test "laststmtchanges-2.1"
 		tc = "db total_changes" // TCL namespace variable
 		_ = tc // suppress unused warning

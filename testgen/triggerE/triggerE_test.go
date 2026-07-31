@@ -58,7 +58,6 @@ func Test_triggerE(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "triggerE"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"

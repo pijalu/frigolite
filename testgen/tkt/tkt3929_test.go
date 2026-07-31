@@ -53,7 +53,6 @@ func Test_tkt3929(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt3929-1.0"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE TRIGGER t1_t1 AFTER INSERT ON t1 BEGIN\n      UPDATE t1 SET b = 'value: ' || a WHERE t1.rowid = new.rowid;\n    END;\n  ")
 		if _res.Error != nil {

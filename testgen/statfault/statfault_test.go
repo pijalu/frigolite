@@ -52,7 +52,6 @@ func Test_statfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "statfault"
 	_ = testprefix // suppress unused warning
-	return
 	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "statfault-1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 VALUES(randomblob(500), 1);\n  INSERT INTO t1 VALUES(2, randomblob(250));\n  INSERT INTO t1 VALUES(randomblob(250), 2);\n  CREATE VIRTUAL TABLE sss USING dbstat;\n")

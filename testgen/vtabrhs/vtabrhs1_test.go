@@ -52,7 +52,6 @@ func Test_vtabrhs1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtabrhs1"
 	_ = testprefix // suppress unused warning
-	return
 	// load_static_extension db qpvtab (unsupported command, not transpiled)
 	{ // "1.1"
 		r = db.Query("\n  SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a=12345\n")

@@ -56,7 +56,6 @@ func Test_check(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "check" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // do_test "check-1.1"

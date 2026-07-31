@@ -53,7 +53,6 @@ func Test_unionvtabfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "unionvtabfault"
 	_ = testprefix // suppress unused warning
-	return
 	os.Remove("test.db2")
 	{ // "1.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');\n")

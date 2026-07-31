@@ -218,7 +218,6 @@ func Test_fts3rnd(t *testing.T) {
 	_ = res // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	G_nVocab = "100"
 	_ = G_nVocab // suppress unused warning
 	nVocab = "100"

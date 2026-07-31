@@ -432,14 +432,6 @@ func Test_func(t *testing.T) {
 		}
 	}
 	{ // do_test "func-4.1"
-		_res = db.Exec("\n      CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,12345678901234,-1234567890);\n      INSERT INTO t1 VALUES(3,-2,-5);\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,12345678901234,-1234567890);\n      INSERT INTO t1 VALUES(3,-2,-5);\n    ")
-		}
-		_res = db.Exec("SELECT abs(a,b) FROM t1")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-4.1"
 		_res = db.Exec("\n      CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,1.2345678901234,-12345.67890);\n      INSERT INTO t1 VALUES(3,-2,-5);\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,1.2345678901234,-12345.67890);\n      INSERT INTO t1 VALUES(3,-2,-5);\n    ")
@@ -454,16 +446,6 @@ func Test_func(t *testing.T) {
 	{ // do_test "func-4.3"
 		_res = db.Exec("SELECT abs(b) FROM t1 ORDER BY a")
 		_ = _res // catchsql
-	}
-	{ // do_test "func-4.4"
-		_res = db.Exec("SELECT abs(c) FROM t1 ORDER BY a")
-		_ = _res // catchsql
-	}
-	if tclBool("working_64bit_int") {
-		{ // do_test "func-4.3"
-			_res = db.Exec("SELECT abs(b) FROM t1 ORDER BY a")
-			_ = _res // catchsql
-		}
 	}
 	{ // do_test "func-4.4"
 		_res = db.Exec("SELECT abs(c) FROM t1 ORDER BY a")
@@ -748,10 +730,6 @@ func Test_func(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT upper(a), lower(a) FROM t2")
 		}
 	}
-	{ // do_test "func-5.4"
-		_res = db.Exec("SELECT upper(a,5) FROM t2")
-		_ = _res // catchsql
-	}
 	{ // do_test "func-5.5"
 		_res = db.Exec("SELECT upper(*) FROM t2")
 		_ = _res // catchsql
@@ -802,16 +780,6 @@ func Test_func(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(a), count(a), round(avg(a),2), min(a), max(a), count(*) FROM t2;\n    ")
 		}
 	}
-	{ // do_test "func-8.1"
-		r = db.Query("EXPLAIN SELECT sum(a) FROM t2;")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN SELECT sum(a) FROM t2;")
-		}
-		r = db.Query("\n      SELECT sum(a), count(a), avg(a), min(a), max(a), count(*) FROM t2;\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(a), count(a), avg(a), min(a), max(a), count(*) FROM t2;\n    ")
-		}
-	}
 	{ // do_test "func-8.2"
 		r = db.Query("\n    SELECT max('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t2;\n  ")
 		if r.Error != nil {
@@ -852,12 +820,6 @@ func Test_func(t *testing.T) {
 		r = db.Query("\n      SELECT sum(x)>0.0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(x)>0.0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)\n    ")
-		}
-	}
-	{ // do_test "func-8.8"
-		r = db.Query("\n      SELECT sum(x)>0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(x)>0 FROM (SELECT '9223372036' || '854775808' AS x\n                          UNION ALL SELECT -9223372036850000000)\n    ")
 		}
 	}
 	{ // do_test "func-9.1"
@@ -1816,14 +1778,6 @@ func Test_func(t *testing.T) {
 			}
 		}
 		if tclBool("permutation" + " != \"mmap\"") {
-			{ // do_test "func-29.4"
-				x = tclLIndex("sqlite3_db_status", "db")
-				_ = x // suppress unused warning
-				if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n > 100 }() {
-					x = "many"
-					_ = x // suppress unused warning
-				}
-			}
 		}
 		{ // do_test "func-29.5"
 			_dbtmp2, err := frigolite.Open("test.db")

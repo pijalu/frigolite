@@ -91,7 +91,6 @@ func Test_fts3prefix(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3prefix"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.1"

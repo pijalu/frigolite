@@ -100,7 +100,6 @@ func Test_incrvacuum(t *testing.T) {
 	_ = nRow // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "incrvacuum-1.1"
 		r = db.Query("\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -287,7 +286,6 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	TestScriptList = "list {\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t1_i ON t1(a);\n  CREATE INDEX t2_i ON t2(a);\n} {\n  INSERT INTO t1 VALUES($::str1, $::str2);\n  INSERT INTO t1 VALUES($::str1||$::str2, $::str2||$::str1);\n  INSERT INTO t2 SELECT b, a FROM t1;\n  INSERT INTO t2 SELECT a, b FROM t1;\n  INSERT INTO t1 SELECT b, a FROM t2;\n  UPDATE t2 SET b = '';\n  PRAGMA incremental_vacuum;\n} {\n  UPDATE t2 SET b = (SELECT b FROM t1 WHERE t1.oid = t2.oid);\n  PRAGMA incremental_vacuum;\n} {\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 SELECT * FROM t2;\n  DROP TABLE t2;\n  PRAGMA incremental_vacuum;\n} {\n  CREATE INDEX t3_i ON t3(a);\n  COMMIT;\n} {\n  BEGIN;\n  DROP INDEX t3_i;\n  PRAGMA incremental_vacuum;\n  INSERT INTO t3 VALUES('hello', 'world');\n  ROLLBACK;\n} {\n  INSERT INTO t3 VALUES('hello', 'world');\n}"
 	_ = TestScriptList // suppress unused warning
-	// lset TestScriptList 2  (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	str1 = "abcdefghij 130" // TCL namespace variable
 	_ = str1 // suppress unused warning

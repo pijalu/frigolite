@@ -76,7 +76,6 @@ func Test_recover(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "recover"
 	_ = testprefix // suppress unused warning
-	return
 	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
 	// proc definition (not transpiled)

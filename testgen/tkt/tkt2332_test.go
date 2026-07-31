@@ -61,7 +61,6 @@ func Test_tkt2332(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt2332.1"
 		r = db.Query("\n    CREATE TABLE blobs (k INTEGER PRIMARY KEY, v BLOB);\n    PRAGMA cache_size = 100;\n  ")
 		if r.Error != nil {

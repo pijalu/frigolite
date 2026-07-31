@@ -640,10 +640,6 @@ func Test_rowid(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM t4;\n  ")
 		}
 	}
-	_res = db.Exec("\n    CREATE TABLE t3(a integer primary key);\n    INSERT INTO t3 VALUES(123);\n    INSERT INTO t3 VALUES(124);\n  ")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a integer primary key);\n    INSERT INTO t3 VALUES(123);\n    INSERT INTO t3 VALUES(124);\n  ")
-	}
 	{ // do_test "rowid-9.1"
 		r = db.Query("\n    SELECT * FROM t3 WHERE a<123.5\n  ")
 		if r.Error != nil {

@@ -50,7 +50,6 @@ func Test_tkt2285(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt2285-1.1"
 		r = db.Query("\n    PRAGMA locking_mode = EXCLUSIVE;\n  ")
 		if r.Error != nil {

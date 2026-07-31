@@ -79,7 +79,6 @@ func Test_walro2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walro2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	{ // "0.0"
 		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);\n")

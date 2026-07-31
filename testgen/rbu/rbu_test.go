@@ -48,6 +48,5 @@ func Test_rbu(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// run_test_suite rbu (unsupported command, not transpiled)
 }

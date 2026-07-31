@@ -52,7 +52,6 @@ func Test_fts3fuzz001(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3fuzz001"
 	_ = testprefix // suppress unused warning
-	return
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "fts3fuzz001-100"
 		_dbtmp0, err := frigolite.Open("")

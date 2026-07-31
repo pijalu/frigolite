@@ -54,9 +54,6 @@ func Test_ioerr6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "ioerr6" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	_putsMsg := "skipping tests - not compiled with SQLITE_ENABLE_ATOMIC_WRITE..."
-	_ = _putsMsg
-	return
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}

@@ -55,7 +55,6 @@ func Test_altermalloc2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altermalloc2"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(abcd, efgh);\n")
 		if _res.Error != nil {

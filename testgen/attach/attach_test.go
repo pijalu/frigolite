@@ -67,7 +67,6 @@ func Test_attach(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
@@ -354,8 +353,6 @@ func Test_attach(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
 		}
 	}
-	db2.Exec("\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(21, 'x');\n    INSERT INTO t2 VALUES(22, 'y');\n    CREATE TABLE tx(x1,x2,y1,y2);\n    INSERT INTO tx VALUES(1, 11, 'x', 'x');\n    INSERT INTO tx VALUES(2, 12, 'y', 'y');\n    INSERT INTO tx VALUES(11, 21, 'x', 'x');\n    INSERT INTO tx VALUES(12, 22, 'y', 'y');\n    CREATE INDEX i2 ON t2(x);\n  ")
-	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "attach-3.2"
 		_res = db.Exec("\n    SELECT * FROM t2\n  ")
 		_ = _res // catchsql
@@ -509,14 +506,6 @@ func Test_attach(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t4(y);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('main.' || NEW.a);\n      END;\n      INSERT INTO main.t3 VALUES(11,12);\n      SELECT * FROM main.t4;\n    ")
 		}
 	}
-	_res = db.Exec("\n    CREATE TABLE t4(x);\n    INSERT INTO t3 VALUES(6,7);\n    INSERT INTO t4 VALUES('db2.6');\n    INSERT INTO t4 VALUES('db2.13');\n  ")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(x);\n    INSERT INTO t3 VALUES(6,7);\n    INSERT INTO t4 VALUES('db2.6');\n    INSERT INTO t4 VALUES('db2.13');\n  ")
-	}
-	_res = db.Exec("\n    CREATE TABLE t4(y);\n    INSERT INTO main.t3 VALUES(11,12);\n    INSERT INTO t4 VALUES('main.11');\n  ")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(y);\n    INSERT INTO main.t3 VALUES(11,12);\n    INSERT INTO t4 VALUES('main.11');\n  ")
-	}
 	{ // do_test "attach-4.8"
 		r = db.Query("\n    ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;\n  ")
 		if r.Error != nil {
@@ -524,22 +513,10 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	{ // do_test "attach-4.9"
-		_res = db.Exec("INSERT INTO main.t4 VALUES('main.15')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO main.t4 VALUES('main.15')")
-		}
 		r = db.Query("\n    INSERT INTO main.t3 VALUES(15,16);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO main.t3 VALUES(15,16);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;\n  ")
 		}
-	}
-	_res = db.Exec("INSERT INTO main.t4 VALUES('main.15')")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO main.t4 VALUES('main.15')")
-	}
-	_res = db.Exec("\n    ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    INSERT INTO main.t3 VALUES(15,16);\n  ")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    INSERT INTO main.t3 VALUES(15,16);\n  ")
 	}
 	{ // do_test "attach-4.10"
 		_res = db.Exec("\n    DETACH DATABASE db2;\n  ")

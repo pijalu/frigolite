@@ -56,7 +56,6 @@ func Test_fts3fault2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3fault2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // do_test "1.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(x);\n    INSERT INTO t1 VALUES('a b c');\n    INSERT INTO t1 VALUES('c d e');\n    CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n  ")
 		if _res.Error != nil {

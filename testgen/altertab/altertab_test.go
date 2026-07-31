@@ -68,7 +68,6 @@ func Test_altertab(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altertab"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, CHECK(t1.a != t1.b));\n\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;\n")
 		if _res.Error != nil {

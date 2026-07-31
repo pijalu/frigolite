@@ -64,7 +64,6 @@ func Test_stmtvtab1(t *testing.T) {
 	_ = sql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	x = "giraffe"
 	_ = x // suppress unused warning
 	y = "mango"

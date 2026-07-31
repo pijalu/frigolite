@@ -64,7 +64,6 @@ func Test_walcrash3(t *testing.T) {
 	_ = file // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "walcrash3"
 	_ = testprefix // suppress unused warning
 	// testvfs tvfs (unsupported command, not transpiled)

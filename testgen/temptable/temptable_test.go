@@ -55,7 +55,6 @@ func Test_temptable(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "temptable-1.0"
 		db2, err = frigolite.Open("./test.db")
 		if err != nil { t.Fatal(err) }

@@ -48,7 +48,6 @@ func Test_tkt1444(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt1444-1.1"
 		r = db.Query("\n    CREATE TABLE DemoTable (x INTEGER, TextKey TEXT, DKey Real);\n    CREATE INDEX DemoTableIdx ON DemoTable (TextKey);\n    INSERT INTO DemoTable VALUES(9,8,7);\n    INSERT INTO DemoTable VALUES(1,2,3);\n    CREATE VIEW DemoView AS SELECT * FROM DemoTable ORDER BY TextKey;\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView ORDER BY 1;\n  ")
 		if r.Error != nil {

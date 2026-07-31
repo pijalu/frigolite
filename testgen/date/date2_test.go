@@ -49,7 +49,6 @@ func Test_date2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // "date2-100"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y, CHECK( date(x) BETWEEN '2017-07-01' AND '2017-07-31' ));\n  INSERT INTO t1(x,y) VALUES('2017-07-20','one');\n")
 		if _res.Error != nil {

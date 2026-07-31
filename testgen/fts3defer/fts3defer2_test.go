@@ -66,7 +66,6 @@ func Test_fts3defer2(t *testing.T) {
 	_ = _r // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "fts3defer2"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

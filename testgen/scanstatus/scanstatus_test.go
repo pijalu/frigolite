@@ -70,7 +70,6 @@ func Test_scanstatus(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "scanstatus"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n  INSERT INTO t2 VALUES('e', 'f');\n")
 		if _res.Error != nil {

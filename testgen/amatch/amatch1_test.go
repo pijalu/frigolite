@@ -48,7 +48,6 @@ func Test_amatch1(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "amatch1-1.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(words); --, tokenize porter);\n  ")
 		if _res.Error != nil {

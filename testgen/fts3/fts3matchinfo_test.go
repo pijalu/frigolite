@@ -118,7 +118,6 @@ func Test_fts3matchinfo(t *testing.T) {
 	_ = list_of_lists // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "fts3matchinfo"
 	_ = testprefix // suppress unused warning
 	sqlite_fts3_enable_parentheses = "0"

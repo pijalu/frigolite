@@ -50,7 +50,6 @@ func Test_fts3near(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1(content) VALUES('one three four five');\n  INSERT INTO t1(content) VALUES('two three four five');\n  INSERT INTO t1(content) VALUES('one two three four five');\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1(content) VALUES('one three four five');\n  INSERT INTO t1(content) VALUES('two three four five');\n  INSERT INTO t1(content) VALUES('one two three four five');\n")

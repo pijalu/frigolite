@@ -49,7 +49,6 @@ func Test_fts3aj(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	os.Remove("test2.db")
 	os.Remove("test2.db-journal")
 	db2, err = frigolite.Open("test2.db")

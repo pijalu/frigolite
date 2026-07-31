@@ -530,8 +530,6 @@ func Test_io(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n  ")
 			}
-			if tclBool("regexp {^atomic} $char") {
-			}
 			{ // do_test "io-5." + tn
 				_res = db.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
 				if _res.Error != nil {

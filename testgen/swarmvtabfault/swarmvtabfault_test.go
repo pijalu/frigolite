@@ -59,7 +59,6 @@ func Test_swarmvtabfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "swarmvtabfault"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	os.Remove("test.db1")
 	os.Remove("test.db2")

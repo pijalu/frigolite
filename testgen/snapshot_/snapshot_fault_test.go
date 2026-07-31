@@ -56,7 +56,6 @@ func Test_snapshot_fault(t *testing.T) {
 	_ = testrc // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "snapshot_fault"
 	_ = testprefix // suppress unused warning
 	// do_faultsim_test 1.0 -prep {\n  catch { db2 close }\n  faultsim_delete_and_reo...} -body {\n  db ... (unsupported command, not transpiled)

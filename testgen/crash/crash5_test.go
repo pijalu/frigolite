@@ -66,9 +66,6 @@ func Test_crash5(t *testing.T) {
 	_ = rc // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	_putsMsg := "Skipping crash5 tests: not compiled with -DSQLITE_ENABLE_MEMORY_MANAGEMENT..."
-	_ = _putsMsg
-	return
 	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {

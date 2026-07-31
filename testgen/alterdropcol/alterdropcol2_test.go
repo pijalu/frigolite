@@ -59,7 +59,6 @@ func Test_alterdropcol2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "alterdropcol2"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(c, b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3), (4, 5, 6);\n")
 		if _res.Error != nil {

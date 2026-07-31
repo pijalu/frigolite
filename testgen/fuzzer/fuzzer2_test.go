@@ -62,7 +62,6 @@ func Test_fuzzer2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "fuzzer2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// load_static_extension db fuzzer (unsupported command, not transpiled)

@@ -80,7 +80,6 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 	_ = n // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_ioerr_test incrvacuum-ioerr-1 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 'incremental';\n ... (unsupported command, not transpiled)
 	// do_ioerr_test incrvacuum-ioerr-2 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_va... (unsupported command, not transpiled)
 	// do_ioerr_test incrvacuum-ioerr-3 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_va... (unsupported command, not transpiled)

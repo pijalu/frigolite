@@ -67,7 +67,6 @@ func Test_bigmmap(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "bigmmap"
 	_ = testprefix // suppress unused warning
-	return
 	mmap_limit = "0"
 	_ = mmap_limit // suppress unused warning
 	_res = db.Exec(" \n  SELECT compile_options AS x FROM pragma_compile_options \n  WHERE x LIKE 'max_mmap_size=%' \n")

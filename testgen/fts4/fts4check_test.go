@@ -61,7 +61,6 @@ func Test_fts4check(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4check" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
 		// fts3_build_db_1 5000 (unsupported command, not transpiled)

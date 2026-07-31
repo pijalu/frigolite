@@ -70,7 +70,6 @@ func Test_mmap4(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "mmap4"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

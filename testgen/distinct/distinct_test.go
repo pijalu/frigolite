@@ -74,7 +74,6 @@ func Test_distinct(t *testing.T) {
 	_ = p5 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "distinct"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

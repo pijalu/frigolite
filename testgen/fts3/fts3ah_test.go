@@ -68,7 +68,6 @@ func Test_fts3ah(t *testing.T) {
 	_ = chars // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// proc definition (not transpiled)
 	_len = "5000"
 	_ = _len // suppress unused warning

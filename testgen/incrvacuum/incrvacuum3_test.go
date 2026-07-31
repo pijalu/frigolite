@@ -71,7 +71,6 @@ func Test_incrvacuum3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "incrvacuum3"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	// foreach {T jrnl_mode} "\n  1 delete\n  2 wal\n"
 	_items0 := tclSplitList("\n  1 delete\n  2 wal\n")

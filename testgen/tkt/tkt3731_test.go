@@ -50,7 +50,6 @@ func Test_tkt3731(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
 	{ // do_test "tkt3731-1.1"

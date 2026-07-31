@@ -57,7 +57,6 @@ func Test_analyzer1(t *testing.T) {
 	_ = cmdlinearg_TESTFIXTURE_HOME // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tcl_platform_platform == "windows" {
 		PROG = "sqlite3_analyzer.exe"
 		_ = PROG // suppress unused warning

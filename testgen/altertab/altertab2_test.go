@@ -59,7 +59,6 @@ func Test_altertab2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altertab2"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		r = db.Query("\n    CREATE TABLE rr(a, b);\n    CREATE VIRTUAL TABLE ff USING fts5(a, b);\n    CREATE TRIGGER tr1 AFTER INSERT ON rr BEGIN\n      INSERT INTO ff VALUES(new.a, new.b);\n    END;\n    INSERT INTO rr VALUES('hello', 'world');\n    SELECT * FROM ff;\n  ")
 		if r.Error != nil {

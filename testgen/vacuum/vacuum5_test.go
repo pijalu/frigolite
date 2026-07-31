@@ -66,7 +66,6 @@ func Test_vacuum5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vacuum5"
 	_ = testprefix // suppress unused warning
-	return
 	os.Remove("test2.db")
 	{ // "vacuum5-1.1"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE main.t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT x, randomblob(1000) FROM c;\n  CREATE TEMP TABLE ttemp(x,y);\n  INSERT INTO ttemp SELECT * FROM t1;\n  ATTACH 'test2.db' AS x2;\n  ATTACH 'test3.db' AS x3;\n  CREATE TABLE x2.t2(c,d);\n  INSERT INTO t2 SELECT * FROM t1;\n  CREATE TABLE x3.t3(e,f);\n  INSERT INTO t3 SELECT * FROM t1;\n  DELETE FROM t1 WHERE (rowid%3)!=0;\n  DELETE FROM t2 WHERE (rowid%4)!=0;\n  DELETE FROM t3 WHERE (rowid%5)!=0;\n  PRAGMA main.integrity_check;\n  PRAGMA x2.integrity_check;\n  PRAGMA x3.integrity_check;\n")

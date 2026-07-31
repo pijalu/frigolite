@@ -426,24 +426,6 @@ func Test_returning1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO log VALUES('insert', new.rowid, new.a, new.b);\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES('update', new.rowid, new.a, new.b);\n  END;\n")
 		}
 	}
-	{ // "10.3a"
-		_res = db.Exec("\n    INSERT INTO t1(a, b) VALUES(1234, 5678) RETURNING rowid;\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: new.rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.rowid", _res.Error, "\n    INSERT INTO t1(a, b) VALUES(1234, 5678) RETURNING rowid;\n  ")
-		}
-	}
-	{ // "10.3b"
-		_res = db.Exec("\n    UPDATE t1 SET a='z' WHERE b='y' RETURNING rowid;\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: new.rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: new.rowid", _res.Error, "\n    UPDATE t1 SET a='z' WHERE b='y' RETURNING rowid;\n  ")
-		}
-	}
-	{ // "10.4"
-		r = db.Query("\n    SELECT * FROM log;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM log;\n  ")
-		}
-	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

@@ -845,7 +845,6 @@ func Test_avtrans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	return
 	{ // do_test "avtrans-7.1"
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {

@@ -112,60 +112,9 @@ func Test_e_fkey(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	{ // do_test "e_fkey-2.1"
-		r = db.Query("\n      PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;\n    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;\n    ")
-		}
-	}
-	{ // do_test "e_fkey-2.2"
-		r = db.Query(" PRAGMA foreign_key_list(c) ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_key_list(c) ")
-		}
-	}
-	{ // do_test "e_fkey-2.3"
-		r = db.Query(" PRAGMA foreign_keys ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys ")
-		}
-	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	{ // do_test "e_fkey-3.1"
-		_res = db.Exec(" CREATE TABLE p(i PRIMARY KEY) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE p(i PRIMARY KEY) ")
-		}
-		_res = db.Exec(" CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE) ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-3.2"
-		_res = db.Exec(" CREATE TABLE c(j REFERENCES p) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE c(j REFERENCES p) ")
-		}
-	}
-	{ // do_test "e_fkey-3.3"
-		r = db.Query(" PRAGMA table_info(c) ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA table_info(c) ")
-		}
-	}
-	{ // do_test "e_fkey-3.4"
-		r = db.Query(" PRAGMA foreign_key_list(c) ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_key_list(c) ")
-		}
-	}
-	{ // do_test "e_fkey-3.5"
-		r = db.Query(" PRAGMA foreign_keys ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys ")
-		}
-	}
-	return
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

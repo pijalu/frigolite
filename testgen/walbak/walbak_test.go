@@ -65,7 +65,6 @@ func Test_walbak(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
-	return
 	{ // do_test "walbak-1.0"
 		_res = db.Exec(" \n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    BEGIN;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('I', 'one');\n    COMMIT;\n  ")
 		if _res.Error != nil {

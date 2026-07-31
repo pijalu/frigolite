@@ -69,7 +69,6 @@ func Test_bitvec(t *testing.T) {
 	_ = nFail // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "bitvec-1.0.1"
 		// sqlite3BitvecBuiltinTest 400 {5 1 1 1 0} (unsupported command, not transpiled)
 	}

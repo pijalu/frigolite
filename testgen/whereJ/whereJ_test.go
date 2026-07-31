@@ -61,7 +61,6 @@ func Test_whereJ(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "whereJ" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "whereJ-1.0"
 		_res = db.Exec("\n  CREATE TABLE tx1 (\n    est,\n    cid,\n    sid,\t\n    fid,\n    aid,\n    edate,\n    rstat,\n    ftype,\n    cx,\n    fyear,\n    fp,\n    acode,\n    a1,\n    curx,\n    tdate,\n    gstat,\n    trgtpx,\n    effdate,\n    adate,\n    ytime,\n    mstat\n  );\n  CREATE INDEX ix0 on tx1(a1,curx,aid,cid,sid,ftype,fp,fyear DESC,edate DESC,fid);\n  CREATE INDEX ix1 on tx1(a1,curx,aid,ftype,fp,fyear DESC,fid,edate DESC,cid,sid);\n  CREATE INDEX ix2 on tx1(a1,curx,cid,sid,ftype,fp,fyear DESC,edate DESC,aid,fid);\n  CREATE INDEX ix3 on tx1(a1,curx,fid,ftype,fp,fyear DESC,cid,sid,aid,edate DESC);\n  CREATE INDEX ix4 on tx1(a1,curx,ftype,cid,sid,aid,edate DESC,fid,fp,fyear DESC);\n  CREATE INDEX ix5 on tx1(a1,curx,ftype,aid,fid,cid,sid,edate DESC,fp,fyear DESC);\n  CREATE INDEX ix6 on tx1(ftype,fp,fyear DESC,cid,sid,edate DESC,a1,fid,aid,curx,est,rstat,cx,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix7 on tx1(cid,a1,curx,sid,ftype,est,fid,aid,edate,rstat,cx,fyear,fp,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix8 on tx1(cid,sid,edate DESC,aid,est);\n  CREATE INDEX ix9 on tx1(aid,edate DESC,a1,curx);\n")
 		if _res.Error != nil {

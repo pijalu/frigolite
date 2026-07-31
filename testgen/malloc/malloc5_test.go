@@ -89,7 +89,6 @@ func Test_malloc5(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
-	return
 	// proc definition (not transpiled)
 	mrange = "0.98"
 	_ = mrange // suppress unused warning

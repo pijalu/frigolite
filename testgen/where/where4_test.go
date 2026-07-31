@@ -60,7 +60,6 @@ func Test_where4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "where4"
 	_ = testprefix // suppress unused warning
-	return
 	{ // do_test "where4-1.0"
 		r = db.Query("\n    CREATE TABLE t1(w, x, y);\n    CREATE INDEX i1wxy ON t1(w,x,y);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,NULL,3);\n    INSERT INTO t1 VALUES('a','b','c');\n    INSERT INTO t1 VALUES('a',NULL,'c');\n    INSERT INTO t1 VALUES(X'78',x'79',x'7a');\n    INSERT INTO t1 VALUES(X'78',NULL,X'7A');\n    INSERT INTO t1 VALUES(NULL,NULL,NULL);\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {

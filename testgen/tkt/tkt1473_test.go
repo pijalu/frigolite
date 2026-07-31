@@ -48,7 +48,6 @@ func Test_tkt1473(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt1473-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
@@ -103,7 +102,6 @@ func Test_tkt1473(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=0\n  ")
 		}
 	}
-	return
 	{ // do_test "tkt1473-2.2"
 		r = db.Query("\n    SELECT (SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=0)\n  ")
 		if r.Error != nil {

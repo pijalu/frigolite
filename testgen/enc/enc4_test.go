@@ -76,7 +76,6 @@ func Test_enc4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	encodings = "list UTF-8 UTF-16le UTF-16be"
 	_ = encodings // suppress unused warning
 	inits = "list 1 1.0 1. 1e0"

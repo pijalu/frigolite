@@ -58,7 +58,6 @@ func Test_crashM(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "crashM"
 	_ = testprefix // suppress unused warning
-	return
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	for _, f := range tclSplitList("glob -nocomplain test1.* test2.*") {

@@ -64,7 +64,6 @@ func Test_lookaside(t *testing.T) {
 	_ = G_perm_dbconfig // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tclBool("info exists ::G(perm:dbconfig)" + " && " + G_perm_dbconfig + "!=\"\"") {
 		return
 	}

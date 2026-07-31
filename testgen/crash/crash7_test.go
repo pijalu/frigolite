@@ -68,7 +68,6 @@ func Test_crash7(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "crash7"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	for _, f := range tclSplitList("list test.db test.db-journal") {
 	_ = f // suppress unused warning

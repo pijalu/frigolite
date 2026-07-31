@@ -67,7 +67,6 @@ func Test_tableapi(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tableapi-1.0"
 		dbx = "" // TCL namespace variable
 		_ = dbx // suppress unused warning

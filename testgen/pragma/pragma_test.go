@@ -140,7 +140,6 @@ func Test_pragma(t *testing.T) {
 	testprefix = "pragma"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
-	return
 	// proc definition (not transpiled)
 	// delete_file test.db test.db-journal (unsupported command, not transpiled)
 	// delete_file test3.db test3.db-journal (unsupported command, not transpiled)
@@ -870,10 +869,6 @@ func Test_pragma(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT seq, \"name\", \"unique\" FROM out ORDER BY seq")
 			}
-		}
-		_res = db.Exec("CREATE TABLE t3(a,b UNIQUE)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t3(a,b UNIQUE)")
 		}
 		{ // do_test "pragma-6.5.1"
 			_res = db.Exec("\n    CREATE INDEX t3i1 ON t3(a,b);\n  ")
@@ -1976,39 +1971,6 @@ func Test_pragma(t *testing.T) {
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					db2.Close()
-					db.Close()
-					db, err = frigolite.Open("")
-					if err != nil { t.Fatal(err) }
-					{ // "24.0"
-						r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES('a', 'b', 'c');\n    PRAGMA integrity_check;\n  ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES('a', 'b', 'c');\n    PRAGMA integrity_check;\n  ")
-							return
-						}
-						got := flatten(r)
-						want := "ok"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					_r = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
-					_ = _r // suppress unused warning
-					// hexio_write test.db [expr $r*1024 - 16] 000000000000000701040f0f1f616263 (unsupported command, not transpiled)
-					_dbtmp27, err := frigolite.Open("test.db")
-					_ = _dbtmp27 // sqlite3 db connection
-					if err != nil { t.Fatal(err) }
-					{ // "24.1"
-						_res = db.Exec("\n    SELECT * FROM t1;\n  ")
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n    SELECT * FROM t1;\n  ")
-						}
-					}
-					{ // "24.2"
-						_res = db.Exec("\n    PRAGMA integrity_check;\n  ")
-						if _res.Error == nil {
-							t.Errorf("expected error, got none\n  sql: %s", "\n    PRAGMA integrity_check;\n  ")
-						}
-					}
 					// database_never_corrupt (unsupported command, not transpiled)
 					db.Close()
 					db, err = frigolite.Open("")

@@ -73,7 +73,6 @@ func Test_vtabI(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtabI"
 	_ = testprefix // suppress unused warning
-	return
 	// register_echo_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE VIRTUAL TABLE e1 USING echo(t1);\n")

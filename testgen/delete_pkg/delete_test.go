@@ -592,10 +592,6 @@ func Test_delete(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3 VALUES(1);\n      INSERT INTO t3 SELECT a+1 FROM t3;\n      INSERT INTO t3 SELECT a+2 FROM t3;\n      CREATE TABLE t4 AS SELECT * FROM t3;\n      PRAGMA count_changes=ON;\n      DELETE FROM t3;\n      DELETE FROM t4;\n    ")
 		}
 	}
-	_res = db.Exec("DELETE FROM t3")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t3")
-	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "delete-8.0"

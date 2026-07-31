@@ -121,7 +121,6 @@ func Test_fts3expr2(t *testing.T) {
 	_ = name // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)

@@ -52,7 +52,6 @@ func Test_incrblobfault(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "incrblobfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"

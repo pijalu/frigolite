@@ -54,7 +54,6 @@ func Test_fts3fault3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3fault" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
 	{ // "1.0"

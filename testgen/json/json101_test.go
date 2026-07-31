@@ -501,7 +501,6 @@ func Test_json101(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	return
 	{ // "json101-5.3"
 		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
 		if r.Error != nil {

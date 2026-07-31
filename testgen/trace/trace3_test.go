@@ -71,7 +71,6 @@ func Test_trace3(t *testing.T) {
 	_ = args // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "trace3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

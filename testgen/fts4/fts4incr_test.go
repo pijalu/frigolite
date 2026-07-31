@@ -73,7 +73,6 @@ func Test_fts4incr(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4incr" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // do_test "1.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4(words) ")
 		if _res.Error != nil {

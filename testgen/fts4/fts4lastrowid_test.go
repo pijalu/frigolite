@@ -52,7 +52,6 @@ func Test_fts4lastrowid(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4lastrowid"
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(str);\n")
 		if _res.Error != nil {

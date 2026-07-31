@@ -48,7 +48,6 @@ func Test_tkt_02a8e81d44(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt-02a838-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(4);\n    INSERT INTO t1 VALUES(5);\n    SELECT * FROM (SELECT a FROM t1 LIMIT 1) UNION ALL SELECT 3;\n  ")
 		if r.Error != nil {

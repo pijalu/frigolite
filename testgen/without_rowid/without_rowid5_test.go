@@ -51,7 +51,6 @@ func Test_without_rowid5(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // "without_rowid5-1.1"
 		r = db.Query("\n  CREATE TABLE t1(a PRIMARY KEY,b,c);\n  CREATE TABLE t1w(a PRIMARY KEY,b,c) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1565,681,1148),(1429,1190,1619),(425,358,1306);\n  INSERT INTO t1w SELECT a,b,c FROM t1;\n  SELECT rowid, _rowid_, oid FROM t1 ORDER BY a DESC;\n")
 		if r.Error != nil {

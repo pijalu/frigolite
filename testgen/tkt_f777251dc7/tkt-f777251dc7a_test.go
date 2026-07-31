@@ -48,7 +48,6 @@ func Test_tkt_f777251dc7a(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt-f7772-1.1"
 		_res = db.Exec("\n     CREATE TEMP TABLE t1(x UNIQUE);\n     INSERT INTO t1 VALUES(1);\n     CREATE TABLE t2(x, y);\n     INSERT INTO t2 VALUES(1, 2);\n     CREATE TEMP TABLE t3(w, z);\n  ")
 		if _res.Error != nil {

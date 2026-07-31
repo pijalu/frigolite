@@ -54,7 +54,6 @@ func Test_fts4merge2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4merge2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // do_test "1.0"
 		// fts3_build_db_1 1000 (unsupported command, not transpiled)
 		// faultsim_save_and_close (unsupported command, not transpiled)

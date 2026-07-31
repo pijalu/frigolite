@@ -50,7 +50,6 @@ func Test_tkt2942(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt2942.1"
 		r = db.Query("\n    create table t1(num int);\n    insert into t1 values (2);\n    insert into t1 values (1);\n    insert into t1 values (3);\n    insert into t1 values (4);\n    SELECT group_concat(num) FROM (SELECT num FROM t1 ORDER BY num DESC);\n  ")
 		if r.Error != nil {

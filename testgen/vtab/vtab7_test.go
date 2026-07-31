@@ -65,7 +65,6 @@ func Test_vtab7(t *testing.T) {
 	_ = callbacks_x_tablename // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	// trace add variable ::echo_module write echo_module_trace (unsupported command, not transpiled)
 	// proc definition (not transpiled)

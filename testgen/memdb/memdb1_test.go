@@ -78,7 +78,6 @@ func Test_memdb1(t *testing.T) {
 	testprefix = "memdb1"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
-	return
 	{ // do_test "100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
 		if _res.Error != nil {

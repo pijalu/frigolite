@@ -52,7 +52,6 @@ func Test_walrofault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walro2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	_dbtmp0, err := frigolite.Open("test.db")

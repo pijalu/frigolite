@@ -76,7 +76,6 @@ func Test_bind2(t *testing.T) {
 		// sqlite3_column_text $stmt 0 (unsupported command, not transpiled)
 	}
 	// sqlite3_finalize $stmt (unsupported command, not transpiled)
-	return
 	// proc definition (not transpiled)
 	{ // do_test "1.2"
 		reslist = "list" // TCL namespace variable

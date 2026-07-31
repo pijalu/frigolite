@@ -71,7 +71,6 @@ func Test_selectA(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "selectA"
 	_ = testprefix // suppress unused warning
-	return
 	{ // do_test "selectA-1.0"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c COLLATE NOCASE);\n    INSERT INTO t1 VALUES(1,'a','a');\n    INSERT INTO t1 VALUES(9.9, 'b', 'B');\n    INSERT INTO t1 VALUES(NULL, 'C', 'c');\n    INSERT INTO t1 VALUES('hello', 'd', 'D');\n    INSERT INTO t1 VALUES(x'616263', 'e', 'e');\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {

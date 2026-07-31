@@ -76,7 +76,6 @@ func Test_altertrig(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altertrig"
 	_ = testprefix // suppress unused warning
-	return
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"

@@ -53,7 +53,6 @@ func Test_sync(t *testing.T) {
 	_ = adj // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}

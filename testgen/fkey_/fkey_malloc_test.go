@@ -52,7 +52,6 @@ func Test_fkey_malloc(t *testing.T) {
 	_ = zSql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	// do_malloc_test fkey_malloc-1 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a ...} -... (unsupported command, not transpiled)
 	// do_malloc_test fkey_malloc-2 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a,...} -... (unsupported command, not transpiled)
 	// do_malloc_test fkey_malloc-3 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x ...} -... (unsupported command, not transpiled)

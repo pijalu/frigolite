@@ -50,7 +50,6 @@ func Test_tkt3832(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "tkt3832-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a INT, b INTEGER PRIMARY KEY);\n    CREATE TABLE log(x);\n    CREATE TRIGGER t1r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(new.b);\n    END;\n    INSERT INTO t1 VALUES(NULL,5);\n    INSERT INTO t1 SELECT b, a FROM t1 ORDER BY b;\n    SELECT rowid, * FROM t1;\n    SELECT rowid, * FROM log;\n  ")
 		if _res.Error != nil {

@@ -77,7 +77,6 @@ func Test_indexfault(t *testing.T) {
 	_ = file // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	testprefix = "indexfault"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)

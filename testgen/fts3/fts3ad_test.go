@@ -50,7 +50,6 @@ func Test_fts3ad(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "fts3ad-1.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")
 		if r.Error != nil {

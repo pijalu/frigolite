@@ -85,7 +85,6 @@ func Test_with1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "with1" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH x(a) AS ( SELECT * FROM t1) SELECT 10\n")
 		if r.Error != nil {

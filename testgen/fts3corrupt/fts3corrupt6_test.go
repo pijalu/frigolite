@@ -57,7 +57,6 @@ func Test_fts3corrupt6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3corrupt6"
 	_ = testprefix // suppress unused warning
-	return
 	saved_sqlite_fts3_enable_parentheses = sqlite_fts3_enable_parentheses // TCL namespace variable
 	_ = saved_sqlite_fts3_enable_parentheses // suppress unused warning
 	sqlite_fts3_enable_parentheses = "1"

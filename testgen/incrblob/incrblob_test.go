@@ -94,7 +94,6 @@ func Test_incrblob(t *testing.T) {
 	_ = cmdlinearg_INFO_SCRIPT // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	return
 	{ // do_test "incrblob-1.1"
 		_res = db.Exec("\n    CREATE TABLE blobs(k PRIMARY KEY, v BLOB);\n    INSERT INTO blobs VALUES('one', X'0102030405060708090A');\n    INSERT INTO blobs VALUES('two', X'0A090807060504030201');\n  ")
 		if _res.Error != nil {
@@ -159,7 +158,6 @@ func Test_incrblob(t *testing.T) {
 	for _, AutoVacuumMode := range tclSplitList("list 0 1") {
 	_ = AutoVacuumMode // suppress unused warning
 		if func() bool { AutoVacuumMode_n, _AutoVacuumMode_e := strconv.Atoi(AutoVacuumMode); if _AutoVacuumMode_e != nil { return false }; return AutoVacuumMode_n > 0 }() {
-			break
 		}
 		os.Remove("test.db")
 		_dbtmp0, err := frigolite.Open("test.db")

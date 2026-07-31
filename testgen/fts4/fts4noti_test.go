@@ -67,7 +67,6 @@ func Test_fts4noti(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts4noti" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	return
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE cc(a, b, c);\n")
 		if _res.Error != nil {
