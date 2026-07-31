@@ -39,11 +39,24 @@ func (e *Engine) execExplainQueryPlan(stmt sql.Stmt) *Result {
 	}
 }
 
-func simplePlan(desc string) *Result {
-	return &Result{
-		Columns: []string{"plan"},
-		Rows:    [][]interface{}{{fmt.Sprintf("QUERY PLAN\n`--%s", desc)}},
+// planResult renders plan nodes as one row per node. SQLite emits one row
+// per plan step; emitting separate rows lets callers (and the test harness
+// flatten helper) join them with spaces, so multi-node patterns match.
+func planResult(nodes []string) *Result {
+	rows := make([][]interface{}, 0, len(nodes)+1)
+	rows = append(rows, []interface{}{"QUERY PLAN"})
+	for i, n := range nodes {
+		if i == len(nodes)-1 {
+			rows = append(rows, []interface{}{"`--" + n})
+		} else {
+			rows = append(rows, []interface{}{"|--" + n})
+		}
 	}
+	return &Result{Columns: []string{"plan"}, Rows: rows}
+}
+
+func simplePlan(desc string) *Result {
+	return planResult([]string{desc})
 }
 
 // tableRowCount returns the cell count from a table's b-tree root page.
@@ -106,14 +119,57 @@ func estimateSelectivity(constant interface{}, op string) float64 {
 	}
 }
 
-func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
+// queryTable is a table reference participating in a query's FROM clause.
+// display is the name used in plan output and predicate matching (the alias
+// when one is given); real is the underlying table name for schema lookups.
+type queryTable struct {
+	display string
+	real    string
+}
+
+func (e *Engine) collectQueryTables(s *sql.SelectStmt) []queryTable {
 	if s.From.Name == "" && s.From.Subquery == nil {
-		return simplePlan("SCAN (no from)")
+		return nil
 	}
-	tableName := s.From.Name
-	if s.From.As != "" {
-		tableName = s.From.As
+	tables := []queryTable{queryTableFromRef(s.From)}
+	for _, j := range s.Joins {
+		tables = append(tables, queryTableFromRef(j.Table))
 	}
+	return tables
+}
+
+func queryTableFromRef(r sql.TableRef) queryTable {
+	display := r.Name
+	if r.As != "" {
+		display = r.As
+	}
+	return queryTable{display: display, real: r.Name}
+}
+
+func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
+	tables := e.collectQueryTables(s)
+	if len(tables) == 0 {
+		return planResult([]string{"SCAN (no from)"})
+	}
+
+	var nodes []string
+	if len(tables) == 1 {
+		nodes = append(nodes, e.planSingleTable(tables[0], s))
+	} else {
+		nodes = append(nodes, e.planJoin(tables, s)...)
+	}
+
+	// SQLite appends a temp b-tree node when aggregation requires a sort.
+	if len(s.GroupBy) > 0 {
+		nodes = append(nodes, "USE TEMP B-TREE FOR GROUP BY")
+	}
+
+	return planResult(nodes)
+}
+
+// planSingleTable computes the plan node for a query over a single table.
+func (e *Engine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
+	tableName := t.display
 
 	// Get actual row count from table
 	nRow := e.tableRowCount(tableName)
@@ -136,7 +192,7 @@ func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 		if conditions != "" {
 			plan += " " + conditions
 		}
-		return simplePlan(plan)
+		return plan
 	}
 
 	// ORDER BY index optimization: if ORDER BY columns match an index, use it
@@ -145,8 +201,7 @@ func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 			if colRef, ok := ob.Expr.(*sql.ColumnRef); ok {
 				idxName := e.findIndexOnColumn(tableName, colRef.Name)
 				if idxName != "" {
-					plan := fmt.Sprintf("SCAN %s USING INDEX %s -- B-TREE FOR ORDER BY", tableName, idxName)
-					return simplePlan(plan)
+					return fmt.Sprintf("SCAN %s USING INDEX %s -- B-TREE FOR ORDER BY", tableName, idxName)
 				}
 			}
 		}
@@ -159,14 +214,184 @@ func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 			if colRef, ok := fn.Args[0].(*sql.ColumnRef); ok {
 				bestCoverIdx := e.findBestCoveringIndex(tableName, colRef.Name)
 				if bestCoverIdx != "" {
-					plan := fmt.Sprintf("INDEX %s", bestCoverIdx)
-					return simplePlan(plan)
+					return fmt.Sprintf("INDEX %s", bestCoverIdx)
 				}
 			}
 		}
 	}
 
-	return simplePlan(fmt.Sprintf("SCAN %s", tableName))
+	return fmt.Sprintf("SCAN %s", tableName)
+}
+
+// joinRef records an equality join predicate tbl.col = other.col where
+// tbl.col is backed by an index, making a SEARCH possible once other is
+// planned.
+type joinRef struct {
+	table      string
+	col        string
+	otherTable string
+	indexName  string
+}
+
+// planJoin computes one plan node per joined table. The driving table is the
+// one with constant predicates and the smallest estimated row count; inner
+// tables are placed in dependency order, using an index SEARCH when a join
+// column is indexed.
+func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
+	var preds []sql.Expr
+	if s.Where != nil {
+		preds = append(preds, splitAnd(s.Where)...)
+	}
+	for _, j := range s.Joins {
+		if j.On != nil {
+			preds = append(preds, splitAnd(j.On)...)
+		}
+	}
+
+	// constPreds counts constant predicates (col = literal) per table; these
+	// drive the join order even when the column is not indexed.
+	constPreds := make([]int, len(tables))
+	joinRefs := make([][]joinRef, len(tables))
+
+	for _, p := range preds {
+		bin, ok := p.(*sql.BinaryOp)
+		if !ok || !strings.EqualFold(bin.Operator, "=") {
+			continue
+		}
+		if colRef, constVal := findColAndConst(bin); colRef != nil && constVal != nil {
+			if ti := e.tableIndexByDisplay(tables, colRef.Table); ti >= 0 {
+				constPreds[ti]++
+			}
+			continue
+		}
+		left, okL := bin.Left.(*sql.ColumnRef)
+		right, okR := bin.Right.(*sql.ColumnRef)
+		if !okL || !okR {
+			continue
+		}
+		li := e.tableIndexByDisplay(tables, left.Table)
+		ri := e.tableIndexByDisplay(tables, right.Table)
+		if li < 0 || ri < 0 || li == ri {
+			continue
+		}
+		if idx := e.findIndexOnColumn(tables[li].real, left.Name); idx != "" {
+			joinRefs[li] = append(joinRefs[li], joinRef{table: tables[li].display, col: left.Name, otherTable: tables[ri].display, indexName: idx})
+		}
+		if idx := e.findIndexOnColumn(tables[ri].real, right.Name); idx != "" {
+			joinRefs[ri] = append(joinRefs[ri], joinRef{table: tables[ri].display, col: right.Name, otherTable: tables[li].display, indexName: idx})
+		}
+	}
+
+	// Driving table: among tables with constant predicates, the smallest.
+	driver := 0
+	bestCnt := int64(0)
+	found := false
+	for i := range tables {
+		if constPreds[i] == 0 {
+			continue
+		}
+		cnt := e.estimatedRowCount(tables[i].real)
+		if !found || cnt < bestCnt {
+			driver, bestCnt, found = i, cnt, true
+		}
+	}
+
+	planned := []string{tables[driver].display}
+	remaining := make([]int, 0, len(tables)-1)
+	for i := range tables {
+		if i != driver {
+			remaining = append(remaining, i)
+		}
+	}
+
+	nodes := []string{e.joinNodeFor(tables[driver], nil, joinRefs[driver], s)}
+	for len(remaining) > 0 {
+		next := -1
+		for k, i := range remaining {
+			if e.joinSearchRef(joinRefs[i], planned) != nil {
+				next = k
+				break
+			}
+		}
+		if next < 0 {
+			next = 0 // no indexed join connection — keep original order
+		}
+		i := remaining[next]
+		remaining = append(remaining[:next], remaining[next+1:]...)
+		nodes = append(nodes, e.joinNodeFor(tables[i], planned, joinRefs[i], s))
+		planned = append(planned, tables[i].display)
+	}
+	return nodes
+}
+
+// joinNodeFor emits the plan node for one table in a join: an index SEARCH on
+// a join column when the other side is already planned, otherwise an index
+// SEARCH on constant predicates when they are selective, otherwise a SCAN.
+func (e *Engine) joinNodeFor(t queryTable, planned []string, joins []joinRef, s *sql.SelectStmt) string {
+	if jr := e.joinSearchRef(joins, planned); jr != nil {
+		return fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", t.display, jr.indexName, jr.col)
+	}
+	nRow := e.estimatedRowCount(t.real)
+	est := float64(nRow)
+	idx, conds := e.bestIndexForQuery(t.real, s.Where, &est)
+	if idx != "" && est < float64(nRow)*0.10 {
+		if conds != "" {
+			return fmt.Sprintf("SEARCH %s USING INDEX %s %s", t.display, idx, conds)
+		}
+		return fmt.Sprintf("SEARCH %s USING INDEX %s", t.display, idx)
+	}
+	return "SCAN " + t.display
+}
+
+func (e *Engine) joinSearchRef(joins []joinRef, planned []string) *joinRef {
+	for i := range joins {
+		if containsString(planned, joins[i].otherTable) {
+			return &joins[i]
+		}
+	}
+	return nil
+}
+
+func (e *Engine) tableIndexByDisplay(tables []queryTable, display string) int {
+	for i, t := range tables {
+		if t.display == display {
+			return i
+		}
+	}
+	return -1
+}
+
+func containsString(list []string, s string) bool {
+	for _, v := range list {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
+
+// estimatedRowCount returns the best available row count for a table: its
+// live b-tree cell count, falling back to ANALYZE statistics and finally a
+// default estimate.
+func (e *Engine) estimatedRowCount(table string) int64 {
+	if n := e.tableRowCount(table); n > 0 {
+		return n
+	}
+	if n := e.stat1RowCount(table); n > 0 {
+		return n
+	}
+	return 1000000
+}
+
+// splitAnd flattens a predicate tree into a list of conjuncts.
+func splitAnd(expr sql.Expr) []sql.Expr {
+	if expr == nil {
+		return nil
+	}
+	if bin, ok := expr.(*sql.BinaryOp); ok && strings.EqualFold(bin.Operator, "AND") {
+		return append(splitAnd(bin.Left), splitAnd(bin.Right)...)
+	}
+	return []sql.Expr{expr}
 }
 
 // bestIndexForQuery examines the WHERE clause and returns the best index name,
@@ -259,7 +484,9 @@ func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef
 	_, _ = walkExpr, walkExpr(expr, func(e2 sql.Expr) {
 		if binop, ok := e2.(*sql.BinaryOp); ok {
 			colRef, constVal := findColAndConst(binop)
-			if colRef != nil {
+			// Only column-to-constant predicates can drive an index SEARCH;
+			// column-to-column predicates are join terms, not constants.
+			if colRef != nil && constVal != nil {
 				idxName := e.findIndexOnColumn(tableName, colRef.Name)
 				if idxName != "" {
 					refs = append(refs, indexedRef{
@@ -479,6 +706,48 @@ func (e *Engine) readStatSZs() map[string]int {
 		}
 	}
 	return szMap
+}
+
+// stat1RowCount returns the table row count recorded by ANALYZE in
+// sqlite_stat1 (the first token of the stat string), or 0 if unavailable.
+func (e *Engine) stat1RowCount(table string) int64 {
+	statEntry, err := e.schema.FindTable("sqlite_stat1")
+	if err != nil {
+		return 0
+	}
+	tree := e.tableBTree("sqlite_stat1", statEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return 0
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil {
+			break
+		}
+		// Values are [tbl, idx, stat]
+		if len(rec.Values) >= 3 {
+			if tblStr, ok := rec.Values[0].(string); ok && tblStr == table {
+				if statStr, ok := rec.Values[2].(string); ok {
+					fields := strings.Fields(statStr)
+					if len(fields) > 0 {
+						if n, err := strconv.ParseInt(fields[0], 10, 64); err == nil {
+							return n
+						}
+					}
+				}
+			}
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
+	return 0
 }
 
 // parseStatSZ extracts the sz value from a stat string like "12345 3 2 sz=20".
