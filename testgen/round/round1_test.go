@@ -94,7 +94,7 @@ func Test_round1(t *testing.T) {
 		}
 		x4 = "[format %09d [expr {$x2+1}]] [expr {9-$n}] end"
 		_ = x4 // suppress unused warning
-		if tclBool(strings.TrimSpace(x3 + " 9") + "==\"\"") {
+		if strings.TrimSpace(x3 + " 9") == "" {
 			// incr x1 1
 			{
 				_n, _err := strconv.Atoi(x1)

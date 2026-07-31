@@ -1080,7 +1080,7 @@ func Test_func(t *testing.T) {
 		// sqlite3_bind_text $STMT 1 hello\000 -1 (unsupported command, not transpiled)
 		res = "list"
 		_ = res // suppress unused warning
-		for tclBool("\"SQLITE_ROW\"==" + "SQLITE_ROW") {
+		for "SQLITE_ROW" == "SQLITE_ROW" {
 			res = tclListAppend(res, "")
 		}
 		res = tclListAppend(res, "")

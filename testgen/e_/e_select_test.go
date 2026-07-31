@@ -446,7 +446,7 @@ func Test_e_select(t *testing.T) {
 									_ = stmt // suppress unused warning
 									nRow = "0"
 									_ = nRow // suppress unused warning
-									for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
+									for "SQLITE_ROW" == "SQLITE_ROW" {
 										// incr nRow 1
 										{
 											_n, _err := strconv.Atoi(nRow)

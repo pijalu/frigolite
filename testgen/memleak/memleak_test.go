@@ -118,7 +118,7 @@ func Test_memleak(t *testing.T) {
 			_ = _putsMsg
 			for _, x := range tclSplitList(LeakList) {
 			_ = x // suppress unused warning
-				if tclBool(x + "!=" + tclLIndex(LeakList, "0")) {
+				if func() bool { l_n, l_e := strconv.Atoi(x); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(tclLIndex(LeakList, "0")); if r_e != nil { return false }; return l_n != r_n }() {
 					_putsMsg = " failed! (" + LeakList + ")"
 					_ = _putsMsg
 					// fail_test memory-leak-test-$tail (unsupported command, not transpiled)

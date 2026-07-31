@@ -1736,9 +1736,9 @@ func Test_pager1(t *testing.T) {
 							// tv delete (unsupported command, not transpiled)
 							ii = tclExpr("$::file_len-5")
 							_ = ii // suppress unused warning
-							for tclBool(ii + " < " + tclExpr("$::file_len+20")) {
+							for func() bool { l_n, l_e := strconv.Atoi(ii); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(tclExpr("$::file_len+20")); if r_e != nil { return false }; return l_n < r_n }() {
 								// testvfs tv -default 1 -mxpathname $ii (unsupported command, not transpiled)
-								if tclBool(ii + " >= " + tclExpr("$::file_len+8")) {
+								if func() bool { l_n, l_e := strconv.Atoi(ii); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(tclExpr("$::file_len+8")); if r_e != nil { return false }; return l_n >= r_n }() {
 									res = "0 {}"
 									_ = res // suppress unused warning
 								} else {

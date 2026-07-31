@@ -707,7 +707,7 @@ func Test_wal2(t *testing.T) {
 					_ = sq // suppress unused warning
 						sq = strings.TrimSpace(sq)
 						_ = sq // suppress unused warning
-						if tclBool("{#*} $sq" + "==0") {
+						if func() bool { l_n, l_e := strconv.Atoi("{#*} $sq"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 							S += sq + "\\n"
 						}
 					}
@@ -1154,7 +1154,7 @@ func Test_wal2(t *testing.T) {
 								reslist := _items20[_idx20+2]
 								_ = reslist // suppress unused warning
 								_ = _idx20
-									if tclBool(strings.TrimSpace(sql) + "==\"\"") {
+									if strings.TrimSpace(sql) == "" {
 									}
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
 									r = db.Query("PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;")

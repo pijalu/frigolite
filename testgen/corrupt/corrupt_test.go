@@ -105,7 +105,7 @@ func Test_corrupt(t *testing.T) {
 	_ = fsize // suppress unused warning
 	junk = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	_ = junk // suppress unused warning
-	for tclBool(strconv.Itoa(len(junk)) + "<256") {
+	for func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(len(junk))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("256"); if r_e != nil { return false }; return l_n < r_n }() {
 		junk += junk
 	}
 	junk = "$junk 0 255"
@@ -287,7 +287,7 @@ func Test_corrupt(t *testing.T) {
 		_ = ct // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		for tclBool(strconv.Itoa(len(ct)) + " < 950") {
+		for func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(len(ct))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("950"); if r_e != nil { return false }; return l_n < r_n }() {
 			ct += ", c" + "incr i"
 		}
 		ct += ")"

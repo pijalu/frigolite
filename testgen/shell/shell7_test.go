@@ -3,6 +3,7 @@ package shell
 
 import (
 "github.com/pijalu/frigolite"
+"strconv"
 "testing"
 )
 
@@ -68,7 +69,7 @@ func Test_shell7(t *testing.T) {
 		}
 	}
 	// skip: foreach over unresolved TCL command
-	if tclBool("0" + "==0") {
+	if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 		{ // "2.0"
 			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);\n  ")
 			if _res.Error != nil {

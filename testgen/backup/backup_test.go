@@ -278,7 +278,7 @@ func Test_backup(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      COMMIT;\n    ")
 					}
 				}
-				for tclBool("file size test.db" + "/1024 < " + nSrcPg) {
+				for func() bool { l_n, l_e := strconv.Atoi("[file size test.db]/1024"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(nSrcPg); if r_e != nil { return false }; return l_n < r_n }() {
 					_res = db.Exec(" INSERT INTO t1 VALUES($ii, randstr(200,200)) ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($ii, randstr(200,200)) ")

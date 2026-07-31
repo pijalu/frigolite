@@ -390,7 +390,7 @@ func Test_zipfile2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		if tclBool("0" + "==0") {
+		if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 			os.Remove("test.zip")
 			fd = "open test.zip wb"
 			_ = fd // suppress unused warning

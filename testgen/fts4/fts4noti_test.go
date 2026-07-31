@@ -87,7 +87,7 @@ func Test_fts4noti(t *testing.T) {
 					t.Errorf("expected error, got none\n  sql: %s", "CREATE VIRTUAL TABLE t1 USING fts4 " + arg)
 				}
 			}
-			if tclBool(tclLIndex(res, "0") + "==0") {
+			if func() bool { l_n, l_e := strconv.Atoi(tclLIndex(res, "0")); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 				_res = db.Exec("DROP TABLE t1")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")

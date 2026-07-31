@@ -183,6 +183,13 @@ func Test_backup_ioerr(t *testing.T) {
 						if err != nil { t.Fatal(err) }
 						_res = db.Exec("PRAGMA integrity_check")
 						if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+						// incr iError 1
+						{
+							_n, _err := strconv.Atoi(iError)
+							if _err == nil {
+								iError = strconv.Itoa(_n + 1)
+							}
+						}
 						continue
 					}
 					{ // do_test "backup_ioerr-" + iTest + "." + iError + ".6"
@@ -213,6 +220,13 @@ func Test_backup_ioerr(t *testing.T) {
 						if err != nil { t.Fatal(err) }
 						_res = db.Exec("PRAGMA integrity_check")
 						if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+						// incr iError 1
+						{
+							_n, _err := strconv.Atoi(iError)
+							if _err == nil {
+								iError = strconv.Itoa(_n + 1)
+							}
+						}
 						continue
 					}
 					rc = "B step 5000"
@@ -239,6 +253,13 @@ func Test_backup_ioerr(t *testing.T) {
 						if err != nil { t.Fatal(err) }
 						_res = db.Exec("PRAGMA integrity_check")
 						if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+						// incr iError 1
+						{
+							_n, _err := strconv.Atoi(iError)
+							if _err == nil {
+								iError = strconv.Itoa(_n + 1)
+							}
+						}
 						continue
 					}
 					{ // do_test "backup_ioerr-" + iTest + "." + iError + ".17"

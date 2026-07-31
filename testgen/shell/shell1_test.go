@@ -770,6 +770,13 @@ func Test_shell1(t *testing.T) {
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
 				if tclBool(i + "==0x0D || (" + tcl_platform_platform + " == \"windows\" && " + i + "==0x1A)") {
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
 					continue
 				}
 				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0x80 }() {

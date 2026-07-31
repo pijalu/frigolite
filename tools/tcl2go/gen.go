@@ -435,6 +435,7 @@ type transpiler struct {
 	varCount     int
 	vars         []string
 	catchMode    bool // true when transpiling inside a catch {} block
+	forIncrs     [][][]tcl.RawWord // stack of for-loop increment clauses (empty for while/foreach)
 }
 
 func (tp *transpiler) emit(format string, args ...interface{}) {
@@ -915,7 +916,7 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	case "break":
 		tp.emitLine("break")
 	case "continue":
-		tp.emitLine("continue")
+		tp.emitContinue()
 	case "append":
 		tp.processStringAppend(args)
 	case "lappend":
@@ -973,7 +974,7 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		// ifcapable NAME { BODY } — friglolite supports all capabilities,
 		// so transpile the body unconditionally.
 		if bodyCmds := tp.parseBracedBody(args, 1); bodyCmds != nil {
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
@@ -986,7 +987,7 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		// time { SCRIPT } [count] — transpile the inner script as regular code,
 		// ignoring the timing measurement.
 		if bodyCmds := tp.parseBracedBody(args, 0); bodyCmds != nil {
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
@@ -1222,12 +1223,13 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 
 	if bodyCmds != nil {
 		bodyTP := &transpiler{
-			sb:      tp.sb,
-			indent:  tp.indent,
-			dbVar:   tp.dbVar,
-			t:       tp.t,
+			sb:       tp.sb,
+			indent:   tp.indent,
+			dbVar:    tp.dbVar,
+			t:        tp.t,
 			varCount: tp.varCount,
-			vars:    tp.vars,
+			vars:     tp.vars,
+			forIncrs: tp.forIncrs,
 		}
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
@@ -1348,12 +1350,13 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 		if len(rest) > 0 && rest[0].Braced {
 			bodyCmds := tcl.ParseCommands(rest[0].Text)
 			bodyTP := &transpiler{
-				sb:      tp.sb,
-				indent:  tp.indent,
-				dbVar:   tp.dbVar,
-				t:       tp.t,
+				sb:       tp.sb,
+				indent:   tp.indent,
+				dbVar:    tp.dbVar,
+				t:        tp.t,
 				varCount: tp.varCount,
-				vars:    tp.vars,
+				vars:     tp.vars,
+				forIncrs: tp.forIncrs,
 			}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
@@ -1393,7 +1396,7 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 	case "transaction":
 		if len(rest) > 0 && rest[0].Braced {
 			bodyCmds := tcl.ParseCommands(rest[0].Text)
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: goName, t: tp.t, varCount: tp.varCount, vars: tp.vars}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: goName, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
@@ -1479,12 +1482,15 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 
 	tp.indent++
 	bodyTP := &transpiler{
-		sb:      tp.sb,
-		indent:  tp.indent,
-		dbVar:   tp.dbVar,
-		t:       tp.t,
+		sb:       tp.sb,
+		indent:   tp.indent,
+		dbVar:    tp.dbVar,
+		t:        tp.t,
 		varCount: tp.varCount,
-		vars:    tp.vars,
+		vars:     tp.vars,
+		// A foreach loop has no increment clause: continue targets this loop,
+		// so the innermost entry is empty (plain Go continue).
+		forIncrs: append(tp.forIncrs, nil),
 	}
 	bodyTP.processCommands(bodyCmds)
 	tp.varCount = bodyTP.varCount
@@ -1516,6 +1522,23 @@ func (tp *transpiler) parseBracedBody(args []tcl.RawWord, idx int) [][]tcl.RawWo
 	return nil
 }
 
+// emitContinue emits a Go continue statement. In TCL, `continue` inside a
+// `for` loop runs the increment clause before re-evaluating the condition.
+// Since the transpiler emits the increment at the end of the loop body (which
+// Go's continue would skip), we inline the increment commands first.
+func (tp *transpiler) emitContinue() {
+	if len(tp.forIncrs) > 0 {
+		if incr := tp.forIncrs[len(tp.forIncrs)-1]; len(incr) > 0 {
+			// Re-run the increment commands before continuing. They use the
+			// same vars slice (already declared), so no redeclaration occurs.
+			for _, c := range incr {
+				tp.processCommand(c)
+			}
+		}
+	}
+	tp.emitLine("continue")
+}
+
 func (tp *transpiler) processForCommand(args []tcl.RawWord) {
 	if len(args) < 4 {
 		return
@@ -1534,12 +1557,13 @@ func (tp *transpiler) processForCommand(args []tcl.RawWord) {
 	tp.indent++
 
 	bodyTP := &transpiler{
-		sb:      tp.sb,
-		indent:  tp.indent,
-		dbVar:   tp.dbVar,
-		t:       tp.t,
+		sb:       tp.sb,
+		indent:   tp.indent,
+		dbVar:    tp.dbVar,
+		t:        tp.t,
 		varCount: tp.varCount,
-		vars:    tp.vars,
+		vars:     tp.vars,
+		forIncrs: append(tp.forIncrs, nextCmds),
 	}
 	bodyTP.processCommands(bodyCmds)
 	tp.varCount = bodyTP.varCount
@@ -1566,12 +1590,15 @@ func (tp *transpiler) processWhile(args []tcl.RawWord) {
 
 	if bodyCmds != nil {
 		bodyTP := &transpiler{
-			sb:      tp.sb,
-			indent:  tp.indent,
-			dbVar:   tp.dbVar,
-			t:       tp.t,
+			sb:       tp.sb,
+			indent:   tp.indent,
+			dbVar:    tp.dbVar,
+			t:        tp.t,
 			varCount: tp.varCount,
-			vars:    tp.vars,
+			vars:     tp.vars,
+			// A while loop has no increment clause: continue targets this
+			// loop, so the innermost entry is empty (plain Go continue).
+			forIncrs: append(tp.forIncrs, nil),
 		}
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
@@ -1601,7 +1628,7 @@ func (tp *transpiler) processIf(args []tcl.RawWord) {
 				if bodyCmds != nil {
 					tp.emitLine("} else {")
 					tp.indent++
-					bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars}
+					bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs}
 					bodyTP.processCommands(bodyCmds)
 					tp.indent = bodyTP.indent
 					tp.indent--
@@ -1620,7 +1647,7 @@ func (tp *transpiler) processIf(args []tcl.RawWord) {
 				tp.emitLine("} else if %s {", goCond)
 				tp.indent++
 				if bodyCmds != nil {
-					bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars}
+					bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs}
 					bodyTP.processCommands(bodyCmds)
 					tp.indent = bodyTP.indent
 				}
@@ -1647,7 +1674,7 @@ func (tp *transpiler) processIf(args []tcl.RawWord) {
 		tp.indent++
 
 		if bodyCmds != nil {
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs}
 			bodyTP.processCommands(bodyCmds)
 			tp.indent = bodyTP.indent
 		}
@@ -1710,10 +1737,11 @@ func (tp *transpiler) tclCondToGo(cond string) string {
 // operators into a Go boolean expression. Returns "" when no comparison
 // operator is found (the caller should fall back to tclBool).
 func (tp *transpiler) buildCondExpr(cond string) string {
-	// If the condition contains [cmd] references, fall back so they get
-	// handled by buildStringExpr + cmdExpr.
+	// If the condition contains [cmd] references, try to resolve them into
+	// Go expressions and build a real comparison (e.g. {[string length $x]<256}
+	// becomes len(x) < 256). Only fall back to buildStringExpr when that fails.
 	if strings.Contains(cond, "[") && strings.Contains(cond, "]") {
-		return ""
+		return tp.buildCmdCondExpr(cond)
 	}
 
 	// If the condition has compound operators (&&, ||, "and", "or"),
@@ -1776,6 +1804,91 @@ func (tp *transpiler) buildCondExpr(cond string) string {
 	}
 	sb.WriteString(fmt.Sprintf("return %s %s %s }()", leftGo, op, rightGo))
 	return sb.String()
+}
+
+// buildCmdCondExpr builds a Go boolean expression for a condition that
+// contains [cmd] command substitution, e.g. {[string length $x] < 256}.
+// Each operand is resolved via cmdExpr to a Go string expression, then the
+// comparison is done numerically with strconv.Atoi conversion. Returns ""
+// if the condition is not a single comparison with resolvable operands.
+func (tp *transpiler) buildCmdCondExpr(cond string) string {
+	// Only handle single comparisons. Compound conditions (&&, ||) and
+	// logical words fall back to the tclBool path like the original code.
+	if strings.Contains(cond, "&&") || strings.Contains(cond, "||") ||
+		strings.Contains(cond, " and ") || strings.Contains(cond, " or ") {
+		return ""
+	}
+	op, idx := findComparisonOp(cond)
+	if idx < 0 {
+		return ""
+	}
+	left := strings.TrimSpace(cond[:idx])
+	right := strings.TrimSpace(cond[idx+len(op):])
+
+	leftGo, ok1 := tp.cmdOperandToGo(left)
+	rightGo, ok2 := tp.cmdOperandToGo(right)
+	if !ok1 || !ok2 {
+		return ""
+	}
+
+	// Detect string literals: if either operand is quoted with " or ',
+	// treat the whole comparison as a string comparison.
+	leftIsStr := (strings.HasPrefix(left, `"`) && strings.HasSuffix(left, `"`)) ||
+		(strings.HasPrefix(left, "'") && strings.HasSuffix(left, "'"))
+	rightIsStr := (strings.HasPrefix(right, `"`) && strings.HasSuffix(right, `"`)) ||
+		(strings.HasPrefix(right, "'") && strings.HasSuffix(right, "'"))
+	if leftIsStr || rightIsStr {
+		return fmt.Sprintf("%s %s %s", leftGo, op, rightGo)
+	}
+
+	// Numeric comparison via Atoi conversion of both sides.
+	var sb strings.Builder
+	sb.WriteString("func() bool { ")
+	leftName := "l"
+	rightName := "r"
+	sb.WriteString(fmt.Sprintf("%s_n, %s_e := strconv.Atoi(%s); if %s_e != nil { return false }; ", leftName, leftName, leftGo, leftName))
+	sb.WriteString(fmt.Sprintf("%s_n, %s_e := strconv.Atoi(%s); if %s_e != nil { return false }; ", rightName, rightName, rightGo, rightName))
+	sb.WriteString(fmt.Sprintf("return %s_n %s %s_n }()", leftName, op, rightName))
+	return sb.String()
+}
+
+// cmdOperandToGo converts a single TCL condition operand to a Go string
+// expression. It handles $var references and [cmd] command substitution.
+// Returns "" when the operand cannot be resolved.
+func (tp *transpiler) cmdOperandToGo(s string) (string, bool) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return "", false
+	}
+
+	// Quoted string literal — strip quotes and re-quote as Go literal.
+	if len(s) >= 2 {
+		if (s[0] == '"' && s[len(s)-1] == '"') || (s[0] == '\'' && s[len(s)-1] == '\'') {
+			return fmt.Sprintf("%q", s[1:len(s)-1]), true
+		}
+	}
+
+	// Pure command substitution: [cmd ...]
+	if strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]") {
+		cmdText := strings.TrimSpace(s[1 : len(s)-1])
+		expr := tp.cmdExpr(cmdText)
+		// Unresolvable commands fall back to the raw quoted text; treat those
+		// as not-resolvable so the caller falls back to the tclBool path
+		// (which preserves skip-guard behavior for unsupported commands).
+		if expr == `""` || expr == fmt.Sprintf("%q", cmdText) {
+			return "", false
+		}
+		return expr, true
+	}
+
+	// $var reference (possibly with array key).
+	if strings.HasPrefix(s, "$") {
+		goVar := tclVarToGo(s[1:])
+		return goVar, true
+	}
+
+	// Bare literal (number or identifier).
+	return fmt.Sprintf("%q", s), true
 }
 
 // isFloatLiteral returns true if s looks like a floating-point number
@@ -2139,7 +2252,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 							tp.emitLine("var _catchErr error")
 							// Parse and transpile the body
 							bodyCmds := tcl.ParseCommands(bodyStr)
-							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars}
+							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs}
 							bodyTP.processCommands(bodyCmds)
 							tp.indent = bodyTP.indent
 							// After body, set result and error message
@@ -2182,7 +2295,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 					if depth == 0 && bodyStart >= 0 {
 						bodyStr := cmdText[bodyStart:i]
 						bodyCmds := tcl.ParseCommands(bodyStr)
-						bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars}
+						bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs}
 						bodyTP.processCommands(bodyCmds)
 						tp.indent = bodyTP.indent
 					}
@@ -2312,7 +2425,7 @@ func (tp *transpiler) processCatch(args []tcl.RawWord) {
 	if !hasResult {
 		tp.emitLine("_ = _catchErr // suppress unused warning")
 	}
-	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars}
+	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs}
 	bodyTP.processCommands(bodyCmds)
 	tp.indent = bodyTP.indent
 	if hasResult {
@@ -2652,7 +2765,7 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 	// Parse the script and execute its commands
 	if args[0].Braced {
 		bodyCmds := tcl.ParseCommands(args[0].Text)
-		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars}
+		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs}
 		bodyTP.processCommands(bodyCmds)
 		tp.indent = bodyTP.indent
 	} else {

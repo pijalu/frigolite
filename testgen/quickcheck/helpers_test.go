@@ -308,8 +308,63 @@ func tclGlob(pattern string) string {
 
 // tclBool converts a TCL truthiness value to Go boolean.
 // In TCL: "0" and "" are false, everything else is true.
+// As a safety net, pure numeric comparison expressions (e.g. "62<256",
+// "1<=512 && !0") are evaluated so conditions that fell back to tclBool
+// cannot loop forever on an unevaluated numeric expression. Strings
+// containing bare words (letters) keep the plain TCL truthiness fallback,
+// preserving skip-guard behavior for capability checks like
+// "!working_64bit_int" or "!wal_is_capable".
 func tclBool(s string) bool {
-	return s != "" && s != "0"
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return false
+	}
+	// Bare words (letters) cannot be evaluated at runtime — keep the plain
+	// TCL truthiness fallback so unsupported-capability guards still skip.
+	for i := 0; i < len(s); i++ {
+		if (s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z') {
+			return s != "0"
+		}
+	}
+	// Split on || first (lowest precedence).
+	if i := strings.Index(s, "||"); i >= 0 {
+		return tclBool(strings.TrimSpace(s[:i])) || tclBool(strings.TrimSpace(s[i+2:]))
+	}
+	if i := strings.Index(s, "&&"); i >= 0 {
+		return tclBool(strings.TrimSpace(s[:i])) && tclBool(strings.TrimSpace(s[i+2:]))
+	}
+	if strings.HasPrefix(s, "!") {
+		return !tclBool(strings.TrimSpace(s[1:]))
+	}
+	// Numeric comparison: <num> <op> <num> — only reached for pure numeric
+	// strings, so both operands parse as numbers.
+	for _, op := range []string{"<=", ">=", "==", "!=", "<", ">"} {
+		if i := strings.Index(s, op); i > 0 && i < len(s)-len(op) {
+			leftStr := strings.TrimSpace(s[:i])
+			rightStr := strings.TrimSpace(s[i+len(op):])
+			l, lerr := strconv.ParseFloat(leftStr, 64)
+			r, rerr := strconv.ParseFloat(rightStr, 64)
+			if lerr == nil && rerr == nil {
+				switch op {
+				case "<":
+					return l < r
+				case "<=":
+					return l <= r
+				case ">":
+					return l > r
+				case ">=":
+					return l >= r
+				case "==":
+					return l == r
+				case "!=":
+					return l != r
+				}
+			}
+			break
+		}
+	}
+	// Simple value truthiness (TCL semantics).
+	return s != "0"
 }
 
 // tclStr converts any value to a string (for error/interface types in concatenation).

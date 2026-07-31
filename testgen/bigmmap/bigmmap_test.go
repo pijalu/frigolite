@@ -71,7 +71,7 @@ func Test_bigmmap(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  SELECT compile_options AS x FROM pragma_compile_options \n  WHERE x LIKE 'max_mmap_size=%' \n")
 	}
-	if tclBool(mmap_limit + " < " + "8589934592") {
+	if func() bool { l_n, l_e := strconv.Atoi(mmap_limit); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("8589934592"); if r_e != nil { return false }; return l_n < r_n }() {
 		_putsMsg := "Skipping bigmmap.test - requires SQLITE_MAX_MMAP_SIZE >= 8G"
 		_ = _putsMsg
 		return

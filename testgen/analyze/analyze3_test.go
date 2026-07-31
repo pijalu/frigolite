@@ -687,7 +687,7 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_bind_text $S 1 a% 2 (unsupported command, not transpiled)
 		R = "list"
 		_ = R // suppress unused warning
-		for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
+		for "SQLITE_ROW" == "SQLITE_ROW" {
 			R = tclListAppend(R, "")
 		}
 		_r_tcl := append([]string{}, tclSplitList("sqlite3_reset $S")...)
@@ -700,7 +700,7 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_clear_bindings $S (unsupported command, not transpiled)
 		R = "list"
 		_ = R // suppress unused warning
-		for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
+		for "SQLITE_ROW" == "SQLITE_ROW" {
 			R = tclListAppend(R, "")
 		}
 		_r_tcl := append([]string{}, tclSplitList("sqlite3_reset $S")...)
@@ -718,7 +718,7 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_bind_text $S1 1 b% 2 (unsupported command, not transpiled)
 		R = "list"
 		_ = R // suppress unused warning
-		for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
+		for "SQLITE_ROW" == "SQLITE_ROW" {
 			R = tclListAppend(R, "")
 		}
 		_r_tcl := append([]string{}, tclSplitList("sqlite3_reset $S1")...)
@@ -734,7 +734,7 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_transfer_bindings $S2 $S1 (unsupported command, not transpiled)
 		R = "list"
 		_ = R // suppress unused warning
-		for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
+		for "SQLITE_ROW" == "SQLITE_ROW" {
 			R = tclListAppend(R, "")
 		}
 		_r_tcl := append([]string{}, tclSplitList("sqlite3_reset $S1")...)

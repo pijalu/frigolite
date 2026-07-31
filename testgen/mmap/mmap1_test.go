@@ -220,7 +220,7 @@ func Test_mmap1(t *testing.T) {
 			}
 			res = "list"
 			_ = res // suppress unused warning
-			for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
+			for "SQLITE_ROW" == "SQLITE_ROW" {
 				res = tclListAppend(res, "")
 			}
 		}

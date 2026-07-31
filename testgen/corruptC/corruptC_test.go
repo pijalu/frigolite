@@ -372,7 +372,7 @@ func Test_corruptC(t *testing.T) {
 			_ = res // suppress unused warning
 			ans = tclLIndex(res, "1")
 			_ = ans // suppress unused warning
-			if tclBool("$ans \"ok\"" + " != 0") {
+			if func() bool { l_n, l_e := strconv.Atoi("$ans \"ok\""); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n != r_n }() {
 				last = "-1"
 				_ = last // suppress unused warning
 			}

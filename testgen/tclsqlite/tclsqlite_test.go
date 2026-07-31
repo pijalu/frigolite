@@ -327,7 +327,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 		v = tclListAppend(v, msg)
 	}
-	if tclBool("0" + "==0") {
+	if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 		{ // do_test "tcl-1.8"
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
@@ -977,6 +977,13 @@ func Test_tclsqlite(t *testing.T) {
 			_res = db.Exec("INSERT INTO t4 VALUES(5)")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES(5)")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
 			}
 			continue
 			t.Errorf("TCL error: %s", "This line should not be run")

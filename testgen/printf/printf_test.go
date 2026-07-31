@@ -478,7 +478,7 @@ func Test_printf(t *testing.T) {
 	{ // do_test "printf-2.1.2.9"
 		// sqlite3_mprintf_double {abc: %d %d (%1.1g) :xyz} 1 1 1.0e-20 (unsupported command, not transpiled)
 	}
-	if tclBool(SQLITE_MAX_LENGTH + "<=" + "1000000000") {
+	if func() bool { l_n, l_e := strconv.Atoi(SQLITE_MAX_LENGTH); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("1000000000"); if r_e != nil { return false }; return l_n <= r_n }() {
 		{ // do_test "printf-2.1.2.10"
 			// sqlite3_mprintf_double {abc: %*.*f} 2000000000 1000000000 1.0e-20 (unsupported command, not transpiled)
 		}

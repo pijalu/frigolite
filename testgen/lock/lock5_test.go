@@ -4,6 +4,7 @@ package lock
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -139,7 +140,7 @@ func Test_lock5(t *testing.T) {
 			// file exists "test.db.lock"
 		}
 		os.Remove("test.db")
-		if tclBool("0==" + "0") {
+		if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 			{ // do_test "lock5-flock.1"
 				_dbtmp0, err := frigolite.Open("test.db")
 				_ = _dbtmp0 // sqlite3 db connection
