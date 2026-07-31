@@ -84,14 +84,6 @@ func Test_expr(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(1,2,1.1,2.2,'hello','world')")
 	}
-	_res = db.Exec("CREATE TABLE test1(i1 int, i2 int, t1 text, t2 text)")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(i1 int, i2 int, t1 text, t2 text)")
-	}
-	_res = db.Exec("INSERT INTO test1 VALUES(1,2,'hello','world')")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test1 VALUES(1,2,'hello','world')")
-	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// test_expr expr-1.1 {i1=10, i2=20} {i1+i2} 30 (expr test, not transpiled)

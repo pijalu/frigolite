@@ -911,10 +911,42 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 210: expr ::= expr IS expr
 	case 210:
-		return &sql.BinaryOp{
-			Left:     getExpr(getRHS(p, ruleNo, 1)),
-			Operator: "IS",
-			Right:    getExpr(getRHS(p, ruleNo, 3)),
+		left := getExpr(getRHS(p, ruleNo, 1))
+		right := getExpr(getRHS(p, ruleNo, 3))
+		// IS TRUE / IS FALSE predicates.
+		if name, ok := boolLitName(right); ok {
+			if name == "TRUE" {
+				return &sql.IsTrue{Operand: left}
+			}
+			return &sql.IsFalse{Operand: left}
+		}
+		return &sql.BinaryOp{Left: left, Operator: "IS", Right: right}
+
+	// Rule 211: expr ::= expr IS NOT expr
+	case 211:
+		left := getExpr(getRHS(p, ruleNo, 1))
+		right := getExpr(getRHS(p, ruleNo, 4))
+		// IS NOT TRUE / IS NOT FALSE predicates.
+		if name, ok := boolLitName(right); ok {
+			if name == "TRUE" {
+				return &sql.IsTrue{Operand: left, Negated: true}
+			}
+			return &sql.IsFalse{Operand: left, Negated: true}
+		}
+		return &sql.BinaryOp{Left: left, Operator: "IS NOT", Right: right}
+
+	// Rule 212: expr ::= expr IS DISTINCT FROM expr
+	case 212:
+		return &sql.IsDistinctFrom{
+			Left:  getExpr(getRHS(p, ruleNo, 1)),
+			Right: getExpr(getRHS(p, ruleNo, 6)),
+		}
+
+	// Rule 213: expr ::= expr IS NOT DISTINCT FROM expr
+	case 213:
+		return &sql.IsNotDistinctFrom{
+			Left:  getExpr(getRHS(p, ruleNo, 1)),
+			Right: getExpr(getRHS(p, ruleNo, 7)),
 		}
 
 	// Rule 214: expr ::= NOT expr
@@ -1570,6 +1602,20 @@ func getOrderByList(v interface{}) []sql.OrderByTerm {
 		return list
 	}
 	return nil
+}
+
+// boolLitName returns "TRUE" or "FALSE" if the expression is a boolean
+// literal column reference (the LALR parser represents TRUE/FALSE keywords as
+// ColumnRef{Name:"TRUE"} / ColumnRef{Name:"FALSE"}), and whether it matched.
+func boolLitName(e sql.Expr) (string, bool) {
+	ref, ok := e.(*sql.ColumnRef)
+	if !ok {
+		return "", false
+	}
+	if ref.Name == "TRUE" || ref.Name == "FALSE" {
+		return ref.Name, true
+	}
+	return "", false
 }
 
 // getAssignments extracts a []sql.Assignment from a stack value.

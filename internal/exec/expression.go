@@ -224,6 +224,14 @@ func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
 }
 
 func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
+	// TRUE/FALSE keywords are boolean literals (1/0), not column references.
+	// The parser represents them as ColumnRef{Name:"TRUE"} / {Name:"FALSE"}.
+	if v.Table == "" && strings.EqualFold(v.Name, "TRUE") {
+		return int64(1), nil
+	}
+	if v.Table == "" && strings.EqualFold(v.Name, "FALSE") {
+		return int64(0), nil
+	}
 	if v.Name == "*" {
 		return "*", nil
 	}
@@ -300,13 +308,32 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 	}
 	// Most operators return NULL when either operand is NULL.
 	// AND/OR need Kleene logic (handled in evalArithmeticOp).
-	if v.Operator != "AND" && v.Operator != "OR" {
+	// IS / IS NOT are NULL-safe: NULL IS NULL is true.
+	if v.Operator != "AND" && v.Operator != "OR" && v.Operator != "IS" && v.Operator != "IS NOT" {
 		if left == nil || right == nil {
 			return nil, nil
 		}
 	}
 	if v.Operator == "LIKE" && v.Escape != "" {
 		return likeValuesWithEscape(left, right, v.Escape), nil
+	}
+	if v.Operator == "IS" {
+		if left == nil && right == nil {
+			return int64(1), nil
+		}
+		if left == nil || right == nil {
+			return int64(0), nil
+		}
+		return boolToInt(compareValuesWithCollate(left, right) == 0), nil
+	}
+	if v.Operator == "IS NOT" {
+		if left == nil && right == nil {
+			return int64(0), nil
+		}
+		if left == nil || right == nil {
+			return int64(1), nil
+		}
+		return boolToInt(compareValuesWithCollate(left, right) != 0), nil
 	}
 	return evalBinaryOpValues(v.Operator, left, right)
 }

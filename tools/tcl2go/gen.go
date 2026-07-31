@@ -1063,7 +1063,12 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		// no-op: TCL infrastructure commands
 	case "ifcapable":
 		// ifcapable NAME { BODY } — friglolite supports all capabilities,
-		// so transpile the body unconditionally.
+		// so transpile the body unconditionally, EXCEPT when the capability
+		// is negated with '!': ifcapable !NAME means the body runs only when
+		// the capability is NOT present (== ifnotcapable), so skip it.
+		if strings.HasPrefix(strings.TrimSpace(args[0].Text), "!") {
+			return
+		}
 		if bodyCmds := tp.parseBracedBody(args, 1); bodyCmds != nil {
 			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs}
 			bodyTP.processCommands(bodyCmds)
