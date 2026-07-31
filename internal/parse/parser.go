@@ -20,9 +20,13 @@ import (
 func ParseSQL(input string) ([]sql.Stmt, error) {
 	// Append trailing semicolon if missing — the LALR grammar requires
 	// SEMI as a statement terminator (ecmd ::= cmdx SEMI).
+	// Use "\n;" not ";": if the statement ends with a -- line comment,
+	// TrimRight above strips the comment's newline, so a bare ";" would
+	// be swallowed by the comment (skipLineComment runs to EOF) and the
+	// grammar would never see its SEMI terminator.
 	input = strings.TrimRight(input, " \t\r\n")
 	if input != "" && input[len(input)-1] != ';' {
-		input += ";"
+		input += "\n;"
 	}
 
 	tables := GetParseTables()
