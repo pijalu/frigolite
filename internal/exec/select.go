@@ -1833,7 +1833,9 @@ func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap) *Result {
 		if err != nil {
 			return &Result{Error: err}
 		}
-		outRow = append(outRow, v)
+		// Bare columns in an aggregate query come from a row map as a
+		// ColumnValue wrapper; unwrap so the output shows the value.
+		outRow = append(outRow, util.UnwrapColumnValue(v))
 	}
 	return &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 }
