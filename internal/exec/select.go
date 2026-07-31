@@ -843,6 +843,14 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 	currentMaps := baseMaps
 	currentDefs := baseDefs
 
+	// The left table's qualified-name prefix in combined row maps must use
+	// the table's alias when present (e.g. "c.id" for "FROM customer c"),
+	// so JOIN ON conditions referencing the alias resolve correctly.
+	leftName := s.From.Name
+	if s.From.As != "" {
+		leftName = s.From.As
+	}
+
 	for _, join := range s.Joins {
 		var rightMaps []RowMap
 		var rightDefs []sql.ColumnDef
@@ -941,7 +949,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		// Detect simple "left.col = right.col" patterns in the ON clause
 		// and create a temporary index on the right table's column.
 		var autoIndex map[interface{}][]RowMap
-		_, rightColName := extractEquiJoinCols(effectiveOn, s.From.Name, tableName)
+		_, rightColName := extractEquiJoinCols(effectiveOn, leftName, tableName)
 		if rightColName != "" && len(rightMaps) > 0 {
 			autoIndex = make(map[interface{}][]RowMap)
 			for _, rm := range rightMaps {
@@ -1016,16 +1024,21 @@ func (e *Engine) processJoinRowTrackingRight(
 	rightDefs []sql.ColumnDef, autoIndex map[interface{}][]RowMap,
 	trackMatchedRight bool, matchedRight []bool, leftIdx int,
 ) bool {
+	// The left table's qualified-name prefix uses its alias when present.
+	leftName := s.From.Name
+	if s.From.As != "" {
+		leftName = s.From.As
+	}
 	matched := false
 
 	// For RIGHT/FULL JOIN tracking, we must iterate right rows by index.
 	// Skip autoIndex optimization when tracking.
 	if autoIndex != nil && !trackMatchedRight {
-		leftColName, _ := extractEquiJoinCols(join.On, s.From.Name, tableName)
+		leftColName, _ := extractEquiJoinCols(join.On, leftName, tableName)
 		if leftColVal, ok := leftMap[leftColName]; ok {
 			if rightRows, ok := autoIndex[util.UnwrapColumnValue(leftColVal)]; ok {
 				for _, rightMap := range rightRows {
-					combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, s.From.Name)
+					combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName)
 					if e.evalOnCondition(join.On, combinedMap) {
 						matched = true
 						*combinedMaps = append(*combinedMaps, combinedMap)
@@ -1035,8 +1048,9 @@ func (e *Engine) processJoinRowTrackingRight(
 		}
 	} else {
 		for ri, rightMap := range rightMaps {
-			combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, s.From.Name)
-			if e.evalOnCondition(join.On, combinedMap) {
+			combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName)
+			onPass := e.evalOnCondition(join.On, combinedMap)
+			if onPass {
 				matched = true
 				*combinedMaps = append(*combinedMaps, combinedMap)
 				if trackMatchedRight {
@@ -1048,7 +1062,7 @@ func (e *Engine) processJoinRowTrackingRight(
 	// CROSS JOIN: always produces a match
 	if !matched && join.JoinType == "CROSS" {
 		for ri, rightMap := range rightMaps {
-			*combinedMaps = append(*combinedMaps, e.buildCombinedRowMap(leftMap, rightMap, tableName, s.From.Name))
+			*combinedMaps = append(*combinedMaps, e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName))
 			if trackMatchedRight {
 				matchedRight[ri] = true
 			}

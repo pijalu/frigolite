@@ -217,8 +217,14 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 81:
 		return false
 
-	// Rule 82: cmd ::= DROP TABLE ifexists fullname (with dbnm handled in fullname)
-	// (falls through to default pass-through if not matched)
+	// Rule 82: cmd ::= createkw temp VIEW ifnotexists nm dbnm eidlist_opt AS select
+	case 82:
+		name := getString(getRHS(p, ruleNo, 5))
+		sel := getSelectStmt(getRHS(p, ruleNo, 9))
+		return &sql.CreateViewStmt{
+			Name:   name,
+			Select: sel,
+		}
 
 	// Rule 83: cmd ::= DROP VIEW ifexists fullname
 	case 83:
@@ -442,19 +448,20 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 111: seltablist ::= stl_prefix nm dbnm as on_using
 	case 111:
-		return appendSeltablistTable(p, ruleNo, 2, 3, 4)
+		return appendSeltablistTable(p, ruleNo, 2, 3, 4, 5)
 
 	// Rule 112: seltablist ::= stl_prefix nm dbnm as indexed_by on_using
 	case 112:
-		return appendSeltablistTable(p, ruleNo, 2, 3, 4)
+		return appendSeltablistTable(p, ruleNo, 2, 3, 4, 6)
 
 	// Rule 114: seltablist ::= stl_prefix LP select RP as on_using
 	case 114:
 		acc := getSeltablist(getRHS(p, ruleNo, 1))
 		sel := getSelectStmt(getRHS(p, ruleNo, 3))
 		alias := getString(getRHS(p, ruleNo, 5))
+		onUsing := getOnUsing(getRHS(p, ruleNo, 6))
 		ref := sql.TableRef{Subquery: sel, As: alias}
-		return acc.appendTable(ref)
+		return acc.appendTableWithOn(ref, onUsing)
 
 	// Rule 115: seltablist ::= stl_prefix LP seltablist RP as on_using
 	// Parenthesized table list: FROM (t1) or FROM (t1, t2).
@@ -495,7 +502,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 124: joinop ::= COMMA|JOIN
 	case 124:
-		return joinOp{Comma: true}
+		// Rule 124: joinop ::= COMMA|JOIN — the multiterminal covers both a
+		// comma join (FROM a, b) and a plain JOIN keyword (INNER JOIN).
+		// Distinguish by the token value: "," is a comma join, "JOIN" is INNER.
+		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok && tok.Value == "," {
+			return joinOp{Comma: true}
+		}
+		return joinOp{Kind: "INNER"}
 
 	// Rule 122: joinop ::= JOIN_KW JOIN
 	case 122:
@@ -519,7 +532,8 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 128: joinop ::= JOIN_KW nm JOIN
 	case 128:
-		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1))}
+		// Rule 128: on_using ::= ON expr — the ON condition for a JOIN.
+		return getExpr(getRHS(p, ruleNo, 2))
 
 	// Rule 129: joinop ::= JOIN_KW nm nm JOIN
 	case 129:
@@ -528,6 +542,18 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 130: on_using ::=
 	case 130:
 		return nil
+
+	// Rule 131: on_using ::=
+	case 131:
+		return nil
+
+	// Rule 132: on_using ::= USING LP idlist RP
+	case 132:
+		return getStringList(getRHS(p, ruleNo, 3))
+
+	// Rule 133: on_using ::= ON expr
+	case 133:
+		return getExpr(getRHS(p, ruleNo, 2))
 
 	// Rule 134: orderby_opt ::=
 	case 134:
@@ -1509,12 +1535,18 @@ type joinOp struct {
 // appendTable adds a table to the accumulator. If a join operator is pending,
 // the new table becomes a JoinClause; otherwise it becomes the first table.
 func (a *seltablistAcc) appendTable(ref sql.TableRef) *seltablistAcc {
+	return a.appendTableWithOn(ref, nil)
+}
+
+// appendTableWithOn adds a table, attaching an optional ON condition to the
+// join clause that links it to the previous table.
+func (a *seltablistAcc) appendTableWithOn(ref sql.TableRef, on sql.Expr) *seltablistAcc {
 	if !a.HasFirst {
 		a.First = ref
 		a.HasFirst = true
 		return a
 	}
-	jc := sql.JoinClause{Table: ref, CommaJoin: a.PendingOp.Comma}
+	jc := sql.JoinClause{Table: ref, CommaJoin: a.PendingOp.Comma, On: on}
 	switch a.PendingOp.Kind {
 	case "LEFT":
 		jc.JoinType = "LEFT"
@@ -1552,16 +1584,25 @@ func (a *seltablistAcc) firstTable() sql.TableRef {
 
 // appendSeltablistTable handles seltablist ::= stl_prefix nm dbnm as ... rules.
 // posName/posSchema/posAlias are the 1-based RHS positions of the table name,
-// schema (dbnm), and alias.
-func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias int) *seltablistAcc {
+// schema (dbnm), and alias. posOn is the position of the on_using value.
+func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias, posOn int) *seltablistAcc {
 	acc := getSeltablist(getRHS(p, ruleNo, 1))
 	tbl := getString(getRHS(p, ruleNo, posName))
 	schema := getString(getRHS(p, ruleNo, posSchema))
 	alias := getString(getRHS(p, ruleNo, posAlias))
+	on := getOnUsing(getRHS(p, ruleNo, posOn))
 	if schema != "" {
 		tbl = schema + "." + tbl
 	}
-	return acc.appendTable(sql.TableRef{Name: tbl, As: alias})
+	return acc.appendTableWithOn(sql.TableRef{Name: tbl, As: alias}, on)
+}
+
+// getOnUsing extracts an ON condition expr (or nil) from an on_using value.
+func getOnUsing(v interface{}) sql.Expr {
+	if e, ok := v.(sql.Expr); ok {
+		return e
+	}
+	return nil
 }
 
 // getSeltablist extracts a seltablistAcc from a stack value, creating an empty
