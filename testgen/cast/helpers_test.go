@@ -127,7 +127,7 @@ func flatten(res *frigolite.Result) string {
 				case float64:
 					// SQLite displays REALs in a fixed-point format for
 					// moderate magnitudes (e.g. 12300000.0, not 1.23e+07).
-					// %!g(MISSING) switches to scientific notation for large exponents.
+					// %g switches to scientific notation for large exponents.
 					s := strconv.FormatFloat(x, 'f', -1, 64)
 					// SQLite preserves trailing .0 for whole-number REALs
 					if !strings.ContainsAny(s, ".eE") {
