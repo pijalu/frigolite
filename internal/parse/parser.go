@@ -815,13 +815,18 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 199:
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
+		// Read the operator from the RHS token value (the lookahead at reduce
+		// time is the NEXT token, not the operator being reduced).
 		op := "<"
-		if lookahead == TK_GT {
-			op = ">"
-		} else if lookahead == TK_GE {
-			op = ">="
-		} else if lookahead == TK_LE {
-			op = "<="
+		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok {
+			switch strings.ToUpper(tok.Value) {
+			case ">":
+				op = ">"
+			case ">=":
+				op = ">="
+			case "<=":
+				op = "<="
+			}
 		}
 		return &sql.BinaryOp{Left: left, Operator: op, Right: right}
 
@@ -829,9 +834,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 200:
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
+		// Read the operator from the RHS token value (lookahead is the NEXT
+		// token, so it cannot distinguish = from != / <>).
 		op := "="
-		if lookahead == TK_NE {
-			op = "<>"
+		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok {
+			if tok.Value == "!=" || tok.Value == "<>" {
+				op = "<>"
+			}
 		}
 		return &sql.BinaryOp{Left: left, Operator: op, Right: right}
 
@@ -839,13 +848,18 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 201:
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
+		// Read the operator from the RHS token value (lookahead is the NEXT
+		// token at reduce time).
 		op := "&"
-		if lookahead == TK_BITOR {
-			op = "|"
-		} else if lookahead == TK_LSHIFT {
-			op = "<<"
-		} else if lookahead == TK_RSHIFT {
-			op = ">>"
+		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok {
+			switch tok.Value {
+			case "|":
+				op = "|"
+			case "<<":
+				op = "<<"
+			case ">>":
+				op = ">>"
+			}
 		}
 		return &sql.BinaryOp{Left: left, Operator: op, Right: right}
 
@@ -854,7 +868,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
 		op := "+"
-		if lookahead == TK_MINUS {
+		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok && tok.Value == "-" {
 			op = "-"
 		}
 		return &sql.BinaryOp{Left: left, Operator: op, Right: right}
@@ -864,10 +878,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
 		op := "*"
-		if lookahead == TK_SLASH {
-			op = "/"
-		} else if lookahead == TK_REM {
-			op = "%"
+		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok {
+			switch tok.Value {
+			case "/":
+				op = "/"
+			case "%":
+				op = "%"
+			}
 		}
 		return &sql.BinaryOp{Left: left, Operator: op, Right: right}
 
@@ -884,8 +901,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
 		op := "LIKE"
-		if lookahead == TK_MATCH {
-			op = "MATCH"
+		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok {
+			u := strings.ToUpper(tok.Value)
+			if u == "MATCH" {
+				op = "MATCH"
+			}
 		}
 		return &sql.BinaryOp{Left: left, Operator: op, Right: right}
 
