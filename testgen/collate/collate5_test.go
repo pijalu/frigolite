@@ -287,7 +287,7 @@ func Test_collate5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := " {} C c "
+		want := "{} C c"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -299,7 +299,7 @@ func Test_collate5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := " {} C c "
+		want := "{} C c"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

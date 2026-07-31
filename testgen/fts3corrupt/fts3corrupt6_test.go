@@ -157,7 +157,7 @@ func Test_fts3corrupt6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2147483647 2147483648 2147483649 2147483775\n"
+		want := "2147483647 2147483648 2147483649 2147483775"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

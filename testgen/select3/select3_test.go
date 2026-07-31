@@ -462,7 +462,7 @@ func Test_select3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  0 {}\n  0 {}\n  0 {}\n"
+				want := "0 {} 0 {} 0 {}"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -474,7 +474,7 @@ func Test_select3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  2 59\n  1 59\n  1 59\n"
+				want := "2 59 1 59 1 59"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -486,7 +486,7 @@ func Test_select3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  4 59\n  2 59\n  2 59\n"
+				want := "4 59 2 59 2 59"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -498,7 +498,7 @@ func Test_select3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  4 59\n  2 59\n  2 59\n"
+				want := "4 59 2 59 2 59"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -516,7 +516,7 @@ func Test_select3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  hello 59\n"
+				want := "hello 59"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -528,7 +528,7 @@ func Test_select3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  hello 59 60\n"
+				want := "hello 59 60"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

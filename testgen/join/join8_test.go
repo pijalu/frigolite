@@ -241,7 +241,7 @@ func Test_join8(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  6  106  206  306  106  6  206  6    -   -\n  -    -    -    -    -  -  200  0    -   -\n  -    -    -    -    -  -  203  3    -   -\n  -    -    -    -    -  -  209  9    -   -\n  -    -    -    -    -  -    -  -  300   0\n  -    -    -    -    -  -    -  -  305   5\n  -    -    -    -    -  -    -  -  310  10\n"
+		want := "6 106 206 306 106 6 206 6 - - - - - - - - 200 0 - - - - - - - - 203 3 - - - - - - - - 209 9 - - - - - - - - - - 300 0 - - - - - - - - 305 5 - - - - - - - - 310 10"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -253,7 +253,7 @@ func Test_join8(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  6  106  206  306  106  6  206  6    -   -\n  -    -    -    -    -  -  200  0    -   -\n  -    -    -    -    -  -  203  3    -   -\n  -    -    -    -    -  -  209  9    -   -\n  -    -    -    -    -  -    -  -  300   0\n  -    -    -    -    -  -    -  -  305   5\n  -    -    -    -    -  -    -  -  310  10\n"
+		want := "6 106 206 306 106 6 206 6 - - - - - - - - 200 0 - - - - - - - - 203 3 - - - - - - - - 209 9 - - - - - - - - - - 300 0 - - - - - - - - 305 5 - - - - - - - - 310 10"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -538,7 +538,7 @@ func Test_join8(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - 1 3\n  - 1 4\n  - 2 3\n  - 2 4\n"
+		want := "- 1 3 - 1 4 - 2 3 - 2 4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

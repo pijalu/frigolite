@@ -692,7 +692,7 @@ func Test_view(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 1 1 1 \n  1 1 2 2 \n  1 1 3 3\n"
+		want := "1 1 1 1 1 1 2 2 1 1 3 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -704,7 +704,7 @@ func Test_view(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 1 1 1 \n  1 1 2 2 \n  1 1 3 3\n"
+		want := "1 1 1 1 1 1 2 2 1 1 3 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -725,7 +725,7 @@ func Test_view(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  -1   text\n   0.0 real\n"
+		want := "-1 text 0.0 real"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -878,7 +878,7 @@ func Test_view(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := " 0 a INT 0 {} 0 1 b BLOB 0 {} 0 "
+		want := "0 a INT 0 {} 0 1 b BLOB 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -890,7 +890,7 @@ func Test_view(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := " 0 a INT 0 {} 0 1 b BLOB 0 {} 0 "
+		want := "0 a INT 0 {} 0 1 b BLOB 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

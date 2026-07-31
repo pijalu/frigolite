@@ -431,7 +431,7 @@ func Test_without_rowid1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := " 2 one x 4 one x 6 one x "
+		want := "2 one x 4 one x 6 one x"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -525,7 +525,7 @@ func Test_without_rowid1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  ok  t48   sqlite_autoindex_t48_2\n"
+				want := "ok t48 sqlite_autoindex_t48_2"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -621,7 +621,7 @@ func Test_without_rowid1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "b a 3  b b 4"
+				want := "b a 3 b b 4"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

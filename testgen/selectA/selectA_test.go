@@ -1304,7 +1304,7 @@ func Test_selectA(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 x 2 x 3 x 4 x\n"
+		want := "1 x 2 x 3 x 4 x"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

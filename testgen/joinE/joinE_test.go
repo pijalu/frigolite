@@ -69,7 +69,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 2\n  1 -\n  - 2\n  - -\n"
+		want := "1 2 1 - - 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -81,7 +81,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - 2\n  - -\n"
+		want := "- 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -93,7 +93,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - 2\n  - -\n"
+		want := "- 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -105,7 +105,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n  - -\n"
+		want := "1 - - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -117,7 +117,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n  - -\n"
+		want := "1 - - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -129,7 +129,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 2\n  1 -\n  - 2\n  - -\n"
+		want := "1 2 1 - - 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -141,7 +141,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - 2\n  - -\n"
+		want := "- 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -153,7 +153,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n  - 2\n  - -\n"
+		want := "1 - - 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -165,7 +165,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n  - -\n"
+		want := "1 - - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -177,7 +177,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n  - -\n"
+		want := "1 - - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -189,7 +189,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 2\n  1 -\n  - 2\n  - -\n"
+		want := "1 2 1 - - 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -201,7 +201,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - 2\n  - -\n"
+		want := "- 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -213,7 +213,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - 2\n  - -\n"
+		want := "- 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -225,7 +225,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n  - -\n"
+		want := "1 - - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -237,7 +237,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n  - 2\n  - -\n"
+		want := "1 - - 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -249,7 +249,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 2\n  1 -\n  - 2\n  - -\n"
+		want := "1 2 1 - - 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -261,7 +261,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - 2\n  - -\n"
+		want := "- 2 - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -273,7 +273,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n  - -\n"
+		want := "1 - - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -289,7 +289,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -325,7 +325,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -337,7 +337,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -349,7 +349,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -373,7 +373,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -385,7 +385,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -397,7 +397,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -409,7 +409,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -433,7 +433,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - -\n"
+		want := "- -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -445,7 +445,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -457,7 +457,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -469,7 +469,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -493,7 +493,7 @@ func Test_joinE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 -\n"
+		want := "1 -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

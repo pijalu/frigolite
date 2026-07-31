@@ -177,7 +177,7 @@ func Test_update2(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1 a 1\n    3 c 3\n    4 d 14\n    5 e 15\n    6 f 16\n    7 g 17\n  "
+				want := "1 a 1 3 c 3 4 d 14 5 e 15 6 f 16 7 g 17"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -195,7 +195,7 @@ func Test_update2(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
+				want := "1 a 1 1 3 a 3 3 4 a 14 4 5 a 15 5 6 a 16 6 7 a 17 7"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -225,7 +225,7 @@ func Test_update2(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
+				want := "1 a 1 1 3 a 3 3 4 a 14 4 5 a 15 5 6 a 16 6 7 a 17 7"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

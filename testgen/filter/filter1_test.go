@@ -402,7 +402,7 @@ func Test_filter1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  444 {} 120000\n"
+		want := "444 {} 120000"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

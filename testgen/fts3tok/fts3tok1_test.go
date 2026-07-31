@@ -78,7 +78,7 @@ func Test_fts3tok1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    {one two three} one   0  3 0 \n    {one two three} two   4  7 1 \n    {one two three} three 8 13 2\n  "
+				want := "{one two three} one 0 3 0 {one two three} two 4 7 1 {one two three} three 8 13 2"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -90,7 +90,7 @@ func Test_fts3tok1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    one two three\n  "
+				want := "one two three"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -163,7 +163,7 @@ func Test_fts3tok1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {a b c} b 2 3 1\n"
+			want := "{a b c} b 2 3 1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -175,7 +175,7 @@ func Test_fts3tok1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {a b c} b 2 3 1\n"
+			want := "{a b c} b 2 3 1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -187,7 +187,7 @@ func Test_fts3tok1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {a b c} a 0 1 0 \n  {a b c} b 2 3 1 \n  {a b c} c 4 5 2\n"
+			want := "{a b c} a 0 1 0 {a b c} b 2 3 1 {a b c} c 4 5 2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -205,7 +205,7 @@ func Test_fts3tok1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {a b c} {a b c} a 0 1 0 \n  {d e f} {d e f} e 2 3 1 \n"
+			want := "{a b c} {a b c} a 0 1 0 {d e f} {d e f} e 2 3 1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

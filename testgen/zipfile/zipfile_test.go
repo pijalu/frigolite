@@ -150,7 +150,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 name {} 1 {} 1 \n  1 mode {} 0 {} 0 \n  2 mtime {} 0 {} 0 \n  3 sz {} 0 {} 0 \n  4 rawdata {} 0 {} 0\n  5 data {} 0 {} 0\n  6 method {} 0 {} 0\n"
+		want := "0 name {} 1 {} 1 1 mode {} 0 {} 0 2 mtime {} 0 {} 0 3 sz {} 0 {} 0 4 rawdata {} 0 {} 0 5 data {} 0 {} 0 6 method {} 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -198,7 +198,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  f.txt 1000000000 abcde \n  g.txt 1000000002 12345\n"
+		want := "f.txt 1000000000 abcde g.txt 1000000002 12345"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -218,7 +218,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  f.txt 1000000000 abcde 0\n  g.txt 1000000002 12345 0\n  h.txt 1000000004 aaaaaaaaaabbbbbbbbbb 8\n"
+		want := "f.txt 1000000000 abcde 0 g.txt 1000000002 12345 0 h.txt 1000000004 aaaaaaaaaabbbbbbbbbb 8"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -230,7 +230,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n    f.txt 1\n    g.txt 1\n    h.txt 1\n  "
+		want := "f.txt 1 g.txt 1 h.txt 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -290,7 +290,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  f.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 1000000006 zxcvb 0\n"
+		want := "f.txt 33188 1000000000 abcde 0 h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8 i.txt 33188 1000000006 zxcvb 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -303,7 +303,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  f.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n"
+		want := "f.txt 33188 1000000000 abcde 0 h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8 i.txt 33188 4 zxcvb 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -370,7 +370,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  blue.txt/ {}\n  h.txt aaaaaaaaaabbbbbbbbbb\n  i.txt {}\n"
+		want := "blue.txt/ {} h.txt aaaaaaaaaabbbbbbbbbb i.txt {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -382,7 +382,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  h.txt aaaaaaaaaabbbbbbbbbb\n  i.txt {}\n"
+		want := "h.txt aaaaaaaaaabbbbbbbbbb i.txt {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -418,7 +418,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  dirname/ 16877 {}\n  dirname2/ 16877 {}\n  dirname2/file1.txt 33188 abcdefghijklmnop\n"
+		want := "dirname/ 16877 {} dirname2/ 16877 {} dirname2/file1.txt 33188 abcdefghijklmnop"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -436,7 +436,7 @@ func Test_zipfile(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  dirname3/ 16877 {}\n  dirname2/ 16877 {}\n  dirname2/file1.txt 33188 abcdefghijklmnop\n"
+		want := "dirname3/ 16877 {} dirname2/ 16877 {} dirname2/file1.txt 33188 abcdefghijklmnop"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -601,7 +601,7 @@ func Test_zipfile(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  a.txt 946684800 abc\n"
+				want := "a.txt 946684800 abc"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -634,7 +634,7 @@ func Test_zipfile(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    a.txt 946684800   abc\n    b.txt 1000000000  abc\n    c.txt 1111111000  abc\n  "
+					want := "a.txt 946684800 abc b.txt 1000000000 abc c.txt 1111111000 abc"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -655,7 +655,7 @@ func Test_zipfile(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    a.txt 946684800   3 abc abc\n    b.txt 1000000000  3 abc abc\n    c.txt 1111111000  3 abc abc\n  "
+					want := "a.txt 946684800 3 abc abc b.txt 1000000000 3 abc abc c.txt 1111111000 3 abc abc"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -678,7 +678,7 @@ func Test_zipfile(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  a.txt 1 b.txt 2 c.txt 1 d.txt 2\n"
+				want := "a.txt 1 b.txt 2 c.txt 1 d.txt 2"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

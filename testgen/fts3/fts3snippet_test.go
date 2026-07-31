@@ -333,7 +333,7 @@ func Test_fts3snippet(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {[one] two three [four] five}\n  {two three [four] five [one]}\n  {three [four] five [one] two}\n  {[four] five [one] two three}\n  {five [one] two three [four]}\n"
+			want := "{[one] two three [four] five} {two three [four] five [one]} {three [four] five [one] two} {[four] five [one] two three} {five [one] two three [four]}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -345,7 +345,7 @@ func Test_fts3snippet(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {five [one] two three [four]}\n  {[four] five [one] two three}\n  {three [four] five [one] two}\n  {two three [four] five [one]}\n  {[one] two three [four] five}\n"
+			want := "{five [one] two three [four]} {[four] five [one] two three} {three [four] five [one] two} {two three [four] five [one]} {[one] two three [four] five}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -363,7 +363,7 @@ func Test_fts3snippet(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {[one] two three [four] five}\n  {two three [four] five [one]}\n  {three [four] five [one] two}\n  {[four] five [one] two three}\n  {five [one] two three [four]}\n"
+			want := "{[one] two three [four] five} {two three [four] five [one]} {three [four] five [one] two} {[four] five [one] two three} {five [one] two three [four]}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -375,7 +375,7 @@ func Test_fts3snippet(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {five [one] two three [four]}\n  {[four] five [one] two three}\n  {three [four] five [one] two}\n  {two three [four] five [one]}\n  {[one] two three [four] five}\n"
+			want := "{five [one] two three [four]} {[four] five [one] two three} {three [four] five [one] two} {two three [four] five [one]} {[one] two three [four] five}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -471,7 +471,7 @@ func Test_fts3snippet(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {[a1] [a2] [a3]}\n  {[a4] [a5] [a6]}\n  {[a70] [a71] [a72]}\n"
+			want := "{[a1] [a2] [a3]} {[a4] [a5] [a6]} {[a70] [a71] [a72]}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

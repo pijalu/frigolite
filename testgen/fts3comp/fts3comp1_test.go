@@ -181,7 +181,7 @@ func Test_fts3comp1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    eight 1 1    four 2 2    nine 1 1    one 1 1 \n    six 2 2      three 2 2   twelve 1 1  two 1 2\n  "
+				want := "eight 1 1 four 2 2 nine 1 1 one 1 1 six 2 2 three 2 2 twelve 1 1 two 1 2"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -193,7 +193,7 @@ func Test_fts3comp1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    eight 1 1   four 1 1    nine 1 1 \n    six 1 1     three 1 1   twelve 1 1\n  "
+				want := "eight 1 1 four 1 1 nine 1 1 six 1 1 three 1 1 twelve 1 1"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

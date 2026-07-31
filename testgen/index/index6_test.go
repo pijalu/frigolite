@@ -409,7 +409,7 @@ func Test_index6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 one value 1 \n  2 two {} {} \n  3 three value 3\n"
+		want := "1 one value 1 2 two {} {} 3 three value 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

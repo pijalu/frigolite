@@ -138,7 +138,7 @@ func Test_e_blobwrite(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1\n  ........................................\n  ........................................\n"
+		want := "1 ........................................ ........................................"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -152,7 +152,7 @@ func Test_e_blobwrite(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 .....0123456789......................... xyz\n"
+		want := "1 .....0123456789......................... xyz"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -166,7 +166,7 @@ func Test_e_blobwrite(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 .....0123456789......................... xyz\n"
+		want := "1 .....0123456789......................... xyz"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -180,7 +180,7 @@ func Test_e_blobwrite(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 xyz ........................................\n"
+		want := "2 xyz ........................................"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -194,7 +194,7 @@ func Test_e_blobwrite(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 xyz ........................................\n"
+		want := "2 xyz ........................................"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

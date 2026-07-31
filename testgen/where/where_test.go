@@ -1133,7 +1133,7 @@ func Test_where(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  4 1 0\n  4 0 1\n"
+		want := "4 1 0 4 0 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1396,7 +1396,7 @@ func Test_where(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n 1  1\n 15 999\n 19 5\n"
+			want := "1 1 15 999 19 5"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

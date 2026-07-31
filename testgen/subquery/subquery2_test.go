@@ -109,7 +109,7 @@ func Test_subquery2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "2 3   3 6   4 10"
+		want := "2 3 3 6 4 10"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

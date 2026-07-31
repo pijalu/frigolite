@@ -180,7 +180,7 @@ func Test_where3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  0 0 2 {SCAN t402} \n  0 1 0 {SCAN t400} \n  0 2 1 {SCAN t401}\n"
+			want := "0 0 2 {SCAN t402} 0 1 0 {SCAN t400} 0 2 1 {SCAN t401}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -192,7 +192,7 @@ func Test_where3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  0 0 1 {SCAN t401} \n  0 1 0 {SCAN t400} \n  0 2 2 {SCAN t402}\n"
+			want := "0 0 1 {SCAN t401} 0 1 0 {SCAN t400} 0 2 2 {SCAN t402}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -204,7 +204,7 @@ func Test_where3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  0 0 0 {SCAN t400} \n  0 1 1 {SCAN t401} \n  0 2 2 {SCAN t402}\n"
+			want := "0 0 0 {SCAN t400} 0 1 1 {SCAN t401} 0 2 2 {SCAN t402}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

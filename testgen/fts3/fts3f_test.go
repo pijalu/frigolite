@@ -85,7 +85,7 @@ func Test_fts3f(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 {Index optimized} 2 {Index already optimal} 3 {Index already optimal}\n  4 {Index already optimal}\n  5 {Index already optimal} 6 {Index already optimal}\n"
+		want := "1 {Index optimized} 2 {Index already optimal} 3 {Index already optimal} 4 {Index already optimal} 5 {Index already optimal} 6 {Index already optimal}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

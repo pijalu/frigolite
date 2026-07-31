@@ -115,7 +115,7 @@ func Test_fts3misc(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  7 15 23 31 39 47 55 63 71 79 87 95 103 111 \n  119 127 135 143 151 159 167 175 183 191 199\n"
+		want := "7 15 23 31 39 47 55 63 71 79 87 95 103 111 119 127 135 143 151 159 167 175 183 191 199"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -127,7 +127,7 @@ func Test_fts3misc(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  56 57 58 59 60 61 62 63 120 121 122 123 124 \n  125 126 127 184 185 186 187 188 189 190 191\n"
+		want := "56 57 58 59 60 61 62 63 120 121 122 123 124 125 126 127 184 185 186 187 188 189 190 191"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -163,7 +163,7 @@ func Test_fts3misc(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  6 7 14 15 22 23 30 31 38 39 46 47 48 49 50 51 52 53 54 55 56 \n  57 58 59 60 61 62 63 70 71 78 79 86 87 94 95 102 103 110 \n  111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127\n  134 135 142 143 150 151 158 159 166 167 174 175 176 177 178 179 180 \n  181 182 183 184 185 186 187 188 189 190 191 198 199\n"
+		want := "6 7 14 15 22 23 30 31 38 39 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 70 71 78 79 86 87 94 95 102 103 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 134 135 142 143 150 151 158 159 166 167 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 198 199"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -181,7 +181,7 @@ func Test_fts3misc(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 \n  29 30 31 34 35 38 39 42 43 46 47 48\n"
+		want := "14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 34 35 38 39 42 43 46 47 48"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -193,7 +193,7 @@ func Test_fts3misc(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 \n  29 30 31 34 35 38 39 42 43 46 47 48\n"
+		want := "14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 34 35 38 39 42 43 46 47 48"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -482,7 +482,7 @@ func Test_fts3misc(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  -4764623217061966105 8324454597464624651\n"
+		want := "-4764623217061966105 8324454597464624651"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

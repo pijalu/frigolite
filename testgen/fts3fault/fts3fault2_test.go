@@ -127,7 +127,7 @@ func Test_fts3fault2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  t8 t8_content t8_segments t8_segdir t8_stat\n"
+		want := "t8 t8_content t8_segments t8_segdir t8_stat"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

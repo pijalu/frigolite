@@ -92,7 +92,7 @@ func Test_unionvtab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two\n"
+		want := "1 one 2 two 3 three 10 ten 11 eleven 12 twelve 20 twenty 21 twenty-one 22 twenty-two"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -104,7 +104,7 @@ func Test_unionvtab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 a INTEGER 0 {} 0 \n  1 b TEXT 0 {} 0\n"
+		want := "0 a INTEGER 0 {} 0 1 b TEXT 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -164,7 +164,7 @@ func Test_unionvtab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two\n"
+		want := "1 one 2 two 3 three 10 ten 11 eleven 12 twelve 20 twenty 21 twenty-one 22 twenty-two"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -176,7 +176,7 @@ func Test_unionvtab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two\n"
+		want := "1 one 2 two 3 three 10 ten 11 eleven 12 twelve 20 twenty 21 twenty-one 22 twenty-two"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -188,7 +188,7 @@ func Test_unionvtab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one\n"
+		want := "10 ten 11 eleven 12 twelve 20 twenty 21 twenty-one"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1097,7 +1097,7 @@ func Test_unionvtab(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+				want := "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -1130,7 +1130,7 @@ func Test_unionvtab(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n  -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+					want := "-9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -1142,7 +1142,7 @@ func Test_unionvtab(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+					want := "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -1154,7 +1154,7 @@ func Test_unionvtab(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n  -9223372036854775808 one\n"
+					want := "-9223372036854775808 one"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -1172,7 +1172,7 @@ func Test_unionvtab(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five\n"
+					want := "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -1184,7 +1184,7 @@ func Test_unionvtab(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+					want := "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -1196,7 +1196,7 @@ func Test_unionvtab(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n  9223372036854775807 six\n"
+					want := "9223372036854775807 six"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

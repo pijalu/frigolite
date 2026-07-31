@@ -456,7 +456,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END}\n  {CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END}\n"
+		want := "{CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END} {CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -66,7 +66,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 one 2 two 3 three 4 four 5 five 6 six\n"
+		want := "1 one 2 two 3 three 4 four 5 five 6 six"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -78,7 +78,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 one 2 two 3 three 4 four 5 five 6 six\n"
+		want := "1 one 2 two 3 three 4 four 5 five 6 six"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -140,7 +140,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 1 one 1 1 ONE 2 2 two 2 2 TWO 3 3 three 3 3 THREE\n"
+		want := "1 1 one 1 1 ONE 2 2 two 2 2 TWO 3 3 three 3 3 THREE"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -164,7 +164,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii\n"
+		want := "2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -176,7 +176,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 one {} {}\n  1 ONE {} {}\n  2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii\n"
+		want := "1 one {} {} 1 ONE {} {} 2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -188,7 +188,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  4 iv   3 iii \n  3 iii  2 ii \n  5 v    4 iv\n"
+		want := "4 iv 3 iii 3 iii 2 ii 5 v 4 iv"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -200,7 +200,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  3 THREE 3 iii \n  2 TWO 2 ii \n  3 three 3 iii \n  2 two 2 ii\n"
+		want := "3 THREE 3 iii 2 TWO 2 ii 3 three 3 iii 2 two 2 ii"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -212,7 +212,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  3 THREE 3 iii \n  2 TWO 2 ii \n  3 three 3 iii \n  2 two 2 ii\n"
+		want := "3 THREE 3 iii 2 TWO 2 ii 3 three 3 iii 2 two 2 ii"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -224,7 +224,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii \n"
+		want := "2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -236,7 +236,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii \n"
+		want := "2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -248,7 +248,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii \n"
+		want := "2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -260,7 +260,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 one 2 ii 1 ONE 2 ii 2 two 2 ii \n  2 TWO 2 ii 3 three 2 ii 3 THREE 2 ii \n  \n  1 one 3 iii 1 ONE 3 iii 2 two 3 iii \n  2 TWO 3 iii 3 three 3 iii 3 THREE 3 iii \n\n  1 one 4 iv 1 ONE 4 iv 2 two 4 iv \n  2 TWO 4 iv 3 three 4 iv 3 THREE 4 iv \n\n  1 one 5 v 1 ONE 5 v 2 two 5 v \n  2 TWO 5 v 3 three 5 v 3 THREE 5 v\n"
+		want := "1 one 2 ii 1 ONE 2 ii 2 two 2 ii 2 TWO 2 ii 3 three 2 ii 3 THREE 2 ii 1 one 3 iii 1 ONE 3 iii 2 two 3 iii 2 TWO 3 iii 3 three 3 iii 3 THREE 3 iii 1 one 4 iv 1 ONE 4 iv 2 two 4 iv 2 TWO 4 iv 3 three 4 iv 3 THREE 4 iv 1 one 5 v 1 ONE 5 v 2 two 5 v 2 TWO 5 v 3 three 5 v 3 THREE 5 v"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -272,7 +272,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 one 2 ii 1 ONE 2 ii 2 two 2 ii \n  2 TWO 2 ii 3 three 2 ii 3 THREE 2 ii \n  \n  1 one 3 iii 1 ONE 3 iii 2 two 3 iii \n  2 TWO 3 iii 3 three 3 iii 3 THREE 3 iii \n\n  1 one 4 iv 1 ONE 4 iv 2 two 4 iv \n  2 TWO 4 iv 3 three 4 iv 3 THREE 4 iv \n\n  1 one 5 v 1 ONE 5 v 2 two 5 v \n  2 TWO 5 v 3 three 5 v 3 THREE 5 v\n"
+		want := "1 one 2 ii 1 ONE 2 ii 2 two 2 ii 2 TWO 2 ii 3 three 2 ii 3 THREE 2 ii 1 one 3 iii 1 ONE 3 iii 2 two 3 iii 2 TWO 3 iii 3 three 3 iii 3 THREE 3 iii 1 one 4 iv 1 ONE 4 iv 2 two 4 iv 2 TWO 4 iv 3 three 4 iv 3 THREE 4 iv 1 one 5 v 1 ONE 5 v 2 two 5 v 2 TWO 5 v 3 three 5 v 3 THREE 5 v"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -338,7 +338,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  123 t1_a 456 t3_a 123\n  123 t1_a 456 t3_a 123\n"
+		want := "123 t1_a 456 t3_a 123 123 t1_a 456 t3_a 123"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -350,7 +350,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  123 t1_a 456 t3_a 123 123 123 123 123 123 123 123 123\n"
+		want := "123 t1_a 456 t3_a 123 123 123 123 123 123 123 123 123"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -362,7 +362,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  123 t1_a 456 t3_a 123 t1_a {} {}\n"
+		want := "123 t1_a 456 t3_a 123 t1_a {} {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -422,7 +422,7 @@ func Test_unionall(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  9 10 1000 100     9 10 1000 400\n  9 10 800 100      9 10 800 400\n"
+		want := "9 10 1000 100 9 10 1000 400 9 10 800 100 9 10 800 400"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -88,7 +88,7 @@ func Test_fts4content(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 a {} 0 {} 0 \n  1 b {} 0 {} 0 \n  2 c {} 0 {} 0\n"
+		want := "0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -148,7 +148,7 @@ func Test_fts4content(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 b {} 0 {} 0 \n"
+		want := "0 b {} 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -597,7 +597,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  t5 ft5 ft5_segments ft5_segdir \n  sqlite_autoindex_ft5_segdir_1 ft5_docsize ft5_stat\n"
+									want := "t5 ft5 ft5_segments ft5_segdir sqlite_autoindex_ft5_segdir_1 ft5_docsize ft5_stat"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -621,7 +621,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  ft6 ft6_segments ft6_segdir \n  sqlite_autoindex_ft6_segdir_1 ft6_docsize ft6_stat\n"
+									want := "ft6 ft6_segments ft6_segdir sqlite_autoindex_ft6_segdir_1 ft6_docsize ft6_stat"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -669,7 +669,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  t5 t5_content\n"
+									want := "t5 t5_content"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -687,7 +687,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  {A B} {B A} {C D} {A A}\n"
+									want := "{A B} {B A} {C D} {A A}"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -708,7 +708,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  ft7 ft7_segments ft7_segdir sqlite_autoindex_ft7_segdir_1 \n  ft7_docsize ft7_stat\n"
+									want := "ft7 ft7_segments ft7_segdir sqlite_autoindex_ft7_segdir_1 ft7_docsize ft7_stat"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -726,7 +726,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  {A B} {B A} {C D} {A A}\n"
+									want := "{A B} {B A} {C D} {A A}"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -963,7 +963,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  1 {a b c d e f g h i j k l m n o p q r s t u v w x y z} \n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n  3 {n o p q r s t u v w x y z n o p q r s t u v w x y z}\n"
+									want := "1 {a b c d e f g h i j k l m n o p q r s t u v w x y z} 2 {a b c d e f g h i j k l m a b c d e f g h i j k l m} 3 {n o p q r s t u v w x y z n o p q r s t u v w x y z}"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -975,7 +975,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n"
+									want := "2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -993,7 +993,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  {...c d [e] f g...} {...c d [e] f g...}\n"
+									want := "{...c d [e] f g...} {...c d [e] f g...}"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -1005,7 +1005,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  {...r s [t] u v...} {...r s [t] u v...}\n"
+									want := "{...r s [t] u v...} {...r s [t] u v...}"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -1023,7 +1023,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "\n  {...c d [e] f g...}\n"
+									want := "{...c d [e] f g...}"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}

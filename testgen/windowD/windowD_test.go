@@ -101,7 +101,7 @@ func Test_windowD(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1.0 1\n"
+		want := "1.0 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -113,7 +113,7 @@ func Test_windowD(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1.0 1\n"
+		want := "1.0 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -470,6 +470,7 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 	}
 
 	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx))
+
 	data := pg.Data[cellOff:]
 
 	// Skip payload length varint
@@ -701,6 +702,7 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 	} else {
 		cellStart = cellContentEnd - len(cellData)
 	}
+
 
 	if cellStart < cellPtrEnd {
 		return fmt.Errorf("btree: page is full")

@@ -138,7 +138,7 @@ func Test_expridx1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {row 3 missing from index i1}\n"
+		want := "{row 3 missing from index i1}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -180,7 +180,7 @@ func Test_expridx1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {row 2 missing from index i1} \n  {row 3 missing from index i1} \n  {row 4 missing from index i1} \n  {row 5 missing from index i1}\n  {row 6 missing from index i1}\n"
+		want := "{row 2 missing from index i1} {row 3 missing from index i1} {row 4 missing from index i1} {row 5 missing from index i1} {row 6 missing from index i1}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -375,7 +375,7 @@ func Test_expridx1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {index z1b stores an imprecise floating-point value for row 2}\n  {index z1b stores an imprecise floating-point value for row 3}\n  {row 4 missing from index z1b}\n  {index z1b stores an imprecise floating-point value for row 5}\n  {index z1b stores an imprecise floating-point value for row 6}\n  {row 7 missing from index z1b}\n"
+			want := "{index z1b stores an imprecise floating-point value for row 2} {index z1b stores an imprecise floating-point value for row 3} {row 4 missing from index z1b} {index z1b stores an imprecise floating-point value for row 5} {index z1b stores an imprecise floating-point value for row 6} {row 7 missing from index z1b}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -405,7 +405,7 @@ func Test_expridx1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {index z1b stores an imprecise floating-point value for row 2}\n  {index z1b stores an imprecise floating-point value for row 3}\n  {row 4 missing from index z1b}\n  {index z1b stores an imprecise floating-point value for row 5}\n  {index z1b stores an imprecise floating-point value for row 6}\n  {row 7 missing from index z1b}\n"
+			want := "{index z1b stores an imprecise floating-point value for row 2} {index z1b stores an imprecise floating-point value for row 3} {row 4 missing from index z1b} {index z1b stores an imprecise floating-point value for row 5} {index z1b stores an imprecise floating-point value for row 6} {row 7 missing from index z1b}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

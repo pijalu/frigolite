@@ -133,7 +133,7 @@ func Test_pushdown(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 'one' 0\n  2 0     0\n"
+		want := "1 'one' 0 2 0 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -163,7 +163,7 @@ func Test_pushdown(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 0     0\n"
+		want := "2 0 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

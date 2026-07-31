@@ -1811,7 +1811,7 @@ func Test_fts3corrupt4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n"
+		want := "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

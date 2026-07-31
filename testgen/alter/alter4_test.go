@@ -363,7 +363,7 @@ func Test_alter4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  integer -9223372036854775808\n  real     9.22337203685478e+18\n"
+		want := "integer -9223372036854775808 real 9.22337203685478e+18"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

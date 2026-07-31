@@ -86,7 +86,7 @@ func Test_corruptF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  table t1 t1 2 {CREATE TABLE t1(x)} \n  table t4 t4 6 {CREATE TABLE t4(x)}\n"
+		want := "table t1 t1 2 {CREATE TABLE t1(x)} table t4 t4 6 {CREATE TABLE t4(x)}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -139,7 +139,7 @@ func Test_corruptF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  table t1 t1 2 {CREATE TABLE t1(x)} \n  table t4 t4 5 {CREATE TABLE t4(x)}\n"
+		want := "table t1 t1 2 {CREATE TABLE t1(x)} table t4 t4 5 {CREATE TABLE t4(x)}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

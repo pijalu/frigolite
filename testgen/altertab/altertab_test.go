@@ -464,7 +464,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END}\n  {CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END}\n"
+		want := "{CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END} {CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -793,7 +793,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  User {CREATE TABLE \"User\" (id integer)}\n"
+		want := "User {CREATE TABLE \"User\" (id integer)}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1111,7 +1111,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW v0 AS\n    WITH p AS ( SELECT 1 FROM \"t2\" ),\n         g AS ( SELECT 1 FROM p, \"t2\" )\n    SELECT 1 FROM g}"
+		want := "{CREATE VIEW v0 AS WITH p AS ( SELECT 1 FROM \"t2\" ), g AS ( SELECT 1 FROM p, \"t2\" ) SELECT 1 FROM g}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1147,7 +1147,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW v2 AS\n    WITH p AS ( SELECT 1 FROM \"t3\" ),\n         g AS ( SELECT 1 FROM (\n           WITH i AS (SELECT 1 FROM p, \"t3\")\n           SELECT * FROM i\n         )\n    )\n    SELECT 1 FROM g}"
+		want := "{CREATE VIEW v2 AS WITH p AS ( SELECT 1 FROM \"t3\" ), g AS ( SELECT 1 FROM ( WITH i AS (SELECT 1 FROM p, \"t3\") SELECT * FROM i ) ) SELECT 1 FROM g}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1168,7 +1168,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 2 {} 1 3 {} 2 5 {}\n"
+		want := "1 2 {} 1 3 {} 2 5 {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1192,7 +1192,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW v3 AS \n    WITH RECURSIVE t3(x,y,z) AS (\n        SELECT b,c,NULL FROM t4\n        UNION\n        SELECT x,y,NULL FROM t3, \"t5\"\n    )\n  SELECT * FROM t3 AS xyz}"
+		want := "{CREATE VIEW v3 AS WITH RECURSIVE t3(x,y,z) AS ( SELECT b,c,NULL FROM t4 UNION SELECT x,y,NULL FROM t3, \"t5\" ) SELECT * FROM t3 AS xyz}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

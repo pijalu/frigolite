@@ -545,24 +545,24 @@ func Test_percentile(t *testing.T) {
 							_ = sql // suppress unused warning
 							{ // "percentile-3." + id + ".1"
 								_res = db.Exec(sql)
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "A one 8.4 A.D 9.7 4 D one 11.0 A.D.G 8.4 7 G one 2.7 D.G.C 5.9 3 C three 5.9 G.C.F 2.7 6 F three 0.0 C.F.B 5.9 2 B two 7.1 F.B.E 7.1 5 E two 12.5 B.E 9.8") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "A one 8.4 A.D 9.7 4 D one 11.0 A.D.G 8.4 7 G one 2.7 D.G.C 5.9 3 C three 5.9 G.C.F 2.7 6 F three 0.0 C.F.B 5.9 2 B two 7.1 F.B.E 7.1 5 E two 12.5 B.E 9.8", _res.Error, sql)
 								}
 							}
 							sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
 							_ = sql // suppress unused warning
 							{ // "percentile-3." + id + ".2"
 								_res = db.Exec(sql)
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "A one 8.4 A.D 9.7 4 D one 11.0 A.D.G 8.4 7 G one 2.7 A.D.G.C 7.15 3 C three 5.9 A.D.G.C.F 5.9 6 F three 0.0 A.D.G.C.F.B 6.5 2 B two 7.1 A.D.G.C.F.B.E 7.1 5 E two 12.5 A.D.G.C.F.B.E 7.1") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "A one 8.4 A.D 9.7 4 D one 11.0 A.D.G 8.4 7 G one 2.7 A.D.G.C 7.15 3 C three 5.9 A.D.G.C.F 5.9 6 F three 0.0 A.D.G.C.F.B 6.5 2 B two 7.1 A.D.G.C.F.B.E 7.1 5 E two 12.5 A.D.G.C.F.B.E 7.1", _res.Error, sql)
 								}
 							}
 							sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
 							_ = sql // suppress unused warning
 							{ // "percentile-3." + id + ".3"
 								_res = db.Exec(sql)
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "A one 8.4 A.D.G.C.F.B.E 7.1 4 D one 11.0 A.D.G.C.F.B.E 7.1 7 G one 2.7 D.G.C.F.B.E 6.5 3 C three 5.9 G.C.F.B.E 5.9 6 F three 0.0 C.F.B.E 6.5 2 B two 7.1 F.B.E 7.1 5 E two 12.5 B.E 9.8") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "A one 8.4 A.D.G.C.F.B.E 7.1 4 D one 11.0 A.D.G.C.F.B.E 7.1 7 G one 2.7 D.G.C.F.B.E 6.5 3 C three 5.9 G.C.F.B.E 5.9 6 F three 0.0 C.F.B.E 6.5 2 B two 7.1 F.B.E 7.1 5 E two 12.5 B.E 9.8", _res.Error, sql)
 								}
 							}
 						}
@@ -579,7 +579,7 @@ func Test_percentile(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := "\n  1001      17         25.99  19.68    20.37 \n  1001      31         11.99  19.68    20.37 \n  1001      49         25.99  19.68    20.37 \n  1001      216        14.75  19.68    20.37 \n  1002      37         33.49  33.49    33.49 \n  1003      7          245.0  104.0    55.99 \n  1003      8          55.99  104.0    55.99 \n  1003      12         11.01  104.0    55.99 \n  1004      113        12.45  11.22    11.22 \n  1004      117        9.99   11.22    11.22 \n"
+							want := "1001 17 25.99 19.68 20.37 1001 31 11.99 19.68 20.37 1001 49 25.99 19.68 20.37 1001 216 14.75 19.68 20.37 1002 37 33.49 33.49 33.49 1003 7 245.0 104.0 55.99 1003 8 55.99 104.0 55.99 1003 12 11.01 104.0 55.99 1004 113 12.45 11.22 11.22 1004 117 9.99 11.22 11.22"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -609,7 +609,7 @@ func Test_percentile(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := "\n  Nate   W  23.5     23.5     24.6175    24.99     33.625     59.53  \n  Hank   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Irma   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Mia    W  59.53    23.5     24.6175    24.99     33.625     59.53  \n  Jake   X  2234.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Gina   X  2320.49  2234.99  2299.115   2860.24   3792.14    4968.59\n  Bob    X  3399.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Liam   X  4968.59  2234.99  2299.115   2860.24   3792.14    4968.59\n  Fred   Y  539.99   539.99   2443.7     3328.27   3763.7     4319.99\n  Dave   Y  3078.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Alice  Y  3578.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Kim    Y  4319.99  539.99   2443.7     3328.27   3763.7     4319.99\n  Cindy  Z  699.1    699.1    1104.3225  1509.545  1914.7675  2319.99\n  Emma   Z  2319.99  699.1    1104.3225  1509.545  1914.7675  2319.99\n"
+							want := "Nate W 23.5 23.5 24.6175 24.99 33.625 59.53 Hank W 24.99 23.5 24.6175 24.99 33.625 59.53 Irma W 24.99 23.5 24.6175 24.99 33.625 59.53 Mia W 59.53 23.5 24.6175 24.99 33.625 59.53 Jake X 2234.99 2234.99 2299.115 2860.24 3792.14 4968.59 Gina X 2320.49 2234.99 2299.115 2860.24 3792.14 4968.59 Bob X 3399.99 2234.99 2299.115 2860.24 3792.14 4968.59 Liam X 4968.59 2234.99 2299.115 2860.24 3792.14 4968.59 Fred Y 539.99 539.99 2443.7 3328.27 3763.7 4319.99 Dave Y 3078.27 539.99 2443.7 3328.27 3763.7 4319.99 Alice Y 3578.27 539.99 2443.7 3328.27 3763.7 4319.99 Kim Y 4319.99 539.99 2443.7 3328.27 3763.7 4319.99 Cindy Z 699.1 699.1 1104.3225 1509.545 1914.7675 2319.99 Emma Z 2319.99 699.1 1104.3225 1509.545 1914.7675 2319.99"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}

@@ -139,7 +139,7 @@ func Test_basexx1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{##/2,#2/\n} {##/2,#*\n} {##/2,\n}"
+		want := "{##/2,#2/ } {##/2,#* } {##/2, }"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

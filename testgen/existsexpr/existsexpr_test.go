@@ -383,7 +383,7 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 1\n  2 {}\n"
+		want := "1 1 2 {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -563,7 +563,7 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 0\n  2 0\n"
+		want := "1 0 2 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

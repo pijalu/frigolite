@@ -597,7 +597,7 @@ func Test_minmax(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "a 1 1 a 2 2 a 3 3 a 4 4 a 5 5\n   b 2 2 b 3 3 b 4 4 b 5 5 b 6 6\n   c 3 3 c 4 4 c 5 5 c 6 6 c 7 7\n"
+		want := "a 1 1 a 2 2 a 3 3 a 4 4 a 5 5 b 2 2 b 3 3 b 4 4 b 5 5 b 6 6 c 3 3 c 4 4 c 5 5 c 6 6 c 7 7"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

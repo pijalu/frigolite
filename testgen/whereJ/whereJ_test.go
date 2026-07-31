@@ -173,7 +173,7 @@ func Test_whereJ(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 100 1 1 2 100 3 1 4 100 5 1 6 100 7 1\n"
+		want := "0 100 1 1 2 100 3 1 4 100 5 1 6 100 7 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

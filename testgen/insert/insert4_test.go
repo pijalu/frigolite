@@ -425,7 +425,7 @@ func Test_insert4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 1 1  2 2 2  3 3 3  ok"
+		want := "1 1 1 2 2 2 3 3 3 ok"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

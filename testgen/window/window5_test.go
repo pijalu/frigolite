@@ -91,7 +91,7 @@ func Test_window5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "4 4  {4 6} 5  {1 4 6} 4  {1 4 5 6} 4.5  {1 2 4 5 6} 4 {1 2 3 4 5 6} 3.5"
+		want := "4 4 {4 6} 5 {1 4 6} 4 {1 4 5 6} 4.5 {1 2 4 5 6} 4 {1 2 3 4 5 6} 3.5"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

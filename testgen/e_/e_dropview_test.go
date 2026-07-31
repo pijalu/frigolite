@@ -94,7 +94,7 @@ func Test_e_dropview(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  view {new view} {new view} 0 \n  {CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y}\n"
+		want := "view {new view} {new view} 0 {CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

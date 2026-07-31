@@ -70,7 +70,7 @@ func Test_dbdata(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 0 -1 5 \n  2 0  0 'v' \n  2 0  1 'five' \n  2 1 -1 10 \n  2 1  0 'x' \n  2 1  1 'ten'\n"
+		want := "2 0 -1 5 2 0 0 'v' 2 0 1 'five' 2 1 -1 10 2 1 0 'x' 2 1 1 'ten'"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -82,7 +82,7 @@ func Test_dbdata(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 0 -1 1 \n  1 0 0 'table' \n  1 0 1 'T1' \n  1 0 2 'T1' \n  1 0 3 2 \n  1 0 4 {'CREATE TABLE T1(a, b)'}\n  2 0 -1 5 \n  2 0  0 'v' \n  2 0  1 'five' \n  2 1 -1 10 \n  2 1  0 'x' \n  2 1  1 'ten'\n"
+		want := "1 0 -1 1 1 0 0 'table' 1 0 1 'T1' 1 0 2 'T1' 1 0 3 2 1 0 4 {'CREATE TABLE T1(a, b)'} 2 0 -1 5 2 0 0 'v' 2 0 1 'five' 2 1 -1 10 2 1 0 'x' 2 1 1 'ten'"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -133,7 +133,7 @@ func Test_dbdata(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 25   2 6   2 7   2 9   2 11   2 13   2 15   2 17   2 19   2 21\n"
+		want := "2 25 2 6 2 7 2 9 2 11 2 13 2 15 2 17 2 19 2 21"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -145,7 +145,7 @@ func Test_dbdata(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  3 24   3 23\n"
+		want := "3 24 3 23"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -157,7 +157,7 @@ func Test_dbdata(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  2 25   2 6   2 7   2 9   2 11   2 13   2 15   2 17   2 19   2 21\n  3 24   3 23\n"
+		want := "2 25 2 6 2 7 2 9 2 11 2 13 2 15 2 17 2 19 2 21 3 24 3 23"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

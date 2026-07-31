@@ -180,7 +180,7 @@ func Test_hidden(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "2 3   5 6   8 9"
+			want := "2 3 5 6 8 9"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -210,7 +210,7 @@ func Test_hidden(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "1 2   4 5   7 8"
+			want := "1 2 4 5 7 8"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -240,7 +240,7 @@ func Test_hidden(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "1 2   4 5   7 8"
+			want := "1 2 4 5 7 8"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -267,7 +267,7 @@ func Test_hidden(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "1 1 2 3   3 7 8 9"
+			want := "1 1 2 3 3 7 8 9"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -279,7 +279,7 @@ func Test_hidden(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "1 1 2 3   3 7 8 9"
+			want := "1 1 2 3 3 7 8 9"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

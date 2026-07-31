@@ -307,7 +307,7 @@ func Test_offset1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  11  Diane  London  hr      70\n  12  Bob    London  hr      78\n  21  Emma   London  it      84\n  22  Grace  Berlin  it      90\n  23  Henry  London  it     104\n  24  Irene  Berlin  it     104\n  25  Frank  Berlin  it     120\n  31  Cindy  Berlin  sales   96\n  32  Dave   London  sales   96\n  33  Alice  Berlin  sales  100\n"
+		want := "11 Diane London hr 70 12 Bob London hr 78 21 Emma London it 84 22 Grace Berlin it 90 23 Henry London it 104 24 Irene Berlin it 104 25 Frank Berlin it 120 31 Cindy Berlin sales 96 32 Dave London sales 96 33 Alice Berlin sales 100"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -319,7 +319,7 @@ func Test_offset1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  22  Grace  Berlin  it      90\n  21  Emma   London  it      84\n  12  Bob    London  hr      78\n  11  Diane  London  hr      70\n  33  Alice  Berlin  sales   100\n"
+		want := "22 Grace Berlin it 90 21 Emma London it 84 12 Bob London hr 78 11 Diane London hr 70 33 Alice Berlin sales 100"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -331,7 +331,7 @@ func Test_offset1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  33  Alice  Berlin  sales  100\n  23  Henry  London  it     104\n  24  Irene  Berlin  it     104\n"
+		want := "33 Alice Berlin sales 100 23 Henry London it 104 24 Irene Berlin it 104"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -343,7 +343,7 @@ func Test_offset1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  32  Dave   London  sales   96\n  22  Grace  Berlin  it      90\n  21  Emma   London  it      84\n"
+		want := "32 Dave London sales 96 22 Grace Berlin it 90 21 Emma London it 84"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

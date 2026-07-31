@@ -99,7 +99,7 @@ func Test_upsert4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1 {} one 2 {} two 3 {} three\n  "
+				want := "1 {} one 2 {} two 3 {} three"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -111,7 +111,7 @@ func Test_upsert4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1 {} one 2 {} two 3 {} three\n  "
+				want := "1 {} one 2 {} two 3 {} three"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -123,7 +123,7 @@ func Test_upsert4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1 {} one 2 1 two 3 {} three\n  "
+				want := "1 {} one 2 1 two 3 {} three"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -622,7 +622,7 @@ func Test_upsert4(t *testing.T) {
 															return
 														}
 														got := flatten(r)
-														want := "\n  1 3\n  4 1\n  5 2\n  8 1\n  9 1\n"
+														want := "1 3 4 1 5 2 8 1 9 1"
 														if got != want {
 															t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 														}

@@ -253,7 +253,7 @@ func Test_selectC(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  a 21 a 22 a 23 a 24 a 25 a 302 a 303 a 301\n  b 21 b 22 b 23 b 24 b 25 b 302 b 303 b 301\n"
+		want := "a 21 a 22 a 23 a 24 a 25 a 302 a 303 a 301 b 21 b 22 b 23 b 24 b 25 b 302 b 303 b 301"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -265,7 +265,7 @@ func Test_selectC(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  a 21 a 22 a 23 a 24 a 25 a 301 a 302 a 303\n  b 21 b 22 b 23 b 24 b 25 b 301 b 302 b 303\n"
+		want := "a 21 a 22 a 23 a 24 a 25 a 301 a 302 a 303 b 21 b 22 b 23 b 24 b 25 b 301 b 302 b 303"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

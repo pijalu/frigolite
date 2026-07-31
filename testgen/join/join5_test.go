@@ -399,7 +399,7 @@ func Test_join5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 10 2\n  2 10 2\n"
+		want := "1 10 2 2 10 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -495,7 +495,7 @@ func Test_join5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  12  12000  12000000  12  12\n  24  24000  24000000  24  24\n  36  36000  36000000  36  36\n  48  48000  48000000  48  48\n  60  60000  60000000  60  60\n  72  72000  72000000  72  72\n  84  84000  84000000  84  84\n  96  96000  96000000  96  96\n"
+		want := "12 12000 12000000 12 12 24 24000 24000000 24 24 36 36000 36000000 36 36 48 48000 48000000 48 48 60 60000 60000000 60 60 72 72000 72000000 72 72 84 84000 84000000 84 84 96 96000 96000000 96 96"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

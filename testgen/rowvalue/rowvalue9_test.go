@@ -70,7 +70,7 @@ func Test_rowvalue9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 integer 1 integer \n  2 integer 2 text \n  3 text    3 integer \n  4 text    4 text\n"
+		want := "1 integer 1 integer 2 integer 2 text 3 text 3 integer 4 text 4 text"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -473,7 +473,7 @@ func Test_rowvalue9(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := " 1 4 1 5 "
+			want := "1 4 1 5"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -485,7 +485,7 @@ func Test_rowvalue9(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := " 1 4 1 5 "
+			want := "1 4 1 5"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -497,7 +497,7 @@ func Test_rowvalue9(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := " 1 4 1 5 "
+			want := "1 4 1 5"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -530,7 +530,7 @@ func Test_rowvalue9(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  2 2 3 3\n"
+			want := "2 2 3 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -548,7 +548,7 @@ func Test_rowvalue9(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  2 2 3 3\n"
+			want := "2 2 3 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -566,7 +566,7 @@ func Test_rowvalue9(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  2 2 3 3\n"
+			want := "2 2 3 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

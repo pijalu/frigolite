@@ -6,6 +6,7 @@ package wherelimit
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -100,8 +101,8 @@ func Test_wherelimit2(t *testing.T) {
 	}
 	{ // "2.1.2"
 		_res = db.Exec("\n  BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a, b DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a, b DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1 {} 1 2 g 2 1 {} 2 2 {} 3 1 d 3 2 c 4 1 b 4 2 a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1 {} 1 2 g 2 1 {} 2 2 {} 3 1 d 3 2 c 4 1 b 4 2 a", _res.Error, "\n  BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a, b DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;\n")
 		}
 	}
 	{ // "2.2.0"
@@ -118,8 +119,8 @@ func Test_wherelimit2(t *testing.T) {
 	}
 	{ // "2.2.2"
 		_res = db.Exec("\n  BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1 h 2 2 g 3 1 f 4 2 e 5 1 {} 6 2 {} 7 1 {} 8 2 a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1 h 2 2 g 3 1 f 4 2 e 5 1 {} 6 2 {} 7 1 {} 8 2 a", _res.Error, "\n  BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;\n")
 		}
 	}
 	{ // "3.0"

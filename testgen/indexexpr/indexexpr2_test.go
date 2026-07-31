@@ -140,7 +140,7 @@ func Test_indexexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  .ABC .abcd .DEF .defg\n"
+		want := ".ABC .abcd .DEF .defg"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -152,7 +152,7 @@ func Test_indexexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  .ABC .abcd .DEF .defg\n"
+		want := ".ABC .abcd .DEF .defg"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -194,7 +194,7 @@ func Test_indexexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  .ABC 1   .ABC 3   .abc 2   .abc 4\n"
+		want := ".ABC 1 .ABC 3 .abc 2 .abc 4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -206,7 +206,7 @@ func Test_indexexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  .ABC 1   .ABC 3   .abc 2   .abc 4\n"
+		want := ".ABC 1 .ABC 3 .abc 2 .abc 4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -403,7 +403,7 @@ func Test_indexexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 123   2 123   3 123abc  4 123.0"
+		want := "1 123 2 123 3 123abc 4 123.0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -415,7 +415,7 @@ func Test_indexexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 123   2 123   3 123abc  4 123.0"
+		want := "1 123 2 123 3 123abc 4 123.0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -433,7 +433,7 @@ func Test_indexexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 123   2 123"
+		want := "1 123 2 123"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -445,7 +445,7 @@ func Test_indexexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 123   2 123"
+		want := "1 123 2 123"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

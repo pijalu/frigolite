@@ -653,7 +653,7 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0 0 2 0 4 2 0 2 2 4 0\n"
+		want := "0 0 0 2 0 4 2 0 2 2 4 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -671,7 +671,7 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0 0 2 0 4 2 0 2 2 4 0\n"
+		want := "0 0 0 2 0 4 2 0 2 2 4 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -689,7 +689,7 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0 0 2 0 4 2 0 2 2 4 0\n"
+		want := "0 0 0 2 0 4 2 0 2 2 4 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

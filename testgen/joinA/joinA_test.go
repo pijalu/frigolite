@@ -82,7 +82,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    11  21  31  41  -  -  -\n    12  22  32  42  -  -  -\n    15  25  35  45  -  -  -\n    18  28  38  48  -  -  -\n  "
+				want := "11 21 31 41 - - - 12 22 32 42 - - - 15 25 35 45 - - - 18 28 38 48 - - -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -94,7 +94,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    14  24  -  -  -  44  34\n    15  25  -  -  -  45  35\n    16  26  -  -  -  46  36\n  "
+				want := "14 24 - - - 44 34 15 25 - - - 45 35 16 26 - - - 46 36"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -106,7 +106,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -\n  "
+				want := "11 - 21 31 - 41 - 13 - 23 33 - 43 - 16 - 26 36 - 46 - 19 - 29 39 - 49 -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -118,7 +118,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -\n  "
+				want := "11 - 21 31 - 41 - 13 - 23 33 - 43 - 16 - 26 36 - 46 - 19 - 29 39 - 49 -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -130,7 +130,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -\n  "
+				want := "11 - 21 31 - 41 - 13 - 23 33 - 43 - 16 - 26 36 - 46 - 19 - 29 39 - 49 -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -142,7 +142,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    -   -  12  22  32  42  -\n    -   -  13  23  33  43  -\n    -   -  15  25  35  45  -\n    -   -  17  27  37  47  -\n    11  -  21  31  -   41  -\n    13  -  23  33  -   43  -\n    16  -  26  36  -   46  -\n    19  -  29  39  -   49  -\n  "
+				want := "- - 12 22 32 42 - - - 13 23 33 43 - - - 15 25 35 45 - - - 17 27 37 47 - 11 - 21 31 - 41 - 13 - 23 33 - 43 - 16 - 26 36 - 46 - 19 - 29 39 - 49 -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -154,7 +154,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    11  -   21  31  -  41  - \n    13  -   23  33  -  43  - \n    14  24  -   -   -  44  34\n    15  25  -   -   -  45  35\n    16  26  -   -   -  46  36\n    16  -   26  36  -  46  - \n    19  -   29  39  -  49  - \n  "
+				want := "11 - 21 31 - 41 - 13 - 23 33 - 43 - 14 24 - - - 44 34 15 25 - - - 45 35 16 26 - - - 46 36 16 - 26 36 - 46 - 19 - 29 39 - 49 -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -166,7 +166,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    -   -   12  22  32  42  - \n    -   -   13  23  33  43  - \n    -   -   15  25  35  45  - \n    -   -   17  27  37  47  - \n    11  -   21  31  -   41  - \n    11  21  31  41  -   -   - \n    12  22  32  42  -   -   - \n    13  -   23  33  -   43  - \n    14  24  -   -   -   44  34\n    15  25  -   -   -   45  35\n    15  25  35  45  -   -   - \n    16  26  -   -   -   46  36\n    16  -   26  36  -   46  - \n    18  28  38  48  -   -   - \n    19  -   29  39  -   49  - \n  "
+				want := "- - 12 22 32 42 - - - 13 23 33 43 - - - 15 25 35 45 - - - 17 27 37 47 - 11 - 21 31 - 41 - 11 21 31 41 - - - 12 22 32 42 - - - 13 - 23 33 - 43 - 14 24 - - - 44 34 15 25 - - - 45 35 15 25 35 45 - - - 16 26 - - - 46 36 16 - 26 36 - 46 - 18 28 38 48 - - - 19 - 29 39 - 49 -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -178,7 +178,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    11  21  31  41  -   -   -  11\n    12  22  32  42  -   -   -  12\n    15  25  35  45  -   -   -  15\n    18  28  38  48  -   -   -  18\n  "
+				want := "11 21 31 41 - - - 11 12 22 32 42 - - - 12 15 25 35 45 - - - 15 18 28 38 48 - - - 18"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -190,7 +190,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    14  24  -   -   -   44  34  14\n    15  25  -   -   -   45  35  15\n    16  26  -   -   -   46  36  16\n  "
+				want := "14 24 - - - 44 34 14 15 25 - - - 45 35 15 16 26 - - - 46 36 16"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -202,7 +202,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    11  -   21  31  -   41  -  11\n    13  -   23  33  -   43  -  13\n    16  -   26  36  -   46  -  16\n    19  -   29  39  -   49  -  19\n  "
+				want := "11 - 21 31 - 41 - 11 13 - 23 33 - 43 - 13 16 - 26 36 - 46 - 16 19 - 29 39 - 49 - 19"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -214,7 +214,7 @@ func Test_joinA(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    -   -   12  22  32  42  - \n    -   -   13  23  33  43  - \n    -   -   15  25  35  45  - \n    -   -   17  27  37  47  - \n  "
+				want := "- - 12 22 32 42 - - - 13 23 33 43 - - - 15 25 35 45 - - - 17 27 37 47 -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

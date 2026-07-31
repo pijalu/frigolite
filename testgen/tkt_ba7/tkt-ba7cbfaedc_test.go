@@ -119,7 +119,7 @@ func Test_tkt_ba7cbfaedc(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  1 2 3 4 5   1 2 3 4 5   5 4 3 2 1\n"
+				want := "1 2 3 4 5 1 2 3 4 5 5 4 3 2 1"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

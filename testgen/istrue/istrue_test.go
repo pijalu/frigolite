@@ -359,7 +359,7 @@ func Test_istrue(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "1 1 1   1 1 1  1 1 1"
+			want := "1 1 1 1 1 1 1 1 1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

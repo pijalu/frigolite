@@ -127,7 +127,7 @@ func Test_bestindexE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 a {} 0 {} 0 1 b {} 0 {} 0\n"
+		want := "0 a {} 0 {} 0 1 b {} 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

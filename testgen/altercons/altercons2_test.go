@@ -268,7 +268,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REFERENCES abc)}\n"
+			want := "{CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REFERENCES abc)}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -331,7 +331,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "1 2   2 3"
+			want := "1 2 2 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -412,7 +412,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE t2(a, b NOT NULL)}\n"
+			want := "{CREATE TABLE t2(a, b NOT NULL)}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -424,7 +424,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE t2(a, b)}\n"
+			want := "{CREATE TABLE t2(a, b)}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -457,7 +457,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)}\n"
+			want := "{CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -481,7 +481,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)}\n"
+			want := "{CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

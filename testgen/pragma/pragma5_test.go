@@ -62,7 +62,7 @@ func Test_pragma5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 name {} 0 {} 0 \n  1 builtin {} 0 {} 0\n  2 type {} 0 {} 0\n  3 enc {} 0 {} 0\n  4 narg {} 0 {} 0\n  5 flags {} 0 {} 0\n"
+		want := "0 name {} 0 {} 0 1 builtin {} 0 {} 0 2 type {} 0 {} 0 3 enc {} 0 {} 0 4 narg {} 0 {} 0 5 flags {} 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -98,7 +98,7 @@ func Test_pragma5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n    0 name {} 0 {} 0 \n  "
+		want := "0 name {} 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -122,7 +122,7 @@ func Test_pragma5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 name {} 0 {} 0 \n"
+		want := "0 name {} 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -110,7 +110,7 @@ func Test_triggerupfrom(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 {} one \n  2 {} two \n  3 {} three \n  4 {} four \n  5 {} {} \n  10 y {} \n  20 y {}\n"
+		want := "1 {} one 2 {} two 3 {} three 4 {} four 5 {} {} 10 y {} 20 y {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -122,7 +122,7 @@ func Test_triggerupfrom(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 two one \n  3 {} three \n  4 {} four \n  5 {} {} \n  10 y {} \n  20 y {}\n"
+		want := "1 two one 3 {} three 4 {} four 5 {} {} 10 y {} 20 y {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

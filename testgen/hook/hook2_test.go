@@ -107,7 +107,7 @@ func Test_hook2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  4 1 1\n  1 2 3\n  11 12 13\n  21 22 23\n  31 32 33\n"
+		want := "4 1 1 1 2 3 11 12 13 21 22 23 31 32 33"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -122,7 +122,7 @@ func Test_hook2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1    2   3 \n  45  22  23 \n  4   32  33 \n  11 100 100\n"
+		want := "1 2 3 45 22 23 4 32 33 11 100 100"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

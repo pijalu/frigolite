@@ -91,7 +91,7 @@ func Test_e_resolve(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "at1  n3"
+		want := "at1 n3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -103,7 +103,7 @@ func Test_e_resolve(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "at2  n4"
+		want := "at2 n4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -243,7 +243,7 @@ func Test_e_resolve(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "at1  n3"
+		want := "at1 n3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -255,7 +255,7 @@ func Test_e_resolve(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "at2  n4"
+		want := "at2 n4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

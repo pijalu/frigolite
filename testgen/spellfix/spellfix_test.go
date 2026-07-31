@@ -426,7 +426,7 @@ func Test_spellfix(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  0 word {} 0 {} 0 \n  1 rank {} 0 {} 0 \n  2 distance {} 0 {} 0 \n  3 langid {} 0 {} 0 \n  4 score {} 0 {} 0 \n  5 matchlen {} 0 {} 0\n"
+						want := "0 word {} 0 {} 0 1 rank {} 0 {} 0 2 distance {} 0 {} 0 3 langid {} 0 {} 0 4 score {} 0 {} 0 5 matchlen {} 0 {} 0"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -438,7 +438,7 @@ func Test_spellfix(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  1 Archilles   2 Apollo   3 Atrides\n"
+						want := "1 Archilles 2 Apollo 3 Atrides"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -468,7 +468,7 @@ func Test_spellfix(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  1 Archilles   2 Apollo   3 Atrides\n"
+						want := "1 Archilles 2 Apollo 3 Atrides"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -510,7 +510,7 @@ func Test_spellfix(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "2 Apollo  3 Archilles"
+						want := "2 Apollo 3 Archilles"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

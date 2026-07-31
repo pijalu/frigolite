@@ -433,7 +433,7 @@ func Test_bestindexC(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n    zero two three\n  "
+						want := "zero two three"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -445,7 +445,7 @@ func Test_bestindexC(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n    zero four two\n    three six seven\n  "
+						want := "zero four two three six seven"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

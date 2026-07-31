@@ -285,7 +285,7 @@ func Test_insert2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "123 {} c {}   456 {} c {}"
+		want := "123 {} c {} 456 {} c {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

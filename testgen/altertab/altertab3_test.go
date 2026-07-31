@@ -82,7 +82,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT sum(b) OVER w FROM t1 WINDOW w AS (ORDER BY aaa);\n  END}"
+		want := "{CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT sum(b) OVER w FROM t1 WINDOW w AS (ORDER BY aaa); END}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -244,7 +244,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE \"t1x\"(a,b,c)}\n  {CREATE TRIGGER AFTER INSERT ON \"t1x\" BEGIN\n    SELECT a, rank() OVER w1 FROM \"t1x\"\n    WINDOW w1 AS (PARTITION BY b, percent_rank() OVER w1);\n  END}\n"
+		want := "{CREATE TABLE \"t1x\"(a,b,c)} {CREATE TRIGGER AFTER INSERT ON \"t1x\" BEGIN SELECT a, rank() OVER w1 FROM \"t1x\" WINDOW w1 AS (PARTITION BY b, percent_rank() OVER w1); END}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -277,7 +277,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE \"t1\"(c0)}\n  {CREATE INDEX i0 ON \"t1\"('1' IN ())}\n"
+		want := "{CREATE TABLE \"t1\"(c0)} {CREATE INDEX i0 ON \"t1\"('1' IN ())}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -295,7 +295,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE t2 (c1)} \n  {CREATE INDEX i2 ON t2((LIKELIHOOD(c1, 1.0) IN ()))}\n"
+		want := "{CREATE TABLE t2 (c1)} {CREATE INDEX i2 ON t2((LIKELIHOOD(c1, 1.0) IN ()))}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -371,7 +371,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n{CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN\n    SELECT a, sum() w3 FROM \"t1x\" \n    WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\"));\n  END}\n"
+		want := "{CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN SELECT a, sum() w3 FROM \"t1x\" WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\")); END}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -452,7 +452,7 @@ func Test_altertab3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n{CREATE TRIGGER AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    SELECT a () FILTER (WHERE aaa>0) FROM \"t1x\";\n  END}\n"
+		want := "{CREATE TRIGGER AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN SELECT a () FILTER (WHERE aaa>0) FROM \"t1x\"; END}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -634,7 +634,7 @@ func Test_altertab3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TRIGGER x AFTER INSERT ON v2 WHEN (\n    0 AND (SELECT rowid FROM \"xyz\")\n  ) BEGIN\n    DELETE FROM v2;\n  END}"
+			want := "{CREATE TRIGGER x AFTER INSERT ON v2 WHEN ( 0 AND (SELECT rowid FROM \"xyz\") ) BEGIN DELETE FROM v2; END}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -712,7 +712,7 @@ func Test_altertab3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()))}\n"
+			want := "{CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS ( SELECT t1.b FROM t1 ) SELECT 123) IN ()))}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -784,7 +784,7 @@ func Test_altertab3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TRIGGER Trigger1 DELETE ON \"t3\" \n  BEGIN \n    SELECT \"t3\".*, \"t3\".z FROM \"t3\" ORDER BY \"t3\".z;\n  END}\n  {CREATE TRIGGER tr2 AFTER DELETE ON \"t3\" BEGIN\n    SELECT z, y FROM (\n      SELECT \"t3\".* FROM \"t3\"\n    );\n  END}\n"
+			want := "{CREATE TRIGGER Trigger1 DELETE ON \"t3\" BEGIN SELECT \"t3\".*, \"t3\".z FROM \"t3\" ORDER BY \"t3\".z; END} {CREATE TRIGGER tr2 AFTER DELETE ON \"t3\" BEGIN SELECT z, y FROM ( SELECT \"t3\".* FROM \"t3\" ); END}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -817,7 +817,7 @@ func Test_altertab3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM \"t2\"\n      )}\n"
+			want := "{CREATE VIEW v1 AS SELECT ( VALUES(a), (b) ) FROM ( SELECT a, b FROM \"t2\" )}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -876,7 +876,7 @@ func Test_altertab3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE t1(\n      a INT,\n      b INT)}"
+			want := "{CREATE TABLE t1( a INT, b INT)}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -903,7 +903,7 @@ func Test_altertab3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE t1(\n      a INT,\n      b INT)}"
+			want := "{CREATE TABLE t1( a INT, b INT)}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

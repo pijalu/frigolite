@@ -76,7 +76,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				want := "2 alice orange - 2 2 - 4 bob green 444 4 4 4 6 cindy - - 6 - - 8 dave - - 8 - -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -88,7 +88,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				want := "2 alice orange - 2 2 - 4 bob green 444 4 4 4 6 cindy - - 6 - - 8 dave - - 8 - -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -100,7 +100,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				want := "2 alice orange - 2 2 - 4 bob green 444 4 4 4 6 cindy - - 6 - - 8 dave - - 8 - -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -112,7 +112,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				want := "2 alice orange - 2 2 - 4 bob green 444 4 4 4 6 cindy - - 6 - - 8 dave - - 8 - -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -124,7 +124,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				want := "2 alice orange - 2 2 - 4 bob green 444 4 4 4 6 cindy - - 6 - - 8 dave - - 8 - -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -136,7 +136,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+				want := "0 - - 1000 - - 0 3 - yellow 333 - 3 3 4 bob green 444 4 4 4 5 - blue 555 - 5 5 9 - - 999 - - 9"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -148,7 +148,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+				want := "0 - - 1000 - - 0 3 - yellow 333 - 3 3 4 bob green 444 4 4 4 5 - blue 555 - 5 5 9 - - 999 - - 9"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -160,7 +160,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				want := "0 - - 1000 - - 0 1 - red - - 1 - 2 alice orange - 2 2 - 3 - yellow 333 - 3 3 4 bob green 444 4 4 4 5 - blue 555 - 5 5 6 cindy - - 6 - - 8 dave - - 8 - - 9 - - 999 - - 9"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -172,7 +172,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				want := "0 - - 1000 - - 0 1 - red - - 1 - 2 alice orange - 2 2 - 3 - yellow 333 - 3 3 4 bob green 444 4 4 4 5 - blue 555 - 5 5 6 cindy - - 6 - - 8 dave - - 8 - - 9 - - 999 - - 9"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -184,7 +184,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				want := "0 - - 1000 - - 0 1 - red - - 1 - 2 alice orange - 2 2 - 3 - yellow 333 - 3 3 4 bob green 444 4 4 4 5 - blue 555 - 5 5 6 cindy - - 6 - - 8 dave - - 8 - - 9 - - 999 - - 9"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -196,7 +196,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				want := "0 - - 1000 - - 0 1 - red - - 1 - 2 alice orange - 2 2 - 3 - yellow 333 - 3 3 4 bob green 444 4 4 4 5 - blue 555 - 5 5 6 cindy - - 6 - - 8 dave - - 8 - - 9 - - 999 - - 9"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -208,7 +208,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				want := "0 - - 1000 - - 0 1 - red - - 1 - 2 alice orange - 2 2 - 3 - yellow 333 - 3 3 4 bob green 444 4 4 4 5 - blue 555 - 5 5 6 cindy - - 6 - - 8 dave - - 8 - - 9 - - 999 - - 9"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -220,7 +220,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				want := "0 - - 1000 - - 0 1 - red - - 1 - 2 alice orange - 2 2 - 3 - yellow 333 - 3 3 4 bob green 444 4 4 4 5 - blue 555 - 5 5 6 cindy - - 6 - - 8 dave - - 8 - - 9 - - 999 - - 9"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -232,7 +232,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				want := "0 - - 1000 - - 0 1 - red - - 1 - 2 alice orange - 2 2 - 3 - yellow 333 - 3 3 4 bob green 444 4 4 4 5 - blue 555 - 5 5 6 cindy - - 6 - - 8 dave - - 8 - - 9 - - 999 - - 9"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -244,7 +244,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				want := "0 - - - 1000 1 - - red - 2 two alice orange - 3 three - yellow 333 4 - bob green 444 5 - - blue 555 6 six cindy - - 7 seven - - - 8 - dave - - 9 - - - 999"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -256,7 +256,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				want := "0 - - - 1000 1 - - red - 2 two alice orange - 3 three - yellow 333 4 - bob green 444 5 - - blue 555 6 six cindy - - 7 seven - - - 8 - dave - - 9 - - - 999"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -268,7 +268,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				want := "0 - - - 1000 1 - - red - 2 two alice orange - 3 three - yellow 333 5 - - blue 555 6 six cindy - - 7 seven - - - 8 - dave - - 9 - - - 999"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -280,7 +280,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    2   -  -  two  \n    3   -  -  three\n    6   -  -  six  \n    7   -  -  seven\n  "
+				want := "2 - - two 3 - - three 6 - - six 7 - - seven"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -292,7 +292,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				want := "0 - - - 1000 1 - - red - 2 two alice orange - 3 three - yellow 333 4 - bob green 444 5 - - blue 555 6 six cindy - - 7 seven - - - 8 - dave - - 9 - - - 999"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -304,7 +304,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				want := "0 - - - 1000 1 - - red - 2 two alice orange - 3 three - yellow 333 4 - bob green 444 5 - - blue 555 6 six cindy - - 7 seven - - - 8 - dave - - 9 - - - 999"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -316,7 +316,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				want := "0 - - - 1000 1 - - red - 2 two alice orange - 3 three - yellow 333 4 - bob green 444 5 - - blue 555 6 six cindy - - 7 seven - - - 8 - dave - - 9 - - - 999"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -328,7 +328,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				want := "0 - - - 1000 1 - - red - 2 two alice orange - 3 three - yellow 333 4 - bob green 444 5 - - blue 555 6 six cindy - - 7 seven - - - 8 - dave - - 9 - - - 999"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -340,7 +340,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    6   cindy  -       -   \n    7   seven  -   -      -       -   \n    -   -      8   dave   -       -   \n    -   -      9   -      -       999 \n  "
+				want := "- - 0 - - 1000 - - 1 - red - 2 two 2 alice orange - 3 three 3 - yellow 333 - - 4 bob green 444 - - 5 - blue 555 6 six 6 cindy - - 7 seven - - - - - - 8 dave - - - - 9 - - 999"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -352,7 +352,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    -   -      -       -   \n    7   seven  -   -      -       -   \n    -   -      9   -      -       999 \n  "
+				want := "- - 0 - - 1000 - - 1 - red - 2 two 2 alice orange - 3 three 3 - yellow 333 - - 4 bob green 444 - - 5 - blue 555 6 six - - - - 7 seven - - - - - - 9 - - 999"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -364,7 +364,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    2   two    2   alice  orange  -  \n    3   three  -   -      -       -  \n    -   -      4   bob    green   444\n    6   six    6   cindy  -       -  \n    7   seven  -   -      -       -  \n    -   -      8   dave   -       -  \n  "
+				want := "2 two 2 alice orange - 3 three - - - - - - 4 bob green 444 6 six 6 cindy - - 7 seven - - - - - - 8 dave - -"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -376,7 +376,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+				want := "2 alice orange - 4 bob green 444"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -388,7 +388,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+				want := "2 alice orange - 4 bob green 444"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -400,7 +400,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+				want := "3 - yellow 333 4 bob green 444 5 - blue 555"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -412,7 +412,7 @@ func Test_join9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+				want := "3 - yellow 333 4 bob green 444 5 - blue 555"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

@@ -332,7 +332,7 @@ func Test_aggnested(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  15.0 Bara\n  8.0 Michael\n"
+		want := "15.0 Bara 8.0 Michael"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

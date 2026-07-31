@@ -291,7 +291,7 @@ func Test_temptrigger(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  trigger tr1 t1 0 \n  {CREATE TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END}\n"
+		want := "trigger tr1 t1 0 {CREATE TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

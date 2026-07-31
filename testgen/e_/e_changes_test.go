@@ -202,7 +202,7 @@ func Test_e_changes(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "i 1   iii v   vii vi"
+			want := "i 1 iii v vii vi"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -310,7 +310,7 @@ func Test_e_changes(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1:0   2:3   3:2   4:3   5:5\n"
+			want := "1:0 2:3 3:2 4:3 5:5"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -322,7 +322,7 @@ func Test_e_changes(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1:5   2:3   3:2   4:3   5:5\n"
+			want := "1:5 2:3 3:2 4:3 5:5"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

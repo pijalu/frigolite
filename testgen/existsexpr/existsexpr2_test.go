@@ -65,7 +65,7 @@ func Test_existsexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 2   3 4   5 6"
+		want := "1 2 3 4 5 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -83,7 +83,7 @@ func Test_existsexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 2\n"
+		want := "1 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -104,7 +104,7 @@ func Test_existsexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  abc 2 2\n  abc 2 3\n  def 2 2\n  def 2 3\n"
+		want := "abc 2 2 abc 2 3 def 2 2 def 2 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -116,7 +116,7 @@ func Test_existsexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 1\n  2 2\n"
+		want := "1 1 2 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

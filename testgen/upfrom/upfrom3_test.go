@@ -83,7 +83,7 @@ func Test_upfrom3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  0 0 10\n  1 0 11\n  2 1 10\n  3 1 11\n"
+			want := "0 0 10 1 0 11 2 1 10 3 1 11"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -95,7 +95,7 @@ func Test_upfrom3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  0 10 10\n  1 10 11\n  2 11 10\n  3 11 11\n"
+			want := "0 10 10 1 10 11 2 11 10 3 11 11"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -107,7 +107,7 @@ func Test_upfrom3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  0 50 50\n  1 50 60\n  2 60 50\n  3 60 60\n"
+			want := "0 50 50 1 50 60 2 60 50 3 60 60"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

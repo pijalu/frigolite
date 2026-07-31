@@ -116,7 +116,7 @@ func Test_sort3(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000\n  "
+					want := "4000 4000000 4000 4000000 4000 4000000 4000 4000000 4000 4000000"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -129,7 +129,7 @@ func Test_sort3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000\n"
+				want := "440000 440000000 440000 440000000 440000 440000000 440000 440000000 440000 440000000"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

@@ -335,7 +335,7 @@ func Test_corrupt2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{*** in database main ***\nFreelist: size is 3 but should be 2}"
+		want := "{*** in database main *** Freelist: size is 3 but should be 2}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -359,7 +359,7 @@ func Test_corrupt2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{*** in database main ***\nFreelist: size is 1 but should be 0}"
+		want := "{*** in database main *** Freelist: size is 1 but should be 0}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

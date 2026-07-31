@@ -59,7 +59,7 @@ func Test_whereM(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  10.0 10 10.0 10.0 10.0\n"
+		want := "10.0 10 10.0 10.0 10.0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

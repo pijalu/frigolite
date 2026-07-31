@@ -460,7 +460,7 @@ func Test_fts4unicode(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := "\n    four.five.six   * 1 1 four.five.six   0 1 1 \n    {one two three} * 1 1 {one two three} 0 1 1\n  "
+							want := "four.five.six * 1 1 four.five.six 0 1 1 {one two three} * 1 1 {one two three} 0 1 1"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -484,7 +484,7 @@ func Test_fts4unicode(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := "\n    aleph * 1 1 aleph 0 1 1 \n    beth  * 1 1 beth  0 1 1 \n    gimel * 1 1 gimel 0 1 1\n  "
+							want := "aleph * 1 1 aleph 0 1 1 beth * 1 1 beth 0 1 1 gimel * 1 1 gimel 0 1 1"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -509,7 +509,7 @@ func Test_fts4unicode(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  one           * 1 1 one           0 1 1 \n  onebtwoathree * 1 1 onebtwoathree 0 1 1 \n  three         * 1 1 three         0 1 1 \n  two           * 1 1 two           0 1 1\n"
+						want := "one * 1 1 one 0 1 1 onebtwoathree * 1 1 onebtwoathree 0 1 1 three * 1 1 three 0 1 1 two * 1 1 two 0 1 1"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -521,7 +521,7 @@ func Test_fts4unicode(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  berlin@street sydney.road\n"
+						want := "berlin@street sydney.road"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

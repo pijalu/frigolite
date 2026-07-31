@@ -94,7 +94,7 @@ func Test_nulls1(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "{}   {}   10   20   30"
+					want := "{} {} 10 20 30"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -106,7 +106,7 @@ func Test_nulls1(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "10   20   30   {}   {}"
+					want := "10 20 30 {} {}"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -118,7 +118,7 @@ func Test_nulls1(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "{}   {}   30   20   10"
+					want := "{} {} 30 20 10"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -130,7 +130,7 @@ func Test_nulls1(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "30   20   10   {}   {}"
+					want := "30 20 10 {} {}"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -161,7 +161,7 @@ func Test_nulls1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 1 1    1 4 4   1 {} 2   1 {} 3\n"
+			want := "1 1 1 1 4 4 1 {} 2 1 {} 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -173,7 +173,7 @@ func Test_nulls1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 {} 3\n  1 {} 2     \n  1 4 4     \n  1 1 1\n"
+			want := "1 {} 3 1 {} 2 1 4 4 1 1 1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -211,7 +211,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  200 100\n  300 200\n  400 300\n"
+				want := "200 100 300 200 400 300"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -230,7 +230,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "2 {} 2  4 {} 4  1 1 1  3 3 3  5 5 5"
+				want := "2 {} 2 4 {} 4 1 1 1 3 3 3 5 5 5"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -242,7 +242,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "2 {} 2  4 {} 4  1 1 1  3 3 3  5 5 5"
+				want := "2 {} 2 4 {} 4 1 1 1 3 3 3 5 5 5"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -254,7 +254,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "1 1 1  3 3 3  5 5 5  2 {} 2  4 {} 4"
+				want := "1 1 1 3 3 3 5 5 5 2 {} 2 4 {} 4"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -266,7 +266,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "1 1 1  3 3 3  5 5 5  2 {} 2  4 {} 4"
+				want := "1 1 1 3 3 3 5 5 5 2 {} 2 4 {} 4"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -284,7 +284,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  1 1 11   1 2 12   1 {} 1   \n  2 1 11   2 2 12   2 {} 1 \n  3 2 12   3 {} 1   3 {} 3\n"
+				want := "1 1 11 1 2 12 1 {} 1 2 1 11 2 2 12 2 {} 1 3 2 12 3 {} 1 3 {} 3"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -296,7 +296,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  1 1 11   1 2 12   1 {} 1   \n  2 1 11   2 2 12   2 {} 1 \n  3 2 12   3 {} 1   3 {} 3\n"
+				want := "1 1 11 1 2 12 1 {} 1 2 1 11 2 2 12 2 {} 1 3 2 12 3 {} 1 3 {} 3"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -314,7 +314,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  3 {} 3   3 {} 1   3 2 12   \n  2 {} 1   2 2 12   2 1 11   \n  1 {} 1   1 2 12   1 1 11   \n"
+				want := "3 {} 3 3 {} 1 3 2 12 2 {} 1 2 2 12 2 1 11 1 {} 1 1 2 12 1 1 11"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -411,7 +411,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  1 10 a 1 10 b 1 10 c 1 10 d 1 10 NULL 1 10 NULL\n  2 10 a 2 10 b 2 10 c 2 10 d 2 10 NULL 2 10 NULL\n"
+				want := "1 10 a 1 10 b 1 10 c 1 10 d 1 10 NULL 1 10 NULL 2 10 a 2 10 b 2 10 c 2 10 d 2 10 NULL 2 10 NULL"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

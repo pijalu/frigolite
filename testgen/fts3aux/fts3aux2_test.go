@@ -119,7 +119,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  four 1 1 1 one 1 1 1 three 1 1 1 two 1 1 1 \n"
+		want := "four 1 1 1 one 1 1 1 three 1 1 1 two 1 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -131,7 +131,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  four * 1 1 1   four 1 1 1 1 \n  one * 1 1 1    one 0 1 1 1 \n  three * 1 1 1  three 1 1 1 1 \n  two * 1 1 1    two 0 1 1 1 \n"
+		want := "four * 1 1 1 four 1 1 1 1 one * 1 1 1 one 0 1 1 1 three * 1 1 1 three 1 1 1 1 two * 1 1 1 two 0 1 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -155,7 +155,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  two * 1 1 1    two 0 1 1 1 \n"
+		want := "two * 1 1 1 two 0 1 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -167,7 +167,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  one * 1 1 1    one 0 1 1 1 \n  three * 1 1 1  three 1 1 1 1 \n  two * 1 1 1    two 0 1 1 1 \n"
+		want := "one * 1 1 1 one 0 1 1 1 three * 1 1 1 three 1 1 1 1 two * 1 1 1 two 0 1 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -179,7 +179,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  eight 1 1 2 five 1 1 2 seven 1 1 2 six 1 1 2\n"
+		want := "eight 1 1 2 five 1 1 2 seven 1 1 2 six 1 1 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -191,7 +191,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  eight * 1 1 2    eight 1 1 1 2 \n  five * 1 1 2     five 0 1 1 2 \n  seven * 1 1 2    seven 1 1 1 2 \n  six * 1 1 2      six 0 1 1 2\n"
+		want := "eight * 1 1 2 eight 1 1 1 2 five * 1 1 2 five 0 1 1 2 seven * 1 1 2 seven 1 1 1 2 six * 1 1 2 six 0 1 1 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -203,7 +203,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  five * 1 1 2     five 0 1 1 2 \n"
+		want := "five * 1 1 2 five 0 1 1 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -215,7 +215,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  five * 1 1 2     five 0 1 1 2 \n"
+		want := "five * 1 1 2 five 0 1 1 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -227,7 +227,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  seven * 1 1 2    seven 1 1 1 2 \n  six * 1 1 2      six 0 1 1 2\n"
+		want := "seven * 1 1 2 seven 1 1 1 2 six * 1 1 2 six 0 1 1 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -239,7 +239,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  eight * 1 1 2    eight 1 1 1 2 \n  five * 1 1 2     five 0 1 1 2 \n"
+		want := "eight * 1 1 2 eight 1 1 1 2 five * 1 1 2 five 0 1 1 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -263,7 +263,7 @@ func Test_fts3aux2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  234567890123456789 234567890123456789 a a b b\n"
+		want := "234567890123456789 234567890123456789 a a b b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

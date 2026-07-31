@@ -461,7 +461,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {0 1 1 0 1 1 1 2 2} {1 1 1 1 1 1 1 2 2}\n"
+		want := "{0 1 1 0 1 1 1 2 2} {1 1 1 1 1 1 1 2 2}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -473,7 +473,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {0 3 2 0 3 2 1 4 3} {1 3 2 1 3 2 1 4 3} {2 3 2 2 3 2 2 4 3}\n"
+		want := "{0 3 2 0 3 2 1 4 3} {1 3 2 1 3 2 1 4 3} {2 3 2 2 3 2 2 4 3}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

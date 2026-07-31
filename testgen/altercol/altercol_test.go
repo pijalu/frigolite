@@ -238,7 +238,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"silly name\"))}\n  {CREATE TABLE p1(c, \"silly name\", PRIMARY KEY(c, \"silly name\"))}\n"
+			want := "{CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"silly name\"))} {CREATE TABLE p1(c, \"silly name\", PRIMARY KEY(c, \"silly name\"))}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -262,7 +262,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"reasonable\"))}\n  {CREATE TABLE p1(c, \"reasonable\", PRIMARY KEY(c, \"reasonable\"))}\n  {CREATE TABLE c2(a, b, FOREIGN KEY (a, b) REFERENCES p1)}\n"
+			want := "{CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"reasonable\"))} {CREATE TABLE p1(c, \"reasonable\", PRIMARY KEY(c, \"reasonable\"))} {CREATE TABLE c2(a, b, FOREIGN KEY (a, b) REFERENCES p1)}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -567,7 +567,7 @@ func Test_altercol(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := " {CREATE TABLE x1(a, bbb, c)} {CREATE VIRTUAL TABLE e1 USING echo(x1)} "
+					want := "{CREATE TABLE x1(a, bbb, c)} {CREATE VIRTUAL TABLE e1 USING echo(x1)}"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -1029,7 +1029,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN\n    SELECT d NOT NULL FROM t1;\n  END}\n"
+						want := "{CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN SELECT d NOT NULL FROM t1; END}"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -1044,7 +1044,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  {CREATE TABLE t1(othername, b)}\n  {CREATE TABLE t2(c, othername, extra AS (c + 1))}\n"
+						want := "{CREATE TABLE t1(othername, b)} {CREATE TABLE t2(c, othername, extra AS (c + 1))}"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

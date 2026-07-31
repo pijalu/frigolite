@@ -89,7 +89,7 @@ func Test_fts4opt(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0    13    1 15    2 5 \n  1024 13 1025 15 1026 5 \n  2048 13 2049 15 2050 5 \n  3072 13 3073 15 3074 5\n"
+		want := "0 13 1 15 2 5 1024 13 1025 15 1026 5 2048 13 2049 15 2050 5 3072 13 3073 15 3074 5"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -114,7 +114,7 @@ func Test_fts4opt(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  32   33 \n  1056 33 \n  2080 33 \n  3104 33\n"
+		want := "32 33 1056 33 2080 33 3104 33"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -177,7 +177,7 @@ func Test_fts4opt(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0    10    1 15    2 12 \n  1024 10 1025 15 1026 12 \n  2048 10 2049 15 2050 12 \n  3072 10 3073 15 3074 12\n"
+		want := "0 10 1 15 2 12 1024 10 1025 15 1026 12 2048 10 2049 15 2050 12 3072 10 3073 15 3074 12"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -202,7 +202,7 @@ func Test_fts4opt(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n    32 37 \n  1056 37 \n  2080 37 \n  3104 37\n"
+		want := "32 37 1056 37 2080 37 3104 37"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

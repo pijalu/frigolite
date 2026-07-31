@@ -732,7 +732,7 @@ func Test_pragma(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n    {row 2 missing from index t1bcd}\n    {row 2 missing from index t2bcd}\n    {row 3 values differ from index t1bcd}\n    {row 3 values differ from index t2bcd}\n    {row 4 values differ from index t1bcd}\n    {row 4 values differ from index t2bcd}\n    {row 5 values differ from index t1bcd}\n    {row 5 values differ from index t2bcd}\n  "
+		want := "{row 2 missing from index t1bcd} {row 2 missing from index t2bcd} {row 3 values differ from index t1bcd} {row 3 values differ from index t2bcd} {row 4 values differ from index t1bcd} {row 4 values differ from index t2bcd} {row 5 values differ from index t1bcd} {row 5 values differ from index t2bcd}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

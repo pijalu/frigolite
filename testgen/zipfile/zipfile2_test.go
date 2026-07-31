@@ -170,7 +170,7 @@ func Test_zipfile2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  a.txt 1000000 {contents of a.txt} \n  b.txt 1000000 {contents of b.txt}\n"
+		want := "a.txt 1000000 {contents of a.txt} b.txt 1000000 {contents of b.txt}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -218,7 +218,7 @@ func Test_zipfile2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n    a.txt {contents of a.txt} \n    b.txt {contents of b.txt}\n  "
+			want := "a.txt {contents of a.txt} b.txt {contents of b.txt}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -247,7 +247,7 @@ func Test_zipfile2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n    a.txt {contents of a.txt} \n    b.txt {contents of b.txt}\n  "
+			want := "a.txt {contents of a.txt} b.txt {contents of b.txt}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -271,7 +271,7 @@ func Test_zipfile2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  a.txt 1000000 aaaaaaaaaaaaaaaaaaaaaaa 8\n"
+		want := "a.txt 1000000 aaaaaaaaaaaaaaaaaaaaaaa 8"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

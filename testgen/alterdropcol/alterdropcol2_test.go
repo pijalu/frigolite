@@ -78,7 +78,7 @@ func Test_alterdropcol2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "2 3   5 6"
+		want := "2 3 5 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -90,7 +90,7 @@ func Test_alterdropcol2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE t1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID}\n"
+		want := "{CREATE TABLE t1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

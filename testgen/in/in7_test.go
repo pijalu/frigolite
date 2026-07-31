@@ -166,7 +166,7 @@ func Test_in7(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 2 3\n"
+			want := "1 2 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -178,7 +178,7 @@ func Test_in7(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  4 5 6 \n"
+			want := "4 5 6"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -190,7 +190,7 @@ func Test_in7(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  4 5 6\n  1 2 3 \n"
+			want := "4 5 6 1 2 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -202,7 +202,7 @@ func Test_in7(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 2 3 4 5 6\n"
+			want := "1 2 3 4 5 6"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

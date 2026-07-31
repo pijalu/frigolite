@@ -76,7 +76,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+				want := "NULL 55 2 NULL 3 33 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -88,7 +88,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+				want := "NULL 5 1 NULL 1 3 1 4"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -100,7 +100,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -112,7 +112,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -124,7 +124,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -136,7 +136,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -148,7 +148,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -160,7 +160,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+				want := "1 2 NULL NULL NULL NULL 3 33 1 3 NULL NULL NULL NULL 4 44 1 4 NULL NULL NULL NULL 5 55"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -172,7 +172,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n  "
+				want := "NULL NULL 5 55"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -196,7 +196,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+				want := "1 4 4 44 NULL NULL 5 55"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -208,7 +208,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+				want := "1 2 NULL NULL NULL NULL 3 33 1 3 NULL NULL 1 4 4 44 NULL NULL 5 55"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -220,7 +220,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -232,7 +232,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -244,7 +244,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+				want := "NULL NULL NULL 5 55 x 1 3 3 33 x 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -256,7 +256,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -268,7 +268,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+				want := "NULL NULL NULL 5 55 x 1 3 3 33 x 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -280,7 +280,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+				want := "NULL NULL NULL 5 55 x 1 3 3 33 x 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -292,7 +292,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -304,7 +304,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -316,7 +316,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -328,7 +328,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -340,7 +340,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -352,7 +352,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -364,7 +364,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				want := "NULL NULL 5 55 1 2 NULL NULL 1 3 3 33 1 4 4 44"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -376,7 +376,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n  "
+				want := "NULL NULL 5 55"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -388,7 +388,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+				want := "NULL NULL 3 33 NULL NULL 4 44 NULL NULL 5 55 1 2 NULL NULL 1 3 NULL NULL 1 4 NULL NULL"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -400,7 +400,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+				want := "NULL NULL 3 33 NULL NULL 4 44 NULL NULL 5 55 1 2 NULL NULL 1 3 NULL NULL 1 4 NULL NULL"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -412,7 +412,7 @@ func Test_join7(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+				want := "NULL NULL 5 55 1 2 NULL NULL"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

@@ -62,7 +62,7 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1  2  1 16 12\n  2  2  1 26 22\n  3  1  1  6  6\n"
+		want := "1 2 1 16 12 2 2 1 26 22 3 1 1 6 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -74,7 +74,7 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1  2  1 16 12\n  2  2  1 26 22\n  3  1  1  6  6\n"
+		want := "1 2 1 16 12 2 2 1 26 22 3 1 1 6 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -110,7 +110,7 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1  2  1 16 12\n  2  2  1 26 22\n  3  1  1  6  6\n"
+		want := "1 2 1 16 12 2 2 1 26 22 3 1 1 6 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -140,7 +140,7 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1  2  1 16 12\n  2  2  1 26 22\n  3  1  1  6  6\n"
+		want := "1 2 1 16 12 2 2 1 26 22 3 1 1 6 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -164,7 +164,7 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1  2  1 16 12\n  2  2  1 26 22\n  3  1  1  6  6\n"
+		want := "1 2 1 16 12 2 2 1 26 22 3 1 1 6 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

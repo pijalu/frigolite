@@ -90,7 +90,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  five  2 2     four  2 2     one   2 2     seven 1 1 \n  six   1 1     three 3 3     two   1 1\n"
+		want := "five 2 2 four 2 2 one 2 2 seven 1 1 six 1 1 three 3 3 two 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -102,7 +102,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := " \n  five  2 2     four  2 2     one   3 5     seven 1 1 \n  six   1 1     three 4 6     two   1 1\n"
+		want := "five 2 2 four 2 2 one 3 5 seven 1 1 six 1 1 three 4 6 two 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -126,7 +126,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "a 256 1024    b 256 768"
+		want := "a 256 1024 b 256 768"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -355,7 +355,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 \n  brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n"
+		want := "brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -367,7 +367,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 \n  brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n"
+		want := "brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -379,7 +379,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  brain 1 1\n  brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 \n  brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n"
+		want := "brain 1 1 brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -391,7 +391,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  brain 1 1\n  brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 \n  brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n"
+		want := "brain 1 1 brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -403,7 +403,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 \n  bragging 1 1 brags 1 1 braid 1 1 braided 1 1 \n  braiding 1 1 braids 1 1 brain 1 1 brainchild 1 1 \n  brained 1 1 braining 1 1 brains 1 1 brainstem 1 1 \n  brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n"
+		want := "braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1 brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -415,7 +415,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 \n  bragging 1 1 brags 1 1 braid 1 1 braided 1 1 \n  braiding 1 1 braids 1 1 brain 1 1 brainchild 1 1 \n  brained 1 1 braining 1 1 brains 1 1 brainstem 1 1 \n  brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n"
+		want := "braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1 brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -491,7 +491,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 \n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n"
+		want := "braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -503,7 +503,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 \n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n"
+		want := "braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -515,7 +515,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 \n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n  brain 1 1\n"
+		want := "braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -527,7 +527,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 \n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n  brain 1 1\n"
+		want := "braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -555,7 +555,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1 \n"
+		want := "brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -567,7 +567,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1 \n"
+		want := "brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -579,7 +579,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n"
+		want := "braid 1 1 braided 1 1 braiding 1 1 braids 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -591,7 +591,7 @@ func Test_fts3aux1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n"
+		want := "braid 1 1 braided 1 1 braiding 1 1 braids 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -729,7 +729,7 @@ func Test_fts3aux1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n    a * 2 3 a 0 2 3 \n    b * 2 3 b 0 1 1 b 1 1 2 \n    c * 2 2 c 1 2 2 \n    d * 2 2 d 1 2 2 \n    e * 1 2 e 0 1 2\n"
+			want := "a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2 d * 2 2 d 1 2 2 e * 1 2 e 0 1 2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -741,7 +741,7 @@ func Test_fts3aux1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n    v * 2 3 v 0 2 3 \n    w * 2 3 w 0 1 1 w 1 1 2 \n    x * 2 2 x 1 2 2 \n    y * 2 2 y 1 2 2 \n    z * 1 2 z 0 1 2\n"
+			want := "v * 2 3 v 0 2 3 w * 2 3 w 0 1 1 w 1 1 2 x * 2 2 x 1 2 2 y * 2 2 y 1 2 2 z * 1 2 z 0 1 2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

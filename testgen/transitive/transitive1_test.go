@@ -525,7 +525,7 @@ func Test_transitive1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  hello hello \n  Hello Hello \n  HELLO HELLO \n  HeLLo HeLLo\n"
+		want := "hello hello Hello Hello HELLO HELLO HeLLo HeLLo"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -538,7 +538,7 @@ func Test_transitive1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  hello hello \n  Hello Hello \n  HELLO HELLO \n  HeLLo HeLLo\n"
+		want := "hello hello Hello Hello HELLO HELLO HeLLo HeLLo"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

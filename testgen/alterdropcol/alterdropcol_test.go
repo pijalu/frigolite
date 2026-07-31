@@ -224,7 +224,7 @@ func Test_alterdropcol(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    1 2 3 hello\n    3 4 7 world\n  "
+					want := "1 2 3 hello 3 4 7 world"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -242,7 +242,7 @@ func Test_alterdropcol(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    1 2 hello\n    3 4 world\n  "
+					want := "1 2 hello 3 4 world"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -260,7 +260,7 @@ func Test_alterdropcol(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    1 2 3 5 4\n    5 6 7 13 8\n    9 10 11 21 12\n  "
+					want := "1 2 3 5 4 5 6 7 13 8 9 10 11 21 12"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -278,7 +278,7 @@ func Test_alterdropcol(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    2 3 5 4\n    6 7 13 8\n    10 11 21 12\n  "
+					want := "2 3 5 4 6 7 13 8 10 11 21 12"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -296,7 +296,7 @@ func Test_alterdropcol(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    2 3 5\n    6 7 13\n    10 11 21\n  "
+					want := "2 3 5 6 7 13 10 11 21"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -318,7 +318,7 @@ func Test_alterdropcol(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  {CREATE TABLE c1(x, y)} \n  {CREATE TABLE c2(x, y, w REFERENCES p1(b))}\n"
+				want := "{CREATE TABLE c1(x, y)} {CREATE TABLE c2(x, y, w REFERENCES p1(b))}"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

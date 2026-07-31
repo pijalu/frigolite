@@ -690,7 +690,7 @@ func Test_returning1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    1 2 1\n  "
+				want := "1 2 1"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -740,20 +740,20 @@ func Test_returning1(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		{ // "20.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 8 4.6 2 3 8 5.25 4 3 8 5.67 6 3 8 5.5 8 3 3 3.0") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 8 4.6 2 3 8 5.25 4 3 8 5.67 6 3 8 5.5 8 3 3 3.0", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
 			}
 		}
 		{ // "20.2"
 			_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 8 4.6 2 3 8 5.25 3 4 8 6.0 4 6 8 7.0 6 8 8 8.0 8 N N N") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 8 4.6 2 3 8 5.25 3 4 8 6.0 4 6 8 7.0 6 8 8 8.0 8 N N N", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
 			}
 		}
 		{ // "20.3"
 			_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "102 108 104.6 2 203 208 205.25 3 304 308 306.0 4 406 408 407.0 6 608 608 608.0 8 N N N") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "102 108 104.6 2 203 208 205.25 3 304 308 306.0 4 406 408 407.0 6 608 608 608.0 8 N N N", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
 			}
 		}
 		db.Close()

@@ -462,7 +462,7 @@ func Test_fts4growth(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0 {10 9216} 0 1 {21 9330} 0 2 {31 8850} \n  0 3 {40 8689} 1 0 {1320 -3117} 0 4 {1329 8297}\n"
+		want := "0 0 {10 9216} 0 1 {21 9330} 0 2 {31 8850} 0 3 {40 8689} 1 0 {1320 -3117} 0 4 {1329 8297}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -486,7 +486,7 @@ func Test_fts4growth(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 1 {1329 8297} 0 0 {1320 28009} 0 2 {1449 118006}\n"
+		want := "0 1 {1329 8297} 0 0 {1320 28009} 0 2 {1449 118006}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -498,7 +498,7 @@ func Test_fts4growth(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0 {118 117483} 0 1 {238 118006} 0 2 {358 118006} \n  0 3 {478 118006} 0 4 {598 118006} 0 5 {718 118006}\n"
+		want := "0 0 {118 117483} 0 1 {238 118006} 0 2 {358 118006} 0 3 {478 118006} 0 4 {598 118006} 0 5 {718 118006}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -510,7 +510,7 @@ func Test_fts4growth(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0 {118 117483} 0 1 {238 118006} 0 2 {358 118006} \n  0 3 {478 118006} 0 4 {598 118006} 0 5 {718 118006}\n  1 0 {23694 -69477}\n"
+		want := "0 0 {118 117483} 0 1 {238 118006} 0 2 {358 118006} 0 3 {478 118006} 0 4 {598 118006} 0 5 {718 118006} 1 0 {23694 -69477}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -522,7 +522,7 @@ func Test_fts4growth(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0 {118 117483} 0 1 {238 118006} 0 2 {358 118006} \n  0 3 {478 118006} 0 4 {598 118006} 0 5 {718 118006}\n  1 0 23694\n"
+		want := "0 0 {118 117483} 0 1 {238 118006} 0 2 {358 118006} 0 3 {478 118006} 0 4 {598 118006} 0 5 {718 118006} 1 0 23694"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -534,7 +534,7 @@ func Test_fts4growth(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0 {118 117483} 0 1 {238 118006} 0 2 {358 118006} \n  0 3 {478 118006} 0 4 {598 118006} 0 5 {718 118006}\n  1 0 23694\n"
+		want := "0 0 {118 117483} 0 1 {238 118006} 0 2 {358 118006} 0 3 {478 118006} 0 4 {598 118006} 0 5 {718 118006} 1 0 23694"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -546,7 +546,7 @@ func Test_fts4growth(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 0 719 1171 23694\n"
+		want := "1 0 719 1171 23694"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -558,7 +558,7 @@ func Test_fts4growth(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 0 719 1171 23694\n"
+		want := "1 0 719 1171 23694"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

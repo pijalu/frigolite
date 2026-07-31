@@ -290,7 +290,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n"
+		want := "sqlite_schema / 1 leaf 1 37 875 37 0 1024 x1 / 2 leaf 1 4 1008 4 1024 1024"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -302,7 +302,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n"
+		want := "sqlite_schema / 1 leaf 1 37 875 37 0 1024 x1 / 2 leaf 1 4 1008 4 1024 1024"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -314,7 +314,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n"
+		want := "sqlite_schema / 1 leaf 1 37 875 37 0 1024 x1 / 2 leaf 1 4 1008 4 1024 1024"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -326,7 +326,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n"
+		want := "sqlite_schema / 1 leaf 1 37 875 37 0 1024 x1 / 2 leaf 1 4 1008 4 1024 1024"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -344,7 +344,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n"
+		want := "sqlite_schema / 1 leaf 1 37 875 37 0 1024 x1 / 2 leaf 1 4 1008 4 1024 1024"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -362,7 +362,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n"
+		want := "sqlite_schema / 1 leaf 1 37 875 37 0 1024 x1 / 2 leaf 1 4 1008 4 1024 1024"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

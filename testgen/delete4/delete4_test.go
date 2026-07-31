@@ -275,7 +275,7 @@ func Test_delete4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := " 2 2 2   3 3 3 "
+		want := "2 2 2 3 3 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

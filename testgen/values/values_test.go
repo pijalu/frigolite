@@ -96,7 +96,7 @@ func Test_values(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4 4\n"
+		want := "1 1 1 2 2 2 3 3 3 4 4 4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -114,7 +114,7 @@ func Test_values(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 1 1  2 2 2   3 3 3  4 4 4"
+		want := "1 1 1 2 2 2 3 3 3 4 4 4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -127,7 +127,7 @@ func Test_values(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 1 1  2 2 2   3 3 3  4 4 4  5 5 5  6 6 6"
+		want := "1 1 1 2 2 2 3 3 3 4 4 4 5 5 5 6 6 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -139,7 +139,7 @@ func Test_values(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 1 1  2 2 2   3 3 3  4 4 4  6 6 6"
+		want := "1 1 1 2 2 2 3 3 3 4 4 4 6 6 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -151,7 +151,7 @@ func Test_values(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n 1 1 1\n 2 2 2\n 3 3 3\n 6 6 6\n"
+		want := "1 1 1 2 2 2 3 3 3 6 6 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -175,7 +175,7 @@ func Test_values(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4 4\n  5 5 5\n  6 6 6\n"
+		want := "1 1 1 2 2 2 3 3 3 4 4 4 5 5 5 6 6 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -237,7 +237,7 @@ func Test_values(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 2  3 4  1 5"
+		want := "1 2 3 4 1 5"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -255,7 +255,7 @@ func Test_values(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 2  3 4  1 6  1 7"
+		want := "1 2 3 4 1 6 1 7"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -409,7 +409,7 @@ func Test_values(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 2  1 2\n  1 2  a b\n  a b  1 2\n  a b  a b\n"
+			want := "1 2 1 2 1 2 a b a b 1 2 a b a b"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -473,8 +473,8 @@ func Test_values(t *testing.T) {
 			}
 			{ // "9.2"
 				_res = db.Exec("\n  VALUES (1, 2), (3, 4), (\n    ( SELECT column1 FROM ( VALUES (5, 6), (7, 8) ) ),\n    ( SELECT max(column2) FROM ( VALUES (5, 1), (7, 6) ) )\n  )\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VALUES (1, 2), (3, 4), (\n    ( SELECT column1 FROM ( VALUES (5, 6), (7, 8) ) ),\n    ( SELECT max(column2) FROM ( VALUES (5, 1), (7, 6) ) )\n  )\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3 4 5 6") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3 4 5 6", _res.Error, "\n  VALUES (1, 2), (3, 4), (\n    ( SELECT column1 FROM ( VALUES (5, 6), (7, 8) ) ),\n    ( SELECT max(column2) FROM ( VALUES (5, 1), (7, 6) ) )\n  )\n")
 				}
 			}
 			{ // "10.1"
@@ -650,8 +650,8 @@ func Test_values(t *testing.T) {
 			}
 			{ // "16.6"
 				_res = db.Exec("\n  BEGIN;\n  INSERT INTO t1 VALUES\n     (1,2),(3,4),\n     (5,row_number()OVER()),\n     (7,8),(9,10),(11,12),\n     (13,row_number()OVER()),\n     (15,16),(17,18),(19,20),(21,22);\n  SELECT * FROM t1 ORDER BY a, b;\n  ROLLBACK;\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  INSERT INTO t1 VALUES\n     (1,2),(3,4),\n     (5,row_number()OVER()),\n     (7,8),(9,10),(11,12),\n     (13,row_number()OVER()),\n     (15,16),(17,18),(19,20),(21,22);\n  SELECT * FROM t1 ORDER BY a, b;\n  ROLLBACK;\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3 4 5 1 7 8 9 10 11 12 13 1 15 16 17 18 19 20 21 22") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3 4 5 1 7 8 9 10 11 12 13 1 15 16 17 18 19 20 21 22", _res.Error, "\n  BEGIN;\n  INSERT INTO t1 VALUES\n     (1,2),(3,4),\n     (5,row_number()OVER()),\n     (7,8),(9,10),(11,12),\n     (13,row_number()OVER()),\n     (15,16),(17,18),(19,20),(21,22);\n  SELECT * FROM t1 ORDER BY a, b;\n  ROLLBACK;\n")
 				}
 			}
 			{ // "16.7"
@@ -791,8 +791,8 @@ func Test_values(t *testing.T) {
 			}
 			{ // "19.6"
 				_res = db.Exec("\n  -- output verify using PG 14.2\n  SELECT *\n    FROM t1 CROSS JOIN t2 FULL JOIN t3 ON a=d\n   ORDER BY +d, +column1;\n")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 11 22 N N\\n   1 2 33 44 N N\\n   N N  N  N 3 4") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 11 22 N N\\n   1 2 33 44 N N\\n   N N  N  N 3 4", _res.Error, "\n  -- output verify using PG 14.2\n  SELECT *\n    FROM t1 CROSS JOIN t2 FULL JOIN t3 ON a=d\n   ORDER BY +d, +column1;\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 11 22 N N 1 2 33 44 N N N N N N 3 4") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 11 22 N N 1 2 33 44 N N N N N N 3 4", _res.Error, "\n  -- output verify using PG 14.2\n  SELECT *\n    FROM t1 CROSS JOIN t2 FULL JOIN t3 ON a=d\n   ORDER BY +d, +column1;\n")
 				}
 			}
 			{ // "19.7"
@@ -802,7 +802,7 @@ func Test_values(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "1 2 11 22 N N\n   1 2 33 44 N N\n   N N  N  N 3 4"
+				want := "1 2 11 22 N N 1 2 33 44 N N N N N N 3 4"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -820,7 +820,7 @@ func Test_values(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "N N  N  N 3 4"
+				want := "N N N N 3 4"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

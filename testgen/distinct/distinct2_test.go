@@ -185,7 +185,7 @@ func Test_distinct2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0    0 1\n  1 2    1 3\n"
+		want := "0 0 0 1 1 2 1 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -197,7 +197,7 @@ func Test_distinct2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 1    0 2\n  1 3    1 4\n"
+		want := "0 1 0 2 1 3 1 4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -209,7 +209,7 @@ func Test_distinct2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 1    0 2\n  1 3    1 4\n"
+		want := "0 1 0 2 1 3 1 4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -227,7 +227,7 @@ func Test_distinct2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  0 0 0    0 1 0\n  1 2 1    1 3 1\n  2 4 2\n"
+		want := "0 0 0 0 1 0 1 2 1 1 3 1 2 4 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -269,7 +269,7 @@ func Test_distinct2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  ABCD ABCD ABCd ABCd ABcD ABcD ABcd ABcd AbCD\n  AbCD AbCd AbCd AbcD AbcD Abcd Abcd\n  WXYZ WXYZ WXYz WXYz WXyZ WXyZ WXyz WXyz WxYZ\n  WxYZ WxYz WxYz WxyZ WxyZ Wxyz Wxyz\n  aBCD aBCD aBCd aBCd aBcD aBcD aBcd aBcd abCD\n  abCD abCd abCd abcD abcD abcd abcd\n  wXYZ wXYZ wXYz wXYz wXyZ wXyZ wXyz wXyz wxYZ\n  wxYZ wxYz wxYz wxyZ wxyZ wxyz wxyz\n"
+		want := "ABCD ABCD ABCd ABCd ABcD ABcD ABcd ABcd AbCD AbCD AbCd AbCd AbcD AbcD Abcd Abcd WXYZ WXYZ WXYz WXYz WXyZ WXyZ WXyz WXyz WxYZ WxYZ WxYz WxYz WxyZ WxyZ Wxyz Wxyz aBCD aBCD aBCd aBCd aBcD aBcD aBcd aBcd abCD abCD abCd abCd abcD abcD abcd abcd wXYZ wXYZ wXYz wXYz wXyZ wXyZ wXyz wXyz wxYZ wxYZ wxYz wxYz wxyZ wxyZ wxyz wxyz"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -281,7 +281,7 @@ func Test_distinct2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  ABCD ABCD ABCd ABCd ABcD ABcD ABcd ABcd AbCD\n  AbCD AbCd AbCd AbcD AbcD Abcd Abcd\n  WXYZ WXYZ WXYz WXYz WXyZ WXyZ WXyz WXyz WxYZ\n  WxYZ WxYz WxYz WxyZ WxyZ Wxyz Wxyz\n  aBCD aBCD aBCd aBCd aBcD aBcD aBcd aBcd abCD\n  abCD abCd abCd abcD abcD abcd abcd\n  wXYZ wXYZ wXYz wXYz wXyZ wXyZ wXyz wXyz wxYZ\n  wxYZ wxYz wxYz wxyZ wxyZ wxyz wxyz\n"
+		want := "ABCD ABCD ABCd ABCd ABcD ABcD ABcd ABcd AbCD AbCD AbCd AbCd AbcD AbcD Abcd Abcd WXYZ WXYZ WXYz WXYz WXyZ WXyZ WXyz WXyz WxYZ WxYZ WxYz WxYz WxyZ WxyZ Wxyz Wxyz aBCD aBCD aBCd aBCd aBcD aBcD aBcd aBcd abCD abCD abCd abCd abcD abcD abcd abcd wXYZ wXYZ wXYz wXYz wXyZ wXyZ wXyz wXyz wxYZ wxYZ wxYz wxYz wxyZ wxyZ wxyz wxyz"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -383,7 +383,7 @@ func Test_distinct2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  one 0 1\n  one 1 1\n  two 0 1\n  two 1 1\n"
+		want := "one 0 1 one 1 1 two 0 1 two 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -404,7 +404,7 @@ func Test_distinct2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {} 1 {}\n  {} 1 a\n"
+		want := "{} 1 {} {} 1 a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -422,7 +422,7 @@ func Test_distinct2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {} 1 {}\n  {} 1 a\n"
+		want := "{} 1 {} {} 1 a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

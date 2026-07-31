@@ -114,7 +114,7 @@ func Test_fuzzer1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  abcde 0   abcda 1   ebcde 10 \n  ebcda 11  abcdo 100 ebcdo 110 \n  obcde 110 obcda 111 obcdo 210\n"
+		want := "abcde 0 abcda 1 ebcde 10 ebcda 11 abcdo 100 ebcdo 110 obcde 110 obcda 111 obcdo 210"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -132,7 +132,7 @@ func Test_fuzzer1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  abcde 0   abcda 1   ebcde 10 \n  ebcda 11  abcdo 100 ebcdo 110 \n  obcde 110 obcda 111 obcdo 210\n"
+		want := "abcde 0 abcda 1 ebcde 10 ebcda 11 abcdo 100 ebcdo 110 obcde 110 obcda 111 obcdo 210"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -144,7 +144,7 @@ func Test_fuzzer1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  abcde 0   abcda 1   ebcde 10 \n  ebcda 11  abcdo 100 ebcdo 110 \n  obcde 110 obcda 111 obcdo 210\n"
+		want := "abcde 0 abcda 1 ebcde 10 ebcda 11 abcdo 100 ebcdo 110 obcde 110 obcda 111 obcdo 210"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -156,7 +156,7 @@ func Test_fuzzer1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  abcde 0 axcde 1 abcye 10 \n  axcye 11 abcze 110 axcze 111\n"
+		want := "abcde 0 axcde 1 abcye 10 axcye 11 abcze 110 axcze 111"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -520,7 +520,7 @@ func Test_fuzzer1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  2 a x 10 \n  2 a y 9 \n  2 a z 8 \n  1 a t 5 \n  1 a u 4 \n  1 a v 3\n"
+			want := "2 a x 10 2 a y 9 2 a z 8 1 a t 5 1 a u 4 1 a v 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

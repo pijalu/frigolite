@@ -745,9 +745,19 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		table := getString(getRHS(p, ruleNo, 4))
 		columns := getStringList(getRHS(p, ruleNo, 5))
 		sel := getSelectStmt(getRHS(p, ruleNo, 6))
+		// A VALUES insert (INSERT INTO t VALUES(...),(...)) parses as a SELECT
+		// with no FROM. Convert it into s.Values tuples and clear s.Select so
+		// the engine uses the VALUES path (insertRow); a real INSERT...SELECT
+		// keeps s.Select.
+		var values [][]sql.Expr
+		if sel != nil && sel.From.Name == "" {
+			values = valuesFromSelect(sel)
+			sel = nil
+		}
 		return &sql.InsertStmt{
 			Table:   table,
 			Columns: columns,
+			Values:  values,
 			Select:  sel,
 			CTEs:    getCTEDefs(getRHS(p, ruleNo, 1)),
 		}
@@ -1655,6 +1665,23 @@ func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias, posO
 		tbl = schema + "." + tbl
 	}
 	return acc.appendTableWithOn(sql.TableRef{Name: tbl, As: alias}, on, using)
+}
+
+// valuesFromSelect converts a VALUES-select (a SelectStmt with no FROM) into
+// a list of value tuples, one per VALUES row. Multi-row VALUES is a compound
+// (UNION ALL) chain: each member's columns form one tuple.
+func valuesFromSelect(sel *sql.SelectStmt) [][]sql.Expr {
+	var values [][]sql.Expr
+	for cur := sel; cur != nil; cur = cur.Union {
+		if len(cur.Columns) > 0 {
+			tuple := make([]sql.Expr, len(cur.Columns))
+			for i, col := range cur.Columns {
+				tuple[i] = col.Expr
+			}
+			values = append(values, tuple)
+		}
+	}
+	return values
 }
 
 // getOnUsing extracts an ON condition expr and/or a USING column list from an

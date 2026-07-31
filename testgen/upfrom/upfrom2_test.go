@@ -132,7 +132,7 @@ func Test_upfrom2(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "2 2 2   5 5 5   10 1 1  30 3 3  40 4 4"
+						want := "2 2 2 5 5 5 10 1 1 30 3 3 40 4 4"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

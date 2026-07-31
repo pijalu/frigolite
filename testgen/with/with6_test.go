@@ -254,7 +254,7 @@ func Test_with6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  4 5 6 - -\n  7 8 9 8 8\n  - 3 - 3 3\n"
+		want := "4 5 6 - - 7 8 9 8 8 - 3 - 3 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -272,7 +272,7 @@ func Test_with6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  4 5 6 - -\n  7 8 9 8 8\n  - 3 - 3 3\n"
+		want := "4 5 6 - - 7 8 9 8 8 - 3 - 3 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -290,7 +290,7 @@ func Test_with6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  4 5 6 - -\n  7 8 9 8 8\n  - 3 - 3 3\n"
+		want := "4 5 6 - - 7 8 9 8 8 - 3 - 3 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

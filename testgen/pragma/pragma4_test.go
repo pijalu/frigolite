@@ -121,7 +121,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0\n"
+				want := "0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -133,7 +133,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0\n"
+				want := "0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -191,7 +191,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0\n  "
+				want := "0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -203,7 +203,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0\n  "
+				want := "0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -377,7 +377,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0 0 t1 c a {NO ACTION} {NO ACTION} NONE\n  "
+				want := "0 0 t1 c a {NO ACTION} {NO ACTION} NONE"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -389,7 +389,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0 0 t2 r d {NO ACTION} {NO ACTION} NONE\n  "
+				want := "0 0 t2 r d {NO ACTION} {NO ACTION} NONE"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -437,7 +437,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  c1 1 t1 0\n"
+				want := "c1 1 t1 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -449,7 +449,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  c2 1 t2 0\n"
+				want := "c2 1 t2 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -485,7 +485,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n  0 a {} 0 'abc' 0 1 b {} 0 -1 0 2 c {} 0 +4.0 0\n"
+				want := "0 a {} 0 'abc' 0 1 b {} 0 -1 0 2 c {} 0 +4.0 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

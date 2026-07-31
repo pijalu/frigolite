@@ -450,7 +450,7 @@ func Test_whereD(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 1 1 1 \n  {} {} {} 2 \n  {} {} {} 3 \n  4 1 4 4 \n  {} {} {} 5 \n  {} {} {} 6 \n  7 1 7 7 \n  {} {} {} 8 \n  {} {} {} 9\n"
+		want := "1 1 1 1 {} {} {} 2 {} {} {} 3 4 1 4 4 {} {} {} 5 {} {} {} 6 7 1 7 7 {} {} {} 8 {} {} {} 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -462,7 +462,7 @@ func Test_whereD(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 1 1 1 \n  {} {} {} 2 \n  {} {} {} 3 \n  4 1 4 4 \n  {} {} {} 5 \n  {} {} {} 6 \n  7 1 7 7 \n  {} {} {} 8 \n  {} {} {} 9\n"
+		want := "1 1 1 1 {} {} {} 2 {} {} {} 3 4 1 4 4 {} {} {} 5 {} {} {} 6 7 1 7 7 {} {} {} 8 {} {} {} 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

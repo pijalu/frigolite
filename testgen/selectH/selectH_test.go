@@ -192,7 +192,7 @@ func Test_selectH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  4 5\n"
+		want := "4 5"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

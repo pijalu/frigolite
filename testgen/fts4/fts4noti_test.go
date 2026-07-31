@@ -478,7 +478,7 @@ func Test_fts4noti(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := " Restaurant 6021 "
+				want := "Restaurant 6021"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -490,7 +490,7 @@ func Test_fts4noti(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := " Restaurant 6021 "
+				want := "Restaurant 6021"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -532,7 +532,7 @@ func Test_fts4noti(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := " Restaurant 6021 "
+				want := "Restaurant 6021"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -544,7 +544,7 @@ func Test_fts4noti(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := " Restaurant 6021 "
+				want := "Restaurant 6021"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

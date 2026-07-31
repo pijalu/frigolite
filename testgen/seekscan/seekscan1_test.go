@@ -65,7 +65,7 @@ func Test_seekscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  abc 234 6\n"
+		want := "abc 234 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -77,7 +77,7 @@ func Test_seekscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  abc 234 6\n  abc 345 7\n"
+		want := "abc 234 6 abc 345 7"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -89,7 +89,7 @@ func Test_seekscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  abc 234 6\n  abc 345 7\n"
+		want := "abc 234 6 abc 345 7"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -101,7 +101,7 @@ func Test_seekscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  abc 234 6\n  abc 345 7\n"
+		want := "abc 234 6 abc 345 7"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

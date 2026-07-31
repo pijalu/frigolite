@@ -99,7 +99,7 @@ func Test_fts4merge(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n    0 {0 1 2 3 4 5 6 7 8 9 10 11} \n    1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13}\n    2 {0 1 2}\n  "
+			want := "0 {0 1 2 3 4 5 6 7 8 9 10 11} 1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 2 {0 1 2}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -143,7 +143,7 @@ func Test_fts4merge(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n    2 {0 1 2 3}\n  "
+			want := "2 {0 1 2 3}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -187,7 +187,7 @@ func Test_fts4merge(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n    3 0\n  "
+			want := "3 0"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -233,7 +233,7 @@ func Test_fts4merge(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    0 {0 1 2 3 4 5 6} \n    1 {0 1 2 3 4} \n    2 {0 1 2 3 4} \n    3 {0 1 2 3 4 5 6}\n  "
+				want := "0 {0 1 2 3 4 5 6} 1 {0 1 2 3 4} 2 {0 1 2 3 4} 3 {0 1 2 3 4 5 6}"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -245,7 +245,7 @@ func Test_fts4merge(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    4 0\n  "
+				want := "4 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -337,7 +337,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    0 {0 1 2 3 4 5 6 7} \n    1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} \n    2 {0 1 2}\n  "
+					want := "0 {0 1 2 3 4 5 6 7} 1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 2 {0 1 2}"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -349,7 +349,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13 14} \n    2 {0 1 2 3}\n  "
+					want := "1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13 14} 2 {0 1 2 3}"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -394,7 +394,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    0 {0 1 2 3 4 5 6 7} \n    1 {0 1 2 3 4 5 6 7 8 9 10 11 12} \n    2 {0 1 2 3 4 5 6 7} \n    X'010F'\n  "
+					want := "0 {0 1 2 3 4 5 6 7} 1 {0 1 2 3 4 5 6 7 8 9 10 11 12} 2 {0 1 2 3 4 5 6 7} X'010F'"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -406,7 +406,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} \n    2 {0 1 2 3 4 5 6 7 8} X'010E'\n  "
+					want := "1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 2 {0 1 2 3 4 5 6 7 8} X'010E'"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -432,7 +432,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    0 {0 1 2 3 4 5 6 7 8 9 10 11} 1 0 2 0 3 0 X'010E'\n  "
+					want := "0 {0 1 2 3 4 5 6 7 8 9 10 11} 1 0 2 0 3 0 X'010E'"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -444,7 +444,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    1 {0 1} 2 0 3 0 X'010E'\n  "
+					want := "1 {0 1} 2 0 3 0 X'010E'"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -487,7 +487,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "\n    0 {0 1 2 3 4 5 6 7} \n    1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} \n    2 {0 1 2}\n  "
+					want := "0 {0 1 2 3 4 5 6 7} 1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 2 {0 1 2}"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

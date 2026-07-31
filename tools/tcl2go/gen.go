@@ -686,6 +686,33 @@ func regexPatternExpr(goQuoted string) string {
 	return fmt.Sprintf("%q", s)
 }
 
+// normalizeExpectedWord collapses whitespace in a braced do_test expected
+// value so it matches the space-joined query result (TCL lists normalize
+// whitespace). Values with structural separators ('|' for row separators,
+// '/' or '~' for regex patterns, '=' for key=value) are left as-is.
+func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
+	if !w.Braced {
+		return w
+	}
+	text := strings.TrimSpace(w.Text)
+	if text == "" {
+		return w
+	}
+	// Preserve structural content.
+	if strings.Contains(text, "|") || strings.Contains(text, "~") ||
+		strings.HasPrefix(text, "/") || strings.HasSuffix(text, "/") ||
+		strings.Contains(text, "=") {
+		return w
+	}
+	// Collapse internal whitespace to single spaces (multi-row results in
+	// do_test expected values are space-joined by flatten()).
+	fields := strings.Fields(text)
+	if len(fields) < 2 {
+		return w
+	}
+	return tcl.RawWord{Text: strings.Join(fields, " "), Braced: true}
+}
+
 func (tp *transpiler) buildStringExpr(s string) string {
 	// Quick scan: if no $ or [ or \, just quote it
 	simple := true
@@ -1295,7 +1322,7 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 	}
 	expectedExpr := `""`
 	if len(args) >= 3 {
-		expectedExpr = tp.goStringLiteral(args[2])
+		expectedExpr = tp.goStringLiteral(normalizeExpectedWord(args[2]))
 	}
 
 	// Determine query vs exec
@@ -1380,7 +1407,7 @@ func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 	}
 	expectedExpr := `""`
 	if len(args) >= 3 {
-		expectedExpr = tp.goStringLiteral(args[2])
+		expectedExpr = tp.goStringLiteral(normalizeExpectedWord(args[2]))
 	}
 
 	tp.emitLine("{ // %s", nameExpr)

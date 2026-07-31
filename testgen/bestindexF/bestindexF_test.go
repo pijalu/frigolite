@@ -140,7 +140,7 @@ func Test_bestindexF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 a 2 a 1 a \n  2 b 1 b 2 b \n  3 a 4 b 3 a \n  4 b 3 a 4 b\n"
+		want := "1 a 2 a 1 a 2 b 1 b 2 b 3 a 4 b 3 a 4 b 3 a 4 b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

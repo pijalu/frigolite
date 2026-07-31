@@ -271,7 +271,7 @@ func Test_bestindex1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 0 ValueA 1 0 ValueA\n  2 0 ValueA 2 0 ValueA\n  3 0 ValueB 3 0 ValueB\n  4 0 ValueB 4 0 ValueB\n"
+			want := "1 0 ValueA 1 0 ValueA 2 0 ValueA 2 0 ValueA 3 0 ValueB 3 0 ValueB 4 0 ValueB 4 0 ValueB"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -283,7 +283,7 @@ func Test_bestindex1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 0 ValueA 1 0 ValueA\n  2 0 ValueA 2 0 ValueA\n  3 0 ValueB 3 0 ValueB\n  4 0 ValueB 4 0 ValueB\n"
+			want := "1 0 ValueA 1 0 ValueA 2 0 ValueA 2 0 ValueA 3 0 ValueB 3 0 ValueB 4 0 ValueB 4 0 ValueB"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

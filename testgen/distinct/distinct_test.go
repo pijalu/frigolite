@@ -336,7 +336,7 @@ func Test_distinct(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n    A A  B B\n    a a  a b  a c\n    b a  b b  b c\n  "
+						want := "A A B B a a a b a c b a b b b c"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -348,7 +348,7 @@ func Test_distinct(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n    a a  a b  a c\n    b a  b b  b c\n  "
+						want := "a a a b a c b a b b b c"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

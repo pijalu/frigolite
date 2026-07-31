@@ -90,7 +90,7 @@ func Test_fts3offsets(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 {(A) x x x (B) (C) x x} \n  2 {(A) (B) (C) x (B) x x C} \n  3 {(A) x x (B) (C) x x x}\n"
+		want := "1 {(A) x x x (B) (C) x x} 2 {(A) (B) (C) x (B) x x C} 3 {(A) x x (B) (C) x x x}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -108,7 +108,7 @@ func Test_fts3offsets(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 {(A) x x x (B) (C) x x}\n  2 {(A) x x C x x x C} \n  3 {(A) x x (B) (C) x x x}\n"
+		want := "1 {(A) x x x (B) (C) x x} 2 {(A) x x C x x x C} 3 {(A) x x (B) (C) x x x}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -126,7 +126,7 @@ func Test_fts3offsets(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 {(A) (B) (C)}\n  2 {(A) x}\n  3 {(A) (B) (C)}\n  4 {(A) (B) (C) x x x x x x x B}\n  5 {(A) x x x x x x x x x C}\n  6 {(A) x x x x x x x x x x x B} \n  7 {(A) (B) (C)}\n"
+		want := "1 {(A) (B) (C)} 2 {(A) x} 3 {(A) (B) (C)} 4 {(A) (B) (C) x x x x x x x B} 5 {(A) x x x x x x x x x C} 6 {(A) x x x x x x x x x x x B} 7 {(A) (B) (C)}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -144,7 +144,7 @@ func Test_fts3offsets(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  7 {(A) (B) (C)}\n  6 {(A) x}\n  5 {(A) (B) (C)}\n  4 {(A) (B) (C) x x x x x x x B}\n  3 {(A) x x x x x x x x x C}\n  2 {(A) x x x x x x x x x x x B} \n  1 {(A) (B) (C)}\n"
+		want := "7 {(A) (B) (C)} 6 {(A) x} 5 {(A) (B) (C)} 4 {(A) (B) (C) x x x x x x x B} 3 {(A) x x x x x x x x x C} 2 {(A) x x x x x x x x x x x B} 1 {(A) (B) (C)}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -162,7 +162,7 @@ func Test_fts3offsets(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {0 0 0 1 0 0 2 1 0 0 4 1} \n  {0 0 0 1 0 0 2 1 0 0 4 1}\n"
+		want := "{0 0 0 1 0 0 2 1 0 0 4 1} {0 0 0 1 0 0 2 1 0 0 4 1}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

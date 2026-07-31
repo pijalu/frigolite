@@ -68,7 +68,7 @@ func Test_spellfix2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n   amsterdam      100 9\n   amsterdamania  100 9\n   amsterdammetje 100 9\n"
+		want := "amsterdam 100 9 amsterdamania 100 9 amsterdammetje 100 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -80,7 +80,7 @@ func Test_spellfix2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n   amsterdam      100 9\n   amsterdamania  100 9\n   amsterdammetje 100 9\n"
+		want := "amsterdam 100 9 amsterdamania 100 9 amsterdammetje 100 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -92,7 +92,7 @@ func Test_spellfix2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n   amsterdam         100 9\n   amsterdamania     100 9\n   amsterdamlaan     100 9\n   amsterdammetje    100 9\n   amsterdamsestraat 100 9\n   amsterdamweg      100 9\n"
+		want := "amsterdam 100 9 amsterdamania 100 9 amsterdamlaan 100 9 amsterdammetje 100 9 amsterdamsestraat 100 9 amsterdamweg 100 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -113,7 +113,7 @@ func Test_spellfix2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  32 20\n"
+		want := "32 20"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -125,7 +125,7 @@ func Test_spellfix2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  amsterdam         100 9        amsterdama        100 9\n  amsterdamania     100 9        amsterdamb        100 9\n  amsterdamc        100 9        amsterdamd        100 9\n  amsterdame        100 9        amsterdamf        100 9\n  amsterdamg        100 9        amsterdamh        100 9\n  amsterdami        100 9        amsterdamj        100 9\n  amsterdamk        100 9        amsterdaml        100 9\n  amsterdamlaan     100 9        amsterdamm        100 9\n  amsterdammetje    100 9        amsterdamn        100 9\n  amsterdamo        100 9        amsterdamp        100 9\n  amsterdamq        100 9        amsterdamr        100 9\n  amsterdams        100 9        amsterdamsestraat 100 9\n  amsterdamt        100 9        amsterdamu        100 9\n  amsterdamv        100 9        amsterdamw        100 9\n  amsterdamweg      100 9        amsterdamx        100 9\n  amsterdamy        100 9        amsterdamz        100 9\n"
+		want := "amsterdam 100 9 amsterdama 100 9 amsterdamania 100 9 amsterdamb 100 9 amsterdamc 100 9 amsterdamd 100 9 amsterdame 100 9 amsterdamf 100 9 amsterdamg 100 9 amsterdamh 100 9 amsterdami 100 9 amsterdamj 100 9 amsterdamk 100 9 amsterdaml 100 9 amsterdamlaan 100 9 amsterdamm 100 9 amsterdammetje 100 9 amsterdamn 100 9 amsterdamo 100 9 amsterdamp 100 9 amsterdamq 100 9 amsterdamr 100 9 amsterdams 100 9 amsterdamsestraat 100 9 amsterdamt 100 9 amsterdamu 100 9 amsterdamv 100 9 amsterdamw 100 9 amsterdamweg 100 9 amsterdamx 100 9 amsterdamy 100 9 amsterdamz 100 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -137,7 +137,7 @@ func Test_spellfix2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  amsterdam         100 9        amsterdama        100 9\n  amsterdamania     100 9        amsterdamb        100 9\n  amsterdamc        100 9        amsterdame        100 9\n  amsterdamf        100 9        amsterdamg        100 9\n  amsterdamh        100 9        amsterdami        100 9\n  amsterdamm        100 9        amsterdammetje    100 9\n  amsterdamn        100 9        amsterdamo        100 9\n  amsterdamp        100 9        amsterdamu        100 9\n  amsterdamv        100 9        amsterdamw        100 9\n  amsterdamweg      100 9        amsterdamy        100 9\n"
+		want := "amsterdam 100 9 amsterdama 100 9 amsterdamania 100 9 amsterdamb 100 9 amsterdamc 100 9 amsterdame 100 9 amsterdamf 100 9 amsterdamg 100 9 amsterdamh 100 9 amsterdami 100 9 amsterdamm 100 9 amsterdammetje 100 9 amsterdamn 100 9 amsterdamo 100 9 amsterdamp 100 9 amsterdamu 100 9 amsterdamv 100 9 amsterdamw 100 9 amsterdamweg 100 9 amsterdamy 100 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

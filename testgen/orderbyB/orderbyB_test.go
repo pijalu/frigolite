@@ -59,7 +59,7 @@ func Test_orderbyB(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  NULL  NULL  NULL  NULL  NULL\n  aa    GG    1     1     7\n  bb    ee    2     2     5\n  cc    cc    3     3     3\n  dd    aa    4     4     1\n  aa    bb    5     1     2\n  bb    dd    6     2     4\n  cc    ff    7     3     6\n"
+		want := "NULL NULL NULL NULL NULL aa GG 1 1 7 bb ee 2 2 5 cc cc 3 3 3 dd aa 4 4 1 aa bb 5 1 2 bb dd 6 2 4 cc ff 7 3 6"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

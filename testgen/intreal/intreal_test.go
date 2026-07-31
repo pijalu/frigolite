@@ -274,7 +274,7 @@ func Test_intreal(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  real 0.0\n  real 4.0\n"
+		want := "real 0.0 real 4.0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

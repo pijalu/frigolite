@@ -150,7 +150,7 @@ func Test_distinctagg(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 1  2 2  3 2  4 1  5 2\n"
+			want := "1 1 2 2 3 2 4 1 5 2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

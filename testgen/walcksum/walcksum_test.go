@@ -301,7 +301,7 @@ func Test_walcksum(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 one   2 two   8 eight"
+		want := "1 one 2 two 8 eight"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -349,7 +349,7 @@ func Test_walcksum(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 one   8 eight"
+		want := "1 one 8 eight"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -408,7 +408,7 @@ func Test_walcksum(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 one  2 two   3 three  8 eight 9 nine"
+		want := "1 one 2 two 3 three 8 eight 9 nine"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

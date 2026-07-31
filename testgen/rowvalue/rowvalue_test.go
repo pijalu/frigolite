@@ -660,7 +660,7 @@ func Test_rowvalue(t *testing.T) {
 											return
 										}
 										got := flatten(r)
-										want := "\n  1 2 - -\n  - - 3 4\n"
+										want := "1 2 - - - - 3 4"
 										if got != want {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
@@ -863,7 +863,7 @@ func Test_rowvalue(t *testing.T) {
 													return
 												}
 												got := flatten(r)
-												want := "\n  1 D A B C \n  2 w x y z\n"
+												want := "1 D A B C 2 w x y z"
 												if got != want {
 													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
@@ -875,7 +875,7 @@ func Test_rowvalue(t *testing.T) {
 													return
 												}
 												got := flatten(r)
-												want := "\n  1 C B A D\n  2 z y x w\n  3 i ii iii iv\n"
+												want := "1 C B A D 2 z y x w 3 i ii iii iv"
 												if got != want {
 													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}

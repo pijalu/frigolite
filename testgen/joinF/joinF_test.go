@@ -119,7 +119,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - - 50\n"
+		want := "- - - 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -191,7 +191,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - - 50\n"
+		want := "- - - 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -215,7 +215,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -227,7 +227,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -239,7 +239,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -251,7 +251,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -263,7 +263,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -275,7 +275,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -335,7 +335,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - - 50\n"
+		want := "- - - 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -359,7 +359,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  10 - - 50\n"
+		want := "10 - - 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -383,7 +383,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  10 - - 50\n"
+		want := "10 - - 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -407,7 +407,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  10 - - 50\n"
+		want := "10 - - 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -431,7 +431,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -443,7 +443,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -455,7 +455,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -467,7 +467,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -479,7 +479,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -491,7 +491,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -551,7 +551,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - - 50\n"
+		want := "- - - 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -623,7 +623,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - - 50\n"
+		want := "- - - 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -647,7 +647,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -659,7 +659,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -671,7 +671,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -683,7 +683,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -695,7 +695,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -707,7 +707,7 @@ func Test_joinF(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  - - 20 50\n  - - 30 50\n"
+		want := "- - 20 50 - - 30 50"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

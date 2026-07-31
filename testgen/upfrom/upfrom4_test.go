@@ -88,8 +88,8 @@ func Test_upfrom4(t *testing.T) {
 	}
 	{ // "210"
 		_res = db.Exec("\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  UPDATE t1 SET b=c1.b, c=c2.c\n    FROM dual, c1 NATURAL RIGHT JOIN c2\n   WHERE x=a;\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  UPDATE t1 SET b=c1.b, c=c2.c\n    FROM dual, c1 NATURAL RIGHT JOIN c2\n   WHERE x=a;\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "- - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "- - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -", _res.Error, "\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  UPDATE t1 SET b=c1.b, c=c2.c\n    FROM dual, c1 NATURAL RIGHT JOIN c2\n   WHERE x=a;\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
 		}
 	}
 	{ // "300"
@@ -100,8 +100,8 @@ func Test_upfrom4(t *testing.T) {
 	}
 	{ // "310"
 		_res = db.Exec("\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  INSERT INTO t2(x) VALUES(1);\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  INSERT INTO t2(x) VALUES(1);\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "- - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "- - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -", _res.Error, "\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  INSERT INTO t2(x) VALUES(1);\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
 		}
 	}
 	db.Close()
@@ -114,7 +114,7 @@ func Test_upfrom4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1    100  def 4.5\n  1000 -    -   -\n"
+		want := "1 100 def 4.5 1000 - - -"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -354,7 +354,7 @@ func Test_index7(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 xyz abc {not xyz}\n"
+		want := "1 xyz abc {not xyz}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -366,7 +366,7 @@ func Test_index7(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 xyz abc {not xyz}\n"
+		want := "1 xyz abc {not xyz}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -378,7 +378,7 @@ func Test_index7(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  def xyz\n"
+		want := "def xyz"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

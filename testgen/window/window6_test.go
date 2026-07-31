@@ -293,7 +293,7 @@ func Test_window6(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 20.0 1   1 10.0 2   2 3.0 1   2 1.0 2  3 100.0 1\n"
+			want := "1 20.0 1 1 10.0 2 2 3.0 1 2 1.0 2 3 100.0 1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -305,7 +305,7 @@ func Test_window6(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 10.0 10.0   1 20.0 30.0   2 1.0 31.0   2 3.0 24.0   3 100.0 104.0\n"
+			want := "1 10.0 10.0 1 20.0 30.0 2 1.0 31.0 2 3.0 24.0 3 100.0 104.0"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -317,7 +317,7 @@ func Test_window6(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  10.0   30.0   31.0   24.0   104.0\n"
+			want := "10.0 30.0 31.0 24.0 104.0"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -329,7 +329,7 @@ func Test_window6(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  1 1  2 1,2  3 1,2,3  4 2,3,4  5 3,4,5\n"
+			want := "1 1 2 1,2 3 1,2,3 4 2,3,4 5 3,4,5"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -451,7 +451,7 @@ func Test_window6(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  10 ten 15 fifteen 20 {} 20 {} 25 {} 30 thirty 30 thirty 50 {}\n"
+						want := "10 ten 15 fifteen 20 {} 20 {} 25 {} 30 thirty 30 thirty 50 {}"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -463,7 +463,7 @@ func Test_window6(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  10 ten 10   15 fifteen 25   20 {} 65        20 {} 65   \n  25 {} 90    30 thirty 150   30 thirty 150   50 {} 200\n"
+						want := "10 ten 10 15 fifteen 25 20 {} 65 20 {} 65 25 {} 90 30 thirty 150 30 thirty 150 50 {} 200"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -475,7 +475,7 @@ func Test_window6(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
+						want := "10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -487,7 +487,7 @@ func Test_window6(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
+						want := "10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -499,7 +499,7 @@ func Test_window6(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
+						want := "10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -511,7 +511,7 @@ func Test_window6(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  fifteen fifteen \n  ten     fifteen.ten \n  thirty  fifteen.ten.thirty\n"
+						want := "fifteen fifteen ten fifteen.ten thirty fifteen.ten.thirty"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

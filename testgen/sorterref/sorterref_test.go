@@ -65,7 +65,7 @@ func Test_sorterref(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  1 2 3 string 4 5 6 string 7 8 9 text\n"
+		want := "1 2 3 string 4 5 6 string 7 8 9 text"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

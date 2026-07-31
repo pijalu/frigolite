@@ -352,7 +352,7 @@ func Test_autoindex1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  NULL NULL NULL 5    55\n  1    3    91   3    33\n  1    4    92   4    44\n"
+		want := "NULL NULL NULL 5 55 1 3 91 3 33 1 4 92 4 44"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
