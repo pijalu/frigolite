@@ -231,14 +231,13 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (interface{}, error) {
 		return fmt.Sprintf("%v", val), nil
 	case "NUMERIC":
 		// SQLite: CAST(x AS NUMERIC) coerces text to a number; non-numeric
-		// text becomes 0. Whole results are returned as INTEGER.
+		// text becomes 0. A float64 input stays float64 (CAST(4.0 AS NUMERIC)
+		// is 4.0, not 4). TEXT input that parses to a whole number returns
+		// INTEGER (CAST('123e+5' AS NUMERIC) is 12300000).
 		switch x := val.(type) {
 		case int64:
 			return x, nil
 		case float64:
-			if x == float64(int64(x)) {
-				return int64(x), nil
-			}
 			return x, nil
 		case string:
 			t := strings.TrimSpace(x)
