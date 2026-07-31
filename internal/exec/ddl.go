@@ -624,7 +624,11 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 		viewName = rawName[dotIdx+1:]
 	}
 
-	sqlStr := fmt.Sprintf("CREATE VIEW %s AS %s", viewName, selectStmtToString(s.Select))
+	colsClause := ""
+	if len(s.Columns) > 0 {
+		colsClause = "(" + strings.Join(s.Columns, ", ") + ")"
+	}
+	sqlStr := fmt.Sprintf("CREATE VIEW %s%s AS %s", viewName, colsClause, selectStmtToString(s.Select))
 	
 	// Check for duplicate view name
 	if existing, _ := ctx.Schema.FindView(viewName); existing != nil {
@@ -1320,7 +1324,10 @@ func windowDefToString(w *sql.WindowDef) string {
 	}
 	// Named window reference (no PARTITION BY/ORDER BY specs)
 	if len(w.Partitions) == 0 && len(w.OrderBy) == 0 && w.FrameSpec == "" {
-		return w.Name
+		if w.Name != "" {
+			return w.Name
+		}
+		return "()"
 	}
 	result := "("
 	// PARTITION BY

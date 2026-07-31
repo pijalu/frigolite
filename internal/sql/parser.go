@@ -1583,8 +1583,9 @@ func (p *Parser) parseCreateView() *CreateViewStmt {
 	// Optional parenthesized column list: CREATE VIEW name (col1, col2) AS ...
 	if p.cur.Type == TokenLParen {
 		p.next()
-		// Skip column names
+		// Collect column names
 		for p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+			s.Columns = append(s.Columns, p.cur.Value)
 			p.next()
 			if p.cur.Type == TokenComma {
 				p.next()

@@ -138,6 +138,11 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		}
 	}
 
+	// Table-valued pragma functions: FROM pragma_table_info('t1')
+	if isPragmaTableFunc(s.From.Name) {
+		return e.execPragmaTableValued(s)
+	}
+
 	tableEntry, dbCtx, err := e.findTable(s.From.Name)
 	if err != nil {
 		viewEntry, _, viewErr := e.findView(s.From.Name)
@@ -414,6 +419,43 @@ func rowKey(row []interface{}) string {
 	return strings.Join(parts, "\x00")
 }
 
+// viewDeclaredColumns extracts the optional declared column list from a
+// stored view SQL string ("CREATE VIEW v(c0, c1) AS SELECT ...").
+// Returns nil when the view has no declared column list.
+func viewDeclaredColumns(viewSQL string) []string {
+	upper := strings.ToUpper(viewSQL)
+	viewIdx := strings.Index(upper, "VIEW ")
+	if viewIdx < 0 {
+		return nil
+	}
+	after := viewSQL[viewIdx+5:]
+	// The view name ends at the next space or '('.
+	nameEnd := strings.IndexAny(after, " (")
+	if nameEnd < 0 {
+		return nil
+	}
+	rest := after[nameEnd:]
+	if !strings.HasPrefix(rest, "(") {
+		return nil
+	}
+	closeIdx := strings.Index(rest, ")")
+	if closeIdx < 0 {
+		return nil
+	}
+	inner := rest[1:closeIdx]
+	var cols []string
+	for _, part := range strings.Split(inner, ",") {
+		part = strings.TrimSpace(part)
+		if part != "" {
+			cols = append(cols, part)
+		}
+	}
+	if len(cols) == 0 {
+		return nil
+	}
+	return cols
+}
+
 // execSelectView executes a SELECT on a view by expanding its stored definition.
 func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 	// entry.SQL contains "CREATE VIEW name AS SELECT ..."
@@ -452,10 +494,17 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 	if viewResult.Error != nil {
 		return viewResult
 	}
-	// Build colDefs from view result's column names
+	// Build colDefs from view result's column names, preferring the view's
+	// declared column list (CREATE VIEW v(c0, c1) AS ...) when present.
 	var viewColDefs []sql.ColumnDef
-	for _, colName := range viewResult.Columns {
-		viewColDefs = append(viewColDefs, sql.ColumnDef{Name: colName})
+	if declared := viewDeclaredColumns(viewEntry.SQL); len(declared) > 0 {
+		for _, colName := range declared {
+			viewColDefs = append(viewColDefs, sql.ColumnDef{Name: colName})
+		}
+	} else {
+		for _, colName := range viewResult.Columns {
+			viewColDefs = append(viewColDefs, sql.ColumnDef{Name: colName})
+		}
 	}
 	// Build rowMaps from view result rows for expression evaluation
 	var rowMaps []RowMap
@@ -673,8 +722,16 @@ func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 		colDefs[i] = sql.ColumnDef{Name: col}
 	}
 
+	return e.execSelectOverMaterialized(s, colDefs, subqResult.Rows)
+}
+
+// execSelectOverMaterialized runs the outer SELECT pipeline (WHERE, JOINs,
+// aggregates, projection, DISTINCT, ORDER BY, LIMIT/OFFSET, UNION) over a
+// materialized set of rows with known column definitions. It is shared by
+// subquery-in-FROM execution and table-valued pragma functions.
+func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.ColumnDef, rows [][]interface{}) *Result {
 	// Build rowMaps from result rows
-	allRows := subqResult.Rows
+	allRows := rows
 	if len(allRows) == 0 {
 		return &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: [][]interface{}{}}
 	}
@@ -919,6 +976,26 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 				}
 				rightMaps = append(rightMaps, rightRowMap)
 			}
+		} else if isPragmaTableFunc(join.Table.Name) {
+			// Table-valued pragma function in a JOIN: pragma_table_info('t1') AS t
+			defs, rows, err := e.materializePragmaTable(join.Table)
+			if err != nil {
+				return nil, nil, err
+			}
+			rightDefs = defs
+			tableName = join.Table.Name
+			if join.Table.As != "" {
+				tableName = join.Table.As
+			}
+			for _, row := range rows {
+				rightRowMap := make(RowMap)
+				for i, val := range row {
+					if i < len(rightDefs) {
+						rightRowMap[rightDefs[i].Name] = val
+					}
+				}
+				rightMaps = append(rightMaps, rightRowMap)
+			}
 		} else if tableEntry, err := e.schema.FindTable(join.Table.Name); err != nil {
 			viewEntry, viewErr := e.schema.FindView(join.Table.Name)
 			if viewErr != nil {
@@ -929,9 +1006,17 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			if viewResult.Error != nil {
 				return nil, nil, viewResult.Error
 			}
-			// Build column defs from view result columns
-			for _, colName := range viewResult.Columns {
-				rightDefs = append(rightDefs, sql.ColumnDef{Name: colName})
+			// Build column defs from the view's declared column list when
+			// present, otherwise from the view result column names.
+			declared := viewDeclaredColumns(viewEntry.SQL)
+			if len(declared) > 0 {
+				for _, colName := range declared {
+					rightDefs = append(rightDefs, sql.ColumnDef{Name: colName})
+				}
+			} else {
+				for _, colName := range viewResult.Columns {
+					rightDefs = append(rightDefs, sql.ColumnDef{Name: colName})
+				}
 			}
 			tableName = join.Table.Name
 			if join.Table.As != "" {

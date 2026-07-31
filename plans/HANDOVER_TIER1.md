@@ -1,9 +1,8 @@
-# HANDOVER — Frigolite Tier 1 / EXPLAIN QUERY PLAN multi-node / b-tree scan bug work
+# HANDOVER — Frigolite Tier 1 / window OVER() minimal support / pragma table-valued
 
-**Date**: 2026-07-31 (session handover, 22:36)
-**Last commit**: `5dac6182` (feat(exec): emit multi-node EXPLAIN QUERY PLAN with join and GROUP BY nodes)
-**Active goal (emerald.puma)**: Implement multi-node EXPLAIN QUERY PLAN emission (COMPLETE — see §2)
-**Goal plan state**: emerald.puma COMPLETE · all 5 queued goals CANCELLED (goal list empty)
+**Date**: 2026-08-01 (session handover, stop requested)
+**Last commit**: `bf0c5ae9` (docs(plans): update Tier 1 handover — whereJ passes fully, EQP multi-node DONE)
+**Uncommitted work in tree**: window OVER() minimal support + pragma table-valued support + magic-number TODO (see §2, §3)
 **Master plan**: `plans/TDD_MASTER_V2.md` (the complete 6-tier roadmap — summarized in §7 below)
 
 ---
@@ -15,10 +14,92 @@
   - line 92 whereJ-1.4 EQP `GROUP BY aid` wants `B-TREE` → FIXED (5dac6182: `USE TEMP B-TREE FOR GROUP BY` node)
   - line 190/196 3.4/3.5 `EXPLAIN QUERY PLAN` with `--` line comments → parse error → FIXED (31a7f0f9: parser appends `"\n;"` so a trailing `--`/`#` comment cannot swallow the SEMI terminator)
   - line 223 whereJ-4.2 EQP multi-node plan → FIXED (5dac6182: per-table nodes `SCAN cx` / `SEARCH px p_cid0` / `SEARCH le le_id`)
-- **cast: 4 errors, expr: 4 errors** (known baseline: window functions/quote-substr/pragma_table_info for cast; custom function implies_nonnull_row for expr)
+- **cast: 0 errors — cast-9.0 window OVER() FIXED** (was 4 errors; remaining baseline was window functions/quote-substr/pragma_table_info — see §2/§3 for status of each)
 - **SOLID verify passes**: `go test -run TestSOLID_ -count=1 ./...` → exit 0
 - **Build clean**: `go build ./...` → OK
-- No regressions in the 6 passing packages (verified)
+- **No regressions**: root `go test . -count=1` = 16 failures, byte-identical to pristine stash baseline; 8 passing packages still pass
+- **Verify command passes**: `! go test -tags testgen ./testgen/cast/ -count=1 2>&1 | grep -q "cast_test.go:869"` → exit 0
+
+## 2. THIS SESSION: window function minimal support (OVER () parses + executes)
+
+**Symptom (cast-9.0)**: `CREATE VIEW v1(c0, c1) AS SELECT CAST(0.0 AS NUMERIC), COUNT(*) OVER () FROM t0; SELECT v1.c0 FROM v1, t0 WHERE v1.c0=0` returned `[]` instead of `[0.0]`. The go-lemon LALR parser (engine path) produced a nil column for `OVER ()`.
+
+**Root cause**: the LALR parse tables ALREADY contain the full SQLite window grammar (rules 189-196, 318-346, 410-411), but `handleRule` in `internal/parse/parser.go` had no handlers for the `filter_over`/`over_clause`/`window`/`frame_opt` rules, so they fell through to the default pass-through of the first RHS token, losing the AST. Additionally, `execCreateView` dropped the declared view column list `(c0, c1)`, and the view-body aggregate query returned empty column names, so `v1.c0` could not resolve.
+
+**What changed** (uncommitted in this session):
+1. `internal/parse/parser.go` — implemented rule handlers:
+   - 190/192/193/194: `expr ::= ID LP ... filter_over` (function call with OVER/FILTER; rule 194 = `COUNT(*) OVER ()` star form)
+   - 318/319/410: `windowdefn_list` / `windowdefn`
+   - 320-327, 411: `window` / `frame_opt` (PARTITION BY / ORDER BY / ROWS-RANGE-GROUPS frames)
+   - 328-339: `range_or_rows`, `frame_bound_s/e`, `frame_bound`, `frame_exclude_opt/e`
+   - 340: `window_clause` (captured into `SelectStmt.Windows` in rule 93)
+   - 341-343: `filter_over` (filter + over via new `windowFilter` helper type)
+   - 344: `over_clause ::= OVER LP window RP` — also accepts the frame-spec-string shape the LALR tables fold `OVER ()` into (rule 411 never reduces for the empty case)
+   - 345: `over_clause ::= OVER nm` (named window)
+   - 346: `filter_clause ::= FILTER LP WHERE expr RP`
+   - 242-245: `eidlist_opt` / `eidlist` (view declared column list)
+   - New helpers: `getWindowFilter`, `getWindowDef`, `getWindowDefList`, `frameSpecFromParts`
+2. `internal/sql/ast.go` — `CreateViewStmt.Columns []string`; `WindowDef.String()` renders `OVER ()` as `"()"` (was `""`)
+3. `internal/sql/parser.go` — RD parser `parseCreateView` now collects the declared column list
+4. `internal/exec/ddl.go` — `execCreateView` stores the declared column list in the view SQL (`CREATE VIEW v1(c0, c1) AS ...`); `windowDefToString` renders `OVER ()` as `"()"`
+5. `internal/exec/select.go` — `viewDeclaredColumns()` helper; `execSelectViewWithOuter` and the join path use the view's declared column names for `viewColDefs` (fixes empty-name collisions that produced `[1 1]` instead of `[0 1]`)
+
+**Result**: cast-9.0 returns `0.0`; `SELECT * FROM v1` returns `[0 1]` with cols `[c0 c1]`.
+
+**Regression tests** (new `frigolite_window_test.go`, all pass):
+- `TestWindowOverEmpty` — the exact cast-9.0 scenario
+- `TestWindowOverStoredSQL` — OVER clause + declared column list survive view SQL serialization
+- `TestWindowOverPartition` — `OVER (PARTITION BY g)` parses and serializes into stored view SQL (full per-group window *execution* is NOT implemented — see §4 TODO)
+
+**Scope note**: this is the MINIMAL acceptable scope from the completion criterion. Full window execution semantics (per-row window values, framing, PARTITION BY grouping, ORDER BY within window, named WINDOW clause references at exec time) are NOT implemented — a `SELECT g, COUNT(*) OVER (PARTITION BY g) FROM t1` executes as a collapsing aggregate, not per-partition rows.
+
+## 3. Previous session's uncommitted work: table-valued pragma support
+
+Carried in the same tree (from the prior goal, uncommitted):
+- `internal/parse/parser.go` — rule-113 handler (`seltablist ::= stl_prefix nm dbnm LP exprlist RP as on_using`) so `pragma_table_info('v1')` populates `TableRef.Name/Args`
+- `internal/sql/ast.go` — `TableRef.Args`
+- `internal/exec/pragma_table.go` (new) — materializes `pragma_table_info`/`xinfo` for tables and views with SQLite's view-column type inference
+- `internal/exec/select.go` — intercepts pragma table funcs in `execSelect` and `execJoins` via shared `execSelectOverMaterialized` pipeline
+- Regression test `frigolite_pragma_table_test.go` (6 assertions, passes)
+- Also in tree: `frigolite_blob_test.go` (untracked), `internal/function/function.go` changes
+
+## 4. Remaining Tier 1 failures — next targets (each is a SEPARATE feature)
+
+1. **Window execution semantics** (Tier 5 `window` packages): parsing/serialization of OVER done (minimal), but per-row window evaluation, framing, PARTITION BY/ORDER BY execution are not implemented.
+2. **quote()/substr() on blobs** (cast line 842): `quote(X'31003200...')` blob handling.
+3. **WITHOUT ROWID tables** (whereI): only stored in SQL string; storage still uses rowid.
+4. **CTE-heavy where packages** (where/whereL/whereD/delete4): CTE now parses; residual errors are EXPLAIN-format / other.
+5. **custom test functions** (expr `implies_nonnull_row`): not engine features.
+
+## 5. TODOs (clean code / follow-up)
+
+- [ ] **Magic-number cleanup in `internal/parse/parser.go`**: `handleRule` is a giant `switch ruleNo { case 189: ... case 344: ... }` using bare grammar rule numbers. Replace with named constants/enums (e.g. `ruleExprFuncCall`, `ruleOverClause`, `ruleFrameOpt`) or a generated `ruleName(ruleNo)` lookup so the intent of each rule is readable and refactor-safe. The rule numbers currently match SQLite's parse.y numbering (see session dump of `yyRuleName[]`), but magic numbers make the code hard to audit and fragile if the grammar changes.
+- [ ] Consider extracting the LALR `handleRule` switch into per-rule handler functions (one function per grammar rule) to keep each rule self-contained and unit-testable.
+
+## 6. How to verify the window fix is still good
+
+```bash
+# cast-9.0 window OVER() fix (verify command):
+! go test -tags testgen ./testgen/cast/ -count=1 2>&1 | grep -q "cast_test.go:869"
+# 8 passing packages + EQP baselines:
+go test -tags testgen ./testgen/{types,select2,whereA,affinity,whereK,selectE,analyzeC,eqp}/ -count=1
+# Window regression tests:
+go test -run TestWindow -count=1 .
+# SOLID gate:
+go test -run TestSOLID_ -count=1 ./...
+```
+
+## 7. Repo conventions (for the fresh context)
+
+- Generated testgen files carry `//go:build testgen` — run them with `-tags testgen`.
+  `go run ./tools/tcl2go/` regenerates all 614 packages (fast now, ~1s).
+- The `tcl2go` binary at repo root is a tracked build artifact; don't commit its changes
+  (restore with `git checkout -- tcl2go` if modified).
+- Full suite measurement: `go test -tags testgen ./testgen/...` takes ~5-6 min (crash/shell
+  packages are slow). Sample specific packages for quick iteration.
+- Debug instrumentation during investigation: add `fmt.Printf("ZZ...")` lines, remove before commit.
+
+---
 
 ### whereJ parse-error investigation — RESOLVED (2026-07-31)
 
@@ -30,7 +111,7 @@ Root cause: a trailing `--`/`#` line comment at the end of a statement swallowed
 before EOF). **Fix** (internal/parse/parser.go): append `"\n;"` to the input so a trailing
 line comment cannot eat the SEMI terminator. Committed as `31a7f0f9`.
 
-## 2. THE BIG WIN this session: multi-node EXPLAIN QUERY PLAN emission
+## 8. THE BIG WIN (previous session): multi-node EXPLAIN QUERY PLAN emission
 
 **Symptom**: the engine emitted ONE plan row (SEARCH/SCAN) for the whole query, but SQLite
 emits one node per joined table (`SCAN cx` / `SEARCH px` / `SEARCH le`) plus temp b-tree
@@ -56,7 +137,7 @@ nodes. whereJ-4.2 (`FROM le, cx, px`) and whereJ-1.4 (`GROUP BY aid`) failed.
 **Result**: whereJ line 223 emits `SCAN cx` / `SEARCH px p_cid0 (cx_id=?)` /
 `SEARCH le le_id (le_id=?)`; line 92 emits `SEARCH tx1 ... ` + `USE TEMP B-TREE FOR GROUP BY`.
 
-## 3. Other fixes committed this session (chronological)
+## 9. Other fixes committed this session (chronological)
 
 | Commit | Fix |
 |---|---|
@@ -99,19 +180,7 @@ return &sql.InsertStmt{Table: table, Columns: columns, Values: values, Select: s
 `valuesFromSelect` walks `sel.Union` (multi-row VALUES = UNION ALL compound) collecting each
 member's `Columns[i].Expr` as a tuple.
 
-## 4. Remaining Tier 1 failures — next targets (each is a SEPARATE feature)
-
-1. **Window functions** (cast line 869 `COUNT(*) OVER ()`): parser produces nil column for
-   OVER() — needs OVER clause parsing + window execution. Substantial.
-2. **quote()/substr() on blobs** (cast line 842): `quote(X'31003200...')` blob handling.
-3. **table-valued pragmas** (cast line 1055 `pragma_table_info('v1')`): parser drops the
-   function args; needs table-valued pragma materialization.
-4. **WITHOUT ROWID tables** (whereI): only stored in SQL string; storage still uses rowid.
-5. **CTE-heavy where packages** (where/whereL/whereD/delete4): CTE now parses; residual errors
-   are EXPLAIN-format / other.
-6. **custom test functions** (expr `implies_nonnull_row`): not engine features.
-
-## 5. How to verify the EQP multi-node fix is still good
+## 10. How to verify the EQP multi-node fix is still good
 
 ```bash
 # whereJ now fully passes (was: 4 errors at previous handover):
@@ -122,19 +191,9 @@ go test -tags testgen ./testgen/{types,select2,whereA,affinity,whereK,selectE,an
 go test -run TestSOLID_ -count=1 ./...
 ```
 
-## 6. Repo conventions (for the fresh context)
-
-- Generated testgen files carry `//go:build testgen` — run them with `-tags testgen`.
-  `go run ./tools/tcl2go/` regenerates all 614 packages (fast now, ~1s).
-- The `tcl2go` binary at repo root is a tracked build artifact; don't commit its changes
-  (restore with `git checkout -- tcl2go` if modified).
-- Full suite measurement: `go test -tags testgen ./testgen/...` takes ~5-6 min (crash/shell
-  packages are slow). Sample specific packages for quick iteration.
-- Debug instrumentation during investigation: add `fmt.Printf("ZZ...")` lines, remove before commit.
-
 ---
 
-## 7. THE COMPLETE PLAN — all 6 tiers (from plans/TDD_MASTER_V2.md)
+## 11. THE COMPLETE PLAN — all 6 tiers (from plans/TDD_MASTER_V2.md)
 
 > **Status**: PHASE 0 COMPLETE — Tier 1 engine work in progress.
 > Total: ~607 testgen packages. **Goal ordering**:
@@ -217,7 +276,7 @@ window framing, CTE/WITH materialization, ATTACH database.
 - **6c APPLICABLE (~133 pkgs)** — standard SQL tests, attempt after Tier 5:
   `auth`, `backup`, `descidx`, `exec`, `misc`, `pragma`, `readonly`, etc.
 
-## 8. Constitution & workflow (abbreviated from master plan)
+## 12. Constitution & workflow (abbreviated from master plan)
 
 - **P1**: errors never ignored · **P2**: functional surface of a test is immutable
   · **P3**: smallest fix that resolves the root cause · **P4**: verify against the real check

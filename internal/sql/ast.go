@@ -63,6 +63,7 @@ type WindowDef struct {
 
 // String returns the SQL representation of the WindowDef.
 // For a named window reference (no specs), returns just the name.
+// For an empty inline window (OVER ()), returns "()".
 // For inline specs, returns "(PARTITION BY ... ORDER BY ...)".
 func (w *WindowDef) String() string {
 	if w == nil {
@@ -70,7 +71,10 @@ func (w *WindowDef) String() string {
 	}
 	// Named window reference (no PARTITION BY/ORDER BY specs)
 	if len(w.Partitions) == 0 && len(w.OrderBy) == 0 && w.FrameSpec == "" {
-		return w.Name
+		if w.Name != "" {
+			return w.Name
+		}
+		return "()"
 	}
 	result := "("
 	// PARTITION BY
@@ -124,8 +128,9 @@ type SelectColumn struct {
 type TableRef struct {
 	Name     string
 	As       string
-	NameTok  TokenInfo // byte position of the Name token in original SQL
+	NameTok  TokenInfo   // byte position of the Name token in original SQL
 	Subquery *SelectStmt // subquery in FROM clause (optional)
+	Args     []Expr      // table-valued function arguments: FROM tablename(args)
 }
 
 // OrderByTerm represents an ORDER BY term.
@@ -297,9 +302,10 @@ func (s *DropIndexStmt) stmt() {}
 
 // CreateViewStmt represents a CREATE VIEW statement.
 type CreateViewStmt struct {
-	Name   string
+	Name    string
 	NameTok TokenInfo // byte position of the view name in original SQL
-	Select *SelectStmt
+	Columns []string  // optional declared column list: CREATE VIEW v(c0, c1) AS ...
+	Select  *SelectStmt
 }
 
 func (s *CreateViewStmt) stmt() {}

@@ -425,30 +425,52 @@ func fnSUBSTR(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
+	// SQLite substr() of a blob returns a blob. Operate on the raw bytes so
+	// the result keeps its []byte (blob) type; otherwise quote(), typeof(),
+	// and hex() would see a TEXT value with different rendering.
+	if b, ok := args[0].([]byte); ok {
+		start, length := substrBounds(len(b), args[1:])
+		if length < 0 {
+			return []byte{}, nil
+		}
+		return b[start : start+length], nil
+	}
 	s := toString(args[0])
-	start := toInt64(args[1])
+	start, length := substrBounds(len(s), args[1:])
+	if length < 0 {
+		return "", nil
+	}
+	return s[start : start+length], nil
+}
+
+// substrBounds computes the 0-based start and length for SQLite's 1-based
+// substr(X, start[, length]) semantics over a byte sequence of size n.
+// A negative length means the result is empty (start out of range or a
+// negative requested length).
+func substrBounds(n int, args []interface{}) (int64, int64) {
+	start := toInt64(args[0])
 	if start < 0 {
-		start = int64(len(s)) + start
+		start = int64(n) + start
 	} else {
 		start-- // SQLite is 1-based
 	}
 	if start < 0 {
 		start = 0
 	}
-	if int(start) >= len(s) {
-		return "", nil
+	if int(start) >= n {
+		return start, -1
 	}
-	if len(args) > 2 && args[2] != nil {
-		length := toInt64(args[2])
+	length := int64(n) - start // default: to end
+	if len(args) > 1 && args[1] != nil {
+		length = toInt64(args[1])
 		if length < 0 {
-			return "", nil
+			return start, -1
 		}
-		if int(start+length) > len(s) {
-			length = int64(len(s)) - start
+		if start+length > int64(n) {
+			length = int64(n) - start
 		}
-		return s[start : start+length], nil
 	}
-	return s[start:], nil
+	return start, length
 }
 
 func fnIFNULL(args []interface{}) (interface{}, error) {

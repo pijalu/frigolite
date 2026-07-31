@@ -9,6 +9,7 @@
 package parse
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -274,9 +275,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 82:
 		name := getString(getRHS(p, ruleNo, 5))
 		sel := getSelectStmt(getRHS(p, ruleNo, 9))
+		cols := getStringList(getRHS(p, ruleNo, 7))
 		return &sql.CreateViewStmt{
-			Name:   name,
-			Select: sel,
+			Name:    name,
+			Columns: cols,
+			Select:  sel,
 		}
 
 	// Rule 83: cmd ::= DROP VIEW ifexists fullname
@@ -378,7 +381,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		where := getExpr(getRHS(p, ruleNo, 5))
 		groupBy := getExprList(getRHS(p, ruleNo, 6))
 		having := getExpr(getRHS(p, ruleNo, 7))
-		// Skip window_clause (8) for now
+		windows := getWindowDefList(getRHS(p, ruleNo, 8))
 		orderBy := getOrderByList(getRHS(p, ruleNo, 9))
 		limit := getExpr(getRHS(p, ruleNo, 10))
 
@@ -390,6 +393,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Where:    where,
 			GroupBy:  groupBy,
 			Having:   having,
+			Windows:  windows,
 			OrderBy:  orderBy,
 			Limit:    limit,
 		}
@@ -514,6 +518,20 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 112: seltablist ::= stl_prefix nm dbnm as indexed_by on_using
 	case 112:
 		return appendSeltablistTable(p, ruleNo, 2, 3, 4, 6)
+
+	// Rule 113: seltablist ::= stl_prefix nm dbnm LP exprlist RP as on_using
+	// Table-valued function in FROM: pragma_table_info('t1').
+	case 113:
+		acc := getSeltablist(getRHS(p, ruleNo, 1))
+		tbl := getString(getRHS(p, ruleNo, 2))
+		schema := getString(getRHS(p, ruleNo, 3))
+		args := getExprList(getRHS(p, ruleNo, 5))
+		alias := getString(getRHS(p, ruleNo, 7))
+		on, using := getOnUsing(getRHS(p, ruleNo, 8))
+		if schema != "" {
+			tbl = schema + "." + tbl
+		}
+		return acc.appendTableWithOn(sql.TableRef{Name: tbl, As: alias, Args: args}, on, using)
 
 	// Rule 114: seltablist ::= stl_prefix LP select RP as on_using
 	case 114:
@@ -841,6 +859,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			if strings.EqualFold(tok.Value, "NULL") {
 				return &sql.NullLit{}
 			}
+			// Hex blob literal X'...' / x'...': decode the hex content so
+			// the value keeps its blob type instead of becoming a number.
+			if tok.Type == sql.TokenBlob {
+				return decodeBlobToken(tok.Value)
+			}
 			return &sql.NumericLit{Value: tok.Value}
 		}
 		return &sql.NullLit{}
@@ -899,7 +922,80 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		name := getString(getRHS(p, ruleNo, 1))
 		return &sql.FuncCall{
 			Name: name,
-			Args: nil, // * is represented as nil args
+			Args: []sql.Expr{&sql.ColumnRef{Name: "*"}}, // COUNT(*) — star as a column ref
+		}
+
+	// Rule 190: expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist ORDER BY sortlist RP
+	// (function call with internal ORDER BY, e.g. group_concat(x ORDER BY y))
+	case 190:
+		name := getString(getRHS(p, ruleNo, 1))
+		distinct := getBool(getRHS(p, ruleNo, 3))
+		args := getExprList(getRHS(p, ruleNo, 4))
+		orderBy := getOrderByList(getRHS(p, ruleNo, 6))
+		return &sql.FuncCall{
+			Name:     name,
+			Args:     args,
+			Distinct: distinct,
+			OrderBy:  orderBy,
+		}
+
+	// Rule 192: expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP filter_over
+	case 192:
+		name := getString(getRHS(p, ruleNo, 1))
+		distinct := getBool(getRHS(p, ruleNo, 3))
+		args := getExprList(getRHS(p, ruleNo, 4))
+		wf := getWindowFilter(getRHS(p, ruleNo, 6))
+		var over *sql.WindowDef
+		var filter sql.Expr
+		if wf != nil {
+			over = wf.over
+			filter = wf.filter
+		}
+		return &sql.FuncCall{
+			Name:     name,
+			Args:     args,
+			Distinct: distinct,
+			Filter:   filter,
+			Over:     over,
+		}
+
+	// Rule 193: expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist ORDER BY sortlist RP filter_over
+	case 193:
+		name := getString(getRHS(p, ruleNo, 1))
+		distinct := getBool(getRHS(p, ruleNo, 3))
+		args := getExprList(getRHS(p, ruleNo, 4))
+		orderBy := getOrderByList(getRHS(p, ruleNo, 6))
+		wf := getWindowFilter(getRHS(p, ruleNo, 9))
+		var over *sql.WindowDef
+		var filter sql.Expr
+		if wf != nil {
+			over = wf.over
+			filter = wf.filter
+		}
+		return &sql.FuncCall{
+			Name:     name,
+			Args:     args,
+			Distinct: distinct,
+			OrderBy:  orderBy,
+			Filter:   filter,
+			Over:     over,
+		}
+
+	// Rule 194: expr ::= ID|INDEXED|JOIN_KW LP STAR RP filter_over (window function)
+	case 194:
+		name := getString(getRHS(p, ruleNo, 1))
+		wf := getWindowFilter(getRHS(p, ruleNo, 5))
+		var over *sql.WindowDef
+		var filter sql.Expr
+		if wf != nil {
+			over = wf.over
+			filter = wf.filter
+		}
+		return &sql.FuncCall{
+			Name:   name,
+			Args:   []sql.Expr{&sql.ColumnRef{Name: "*"}}, // COUNT(*) — star as a column ref
+			Filter: filter,
+			Over:   over,
 		}
 
 	// Rule 197: expr ::= expr AND expr
@@ -1228,6 +1324,23 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Where:   where,
 		}
 
+	// Rule 242: eidlist_opt ::=
+	case 242:
+		return ([]string)(nil)
+
+	// Rule 243: eidlist_opt ::= LP eidlist RP
+	case 243:
+		return getStringList(getRHS(p, ruleNo, 2))
+
+	// Rule 244: eidlist ::= eidlist COMMA nm collate sortorder
+	case 244:
+		acc := getStringList(getRHS(p, ruleNo, 1))
+		return append(acc, getString(getRHS(p, ruleNo, 3)))
+
+	// Rule 245: eidlist ::= nm collate sortorder
+	case 245:
+		return []string{getString(getRHS(p, ruleNo, 1))}
+
 	// Rule 248: cmd ::= DROP INDEX ifexists fullname
 	case 248:
 		ifExists := getBool(getRHS(p, ruleNo, 3))
@@ -1427,9 +1540,193 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 409:
 		return nil
 
+	// Rule 318: windowdefn_list ::= windowdefn_list COMMA windowdefn
+	case 318:
+		list := getWindowDefList(getRHS(p, ruleNo, 1))
+		wd := getWindowDef(getRHS(p, ruleNo, 3))
+		if wd != nil {
+			list = append(list, *wd)
+		}
+		return list
+
+	// Rule 319: windowdefn ::= nm AS LP window RP
+	case 319:
+		name := getString(getRHS(p, ruleNo, 1))
+		inner := getWindowDef(getRHS(p, ruleNo, 4))
+		if inner != nil {
+			inner.Name = name
+			return inner
+		}
+		return &sql.WindowDef{Name: name}
+
+	// Rule 320: window ::= PARTITION BY nexprlist orderby_opt frame_opt
+	case 320:
+		return &sql.WindowDef{
+			Partitions: getExprList(getRHS(p, ruleNo, 3)),
+			OrderBy:    getOrderByList(getRHS(p, ruleNo, 4)),
+			FrameSpec:  getString(getRHS(p, ruleNo, 5)),
+		}
+
+	// Rule 321: window ::= nm PARTITION BY nexprlist orderby_opt frame_opt
+	case 321:
+		return &sql.WindowDef{
+			Name:       getString(getRHS(p, ruleNo, 1)),
+			Partitions: getExprList(getRHS(p, ruleNo, 4)),
+			OrderBy:    getOrderByList(getRHS(p, ruleNo, 5)),
+			FrameSpec:  getString(getRHS(p, ruleNo, 6)),
+		}
+
+	// Rule 322: window ::= ORDER BY sortlist frame_opt
+	case 322:
+		return &sql.WindowDef{
+			OrderBy:   getOrderByList(getRHS(p, ruleNo, 3)),
+			FrameSpec: getString(getRHS(p, ruleNo, 4)),
+		}
+
+	// Rule 323: window ::= nm ORDER BY sortlist frame_opt
+	case 323:
+		return &sql.WindowDef{
+			Name:      getString(getRHS(p, ruleNo, 1)),
+			OrderBy:   getOrderByList(getRHS(p, ruleNo, 4)),
+			FrameSpec: getString(getRHS(p, ruleNo, 5)),
+		}
+
+	// Rule 324: window ::= nm frame_opt
+	case 324:
+		return &sql.WindowDef{
+			Name:      getString(getRHS(p, ruleNo, 1)),
+			FrameSpec: getString(getRHS(p, ruleNo, 2)),
+		}
+
+	// Rule 325: frame_opt ::=
+	case 325:
+		return ""
+
+	// Rule 326: frame_opt ::= range_or_rows frame_bound_s frame_exclude_opt
+	case 326:
+		return frameSpecFromParts(
+			getString(getRHS(p, ruleNo, 1)),
+			getString(getRHS(p, ruleNo, 2)),
+			getString(getRHS(p, ruleNo, 3)),
+		)
+
+	// Rule 327: frame_opt ::= range_or_rows BETWEEN frame_bound_s AND frame_bound_e frame_exclude_opt
+	case 327:
+		spec := frameSpecFromParts(
+			getString(getRHS(p, ruleNo, 1)),
+			"BETWEEN",
+			getString(getRHS(p, ruleNo, 3)),
+			"AND",
+			getString(getRHS(p, ruleNo, 5)),
+		)
+		if excl := getString(getRHS(p, ruleNo, 6)); excl != "" {
+			spec += " " + excl
+		}
+		return spec
+
+	// Rule 328: range_or_rows ::= RANGE|ROWS|GROUPS
+	case 328:
+		return getString(getRHS(p, ruleNo, 1))
+
+	// Rule 329: frame_bound_s ::= frame_bound
+	case 329:
+		return getString(getRHS(p, ruleNo, 1))
+
+	// Rule 330: frame_bound_s ::= UNBOUNDED PRECEDING
+	case 330:
+		return "UNBOUNDED PRECEDING"
+
+	// Rule 331: frame_bound_e ::= frame_bound
+	case 331:
+		return getString(getRHS(p, ruleNo, 1))
+
+	// Rule 332: frame_bound_e ::= UNBOUNDED FOLLOWING
+	case 332:
+		return "UNBOUNDED FOLLOWING"
+
+	// Rule 333: frame_bound ::= expr PRECEDING|FOLLOWING
+	case 333:
+		expr := getExpr(getRHS(p, ruleNo, 1))
+		dir := getString(getRHS(p, ruleNo, 2))
+		return sql.ExprString(expr) + " " + dir
+
+	// Rule 334: frame_bound ::= CURRENT ROW
+	case 334:
+		return "CURRENT ROW"
+
+	// Rule 335: frame_exclude_opt ::=
+	case 335:
+		return ""
+
+	// Rule 336: frame_exclude_opt ::= EXCLUDE frame_exclude
+	case 336:
+		return "EXCLUDE " + getString(getRHS(p, ruleNo, 2))
+
+	// Rule 337: frame_exclude ::= NO OTHERS
+	case 337:
+		return "NO OTHERS"
+
+	// Rule 338: frame_exclude ::= CURRENT ROW
+	case 338:
+		return "CURRENT ROW"
+
+	// Rule 339: frame_exclude ::= GROUP|TIES
+	case 339:
+		return getString(getRHS(p, ruleNo, 1))
+
+	// Rule 340: window_clause ::= WINDOW windowdefn_list
+	case 340:
+		return getWindowDefList(getRHS(p, ruleNo, 2))
+
+	// Rule 341: filter_over ::= filter_clause over_clause
+	case 341:
+		return &windowFilter{
+			filter: getExpr(getRHS(p, ruleNo, 1)),
+			over:   getWindowDef(getRHS(p, ruleNo, 2)),
+		}
+
+	// Rule 342: filter_over ::= over_clause
+	case 342:
+		return &windowFilter{
+			over: getWindowDef(getRHS(p, ruleNo, 1)),
+		}
+
+	// Rule 343: filter_over ::= filter_clause
+	case 343:
+		return &windowFilter{
+			filter: getExpr(getRHS(p, ruleNo, 1)),
+		}
+
+	// Rule 344: over_clause ::= OVER LP window RP
+	case 344:
+		// The LALR tables fold the empty window (OVER ()) into
+		// "OVER LP frame_opt RP": rh3 is then a frame-spec string
+		// rather than a *sql.WindowDef (rule 411 never reduces for the
+		// empty case). Accept both shapes.
+		if wd := getWindowDef(getRHS(p, ruleNo, 3)); wd != nil {
+			return wd
+		}
+		return &sql.WindowDef{FrameSpec: getString(getRHS(p, ruleNo, 3))}
+
+	// Rule 345: over_clause ::= OVER nm
+	case 345:
+		return &sql.WindowDef{Name: getString(getRHS(p, ruleNo, 2))}
+
+	// Rule 346: filter_clause ::= FILTER LP WHERE expr RP
+	case 346:
+		return getExpr(getRHS(p, ruleNo, 4))
+
 	// Rule 410: windowdefn_list ::= windowdefn
 	case 410:
+		wd := getWindowDef(getRHS(p, ruleNo, 1))
+		if wd != nil {
+			return []sql.WindowDef{*wd}
+		}
 		return nil
+
+	// Rule 411: window ::= frame_opt
+	case 411:
+		return &sql.WindowDef{FrameSpec: getString(getRHS(p, ruleNo, 1))}
 
 	default:
 		// For unhandled rules, pass through the first RHS value only if the rule has RHS symbols
@@ -1441,6 +1738,25 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		return nil
 	}
+}
+
+// decodeBlobToken decodes the hex content of a blob literal token
+// (e.g., "00AB" from X'00AB') into a BlobLit. Empty and odd-length hex
+// strings are handled like the hand-written parser's decodeBlobLiteral.
+func decodeBlobToken(hexStr string) sql.Expr {
+	if len(hexStr) == 0 {
+		return &sql.BlobLit{Value: []byte{}}
+	}
+	// Allow odd-length hex strings by padding with a leading zero.
+	if len(hexStr)%2 == 1 {
+		hexStr = "0" + hexStr
+	}
+	data, err := hex.DecodeString(hexStr)
+	if err != nil {
+		// Graceful fallback for malformed hex: keep the raw content as text.
+		return &sql.StringLit{Value: "x" + hexStr}
+	}
+	return &sql.BlobLit{Value: data}
 }
 
 // --- Type-safe accessors for parser stack values ---
@@ -1798,6 +2114,63 @@ func getOrderByList(v interface{}) []sql.OrderByTerm {
 		return list
 	}
 	return nil
+}
+
+// windowFilter carries the optional FILTER expression and OVER window
+// definition produced by the filter_over grammar nonterminal. A FuncCall
+// built from a filter_over rule consumes both fields.
+type windowFilter struct {
+	filter sql.Expr
+	over   *sql.WindowDef
+}
+
+// getWindowFilter extracts a *windowFilter from a parser stack value.
+func getWindowFilter(v interface{}) *windowFilter {
+	if v == nil {
+		return nil
+	}
+	if wf, ok := v.(*windowFilter); ok {
+		return wf
+	}
+	return nil
+}
+
+// getWindowDef extracts a *sql.WindowDef from a parser stack value.
+func getWindowDef(v interface{}) *sql.WindowDef {
+	if v == nil {
+		return nil
+	}
+	if wd, ok := v.(*sql.WindowDef); ok {
+		return wd
+	}
+	return nil
+}
+
+// getWindowDefList extracts a []sql.WindowDef from a parser stack value.
+func getWindowDefList(v interface{}) []sql.WindowDef {
+	if v == nil {
+		return nil
+	}
+	if list, ok := v.([]sql.WindowDef); ok {
+		return list
+	}
+	return nil
+}
+
+// frameSpecFromParts joins frame clause parts into a single frame spec
+// string, skipping empty optional parts.
+func frameSpecFromParts(parts ...string) string {
+	var sb strings.Builder
+	for _, p := range parts {
+		if p == "" {
+			continue
+		}
+		if sb.Len() > 0 {
+			sb.WriteString(" ")
+		}
+		sb.WriteString(p)
+	}
+	return sb.String()
 }
 
 // boolLitName returns "TRUE" or "FALSE" if the expression is a boolean
