@@ -101,14 +101,19 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	// WITH-clause (CTE) merge: the LALR grammar currently drops the WITH
 	// prefix, so re-parse the input with the hand-written RD parser (which
 	// fully handles WITH ... AS (...)) and copy the CTE definitions onto the
-	// LALR-parsed statements.
-	if strings.HasPrefix(strings.TrimSpace(input), "WITH") && len(stmts) > 0 {
+	// LALR-parsed statements, matched by position. The WITH may appear on any
+	// statement in multi-statement input.
+	if len(stmts) > 0 {
 		rdParser := sql.NewParser(input)
 		rdStmts := rdParser.Parse()
 		if rdParser.Err() == nil && len(rdStmts) > 0 {
-			rdCTEs := stmtCTEs(rdStmts[0])
-			if len(rdCTEs) > 0 {
-				setStmtCTEs(stmts[0], rdCTEs)
+			for i := range stmts {
+				if i < len(rdStmts) {
+					rdCTEs := stmtCTEs(rdStmts[i])
+					if len(rdCTEs) > 0 {
+						setStmtCTEs(stmts[i], rdCTEs)
+					}
+				}
 			}
 		}
 	}

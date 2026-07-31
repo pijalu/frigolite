@@ -809,7 +809,6 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	currentRows := anchorResult.Rows
 	recursiveSelect := cte.Select.Union
 	maxIter := 100 // safety limit to prevent infinite loops
-
 	for iter := 0; iter < maxIter; iter++ {
 		var newRows [][]interface{}
 		for _, row := range currentRows {
