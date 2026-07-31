@@ -134,7 +134,7 @@ func Test_reindex(t *testing.T) {
 		}
 	}
 	{ // do_test "reindex-2.5.1"
-		("ok" == "execsql {PRAGMA integrity_check}")
+		_ = ("ok" == tclExecSQL(db, "{PRAGMA integrity_check}"))
 	}
 	{ // do_test "reindex-2.6"
 		r = db.Query("\n    REINDEX c2;\n    SELECT a FROM t2 ORDER BY a;\n  ")

@@ -41,6 +41,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
@@ -907,6 +908,12 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		}
 		return `""`
 
+	case "execsql", "execsql2":
+		// [execsql {SQL}] — execute SQL and return the joined result values
+		// as a space-separated string (for string-equal comparisons in tests).
+		sqlText := strings.TrimSpace(cmdText[len(cmdName):])
+		return fmt.Sprintf("tclExecSQL(db, %q)", strings.TrimSpace(sqlText))
+
 	default:
 		return fmt.Sprintf("%q", cmdText)
 	}
@@ -916,6 +923,20 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 func sanitizeTCLComment(s string) string {
 	s = strings.ReplaceAll(s, "\n", "\\n")
 	s = strings.ReplaceAll(s, "\r", "\\r")
+	// Strip bytes that are not valid UTF-8 so the emitted Go comment compiles
+	// (raw multi-byte sequences in TCL strings break the Go source).
+	var b strings.Builder
+	for i := 0; i < len(s); {
+		r, size := utf8.DecodeRuneInString(s[i:])
+		if r == utf8.RuneError && size == 1 {
+			b.WriteByte('?')
+			i++
+			continue
+		}
+		b.WriteRune(r)
+		i += size
+	}
+	s = b.String()
 	if len(s) > 80 {
 		s = s[:80] + "..."
 	}
@@ -1099,7 +1120,7 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		}
 		// Unsupported command — emit as comment to avoid test failures
 		if len(args) > 0 {
-			tp.emitLine("// %s %s (unsupported command, not transpiled)", cmdName, describeArgsShort(args))
+			tp.emitLine("// %s %s (unsupported command, not transpiled)", cmdName, sanitizeTCLComment(describeArgsShort(args)))
 		} else {
 			tp.emitLine("// %s (unsupported command, not transpiled)", cmdName)
 		}
@@ -1831,10 +1852,23 @@ func (tp *transpiler) buildCondExpr(cond string) string {
 	rightIsStr := (strings.HasPrefix(right, `"`) && strings.HasSuffix(right, `"`)) ||
 		(strings.HasPrefix(right, "'") && strings.HasSuffix(right, "'"))
 
-	if leftIsStr || rightIsStr {
+	// Braced TCL list operands (e.g. {0 {}}) are string values, not numeric.
+	// Treat them as string comparisons so the RHS becomes a Go quoted literal
+	// instead of invalid Go (e.g. `c == {0 {} }`).
+	leftHasBrace := strings.ContainsAny(left, "{}")
+	rightHasBrace := strings.ContainsAny(right, "{}")
+
+	if leftIsStr || rightIsStr || leftHasBrace || rightHasBrace {
 		// String comparison: replace $var refs with Go variable names directly.
 		leftGo := replaceVarRefsRaw(left)
 		rightGo := replaceVarRefsRaw(right)
+		// Braced lists: convert to a Go quoted string.
+		if leftHasBrace {
+			leftGo = fmt.Sprintf("%q", strings.TrimSpace(strings.Trim(left, "{}")))
+		}
+		if rightHasBrace {
+			rightGo = fmt.Sprintf("%q", strings.TrimSpace(strings.Trim(right, "{}")))
+		}
 		return fmt.Sprintf("%s %s %s", leftGo, op, rightGo)
 	}
 
@@ -2624,7 +2658,9 @@ func (tp *transpiler) processStringCmd(args []tcl.RawWord) {
 		if len(args) >= 3 {
 			a := tp.goStringLiteral(args[1])
 			b := tp.goStringLiteral(args[2])
-			tp.emitLine("(%s == %s)", a, b)
+			// Assign to a throwaway var so the comparison is not an unused
+			// bare expression statement (Go forbids bare bool expressions).
+			tp.emitLine("_ = (%s == %s)", a, b)
 		}
 	case "first":
 		if len(args) >= 3 {

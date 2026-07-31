@@ -527,7 +527,7 @@ func Test_shell1(t *testing.T) {
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "shell1-3.21.5"
-		// exec {*} $CLI -noinit test.db {CREATE TABLE t2(a INTEGER PRIMARY KEY, b BLOB DEFA...} {.schema -indent t2} (unsupported command, not transpiled)
+		// exec {*} $CLI -noinit test.db {CREATE TABLE t2(a INTEGER PRIMARY KEY, b BLOB DEFA...}... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.21.6"
 		// exec {*} $CLI -noinit test.db {DROP TABLE t2;} {.schema -indent t2} (unsupported command, not transpiled)
@@ -879,7 +879,7 @@ func Test_shell1(t *testing.T) {
 			if code != "0" {
 				t.Errorf("TCL error: %s", "failed with error: " + res)
 			}
-			if res != "CREATE TABLE test(x);" {
+			if res != "\"CREATE TABLE ${test}(x);\"" {
 				t.Errorf("TCL error: %s", "failed with mismatch: " + res)
 			}
 			os.Remove("test3.db")
@@ -916,15 +916,15 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-8.1"
 		// catchcmd :memory: {.mode batch\n    -- The pow2 table will hold all t...} (unsupported command, not transpiled)
 	}
-	// do_test_with_ansi_output shell1-8.2 {\n  catchcmd :memory: {\n.mode box\nSELECT ieee754...} {0 {╭──────────────�...} (unsupported command, not transpiled)
-	// do_test_with_ansi_output shell1-8.3 {\n  catchcmd ":memory: --box" {\n    select ieee75...} {0 {╭───────╮\n│   x   │\n╞...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shell1-8.2 {\n  catchcmd :memory: {\n.mode box\nSELECT ieee754...} {0 {╭──... (unsupported command, not transpiled)
+	// do_test_with_ansi_output shell1-8.3 {\n  catchcmd ":memory: --box" {\n    select ieee75...} {0 {╭──... (unsupported command, not transpiled)
 	{ // do_test "shell1-8.4"
 		// catchcmd :memory: --table {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-8.4b"
 		// catchcmd :memory: --psql {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...} (unsupported command, not transpiled)
 	}
-	// do_test_with_ansi_output shell1-8.5 {\n  catchcmd ":memory: --box" {\ncreate table t(a ...} {0 {╭────────────┬─�...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shell1-8.5 {\n  catchcmd ":memory: --box" {\ncreate table t(a ...} {0 {╭──... (unsupported command, not transpiled)
 	{ // do_test "shell1-9.1"
 		// catchcmd :memory: {\n.mode csv --rowsep "\n"\n/*\nx */ select 1,2; --...} (unsupported command, not transpiled)
 	}

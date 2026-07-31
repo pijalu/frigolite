@@ -485,6 +485,22 @@ func tclExpr(expr string) string {
 	return expr
 }
 
+// tclExecSQL executes a SQL statement and returns the joined result values as a
+// space-separated string (used by [execsql ...] in string comparisons).
+func tclExecSQL(db *frigolite.DB, sql string) string {
+	r := db.Query(sql)
+	if r.Error != nil {
+		return r.Error.Error()
+	}
+	var parts []string
+	for _, row := range r.Rows {
+		for _, v := range row {
+			parts = append(parts, fmt.Sprintf("%%v", v))
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
 // tclExprWith evaluates a TCL expression with $var values supplied at runtime.
 // The expr string may contain $name references; vars maps each name to its
 // current Go string value. Used by [expr $var + ...] calls where the variable

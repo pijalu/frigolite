@@ -87,7 +87,7 @@ func Test_crash(t *testing.T) {
 		seed = "0"
 		_ = seed // suppress unused warning
 		{ // do_test "crash-1.2." + i
-			// crashsql -delay 1 -file test.db-journal -seed $seed {\n      DELETE FROM abc WHERE a = 1;\n    } (unsupported command, not transpiled)
+			// crashsql -delay 1 -file test.db-journal -seed $seed {\n      DELETE FROM abc WHERE a = 1;... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash-1.3." + i
 			// signature (unsupported command, not transpiled)
@@ -135,9 +135,9 @@ func Test_crash(t *testing.T) {
 		n = "0"
 		_ = n // suppress unused warning
 		for func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n < 1000 }() {
-			_res = db.Exec("INSERT INTO abc VALUES(" + n + ", " + tclExpr("2*$n") + ", " + tclExpr("3*$n") + ")")
+			_res = db.Exec("INSERT INTO abc VALUES(" + n + ", " + tclExprWith("2*$n", map[string]string{"n": n}) + ", " + tclExprWith("3*$n", map[string]string{"n": n}) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO abc VALUES(" + n + ", " + tclExpr("2*$n") + ", " + tclExpr("3*$n") + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO abc VALUES(" + n + ", " + tclExprWith("2*$n", map[string]string{"n": n}) + ", " + tclExprWith("3*$n", map[string]string{"n": n}) + ")")
 			}
 			// incr n 1
 			{
@@ -188,7 +188,7 @@ func Test_crash(t *testing.T) {
 		{ // do_test "crash-3." + i + ".1"
 			seed = "0"
 			_ = seed // suppress unused warning
-			// crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed \n       BEGIN;\n       SELECT random() FROM abc L... (unsupported command, not transpiled)
+			// crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed \n       BEGIN;\n      ... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash-3." + i + ".2"
 			// signature (unsupported command, not transpiled)
@@ -224,7 +224,7 @@ func Test_crash(t *testing.T) {
 		{ // do_test "crash-4.1." + i + ".1"
 			c = "crashsql -delay $i -file test.db-journal -seed $::seed \"\n         ATTACH 'test2.db' AS aux;\n         BEGIN;\n         SELECT randstr($i,$i) FROM abc LIMIT $i;\n         INSERT INTO abc VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc WHERE random()%10!=0;\n         INSERT INTO abc2 VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc2 WHERE random()%10!=0;\n         COMMIT;\n       \""
 			_ = c // suppress unused warning
-			if func() bool { c_n, _c_e := strconv.Atoi(c); if _c_e != nil { return false }; return c_n == {0 {} }() {
+			if c == "0" {
 				fin = "1" // TCL namespace variable
 				_ = fin // suppress unused warning
 				c = "1 {child process exited abnormally}"
@@ -263,7 +263,7 @@ func Test_crash(t *testing.T) {
 		{ // do_test "crash-4.2." + i + ".1"
 			c = "crashsql -delay $i -file test2.db-journal -seed $::seed \"\n         ATTACH 'test2.db' AS aux;\n         BEGIN;\n         SELECT randstr($i,$i) FROM abc LIMIT $i;\n         INSERT INTO abc VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc WHERE random()%10!=0;\n         INSERT INTO abc2 VALUES(randstr(10,10), 0, 0);\n         DELETE FROM abc2 WHERE random()%10!=0;\n         COMMIT;\n       \""
 			_ = c // suppress unused warning
-			if func() bool { c_n, _c_e := strconv.Atoi(c); if _c_e != nil { return false }; return c_n == {0 {} }() {
+			if c == "0" {
 				fin = "1" // TCL namespace variable
 				_ = fin // suppress unused warning
 				c = "1 {child process exited abnormally}"
@@ -319,7 +319,7 @@ func Test_crash(t *testing.T) {
 	sig = "signature"
 	_ = sig // suppress unused warning
 	{ // do_test "crash-5.3"
-		// crashsql -delay 1 -file test.db-journal {\n    BEGIN;                                      ...} (unsupported command, not transpiled)
+		// crashsql -delay 1 -file test.db-journal {\n    BEGIN;                                    ... (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
