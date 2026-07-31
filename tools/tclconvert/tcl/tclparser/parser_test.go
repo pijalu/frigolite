@@ -65,9 +65,17 @@ func TestParseCommandsBasic(t *testing.T) {
 			expected: [][]RawWord{{{Text: "set"}, {Text: "name"}, {Text: "John Doe", Braced: true}}},
 		},
 		{
-			name:     "backslash continuation",
+			name:     "backslash continuation inside bare word",
 			input:    "a\\\nb",
-			expected: [][]RawWord{{{Text: "ab"}}},
+			// The hand-written parser preserves backslash-newline as literal
+			// text inside a bare word (it is only treated as a line
+			// continuation at the top level, between words).
+			expected: [][]RawWord{{{Text: "a\\\nb"}}},
+		},
+		{
+			name:     "backslash continuation between words",
+			input:    "set a \\\nb",
+			expected: [][]RawWord{{{Text: "set"}, {Text: "a"}, {Text: "b"}}},
 		},
 		{
 			name:     "bracket command substitution in bare word",

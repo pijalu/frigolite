@@ -6,7 +6,7 @@
 //
 // tcl2go is a TRANSPILER (not an interpreter). It:
 //  1. Reads a .test TCL file
-//  2. Parses TCL commands using tcl.ParseCommands() from tools/tclconvert/tcl/
+//  2. Parses TCL commands using parseCommands() from tools/tclconvert/tcl/
 //  3. Walks the parsed command tree and emits Go source code directly
 //
 // No TCL execution happens at generation time. All TCL control flow constructs
@@ -51,7 +51,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	outFile := fmt.Sprintf("testgen/%s/%s_test.go", pkg, base)
 
 	// Parse TCL into commands
-	cmds := tcl.ParseCommands(src)
+	cmds := parseCommands(src)
 
 	// Build the Go source body first (to detect used imports)
 	var body strings.Builder
@@ -268,7 +268,7 @@ func collectSqlite3Targets(cmds [][]tcl.RawWord) map[string]bool {
 		// Recurse into braced sub-bodies
 		for i := 1; i < len(cmd); i++ {
 			if cmd[i].Braced && len(cmd[i].Text) > 10 {
-				parsed := tcl.ParseCommands(cmd[i].Text)
+				parsed := parseCommands(cmd[i].Text)
 				if len(parsed) > 0 {
 					for k, v := range collectSqlite3Targets(parsed) {
 						result[k] = v
@@ -306,23 +306,23 @@ func collectSetVars(cmds [][]tcl.RawWord) []string {
 			}
 			// Recurse into body (cmd[3])
 			if len(cmd) >= 4 && cmd[3].Braced {
-				names = append(names, collectSetVars(tcl.ParseCommands(cmd[3].Text))...)
+				names = append(names, collectSetVars(parseCommands(cmd[3].Text))...)
 			}
 		case "for":
 			// cmd[1] is init body, cmd[4] is loop body
 			if len(cmd) >= 2 && cmd[1].Braced {
-				names = append(names, collectSetVars(tcl.ParseCommands(cmd[1].Text))...)
+				names = append(names, collectSetVars(parseCommands(cmd[1].Text))...)
 			}
 			if len(cmd) >= 5 && cmd[4].Braced {
-				names = append(names, collectSetVars(tcl.ParseCommands(cmd[4].Text))...)
+				names = append(names, collectSetVars(parseCommands(cmd[4].Text))...)
 			}
 			// Also process next (cmd[3])
 			if len(cmd) >= 4 && cmd[3].Braced {
-				names = append(names, collectSetVars(tcl.ParseCommands(cmd[3].Text))...)
+				names = append(names, collectSetVars(parseCommands(cmd[3].Text))...)
 			}
 		case "while":
 			if len(cmd) >= 3 && cmd[2].Braced {
-				names = append(names, collectSetVars(tcl.ParseCommands(cmd[2].Text))...)
+				names = append(names, collectSetVars(parseCommands(cmd[2].Text))...)
 			}
 		case "if":
 			// Walk if/elseif/else blocks
@@ -330,7 +330,7 @@ func collectSetVars(cmds [][]tcl.RawWord) []string {
 				if cmd[i].Braced && len(cmd[i].Text) > 0 {
 					// Check if this looks like a body (not a condition)
 					// Heuristic: bodies are after conditions and keywords
-					parsed := tcl.ParseCommands(cmd[i].Text)
+					parsed := parseCommands(cmd[i].Text)
 					if parsed != nil {
 						names = append(names, collectSetVars(parsed)...)
 					}
@@ -339,11 +339,11 @@ func collectSetVars(cmds [][]tcl.RawWord) []string {
 		case "do_test", "do_execsql_test", "do_catchsql_test", "do_eqp_test",
 			"do_timed_execsql_test", "do_execsql2_test":
 			if len(cmd) >= 3 && cmd[2].Braced {
-				names = append(names, collectSetVars(tcl.ParseCommands(cmd[2].Text))...)
+				names = append(names, collectSetVars(parseCommands(cmd[2].Text))...)
 			}
 		case "catch":
 			if len(cmd) >= 2 && cmd[1].Braced {
-				names = append(names, collectSetVars(tcl.ParseCommands(cmd[1].Text))...)
+				names = append(names, collectSetVars(parseCommands(cmd[1].Text))...)
 			}
 			if len(cmd) >= 3 {
 				names = append(names, cmd[2].Text) // catch error variable
@@ -351,7 +351,7 @@ func collectSetVars(cmds [][]tcl.RawWord) []string {
 		case "db":
 			// db transaction {body} — recurse
 			if len(cmd) >= 3 && cmd[1].Text == "transaction" && cmd[2].Braced {
-				names = append(names, collectSetVars(tcl.ParseCommands(cmd[2].Text))...)
+				names = append(names, collectSetVars(parseCommands(cmd[2].Text))...)
 			}
 		default:
 			// For any other command, try to find braced sub-bodies
@@ -359,7 +359,7 @@ func collectSetVars(cmds [][]tcl.RawWord) []string {
 				if cmd[i].Braced && len(cmd[i].Text) > 10 {
 					// Heuristic: only recurse if the body contains TCL commands
 					if strings.Contains(cmd[i].Text, "\n") || strings.Contains(cmd[i].Text, "set ") {
-						parsed := tcl.ParseCommands(cmd[i].Text)
+						parsed := parseCommands(cmd[i].Text)
 						if len(parsed) > 0 {
 							names = append(names, collectSetVars(parsed)...)
 						}
@@ -1348,7 +1348,7 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 		}
 	case "transaction":
 		if len(rest) > 0 && rest[0].Braced {
-			bodyCmds := tcl.ParseCommands(rest[0].Text)
+			bodyCmds := parseCommands(rest[0].Text)
 			bodyTP := &transpiler{
 				sb:       tp.sb,
 				indent:   tp.indent,
@@ -1395,7 +1395,7 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 		tp.emitLine("// %s.Changes() (not directly supported)", goName)
 	case "transaction":
 		if len(rest) > 0 && rest[0].Braced {
-			bodyCmds := tcl.ParseCommands(rest[0].Text)
+			bodyCmds := parseCommands(rest[0].Text)
 			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: goName, t: tp.t, varCount: tp.varCount, vars: tp.vars, forIncrs: tp.forIncrs}
 			bodyTP.processCommands(bodyCmds)
 			tp.varCount = bodyTP.varCount
@@ -1517,7 +1517,7 @@ func (tp *transpiler) parseVarList(w tcl.RawWord) []string {
 
 func (tp *transpiler) parseBracedBody(args []tcl.RawWord, idx int) [][]tcl.RawWord {
 	if idx < len(args) && args[idx].Braced && len(args[idx].Text) > 0 {
-		return tcl.ParseCommands(args[idx].Text)
+		return parseCommands(args[idx].Text)
 	}
 	return nil
 }
@@ -1543,10 +1543,10 @@ func (tp *transpiler) processForCommand(args []tcl.RawWord) {
 	if len(args) < 4 {
 		return
 	}
-	initCmds := tcl.ParseCommands(args[0].Text)
+	initCmds := parseCommands(args[0].Text)
 	cond := args[1].Text
-	nextCmds := tcl.ParseCommands(args[2].Text)
-	bodyCmds := tcl.ParseCommands(args[3].Text)
+	nextCmds := parseCommands(args[2].Text)
+	bodyCmds := parseCommands(args[3].Text)
 
 	for _, c := range initCmds {
 		tp.processCommand(c)
@@ -2251,7 +2251,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 							tp.indent++
 							tp.emitLine("var _catchErr error")
 							// Parse and transpile the body
-							bodyCmds := tcl.ParseCommands(bodyStr)
+							bodyCmds := parseCommands(bodyStr)
 							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs}
 							bodyTP.processCommands(bodyCmds)
 							tp.indent = bodyTP.indent
@@ -2294,7 +2294,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 					depth--
 					if depth == 0 && bodyStart >= 0 {
 						bodyStr := cmdText[bodyStart:i]
-						bodyCmds := tcl.ParseCommands(bodyStr)
+						bodyCmds := parseCommands(bodyStr)
 						bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs}
 						bodyTP.processCommands(bodyCmds)
 						tp.indent = bodyTP.indent
@@ -2764,7 +2764,7 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 	}
 	// Parse the script and execute its commands
 	if args[0].Braced {
-		bodyCmds := tcl.ParseCommands(args[0].Text)
+		bodyCmds := parseCommands(args[0].Text)
 		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs}
 		bodyTP.processCommands(bodyCmds)
 		tp.indent = bodyTP.indent

@@ -131,16 +131,10 @@ func (l *tclLexer) readBareWord() (int, interface{}) {
 	for l.pos < len(l.src) {
 		c := l.src[l.pos]
 		if c == '\\' {
-			n := 1
-			for l.pos+n < len(l.src) && (l.src[l.pos+n] == '\r' || l.src[l.pos+n] == '\n') {
-				n++
-			}
-			if n > 1 {
-				// Backslash continuation: skip backslash and following newlines
-				l.pos += n
-				continue
-			}
-			// Regular backslash escape: include both backslash and next char
+			// Backslash escape: include both backslash and next char as
+			// literal word text (matches hand-written parser). Note: unlike
+			// the top-level lexer loop, a backslash-newline inside a word is
+			// preserved, not treated as a line continuation.
 			wordBuf = append(wordBuf, c)
 			l.pos++
 			if l.pos < len(l.src) {
