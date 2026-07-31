@@ -283,7 +283,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 92:
 		distinct := getBool(getRHS(p, ruleNo, 2))
 		cols := getSelectColumns(getRHS(p, ruleNo, 3))
-		from := getTableRef(getRHS(p, ruleNo, 4))
+		from, joins := fromValue(getRHS(p, ruleNo, 4))
 		where := getExpr(getRHS(p, ruleNo, 5))
 		groupBy := getExprList(getRHS(p, ruleNo, 6))
 		having := getExpr(getRHS(p, ruleNo, 7))
@@ -294,6 +294,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Distinct: distinct,
 			Columns:  cols,
 			From:     from,
+			Joins:    joins,
 			Where:    where,
 			GroupBy:  groupBy,
 			Having:   having,
@@ -306,7 +307,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		// Same as 92 but with window_clause before orderby_opt
 		distinct := getBool(getRHS(p, ruleNo, 2))
 		cols := getSelectColumns(getRHS(p, ruleNo, 3))
-		from := getTableRef(getRHS(p, ruleNo, 4))
+		from, joins := fromValue(getRHS(p, ruleNo, 4))
 		where := getExpr(getRHS(p, ruleNo, 5))
 		groupBy := getExprList(getRHS(p, ruleNo, 6))
 		having := getExpr(getRHS(p, ruleNo, 7))
@@ -318,6 +319,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Distinct: distinct,
 			Columns:  cols,
 			From:     from,
+			Joins:    joins,
 			Where:    where,
 			GroupBy:  groupBy,
 			Having:   having,
@@ -424,31 +426,53 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 108:
 		return getRHS(p, ruleNo, 2)
 
+	// Rule 109: stl_prefix ::= seltablist joinop
+	// Combine the accumulated seltablist with the join operator that follows.
+	// The joinop (COMMA or JOIN) marks how the NEXT table will be joined.
+	case 109:
+		acc := getSeltablist(getRHS(p, ruleNo, 1))
+		op := getJoinOp(getRHS(p, ruleNo, 2))
+		acc.PendingOp = op
+		return acc
+
+	// Rule 110: stl_prefix ::=
+	case 110:
+		return &seltablistAcc{}
+
 	// Rule 111: seltablist ::= stl_prefix nm dbnm as on_using
 	case 111:
-		tbl := getString(getRHS(p, ruleNo, 2))
-		schema := getString(getRHS(p, ruleNo, 3))
-		alias := getString(getRHS(p, ruleNo, 4))
-		if schema != "" {
-			tbl = schema + "." + tbl
-		}
-		return sql.TableRef{Name: tbl, As: alias}
+		return appendSeltablistTable(p, ruleNo, 2, 3, 4)
 
 	// Rule 112: seltablist ::= stl_prefix nm dbnm as indexed_by on_using
 	case 112:
-		tbl := getString(getRHS(p, ruleNo, 2))
-		schema := getString(getRHS(p, ruleNo, 3))
-		alias := getString(getRHS(p, ruleNo, 4))
-		if schema != "" {
-			tbl = schema + "." + tbl
-		}
-		return sql.TableRef{Name: tbl, As: alias}
+		return appendSeltablistTable(p, ruleNo, 2, 3, 4)
 
 	// Rule 114: seltablist ::= stl_prefix LP select RP as on_using
 	case 114:
+		acc := getSeltablist(getRHS(p, ruleNo, 1))
 		sel := getSelectStmt(getRHS(p, ruleNo, 3))
 		alias := getString(getRHS(p, ruleNo, 5))
-		return sql.TableRef{Subquery: sel, As: alias}
+		ref := sql.TableRef{Subquery: sel, As: alias}
+		return acc.appendTable(ref)
+
+	// Rule 115: seltablist ::= stl_prefix LP seltablist RP as on_using
+	// Parenthesized table list: FROM (t1) or FROM (t1, t2).
+	// The inner seltablist is a single table (or the first of a comma list);
+	// for a bare parenthesized name we use that name as the table ref.
+	case 115:
+		acc := getSeltablist(getRHS(p, ruleNo, 1))
+		inner := getSeltablist(getRHS(p, ruleNo, 3))
+		alias := getString(getRHS(p, ruleNo, 5))
+		ref := inner.firstTable()
+		if alias != "" {
+			ref.As = alias
+		}
+		// A parenthesized comma list (t1, t2) contributes its joins.
+		acc = acc.appendTable(ref)
+		for _, j := range inner.Joins {
+			acc = acc.appendJoin(j)
+		}
+		return acc
 
 	// Rule 116: dbnm ::=
 	case 116:
@@ -457,6 +481,38 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 117: dbnm ::= DOT nm
 	case 117:
 		return getString(getRHS(p, ruleNo, 2))
+
+	// Rule 124: joinop ::= COMMA|JOIN
+	case 124:
+		return joinOp{Comma: true}
+
+	// Rule 122: joinop ::= JOIN_KW JOIN
+	case 122:
+		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1))}
+
+	// Rule 123: joinop ::= JOIN_KW nm JOIN
+	case 123:
+		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1))}
+
+	// Rule 125: joinop ::= JOIN_KW OUTER JOIN
+	case 125:
+		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1)), Outer: true}
+
+	// Rule 126: joinop ::= JOIN_KW nm OUTER JOIN
+	case 126:
+		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1)), Outer: true}
+
+	// Rule 127: joinop ::= JOIN_KW nm OUTER JOIN
+	case 127:
+		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1)), Outer: true}
+
+	// Rule 128: joinop ::= JOIN_KW nm JOIN
+	case 128:
+		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1))}
+
+	// Rule 129: joinop ::= JOIN_KW nm nm JOIN
+	case 129:
+		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1))}
 
 	// Rule 130: on_using ::=
 	case 130:
@@ -1303,6 +1359,135 @@ func getTableRef(v interface{}) sql.TableRef {
 		return t
 	}
 	return sql.TableRef{}
+}
+
+// seltablistAcc accumulates the FROM clause during seltablist reductions.
+// It carries the first table and the list of joins (comma or explicit).
+type seltablistAcc struct {
+	First     sql.TableRef
+	HasFirst  bool
+	Joins     []sql.JoinClause
+	PendingOp joinOp // join operator waiting for the next table
+}
+
+// joinOp describes a join operator between two tables.
+type joinOp struct {
+	Kind  string // "LEFT", "RIGHT", "INNER", "CROSS", "NATURAL", ""
+	Outer bool   // "LEFT OUTER JOIN" etc.
+	Comma bool   // comma join (FROM a, b)
+}
+
+// appendTable adds a table to the accumulator. If a join operator is pending,
+// the new table becomes a JoinClause; otherwise it becomes the first table.
+func (a *seltablistAcc) appendTable(ref sql.TableRef) *seltablistAcc {
+	if !a.HasFirst {
+		a.First = ref
+		a.HasFirst = true
+		return a
+	}
+	jc := sql.JoinClause{Table: ref, CommaJoin: a.PendingOp.Comma}
+	switch a.PendingOp.Kind {
+	case "LEFT":
+		jc.JoinType = "LEFT"
+	case "RIGHT":
+		jc.JoinType = "RIGHT"
+	case "FULL":
+		jc.JoinType = "FULL"
+	case "INNER":
+		jc.JoinType = "INNER"
+	case "CROSS":
+		jc.JoinType = "CROSS"
+	case "NATURAL":
+		jc.JoinType = "NATURAL"
+	default:
+		jc.JoinType = "CROSS"
+	}
+	a.Joins = append(a.Joins, jc)
+	a.PendingOp = joinOp{}
+	return a
+}
+
+// appendJoin appends a pre-built JoinClause (used by parenthesized lists).
+func (a *seltablistAcc) appendJoin(j sql.JoinClause) *seltablistAcc {
+	a.Joins = append(a.Joins, j)
+	return a
+}
+
+// firstTable returns the first table ref, or an empty one.
+func (a *seltablistAcc) firstTable() sql.TableRef {
+	if a == nil || !a.HasFirst {
+		return sql.TableRef{}
+	}
+	return a.First
+}
+
+// appendSeltablistTable handles seltablist ::= stl_prefix nm dbnm as ... rules.
+// posName/posSchema/posAlias are the 1-based RHS positions of the table name,
+// schema (dbnm), and alias.
+func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias int) *seltablistAcc {
+	acc := getSeltablist(getRHS(p, ruleNo, 1))
+	tbl := getString(getRHS(p, ruleNo, posName))
+	schema := getString(getRHS(p, ruleNo, posSchema))
+	alias := getString(getRHS(p, ruleNo, posAlias))
+	if schema != "" {
+		tbl = schema + "." + tbl
+	}
+	return acc.appendTable(sql.TableRef{Name: tbl, As: alias})
+}
+
+// getSeltablist extracts a seltablistAcc from a stack value, creating an empty
+// one if the value is a plain TableRef (backward compat for rules that return
+// TableRef directly).
+func getSeltablist(v interface{}) *seltablistAcc {
+	switch t := v.(type) {
+	case *seltablistAcc:
+		return t
+	case sql.TableRef:
+		return &seltablistAcc{First: t, HasFirst: true}
+	default:
+		return &seltablistAcc{}
+	}
+}
+
+// getJoinOp extracts a joinOp from a stack value.
+func getJoinOp(v interface{}) joinOp {
+	if op, ok := v.(joinOp); ok {
+		return op
+	}
+	return joinOp{}
+}
+
+// joinKind maps a JOIN_KW token value to a join type keyword.
+func joinKind(v interface{}) string {
+	s := getString(v)
+	switch strings.ToUpper(s) {
+	case "LEFT":
+		return "LEFT"
+	case "RIGHT":
+		return "RIGHT"
+	case "FULL":
+		return "FULL"
+	case "INNER":
+		return "INNER"
+	case "CROSS":
+		return "CROSS"
+	case "NATURAL":
+		return "NATURAL"
+	default:
+		return ""
+	}
+}
+
+// fromValue extracts the From TableRef and Joins list from a `from` nonterminal
+// value. The value is either a TableRef (old path) or a seltablistAcc.
+func fromValue(v interface{}) (sql.TableRef, []sql.JoinClause) {
+	if acc, ok := v.(*seltablistAcc); ok {
+		return acc.First, acc.Joins
+	}
+	if t, ok := v.(sql.TableRef); ok {
+		return t, nil
+	}
+	return sql.TableRef{}, nil
 }
 
 func getExprList(v interface{}) []sql.Expr {

@@ -37,6 +37,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -550,6 +551,47 @@ func (tp *transpiler) goStringLiteral(w tcl.RawWord) string {
 	return tp.buildStringExpr(w.Text)
 }
 
+// tclExprToGo converts a TCL expression string into a form the runtime tclExpr
+// helper can evaluate. It returns the list of $var names referenced (in order)
+// and the transformed expression string.
+//
+// Transformations:
+//   - $name references are left in place (the runtime helper substitutes them
+//     from a provided map).
+//   - TCL int(rand()*N) is replaced with a deterministic constant so generated
+//     tests are reproducible (the same value is used by both the query and the
+//     expected answer since they share the same Go variable).
+func tclExprToGo(expr string, vars []string) ([]string, string) {
+	s := expr
+	var names []string
+	seen := make(map[string]bool)
+	searchFrom := 0
+	for {
+		i := strings.Index(s[searchFrom:], "$")
+		if i < 0 {
+			break
+		}
+		i += searchFrom
+		j := i + 1
+		for j < len(s) && isVarChar(s[j]) {
+			j++
+		}
+		if j == i+1 {
+			break
+		}
+		name := s[i+1 : j]
+		if !seen[name] {
+			seen[name] = true
+			names = append(names, name)
+		}
+		searchFrom = j
+	}
+	// Replace TCL rand usage with a deterministic value.
+	re := regexp.MustCompile(`int\(\s*rand\(\)\s*\*\s*([0-9]+)\s*\)`)
+	s = re.ReplaceAllString(s, "0")
+	return names, s
+}
+
 // buildStringExpr converts TCL text (with possible $var and [cmd] refs)
 // into a Go string expression (a concatenation of literals, variables,
 // and function calls).
@@ -734,7 +776,17 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		if res, err := tcl.EvalExpr(exprStr, nil, nil); err == nil {
 			return fmt.Sprintf("%q", res)
 		}
-		return fmt.Sprintf("tclExpr(%q)", exprStr)
+		// Runtime evaluation: substitute $var references with the Go variable
+		// values via a side map, and convert common TCL math functions to Go.
+		exprVarNames, exprGo := tclExprToGo(exprStr, tp.vars)
+		if len(exprVarNames) == 0 {
+			return fmt.Sprintf("tclExpr(%q)", exprGo)
+		}
+		var parts []string
+		for _, name := range exprVarNames {
+			parts = append(parts, fmt.Sprintf("%q: %s", name, tclVarToGo(name)))
+		}
+		return fmt.Sprintf("tclExprWith(%q, map[string]string{%s})", exprGo, strings.Join(parts, ", "))
 
 	case "subst":
 		content := strings.TrimSpace(cmdText[len("subst"):])
@@ -840,6 +892,19 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 	case "sqlite3_open", "sqlite3_open16", "sqlite3_open_v2",
 		"sqlite3_open_new", "sqlite3_open_old":
 		// sqlite3_open returns a handle — represent as empty string placeholder
+		return `""`
+
+	case "join":
+		// [join list sep] — TCL list join. The list is a TCL variable built
+		// at Go runtime (e.g. by lappend), so emit strings.Join(tclSplitList).
+		if len(args) >= 1 {
+			listExpr := tp.buildStringExpr(args[0])
+			sep := `" "`
+			if len(args) >= 2 {
+				sep = tp.buildStringExpr(args[1])
+			}
+			return fmt.Sprintf("strings.Join(tclSplitList(%s), %s)", listExpr, sep)
+		}
 		return `""`
 
 	default:
@@ -2181,18 +2246,26 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 				exprStr = exprStr[1 : len(exprStr)-1]
 			}
 			result, err := tcl.EvalExpr(exprStr, nil, nil)
-			if tp.isVarDeclared(goName) {
-				if err == nil {
-					tp.emitLine("%s = %q", goName, result)
-				} else {
-					tp.emitLine("%s = tclExpr(%q)", goName, exprStr)
-				}
+			valExpr := ""
+			if err == nil {
+				valExpr = fmt.Sprintf("%q", result)
 			} else {
-				if err == nil {
-					tp.emitLine("var %s = %q", goName, result)
+				// Runtime evaluation with live $var values.
+				exprVarNames, exprGo := tclExprToGo(exprStr, tp.vars)
+				if len(exprVarNames) == 0 {
+					valExpr = fmt.Sprintf("tclExpr(%q)", exprGo)
 				} else {
-					tp.emitLine("var %s = tclExpr(%q)", goName, exprStr)
+					var parts []string
+					for _, name := range exprVarNames {
+						parts = append(parts, fmt.Sprintf("%q: %s", name, tclVarToGo(name)))
+					}
+					valExpr = fmt.Sprintf("tclExprWith(%q, map[string]string{%s})", exprGo, strings.Join(parts, ", "))
 				}
+			}
+			if tp.isVarDeclared(goName) {
+				tp.emitLine("%s = %s", goName, valExpr)
+			} else {
+				tp.emitLine("var %s = %s", goName, valExpr)
 				tp.vars = append(tp.vars, goName)
 			}
 			tp.emitLine("_ = %s // suppress unused warning", goName)

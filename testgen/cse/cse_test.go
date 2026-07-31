@@ -4,6 +4,7 @@ package cse
 import (
 "github.com/pijalu/frigolite"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -196,10 +197,10 @@ func Test_cse(t *testing.T) {
 		j = "0"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return j_n < n_n }() {
-			_r = tclExpr("$j+int(rand()*5)")
+			_r = tclExprWith("$j+0", map[string]string{"j": j})
 			_ = _r // suppress unused warning
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n > 49 }() {
-				_r = tclExpr("99-$r")
+				_r = tclExprWith("99-$r", map[string]string{"r": _r})
 				_ = _r // suppress unused warning
 			}
 			colset = tclListAppend(colset, "a" + j, "a" + _r)
@@ -212,7 +213,7 @@ func Test_cse(t *testing.T) {
 				}
 			}
 		}
-		sql = "SELECT " + "join $colset ," + " FROM t2"
+		sql = "SELECT " + strings.Join(tclSplitList(colset), ",") + " FROM t2"
 		_ = sql // suppress unused warning
 		{ // do_test "cse-2.2." + i
 			_res = db.Exec(sql)

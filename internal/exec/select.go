@@ -248,18 +248,30 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	}
 
 	// If there are JOINs, process them (nested-loop join)
-	if len(s.Joins) > 0 {
-		var err error
-		allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
-		if err != nil {
-			return &Result{Error: err}
+		if len(s.Joins) > 0 {
+			var err error
+			allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
+			if err != nil {
+				return &Result{Error: err}
+			}
+			// Apply the WHERE filter to the joined result. execJoins only applies
+			// per-join ON conditions; the statement-level WHERE must be applied
+			// after the full join is built.
+			if s.Where != nil {
+				filtered := allRowMaps[:0]
+				for _, rowMap := range allRowMaps {
+					if e.rowPassesWhere(s.Where, rowMap, nil) {
+						filtered = append(filtered, rowMap)
+					}
+				}
+				allRowMaps = filtered
+			}
+			// Rebuild allRows from combined row maps using SELECT columns
+			allRows = make([][]interface{}, len(allRowMaps))
+			for i, rowMap := range allRowMaps {
+				allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
+			}
 		}
-		// Rebuild allRows from combined row maps using SELECT columns
-		allRows = make([][]interface{}, len(allRowMaps))
-		for i, rowMap := range allRowMaps {
-			allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
-		}
-	}
 
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
 		return result
@@ -1152,9 +1164,15 @@ func extractEquiJoinCols(on sql.Expr, leftTableName, rightTableName string) (str
 // qualified column references (e.g., "data.id") resolve correctly for both sides.
 func (e *Engine) buildCombinedRowMap(leftMap, rightMap RowMap, tableName, leftTableName string) RowMap {
 	combined := make(RowMap)
+	// Copy the left map. Keys already qualified (containing a '.') are
+	// copied as-is; unqualified keys (from the base table scan) get the
+	// left-table prefix added once. Re-qualifying keys that are already
+	// qualified would produce garbage keys like "t1.t2.a".
 	for k, v := range leftMap {
 		combined[k] = v
-		combined[leftTableName+"."+k] = v
+		if !strings.Contains(k, ".") && k != "rowid" {
+			combined[leftTableName+"."+k] = v
+		}
 	}
 	for k, v := range rightMap {
 		combined[tableName+"."+k] = v
