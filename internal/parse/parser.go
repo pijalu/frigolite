@@ -98,7 +98,47 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	if len(stmts) == 0 {
 		return nil, fmt.Errorf("no statements parsed")
 	}
+	// WITH-clause (CTE) merge: the LALR grammar currently drops the WITH
+	// prefix, so re-parse the input with the hand-written RD parser (which
+	// fully handles WITH ... AS (...)) and copy the CTE definitions onto the
+	// LALR-parsed statements.
+	if strings.HasPrefix(strings.TrimSpace(input), "WITH") && len(stmts) > 0 {
+		rdParser := sql.NewParser(input)
+		rdStmts := rdParser.Parse()
+		if rdParser.Err() == nil && len(rdStmts) > 0 {
+			rdCTEs := stmtCTEs(rdStmts[0])
+			if len(rdCTEs) > 0 {
+				setStmtCTEs(stmts[0], rdCTEs)
+			}
+		}
+	}
 	return stmts, nil
+}
+
+// stmtCTEs returns the WITH-clause CTE definitions from a statement.
+func stmtCTEs(s sql.Stmt) []sql.CTEDef {
+	switch t := s.(type) {
+	case *sql.SelectStmt:
+		return t.CTEs
+	case *sql.InsertStmt:
+		return t.CTEs
+	}
+	return nil
+}
+
+// setStmtCTEs attaches WITH-clause CTE definitions to a statement.
+func setStmtCTEs(s sql.Stmt, ctes []sql.CTEDef) {
+	switch t := s.(type) {
+	case *sql.SelectStmt:
+		t.CTEs = ctes
+	case *sql.InsertStmt:
+		t.CTEs = ctes
+		// The inner SELECT of INSERT ... SELECT needs the CTEs too, since
+		// the engine resolves CTE references (FROM c) at the SELECT level.
+		if t.Select != nil {
+			t.Select.CTEs = ctes
+		}
+	}
 }
 
 // getRHS returns the Nth RHS symbol value (1-indexed) for the current rule.
@@ -238,11 +278,19 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 85: select ::= WITH wqlist selectnowith
 	case 85:
-		return checkCompoundSelect(p, getSelectStmt(getRHS(p, ruleNo, 3)))
+		sel := getSelectStmt(getRHS(p, ruleNo, 3))
+		if sel != nil {
+			sel.CTEs = getCTEDefs(getRHS(p, ruleNo, 2))
+		}
+		return checkCompoundSelect(p, sel)
 
 	// Rule 86: select ::= WITH RECURSIVE wqlist selectnowith
 	case 86:
-		return checkCompoundSelect(p, getSelectStmt(getRHS(p, ruleNo, 4)))
+		sel := getSelectStmt(getRHS(p, ruleNo, 4))
+		if sel != nil {
+			sel.CTEs = getCTEDefs(getRHS(p, ruleNo, 3))
+		}
+		return checkCompoundSelect(p, sel)
 
 	// Rule 87: select ::= selectnowith
 	case 87:
@@ -681,20 +729,18 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 156:
 		return getExpr(getRHS(p, ruleNo, 2))
 
+	// CTE (WITH clause) rules.
+
 	// Rule 164: cmd ::= with insert_cmd INTO xfullname idlist_opt select upsert
 	case 164:
 		table := getString(getRHS(p, ruleNo, 4))
 		columns := getStringList(getRHS(p, ruleNo, 5))
 		sel := getSelectStmt(getRHS(p, ruleNo, 6))
-		// Check if it's a VALUES insert or SELECT insert
-		if sel != nil && len(sel.Columns) == 0 {
-			// This is a VALUES insert - need to extract values from parser context
-			// For now, we'll handle this differently
-		}
 		return &sql.InsertStmt{
 			Table:   table,
 			Columns: columns,
 			Select:  sel,
+			CTEs:    getCTEDefs(getRHS(p, ruleNo, 1)),
 		}
 
 	// Rule 165: cmd ::= with insert_cmd INTO xfullname idlist_opt DEFAULT VALUES returning
@@ -1607,6 +1653,31 @@ func getOnUsing(v interface{}) (sql.Expr, []string) {
 		return nil, s
 	}
 	return nil, nil
+}
+
+// getCTEDefs extracts a []sql.CTEDef from a with-clause value.
+func getCTEDefs(v interface{}) []sql.CTEDef {
+	if v == nil {
+		return nil
+	}
+	if defs, ok := v.([]sql.CTEDef); ok {
+		return defs
+	}
+	if d, ok := v.(sql.CTEDef); ok {
+		return []sql.CTEDef{d}
+	}
+	return nil
+}
+
+// getCTEDef extracts a single sql.CTEDef from a wqitem value.
+func getCTEDef(v interface{}) sql.CTEDef {
+	if v == nil {
+		return sql.CTEDef{}
+	}
+	if d, ok := v.(sql.CTEDef); ok {
+		return d
+	}
+	return sql.CTEDef{}
 }
 
 // getSeltablist extracts a seltablistAcc from a stack value, creating an empty
