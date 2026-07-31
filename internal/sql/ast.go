@@ -111,6 +111,7 @@ type JoinClause struct {
 	JoinType  string // "INNER", "LEFT", "RIGHT", "CROSS", ""
 	On        Expr   // ON condition
 	CommaJoin bool   // true if this is a comma-join (FROM t1, t2) not explicit CROSS JOIN
+	Using     []string // USING(column-list) columns, merged by the join
 }
 
 // SelectColumn represents a single column in a SELECT list.

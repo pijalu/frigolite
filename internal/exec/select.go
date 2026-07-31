@@ -982,6 +982,10 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		if join.JoinType == "NATURAL" {
 			effectiveOn = e.generateNaturalJoinOn(currentDefs, rightDefs)
 		}
+		// USING(col1, col2): generate ON left.col = right.col for each column.
+		if len(join.Using) > 0 && effectiveOn == nil {
+			effectiveOn = e.generateUsingJoinOn(join.Using, leftName, tableName)
+		}
 
 		// Build ephemeral hash index for equi-join optimization.
 		// Detect simple "left.col = right.col" patterns in the ON clause
@@ -1171,6 +1175,26 @@ func (e *Engine) generateNaturalJoinOn(leftDefs, rightDefs []sql.ColumnDef) sql.
 			} else {
 				onExpr = &sql.BinaryOp{Left: onExpr, Right: eq, Operator: "AND"}
 			}
+		}
+	}
+	return onExpr
+}
+
+// generateUsingJoinOn builds ON left.col = right.col for each USING column.
+// The refs are qualified with the join's left/right table names (or aliases)
+// so they resolve against the combined row map.
+func (e *Engine) generateUsingJoinOn(cols []string, leftName, rightName string) sql.Expr {
+	var onExpr sql.Expr
+	for _, col := range cols {
+		eq := &sql.BinaryOp{
+			Left:     &sql.ColumnRef{Table: leftName, Name: col},
+			Right:    &sql.ColumnRef{Table: rightName, Name: col},
+			Operator: "=",
+		}
+		if onExpr == nil {
+			onExpr = eq
+		} else {
+			onExpr = &sql.BinaryOp{Left: onExpr, Right: eq, Operator: "AND"}
 		}
 	}
 	return onExpr

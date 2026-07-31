@@ -459,9 +459,9 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		acc := getSeltablist(getRHS(p, ruleNo, 1))
 		sel := getSelectStmt(getRHS(p, ruleNo, 3))
 		alias := getString(getRHS(p, ruleNo, 5))
-		onUsing := getOnUsing(getRHS(p, ruleNo, 6))
+		on, using := getOnUsing(getRHS(p, ruleNo, 6))
 		ref := sql.TableRef{Subquery: sel, As: alias}
-		return acc.appendTableWithOn(ref, onUsing)
+		return acc.appendTableWithOn(ref, on, using)
 
 	// Rule 115: seltablist ::= stl_prefix LP seltablist RP as on_using
 	// Parenthesized table list: FROM (t1) or FROM (t1, t2).
@@ -535,9 +535,9 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		// Rule 128: on_using ::= ON expr — the ON condition for a JOIN.
 		return getExpr(getRHS(p, ruleNo, 2))
 
-	// Rule 129: joinop ::= JOIN_KW nm nm JOIN
+	// Rule 129: on_using ::= USING LP idlist RP — the USING column list.
 	case 129:
-		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1))}
+		return getStringList(getRHS(p, ruleNo, 3))
 
 	// Rule 130: on_using ::=
 	case 130:
@@ -1535,18 +1535,18 @@ type joinOp struct {
 // appendTable adds a table to the accumulator. If a join operator is pending,
 // the new table becomes a JoinClause; otherwise it becomes the first table.
 func (a *seltablistAcc) appendTable(ref sql.TableRef) *seltablistAcc {
-	return a.appendTableWithOn(ref, nil)
+	return a.appendTableWithOn(ref, nil, nil)
 }
 
-// appendTableWithOn adds a table, attaching an optional ON condition to the
-// join clause that links it to the previous table.
-func (a *seltablistAcc) appendTableWithOn(ref sql.TableRef, on sql.Expr) *seltablistAcc {
+// appendTableWithOn adds a table, attaching an optional ON condition and/or
+// USING column list to the join clause that links it to the previous table.
+func (a *seltablistAcc) appendTableWithOn(ref sql.TableRef, on sql.Expr, using []string) *seltablistAcc {
 	if !a.HasFirst {
 		a.First = ref
 		a.HasFirst = true
 		return a
 	}
-	jc := sql.JoinClause{Table: ref, CommaJoin: a.PendingOp.Comma, On: on}
+	jc := sql.JoinClause{Table: ref, CommaJoin: a.PendingOp.Comma, On: on, Using: using}
 	switch a.PendingOp.Kind {
 	case "LEFT":
 		jc.JoinType = "LEFT"
@@ -1590,19 +1590,23 @@ func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias, posO
 	tbl := getString(getRHS(p, ruleNo, posName))
 	schema := getString(getRHS(p, ruleNo, posSchema))
 	alias := getString(getRHS(p, ruleNo, posAlias))
-	on := getOnUsing(getRHS(p, ruleNo, posOn))
+	on, using := getOnUsing(getRHS(p, ruleNo, posOn))
 	if schema != "" {
 		tbl = schema + "." + tbl
 	}
-	return acc.appendTableWithOn(sql.TableRef{Name: tbl, As: alias}, on)
+	return acc.appendTableWithOn(sql.TableRef{Name: tbl, As: alias}, on, using)
 }
 
-// getOnUsing extracts an ON condition expr (or nil) from an on_using value.
-func getOnUsing(v interface{}) sql.Expr {
+// getOnUsing extracts an ON condition expr and/or a USING column list from an
+// on_using value. The value is either an Expr (ON expr) or a []string (USING).
+func getOnUsing(v interface{}) (sql.Expr, []string) {
 	if e, ok := v.(sql.Expr); ok {
-		return e
+		return e, nil
 	}
-	return nil
+	if s, ok := v.([]string); ok {
+		return nil, s
+	}
+	return nil, nil
 }
 
 // getSeltablist extracts a seltablistAcc from a stack value, creating an empty
