@@ -122,6 +122,22 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 2:
 		return getRHS(p, ruleNo, 1)
 
+	// Rule 3: cmd ::= BEGIN transtype trans_opt
+	case 3:
+		return &sql.BeginStmt{}
+
+	// Rule 4: transtype ::= (empty)
+	case 4:
+		return nil
+
+	// Rule 8: cmd ::= COMMIT|END trans_opt
+	case 8:
+		return &sql.CommitStmt{}
+
+	// Rule 9: cmd ::= ROLLBACK trans_opt
+	case 9:
+		return &sql.RollbackStmt{}
+
 	// Rule 13: create_table ::= createkw temp TABLE ifnotexists nm dbnm
 	case 13:
 		name := getString(getRHS(p, ruleNo, 5))
@@ -187,6 +203,29 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 26:
 		return ""
 
+	// Rule 79: cmd ::= DROP TABLE ifexists fullname
+	case 79:
+		ifExists := getBool(getRHS(p, ruleNo, 3))
+		name := getString(getRHS(p, ruleNo, 4))
+		return &sql.DropTableStmt{Name: name, IfExists: ifExists}
+
+	// Rule 80: ifexists ::=
+	case 80:
+		return false
+
+	// Rule 81: ifexists ::= IF EXISTS
+	case 81:
+		return true
+
+	// Rule 82: cmd ::= DROP TABLE ifexists fullname (with dbnm handled in fullname)
+	// (falls through to default pass-through if not matched)
+
+	// Rule 83: cmd ::= DROP VIEW ifexists fullname
+	case 83:
+		ifExists := getBool(getRHS(p, ruleNo, 3))
+		name := getString(getRHS(p, ruleNo, 4))
+		return &sql.DropViewStmt{Name: name, IfExists: ifExists}
+
 	// Rule 84: cmd ::= select
 	case 84:
 		return getSelectStmt(getRHS(p, ruleNo, 1))
@@ -231,10 +270,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 91: multiselect_op ::= EXCEPT|INTERSECT
 	case 91:
-		// Check lookahead to distinguish EXCEPT vs INTERSECT
-		// The lookahead is the EXCEPT or INTERSECT token
+		// Distinguish EXCEPT vs INTERSECT from the RHS token value. The
+		// lookahead at reduce time is the NEXT token (e.g. SELECT), not the
+		// operator being reduced, so it cannot be used to tell them apart.
 		op := sql.SetExcept // default
-		if lookahead == TK_INTERSECT {
+		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok && strings.EqualFold(tok.Value, "INTERSECT") {
 			op = sql.SetIntersect
 		}
 		return setOpResult{Op: op, All: false}
@@ -756,10 +796,10 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		right := getExpr(getRHS(p, ruleNo, 3))
 		escape := getExpr(getRHS(p, ruleNo, 5))
 		return &sql.BinaryOp{
-			Left:   left,
+			Left:     left,
 			Operator: "LIKE",
-			Right:  right,
-			Escape: fmt.Sprintf("%v", escape),
+			Right:    right,
+			Escape:   fmt.Sprintf("%v", escape),
 		}
 
 	// Rule 208: expr ::= expr ISNULL|NOTNULL
@@ -911,9 +951,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 239:
 		return nil // CREATE INDEX - minimal support
 
-	// Rule 248: cmd ::= DROP INDEX ifexists fullname
+		// Rule 248: cmd ::= DROP INDEX ifexists fullname
 	case 248:
-		return nil // DROP INDEX
+		ifExists := getBool(getRHS(p, ruleNo, 3))
+		name := getString(getRHS(p, ruleNo, 4))
+		return &sql.DropIndexStmt{Name: name, IfExists: ifExists}
 
 	// Rule 253: cmd ::= PRAGMA nm dbnm
 	case 253:
@@ -921,6 +963,15 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return &sql.PragmaStmt{
 			Name:  name,
 			Value: "",
+		}
+
+	// Rule 254: cmd ::= PRAGMA nm dbnm = pragma_value
+	case 254:
+		name := getString(getRHS(p, ruleNo, 2))
+		value := getString(getRHS(p, ruleNo, 5))
+		return &sql.PragmaStmt{
+			Name:  name,
+			Value: value,
 		}
 
 	// Rule 260: cmd ::= createkw trigger_decl BEGIN trigger_cmd_list END
@@ -1116,7 +1167,6 @@ type setOpResult struct {
 	Op  sql.SetOp
 	All bool
 }
-
 
 func getString(v interface{}) string {
 	if v == nil {

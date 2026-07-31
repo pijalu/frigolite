@@ -29,6 +29,7 @@ func main() {
 	pkgFlag := flag.String("p", "main", "Package name")
 	verboseFlag := flag.Bool("v", false, "Verbose output")
 	convertFlag := flag.Bool("convert", false, "Convert C lemon parse.c to Go tables")
+	lemparFlag := flag.Bool("lempar", false, "Generate a self-contained parser using the lempar.go template")
 	flag.Parse()
 
 	if *convertFlag {
@@ -105,6 +106,16 @@ func main() {
 		}
 	}
 	outCode := GenerateGoOutputFromTables(tables, grammar, tokenCode, *pkgFlag)
+	if *lemparFlag {
+		// Self-contained parser via the lempar.go template (the Go port of
+		// SQLite's lempar.c): the output embeds the engine runtime, token
+		// constants, parse tables, and grammar actions in one file.
+		outCode, err = InstantiateLempar(tables, grammar, tokenCode, *pkgFlag)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error instantiating lempar template: %v\n", err)
+			os.Exit(1)
+		}
+	}
 
 	if err := os.WriteFile(outputFile, []byte(outCode), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing output: %v\n", err)
