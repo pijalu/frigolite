@@ -219,7 +219,7 @@ type sumAgg struct {
 }
 
 func (s *sumAgg) Step(args []interface{}) error {
-	if args[0] == nil {
+	if len(args) == 0 || args[0] == nil {
 		return nil
 	}
 	s.count++
@@ -315,7 +315,7 @@ type maxAgg struct {
 }
 
 func (m *maxAgg) Step(args []interface{}) error {
-	if args[0] == nil {
+	if len(args) == 0 || args[0] == nil {
 		return nil
 	}
 	if !m.set || less(m.max, args[0]) {
@@ -335,7 +335,7 @@ type groupConcatAgg struct {
 }
 
 func (g *groupConcatAgg) Step(args []interface{}) error {
-	if args[0] == nil {
+	if len(args) == 0 || args[0] == nil {
 		return nil
 	}
 	g.values = append(g.values, toString(args[0]))

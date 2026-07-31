@@ -1314,6 +1314,27 @@ func (e *Engine) exprHasAggregate(expr sql.Expr) bool {
 	}
 }
 
+// aggregateName returns the name of the first aggregate function found in the
+// expression, or "?" if none is found.
+func (e *Engine) aggregateName(expr sql.Expr) string {
+	switch v := expr.(type) {
+	case *sql.FuncCall:
+		if fn, ok := e.funcs.Find(v.Name); ok && fn.Type == function.TypeAggregate {
+			return v.Name
+		}
+		return "?"
+	case *sql.BinaryOp:
+		if n := e.aggregateName(v.Left); n != "?" {
+			return n
+		}
+		return e.aggregateName(v.Right)
+	case *sql.UnaryOp:
+		return e.aggregateName(v.Operand)
+	default:
+		return "?"
+	}
+}
+
 // aggHasColumnRef checks if any aggregate function in the SELECT columns
 // has arguments that contain column references. This identifies correlated
 // aggregates that need to be evaluated over all outer rows.
@@ -2196,6 +2217,18 @@ func findNestedAggregateRowValue(v *sql.RowValue, funcs *function.Registry) stri
 // validateSelectExprs checks for invalid usage in SELECT expressions, such as
 // ORDER BY with non-aggregate functions or aggregates inside UNION ALL in subqueries.
 func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
+	// SQLite: an aggregate function in ORDER BY is only allowed when the
+	// SELECT is an aggregate query (has GROUP BY or an aggregate in the
+	// SELECT list). Otherwise it is a "misuse of aggregate" error.
+	if len(s.OrderBy) > 0 && s.GroupBy == nil {
+		isAgg := e.hasAggregates(s.Columns)
+		for _, ob := range s.OrderBy {
+			if e.exprHasAggregate(ob.Expr) && !isAgg {
+				name := e.aggregateName(ob.Expr)
+				return fmt.Errorf("misuse of aggregate: %s()", name)
+			}
+		}
+	}
 	for _, col := range s.Columns {
 		if err := e.validateExprOrderBy(col.Expr); err != nil {
 			return err

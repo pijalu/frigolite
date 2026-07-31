@@ -395,20 +395,21 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		expr := getExpr(getRHS(p, ruleNo, 3))
 		alias := getString(getRHS(p, ruleNo, 5))
 
-		return []sql.SelectColumn{{Expr: expr, As: alias}}
+		// Prepend the accumulated list from sclp (RHS 1). sclp holds the
+		// columns collected before the COMMA (via rule 382).
+		prev := getSelectColumns(getRHS(p, ruleNo, 1))
+		return append(prev, sql.SelectColumn{Expr: expr, As: alias})
 
 	// Rule 103: selcollist ::= sclp scanpt STAR
 	case 103:
-		return []sql.SelectColumn{{
-			Expr: &sql.ColumnRef{Name: "*"},
-		}}
+		prev := getSelectColumns(getRHS(p, ruleNo, 1))
+		return append(prev, sql.SelectColumn{Expr: &sql.ColumnRef{Name: "*"}})
 
 	// Rule 104: selcollist ::= sclp scanpt nm DOT STAR
 	case 104:
 		tbl := getString(getRHS(p, ruleNo, 3))
-		return []sql.SelectColumn{{
-			Expr: &sql.ColumnRef{Table: tbl, Name: "*"},
-		}}
+		prev := getSelectColumns(getRHS(p, ruleNo, 1))
+		return append(prev, sql.SelectColumn{Expr: &sql.ColumnRef{Table: tbl, Name: "*"}})
 
 	// Rule 105: as ::= AS nm
 	case 105:
@@ -1230,6 +1231,9 @@ func getString(v interface{}) string {
 	}
 	if s, ok := v.(string); ok {
 		return s
+	}
+	if tok, ok := v.(sql.Token); ok {
+		return tok.Value
 	}
 	return fmt.Sprintf("%v", v)
 }
