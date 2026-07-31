@@ -6,6 +6,7 @@ package without_rowid
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -131,9 +132,9 @@ func Test_without_rowid6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING PRIMARY KEY .b>../"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING PRIMARY KEY .b>.."
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "without_rowid6-220"
@@ -143,9 +144,9 @@ func Test_without_rowid6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/sqlite_autoindex_t1_2 1 pk/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "sqlite_autoindex_t1_2 1 pk"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "without_rowid6-300"
@@ -167,9 +168,9 @@ func Test_without_rowid6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING PRIMARY KEY .b>../"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING PRIMARY KEY .b>.."
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "without_rowid6-320"
@@ -179,9 +180,9 @@ func Test_without_rowid6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/sqlite_autoindex_t1_2 1 pk/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "sqlite_autoindex_t1_2 1 pk"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "without_rowid6-400"
@@ -203,9 +204,9 @@ func Test_without_rowid6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING PRIMARY KEY .b>../"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING PRIMARY KEY .b>.."
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "without_rowid6-420"
@@ -215,9 +216,9 @@ func Test_without_rowid6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/sqlite_autoindex_t1_2 1 pk/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "sqlite_autoindex_t1_2 1 pk"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "without_rowid6-500"
@@ -240,9 +241,9 @@ func Test_without_rowid6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING PRIMARY KEY .b>../"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING PRIMARY KEY .b>.."
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "without_rowid6-520"
@@ -252,9 +253,9 @@ func Test_without_rowid6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/sqlite_autoindex_t1_1 1 pk/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "sqlite_autoindex_t1_1 1 pk"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "without_rowid6-600"

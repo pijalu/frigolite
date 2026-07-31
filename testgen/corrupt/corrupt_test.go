@@ -246,9 +246,9 @@ func Test_corrupt(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 			text = "$i 220"
 			_ = text // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1 VALUES($i, $text) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + i + ", " + text + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i, $text) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + ", " + text + ") ")
 			}
 			// incr i 1
 			{

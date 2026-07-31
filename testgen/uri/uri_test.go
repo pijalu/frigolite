@@ -148,7 +148,7 @@ func Test_uri(t *testing.T) {
 			_dbtmp1, err := frigolite.Open("xxx.db")
 			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec(" ATTACH $uri AS aux ")
+			_res = db.Exec(" ATTACH " + uri + " AS aux ")
 			_ = _res // catchsql
 			{ // do_test "1." + tn + ".4"
 				// file exists file
@@ -187,9 +187,9 @@ func Test_uri(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				arglist = "" // TCL namespace variable
 				_ = arglist // suppress unused warning
-				_res = db.Exec(" ATTACH $uri AS aux ")
+				_res = db.Exec(" ATTACH " + uri + " AS aux ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH $uri AS aux ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH " + uri + " AS aux ")
 				}
 				{ // do_test "2." + tn + ".2"
 					_ = arglist // TCL namespace variable (query)

@@ -6,6 +6,7 @@ package corruptL
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -370,9 +371,9 @@ func Test_corruptL(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/in database main/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "in database main"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	db.Close()

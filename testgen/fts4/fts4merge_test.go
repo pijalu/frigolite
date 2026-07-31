@@ -369,9 +369,9 @@ func Test_fts4merge(t *testing.T) {
 				{ // do_test "5.5"
 					for _, docid := range tclSplitList(tclExecSQL(db, "{SELECT docid FROM t1}")) {
 					_ = docid // suppress unused warning
-						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")
+						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + docid)
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + docid)
 						}
 					}
 				}
@@ -419,9 +419,9 @@ func Test_fts4merge(t *testing.T) {
 					_ = L // suppress unused warning
 					for _, docid := range tclSplitList(tclExecSQL(db, "{\n        SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L\n    }")) {
 					_ = docid // suppress unused warning
-						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")
+						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + docid)
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + docid)
 						}
 					}
 				}
@@ -465,9 +465,9 @@ func Test_fts4merge(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING " + mod)
 					}
-					_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES($a);\n        INSERT INTO t1 VALUES($b);\n      COMMIT;\n      BEGIN;\n        INSERT INTO t1 VALUES($c);\n        INSERT INTO t1 VALUES($d);\n      COMMIT;\n    ")
+					_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(" + a + ");\n        INSERT INTO t1 VALUES(" + b + ");\n      COMMIT;\n      BEGIN;\n        INSERT INTO t1 VALUES(" + c + ");\n        INSERT INTO t1 VALUES(" + d + ");\n      COMMIT;\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES($a);\n        INSERT INTO t1 VALUES($b);\n      COMMIT;\n      BEGIN;\n        INSERT INTO t1 VALUES($c);\n        INSERT INTO t1 VALUES($d);\n      COMMIT;\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES(" + a + ");\n        INSERT INTO t1 VALUES(" + b + ");\n      COMMIT;\n      BEGIN;\n        INSERT INTO t1 VALUES(" + c + ");\n        INSERT INTO t1 VALUES(" + d + ");\n      COMMIT;\n    ")
 					}
 					_res = db.Exec("\n      INSERT INTO t1(t1) VALUES('merge=1,2');\n      INSERT INTO t1(t1) VALUES('merge=1,2');\n    ")
 					if _res.Error != nil {

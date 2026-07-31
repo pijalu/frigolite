@@ -379,9 +379,9 @@ func Test_fts4langid(t *testing.T) {
 		ptr = "fts3_test_tokenizer"
 		_ = ptr // suppress unused warning
 		// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
-		r = db.Query(" SELECT fts3_tokenizer('testtokenizer', $ptr) ")
+		r = db.Query(" SELECT fts3_tokenizer('testtokenizer', " + ptr + ") ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT fts3_tokenizer('testtokenizer', $ptr) ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT fts3_tokenizer('testtokenizer', " + ptr + ") ")
 		}
 		// build_multilingual_db_2 db (unsupported command, not transpiled)
 	}
@@ -502,9 +502,9 @@ func Test_fts4langid(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			_res = db.Exec("\n      INSERT INTO t6(content, lid) VALUES(\n        'I (row '||$i||') belong to language N!', $lid\n      );\n    ")
+			_res = db.Exec("\n      INSERT INTO t6(content, lid) VALUES(\n        'I (row '||" + i + "||') belong to language N!', " + lid + "\n      );\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t6(content, lid) VALUES(\n        'I (row '||$i||') belong to language N!', $lid\n      );\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t6(content, lid) VALUES(\n        'I (row '||" + i + "||') belong to language N!', " + lid + "\n      );\n    ")
 			}
 			// incr i 1
 			{
@@ -520,9 +520,9 @@ func Test_fts4langid(t *testing.T) {
 		}
 	}
 	{ // do_test "5.3.3"
-		r = db.Query(" SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=$lid")
+		r = db.Query(" SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + lid)
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=$lid")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + lid)
 		}
 	}
 	{ // "5.3.4"

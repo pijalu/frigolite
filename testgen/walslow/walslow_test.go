@@ -110,9 +110,9 @@ func Test_walslow(t *testing.T) {
 				_ = w // suppress unused warning
 				x = "0"
 				_ = x // suppress unused warning
-				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob($w), randomblob($x)) ")
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(" + w + "), randomblob(" + x + ")) ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob($w), randomblob($x)) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(" + w + "), randomblob(" + x + ")) ")
 				}
 				r = db.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {

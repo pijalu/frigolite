@@ -52,7 +52,7 @@ func Test_whereJ(t *testing.T) {
 	_ = i // pre-declared from TCL source
 	var x string
 	_ = x // pre-declared from TCL source
-	var c string
+	var c = "0"
 	_ = c // pre-declared from TCL source
 	var res string
 	_ = res // pre-declared from TCL source
@@ -128,9 +128,9 @@ func Test_whereJ(t *testing.T) {
 		x = "0"
 		_ = x // suppress unused warning
 		for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 100 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES($i, $x, $c) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + i + ", " + x + ", " + c + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i, $x, $c) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + ", " + x + ", " + c + ") ")
 			}
 			// incr c 1
 			{
@@ -147,9 +147,9 @@ func Test_whereJ(t *testing.T) {
 				}
 			}
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES($i+1, 5, $c) ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "+1, 5, " + c + ") ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i+1, 5, $c) ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "+1, 5, " + c + ") ")
 		}
 		// incr c 1
 		{

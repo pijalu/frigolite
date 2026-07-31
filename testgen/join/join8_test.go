@@ -6,6 +6,7 @@ package join
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -264,9 +265,9 @@ func Test_join8(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.*BLOOM FILTER ON t2.*BLOOM FILTER ON t3.*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".*BLOOM FILTER ON t2.*BLOOM FILTER ON t3.*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	db.Close()

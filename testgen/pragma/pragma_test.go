@@ -816,9 +816,9 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		{ // do_test "pragma-6.2"
-			r = db.Query("\n    CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
+			r = db.Query("\n    CREATE TABLE t2(a TYPE_X, b " + "TYPE_Y" + ", c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a TYPE_X, b " + "TYPE_Y" + ", c \"TYPE_Z\");\n    pragma table_info(t2)\n  ")
 			}
 		}
 		{ // do_test "pragma-6.2.1"
@@ -1818,9 +1818,9 @@ func Test_pragma(t *testing.T) {
 							i = "0"
 							_ = i // suppress unused warning
 							for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-								_res = db.Exec(" INSERT INTO t1 SELECT a + (1 << $i), b + (1 << $i) FROM t1 ")
+								_res = db.Exec(" INSERT INTO t1 SELECT a + (1 << " + i + "), b + (1 << " + i + ") FROM t1 ")
 								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 SELECT a + (1 << $i), b + (1 << $i) FROM t1 ")
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 SELECT a + (1 << " + i + "), b + (1 << " + i + ") FROM t1 ")
 								}
 								// incr i 1
 								{

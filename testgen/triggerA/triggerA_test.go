@@ -67,9 +67,9 @@ func Test_triggerA(t *testing.T) {
 		_ = word // suppress unused warning
 			j = tclExprWith("$i*100 + [string length $word]", map[string]string{"i": i, "word": word})
 			_ = j // suppress unused warning
-			_res = db.Exec("\n       INSERT INTO t1 VALUES($i,$word);\n       INSERT INTO t2 VALUES(20-$i,$j,$word);\n    ")
+			_res = db.Exec("\n       INSERT INTO t1 VALUES(" + i + "," + word + ");\n       INSERT INTO t2 VALUES(20-" + i + "," + j + "," + word + ");\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       INSERT INTO t1 VALUES($i,$word);\n       INSERT INTO t2 VALUES(20-$i,$j,$word);\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       INSERT INTO t1 VALUES(" + i + "," + word + ");\n       INSERT INTO t2 VALUES(20-" + i + "," + j + "," + word + ");\n    ")
 			}
 			// incr i 1
 			{

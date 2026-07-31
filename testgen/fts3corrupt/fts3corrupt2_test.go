@@ -94,9 +94,9 @@ func Test_fts3corrupt2(t *testing.T) {
 		}
 		for _, d := range tclSplitList(data) {
 		_ = d // suppress unused warning
-			_res = db.Exec(" INSERT INTO t2 VALUES($d, $d) ")
+			_res = db.Exec(" INSERT INTO t2 VALUES(" + d + ", " + d + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES($d, $d) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(" + d + ", " + d + ") ")
 			}
 		}
 		_res = db.Exec("COMMIT")

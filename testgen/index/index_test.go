@@ -411,7 +411,7 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "index-6.1.1"
-		_res = db.Exec("CREATE INDEX [index1] ON test2(g1)")
+		_res = db.Exec("CREATE INDEX " + "index1" + " ON test2(g1)")
 		_ = _res // catchsql
 	}
 	{ // do_test "index-6.1b"

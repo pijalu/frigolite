@@ -6,6 +6,7 @@ package rowvalue
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strconv"
 "strings"
 "testing"
@@ -1771,9 +1772,9 @@ func Test_rowvalue(t *testing.T) {
 													return
 												}
 												got := flatten(r)
-												want := "/SEARCH t1 USING COVERING INDEX t1a .a=. AND id>../"
-												if got != want {
-													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+												wantPattern := "SEARCH t1 USING COVERING INDEX t1a .a=. AND id>.."
+												if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+													t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 												}
 											}
 											{ // "35.0"

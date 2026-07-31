@@ -224,17 +224,17 @@ func Test_fts4merge4(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t2 ")
 						}
-						_res = db.Exec(" INSERT INTO t2(t2) VALUES($am) ")
+						_res = db.Exec(" INSERT INTO t2(t2) VALUES(" + am + ") ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES($am) ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES(" + am + ") ")
 						}
 						// eval (dynamic, not transpiled)
 						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-							_res = db.Exec(" \n          BEGIN;\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n          COMMIT;\n        ")
+							_res = db.Exec(" \n          BEGIN;\n            INSERT INTO t2 VALUES(" + doc + ");\n            INSERT INTO t2 VALUES(" + doc + ");\n            INSERT INTO t2 VALUES(" + doc + ");\n            INSERT INTO t2 VALUES(" + doc + ");\n            INSERT INTO t2 VALUES(" + doc + ");\n          COMMIT;\n        ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n          BEGIN;\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n          COMMIT;\n        ")
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n          BEGIN;\n            INSERT INTO t2 VALUES(" + doc + ");\n            INSERT INTO t2 VALUES(" + doc + ");\n            INSERT INTO t2 VALUES(" + doc + ");\n            INSERT INTO t2 VALUES(" + doc + ");\n            INSERT INTO t2 VALUES(" + doc + ");\n          COMMIT;\n        ")
 							}
 							// incr i 1
 							{

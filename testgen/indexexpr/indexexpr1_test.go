@@ -6,6 +6,7 @@ package indexexpr
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -76,9 +77,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING INDEX t1a1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING INDEX t1a1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-120"
@@ -100,9 +101,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING INDEX t1a1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING INDEX t1a1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-130"
@@ -124,9 +125,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING COVERING INDEX t1ba/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING COVERING INDEX t1ba"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-140"
@@ -160,9 +161,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING COVERING INDEX t1abx/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING COVERING INDEX t1abx"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-142"
@@ -196,9 +197,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING COVERING INDEX t1abx/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING COVERING INDEX t1abx"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-160"
@@ -220,9 +221,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING INDEX t1a2/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING INDEX t1a2"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-170"
@@ -244,9 +245,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1 USING COVERING INDEX t1alen/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1 USING COVERING INDEX t1alen"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-171"
@@ -268,9 +269,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1 USING COVERING INDEX t1alen/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1 USING COVERING INDEX t1alen"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-200"
@@ -298,9 +299,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING INDEX t1a1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING INDEX t1a1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-220"
@@ -322,9 +323,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING INDEX t1a1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING INDEX t1a1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-230"
@@ -346,9 +347,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING COVERING INDEX t1ba/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING COVERING INDEX t1ba"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-240"
@@ -382,9 +383,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING COVERING INDEX t1abx/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING COVERING INDEX t1abx"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-242"
@@ -418,9 +419,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING COVERING INDEX t1abx/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING COVERING INDEX t1abx"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-260"
@@ -442,9 +443,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING INDEX t1a2/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING INDEX t1a2"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-300"
@@ -526,9 +527,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING COVERING INDEX t5ax/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING COVERING INDEX t5ax"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-600"
@@ -934,9 +935,9 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.*SCAN t1 USING COVERING INDEX t1x.*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".*SCAN t1 USING COVERING INDEX t1x.*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	db.Close()

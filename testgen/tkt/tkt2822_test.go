@@ -143,9 +143,9 @@ func Test_tkt2822(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2822-5.4"
-		r = db.Query("\n    SELECT a AS \"b\" FROM t3 ORDER BY [B];\n  ")
+		r = db.Query("\n    SELECT a AS \"b\" FROM t3 ORDER BY " + "B" + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS \"b\" FROM t3 ORDER BY [B];\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a AS \"b\" FROM t3 ORDER BY " + "B" + ";\n  ")
 		}
 	}
 	{ // do_test "tkt2822-5.5"

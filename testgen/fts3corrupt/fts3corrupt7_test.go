@@ -118,9 +118,9 @@ func Test_fts3corrupt7(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; DEPTH_n, _DEPTH_e := strconv.Atoi(DEPTH); if _DEPTH_e != nil { return false }; return ii_n < DEPTH_n }() {
-			_res = db.Exec("\n      INSERT INTO fts_segments(blockid, block) \n      VALUES($ii+100, make_interior_node($DEPTH-$ii, 101+$ii))\n    ")
+			_res = db.Exec("\n      INSERT INTO fts_segments(blockid, block) \n      VALUES(" + ii + "+100, make_interior_node(" + DEPTH + "-" + ii + ", 101+" + ii + "))\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO fts_segments(blockid, block) \n      VALUES($ii+100, make_interior_node($DEPTH-$ii, 101+$ii))\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO fts_segments(blockid, block) \n      VALUES(" + ii + "+100, make_interior_node(" + DEPTH + "-" + ii + ", 101+" + ii + "))\n    ")
 			}
 			// incr ii 1
 			{

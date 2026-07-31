@@ -267,7 +267,7 @@ func Test_main(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.4"
-		_res = db.Exec("select [abc")
+		_res = db.Exec("select " + "abc")
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.5"
@@ -287,21 +287,21 @@ func Test_main(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.9"
-		_res = db.Exec("select $abc(")
+		_res = db.Exec("select " + abc + "(")
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.10"
-		_res = db.Exec("select $abc(x")
+		_res = db.Exec("select " + abc + "(x")
 		_ = _res // catchsql
 	}
 	xyz = "123"
 	_ = xyz // suppress unused warning
 	{ // do_test "main-3.2.11"
-		_res = db.Exec("select $::xyz")
+		_res = db.Exec("select " + xyz)
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.12"
-		_res = db.Exec("select $testnamespace::xyz")
+		_res = db.Exec("select " + testnamespace_xyz)
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.13"

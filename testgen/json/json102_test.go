@@ -2285,9 +2285,9 @@ func Test_json102(t *testing.T) {
 		str = "abcdef" + "\\\" [expr {$i+50}]" + "uvwxyz"
 		_ = str // suppress unused warning
 		{ // do_test "json102-" + "format %d [expr {$i+1300}]"
-			_res = db.Exec("SELECT json_extract(json_array($::str),'$[0]')==$::str")
+			_res = db.Exec("SELECT json_extract(json_array(" + str + "),'$" + "0" + "')==" + str)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT json_extract(json_array($::str),'$[0]')==$::str")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT json_extract(json_array(" + str + "),'$" + "0" + "')==" + str)
 			}
 		}
 		// incr i 1

@@ -113,9 +113,9 @@ func Test_swarmvtab3(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			// rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);...} (unsupported command, not transpiled)
 			// rrr close (unsupported command, not transpiled)
-			_res = db.Exec("\n      INSERT INTO swarm VALUES($i, 't1', $i, $i);\n    ")
+			_res = db.Exec("\n      INSERT INTO swarm VALUES(" + i + ", 't1', " + i + ", " + i + ");\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES($i, 't1', $i, $i);\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES(" + i + ", 't1', " + i + ", " + i + ");\n    ")
 			}
 			dbcache_test_dbi = "0" // TCL namespace variable
 			_ = dbcache_test_dbi // suppress unused warning
@@ -233,9 +233,9 @@ func Test_swarmvtab3(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				// rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);...} (unsupported command, not transpiled)
 				// rrr close (unsupported command, not transpiled)
-				_res = db.Exec("\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
+				_res = db.Exec("\n      INSERT INTO swarm VALUES('test.db' || " + i + ", 't1', " + i + ", " + i + ", " + file + ")\n    ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES('test.db' || " + i + ", 't1', " + i + ", " + i + ", " + file + ")\n    ")
 				}
 				dbcache_test_dbi = "0" // TCL namespace variable
 				_ = dbcache_test_dbi // suppress unused warning

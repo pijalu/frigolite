@@ -97,9 +97,9 @@ func Test_fts3fault(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			_res = db.Exec(" INSERT INTO t3 VALUES('aaa' || $i) ")
+			_res = db.Exec(" INSERT INTO t3 VALUES('aaa' || " + i + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES('aaa' || $i) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES('aaa' || " + i + ") ")
 			}
 			// incr i 1
 			{

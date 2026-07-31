@@ -144,7 +144,7 @@ func Test_attach(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-1.10"
-		_res = db.Exec("\n    DETACH DATABASE [three];\n  ")
+		_res = db.Exec("\n    DETACH DATABASE " + "three" + ";\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-1.11"

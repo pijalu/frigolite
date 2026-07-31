@@ -805,7 +805,7 @@ func Test_bind(t *testing.T) {
 		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "bind-11.1"
-		_res = db.Exec("SELECT * FROM sqlite_master WHERE name=$abc(123 and sql NOT NULL;")
+		_res = db.Exec("SELECT * FROM sqlite_master WHERE name=" + abc + "(123 and sql NOT NULL;")
 		_ = _res // catchsql
 	}
 	if tclExecSQL(db, "{pragma encoding}") == "UTF-8" {

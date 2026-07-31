@@ -337,53 +337,53 @@ func Test_instr(t *testing.T) {
 	longstr += longstr
 	longstr += "Xabcde"
 	{ // do_test "instr-1.46"
-		_res = db.Exec("SELECT instr($longstr,'X');")
+		_res = db.Exec("SELECT instr(" + longstr + ",'X');")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'X');")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'X');")
 		}
 	}
 	{ // do_test "instr-1.47"
-		_res = db.Exec("SELECT instr($longstr,'Y');")
+		_res = db.Exec("SELECT instr(" + longstr + ",'Y');")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'Y');")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'Y');")
 		}
 	}
 	{ // do_test "instr-1.48"
-		_res = db.Exec("SELECT instr($longstr,'Xa');")
+		_res = db.Exec("SELECT instr(" + longstr + ",'Xa');")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'Xa');")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'Xa');")
 		}
 	}
 	{ // do_test "instr-1.49"
-		_res = db.Exec("SELECT instr($longstr,'zXa');")
+		_res = db.Exec("SELECT instr(" + longstr + ",'zXa');")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'zXa');")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'zXa');")
 		}
 	}
 	longstr = strings.ReplaceAll(longstr, "a", "ä")
 	_ = longstr // suppress unused warning
 	{ // do_test "instr-1.50"
-		_res = db.Exec("SELECT instr($longstr,'X');")
+		_res = db.Exec("SELECT instr(" + longstr + ",'X');")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'X');")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'X');")
 		}
 	}
 	{ // do_test "instr-1.51"
-		_res = db.Exec("SELECT instr($longstr,'Y');")
+		_res = db.Exec("SELECT instr(" + longstr + ",'Y');")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'Y');")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'Y');")
 		}
 	}
 	{ // do_test "instr-1.52"
-		_res = db.Exec("SELECT instr($longstr,'Xä');")
+		_res = db.Exec("SELECT instr(" + longstr + ",'XÃ¤');")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'Xä');")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'XÃ¤');")
 		}
 	}
 	{ // do_test "instr-1.53"
-		_res = db.Exec("SELECT instr($longstr,'zXä');")
+		_res = db.Exec("SELECT instr(" + longstr + ",'zXÃ¤');")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'zXä');")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'zXÃ¤');")
 		}
 	}
 	{ // do_test "instr-1.54"

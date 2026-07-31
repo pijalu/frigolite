@@ -549,49 +549,49 @@ func Test_regexp1(t *testing.T) {
 	{ // do_test "regexp1-2.9"
 		v1 = "abc\\ndef"
 		_ = v1 // suppress unused warning
-		_res = db.Exec("SELECT $v1 REGEXP '^abc\\ndef$'")
+		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\ndef$'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT $v1 REGEXP '^abc\\ndef$'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + v1 + " REGEXP '^abc\\ndef$'")
 		}
 	}
 	{ // do_test "regexp1-2.10"
 		v1 = "abc\\adef"
 		_ = v1 // suppress unused warning
-		_res = db.Exec("SELECT $v1 REGEXP '^abc\\adef$'")
+		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\adef$'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT $v1 REGEXP '^abc\\adef$'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + v1 + " REGEXP '^abc\\adef$'")
 		}
 	}
 	{ // do_test "regexp1-2.11"
 		v1 = "abc\\tdef"
 		_ = v1 // suppress unused warning
-		_res = db.Exec("SELECT $v1 REGEXP '^abc\\tdef$'")
+		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\tdef$'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT $v1 REGEXP '^abc\\tdef$'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + v1 + " REGEXP '^abc\\tdef$'")
 		}
 	}
 	{ // do_test "regexp1-2.12"
 		v1 = "abc\\rdef"
 		_ = v1 // suppress unused warning
-		_res = db.Exec("SELECT $v1 REGEXP '^abc\\rdef$'")
+		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\rdef$'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT $v1 REGEXP '^abc\\rdef$'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + v1 + " REGEXP '^abc\\rdef$'")
 		}
 	}
 	{ // do_test "regexp1-2.13"
 		v1 = "abc\\fdef"
 		_ = v1 // suppress unused warning
-		_res = db.Exec("SELECT $v1 REGEXP '^abc\\fdef$'")
+		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\fdef$'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT $v1 REGEXP '^abc\\fdef$'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + v1 + " REGEXP '^abc\\fdef$'")
 		}
 	}
 	{ // do_test "regexp1-2.14"
 		v1 = "abc\\vdef"
 		_ = v1 // suppress unused warning
-		_res = db.Exec("SELECT $v1 REGEXP '^abc\\vdef$'")
+		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\vdef$'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT $v1 REGEXP '^abc\\vdef$'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + v1 + " REGEXP '^abc\\vdef$'")
 		}
 	}
 	{ // "regexp1-2.15"

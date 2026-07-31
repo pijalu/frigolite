@@ -375,9 +375,9 @@ func Test_fts3expr(t *testing.T) {
 			if tclBool(ii + " & 16") {
 				v = tclListAppend(v, "five")
 			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($v) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + v + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($v) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + v + ") ")
 			}
 			// incr ii 1
 			{
@@ -403,9 +403,9 @@ func Test_fts3expr(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // do_test "fts3expr-6.1." + id
-				r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+				r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH " + expr + " ORDER BY rowid ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH " + expr + " ORDER BY rowid ")
 				}
 			}
 		}
@@ -422,9 +422,9 @@ func Test_fts3expr(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _idx1
 				{ // do_test "fts3expr-6.2." + id
-					r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+					r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH " + expr + " ORDER BY rowid ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH " + expr + " ORDER BY rowid ")
 					}
 				}
 			}

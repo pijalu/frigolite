@@ -103,7 +103,7 @@ func Test_sort4(t *testing.T) {
 	_ = _t // pre-declared from TCL source
 	var iNow string
 	_ = iNow // pre-declared from TCL source
-	var tn string
+	var tn = "0"
 	_ = tn // pre-declared from TCL source
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source

@@ -114,9 +114,9 @@ func Test_fts3corrupt4(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 12 }() {
-			_res = db.Exec("\n      BEGIN;\n        INSERT INTO ft VALUES('abc' || $i);\n        INSERT INTO ft VALUES('abc' || $i || 'x' );\n        INSERT INTO ft VALUES('abc' || $i || 'xx' );\n      COMMIT\n    ")
+			_res = db.Exec("\n      BEGIN;\n        INSERT INTO ft VALUES('abc' || " + i + ");\n        INSERT INTO ft VALUES('abc' || " + i + " || 'x' );\n        INSERT INTO ft VALUES('abc' || " + i + " || 'xx' );\n      COMMIT\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO ft VALUES('abc' || $i);\n        INSERT INTO ft VALUES('abc' || $i || 'x' );\n        INSERT INTO ft VALUES('abc' || $i || 'xx' );\n      COMMIT\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO ft VALUES('abc' || " + i + ");\n        INSERT INTO ft VALUES('abc' || " + i + " || 'x' );\n        INSERT INTO ft VALUES('abc' || " + i + " || 'xx' );\n      COMMIT\n    ")
 			}
 			// incr i 1
 			{
@@ -209,9 +209,9 @@ func Test_fts3corrupt4(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			_res = db.Exec(" INSERT INTO ft VALUES('abc' || $i) ")
+			_res = db.Exec(" INSERT INTO ft VALUES('abc' || " + i + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES('abc' || $i) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES('abc' || " + i + ") ")
 			}
 			// incr i 1
 			{

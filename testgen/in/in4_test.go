@@ -6,6 +6,7 @@ package in
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -306,9 +307,9 @@ func Test_in4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "in4-3.33"
@@ -330,9 +331,9 @@ func Test_in4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "in4-3.41"
@@ -354,9 +355,9 @@ func Test_in4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/OpenEphemeral/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "OpenEphemeral"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "in4-3.43"
@@ -390,9 +391,9 @@ func Test_in4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/OpenEphemeral/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "OpenEphemeral"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "in4-3.47"
@@ -414,9 +415,9 @@ func Test_in4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/OpenEphemeral/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "OpenEphemeral"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "in4-4.1"
@@ -600,9 +601,9 @@ func Test_in4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SCAN t6a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t6a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "in4-6.2"
@@ -624,9 +625,9 @@ func Test_in4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	db.Close()
@@ -777,9 +778,9 @@ func Test_in4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/ SeekScan /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := " SeekScan "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	db.Close()

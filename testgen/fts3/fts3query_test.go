@@ -244,9 +244,9 @@ func Test_fts3query(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nEntry_n, _nEntry_e := strconv.Atoi(nEntry); if _nEntry_e != nil { return false }; return i_n < nEntry_n }() {
 					iRowid = tclExprWith("$i + $iFirst", map[string]string{"i": i, "iFirst": iFirst})
 					_ = iRowid // suppress unused warning
-					_res = db.Exec("\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
+					_res = db.Exec("\n          INSERT INTO ft4(rowid, x) VALUES(" + iRowid + ", 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(" + iRowid + ", 'x y z');\n        ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n          INSERT INTO ft4(rowid, x) VALUES(" + iRowid + ", 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(" + iRowid + ", 'x y z');\n        ")
 					}
 					// incr i 1
 					{

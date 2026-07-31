@@ -278,9 +278,9 @@ func Test_cost(t *testing.T) {
 			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
-				_res = db.Exec(" INSERT INTO t6 VALUES($i%4, 'xyz', $i%8) ")
+				_res = db.Exec(" INSERT INTO t6 VALUES(" + i + "%4, 'xyz', " + i + "%8) ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES($i%4, 'xyz', $i%8) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t6 VALUES(" + i + "%4, 'xyz', " + i + "%8) ")
 				}
 				// incr i 1
 				{

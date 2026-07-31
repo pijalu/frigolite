@@ -7,6 +7,7 @@ package skipscan
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
 "testing"
 )
 
@@ -74,9 +75,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* USING INDEX t1abc (ANY(a) AND b=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* USING INDEX t1abc (ANY(a) AND b=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.2sort"
@@ -86,9 +87,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/*ORDER BY*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "*ORDER BY*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.3"
@@ -110,9 +111,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* USING INDEX t1abc (ANY(a) AND b=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* USING INDEX t1abc (ANY(a) AND b=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.3sort"
@@ -122,9 +123,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/*ORDER BY*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "*ORDER BY*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.4"
@@ -146,9 +147,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* USING INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* USING INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.4sort"
@@ -158,9 +159,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/*ORDER BY*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "*ORDER BY*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.5"
@@ -182,9 +183,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* USING INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* USING INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.5sort"
@@ -194,9 +195,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/*ORDER BY*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "*ORDER BY*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.6"
@@ -218,9 +219,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* USING INDEX t1abc (ANY(a) AND ANY(b) AND c>? AND c<?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* USING INDEX t1abc (ANY(a) AND ANY(b) AND c>? AND c<?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.6sort"
@@ -230,9 +231,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/*ORDER BY*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "*ORDER BY*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.7"
@@ -254,9 +255,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* USING INDEX t1abc (ANY(a) AND b=? AND c>? AND c<?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* USING INDEX t1abc (ANY(a) AND b=? AND c>? AND c<?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.7sort"
@@ -266,9 +267,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/*ORDER BY*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "*ORDER BY*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.51"
@@ -290,9 +291,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-1.52"
@@ -314,9 +315,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-2.1"
@@ -344,9 +345,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* USING INDEX sqlite_autoindex_t2_1 (ANY(a) AND b=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* USING INDEX sqlite_autoindex_t2_1 (ANY(a) AND b=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-2.2sort"
@@ -356,9 +357,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/*ORDER BY*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "*ORDER BY*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-3.1"
@@ -386,9 +387,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* PRIMARY KEY (ANY(a) AND b=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* PRIMARY KEY (ANY(a) AND b=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-3.2sort"
@@ -398,9 +399,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/*ORDER BY*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "*ORDER BY*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-4.1"
@@ -422,9 +423,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.*COVERING INDEX t5i1 .*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".*COVERING INDEX t5i1 .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-5.2"
@@ -440,9 +441,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.*COVERING INDEX t5i1 .*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".*COVERING INDEX t5i1 .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	os.Remove("test.db")
@@ -456,9 +457,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/ANY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "ANY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-6.2"
@@ -468,9 +469,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/ANY.a. AND b=/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "ANY.a. AND b="
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-6.3"
@@ -480,9 +481,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/ANY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "ANY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-7.1"
@@ -492,9 +493,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/ANY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "ANY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-7.2"
@@ -504,9 +505,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/ANY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "ANY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-7.3"
@@ -516,9 +517,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/ANY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "ANY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-8.1"
@@ -540,9 +541,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/ANY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "ANY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-8.2"
@@ -564,9 +565,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING INDEX t9a_ab .ANY.a. AND b=./"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING INDEX t9a_ab .ANY.a. AND b=."
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	// optimization_control db skip-scan off (unsupported command, not transpiled)
@@ -577,9 +578,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/{SCAN t9a}/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "{SCAN t9a}"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	// optimization_control db all on (unsupported command, not transpiled)
@@ -596,9 +597,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* USING INDEX t6abc (ANY(a) AND b=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* USING INDEX t6abc (ANY(a) AND b=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-2.2"
@@ -614,9 +615,9 @@ func Test_skipscan1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/* USING INDEX t6abc (ANY(a) AND b=?)*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "* USING INDEX t6abc (ANY(a) AND b=?)*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "skipscan1-2.3"

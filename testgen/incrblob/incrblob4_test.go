@@ -106,9 +106,9 @@ func Test_incrblob4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE k=9 ")
 		}
-		_res = db.Exec(" INSERT INTO t1(v) VALUES($new) ")
+		_res = db.Exec(" INSERT INTO t1(v) VALUES(" + _new + ") ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(v) VALUES($new) ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(v) VALUES(" + _new + ") ")
 		}
 	}
 	{ // do_test "3.1"
@@ -126,17 +126,17 @@ func Test_incrblob4(t *testing.T) {
 	{ // do_test "3.3"
 		_new = "% 900"
 		_ = _new // suppress unused warning
-		_res = db.Exec(" UPDATE t1 SET v = $new WHERE k = 20 ")
+		_res = db.Exec(" UPDATE t1 SET v = " + _new + " WHERE k = 20 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET v = $new WHERE k = 20 ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET v = " + _new + " WHERE k = 20 ")
 		}
 		_res = db.Exec(" DELETE FROM t1 WHERE k=19 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE k=19 ")
 		}
-		_res = db.Exec(" INSERT INTO t1(v) VALUES($new) ")
+		_res = db.Exec(" INSERT INTO t1(v) VALUES(" + _new + ") ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(v) VALUES($new) ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(v) VALUES(" + _new + ") ")
 		}
 	}
 	{ // "4.1"

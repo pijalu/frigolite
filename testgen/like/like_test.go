@@ -6,6 +6,7 @@ package like
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -790,9 +791,9 @@ func Test_like(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "like-12.12"
@@ -802,9 +803,9 @@ func Test_like(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "like-12.13"
@@ -814,9 +815,9 @@ func Test_like(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "like-12.14"
@@ -826,9 +827,9 @@ func Test_like(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "like-12.15"
@@ -838,9 +839,9 @@ func Test_like(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "like-12.16"
@@ -850,9 +851,9 @@ func Test_like(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "like-13.1"

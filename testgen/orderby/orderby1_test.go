@@ -6,6 +6,7 @@ package orderby
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -382,9 +383,9 @@ func Test_orderby1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "5.2"
@@ -430,9 +431,9 @@ func Test_orderby1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/ORDER BY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	db.Close()

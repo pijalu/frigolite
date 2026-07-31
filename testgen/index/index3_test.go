@@ -6,6 +6,7 @@ package index
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -89,9 +90,9 @@ func Test_index3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING INDEX/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING INDEX"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "index3-2.3"

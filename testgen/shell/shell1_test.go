@@ -661,9 +661,9 @@ func Test_shell1(t *testing.T) {
 		_dbtmp3, err := frigolite.Open("test2.db")
 		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE [table](x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO [table] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+		_res = db.Exec("\n    CREATE TABLE " + "table" + "(x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO " + "table" + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE [table](x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO [table] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE " + "table" + "(x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO " + "table" + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		}
 		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
 	}
@@ -672,9 +672,9 @@ func Test_shell1(t *testing.T) {
 		_dbtmp4, err := frigolite.Open("test2.db")
 		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE [ta<>ble](x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO [ta<>ble] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+		_res = db.Exec("\n    CREATE TABLE " + "ta<>ble" + "(x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO " + "ta<>ble" + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE [ta<>ble](x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO [ta<>ble] VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE " + "ta<>ble" + "(x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO " + "ta<>ble" + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		}
 		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
 	}
@@ -756,9 +756,9 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test.db .mode tcl\n.nullvalue NULL\nselect * from t2; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.6"
-		_res = db.Exec("\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('['), (']'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
+		_res = db.Exec("\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('" + "'), ('" + "'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('['), (']'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('" + "'), ('" + "'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
 		}
 		// foreach x,y "catchcmd test.db \".mode tcl\\nselect * from tcl1;\"" (no body)
 		_list := tclList([]string{x, y, "llength $y"})

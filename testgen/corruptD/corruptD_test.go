@@ -63,9 +63,9 @@ func Test_corruptD(t *testing.T) {
 		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 50 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES($ii, $ii * $ii) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + ii + ", " + ii + " * " + ii + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($ii, $ii * $ii) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + ii + ", " + ii + " * " + ii + ") ")
 			}
 			// incr ii 1
 			{

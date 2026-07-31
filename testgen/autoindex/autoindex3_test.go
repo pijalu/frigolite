@@ -6,6 +6,7 @@ package autoindex
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -59,9 +60,9 @@ func Test_autoindex3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/AUTO/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "AUTO"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "autoindex3-110"
@@ -71,9 +72,9 @@ func Test_autoindex3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/AUTO/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "AUTO"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "autoindex3-120"
@@ -83,9 +84,9 @@ func Test_autoindex3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/AUTO/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "AUTO"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "autoindex3-130"
@@ -95,9 +96,9 @@ func Test_autoindex3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/AUTO/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "AUTO"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "autoindex3-140"
@@ -107,9 +108,9 @@ func Test_autoindex3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/AUTO/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "AUTO"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	db.Close()

@@ -101,9 +101,9 @@ func Test_multiplex3(t *testing.T) {
 	_ = iTest // suppress unused warning
 	for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n <= 100 }() {
 		{ // do_test "2." + iTest
-			_res = db.Exec(" \n      UPDATE t1 SET a=randomblob(12), b=randomblob(1400) WHERE rowid=5*$iTest\n    ")
+			_res = db.Exec(" \n      UPDATE t1 SET a=randomblob(12), b=randomblob(1400) WHERE rowid=5*" + iTest + "\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      UPDATE t1 SET a=randomblob(12), b=randomblob(1400) WHERE rowid=5*$iTest\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      UPDATE t1 SET a=randomblob(12), b=randomblob(1400) WHERE rowid=5*" + iTest + "\n    ")
 			}
 			for _, f := range tclSplitList("glob -nocomplain test.*") {
 			_ = f // suppress unused warning

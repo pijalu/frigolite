@@ -85,21 +85,21 @@ func Test_percentile(t *testing.T) {
 		_ = disc // suppress unused warning
 		_ = _idx0
 			{ // do_test "percentile-1.1." + in + ".1"
-				r = db.Query("SELECT percentile(x,$in) FROM t1")
+				r = db.Query("SELECT percentile(x," + in + ") FROM t1")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x,$in) FROM t1")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x," + in + ") FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.1." + in + ".2"
-				r = db.Query("SELECT percentile_cont(x,$in*0.01) FROM t1")
+				r = db.Query("SELECT percentile_cont(x," + in + "*0.01) FROM t1")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x,$in*0.01) FROM t1")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x," + in + "*0.01) FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.1." + in + ".3"
-				r = db.Query("SELECT percentile_disc(x,$in*0.01) FROM t1")
+				r = db.Query("SELECT percentile_disc(x," + in + "*0.01) FROM t1")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x,$in*0.01) FROM t1")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x," + in + "*0.01) FROM t1")
 				}
 			}
 			if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -111,21 +111,21 @@ func Test_percentile(t *testing.T) {
 				}
 			}
 			{ // do_test "percentile-1.1." + in + ".5"
-				r = db.Query("SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t1")
+				r = db.Query("SELECT percentile(" + in + ")WITHIN GROUP(ORDER BY x) FROM t1")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t1")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(" + in + ")WITHIN GROUP(ORDER BY x) FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.1." + in + ".6"
-				r = db.Query("SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+				r = db.Query("SELECT percentile_cont(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 				}
 			}
 			{ // do_test "percentile-1.1." + in + ".7"
-				r = db.Query("SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+				r = db.Query("SELECT percentile_disc(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 				}
 			}
 			if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -196,21 +196,21 @@ func Test_percentile(t *testing.T) {
 			_ = disc // suppress unused warning
 			_ = _idx1
 				{ // do_test "percentile-1.3." + in + ".1"
-					r = db.Query("SELECT percentile(x,$in) FROM t1")
+					r = db.Query("SELECT percentile(x," + in + ") FROM t1")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x,$in) FROM t1")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x," + in + ") FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.3." + in + ".2"
-					r = db.Query("SELECT percentile_cont(x,$in*0.01) FROM t1")
+					r = db.Query("SELECT percentile_cont(x," + in + "*0.01) FROM t1")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x,$in*0.01) FROM t1")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x," + in + "*0.01) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.3." + in + ".3"
-					r = db.Query("SELECT percentile_disc(x,$in*0.01) FROM t1")
+					r = db.Query("SELECT percentile_disc(x," + in + "*0.01) FROM t1")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x,$in*0.01) FROM t1")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x," + in + "*0.01) FROM t1")
 					}
 				}
 				if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -222,21 +222,21 @@ func Test_percentile(t *testing.T) {
 					}
 				}
 				{ // do_test "percentile-1.3." + in + ".5"
-					r = db.Query("SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t1")
+					r = db.Query("SELECT percentile(" + in + ")WITHIN GROUP(ORDER BY x) FROM t1")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t1")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(" + in + ")WITHIN GROUP(ORDER BY x) FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.3." + in + ".6"
-					r = db.Query("SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+					r = db.Query("SELECT percentile_cont(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 					}
 				}
 				{ // do_test "percentile-1.3." + in + ".7"
-					r = db.Query("SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+					r = db.Query("SELECT percentile_disc(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 					}
 				}
 				if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -289,21 +289,21 @@ func Test_percentile(t *testing.T) {
 				_ = disc // suppress unused warning
 				_ = _idx2
 					{ // do_test "percentile-1.7." + in + ".1"
-						r = db.Query("SELECT percentile(x,$in) FROM t2")
+						r = db.Query("SELECT percentile(x," + in + ") FROM t2")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x,$in) FROM t2")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x," + in + ") FROM t2")
 						}
 					}
 					{ // do_test "percentile-1.7." + in + ".2"
-						r = db.Query("SELECT percentile_cont(x,$in*0.01) FROM t2")
+						r = db.Query("SELECT percentile_cont(x," + in + "*0.01) FROM t2")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x,$in*0.01) FROM t2")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x," + in + "*0.01) FROM t2")
 						}
 					}
 					{ // do_test "percentile-1.7." + in + ".3"
-						r = db.Query("SELECT percentile_disc(x,$in*0.01) FROM t2")
+						r = db.Query("SELECT percentile_disc(x," + in + "*0.01) FROM t2")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x,$in*0.01) FROM t2")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x," + in + "*0.01) FROM t2")
 						}
 					}
 					if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -315,21 +315,21 @@ func Test_percentile(t *testing.T) {
 						}
 					}
 					{ // do_test "percentile-1.7." + in + ".5"
-						r = db.Query("SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t2")
+						r = db.Query("SELECT percentile(" + in + ")WITHIN GROUP(ORDER BY x) FROM t2")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile($in)WITHIN GROUP(ORDER BY x) FROM t2")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(" + in + ")WITHIN GROUP(ORDER BY x) FROM t2")
 						}
 					}
 					{ // do_test "percentile-1.7." + in + ".6"
-						r = db.Query("SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
+						r = db.Query("SELECT percentile_cont(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
 						}
 					}
 					{ // do_test "percentile-1.7." + in + ".7"
-						r = db.Query("SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
+						r = db.Query("SELECT percentile_disc(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc($in*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(" + in + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
 						}
 					}
 					if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -517,9 +517,9 @@ func Test_percentile(t *testing.T) {
 					_ = out // suppress unused warning
 					_ = _idx3
 						{ // do_test "percentile-2.1." + in
-							r = db.Query("\n        SELECT round(percentile(x, $in),1) from t3;\n      ")
+							r = db.Query("\n        SELECT round(percentile(x, " + in + "),1) from t3;\n      ")
 							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT round(percentile(x, $in),1) from t3;\n      ")
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT round(percentile(x, " + in + "),1) from t3;\n      ")
 							}
 						}
 					}

@@ -728,9 +728,9 @@ func Test_tclsqlite(t *testing.T) {
 		_ = x_1 // suppress unused warning
 		x_2 = "B"
 		_ = x_2 // suppress unused warning
-		r = db.Query("\n      INSERT INTO t3 VALUES($::x(1),$::x(2),$::x(3));\n      SELECT * FROM t3\n    ")
+		r = db.Query("\n      INSERT INTO t3 VALUES(" + x_1 + "," + x_2 + "," + x_3 + ");\n      SELECT * FROM t3\n    ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t3 VALUES($::x(1),$::x(2),$::x(3));\n      SELECT * FROM t3\n    ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t3 VALUES(" + x_1 + "," + x_2 + "," + x_3 + ");\n      SELECT * FROM t3\n    ")
 		}
 	}
 	{ // do_test "tcl-5.2"
@@ -746,9 +746,9 @@ func Test_tclsqlite(t *testing.T) {
 		}
 		x = "binary format h12 686900686f00"
 		_ = x // suppress unused warning
-		_res = db.Exec("\n      UPDATE t3 SET a=$::x;\n    ")
+		_res = db.Exec("\n      UPDATE t3 SET a=" + x + ";\n    ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t3 SET a=$::x;\n    ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t3 SET a=" + x + ";\n    ")
 		}
 		_res = db.Exec("\n      SELECT a FROM t3\n    ")
 		if _res.Error != nil {
@@ -1224,9 +1224,9 @@ func Test_tclsqlite(t *testing.T) {
 		}
 		x = "abc123"
 		_ = x // suppress unused warning
-		_res = db.Exec("INSERT INTO t5 VALUES($x)")
+		_res = db.Exec("INSERT INTO t5 VALUES(" + x + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t5 VALUES($x)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t5 VALUES(" + x + ")")
 		}
 		_res = db.Exec("SELECT typeof(x) FROM t5")
 		if _res.Error != nil {
@@ -1235,9 +1235,9 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // do_test "tcl-13.2"
 		// binary scan $x H notUsed (test infra, not transpiled)
-		_res = db.Exec("\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES($x);\n      SELECT typeof(x) FROM t5;\n    ")
+		_res = db.Exec("\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(" + x + ");\n      SELECT typeof(x) FROM t5;\n    ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES($x);\n      SELECT typeof(x) FROM t5;\n    ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(" + x + ");\n      SELECT typeof(x) FROM t5;\n    ")
 		}
 	}
 	{ // do_test "tcl-13.3"
@@ -1439,9 +1439,9 @@ func Test_tclsqlite(t *testing.T) {
 		bindings_ghi = "3.1415926"
 		_ = bindings_ghi // suppress unused warning
 		// proc definition (not transpiled)
-		_res = db.Exec("SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi)")
+		_res = db.Exec("SELECT " + abc + ", typeof(" + abc + "), " + def + ", typeof(" + def + "), " + ghi + ", typeof(" + ghi + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + abc + ", typeof(" + abc + "), " + def + ", typeof(" + def + "), " + ghi + ", typeof(" + ghi + ")")
 		}
 	}
 	{ // do_test "18.110"
@@ -1471,16 +1471,16 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "18.140"
 	}
 	{ // do_test "18.200"
-		_res = db.Exec("SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi)")
+		_res = db.Exec("SELECT " + abc + ", typeof(" + abc + "), " + def + ", typeof(" + def + "), " + ghi + ", typeof(" + ghi + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + abc + ", typeof(" + abc + "), " + def + ", typeof(" + def + "), " + ghi + ", typeof(" + ghi + ")")
 		}
 	}
 	{ // do_test "18.300"
 		// proc definition (not transpiled)
-		_res = db.Exec("SELECT $abc, @def, $ghi(123), :mno")
+		_res = db.Exec("SELECT " + abc + ", @def, " + ghi_123 + ", :mno")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT $abc, @def, $ghi(123), :mno")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + abc + ", @def, " + ghi_123 + ", :mno")
 		}
 	}
 	{ // do_test "18.900"

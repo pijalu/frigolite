@@ -6,6 +6,7 @@ package where
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strconv"
 "strings"
 "testing"
@@ -1102,9 +1103,9 @@ func Test_where(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.* sqlite_autoindex_t191_1 .* sqlite_autoindex_t191_2 .*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".* sqlite_autoindex_t191_1 .* sqlite_autoindex_t191_2 .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "where-20.0"

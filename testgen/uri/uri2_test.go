@@ -103,7 +103,7 @@ func Test_uri2(t *testing.T) {
 				_dbtmp1, err := frigolite.Open("")
 				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec(" ATTACH $uri AS aux ")
+				_res = db.Exec(" ATTACH " + uri + " AS aux ")
 				_ = _res // catchsql
 			}
 			{ // do_test "1." + tn + ".3"

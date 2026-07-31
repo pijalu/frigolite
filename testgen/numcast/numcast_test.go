@@ -87,15 +87,15 @@ func Test_numcast(t *testing.T) {
 			_ = ival // suppress unused warning
 			_ = _idx1
 				{ // do_test "numcast-" + enc + "." + idx + ".1"
-					_res = db.Exec("SELECT CAST($str AS real)")
+					_res = db.Exec("SELECT CAST(" + str + " AS real)")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST($str AS real)")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(" + str + " AS real)")
 					}
 				}
 				{ // do_test "numcast-" + enc + "." + idx + ".2"
-					_res = db.Exec("SELECT CAST($str AS integer)")
+					_res = db.Exec("SELECT CAST(" + str + " AS integer)")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST($str AS integer)")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(" + str + " AS integer)")
 					}
 				}
 			}

@@ -269,9 +269,9 @@ func Test_expridx1(t *testing.T) {
 			ii = "1"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; return ii_n < nRow_n }() {
-				_res = db.Exec(" DELETE FROM t1 WHERE a=$ii ")
+				_res = db.Exec(" DELETE FROM t1 WHERE a=" + ii + " ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE a=$ii ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE a=" + ii + " ")
 				}
 				// incr ii 2
 				{

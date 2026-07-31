@@ -71,17 +71,17 @@ func Test_fts3corrupt(t *testing.T) {
 		_ = blob // suppress unused warning
 		blob = "binary format a7ca* $blob 24 [string range $blob 8 end]"
 		_ = blob // suppress unused warning
-		_res = db.Exec(" UPDATE t1_segdir SET root = $blob ")
+		_res = db.Exec(" UPDATE t1_segdir SET root = " + blob + " ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = $blob ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = " + blob + " ")
 		}
 	}
 	{ // do_test "fts3corrupt-1.2"
 		for _, w := range tclSplitList("a b c d e f g h i j k l m n o") {
 		_ = w // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1 VALUES($w) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + w + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($w) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + w + ") ")
 			}
 		}
 	}
@@ -111,9 +111,9 @@ func Test_fts3corrupt(t *testing.T) {
 		_ = blob // suppress unused warning
 		blob = "binary format a*a* \"\\x00\\x7F\" [string range $blob 2 end]"
 		_ = blob // suppress unused warning
-		_res = db.Exec(" UPDATE t1_segdir SET root = $blob ")
+		_res = db.Exec(" UPDATE t1_segdir SET root = " + blob + " ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = $blob ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = " + blob + " ")
 		}
 	}
 	{ // "2.2"
@@ -136,9 +136,9 @@ func Test_fts3corrupt(t *testing.T) {
 		_ = blob // suppress unused warning
 		blob = "binary format a11a*a* $blob \"\\x7F\" [string range $blob 12 end]"
 		_ = blob // suppress unused warning
-		_res = db.Exec(" UPDATE t1_segdir SET root = $blob ")
+		_res = db.Exec(" UPDATE t1_segdir SET root = " + blob + " ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = $blob ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = " + blob + " ")
 		}
 	}
 	{ // "3.2"
@@ -163,9 +163,9 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 		for _, s := range tclSplitList("\n     \"amxtvoo adqwroyhz auq aithtir avniqnuynvf axp ahibayfynig agbicpm\"\n     \"ajdtebs anteaxr aieynenwmd awpl alo akxcrwow aoxftge aoqvgul\"\n     \"amcfvdr auz apu aebelm ahuxyz aqc asyafdb agulvhvqu\"\n     \"apepwfyz azkhdvkw aenyelxzbk aslnitbyet aycdsdcpgr aqzzdbc agfi axnypydou\"\n     \"aaqrzzcm apcxdxo atumltzj aevvivo aodknoft aqoyytoz alobx apldt\"\n  ") {
 		_ = s // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1 VALUES($s) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + s + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($s) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + s + ") ")
 			}
 		}
 		_res = db.Exec("COMMIT")

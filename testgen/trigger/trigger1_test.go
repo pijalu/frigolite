@@ -87,7 +87,7 @@ func Test_trigger1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "trigger1-1.2.3"
-		_res = db.Exec("\n        CREATE TRIGGER [tr1] DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
+		_res = db.Exec("\n        CREATE TRIGGER " + "tr1" + " DELETE ON t1 BEGIN\n            SELECT * FROM sqlite_master;\n         END\n     ")
 		_ = _res // catchsql
 	}
 	{ // do_test "trigger1-1.3"
@@ -352,15 +352,15 @@ func Test_trigger1(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger1-8.5"
-		r = db.Query("\n    CREATE TRIGGER [trigger] AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+		r = db.Query("\n    CREATE TRIGGER " + "trigger" + " AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER [trigger] AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER " + "trigger" + " AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		}
 	}
 	{ // do_test "trigger1-8.6"
-		r = db.Query("\n    DROP TRIGGER [trigger];\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+		r = db.Query("\n    DROP TRIGGER " + "trigger" + ";\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TRIGGER [trigger];\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TRIGGER " + "trigger" + ";\n    SELECT name FROM sqlite_master WHERE type='trigger';\n  ")
 		}
 	}
 	{ // do_test "trigger1-9.1"

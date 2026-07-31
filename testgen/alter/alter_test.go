@@ -90,9 +90,9 @@ func Test_alter(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
 		}
-		r = db.Query("\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM [temp table];\n  ")
+		r = db.Query("\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM " + "temp table" + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM [temp table];\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM " + "temp table" + ";\n  ")
 		}
 	}
 	{ // do_test "alter-1.2"
@@ -112,17 +112,17 @@ func Test_alter(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "alter-1.3"
-		_res = db.Exec("\n    ALTER TABLE [T1] RENAME to [-t1-];\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE [temp table] RENAME to TempTab;\n  ")
+		_res = db.Exec("\n    ALTER TABLE " + "T1" + " RENAME to " + "-t1-" + ";\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE " + "temp table" + " RENAME to TempTab;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE [T1] RENAME to [-t1-];\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE [temp table] RENAME to TempTab;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + "T1" + " RENAME to " + "-t1-" + ";\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE " + "temp table" + " RENAME to TempTab;\n  ")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "alter-1.4"
-		r = db.Query("\n    SELECT 't1', * FROM [-t1-];\n    SELECT 't2', * FROM t2;\n    SELECT * FROM temptab;\n  ")
+		r = db.Query("\n    SELECT 't1', * FROM " + "-t1-" + ";\n    SELECT 't2', * FROM t2;\n    SELECT * FROM temptab;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 't1', * FROM [-t1-];\n    SELECT 't2', * FROM t2;\n    SELECT * FROM temptab;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 't1', * FROM " + "-t1-" + ";\n    SELECT 't2', * FROM t2;\n    SELECT * FROM temptab;\n  ")
 		}
 	}
 	{ // do_test "alter-1.5"
@@ -243,11 +243,11 @@ func Test_alter(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(p,q,r);\n  ")
 		}
-		_res = db.Exec("\n    ALTER TABLE [<t2>] RENAME TO t3;\n  ")
+		_res = db.Exec("\n    ALTER TABLE " + "<t2>" + " RENAME TO t3;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "alter-2.3"
-		_res = db.Exec("\n    ALTER TABLE [<t2>] RENAME TO i3;\n  ")
+		_res = db.Exec("\n    ALTER TABLE " + "<t2>" + " RENAME TO i3;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "alter-2.4"

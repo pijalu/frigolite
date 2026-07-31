@@ -6,6 +6,7 @@ package existsexpr
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -122,9 +123,9 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SUBQUERY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.3.2"
@@ -134,9 +135,9 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SUBQUERY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.4.1"
@@ -146,9 +147,9 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SUBQUERY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.4.2"
@@ -158,9 +159,9 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SUBQUERY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.5"
@@ -266,9 +267,9 @@ func Test_existsexpr(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SUBQUERY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SUBQUERY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	// proc definition (not transpiled)

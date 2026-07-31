@@ -94,14 +94,14 @@ func Test_windowC(t *testing.T) {
 					for _, s := range tclSplitList(seps) {
 					_ = s // suppress unused warning
 						if _type == "text" {
-							_res = db.Exec("INSERT INTO x1 VALUES(NULL, $s)")
+							_res = db.Exec("INSERT INTO x1 VALUES(NULL, " + s + ")")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1 VALUES(NULL, $s)")
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1 VALUES(NULL, " + s + ")")
 							}
 						} else {
-							_res = db.Exec("INSERT INTO x1 VALUES(NULL, CAST ($s AS blob))")
+							_res = db.Exec("INSERT INTO x1 VALUES(NULL, CAST (" + s + " AS blob))")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1 VALUES(NULL, CAST ($s AS blob))")
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1 VALUES(NULL, CAST (" + s + " AS blob))")
 							}
 						}
 					}

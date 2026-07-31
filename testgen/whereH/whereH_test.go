@@ -6,6 +6,7 @@ package whereH
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -55,9 +56,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX t1abc /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX t1abc "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-1.2"
@@ -67,9 +68,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE FOR ORDER BY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE FOR ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-2.1"
@@ -79,9 +80,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX t1abc /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX t1abc "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-2.2"
@@ -91,9 +92,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE FOR ORDER BY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE FOR ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-3.1"
@@ -103,9 +104,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX t1abcd /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX t1abcd "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-3.2"
@@ -115,9 +116,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE FOR ORDER BY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE FOR ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-4.1"
@@ -127,9 +128,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX t1abcd /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX t1abcd "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-4.2"
@@ -139,9 +140,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE FOR ORDER BY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE FOR ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-5.1"
@@ -151,9 +152,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX t1abcd /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX t1abcd "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-5.2"
@@ -163,9 +164,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE FOR ORDER BY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE FOR ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-6.1"
@@ -175,9 +176,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX t1abcd /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX t1abcd "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-6.2"
@@ -187,9 +188,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE FOR ORDER BY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE FOR ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-7.1"
@@ -199,9 +200,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX t1abcd /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX t1abcd "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-7.2"
@@ -211,9 +212,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE FOR ORDER BY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE FOR ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-8.1"
@@ -223,9 +224,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX t1abcd /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX t1abcd "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereH-8.2"
@@ -235,9 +236,9 @@ func Test_whereH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE FOR ORDER BY/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE FOR ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 }

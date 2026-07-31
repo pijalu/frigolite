@@ -95,9 +95,9 @@ func Test_atof1(t *testing.T) {
 			y = "db eval {SELECT $x=CAST(quote($x) AS real)}"
 			_ = y // suppress unused warning
 			if tclBool("!" + y) {
-				_res = db.Exec("SELECT real2hex($x) a, real2hex(CAST(quote($x) AS real)) b")
+				_res = db.Exec("SELECT real2hex(" + x + ") a, real2hex(CAST(quote(" + x + ") AS real)) b")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT real2hex($x) a, real2hex(CAST(quote($x) AS real)) b")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT real2hex(" + x + ") a, real2hex(CAST(quote(" + x + ") AS real)) b")
 				}
 				_putsMsg := ""
 				_ = _putsMsg
@@ -112,9 +112,9 @@ func Test_atof1(t *testing.T) {
 				_ = _putsMsg
 				_putsMsg = "format {!QUOTE: %16s %s} {} [db eval {SELECT quote($x)}]"
 				_ = _putsMsg
-				_res = db.Exec("SELECT CAST(quote($x) AS real) c")
+				_res = db.Exec("SELECT CAST(quote(" + x + ") AS real) c")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(quote($x) AS real) c")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(quote(" + x + ") AS real) c")
 				}
 				_putsMsg = "!OUT:   " + b + " " + "format %.32e $c"
 				_ = _putsMsg

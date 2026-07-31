@@ -7,6 +7,7 @@ package transitive
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
 "testing"
 )
 
@@ -382,9 +383,9 @@ func Test_transitive1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN c1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN c1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "transitive1-570"
@@ -400,9 +401,9 @@ func Test_transitive1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN c1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN c1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	db.Close()

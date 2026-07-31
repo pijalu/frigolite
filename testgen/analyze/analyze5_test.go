@@ -122,9 +122,9 @@ func Test_analyze5(t *testing.T) {
 				_ = v // suppress unused warning
 			} else if tclBool("set v " + strings.ToUpper(u)) {
 			}
-			_res = db.Exec("INSERT INTO t1 VALUES($t,$u,$v,$w,$x,$y,$z)")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + _t + "," + u + "," + v + "," + w + "," + x + "," + y + "," + z + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES($t,$u,$v,$w,$x,$y,$z)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + _t + "," + u + "," + v + "," + w + "," + x + "," + y + "," + z + ")")
 			}
 			// incr i 1
 			{

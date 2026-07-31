@@ -71,9 +71,9 @@ func Test_btree01(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.2." + i
-			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(3000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(3000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(3000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(3000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			}
 		}
 		// incr i 1
@@ -88,9 +88,9 @@ func Test_btree01(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.3." + i
-			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(2000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(2000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(2000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(2000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			}
 		}
 		// incr i 1
@@ -105,9 +105,9 @@ func Test_btree01(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.4." + i
-			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==0;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==1;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==2;\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==0;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==1;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==2;\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==0;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==1;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==2;\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==0;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==1;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==2;\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			}
 		}
 		// incr i 1
@@ -122,9 +122,9 @@ func Test_btree01(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.5." + i
-			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2331);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2331);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2331);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2331);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			}
 		}
 		// incr i 1
@@ -139,9 +139,9 @@ func Test_btree01(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.6." + i
-			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2332);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2332);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2332);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2332);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			}
 		}
 		// incr i 1
@@ -156,9 +156,9 @@ func Test_btree01(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.7." + i
-			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(1);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(1);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(1);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(1);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			}
 		}
 		// incr i 1
@@ -173,9 +173,9 @@ func Test_btree01(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 31 }() {
 		{ // do_test "btree01-1.8." + i
-			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<31)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(4000);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+			_res = db.Exec("\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<31)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(4000);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<31)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(4000);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=$::i;\n      PRAGMA integrity_check;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<31)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(4000);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=" + i + ";\n      PRAGMA integrity_check;\n    ")
 			}
 		}
 		// incr i 1

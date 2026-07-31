@@ -676,21 +676,21 @@ func Test_tabfunc01(t *testing.T) {
 		PTR1 = "intarray_addr 5 7 13 17 23"
 		_ = PTR1 // suppress unused warning
 		// sqlite3_create_function db (unsupported command, not transpiled)
-		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr($PTR1),5) WHERE a=value;\n  ")
+		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr(" + PTR1 + "),5) WHERE a=value;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr($PTR1),5) WHERE a=value;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr(" + PTR1 + "),5) WHERE a=value;\n  ")
 		}
 	}
 	{ // do_test "tabfunc01-701"
-		_res = db.Exec("\n    SELECT b FROM t600 WHERE a IN carray(inttoptr($PTR1),5,'int32');\n  ")
+		_res = db.Exec("\n    SELECT b FROM t600 WHERE a IN carray(inttoptr(" + PTR1 + "),5,'int32');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600 WHERE a IN carray(inttoptr($PTR1),5,'int32');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600 WHERE a IN carray(inttoptr(" + PTR1 + "),5,'int32');\n  ")
 		}
 	}
 	{ // do_test "tabfunc01-702"
-		_res = db.Exec("\n    SELECT b FROM t600 WHERE a IN carray(inttoptr($PTR1),4,'int32');\n  ")
+		_res = db.Exec("\n    SELECT b FROM t600 WHERE a IN carray(inttoptr(" + PTR1 + "),4,'int32');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600 WHERE a IN carray(inttoptr($PTR1),4,'int32');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600 WHERE a IN carray(inttoptr(" + PTR1 + "),4,'int32');\n  ")
 		}
 	}
 	{ // "tabfunc01-710"
@@ -702,51 +702,51 @@ func Test_tabfunc01(t *testing.T) {
 	{ // do_test "tabfunc01-720"
 		PTR2 = "int64array_addr 5 7 13 17 23"
 		_ = PTR2 // suppress unused warning
-		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr($PTR2),5,'int64') WHERE a=value;\n  ")
+		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr(" + PTR2 + "),5,'int64') WHERE a=value;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr($PTR2),5,'int64') WHERE a=value;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr(" + PTR2 + "),5,'int64') WHERE a=value;\n  ")
 		}
 	}
 	{ // do_test "tabfunc01-721"
-		_res = db.Exec("\n    SELECT remember(123,inttoptr($PTR2));\n    SELECT value FROM carray(inttoptr($PTR2),5,'int64');\n  ")
+		_res = db.Exec("\n    SELECT remember(123,inttoptr(" + PTR2 + "));\n    SELECT value FROM carray(inttoptr(" + PTR2 + "),5,'int64');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT remember(123,inttoptr($PTR2));\n    SELECT value FROM carray(inttoptr($PTR2),5,'int64');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT remember(123,inttoptr(" + PTR2 + "));\n    SELECT value FROM carray(inttoptr(" + PTR2 + "),5,'int64');\n  ")
 		}
 	}
 	{ // do_test "tabfunc01-722"
 		PTR3 = tclExprWith("$PTR2+16", map[string]string{"PTR2": PTR2})
 		_ = PTR3 // suppress unused warning
-		_res = db.Exec("\n    SELECT remember(987,inttoptr($PTR3));\n    SELECT value FROM carray(inttoptr($PTR2),5,'int64');\n  ")
+		_res = db.Exec("\n    SELECT remember(987,inttoptr(" + PTR3 + "));\n    SELECT value FROM carray(inttoptr(" + PTR2 + "),5,'int64');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT remember(987,inttoptr($PTR3));\n    SELECT value FROM carray(inttoptr($PTR2),5,'int64');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT remember(987,inttoptr(" + PTR3 + "));\n    SELECT value FROM carray(inttoptr(" + PTR2 + "),5,'int64');\n  ")
 		}
 	}
 	{ // do_test "tabfunc01-730"
 		PTR4 = "doublearray_addr 5.0 7.0 13.0 17.0 23.0"
 		_ = PTR4 // suppress unused warning
-		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr($PTR4),5,'double') WHERE a=value;\n  ")
+		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr(" + PTR4 + "),5,'double') WHERE a=value;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr($PTR4),5,'double') WHERE a=value;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr(" + PTR4 + "),5,'double') WHERE a=value;\n  ")
 		}
 	}
 	{ // do_test "tabfunc01-740"
 		PTR5 = "textarray_addr x5 x7 x13 x17 x23"
 		_ = PTR5 // suppress unused warning
-		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr($PTR5),5,'char*')\n     WHERE a=trim(value,'x');\n  ")
+		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr(" + PTR5 + "),5,'char*')\n     WHERE a=trim(value,'x');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr($PTR5),5,'char*')\n     WHERE a=trim(value,'x');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr(" + PTR5 + "),5,'char*')\n     WHERE a=trim(value,'x');\n  ")
 		}
 	}
 	{ // do_test "tabfunc01-750"
-		_res = db.Exec("\n    SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr($PTR4),5,'double') AS aa\n      JOIN carray(inttoptr($PTR5),5,'char*') AS bb ON aa.rowid=bb.rowid;\n  ")
+		_res = db.Exec("\n    SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr(" + PTR4 + "),5,'double') AS aa\n      JOIN carray(inttoptr(" + PTR5 + "),5,'char*') AS bb ON aa.rowid=bb.rowid;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr($PTR4),5,'double') AS aa\n      JOIN carray(inttoptr($PTR5),5,'char*') AS bb ON aa.rowid=bb.rowid;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr(" + PTR4 + "),5,'double') AS aa\n      JOIN carray(inttoptr(" + PTR5 + "),5,'char*') AS bb ON aa.rowid=bb.rowid;\n  ")
 		}
 	}
 	{ // do_test "tabfunc01-751"
-		_res = db.Exec("\n    SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr($PTR4),5,'double') AS aa\n      LEFT JOIN carray(inttoptr($PTR5),5,'char*') AS bb ON aa.rowid=bb.rowid;\n  ")
+		_res = db.Exec("\n    SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr(" + PTR4 + "),5,'double') AS aa\n      LEFT JOIN carray(inttoptr(" + PTR5 + "),5,'char*') AS bb ON aa.rowid=bb.rowid;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr($PTR4),5,'double') AS aa\n      LEFT JOIN carray(inttoptr($PTR5),5,'char*') AS bb ON aa.rowid=bb.rowid;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr(" + PTR4 + "),5,'double') AS aa\n      LEFT JOIN carray(inttoptr(" + PTR5 + "),5,'char*') AS bb ON aa.rowid=bb.rowid;\n  ")
 		}
 	}
 	{ // do_test "tabfunc01-800"

@@ -321,9 +321,9 @@ func Test_fts3defer(t *testing.T) {
 				L = tclListAppend(L, "common", "rare")
 				val = strings.Join(tclSplitList(L), "\"")
 				_ = val // suppress unused warning
-				_res = db.Exec("\n      INSERT INTO ft VALUES(\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val,\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val\n      );\n    COMMIT;\n  ")
+				_res = db.Exec("\n      INSERT INTO ft VALUES(\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ",\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + "\n      );\n    COMMIT;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val,\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val\n      );\n    COMMIT;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ",\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + "\n      );\n    COMMIT;\n  ")
 				}
 			}
 			_dbtmp2, err := frigolite.Open("test.db")

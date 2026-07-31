@@ -76,7 +76,7 @@ func Test_tkt3442(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3442-1.5"
-		_res = db.Exec("\n    SELECT node FROM listhash WHERE id=[5000] LIMIT 1;\n  ")
+		_res = db.Exec("\n    SELECT node FROM listhash WHERE id=" + "5000" + " LIMIT 1;\n  ")
 		_ = _res // catchsql
 	}
 }

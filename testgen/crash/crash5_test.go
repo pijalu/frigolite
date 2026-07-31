@@ -78,9 +78,9 @@ func Test_crash5(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			c = "3 1500"
 			_ = c // suppress unused warning
-			_res = db.Exec("\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', $c);\n    ")
+			_res = db.Exec("\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', " + c + ");\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', $c);\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', " + c + ");\n    ")
 			}
 			{ // do_test "crash5-" + ii + "." + jj + ".1"
 				// crashsql -delay 1 -file test.db-journal -seed $ii -tclbody [join [list \\n        [list s... (unsupported command, not transpiled)

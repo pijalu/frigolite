@@ -686,9 +686,9 @@ func Test_autoinc(t *testing.T) {
 		root2 = "db one {SELECT rootpage FROM sqlite_master\n                     WHERE name='fake'}"
 		_ = root2 // suppress unused warning
 		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
-		_res = db.Exec("\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=$root2\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=$root1\n    WHERE name='fake';\n  ")
+		_res = db.Exec("\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + root2 + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + root1 + "\n    WHERE name='fake';\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=$root2\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=$root1\n    WHERE name='fake';\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + root2 + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + root1 + "\n    WHERE name='fake';\n  ")
 		}
 		_dbtmp9, err := frigolite.Open("test.db")
 		_ = _dbtmp9 // sqlite3 db connection

@@ -116,9 +116,9 @@ func Test_triggerE(t *testing.T) {
 		{ // do_test "2.2.2"
 			one = "3"
 			_ = one // suppress unused warning
-			r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES($one, ?1);\n    SELECT * FROM t2;\n  ")
+			r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES(" + one + ", ?1);\n    SELECT * FROM t2;\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES($one, ?1);\n    SELECT * FROM t2;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES(" + one + ", ?1);\n    SELECT * FROM t2;\n  ")
 			}
 		}
 		{ // "2.2.3"

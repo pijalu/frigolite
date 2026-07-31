@@ -6,6 +6,7 @@ package whereE
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -59,9 +60,9 @@ func Test_whereE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.*SCAN t1.*SEARCH t2.*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".*SCAN t1.*SEARCH t2.*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.2"
@@ -71,9 +72,9 @@ func Test_whereE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.*SCAN t1.*SEARCH t2.*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".*SCAN t1.*SEARCH t2.*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.3"
@@ -83,9 +84,9 @@ func Test_whereE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.*SCAN t1.*SEARCH t2.*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".*SCAN t1.*SEARCH t2.*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.4"
@@ -95,9 +96,9 @@ func Test_whereE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.*SCAN t1.*SEARCH t2.*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".*SCAN t1.*SEARCH t2.*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 }

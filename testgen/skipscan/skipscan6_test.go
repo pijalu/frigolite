@@ -6,6 +6,7 @@ package skipscan
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -65,9 +66,9 @@ func Test_skipscan6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX ix .aa=. AND bb=../"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX ix .aa=. AND bb=.."
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.1"
@@ -83,9 +84,9 @@ func Test_skipscan6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/INDEX good .bb=. AND aa=. AND dd>. AND dd<../"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "INDEX good .bb=. AND aa=. AND dd>. AND dd<.."
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "3.0"

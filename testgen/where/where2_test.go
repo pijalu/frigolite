@@ -6,6 +6,7 @@ package where
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strconv"
 "testing"
 )
@@ -105,9 +106,9 @@ func Test_where2(t *testing.T) {
 			_ = y // suppress unused warning
 			z = tclExprWith("$x+$y", map[string]string{"x": x, "y": y})
 			_ = z // suppress unused warning
-			_res = db.Exec("INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + w + "," + x + "," + y + "," + z + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + w + "," + x + "," + y + "," + z + ")")
 			}
 			// incr i 1
 			{
@@ -610,9 +611,9 @@ func Test_where2(t *testing.T) {
 		i = "4"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
-			_res = db.Exec("INSERT INTO t10 VALUES(1,$i,$i)")
+			_res = db.Exec("INSERT INTO t10 VALUES(1," + i + "," + i + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t10 VALUES(1,$i,$i)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t10 VALUES(1," + i + "," + i + ")")
 			}
 			// incr i 1
 			{
@@ -662,9 +663,9 @@ func Test_where2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "/SEARCH b .*SEARCH b /"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			wantPattern := "SEARCH b .*SEARCH b "
+			if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 			}
 		}
 	}
@@ -714,9 +715,9 @@ func Test_where2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/.* t4 .* t[12] .*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".* t4 .* t[12] .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "where2-16.2"
@@ -726,9 +727,9 @@ func Test_where2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/.* t[34] .* t1 .*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".* t[34] .* t1 .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "where2-17.0"

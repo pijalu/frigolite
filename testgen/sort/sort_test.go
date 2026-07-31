@@ -6,6 +6,7 @@ package sort
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strconv"
 "strings"
 "testing"
@@ -492,9 +493,9 @@ func Test_sort(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100000 }() {
-			_res = db.Exec(" INSERT INTO t10 VALUES( $i/10, $i%10 ) ")
+			_res = db.Exec(" INSERT INTO t10 VALUES( " + i + "/10, " + i + "%10 ) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t10 VALUES( $i/10, $i%10 ) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t10 VALUES( " + i + "/10, " + i + "%10 ) ")
 			}
 			// incr i 1
 			{
@@ -670,9 +671,9 @@ func Test_sort(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "/.*SCAN t2.*SEARCH t1.*/"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			wantPattern := ".*SCAN t2.*SEARCH t1.*"
+			if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 			}
 		}
 }

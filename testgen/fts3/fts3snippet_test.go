@@ -157,9 +157,9 @@ func Test_fts3snippet(t *testing.T) {
 			{ // do_test T + ".2.1"
 				v1 = "lrange $numbers 0 99"
 				_ = v1 // suppress unused warning
-				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b);\n      INSERT INTO ft VALUES($v1, $numbers);\n      INSERT INTO ft VALUES($v1, NULL);\n    ")
+				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b);\n      INSERT INTO ft VALUES(" + v1 + ", " + numbers + ");\n      INSERT INTO ft VALUES(" + v1 + ", NULL);\n    ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b);\n      INSERT INTO ft VALUES($v1, $numbers);\n      INSERT INTO ft VALUES($v1, NULL);\n    ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b);\n      INSERT INTO ft VALUES(" + v1 + ", " + numbers + ");\n      INSERT INTO ft VALUES(" + v1 + ", NULL);\n    ")
 				}
 			}
 			off = "\"twohundred \" $numbers"
@@ -169,9 +169,9 @@ func Test_fts3snippet(t *testing.T) {
 			_ = off // suppress unused warning
 			// do_offsets_test $T.2.2 {onehundred} [list 0 0 $off 10 1 0 $off 10] [list 0 0 $off 10] (unsupported command, not transpiled)
 			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
-			_res = db.Exec(" UPDATE ft_content SET c1b = 'hello world' WHERE c1b = $numbers ")
+			_res = db.Exec(" UPDATE ft_content SET c1b = 'hello world' WHERE c1b = " + numbers + " ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ft_content SET c1b = 'hello world' WHERE c1b = $numbers ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ft_content SET c1b = 'hello world' WHERE c1b = " + numbers + " ")
 			}
 			// do_error_test $T.2.3 {\n    SELECT offsets(ft) FROM ft WHERE ft MATCH 'o...} {database disk im... (unsupported command, not transpiled)
 			// proc definition (not transpiled)
@@ -231,9 +231,9 @@ func Test_fts3snippet(t *testing.T) {
 			// do_snippet_test $T.5.10 {five} 2 3 {seven eight nine...} (unsupported command, not transpiled)
 			// do_snippet_test $T.5.11 {one "seven eight nine"} -1 -3 {\n    {one} two three...{seven} {eight} ... (unsupported command, not transpiled)
 			{ // do_test T + ".6.1"
-				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES($numbers);\n    ")
+				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES(" + numbers + ");\n    ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES($numbers);\n    ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES(" + numbers + ");\n    ")
 				}
 			}
 			// do_snippet_test $T.6.2 {\n    one fifty onehundred onehundredfifty twohund...} -1 4 {\n    {one}... (unsupported command, not transpiled)
@@ -250,9 +250,9 @@ func Test_fts3snippet(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 150 }() {
 					commas = ", $i"
 					_ = commas // suppress unused warning
-					_res = db.Exec("INSERT INTO ft VALUES('one' || $commas || 'two')")
+					_res = db.Exec("INSERT INTO ft VALUES('one' || " + commas + " || 'two')")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO ft VALUES('one' || $commas || 'two')")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO ft VALUES('one' || " + commas + " || 'two')")
 					}
 					testresults = tclListAppend(testresults, "{one}" + commas + "{two}")
 					// incr i 1
@@ -274,9 +274,9 @@ func Test_fts3snippet(t *testing.T) {
 			{ // do_test T + ".8.1"
 				ten = "one two three four five six seven eight nine ten"
 				_ = ten // suppress unused warning
-				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES($ten);\n      INSERT INTO ft VALUES($ten || ' ' || $ten);\n    ")
+				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES(" + ten + ");\n      INSERT INTO ft VALUES(" + ten + " || ' ' || " + ten + ");\n    ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES($ten);\n      INSERT INTO ft VALUES($ten || ' ' || $ten);\n    ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES(" + ten + ");\n      INSERT INTO ft VALUES(" + ten + " || ' ' || " + ten + ");\n    ")
 				}
 			}
 			// do_matchinfo_test $T.8.2 one {1 1  1 3 2} {1 1  2 3 2} (unsupported command, not transpiled)
@@ -297,9 +297,9 @@ func Test_fts3snippet(t *testing.T) {
 					_ = v2 // suppress unused warning
 					docid = tclExprWith("$n * 1000000", map[string]string{"n": n})
 					_ = docid // suppress unused warning
-					_res = db.Exec(" INSERT INTO ft(docid, x, y) VALUES($docid, $v1, $v2) ")
+					_res = db.Exec(" INSERT INTO ft(docid, x, y) VALUES(" + docid + ", " + v1 + ", " + v2 + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft(docid, x, y) VALUES($docid, $v1, $v2) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft(docid, x, y) VALUES(" + docid + ", " + v1 + ", " + v2 + ") ")
 					}
 				}
 			}

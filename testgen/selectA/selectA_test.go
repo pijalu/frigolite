@@ -6,6 +6,7 @@ package selectA
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -1321,9 +1322,9 @@ func Test_selectA(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/2 . 3 . 4 . 5 . 6 . 7 ./"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "2 . 3 . 4 . 5 . 6 . 7 ."
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	// proc definition (not transpiled)

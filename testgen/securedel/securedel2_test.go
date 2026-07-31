@@ -209,9 +209,9 @@ func Test_securedel2(t *testing.T) {
 		i = "100"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-			_res = db.Exec(" INSERT INTO t2 VALUES(randomblob($i)) ")
+			_res = db.Exec(" INSERT INTO t2 VALUES(randomblob(" + i + ")) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(randomblob($i)) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(randomblob(" + i + ")) ")
 			}
 			// incr i 1
 			{

@@ -62,9 +62,9 @@ func Test_tkt3871(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES($i, $i*$i) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + i + ", " + i + "*" + i + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i, $i*$i) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + ", " + i + "*" + i + ") ")
 			}
 			// incr i 1
 			{

@@ -81,9 +81,9 @@ func Test_spellfix(t *testing.T) {
 		}
 		for _, word := range tclSplitList(vocab) {
 		_ = word // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1(word) VALUES($word) ")
+			_res = db.Exec(" INSERT INTO t1(word) VALUES(" + word + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(word) VALUES($word) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(word) VALUES(" + word + ") ")
 			}
 		}
 	}
@@ -291,9 +291,9 @@ func Test_spellfix(t *testing.T) {
 		{ // do_test "3.2"
 			for _, w := range tclSplitList(vocab) {
 			_ = w // suppress unused warning
-				_res = db.Exec(" INSERT INTO t3(word) VALUES($w) ")
+				_res = db.Exec(" INSERT INTO t3(word) VALUES(" + w + ") ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(word) VALUES($w) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(word) VALUES(" + w + ") ")
 				}
 			}
 		}

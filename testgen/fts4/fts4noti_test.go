@@ -292,9 +292,9 @@ func Test_fts4noti(t *testing.T) {
 				_ = v1 // suppress unused warning
 				v2 = "y " + v
 				_ = v2 // suppress unused warning
-				_res = db.Exec(" \n    INSERT INTO t2 VALUES(1, 'x y z');\n    INSERT INTO t2 VALUES(2, $v1);\n    INSERT INTO t2 VALUES(3, $v2);\n    INSERT INTO t2 VALUES(4, $v2);\n    INSERT INTO t2 VALUES(5, $v2);\n    INSERT INTO t2 VALUES(6, $v2);\n  ")
+				_res = db.Exec(" \n    INSERT INTO t2 VALUES(1, 'x y z');\n    INSERT INTO t2 VALUES(2, " + v1 + ");\n    INSERT INTO t2 VALUES(3, " + v2 + ");\n    INSERT INTO t2 VALUES(4, " + v2 + ");\n    INSERT INTO t2 VALUES(5, " + v2 + ");\n    INSERT INTO t2 VALUES(6, " + v2 + ");\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t2 VALUES(1, 'x y z');\n    INSERT INTO t2 VALUES(2, $v1);\n    INSERT INTO t2 VALUES(3, $v2);\n    INSERT INTO t2 VALUES(4, $v2);\n    INSERT INTO t2 VALUES(5, $v2);\n    INSERT INTO t2 VALUES(6, $v2);\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t2 VALUES(1, 'x y z');\n    INSERT INTO t2 VALUES(2, " + v1 + ");\n    INSERT INTO t2 VALUES(3, " + v2 + ");\n    INSERT INTO t2 VALUES(4, " + v2 + ");\n    INSERT INTO t2 VALUES(5, " + v2 + ");\n    INSERT INTO t2 VALUES(6, " + v2 + ");\n  ")
 				}
 			}
 			{ // "3.3"

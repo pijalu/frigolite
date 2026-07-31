@@ -123,9 +123,9 @@ func Test_fts3malloc(t *testing.T) {
 				a = tclListAppend(a, "five")
 				b = tclListAppend(b, "hah")
 			}
-			_res = db.Exec(" INSERT INTO ft VALUES($a, $b) ")
+			_res = db.Exec(" INSERT INTO ft VALUES(" + a + ", " + b + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES($a, $b) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES(" + a + ", " + b + ") ")
 			}
 			// incr ii 1
 			{
@@ -202,9 +202,9 @@ func Test_fts3malloc(t *testing.T) {
 					a = tclListAppend(a, "ten")
 					b = tclListAppend(b, "sip")
 				}
-				_res = db.Exec(" INSERT INTO ft VALUES($a, $b) ")
+				_res = db.Exec(" INSERT INTO ft VALUES(" + a + ", " + b + ") ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES($a, $b) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES(" + a + ", " + b + ") ")
 				}
 				// incr ii 1
 				{

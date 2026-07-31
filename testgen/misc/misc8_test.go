@@ -7,6 +7,7 @@ package misc
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
 "strings"
 "testing"
 )
@@ -174,9 +175,9 @@ func Test_misc8(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/0 main .* 2 aux2/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "0 main .* 2 aux2"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	// dbconfig_maindbname_icecube db (unsupported command, not transpiled)

@@ -6,6 +6,7 @@ package analyzeE
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -65,9 +66,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.2"
@@ -77,9 +78,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.3"
@@ -89,9 +90,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.4"
@@ -101,9 +102,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.5"
@@ -113,9 +114,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.6"
@@ -125,9 +126,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.7"
@@ -137,9 +138,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.8"
@@ -149,9 +150,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.9"
@@ -161,9 +162,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.10"
@@ -173,9 +174,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-1.11"
@@ -185,9 +186,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.0"
@@ -203,9 +204,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.2"
@@ -215,9 +216,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.3"
@@ -227,9 +228,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.4"
@@ -239,9 +240,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.5"
@@ -251,9 +252,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.6"
@@ -263,9 +264,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.7"
@@ -275,9 +276,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.8"
@@ -287,9 +288,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.9"
@@ -299,9 +300,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.10"
@@ -311,9 +312,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1a/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1a"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-2.11"
@@ -323,9 +324,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.0"
@@ -341,9 +342,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.2"
@@ -353,9 +354,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.3"
@@ -365,9 +366,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.4"
@@ -377,9 +378,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.5"
@@ -389,9 +390,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.6"
@@ -401,9 +402,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.7"
@@ -413,9 +414,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.8"
@@ -425,9 +426,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.9"
@@ -437,9 +438,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.10"
@@ -449,9 +450,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-3.11"
@@ -461,9 +462,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.0"
@@ -479,9 +480,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.2"
@@ -491,9 +492,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.3"
@@ -503,9 +504,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.4"
@@ -515,9 +516,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.5"
@@ -527,9 +528,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.6"
@@ -539,9 +540,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.7"
@@ -551,9 +552,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.8"
@@ -563,9 +564,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.9"
@@ -575,9 +576,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.10"
@@ -587,9 +588,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING INDEX t1ca/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING INDEX t1ca"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "analyzeE-4.11"
@@ -599,9 +600,9 @@ func Test_analyzeE(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	db.Close()

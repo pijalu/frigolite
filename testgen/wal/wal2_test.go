@@ -266,9 +266,9 @@ func Test_wal2(t *testing.T) {
 		_ = wal_locks // suppress unused warning
 		_ = _idx1
 			{ // do_test "wal2-1." + tn + ".1"
-				_res = db.Exec(" INSERT INTO t1 VALUES($iInsert) ")
+				_res = db.Exec(" INSERT INTO t1 VALUES(" + iInsert + ") ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($iInsert) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + iInsert + ") ")
 				}
 				locks = "list" // TCL namespace variable
 				_ = locks // suppress unused warning
@@ -336,9 +336,9 @@ func Test_wal2(t *testing.T) {
 				{ // do_test "wal2-2." + tn + ".1"
 					oldhdr = "set_tvfs_hdr $::filename"
 					_ = oldhdr // suppress unused warning
-					_res = db.Exec(" INSERT INTO t1 VALUES($iInsert) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + iInsert + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($iInsert) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + iInsert + ") ")
 					}
 					r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
 					if r.Error != nil {

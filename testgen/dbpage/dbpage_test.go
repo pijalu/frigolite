@@ -354,9 +354,9 @@ func Test_dbpage(t *testing.T) {
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; max_n, _max_e := strconv.Atoi(max); if _max_e != nil { return false }; return ii_n <= max_n }() {
 			data = "db2 one {SELECT data FROM sqlite_dbpage WHERE pgno=$ii}"
 			_ = data // suppress unused warning
-			_res = db.Exec("\n      UPDATE sqlite_dbpage SET data=$data WHERE pgno=$ii\n    ")
+			_res = db.Exec("\n      UPDATE sqlite_dbpage SET data=" + data + " WHERE pgno=" + ii + "\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE sqlite_dbpage SET data=$data WHERE pgno=$ii\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE sqlite_dbpage SET data=" + data + " WHERE pgno=" + ii + "\n    ")
 			}
 			// incr ii 1
 			{

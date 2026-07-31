@@ -958,9 +958,9 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1.13-4"
-		r = db.Query(" \n    SELECT * FROM echo_c WHERE b IS $null\n  ")
+		r = db.Query(" \n    SELECT * FROM echo_c WHERE b IS " + null + "\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM echo_c WHERE b IS $null\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM echo_c WHERE b IS " + null + "\n  ")
 		}
 	}
 	{ // do_test "vtab1.13-5"
@@ -1228,13 +1228,13 @@ func Test_vtab1(t *testing.T) {
 			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-				_res = db.Exec("INSERT INTO t7 VALUES($i, $i)")
+				_res = db.Exec("INSERT INTO t7 VALUES(" + i + ", " + i + ")")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t7 VALUES($i, $i)")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t7 VALUES(" + i + ", " + i + ")")
 				}
-				_res = db.Exec("INSERT INTO t8 VALUES($i, $i)")
+				_res = db.Exec("INSERT INTO t8 VALUES(" + i + ", " + i + ")")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES($i, $i)")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES(" + i + ", " + i + ")")
 				}
 				// incr i 1
 				{

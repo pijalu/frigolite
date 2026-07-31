@@ -122,9 +122,9 @@ func Test_jrnlmode3(t *testing.T) {
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".3"
-				_res = db.Exec("\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES($cnt);\n      ")
+				_res = db.Exec("\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + cnt + ");\n      ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES($cnt);\n      ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + cnt + ");\n      ")
 				}
 				_res = db.Exec("PRAGMA journal_mode=" + tojmode)
 				if _res.Error != nil {

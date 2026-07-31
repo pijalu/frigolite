@@ -527,9 +527,9 @@ func Test_func(t *testing.T) {
 		x2 = tclExprWith("40223.0 + $i", map[string]string{"i": i})
 		_ = x2 // suppress unused warning
 		{ // do_test "func-4.17." + i
-			r = db.Query("SELECT round($x1);")
+			r = db.Query("SELECT round(" + x1 + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round($x1);")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + x1 + ");")
 			}
 		}
 		// incr i 1
@@ -548,9 +548,9 @@ func Test_func(t *testing.T) {
 		x2 = tclExprWith("40222.10 + $i", map[string]string{"i": i})
 		_ = x2 // suppress unused warning
 		{ // do_test "func-4.18." + i
-			r = db.Query("SELECT round($x1,1);")
+			r = db.Query("SELECT round(" + x1 + ",1);")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round($x1,1);")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + x1 + ",1);")
 			}
 		}
 		// incr i 1
@@ -583,21 +583,21 @@ func Test_func(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 		{ // do_test "func-4.23." + i
-			r = db.Query("SELECT round(40223.4999999999,$i);")
+			r = db.Query("SELECT round(40223.4999999999," + i + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999,$i);")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999," + i + ");")
 			}
 		}
 		{ // do_test "func-4.24." + i
-			r = db.Query("SELECT round(40224.4999999999,$i);")
+			r = db.Query("SELECT round(40224.4999999999," + i + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999,$i);")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999," + i + ");")
 			}
 		}
 		{ // do_test "func-4.25." + i
-			r = db.Query("SELECT round(40225.4999999999,$i);")
+			r = db.Query("SELECT round(40225.4999999999," + i + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999,$i);")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999," + i + ");")
 			}
 		}
 		// incr i 1
@@ -612,21 +612,21 @@ func Test_func(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
 		{ // do_test "func-4.26." + i
-			r = db.Query("SELECT round(40223.4999999999,$i);")
+			r = db.Query("SELECT round(40223.4999999999," + i + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999,$i);")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999," + i + ");")
 			}
 		}
 		{ // do_test "func-4.27." + i
-			r = db.Query("SELECT round(40224.4999999999,$i);")
+			r = db.Query("SELECT round(40224.4999999999," + i + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999,$i);")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999," + i + ");")
 			}
 		}
 		{ // do_test "func-4.28." + i
-			r = db.Query("SELECT round(40225.4999999999,$i);")
+			r = db.Query("SELECT round(40225.4999999999," + i + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999,$i);")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999," + i + ");")
 			}
 		}
 		// incr i 1
@@ -1335,9 +1335,9 @@ func Test_func(t *testing.T) {
 					}
 				}
 				{ // do_test "func-20." + i
-					r = db.Query("SELECT soundex($name)")
+					r = db.Query("SELECT soundex(" + name + ")")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex($name)")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex(" + name + ")")
 					}
 				}
 			}
@@ -1403,9 +1403,9 @@ func Test_func(t *testing.T) {
 			_ = str // suppress unused warning
 			rep = "B 65536" // TCL namespace variable
 			_ = rep // suppress unused warning
-			r = db.Query("\n      SELECT LENGTH(REPLACE($::str, 'C', $::rep));\n    ")
+			r = db.Query("\n      SELECT LENGTH(REPLACE(" + str + ", 'C', " + rep + "));\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT LENGTH(REPLACE($::str, 'C', $::rep));\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT LENGTH(REPLACE(" + str + ", 'C', " + rep + "));\n    ")
 			}
 		}
 		{ // do_test "func-22.1"

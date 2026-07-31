@@ -6,6 +6,7 @@ package tkt_99378177930f87
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -85,9 +86,9 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/Function/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "Function"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "tkt-99378-121"
@@ -97,9 +98,9 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/Function/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "Function"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "tkt-99378-130"
@@ -121,9 +122,9 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/Function/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "Function"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "tkt-99378-200"
@@ -151,9 +152,9 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/Function/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "Function"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "tkt-99378-230"
@@ -175,9 +176,9 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/Function/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "Function"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "tkt-99378-300"

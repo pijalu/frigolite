@@ -112,9 +112,9 @@ func Test_skipscan5(t *testing.T) {
 			_ = a // suppress unused warning
 			b = "1"
 			_ = b // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1 VALUES($a, $b, NULL) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + a + ", " + b + ", NULL) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($a, $b, NULL) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + a + ", " + b + ", NULL) ")
 			}
 			// incr i 1
 			{
@@ -192,9 +192,9 @@ func Test_skipscan5(t *testing.T) {
 							_var = tclLIndex(vocab_var, "")
 							_ = _var // suppress unused warning
 						}
-						_res = db.Exec(" INSERT INTO t2 VALUES($a, $b, $c, $d) ")
+						_res = db.Exec(" INSERT INTO t2 VALUES(" + a + ", " + b + ", " + c + ", " + d + ") ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES($a, $b, $c, $d) ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(" + a + ", " + b + ", " + c + ", " + d + ") ")
 						}
 						// incr i 1
 						{

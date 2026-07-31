@@ -86,6 +86,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	refVars := collectRefVars(src)
 	sqliteTargets := collectSqlite3Targets(cmds)
 	knownGlobals := knownGlobalVars()
+	incrOnly := collectIncrOnlyVars(cmds)
 
 	// Merge: pre-declare all set variables + referenced-but-not-global variables
 	var preDeclared []string
@@ -107,7 +108,13 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 
 	// Emit pre-declarations at function scope
 	for _, gv := range preDeclared {
-		body.WriteString(fmt.Sprintf("\tvar %s string\n", gv))
+		// Variables that are only incremented (never set to a value) start at
+		// "0" in TCL (undefined == 0 for incr); others start as "".
+		if incrOnly[gv] {
+			body.WriteString(fmt.Sprintf("\tvar %s = \"0\"\n", gv))
+		} else {
+			body.WriteString(fmt.Sprintf("\tvar %s string\n", gv))
+		}
 		body.WriteString(fmt.Sprintf("\t_ = %s // pre-declared from TCL source\n", gv))
 	}
 	if len(preDeclared) > 0 {
@@ -381,6 +388,49 @@ func collectSetVars(cmds [][]tcl.RawWord) []string {
 // collectRefVars scans raw TCL source text for all $var references and returns
 // the variable names (without $). This catches variables that are referenced
 // but never set (external TCL variables).
+// collectIncrOnlyVars returns variables that appear only in `incr` (never in
+// `set VAR value`). TCL treats an undefined var as 0 for incr, so these must
+// be initialized to "0" instead of "" in the generated Go.
+func collectIncrOnlyVars(cmds [][]tcl.RawWord) map[string]bool {
+	incrVars := make(map[string]bool)
+	setVars := make(map[string]bool)
+	var walk func(cs [][]tcl.RawWord)
+	walk = func(cs [][]tcl.RawWord) {
+		for _, cmd := range cs {
+			if len(cmd) == 0 {
+				continue
+			}
+			cmdName := cmd[0].Text
+			switch cmdName {
+			case "incr":
+				if len(cmd) >= 2 {
+					incrVars[cmd[1].Text] = true
+				}
+			case "set":
+				// set VAR value — a value that is not a bare variable reference
+				// initializes the var; mark it as NOT incr-only.
+				if len(cmd) >= 3 {
+					setVars[cmd[1].Text] = true
+				}
+			case "foreach", "for", "while", "if", "catch", "db":
+				for i := 1; i < len(cmd); i++ {
+					if cmd[i].Braced {
+						walk(tcl.ParseCommands(cmd[i].Text))
+					}
+				}
+			}
+		}
+	}
+	walk(cmds)
+	only := make(map[string]bool)
+	for v := range incrVars {
+		if !setVars[v] {
+			only[v] = true
+		}
+	}
+	return only
+}
+
 func collectRefVars(src string) []string {
 	var names []string
 	seen := make(map[string]bool)
@@ -1555,7 +1605,15 @@ func (tp *transpiler) collectSQLExpression(args []tcl.RawWord) string {
 	if len(args) == 0 {
 		return `""`
 	}
-	if args[0].Braced && !hasVarRef(args[0].Text) {
+	if args[0].Braced {
+		// execsql args like { INSERT ... VALUES($i, $x) } are re-evaluated by
+		// TCL's uplevel, so $var references ARE substituted with the current
+		// loop/test variable values. Build a Go string expression that
+		// substitutes $var -> Go variables when refs are present; otherwise
+		// keep the literal braced text.
+		if hasVarRef(args[0].Text) {
+			return tp.buildStringExpr(args[0].Text)
+		}
 		return fmt.Sprintf("%q", args[0].Text)
 	}
 	return tp.goStringLiteral(args[0])

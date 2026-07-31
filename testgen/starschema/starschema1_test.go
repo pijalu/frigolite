@@ -6,6 +6,7 @@ package starschema
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -65,9 +66,9 @@ func Test_starschema1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t1.*SEARCH.*SEARCH.*SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t1.*SEARCH.*SEARCH.*SEARCH"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.3"
@@ -77,9 +78,9 @@ func Test_starschema1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.4"
@@ -89,9 +90,9 @@ func Test_starschema1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.5"
@@ -101,9 +102,9 @@ func Test_starschema1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.6"
@@ -113,9 +114,9 @@ func Test_starschema1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.7"
@@ -125,9 +126,9 @@ func Test_starschema1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SCAN.*SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN.*SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.8"
@@ -137,9 +138,9 @@ func Test_starschema1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SCAN.*SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN.*SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.9"
@@ -149,9 +150,9 @@ func Test_starschema1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SCAN.*SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN.*SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 }

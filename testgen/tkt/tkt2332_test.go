@@ -76,15 +76,15 @@ func Test_tkt2332(t *testing.T) {
 			_ = val // suppress unused warning
 			blobstr = "\\\n      [string repeat $val [expr ($Len/[string length $val])+1]] 0 [expr $Len-1]" // TCL namespace variable
 			_ = blobstr // suppress unused warning
-			_res = db.Exec(" INSERT INTO blobs VALUES($::iKey, zeroblob($Len)) ")
+			_res = db.Exec(" INSERT INTO blobs VALUES(" + iKey + ", zeroblob(" + Len + ")) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO blobs VALUES($::iKey, zeroblob($Len)) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO blobs VALUES(" + iKey + ", zeroblob(" + Len + ")) ")
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".2"
-			r = db.Query("\n      SELECT length(v) FROM blobs WHERE k = $::iKey;\n    ")
+			r = db.Query("\n      SELECT length(v) FROM blobs WHERE k = " + iKey + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT length(v) FROM blobs WHERE k = $::iKey;\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT length(v) FROM blobs WHERE k = " + iKey + ";\n    ")
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".3"
@@ -95,9 +95,9 @@ func Test_tkt2332(t *testing.T) {
 			// close $::fd
 		}
 		{ // do_test "tkt2332." + Len + ".4"
-			r = db.Query(" SELECT length(v) FROM blobs WHERE k = $::iKey; ")
+			r = db.Query(" SELECT length(v) FROM blobs WHERE k = " + iKey + "; ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT length(v) FROM blobs WHERE k = $::iKey; ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT length(v) FROM blobs WHERE k = " + iKey + "; ")
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".5"

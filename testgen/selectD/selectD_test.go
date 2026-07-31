@@ -7,6 +7,7 @@ package selectD
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
 "strconv"
 "testing"
 )
@@ -165,9 +166,9 @@ func Test_selectD(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH x2 USING AUTOMATIC/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH x2 USING AUTOMATIC"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 }

@@ -49,7 +49,7 @@ func Test_shared(t *testing.T) {
 	_ = testdir // pre-declared from TCL source
 	var enable_shared_cache string
 	_ = enable_shared_cache // pre-declared from TCL source
-	var av string
+	var av = "0"
 	_ = av // pre-declared from TCL source
 	var using_proxy string
 	_ = using_proxy // pre-declared from TCL source

@@ -6,6 +6,7 @@ package indexexpr
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -253,9 +254,9 @@ func Test_indexexpr2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SCAN t4 USING INDEX i4/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN t4 USING INDEX i4"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "3.4.6"

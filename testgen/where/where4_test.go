@@ -71,7 +71,7 @@ func Test_where4(t *testing.T) {
 		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS NULL") // count (search count always 0)
 	}
 	{ // do_test "where4-1.1b"
-		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS $null") // count (search count always 0)
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS " + null) // count (search count always 0)
 	}
 	{ // do_test "where4-1.2"
 		_ = db.Exec("SELECT rowid FROM t1 WHERE +w IS NULL") // count (search count always 0)
@@ -155,9 +155,9 @@ func Test_where4(t *testing.T) {
 		}
 	}
 	{ // do_test "where4-3.4"
-		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS $null;\n  ")
+		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS " + null + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS $null;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS " + null + ";\n  ")
 		}
 	}
 	{ // do_test "where4-4.1"

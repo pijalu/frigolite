@@ -179,18 +179,18 @@ func Test_fts4unicode(t *testing.T) {
 		_ = doc // suppress unused warning
 			d = "mapdoc $doc"
 			_ = d // suppress unused warning
-			_res = db.Exec(" INSERT INTO t2 VALUES($d) ")
+			_res = db.Exec(" INSERT INTO t2 VALUES(" + d + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES($d) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(" + d + ") ")
 			}
 		}
 	}
 	{ // do_test "2.1"
 		q = "mapdoc \"row\""
 		_ = q // suppress unused warning
-		r = db.Query(" SELECT * FROM t2 WHERE t2 MATCH $q ")
+		r = db.Query(" SELECT * FROM t2 WHERE t2 MATCH " + q + " ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 WHERE t2 MATCH $q ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 WHERE t2 MATCH " + q + " ")
 		}
 	}
 	// foreach {tn query snippet} "\n  2 \"row\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  3 \"ROW\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  4 \"rollback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  5 \"rOllback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  6 \"lang*\" {\n     Added support for the FTS4 [languageid] option.\n  }\n"
@@ -206,9 +206,9 @@ func Test_fts4unicode(t *testing.T) {
 			{ // do_test "2." + tn
 				q = "mapdoc $query"
 				_ = q // suppress unused warning
-				r = db.Query(" SELECT snippet(t2, '[', ']', '...') FROM t2 WHERE t2 MATCH $q ")
+				r = db.Query(" SELECT snippet(t2, '" + "', '" + "', '...') FROM t2 WHERE t2 MATCH " + q + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT snippet(t2, '[', ']', '...') FROM t2 WHERE t2 MATCH $q ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT snippet(t2, '" + "', '" + "', '...') FROM t2 WHERE t2 MATCH " + q + " ")
 				}
 			}
 		}
@@ -263,9 +263,9 @@ func Test_fts4unicode(t *testing.T) {
 			_ = c // suppress unused warning
 			d = "\\uD800def"
 			_ = d // suppress unused warning
-			_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x);\n    INSERT INTO t1 VALUES($a);\n    INSERT INTO t1 VALUES($b);\n    INSERT INTO t1 VALUES($c);\n    INSERT INTO t1 VALUES($d);\n  ")
+			_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x);\n    INSERT INTO t1 VALUES(" + a + ");\n    INSERT INTO t1 VALUES(" + b + ");\n    INSERT INTO t1 VALUES(" + c + ");\n    INSERT INTO t1 VALUES(" + d + ");\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x);\n    INSERT INTO t1 VALUES($a);\n    INSERT INTO t1 VALUES($b);\n    INSERT INTO t1 VALUES($c);\n    INSERT INTO t1 VALUES($d);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x);\n    INSERT INTO t1 VALUES(" + a + ");\n    INSERT INTO t1 VALUES(" + b + ");\n    INSERT INTO t1 VALUES(" + c + ");\n    INSERT INTO t1 VALUES(" + d + ");\n  ")
 			}
 		}
 		{ // do_test "4.2"
@@ -277,9 +277,9 @@ func Test_fts4unicode(t *testing.T) {
 			_ = c // suppress unused warning
 			d = "binary format c* {0x61 0xF7 0xBF 0xBF 0xBF 0xBF 0xBF 0xBF 0x62}"
 			_ = d // suppress unused warning
-			_res = db.Exec("\n    INSERT INTO t1 VALUES($a);\n    INSERT INTO t1 VALUES($b);\n    INSERT INTO t1 VALUES($c);\n    INSERT INTO t1 VALUES($d);\n  ")
+			_res = db.Exec("\n    INSERT INTO t1 VALUES(" + a + ");\n    INSERT INTO t1 VALUES(" + b + ");\n    INSERT INTO t1 VALUES(" + c + ");\n    INSERT INTO t1 VALUES(" + d + ");\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES($a);\n    INSERT INTO t1 VALUES($b);\n    INSERT INTO t1 VALUES($c);\n    INSERT INTO t1 VALUES($d);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(" + a + ");\n    INSERT INTO t1 VALUES(" + b + ");\n    INSERT INTO t1 VALUES(" + c + ");\n    INSERT INTO t1 VALUES(" + d + ");\n  ")
 			}
 		}
 		{ // do_test "4.3"
@@ -291,9 +291,9 @@ func Test_fts4unicode(t *testing.T) {
 			_ = c // suppress unused warning
 			d = "binary format c* {0xF7 0xBF 0xBF 0xBF 0xBF 0xBF 0xBF}"
 			_ = d // suppress unused warning
-			_res = db.Exec("\n    INSERT INTO t1 VALUES($a);\n    INSERT INTO t1 VALUES($b);\n    INSERT INTO t1 VALUES($c);\n    INSERT INTO t1 VALUES($d);\n  ")
+			_res = db.Exec("\n    INSERT INTO t1 VALUES(" + a + ");\n    INSERT INTO t1 VALUES(" + b + ");\n    INSERT INTO t1 VALUES(" + c + ");\n    INSERT INTO t1 VALUES(" + d + ");\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES($a);\n    INSERT INTO t1 VALUES($b);\n    INSERT INTO t1 VALUES($c);\n    INSERT INTO t1 VALUES($d);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(" + a + ");\n    INSERT INTO t1 VALUES(" + b + ");\n    INSERT INTO t1 VALUES(" + c + ");\n    INSERT INTO t1 VALUES(" + d + ");\n  ")
 			}
 		}
 		// do_unicode_token_test3 5.1 {tokenchars=} {\n  sqlite3_reset sqlite3_column_int\n} {\n  0 sqlite3 sqlite... (unsupported command, not transpiled)

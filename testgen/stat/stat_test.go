@@ -7,6 +7,7 @@ package stat
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
 "strings"
 "testing"
 )
@@ -72,9 +73,9 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/0 name TEXT .* 1 path TEXT .* 9 pgsize INTEGER/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "0 name TEXT .* 1 path TEXT .* 9 pgsize INTEGER"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "stat-0.1a"
@@ -90,9 +91,9 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/0 name TEXT .* 1 path TEXT .* 9 pgsize INTEGER/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "0 name TEXT .* 1 path TEXT .* 9 pgsize INTEGER"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	os.Remove("test.db")

@@ -6,6 +6,7 @@ package whereF
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -126,9 +127,9 @@ func Test_whereF(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "/a=. AND b=./"
-					if got != want {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					wantPattern := "a=. AND b=."
+					if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 					}
 				}
 				db.Close()
@@ -252,9 +253,9 @@ func Test_whereF(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "~/ (Lt|Ge) /"
-					if got != want {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					wantPattern := " (Lt|Ge) "
+					if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 					}
 				}
 }

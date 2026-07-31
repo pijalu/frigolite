@@ -141,9 +141,9 @@ func Test_rowvalue2(t *testing.T) {
 			_ = b // suppress unused warning
 				for _, c := range tclSplitList("0 1 2 3") {
 				_ = c // suppress unused warning
-					_res = db.Exec(" INSERT INTO t2 VALUES($a, $b, $c, $c + $b*4 + $a*16); ")
+					_res = db.Exec(" INSERT INTO t2 VALUES(" + a + ", " + b + ", " + c + ", " + c + " + " + b + "*4 + " + a + "*16); ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES($a, $b, $c, $c + $b*4 + $a*16); ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(" + a + ", " + b + ", " + c + ", " + c + " + " + b + "*4 + " + a + "*16); ")
 					}
 				}
 			}
@@ -212,9 +212,9 @@ func Test_rowvalue2(t *testing.T) {
 			_ = b // suppress unused warning
 			c = "$w 6 end"
 			_ = c // suppress unused warning
-			_res = db.Exec(" INSERT INTO t3 VALUES($a, $b, $c, $w) ")
+			_res = db.Exec(" INSERT INTO t3 VALUES(" + a + ", " + b + ", " + c + ", " + w + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES($a, $b, $c, $w) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES(" + a + ", " + b + ", " + c + ", " + w + ") ")
 			}
 		}
 	}

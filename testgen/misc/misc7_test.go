@@ -350,9 +350,9 @@ func Test_misc7(t *testing.T) {
 			// sqlite3_test_control_pending_byte $::sqlite_pending_byte (unsupported command, not transpiled)
 			{ // do_test "misc7-17.3"
 				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
-				_res = db.Exec("\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = $pending_byte_page\n          WHERE type = 'table' AND name = 't3';\n      ")
+				_res = db.Exec("\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + pending_byte_page + "\n          WHERE type = 'table' AND name = 't3';\n      ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = $pending_byte_page\n          WHERE type = 'table' AND name = 't3';\n      ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + pending_byte_page + "\n          WHERE type = 'table' AND name = 't3';\n      ")
 				}
 				r = db.Query("\n        SELECT rootpage FROM sqlite_master WHERE type = 'table' AND name = 't3';\n      ")
 				if r.Error != nil {

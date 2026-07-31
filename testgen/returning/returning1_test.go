@@ -543,16 +543,16 @@ func Test_returning1(t *testing.T) {
 		_ = tclSort("array names cname") // lsort result
 	}
 	{ // do_test "12.2"
-		_res = db.Exec("INSERT INTO t1(x) VALUES(2) RETURNING [x];")
+		_res = db.Exec("INSERT INTO t1(x) VALUES(2) RETURNING " + "x" + ";")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(2) RETURNING [x];")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(2) RETURNING " + "x" + ";")
 		}
 		_ = tclSort("array names cname") // lsort result
 	}
 	{ // do_test "12.3"
-		_res = db.Exec("INSERT INTO t1(x) VALUES(3) RETURNING x AS [xyz];")
+		_res = db.Exec("INSERT INTO t1(x) VALUES(3) RETURNING x AS " + "xyz" + ";")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(3) RETURNING x AS [xyz];")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(3) RETURNING x AS " + "xyz" + ";")
 		}
 		_ = tclSort("array names cname") // lsort result
 	}

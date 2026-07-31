@@ -6,6 +6,7 @@ package fts3matchinfo
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -59,9 +60,9 @@ func Test_fts3matchinfo2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/000000.*0000000/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "000000.*0000000"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	sqlite_fts3_enable_parentheses = "0"

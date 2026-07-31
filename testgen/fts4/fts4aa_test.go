@@ -169,9 +169,9 @@ func Test_fts4aa(t *testing.T) {
 				}
 			}
 			{ // do_test "fts4aa-2." + ii
-				_res = db.Exec("SELECT docid FROM t1 WHERE words MATCH $::q ORDER BY docid")
+				_res = db.Exec("SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT docid FROM t1 WHERE words MATCH $::q ORDER BY docid")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
 				}
 			}
 		}
@@ -204,9 +204,9 @@ func Test_fts4aa(t *testing.T) {
 					}
 				}
 				{ // do_test "fts4aa-3." + ii
-					_res = db.Exec("SELECT docid FROM t1 WHERE words MATCH $::q ORDER BY docid")
+					_res = db.Exec("SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT docid FROM t1 WHERE words MATCH $::q ORDER BY docid")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
 					}
 				}
 			}
@@ -236,9 +236,9 @@ func Test_fts4aa(t *testing.T) {
 						}
 					}
 					{ // do_test "fts4aa-4." + ii
-						_res = db.Exec("SELECT docid FROM t1 WHERE words MATCH $::q ORDER BY docid")
+						_res = db.Exec("SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT docid FROM t1 WHERE words MATCH $::q ORDER BY docid")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
 						}
 					}
 				}

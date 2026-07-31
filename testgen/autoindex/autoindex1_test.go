@@ -7,6 +7,7 @@ package autoindex
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
 "strconv"
 "testing"
 )
@@ -127,9 +128,9 @@ func Test_autoindex1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/AUTOMATIC COVERING INDEX/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "AUTOMATIC COVERING INDEX"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "autoindex1-300"
@@ -154,9 +155,9 @@ func Test_autoindex1(t *testing.T) {
 		n = "2"
 		_ = n // suppress unused warning
 		for func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n < 4096 }() {
-			_res = db.Exec("INSERT INTO t4 SELECT a+$n, b+$n FROM t4")
+			_res = db.Exec("INSERT INTO t4 SELECT a+" + n + ", b+" + n + " FROM t4")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 SELECT a+$n, b+$n FROM t4")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 SELECT a+" + n + ", b+" + n + " FROM t4")
 			}
 			n = tclExprWith("$n+$n", map[string]string{"n": n})
 			_ = n // suppress unused warning
@@ -227,9 +228,9 @@ func Test_autoindex1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH data .*SEARCH raw_contacts/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH data .*SEARCH raw_contacts"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "autoindex1-801"
@@ -239,9 +240,9 @@ func Test_autoindex1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH data .*SEARCH raw_contacts/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH data .*SEARCH raw_contacts"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	os.Remove("test.db")
@@ -255,9 +256,9 @@ func Test_autoindex1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/agglabels USING AUTOMATIC COVERING INDEX/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "agglabels USING AUTOMATIC COVERING INDEX"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "autoindex1-901"
@@ -267,9 +268,9 @@ func Test_autoindex1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/USING AUTOMATIC COVERING INDEX/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "USING AUTOMATIC COVERING INDEX"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "autoindex1-920"
@@ -363,9 +364,9 @@ func Test_autoindex1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/SEARCH t1 USING AUTOMATIC COVERING INDEX/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SEARCH t1 USING AUTOMATIC COVERING INDEX"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 }

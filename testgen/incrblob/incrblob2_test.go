@@ -210,9 +210,9 @@ func Test_incrblob2(t *testing.T) {
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 100 }() {
 			data = "\"blob$ii\" 500"
 			_ = data // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1 VALUES($ii, $data) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + ii + ", " + data + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($ii, $data) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + ii + ", " + data + ") ")
 			}
 			// incr ii 1
 			{

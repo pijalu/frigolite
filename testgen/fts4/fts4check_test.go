@@ -162,9 +162,9 @@ func Test_fts4check(t *testing.T) {
 				}
 				for _, docid := range tclSplitList(tclExecSQL(db, "{SELECT docid FROM t1 ORDER BY 1 ASC}")) {
 				_ = docid // suppress unused warning
-					_res = db.Exec("\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=$docid;\n    ")
+					_res = db.Exec("\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + docid + ";\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=$docid;\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + docid + ";\n    ")
 					}
 				}
 			}

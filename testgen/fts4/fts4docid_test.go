@@ -90,9 +90,9 @@ func Test_fts4docid(t *testing.T) {
 			content := _items0[_idx0+1]
 			_ = content // suppress unused warning
 			_ = _idx0
-				_res = db.Exec(" INSERT INTO t1(docid, content) VALUES($docid, $content) ")
+				_res = db.Exec(" INSERT INTO t1(docid, content) VALUES(" + docid + ", " + content + ") ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(docid, content) VALUES($docid, $content) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(docid, content) VALUES(" + docid + ", " + content + ") ")
 				}
 			}
 		}

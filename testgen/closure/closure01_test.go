@@ -6,6 +6,7 @@ package closure
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -66,9 +67,9 @@ func Test_closure01(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/1 0 1 17 2 1 4 2 8 3 16 4 .* 65536 16/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "1 0 1 17 2 1 4 2 8 3 16 4 .* 65536 16"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.1-cte"
@@ -78,9 +79,9 @@ func Test_closure01(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/1 0 1 17 2 1 4 2 8 3 16 4 .* 65536 16/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "1 0 1 17 2 1 4 2 8 3 16 4 .* 65536 16"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.2"

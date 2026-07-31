@@ -333,9 +333,9 @@ func Test_zipfile2(t *testing.T) {
 			_ = hex // suppress unused warning
 			blob2 = "binary decode hex $hex"
 			_ = blob2 // suppress unused warning
-			r = db.Query(" SELECT name, data IS NULL FROM zipfile($blob2) ")
+			r = db.Query(" SELECT name, data IS NULL FROM zipfile(" + blob2 + ") ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name, data IS NULL FROM zipfile($blob2) ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name, data IS NULL FROM zipfile(" + blob2 + ") ")
 			}
 		}
 		os.Remove("test.zip")

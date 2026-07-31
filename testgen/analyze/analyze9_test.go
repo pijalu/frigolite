@@ -213,9 +213,9 @@ func Test_analyze9(t *testing.T) {
 			_ = a // suppress unused warning
 			b = "0"
 			_ = b // suppress unused warning
-			_res = db.Exec(" INSERT INTO t2 VALUES($a, $b) ")
+			_res = db.Exec(" INSERT INTO t2 VALUES(" + a + ", " + b + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES($a, $b) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(" + a + ", " + b + ") ")
 			}
 			// incr i 1
 			{
@@ -359,9 +359,9 @@ func Test_analyze9(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES('x', $i) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES('x', " + i + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('x', $i) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('x', " + i + ") ")
 			}
 			// incr i tclExprWith("(($i<1000)?1:10)", map[string]string{"i": i})
 			{
@@ -713,9 +713,9 @@ func Test_analyze9(t *testing.T) {
 					}
 					b = tclExprWith("$i % 5", map[string]string{"i": i})
 					_ = b // suppress unused warning
-					_res = db.Exec(" INSERT INTO t4 VALUES($a, $b) ")
+					_res = db.Exec(" INSERT INTO t4 VALUES(" + a + ", " + b + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES($a, $b) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(" + a + ", " + b + ") ")
 					}
 					// incr i 1
 					{
@@ -792,9 +792,9 @@ func Test_analyze9(t *testing.T) {
 						}
 						b = tclExprWith("$i % 5", map[string]string{"i": i})
 						_ = b // suppress unused warning
-						_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
+						_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', " + a + ", " + b + ") ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(X'abcdef', " + a + ", " + b + ") ")
 						}
 						// incr i 1
 						{
@@ -859,9 +859,9 @@ func Test_analyze9(t *testing.T) {
 						a = "def"
 						_ = a // suppress unused warning
 					}
-					_res = db.Exec(" INSERT INTO t1(rowid, a, b, c) VALUES($i, $a, $i, $i) ")
+					_res = db.Exec(" INSERT INTO t1(rowid, a, b, c) VALUES(" + i + ", " + a + ", " + i + ", " + i + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, a, b, c) VALUES($i, $a, $i, $i) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, a, b, c) VALUES(" + i + ", " + a + ", " + i + ", " + i + ") ")
 					}
 					// incr i 1
 					{
@@ -911,9 +911,9 @@ func Test_analyze9(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 					c = tclExprWith("$i % 3", map[string]string{"i": i})
 					_ = c // suppress unused warning
-					_res = db.Exec(" INSERT INTO t1 VALUES('ott', $i, $c) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES('ott', " + i + ", " + c + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('ott', $i, $c) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('ott', " + i + ", " + c + ") ")
 					}
 					// incr i 1
 					{
@@ -950,14 +950,14 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
-					_res = db.Exec(" INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "," + i + "," + i + "," + i + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "," + i + "," + i + "," + i + ") ")
 					}
 					if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
-						_res = db.Exec(" INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+						_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "," + i + "," + i + "," + i + ") ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "," + i + "," + i + "," + i + ") ")
 						}
 					}
 					// incr i 1
@@ -978,9 +978,9 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1600 }() {
-					_res = db.Exec(" INSERT INTO t1 VALUES($i/10,$i/17,$i/27,$i/37) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "/10," + i + "/17," + i + "/27," + i + "/37) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i/10,$i/17,$i/27,$i/37) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "/10," + i + "/17," + i + "/27," + i + "/37) ")
 					}
 					// incr i 1
 					{
@@ -996,45 +996,45 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
 					}
 					// incr i 1
 					{
@@ -1060,9 +1060,9 @@ func Test_analyze9(t *testing.T) {
 						b = "1"
 						_ = b // suppress unused warning
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i/10,$b,$i,$i) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "/10," + b + "," + i + "," + i + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i/10,$b,$i,$i) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "/10," + b + "," + i + "," + i + ") ")
 					}
 					// incr i 1
 					{
@@ -1221,18 +1221,18 @@ func Test_analyze9(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($one);\n    ANALYZE;\n  ")
+				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + one + ");\n    ANALYZE;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($one);\n    ANALYZE;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + one + ");\n    ANALYZE;\n  ")
 				}
 				nByte = tclLIndex("sqlite3_db_status", "db")
 				_ = nByte // suppress unused warning
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($two);\n    ANALYZE;\n  ")
+				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + two + ");\n    ANALYZE;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($two);\n    ANALYZE;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + two + ");\n    ANALYZE;\n  ")
 				}
 				nByte2 = tclLIndex("sqlite3_db_status", "db")
 				_ = nByte2 // suppress unused warning
@@ -1258,9 +1258,9 @@ func Test_analyze9(t *testing.T) {
 						b = i
 						_ = b // suppress unused warning
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES($i%2, $b, $i/2, 'abc') ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "%2, " + b + ", " + i + "/2, 'abc') ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i%2, $b, $i/2, 'abc') ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "%2, " + b + ", " + i + "/2, 'abc') ")
 					}
 					// incr i 1
 					{
@@ -1322,9 +1322,9 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 9 }() {
-					_res = db.Exec("\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n    ")
+					_res = db.Exec("\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n    ")
 					}
 					// incr i 1
 					{
@@ -1376,9 +1376,9 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
-					_res = db.Exec("\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n    ")
+					_res = db.Exec("\n      INSERT INTO t1 VALUES(" + i + ", r(), r(), r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  r(), r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  " + i + ");\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  " + i + ");\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  r(), r());\n      INSERT INTO t1 VALUES(" + i + ", r(), r(), r());\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(" + i + ", r(), r(), r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  r(), r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  " + i + ");\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  " + i + ");\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  r(), r());\n      INSERT INTO t1 VALUES(" + i + ", r(), r(), r());\n    ")
 					}
 					// incr i 1
 					{
@@ -1433,9 +1433,9 @@ func Test_analyze9(t *testing.T) {
 				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-					_res = db.Exec(" \n      INSERT INTO t2 VALUES(CASE WHEN $i < 80 THEN 'one' ELSE 'two' END, $i) \n    ")
+					_res = db.Exec(" \n      INSERT INTO t2 VALUES(CASE WHEN " + i + " < 80 THEN 'one' ELSE 'two' END, " + i + ") \n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t2 VALUES(CASE WHEN $i < 80 THEN 'one' ELSE 'two' END, $i) \n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t2 VALUES(CASE WHEN " + i + " < 80 THEN 'one' ELSE 'two' END, " + i + ") \n    ")
 					}
 					// incr i 1
 					{
@@ -1583,9 +1583,9 @@ func Test_analyze9(t *testing.T) {
 						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-							_res = db.Exec(" INSERT INTO t1(x, y) VALUES($i, $i) ")
+							_res = db.Exec(" INSERT INTO t1(x, y) VALUES(" + i + ", " + i + ") ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(x, y) VALUES($i, $i) ")
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(x, y) VALUES(" + i + ", " + i + ") ")
 							}
 							// incr i 1
 							{
@@ -1598,9 +1598,9 @@ func Test_analyze9(t *testing.T) {
 						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-							_res = db.Exec("\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+$i, x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+$i, 100;\n      ")
+							_res = db.Exec("\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + i + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + i + ", 100;\n      ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+$i, x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+$i, 100;\n      ")
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + i + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + i + ", 100;\n      ")
 							}
 							// incr i 1
 							{

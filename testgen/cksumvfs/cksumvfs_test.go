@@ -6,6 +6,7 @@ package cksumvfs
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strconv"
 "testing"
 )
@@ -105,9 +106,9 @@ func Test_cksumvfs(t *testing.T) {
 		ii = "1500"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob($ii)) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob(" + ii + ")) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob($ii)) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob(" + ii + ")) ")
 			}
 			// incr ii 1
 			{
@@ -147,9 +148,9 @@ func Test_cksumvfs(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/0 # #/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "0 # #"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.7"

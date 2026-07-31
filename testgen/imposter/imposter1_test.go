@@ -6,6 +6,7 @@ package imposter
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -116,9 +117,9 @@ func Test_imposter1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/NULL value in t1.d/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "NULL value in t1.d"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "imposter-1.4b"
@@ -128,9 +129,9 @@ func Test_imposter1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/row # missing from index t1b/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "row # missing from index t1b"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "imposter-1.4c"
@@ -140,9 +141,9 @@ func Test_imposter1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/row # missing from index t1c/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "row # missing from index t1c"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "imposter-2.0"
@@ -152,9 +153,9 @@ func Test_imposter1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/row # missing from index t1c/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "row # missing from index t1c"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "imposter-2.1"
@@ -176,9 +177,9 @@ func Test_imposter1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/non-unique entry in index t1c/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "non-unique entry in index t1c"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "imposter-3.1"

@@ -81,9 +81,9 @@ func Test_thread003(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5000 }() {
-			_res = db.Exec("INSERT INTO t1 VALUES($ii, randomblob(200), randomblob(200))")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + ii + ", randomblob(200), randomblob(200))")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES($ii, randomblob(200), randomblob(200))")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + ii + ", randomblob(200), randomblob(200))")
 			}
 			// incr ii 1
 			{
@@ -115,9 +115,9 @@ func Test_thread003(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5000 }() {
-			_res = db.Exec("INSERT INTO t1 VALUES($ii, randomblob(200), randomblob(200))")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + ii + ", randomblob(200), randomblob(200))")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES($ii, randomblob(200), randomblob(200))")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + ii + ", randomblob(200), randomblob(200))")
 			}
 			// incr ii 1
 			{

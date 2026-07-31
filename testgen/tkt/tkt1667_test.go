@@ -71,9 +71,9 @@ func Test_tkt1667(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
-			_res = db.Exec("\n      INSERT INTO t1 VALUES($i, randstr(1000, 2000))\n    ")
+			_res = db.Exec("\n      INSERT INTO t1 VALUES(" + i + ", randstr(1000, 2000))\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES($i, randstr(1000, 2000))\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(" + i + ", randstr(1000, 2000))\n    ")
 			}
 			// incr i 1
 			{
@@ -92,9 +92,9 @@ func Test_tkt1667(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
 		{ // do_test "tkt1667-2." + i + ".1"
-			_res = db.Exec("\n      DELETE FROM t1 WHERE a = $i;\n    ")
+			_res = db.Exec("\n      DELETE FROM t1 WHERE a = " + i + ";\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1 WHERE a = $i;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1 WHERE a = " + i + ";\n    ")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -115,9 +115,9 @@ func Test_tkt1667(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
-			_res = db.Exec("\n      INSERT INTO t1 VALUES($i, randstr(1000, 2000))\n    ")
+			_res = db.Exec("\n      INSERT INTO t1 VALUES(" + i + ", randstr(1000, 2000))\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES($i, randstr(1000, 2000))\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(" + i + ", randstr(1000, 2000))\n    ")
 			}
 			// incr i 1
 			{

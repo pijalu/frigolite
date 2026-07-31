@@ -83,9 +83,9 @@ func Test_memjournal(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SAVEPOINT abc ")
 			}
-			_res = db.Exec(" UPDATE t1 SET a=randomblob(500) WHERE rowid<=$i AND 0 ")
+			_res = db.Exec(" UPDATE t1 SET a=randomblob(500) WHERE rowid<=" + i + " AND 0 ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a=randomblob(500) WHERE rowid<=$i AND 0 ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a=randomblob(500) WHERE rowid<=" + i + " AND 0 ")
 			}
 			_res = db.Exec(" RELEASE abc ")
 			if _res.Error != nil {

@@ -6,6 +6,7 @@ package orderby
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -60,9 +61,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.2.1"
@@ -72,9 +73,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.2.2"
@@ -84,9 +85,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.2.3"
@@ -96,9 +97,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.2.4"
@@ -108,9 +109,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.3"
@@ -120,9 +121,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.4"
@@ -132,9 +133,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.5"
@@ -144,9 +145,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.6"
@@ -156,9 +157,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "1.7"
@@ -168,9 +169,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.1a"
@@ -180,9 +181,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.1b"
@@ -192,9 +193,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.2"
@@ -204,9 +205,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.3"
@@ -216,9 +217,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.4"
@@ -228,9 +229,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.5"
@@ -240,9 +241,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.6"
@@ -252,9 +253,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "2.7"
@@ -264,9 +265,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "3.0"
@@ -276,9 +277,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "3.1"
@@ -288,9 +289,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "4.1.0"
@@ -336,9 +337,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "4.2.3"
@@ -348,9 +349,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "4.2.4"
@@ -360,9 +361,9 @@ func Test_orderby5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/TEMP B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "TEMP B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "4.3.1"
