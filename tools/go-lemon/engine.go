@@ -272,9 +272,9 @@ func (p *Parser) yyReduce(ruleNo int, lookahead int, lookaheadToken interface{})
 
 	if p.trace && ruleNo < len(t.RuleName) {
 		nrhs := -t.RuleInfoNRhs[ruleNo]
-		if nrhs > 0 {
+		if nrhs > 0 && top+nrhs < len(p.stack) {
 			fmt.Printf("Reduce %d [%s], pop back to state %d.\n",
-				ruleNo, t.RuleName[ruleNo], p.stack[top+nrhs].StateNo)
+				ruleNo, t.RuleName[ruleNo], p.stack[top-nrhs].StateNo)
 		} else {
 			fmt.Printf("Reduce %d [%s].\n", ruleNo, t.RuleName[ruleNo])
 		}

@@ -92,21 +92,26 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Generate Go output with tables embedded
+	// Generate Go output with tables embedded.
+	// Token codes MUST match buildParseTables' symIndex (terminal-only
+	// 1-based indexing), otherwise the generated constants and the tables
+	// disagree and every engine lookup misses.
 	tokenCode := make(map[string]int)
-	for i, sym := range grammar.Symbols {
+	tokCode := 1
+	for _, sym := range grammar.Symbols {
 		if sym.Type == TermSymbol {
-			tokenCode[sym.Name] = i + 1
+			tokenCode[sym.Name] = tokCode
+			tokCode++
 		}
 	}
-	code := GenerateGoOutputFromTables(tables, grammar, tokenCode, *pkgFlag)
+	outCode := GenerateGoOutputFromTables(tables, grammar, tokenCode, *pkgFlag)
 
-	if err := os.WriteFile(outputFile, []byte(code), 0644); err != nil {
+	if err := os.WriteFile(outputFile, []byte(outCode), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing output: %v\n", err)
 		os.Exit(1)
 	}
 
 	if *verboseFlag {
-		fmt.Printf("Generated %s (%d bytes)\n", outputFile, len(code))
+		fmt.Printf("Generated %s (%d bytes)\n", outputFile, len(outCode))
 	}
 }

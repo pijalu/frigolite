@@ -208,8 +208,18 @@ func buildLR0States(grammar *LemonGrammar) ([]*ItemSet, error) {
 			}
 		}
 		
-		// Compute GOTO for each symbol
+		// Sort symbol names so state creation order (and therefore state
+		// numbering) is deterministic across runs. Go map iteration is
+		// randomized; without sorting, generated tables would have different
+		// state IDs than a fresh in-memory generation, breaking the engine.
+		symNames := make([]string, 0, len(symbols))
 		for symName := range symbols {
+			symNames = append(symNames, symName)
+		}
+		sort.Strings(symNames)
+		
+		// Compute GOTO for each symbol
+		for _, symName := range symNames {
 			gotoItems := gotoSet(st.Items, symName)
 			if len(gotoItems) == 0 {
 				continue
@@ -349,18 +359,25 @@ func buildParseTables(grammar *LemonGrammar, states []*ItemSet) *ParseTables {
 	
 	tables := &ParseTables{}
 	
-	// Build a mapping from symbol name to token code
+	// Build a mapping from symbol name to token code.
+	// IMPORTANT: codes must match the token constants emitted by main.go's
+	// GenerateGoOutputFromTables, which assigns tokenCode[sym.Name] in dense
+	// terminal-only 1-based order (only terminals count). Using sym.Index+1
+	// (position in grammar.Symbols, including non-terminals) would produce
+	// tables that disagree with the generated TK_* constants, breaking the
+	// engine.
 	symIndex := make(map[string]int)
 	terminalList := make([]*Symbol, 0)
 	for _, sym := range grammar.Symbols {
 		if sym.Type == TermSymbol {
-			symIndex[sym.Name] = len(terminalList) + 1 // 1-based token codes
+			symIndex[sym.Name] = len(terminalList) + 1
 			terminalList = append(terminalList, sym)
 		}
 	}
-	
-	// Terminal count (excluding non-terminal symbols)
-	termCount := len(terminalList) + 1 // +1 for EOF
+
+	// Terminal count: table width must cover every possible token code.
+	// Codes are dense terminal-only 1-based, plus code 0 for EOF.
+	termCount := len(terminalList) + 1
 	
 	// For each state and terminal, determine the action
 	// Action encoding (matching lemon):
@@ -494,18 +511,28 @@ func buildParseTables(grammar *LemonGrammar, states []*ItemSet) *ParseTables {
 	nextSlot := 0
 	
 	for si := 0; si < stateCount; si++ {
-		// Find default action (most common non-error action)
+		// Find default action (most common action, INCLUDING error).
+		// Lemon counts every terminal's action; if error dominates, the
+		// default is error and non-error actions are stored explicitly.
+		// Skipping error here would make the default a shift/reduce for
+		// states where most tokens are errors, causing spurious shifts on
+		// invalid input.
 		actionCount := make(map[ParserAction]int)
 		for j := 0; j < termCount; j++ {
-			if rawActions[si][j].isError {
-				continue
-			}
 			act := actionVals[si][j]
 			actionCount[act]++
 		}
 		bestCount := 0
-		bestAction := ParserAction(0)
-		for act, count := range actionCount {
+		bestAction := YY_ERROR_ACTION
+		// Deterministic iteration: sorted action values so ties resolve
+		// identically across runs.
+		acts := make([]ParserAction, 0, len(actionCount))
+		for act := range actionCount {
+			acts = append(acts, act)
+		}
+		sort.Slice(acts, func(a, b int) bool { return acts[a] < acts[b] })
+		for _, act := range acts {
+			count := actionCount[act]
 			if count > bestCount {
 				bestCount = count
 				bestAction = act
@@ -519,7 +546,9 @@ func buildParseTables(grammar *LemonGrammar, states []*ItemSet) *ParseTables {
 		for offset := 0; offset <= nextSlot; offset++ {
 			conflict := false
 			for j := 0; j < termCount; j++ {
-				if rawActions[si][j].isError {
+				// Only actions that differ from the default are stored; they
+				// must fit without conflicting with already-stored entries.
+				if actionVals[si][j] == yyDefault[si] {
 					continue
 				}
 				idx := offset + j
@@ -565,9 +594,12 @@ func buildParseTables(grammar *LemonGrammar, states []*ItemSet) *ParseTables {
 			yyLookahead = newLookahead
 		}
 		
-		// Fill in entries (non-error actions only)
+		// Fill in entries: store every action that differs from the default.
+		// This includes error actions when the default is a shift/reduce, so
+		// invalid tokens are rejected instead of falling through to the
+		// default action.
 		for j := 0; j < termCount; j++ {
-			if rawActions[si][j].isError {
+			if actionVals[si][j] == yyDefault[si] {
 				continue
 			}
 			idx := bestOffset + j
@@ -654,6 +686,7 @@ func buildParseTables(grammar *LemonGrammar, states []*ItemSet) *ParseTables {
 	// Rule info
 	tables.RuleInfoLhs = make([]int, len(grammar.Rules))
 	tables.RuleInfoNRhs = make([]int, len(grammar.Rules))
+	tables.RuleName = make([]string, len(grammar.Rules))
 	for i, rule := range grammar.Rules {
 		if name, ok := nonTermCodes[rule.Lhs.Name]; ok {
 			tables.RuleInfoLhs[i] = name
@@ -662,6 +695,14 @@ func buildParseTables(grammar *LemonGrammar, states []*ItemSet) *ParseTables {
 			tables.RuleInfoLhs[i] = len(nonTermCodes)
 		}
 		tables.RuleInfoNRhs[i] = -len(rule.Rhs)
+		var sb strings.Builder
+		sb.WriteString(rule.Lhs.Name)
+		sb.WriteString(" ::=")
+		for _, s := range rule.Rhs {
+			sb.WriteString(" ")
+			sb.WriteString(s.Name)
+		}
+		tables.RuleName[i] = sb.String()
 	}
 	
 	// Constants
@@ -874,6 +915,15 @@ func generateTablesGo(tables *ParseTables) string {
 		buf.WriteString("\n}\n\n")
 	}
 
+	// Generate rule names for tracing
+	if len(tables.RuleName) > 0 {
+		buf.WriteString("var yyRuleName = []string{\n")
+		for _, name := range tables.RuleName {
+			buf.WriteString(fmt.Sprintf("\t%q,\n", name))
+		}
+		buf.WriteString("}\n\n")
+	}
+
 	return buf.String()
 }
 
@@ -919,6 +969,7 @@ func GetParseTables() *ParseTables {
 		Default:   yyDefault,
 		RuleInfoLhs: yyRuleInfoLhs,
 		RuleInfoNRhs: yyRuleInfoNRhs,
+		RuleName: yyRuleName,
 		TokenName: nil,
 		YYNToken: %d,
 		YYNState: %d,

@@ -166,8 +166,10 @@ func ParseGrammar(filename string) (*LemonGrammar, error) {
 			continue
 		}
 		
-		// Check if this line starts a rule that continues with action code
-		if strings.Contains(trimmed, "::=") {
+		// Check if this line starts a rule that continues with action code,
+		// or a %directive with a multi-line { ... } body (e.g. %include {,
+		// %syntax_error {, %stack_overflow {).
+		if strings.Contains(trimmed, "::=") || (strings.HasPrefix(trimmed, "%") && strings.Contains(trimmed, "{")) {
 			// Count braces on this line
 			braceCount := 0
 			for _, ch := range trimmed {
@@ -221,10 +223,24 @@ func ParseGrammar(filename string) (*LemonGrammar, error) {
 	state := StateNormal
 	includeLines := []string{}
 	includeDepth := 0
-	
+	// Conditional compilation: %ifdef/%ifndef/%endif stack.
+	// SQLite's parse.y gates rules with these. We evaluate every condition
+	// as "false" for %ifdef (skip section) and "true" for %ifndef (keep
+	// section) so the default full-featured grammar is produced.
+	var ifStack []bool
+
+	enabled := func() bool {
+		for _, e := range ifStack {
+			if !e {
+				return false
+			}
+		}
+		return true
+	}
+
 	for lineNo, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		
+
 		switch state {
 		case StateInclude:
 			if includeDepth == 0 && strings.HasPrefix(trimmed, "%") {
@@ -256,8 +272,45 @@ func ParseGrammar(filename string) (*LemonGrammar, error) {
 			}
 			continue
 		}
-		
+
+		// Conditional compilation directives are always processed even when
+		// inside a disabled section (to keep the stack balanced).
+		if strings.HasPrefix(trimmed, "%ifdef") || strings.HasPrefix(trimmed, "%ifndef") ||
+			strings.HasPrefix(trimmed, "%endif") {
+			fields := strings.Fields(trimmed)
+			if len(fields) == 0 {
+				continue
+			}
+			switch fields[0] {
+			case "%ifdef":
+				// Section kept only if the symbol were defined; default: skip.
+				ifStack = append(ifStack, false)
+			case "%ifndef":
+				// Section kept only if the symbol were NOT defined; default: keep.
+				ifStack = append(ifStack, true)
+			case "%endif":
+				if len(ifStack) > 0 {
+					ifStack = ifStack[:len(ifStack)-1]
+				}
+			}
+			continue
+		}
+
+		// Skip rules and directives inside a disabled conditional section.
+		if !enabled() {
+			continue
+		}
+
 		if trimmed == "" || strings.HasPrefix(trimmed, "/*") || strings.HasPrefix(trimmed, "//") {
+			continue
+		}
+
+		// Transition into a multi-line %include { ... } block that was not
+		// already merged by the pre-processing pass.
+		if strings.HasPrefix(trimmed, "%include") && strings.HasSuffix(trimmed, "{") {
+			state = StateInclude
+			includeDepth = 1
+			includeLines = nil
 			continue
 		}
 

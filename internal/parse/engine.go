@@ -60,6 +60,10 @@ type Parser struct {
 	pos    int
 	trace  bool
 	action ActionFunc
+	// SemanticErr is set by action handlers (handleRule) to report semantic
+	// errors that the grammar accepts but SQLite rejects (e.g. ORDER BY in a
+	// compound-select member before the final SELECT).
+	SemanticErr error
 }
 
 // NewParser creates a new parser instance with the given tables.

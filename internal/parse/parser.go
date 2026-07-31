@@ -87,6 +87,9 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	}
 
 	parser.Finalize()
+	if parser.SemanticErr != nil {
+		return nil, parser.SemanticErr
+	}
 	if len(stmts) == 0 && pendingStmt != nil {
 		// No statements were collected via ecmd (no SEMI in input).
 		// Use pendingStmt as a fallback.
@@ -188,9 +191,17 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 84:
 		return getSelectStmt(getRHS(p, ruleNo, 1))
 
-	// Rule 87: selectnowith ::= oneselect
+	// Rule 85: select ::= WITH wqlist selectnowith
+	case 85:
+		return checkCompoundSelect(p, getSelectStmt(getRHS(p, ruleNo, 3)))
+
+	// Rule 86: select ::= WITH RECURSIVE wqlist selectnowith
+	case 86:
+		return checkCompoundSelect(p, getSelectStmt(getRHS(p, ruleNo, 4)))
+
+	// Rule 87: select ::= selectnowith
 	case 87:
-		return getRHS(p, ruleNo, 1)
+		return checkCompoundSelect(p, getSelectStmt(getRHS(p, ruleNo, 1)))
 
 	// Rule 88: selectnowith ::= selectnowith multiselect_op oneselect
 	case 88:
@@ -1155,6 +1166,53 @@ func getSelectStmt(v interface{}) *sql.SelectStmt {
 		return s
 	}
 	return nil
+}
+
+// checkCompoundSelect mirrors SQLite's parserDoubleLinkSelect semantic check:
+// in a compound SELECT (UNION/INTERSECT/EXCEPT), ORDER BY and LIMIT may only
+// appear on the final SELECT. If any earlier member has them, report the
+// error "X clause should come after Y not before" (matching SQLite's message).
+func checkCompoundSelect(p *Parser, sel *sql.SelectStmt) *sql.SelectStmt {
+	if sel == nil || p.SemanticErr != nil {
+		return sel
+	}
+	// Walk the chain built by rule 88: members are linked via Union.
+	// The last member (Union == nil) may carry ORDER BY / LIMIT.
+	members := []*sql.SelectStmt{}
+	for cur := sel; cur != nil; cur = cur.Union {
+		members = append(members, cur)
+	}
+	// members[len-1] is the final SELECT — allowed to have ORDER BY/LIMIT.
+	// Any earlier member with ORDER BY or LIMIT is an error.
+	for i := 0; i < len(members)-1; i++ {
+		m := members[i]
+		if len(m.OrderBy) > 0 {
+			// The operator stored on this member links it to the next
+			// member in the compound chain (set by rule 88), so it names
+			// the operator that the ORDER BY should have come after.
+			p.SemanticErr = fmt.Errorf("%s clause should come after %s not before", "ORDER BY", opNameOf(m.SetOp))
+			return sel
+		}
+		if m.Limit != nil {
+			p.SemanticErr = fmt.Errorf("%s clause should come after %s not before", "LIMIT", opNameOf(m.SetOp))
+			return sel
+		}
+	}
+	return sel
+}
+
+// opNameOf returns the SQL keyword for a compound-set operator.
+func opNameOf(op sql.SetOp) string {
+	switch op {
+	case sql.SetExcept:
+		return "EXCEPT"
+	case sql.SetIntersect:
+		return "INTERSECT"
+	case sql.SetUnion:
+		return "UNION"
+	default:
+		return "UNION"
+	}
 }
 
 func getSelectColumns(v interface{}) []sql.SelectColumn {
