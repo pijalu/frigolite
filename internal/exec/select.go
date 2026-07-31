@@ -53,8 +53,10 @@ func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, colDefs 
 	groups := make(map[string][]RowMap)
 	var keyOrder []string
 
-	for _, row := range rowMaps {
+	for ri, row := range rowMaps {
 		key := e.computeGroupByKey(s.GroupBy, row)
+		if ri == 175 {
+		}
 		if _, exists := groups[key]; !exists {
 			keyOrder = append(keyOrder, key)
 		}
@@ -1876,8 +1878,10 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 	groups := make(map[string][]RowMap)
 	var keyOrder []string
 
-	for _, row := range rowMaps {
+	for ri, row := range rowMaps {
 		key := e.computeGroupByKey(s.GroupBy, row)
+		if ri == 100 || ri == 120 || ri == 175 {
+		}
 		if _, exists := groups[key]; !exists {
 			keyOrder = append(keyOrder, key)
 		}
@@ -2926,6 +2930,8 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 				serialTypes = append(serialTypes, st)
 			}
 			dataStart := pos
+			if !useLazyDecode && s.GroupBy != nil {
+			}
 			e.fillStructRowFromTypes(reuseSRow, payload, dataStart, colDefs, rowID, affinityCols, serialTypes, nil)
 			if !hasJoins && s.Where != nil {
 				passesWhere = e.rowPassesWhere(s.Where, reuseSRow, cursor)
@@ -3243,17 +3249,44 @@ func (e *Engine) fillStructRowRemainingFromTypes(sr *structRow, payload []byte, 
 	storage.DecodeRecordValuesFromTypes(payload, dataStart, sr.values, serialTypes, indices)
 }
 
-// structRowToMap converts a structRow to a RowMap, reusing the already-allocated
-// ColumnValue wrappers from the structRow's values slice.
+// structRowToMap converts a structRow to a RowMap, deep-copying mutable
+// values (ColumnValue wrappers, []byte) so the map does not share the
+// reused structRow value slots that the next decoded row overwrites.
 func structRowToMap(sr *structRow) RowMap {
 	m := make(RowMap, len(sr.index)+1)
 	m["rowid"] = sr.rowID
 	for name, idx := range sr.index {
 		if idx < len(sr.values) {
-			m[name] = sr.values[idx]
+			m[name] = cloneRowValue(sr.values[idx])
 		}
 	}
 	return m
+}
+
+// cloneRowValue deep-copies a mutable value so RowMaps do not share the
+// reused structRow value slots (which are overwritten by the next decoded
+// row). Immutable values (int64, float64, nil) are returned as-is; pointers
+// (ColumnValue, []byte, string) are copied.
+func cloneRowValue(v interface{}) interface{} {
+	switch t := v.(type) {
+	case *util.ColumnValue:
+		cp := *t
+		switch inner := t.Value.(type) {
+		case []byte:
+			b := make([]byte, len(inner))
+			copy(b, inner)
+			cp.Value = b
+		case string:
+			cp.Value = inner
+		}
+		return &cp
+	case []byte:
+		b := make([]byte, len(t))
+		copy(b, t)
+		return b
+	default:
+		return v
+	}
 }
 
 // buildOutputRow builds the output row from the SELECT columns.
