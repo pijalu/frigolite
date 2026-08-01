@@ -611,7 +611,9 @@ func Test_e_select(t *testing.T) {
 												// do_select_tests e_select-7.6 {\n  1   {SELECT a FROM q1 INTERSECT SELECT d FROM ...} (unsupported command, not transpiled)
 												// do_select_tests e_select-7.7 {\n  1   {SELECT a FROM q1 EXCEPT SELECT d FROM q2}...} (unsupported command, not transpiled)
 												// do_select_tests e_select-7.8 {\n  0   {SELECT * FROM q3} {beauty 2 beauty 2}\n\n...} (unsupported command, not transpiled)
+												tcl_nullvalue = "null"
 												// do_select_tests e_select-7.9 {\n  1   {SELECT NULL UNION ALL SELECT NULL} {null ...} (unsupported command, not transpiled)
+												tcl_nullvalue = ""
 												// drop_all_tables (unsupported command, not transpiled)
 												{ // "e_select-7.10.0"
 													_res = db.Exec("\n  CREATE TABLE y1(a COLLATE nocase, b COLLATE binary, c);\n  INSERT INTO y1 VALUES('Abc', 'abc', 'aBC');\n")

@@ -1636,8 +1636,9 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 	rest := args[1:]
 
 	switch subCmd {
-	case "null":
-		// TCL "db null <value>" sets how SQL NULL renders in query results.
+	case "null", "nullvalue":
+		// TCL "db null <value>" / "db nullvalue <value>" sets how SQL NULL
+		// renders in query results.
 		if len(rest) >= 1 {
 			tp.emitLine("tcl_nullvalue = %s", tp.goStringLiteral(rest[0]))
 		}

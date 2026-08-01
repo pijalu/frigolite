@@ -258,6 +258,7 @@ func Test_e_createtable(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1 DEFAULT VALUES;\n  INSERT INTO x2 DEFAULT VALUES;\n  INSERT INTO x3 DEFAULT VALUES;\n  INSERT INTO x4 DEFAULT VALUES;\n")
 		}
 	}
+	tcl_nullvalue = "null"
 	{ // "e_createtable-2.3.2.2"
 		r = db.Query(" SELECT * FROM x1 ")
 		if r.Error != nil {
@@ -306,6 +307,7 @@ func Test_e_createtable(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	tcl_nullvalue = ""
 	// drop_all_tables (unsupported command, not transpiled)
 	{ // "e_createtable-2.4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('i',   'one');\n  INSERT INTO t1 VALUES('ii',  'two');\n  INSERT INTO t1 VALUES('iii', 'three');\n")

@@ -826,12 +826,14 @@ func Test_pragma(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma table_info;\n  ")
 			}
 		}
+		tcl_nullvalue = "<<NULL>>"
 		{ // do_test "pragma-6.2.2"
 			r = db.Query("\n    CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);\n  ")
 			}
 		}
+		tcl_nullvalue = ""
 		{ // do_test "pragma-6.2.3"
 			r = db.Query("\n    CREATE TABLE t2_3(a,b INTEGER PRIMARY KEY,c);\n    pragma table_info(t2_3)\n  ")
 			if r.Error != nil {

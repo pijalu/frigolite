@@ -59,6 +59,7 @@ func Test_joinE(t *testing.T) {
 	_ = q1 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	tcl_nullvalue = "-"
 	_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(1),(NULL);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2 VALUES(2),(NULL);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(1),(NULL);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2 VALUES(2),(NULL);\n")

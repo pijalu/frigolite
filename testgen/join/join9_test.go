@@ -64,6 +64,7 @@ func Test_join9(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "-"
 			{ // "join9-" + id + ".setup"
 				_res = db.Exec(schema)
 				if _res.Error != nil {

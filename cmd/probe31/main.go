@@ -1,0 +1,16 @@
+package main
+
+import (
+	"fmt"
+	"github.com/pijalu/frigolite"
+)
+
+func main() {
+	db, _ := frigolite.Open(":memory:")
+	defer db.Close()
+	db.Exec("CREATE TABLE t1(a INT, b INT, c INT); WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100) INSERT INTO t1(a,b,c) SELECT x, x*1000, x*1000000 FROM c; CREATE TABLE t2(b INT, x INT); INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%3==0; CREATE INDEX t2b ON t2(b); CREATE TABLE t3(c INT, y INT); INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%4==0; CREATE INDEX t3c ON t3(c); INSERT INTO t1(a,b,c) VALUES(200, 200000, NULL);")
+	r := db.Query("SELECT * FROM t1 NATURAL JOIN t2 NATURAL JOIN t3 WHERE x>0 AND y>0 ORDER BY +a")
+	out := ""
+	for _, row := range r.Rows { for _, v := range row { out += fmt.Sprintf("%v ", v) } }
+	fmt.Printf("err=%v count=%d rows=[%s]\n", r.Error, len(r.Rows), out)
+}

@@ -803,6 +803,7 @@ func Test_tclsqlite(t *testing.T) {
 		// expr 0 → "0"
 	}
 	{ // do_test "tcl-8.1"
+		tcl_nullvalue = "NaN"
 		_res = db.Exec("INSERT INTO t1 VALUES(30,NULL)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(30,NULL)")
@@ -820,8 +821,10 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-8.3"
+		tcl_nullvalue = "NULL"
 	}
 	{ // do_test "tcl-8.4"
+		tcl_nullvalue = ""
 		_res = db.Exec("SELECT * FROM t1 WHERE b IS NULL")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 WHERE b IS NULL")
@@ -859,6 +862,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-9.5"
+		tcl_nullvalue = "banunull"
 		_res = db.Exec("SELECT banu(), banu(1)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT banu(), banu(1)")

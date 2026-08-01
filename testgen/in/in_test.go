@@ -504,6 +504,7 @@ func Test_in(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "in-13.1"
+		tcl_nullvalue = "null"
 		r = db.Query(" SELECT \n    1 IN (NULL, 1, 2),     -- The value 1 is a member of the set, return true.\n    3 IN (NULL, 1, 2),     -- Ambiguous, return NULL.\n    1 NOT IN (NULL, 1, 2), -- The value 1 is a member of the set, return false.\n    3 NOT IN (NULL, 1, 2)  -- Ambiguous, return NULL.\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT \n    1 IN (NULL, 1, 2),     -- The value 1 is a member of the set, return true.\n    3 IN (NULL, 1, 2),     -- Ambiguous, return NULL.\n    1 NOT IN (NULL, 1, 2), -- The value 1 is a member of the set, return false.\n    3 NOT IN (NULL, 1, 2)  -- Ambiguous, return NULL.\n  ")
@@ -602,6 +603,7 @@ func Test_in(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "in-13.X"
+		tcl_nullvalue = ""
 	}
 	{ // "in-14.0"
 		_res = db.Exec("\n  CREATE TABLE c1(a);\n  INSERT INTO c1 VALUES(1), (2), (4), (3);\n")

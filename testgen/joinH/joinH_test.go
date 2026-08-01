@@ -60,6 +60,7 @@ func Test_joinH(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2(b) VALUES(NULL);\n")
 		}
 	}
+	tcl_nullvalue = "NULL"
 	{ // "1.1"
 		r = db.Query("\n  SELECT DISTINCT a FROM t1 FULL JOIN t2 ON true WHERE (b ISNULL);\n")
 		if r.Error != nil {

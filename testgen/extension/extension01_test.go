@@ -75,6 +75,7 @@ func Test_extension01(t *testing.T) {
 	}
 	{ // do_test "1.1"
 		os.Remove("file2.txt")
+		tcl_nullvalue = "nil"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(2, readfile(NULL)),(3, readfile('file2.txt'));\n    SELECT a, b, typeof(b) FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(2, readfile(NULL)),(3, readfile('file2.txt'));\n    SELECT a, b, typeof(b) FROM t1;\n  ")

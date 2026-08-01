@@ -1204,8 +1204,10 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 
 		// NATURAL JOIN: auto-generate USING conditions for all common columns.
 		effectiveOn := join.On
+		var naturalCols map[string]bool
 		if join.JoinType == "NATURAL" {
-			effectiveOn = e.generateNaturalJoinOn(currentDefs, rightDefs)
+			naturalCols = naturalJoinCommonCols(currentDefs, rightDefs)
+			effectiveOn = e.generateNaturalJoinOn(currentDefs, rightDefs, leftName, tableName)
 		}
 		// USING(col1, col2): generate ON left.col = right.col for each column.
 		if len(join.Using) > 0 && effectiveOn == nil {
@@ -1247,7 +1249,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		var combinedMaps []RowMap
 		// For USING clause, exclude the merged columns from the right table's
 		// column definitions so that SELECT * expansion does not duplicate them.
-		filteredRightDefs := e.filterUsingColumns(rightDefs, effectiveOn)
+		filteredRightDefs := e.filterUsingColumns(rightDefs, effectiveOn, naturalCols)
 		// Prefix remaining right-table column names when they conflict with
 		// existing left-table column names, so * expansion resolves values
 		// from the combined row map using qualified keys (table.col).
@@ -1404,11 +1406,27 @@ func (e *Engine) buildRightJoinUnmatched(rightMap RowMap, leftDefs, rightDefs []
 	return combined
 }
 
+// naturalJoinCommonCols returns the set of column names common to the left
+// and right table definitions (used to merge columns in NATURAL JOIN output).
+func naturalJoinCommonCols(leftDefs, rightDefs []sql.ColumnDef) map[string]bool {
+	rightNames := make(map[string]bool)
+	for _, cd := range rightDefs {
+		rightNames[cd.Name] = true
+	}
+	common := make(map[string]bool)
+	for _, cd := range leftDefs {
+		if rightNames[cd.Name] {
+			common[cd.Name] = true
+		}
+	}
+	return common
+}
+
 // generateNaturalJoinOn creates an ON expression for a NATURAL JOIN by finding
 // all common column names between left and right table definitions and creating
 // equality conditions: col = col AND col2 = col2 ...
 // If no common columns exist, NATURAL JOIN behaves as a CROSS JOIN (nil ON).
-func (e *Engine) generateNaturalJoinOn(leftDefs, rightDefs []sql.ColumnDef) sql.Expr {
+func (e *Engine) generateNaturalJoinOn(leftDefs, rightDefs []sql.ColumnDef, leftName, rightName string) sql.Expr {
 	rightNames := make(map[string]bool)
 	for _, cd := range rightDefs {
 		rightNames[cd.Name] = true
@@ -1416,10 +1434,11 @@ func (e *Engine) generateNaturalJoinOn(leftDefs, rightDefs []sql.ColumnDef) sql.
 	var onExpr sql.Expr
 	for _, cd := range leftDefs {
 		if rightNames[cd.Name] {
-			// Generate unqualified "col = col" (same format as USING clause)
+			// Generate qualified "left.col = right.col" so each side resolves
+			// to its own table's column in the combined row map.
 			eq := &sql.BinaryOp{
-				Left:     &sql.ColumnRef{Name: cd.Name},
-				Right:    &sql.ColumnRef{Name: cd.Name},
+				Left:     &sql.ColumnRef{Table: leftName, Name: cd.Name},
+				Right:    &sql.ColumnRef{Table: rightName, Name: cd.Name},
 				Operator: "=",
 			}
 			if onExpr == nil {
@@ -1523,13 +1542,16 @@ func (e *Engine) evalOnCondition(on sql.Expr, row Row) bool {
 // filterUsingColumns filters right-side column definitions to exclude columns
 // that are part of a USING clause. The USING clause generates equality conditions
 // in the ON expression, and those columns should appear only once in the result.
-func (e *Engine) filterUsingColumns(rightDefs []sql.ColumnDef, on sql.Expr) []sql.ColumnDef {
-	if on == nil {
+func (e *Engine) filterUsingColumns(rightDefs []sql.ColumnDef, on sql.Expr, naturalCols map[string]bool) []sql.ColumnDef {
+	if on == nil && len(naturalCols) == 0 {
 		return rightDefs
 	}
 	// Collect column names referenced in USING equality conditions.
 	usingCols := make(map[string]bool)
 	collectUsingColumns(on, usingCols)
+	for c := range naturalCols {
+		usingCols[c] = true
+	}
 	if len(usingCols) == 0 {
 		return rightDefs
 	}

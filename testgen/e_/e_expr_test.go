@@ -2789,6 +2789,7 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
+																		tcl_nullvalue = "null"
 																		{ // "e_expr-17.2.6"
 																			r = db.Query(" SELECT 'abcxyz' NOT GLOB NULL ")
 																			if r.Error != nil {
@@ -2837,6 +2838,7 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
+																		tcl_nullvalue = ""
 																		// proc definition (not transpiled)
 																		globargs = "list" // TCL namespace variable
 																		_ = globargs // suppress unused warning
@@ -3067,6 +3069,7 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
+																		tcl_nullvalue = "null"
 																		{ // "e_expr-21.3.2"
 																			r = db.Query("\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n  END\n")
 																			if r.Error != nil {
@@ -3079,6 +3082,7 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
+																		tcl_nullvalue = ""
 																		{ // "e_expr-21.4.1a"
 																			r = db.Query("\n  SELECT CASE WHEN NULL THEN 'A' WHEN 1 THEN 'B' END, iif(NULL,8,99);\n")
 																			if r.Error != nil {
@@ -3193,6 +3197,7 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
+																		tcl_nullvalue = "null"
 																		{ // "e_expr-22.4.2"
 																			r = db.Query("\n  SELECT CASE 24 WHEN 1 THEN 'A' WHEN 23 THEN 'B' WHEN 23 THEN 'C' END\n")
 																			if r.Error != nil {
@@ -3205,6 +3210,7 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
+																		tcl_nullvalue = ""
 																		// proc definition (not transpiled)
 																		// proc definition (not transpiled)
 																		{ // "e_expr-23.1.1"

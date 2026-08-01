@@ -555,6 +555,7 @@ func Test_nulls1(t *testing.T) {
 						res := _items3[_idx3+2]
 						_ = res // suppress unused warning
 						_ = _idx3
+							tcl_nullvalue = "NULL"
 							{ // "11." + tn + ".3." + tn
 								_res = db.Exec(sql)
 								if _res.Error != nil {
