@@ -62,6 +62,7 @@ type Engine struct {
 	triggerNewRow Row   // new row values for trigger execution (keyed as "new.colname")
 	triggerOldRow Row   // old row values for trigger execution (keyed as "old.colname")
 	hasTriggersCache map[string]bool   // cached trigger existence per table name
+	uniqueIdxCache  map[string][][]string // cached unique-index column lists per table name
 	inTransaction bool                  // tracks if we're inside a BEGIN/COMMIT block
 	ddlBuffer    []func()               // DDL undo operations for transaction rollback
 	outerRow     Row   // outer query row for correlated subquery resolution
@@ -70,6 +71,7 @@ type Engine struct {
 	currentScanTable string // table name being scanned (for qualified column resolution)
 	resolvingViews   map[string]bool        // tracks views currently being resolved (circular reference detection)
 	legacyAlterTable bool                   // PRAGMA legacy_alter_table setting
+	recursiveTriggers bool                  // PRAGMA recursive_triggers setting (allows trigger re-entry)
 	encoding    string                   // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"
 	ftsTables   map[string]*fts.FTS3Table // FTS3/4/5 tables (table name -> instance)
 	currentFTSMatch string               // current FTS table for MATCH evaluation context

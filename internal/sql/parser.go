@@ -995,6 +995,9 @@ func (p *Parser) parseInsert(isReplace bool) *InsertStmt {
 			if orConflict == "REPLACE" {
 				s.IsReplace = true
 			}
+			if orConflict == "IGNORE" {
+				s.OrIgnore = true
+			}
 		} else {
 			p.setErr("expected OR conflict resolution keyword after OR")
 			return nil

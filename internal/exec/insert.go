@@ -3,6 +3,7 @@ package exec
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
@@ -16,7 +17,7 @@ import (
 
 // --- INSERT ---
 
-func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
+func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 	if err := e.authorize(auth.ActionInsert, s.Table, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
@@ -35,10 +36,21 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	if s.Select != nil {
-		return e.execInsertSelect(tableEntry, colDefs, s.Select, s.Columns, s.IsReplace)
+		return e.execInsertSelect(tableEntry, colDefs, s.Select, s.Columns, s.IsReplace, s.OrIgnore)
 	}
 	if len(s.Values) == 0 {
 		return e.execInsertDefault(tableEntry, colDefs, s)
+	}
+
+	// REPLACE deletes rows and may fire triggers before inserting; if anything
+	// fails the whole statement must be rolled back (SQLite statement journal).
+	if s.IsReplace {
+		snap := dbCtx.Pager.Snapshot()
+		defer func() {
+			if ret != nil && ret.Error != nil {
+				dbCtx.Pager.Restore(snap)
+			}
+		}()
 	}
 
 	var totalChanges int64
@@ -50,18 +62,24 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 			return &Result{Error: fmt.Errorf("exec: failed to evaluate INSERT values")}
 		}
 
-		// Handle REPLACE (INSERT OR REPLACE): delete conflicting rows before inserting
+		// Handle REPLACE (INSERT OR REPLACE): delete conflicting rows before
+		// inserting. The new row's rowid is computed BEFORE the deletes
+		// (SQLite keeps it through the REPLACE retry, so a trigger may grab it).
+		var replaceRowID int64
+		var haveReplaceRowID bool
 		if s.IsReplace {
-			colIndex := buildColumnIndex(colDefs)
-			conflictRowID, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
-			if found {
-				tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
-				_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-					return cell.RowID == conflictRowID
-				})
-				if err != nil {
-					return &Result{Error: err}
-				}
+			replaceRowID = e.pkRowID(colDefs, values, tableEntry.RootPage)
+			haveReplaceRowID = true
+			if res := e.replaceDeleteConflicts(dbCtx.Pager, tableEntry, colDefs, values); res.Error != nil {
+				return res
+			}
+		}
+
+		// A trigger may have inserted a row with our rowid during the
+		// REPLACE's delete; report it as a rowid UNIQUE conflict.
+		if haveReplaceRowID {
+			if e.rowIDExists(tableEntry.Name, tableEntry.RootPage, replaceRowID) {
+				return &Result{Error: fmt.Errorf("UNIQUE constraint failed: %s.rowid", tableEntry.Name)}
 			}
 		}
 
@@ -76,9 +94,18 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 				lastRowID = res.LastInsertRowID
 			}
 		} else {
-			res := e.insertRow(dbCtx.Pager, tableEntry, colDefs, values)
+			var fixed *int64
+			if haveReplaceRowID {
+				fixed = &replaceRowID
+			}
+			res := e.insertRow(dbCtx.Pager, tableEntry, colDefs, values, fixed)
 			if res.Error != nil {
-				return res
+				// INSERT OR IGNORE: silently skip UNIQUE conflicts.
+				if s.OrIgnore && isUniqueConflictError(res.Error) {
+					res = &Result{Changes: 0}
+				} else {
+					return res
+				}
 			}
 			totalChanges += res.Changes
 			lastRowID = res.LastInsertRowID
@@ -103,7 +130,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 	return &Result{Changes: totalChanges}
 }
 
-func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) *Result {
+func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64) *Result {
 	// Route FTS virtual table inserts directly to the FTS table
 	if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
 		nextRowID := ftsTable.Insert(values)
@@ -122,8 +149,12 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 
 	// Determine rowID: if an INTEGER PRIMARY KEY column has an explicit non-nil
 	// value, use that value as the rowid (the column IS the rowid). Otherwise
-	// auto-assign the next available rowid.
+	// auto-assign the next available rowid. REPLACE passes a rowid computed
+	// before its conflict deletes (SQLite keeps it through the retry).
 	nextRowID := e.pkRowID(colDefs, values, tableEntry.RootPage)
+	if fixedRowID != nil {
+		nextRowID = *fixedRowID
+	}
 	e.lastRowID = nextRowID
 
 	// If INTEGER PRIMARY KEY column value is nil, set it to the auto-assigned rowid.
@@ -146,6 +177,20 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 
 	// Compute any generated columns (b AS(expr)) that were not explicitly set.
 	e.computeGeneratedValues(colDefs, values)
+
+	// Fire BEFORE INSERT triggers — the row is not in the table yet, so
+	// only build the row map when triggers exist for this table.
+	if e.hasTriggersForTable(tableEntry.Name) {
+		newRow := make(RowMap)
+		for i, v := range values {
+			if i < len(colDefs) {
+				newRow[colDefs[i].Name] = v
+			}
+		}
+		if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
+			return trigResult
+		}
+	}
 
 	record, err := storage.EncodeRecord(values)
 	if err != nil {
@@ -227,6 +272,12 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 		}
 	}
 
+	// UNIQUE indexes (CREATE UNIQUE INDEX) also impose constraints even when
+	// no column-level constraint exists on the table.
+	if !hasConstraints && len(e.uniqueIndexColumns(tableEntry.Name)) > 0 {
+		hasConstraints = true
+	}
+
 	if !hasConstraints {
 		return nil
 	}
@@ -283,7 +334,230 @@ func (e *Engine) checkUniqueConstraints(tableEntry *schema.Entry, colDefs []sql.
 			return fmt.Errorf("UNIQUE constraint failed: %s", tableEntry.Name)
 		}
 	}
+
+	// Check UNIQUE indexes (CREATE UNIQUE INDEX ... ON t(c1, c2)).
+	for _, idxCols := range e.uniqueIndexColumns(tableEntry.Name) {
+		if err := e.checkUniqueIndex(tableEntry, colDefs, values, idxCols); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+// uniqueIndexColsRe matches "CREATE UNIQUE INDEX name ON tbl(col1, col2 ...)".
+var uniqueIndexColsRe = regexp.MustCompile(`(?is)^\s*CREATE\s+UNIQUE\s+INDEX\b.*?\bON\b\s+[^\s(]+\((.*?)\)`)
+
+// uniqueIndexColumns returns the column lists of every UNIQUE index defined
+// on the given table (cached per table name).
+func (e *Engine) uniqueIndexColumns(tableName string) [][]string {
+	if e.uniqueIdxCache == nil {
+		e.uniqueIdxCache = make(map[string][][]string)
+	}
+	if cols, ok := e.uniqueIdxCache[tableName]; ok {
+		return cols
+	}
+	var result [][]string
+	for _, ctx := range e.databases {
+		entries, err := ctx.Schema.GetEntries(schema.TypeIndex)
+		if err != nil {
+			continue
+		}
+		for _, ent := range entries {
+			if !strings.EqualFold(ent.TblName, tableName) {
+				continue
+			}
+			m := uniqueIndexColsRe.FindStringSubmatch(ent.SQL)
+			if m == nil {
+				continue
+			}
+			var cols []string
+			for _, part := range strings.Split(m[1], ",") {
+				name := strings.TrimSpace(part)
+				upper := strings.ToUpper(name)
+				if idx := strings.Index(upper, " COLLATE"); idx >= 0 {
+					name = strings.TrimSpace(name[:idx])
+				} else if idx := strings.Index(upper, " DESC"); idx >= 0 {
+					name = strings.TrimSpace(name[:idx])
+				} else if idx := strings.Index(upper, " ASC"); idx >= 0 {
+					name = strings.TrimSpace(name[:idx])
+				}
+				if name != "" {
+					cols = append(cols, name)
+				}
+			}
+			if len(cols) > 0 {
+				result = append(result, cols)
+			}
+		}
+	}
+	e.uniqueIdxCache[tableName] = result
+	return result
+}
+
+// checkUniqueIndex scans the table for a row whose values match the new row
+// on all columns of a UNIQUE index. Returns a SQLite-style error on conflict.
+// NULL values never conflict (SQL UNIQUE allows multiple NULLs).
+func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, idxCols []string) error {
+	colIndex := buildColumnIndex(colDefs)
+	key := make([]interface{}, len(idxCols))
+	for i, cn := range idxCols {
+		idx, ok := colIndex[cn]
+		if !ok || idx >= len(values) || values[idx] == nil {
+			return nil
+		}
+		key[i] = values[idx]
+	}
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return nil
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil {
+			break
+		}
+		match := true
+		for i, cn := range idxCols {
+			idx, ok := colIndex[cn]
+			if !ok || idx >= len(rec.Values) || util.CompareValues(rec.Values[idx], key[i]) != 0 {
+				match = false
+				break
+			}
+		}
+		if match {
+			parts := make([]string, len(idxCols))
+			for i, cn := range idxCols {
+				parts[i] = tableEntry.Name + "." + cn
+			}
+			return fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(parts, ", "))
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
+	return nil
+}
+
+// findRowByIndexCols finds a row that matches the given values on every column
+// of the named UNIQUE index. Returns its rowid, values, and true if found.
+func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, idxCols []string) (int64, []interface{}, bool) {
+	colIndex := buildColumnIndex(colDefs)
+	key := make([]interface{}, len(idxCols))
+	for i, cn := range idxCols {
+		idx, ok := colIndex[cn]
+		if !ok || idx >= len(values) || values[idx] == nil {
+			return 0, nil, false
+		}
+		key[i] = values[idx]
+	}
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return 0, nil, false
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil {
+			break
+		}
+		match := true
+		for i, cn := range idxCols {
+			idx, ok := colIndex[cn]
+			if !ok || idx >= len(rec.Values) || util.CompareValues(rec.Values[idx], key[i]) != 0 {
+				match = false
+				break
+			}
+		}
+		if match {
+			return cell.RowID, rec.Values, true
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
+	return 0, nil, false
+}
+
+// rowIDExists reports whether the table already has a row with the given rowid.
+func (e *Engine) rowIDExists(tableName string, rootPage uint32, rowID int64) bool {
+	tree := e.tableBTree(tableName, rootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return false
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			return false
+		}
+		if cell.RowID == rowID {
+			return true
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			return false
+		}
+	}
+}
+
+// replaceDeleteConflicts deletes every row that conflicts with the new values
+// on a UNIQUE/PRIMARY KEY column or a UNIQUE index, firing BEFORE and AFTER
+// DELETE triggers for each deleted row (SQLite REPLACE semantics).
+func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) *Result {
+	colIndex := buildColumnIndex(colDefs)
+	seen := make(map[int64]bool)
+	for {
+		// Find one conflicting row (column-level first, then UNIQUE indexes).
+		var conflictRowID int64
+		var conflictValues []interface{}
+		found := false
+		if rid, rv, ok := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values); ok && !seen[rid] {
+			conflictRowID, conflictValues, found = rid, rv, true
+		}
+		if !found {
+			for _, idxCols := range e.uniqueIndexColumns(tableEntry.Name) {
+				if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, idxCols); ok && !seen[rid] {
+					conflictRowID, conflictValues, found = rid, rv, true
+					break
+				}
+			}
+		}
+		if !found {
+			return &Result{}
+		}
+		seen[conflictRowID] = true
+
+		// Build the old row for trigger firing.
+		oldRow := buildRowMapFromValues(conflictValues, colDefs, conflictRowID)
+		if e.hasTriggersForTable(tableEntry.Name) {
+			if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+				return trigResult
+			}
+		}
+		tree := e.tableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, true)
+		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			return cell.RowID == conflictRowID
+		}); err != nil {
+			return &Result{Error: err}
+		}
+		if e.hasTriggersForTable(tableEntry.Name) {
+			if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+				return trigResult
+			}
+		}
+		// Loop to handle rows that newly conflict after triggers ran.
+	}
 }
 
 // buildRowMapFromValues creates a column-name-to-value map from a values slice.
@@ -330,7 +604,7 @@ func (e *Engine) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.Entry,
 	existingRowID, existingValues, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
 
 	if !found {
-		return e.insertRow(pg, tableEntry, colDefs, values)
+		return e.insertRow(pg, tableEntry, colDefs, values, nil)
 	}
 
 	switch oc.Action {
@@ -487,6 +761,29 @@ func isIgnoreableConflict(err error, colDefs []sql.ColumnDef) bool {
 	return false
 }
 
+// isReplaceableConflict checks if a UNIQUE/PRIMARY KEY constraint error should
+// be resolved by deleting the conflicting row (column-level ON CONFLICT REPLACE).
+func isReplaceableConflict(err error, colDefs []sql.ColumnDef) bool {
+	if err == nil {
+		return false
+	}
+	if !strings.Contains(err.Error(), "UNIQUE constraint failed") {
+		return false
+	}
+	for _, cd := range colDefs {
+		if cd.OnConflict == "REPLACE" {
+			return true
+		}
+	}
+	return false
+}
+
+// isUniqueConflictError reports whether the error is a UNIQUE/PRIMARY KEY
+// constraint violation (used for INSERT OR IGNORE).
+func isUniqueConflictError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed")
+}
+
 // gatherUniqueColIndices returns the column indices that have UNIQUE constraints
 // and are present in both the column definitions and the provided values.
 func gatherUniqueColIndices(colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) []int {
@@ -501,10 +798,21 @@ func gatherUniqueColIndices(colDefs []sql.ColumnDef, colIndex map[string]int, va
 	return uniqueCols
 }
 
-func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.ColumnDef, selectStmt *sql.SelectStmt, columns []string, isReplace bool) *Result {
+func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.ColumnDef, selectStmt *sql.SelectStmt, columns []string, isReplace bool, orIgnore bool) (ret *Result) {
 	selectResult := e.execSelect(selectStmt)
 	if selectResult.Error != nil {
 		return selectResult
+	}
+
+	// REPLACE deletes rows and may fire triggers before inserting; if anything
+	// fails the whole statement must be rolled back (SQLite statement journal).
+	if isReplace {
+		snap := e.pager.Snapshot()
+		defer func() {
+			if ret != nil && ret.Error != nil {
+				e.pager.Restore(snap)
+			}
+		}()
 	}
 
 	// Determine the effective number of columns we expect.
@@ -609,34 +917,60 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		// Compute any generated columns (b AS(expr)) that were not explicitly set.
 		e.computeGeneratedValues(colDefs, values)
 
-		// Handle REPLACE: delete conflicting rows before inserting
+		// Handle REPLACE: delete conflicting rows before inserting. The new
+		// row's rowid is computed BEFORE the deletes (SQLite keeps the rowid
+		// through the REPLACE retry, so a trigger may grab it and conflict).
+		var replaceRowID int64
 		if isReplace {
-			colIndex := buildColumnIndex(colDefs)
-			conflictRowID, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
-			if found {
-				tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
-				_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-					return cell.RowID == conflictRowID
-				})
-				if err != nil {
-					return &Result{Error: err}
-				}
+			replaceRowID = e.pkRowID(colDefs, values, tableEntry.RootPage)
+			if res := e.replaceDeleteConflicts(e.pager, tableEntry, colDefs, values); res.Error != nil {
+				return res
 			}
 		}
 
 		// Validate constraints before inserting
 		if err := e.checkConstraints(tableEntry, colDefs, values); err != nil {
+			// Statement-level INSERT OR IGNORE: silently skip UNIQUE conflicts.
+			if orIgnore && isUniqueConflictError(err) {
+				continue
+			}
 			// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
 			if isIgnoreableConflict(err, colDefs) {
 				continue
 			}
-			return &Result{Error: err}
+			// Column-level ON CONFLICT REPLACE: delete the conflicting row and
+			// fall through to insert the new one.
+			if isReplaceableConflict(err, colDefs) {
+				colIndex := buildColumnIndex(colDefs)
+				conflictRowID, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
+				if found {
+					tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+					if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+						return cell.RowID == conflictRowID
+					}); derr != nil {
+						return &Result{Error: derr}
+					}
+				} else {
+					return &Result{Error: err}
+				}
+			} else {
+				return &Result{Error: err}
+			}
 		}
 
 		// Determine rowID
 		var rowID int64
 		if hasExplicitRowID {
 			rowID = explicitRowID
+		} else if isReplace {
+			rowID = replaceRowID
+			// If INTEGER PRIMARY KEY column is nil, set it to the assigned rowid
+			for i, cd := range colDefs {
+				if cd.PrimaryKey && i < len(values) && values[i] == nil {
+					values[i] = rowID
+					break
+				}
+			}
 		} else {
 			rowID = e.pkRowID(colDefs, values, tableEntry.RootPage)
 			// If INTEGER PRIMARY KEY column is nil, set it to the auto-assigned rowid
@@ -645,6 +979,14 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 					values[i] = rowID
 					break
 				}
+			}
+		}
+
+		// A trigger may have inserted a row with our rowid during the
+		// REPLACE's delete; report it as a rowid UNIQUE conflict.
+		if isReplace && !hasExplicitRowID {
+			if e.rowIDExists(tableEntry.Name, tableEntry.RootPage, rowID) {
+				return &Result{Error: fmt.Errorf("UNIQUE constraint failed: %s.rowid", tableEntry.Name)}
 			}
 		}
 
@@ -743,24 +1085,39 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.Colum
 
 // fireAfterInsertTriggers fires AFTER INSERT triggers for the given table.
 func (e *Engine) fireAfterInsertTriggers(tableName string, newRow RowMap) *Result {
-	return e.fireTriggers(tableName, "INSERT", newRow, nil)
+	return e.fireTriggers(tableName, "INSERT", "AFTER", newRow, nil)
+}
+
+// fireBeforeInsertTriggers fires BEFORE INSERT triggers for the given table.
+func (e *Engine) fireBeforeInsertTriggers(tableName string, newRow RowMap) *Result {
+	return e.fireTriggers(tableName, "INSERT", "BEFORE", newRow, nil)
 }
 
 // fireAfterUpdateTriggers fires AFTER UPDATE triggers for the given table.
 func (e *Engine) fireAfterUpdateTriggers(tableName string, newRow, oldRow RowMap) *Result {
-	return e.fireTriggers(tableName, "UPDATE", newRow, oldRow)
+	return e.fireTriggers(tableName, "UPDATE", "AFTER", newRow, oldRow)
+}
+
+// fireBeforeUpdateTriggers fires BEFORE UPDATE triggers for the given table.
+func (e *Engine) fireBeforeUpdateTriggers(tableName string, newRow, oldRow RowMap) *Result {
+	return e.fireTriggers(tableName, "UPDATE", "BEFORE", newRow, oldRow)
 }
 
 // fireAfterDeleteTriggers fires AFTER DELETE triggers for the given table.
 func (e *Engine) fireAfterDeleteTriggers(tableName string, oldRow RowMap) *Result {
-	return e.fireTriggers(tableName, "DELETE", nil, oldRow)
+	return e.fireTriggers(tableName, "DELETE", "AFTER", nil, oldRow)
 }
 
-// fireTriggers fires triggers matching the given event for the table.
-func (e *Engine) fireTriggers(tableName, event string, newRow, oldRow RowMap) *Result {
-	// Prevent recursive trigger firing by default (matches SQLite behavior
-	// where recursive_triggers pragma is OFF by default)
-	if e.triggerDepth > 0 {
+// fireBeforeDeleteTriggers fires BEFORE DELETE triggers for the given table.
+func (e *Engine) fireBeforeDeleteTriggers(tableName string, oldRow RowMap) *Result {
+	return e.fireTriggers(tableName, "DELETE", "BEFORE", nil, oldRow)
+}
+
+// fireTriggers fires triggers matching the given event and timing for the table.
+func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow RowMap) *Result {
+	// Prevent recursive trigger firing unless PRAGMA recursive_triggers is
+	// enabled (matches SQLite's default of OFF).
+	if e.triggerDepth > 0 && !e.recursiveTriggers {
 		return &Result{}
 	}
 
@@ -777,21 +1134,62 @@ func (e *Engine) fireTriggers(tableName, event string, newRow, oldRow RowMap) *R
 		return &Result{}
 	}
 	for _, t := range triggers {
-		if res := e.fireTrigger(t, event, newRow, oldRow); res != nil {
+		if res := e.fireTrigger(t, event, timing, newRow, oldRow); res != nil {
 			return res
 		}
 	}
 	return &Result{}
 }
 
-// fireTrigger fires a single trigger matching the given event.
-// Returns a Result with an error if execution fails, or nil on success.
-func (e *Engine) fireTrigger(t *schema.Entry, event string, newRow, oldRow RowMap) *Result {
+// fireTrigger fires a single trigger matching the given event and timing.
+// Returns a Result with an error if execution fails, or nil on success
+// (including when the trigger does not match or its WHEN clause is false).
+func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldRow RowMap) *Result {
 	upper := strings.ToUpper(t.SQL)
+	// Check the trigger's declared timing. Triggers without an explicit
+	// timing default to BEFORE.
+	hasBefore := strings.Contains(upper, " BEFORE ")
+	hasAfter := strings.Contains(upper, " AFTER ")
+	if hasBefore && timing != "BEFORE" {
+		return nil
+	}
+	if hasAfter && timing != "AFTER" {
+		return nil
+	}
+	if !hasBefore && !hasAfter && timing != "BEFORE" {
+		return nil
+	}
 	// Check event matches: "event ON table" pattern
 	if !strings.Contains(upper, " "+event+" ") && !strings.Contains(upper, " "+event+" ON") {
 		return nil
 	}
+
+	// Increment trigger depth to prevent recursive trigger firing
+	e.triggerDepth++
+	defer func() { e.triggerDepth-- }()
+
+	// Set NEW and OLD row values for trigger body execution
+	prevNewRow := e.triggerNewRow
+	prevOldRow := e.triggerOldRow
+	e.triggerNewRow = newRow
+	e.triggerOldRow = oldRow
+	defer func() {
+		e.triggerNewRow = prevNewRow
+		e.triggerOldRow = prevOldRow
+	}()
+
+	// Evaluate the WHEN clause if present. The clause sits between the
+	// "ON <table>" header and the BEGIN keyword.
+	if whenExpr := e.parseTriggerWhen(t.SQL); whenExpr != nil {
+		val, err := e.evalExpr(whenExpr, nil)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		if val == nil || !toBool(val) {
+			return nil
+		}
+	}
+
 	// Extract statements between BEGIN and END
 	beginIdx := strings.Index(upper, "BEGIN")
 	if beginIdx < 0 {
@@ -811,19 +1209,6 @@ func (e *Engine) fireTrigger(t *schema.Entry, event string, newRow, oldRow RowMa
 	if parser.Err() != nil {
 		return nil
 	}
-	// Increment trigger depth to prevent recursive trigger firing
-	e.triggerDepth++
-	defer func() { e.triggerDepth-- }()
-
-	// Set NEW and OLD row values for trigger body execution
-	prevNewRow := e.triggerNewRow
-	prevOldRow := e.triggerOldRow
-	e.triggerNewRow = newRow
-	e.triggerOldRow = oldRow
-	defer func() {
-		e.triggerNewRow = prevNewRow
-		e.triggerOldRow = prevOldRow
-	}()
 
 	for _, stmt := range stmts {
 		res := e.Exec(stmt)
@@ -844,6 +1229,35 @@ func (e *Engine) fireTrigger(t *schema.Entry, event string, newRow, oldRow RowMa
 		}
 	}
 	return nil
+}
+
+// parseTriggerWhen extracts and parses the WHEN expression of a trigger's
+// CREATE TRIGGER SQL text. Returns nil when the trigger has no WHEN clause.
+func (e *Engine) parseTriggerWhen(triggerSQL string) sql.Expr {
+	upper := strings.ToUpper(triggerSQL)
+	whenIdx := strings.Index(upper, " WHEN ")
+	if whenIdx < 0 {
+		return nil
+	}
+	beginIdx := strings.Index(upper[whenIdx:], " BEGIN")
+	if beginIdx < 0 {
+		return nil
+	}
+	exprText := triggerSQL[whenIdx+len(" WHEN ") : whenIdx+beginIdx]
+	exprText = strings.TrimSpace(exprText)
+	if exprText == "" {
+		return nil
+	}
+	parser := sql.NewParser("SELECT " + exprText)
+	stmts := parser.Parse()
+	if parser.Err() != nil || len(stmts) == 0 {
+		return nil
+	}
+	sel, ok := stmts[0].(*sql.SelectStmt)
+	if !ok || len(sel.Columns) == 0 {
+		return nil
+	}
+	return sel.Columns[0].Expr
 }
 
 func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) []interface{} {

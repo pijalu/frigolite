@@ -26,30 +26,59 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 
 	tree := e.tableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 
-	// Collect deleted row data for RETURNING clause before deletion
+	// Collect the rows that match the WHERE clause (needed for trigger firing
+	// and RETURNING) before deleting them.
 	var deletedRows []RowMap
-
-	deleted, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-		rec, err := storage.DecodeRecord(cell.Payload)
-		if err != nil {
-			return false
-		}
-		row := e.buildRowMap(rec, colDefs, cell.RowID)
-		if e.rowMatchesWhere(s.Where, row) {
-			if s.HasReturning {
-				deletedRows = append(deletedRows, row)
+	{
+		cursor, err := tree.OpenCursor()
+		if err == nil {
+			for {
+				cell, err := cursor.ReadCell()
+				if err != nil || cell == nil {
+					break
+				}
+				rec, err := storage.DecodeRecord(cell.Payload)
+				if err != nil {
+					break
+				}
+				row := e.buildRowMap(rec, colDefs, cell.RowID)
+				if e.rowMatchesWhere(s.Where, row) {
+					deletedRows = append(deletedRows, row)
+				}
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
 			}
-			return true
 		}
-		return false
-	})
-	if err != nil {
-		return &Result{Error: err}
 	}
 
-	// Fire AFTER DELETE triggers
-	if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, nil); trigResult.Error != nil {
-		return trigResult
+	// Fire BEFORE DELETE triggers for each matching row.
+	for _, row := range deletedRows {
+		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, row); trigResult.Error != nil {
+			return trigResult
+		}
+	}
+
+	// Delete the matching cells.
+	deleted := int64(0)
+	for _, row := range deletedRows {
+		rowID := row["rowid"]
+		rid, _ := rowID.(int64)
+		n, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			return cell.RowID == rid
+		})
+		if err != nil {
+			return &Result{Error: err}
+		}
+		deleted += n
+	}
+
+	// Fire AFTER DELETE triggers for each deleted row.
+	for _, row := range deletedRows {
+		if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, row); trigResult.Error != nil {
+			return trigResult
+		}
 	}
 
 	// Handle RETURNING clause — evaluate against deleted rows

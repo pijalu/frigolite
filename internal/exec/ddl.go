@@ -265,7 +265,7 @@ func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt) *Result {
 
 	// Insert rows into the new table
 	for _, row := range result.Rows {
-		res := e.insertRow(dbCtx.Pager, tableEntry, s.Columns, row)
+		res := e.insertRow(dbCtx.Pager, tableEntry, s.Columns, row, nil)
 		if res.Error != nil {
 			return res
 		}
@@ -726,8 +726,13 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		return &Result{}
 	}
 
-	// Build full trigger SQL including body
+	// Build full trigger SQL including body. When the parser captured the
+	// original statement text (LALR path), store it verbatim so the trigger
+	// body survives; otherwise rebuild from the AST.
 	sqlStr := buildTriggerSQL(triggerName, s.Time, s.Event, tableName, s.When, s.Statements)
+	if strings.TrimSpace(s.RawSQL) != "" {
+		sqlStr = strings.TrimSpace(s.RawSQL)
+	}
 	
 	entry := &schema.Entry{
 		Type:     schema.TypeTrigger,

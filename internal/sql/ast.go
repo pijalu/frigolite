@@ -175,6 +175,7 @@ type InsertStmt struct {
 	CTEs         []CTEDef    // WITH clause CTE definitions
 	OnConflict   *OnConflictClause
 	IsReplace    bool        // true for REPLACE INTO or INSERT OR REPLACE
+	OrIgnore     bool        // true for INSERT OR IGNORE
 	Returning    SelectColumn
 	HasReturning bool
 }
@@ -362,6 +363,7 @@ type CreateTriggerStmt struct {
 	When       Expr   // WHEN clause (optional)
 	Statements []Stmt
 	IfNotExists bool
+	RawSQL     string // original CREATE TRIGGER text (verbatim storage)
 }
 
 func (s *CreateTriggerStmt) stmt() {}

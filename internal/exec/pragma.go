@@ -314,7 +314,7 @@ func (e *Engine) insertStatRow(tbl, idx, stat string) *Result {
 	}
 	colDefs := e.parseColumnDefs("sqlite_stat1", tableEntry.SQL)
 	values := []interface{}{tbl, idx, stat}
-	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values)
+	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil)
 }
 
 // clearAllStats deletes all rows from sqlite_stat1.
@@ -444,6 +444,8 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 		switch name {
 		case "LEGACY_ALTER_TABLE":
 			e.legacyAlterTable = s.Value == "1"
+		case "RECURSIVE_TRIGGERS":
+			e.recursiveTriggers = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		case "ENCODING":
 			// Accept UTF-8, UTF-16, UTF-16le, UTF-16be (case-insensitive)
 			switch strings.ToUpper(s.Value) {
@@ -501,7 +503,7 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 		}
 		return &Result{Columns: []string{"seq", "name", "file"}, Rows: rows}
 	},
-	"INTEGRITY_CHECK":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{}}} },
+	"INTEGRITY_CHECK":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"ok"}}} },
 	"LEGACY_ALTER_TABLE":  func(e *Engine) *Result {
 		val := int64(0)
 		if e.legacyAlterTable {
@@ -512,7 +514,13 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"TABLE_X":             func(e *Engine) *Result { return &Result{Columns: []string{"oid", "colX"}, Rows: [][]interface{}{{int64(0), ""}}} },
 	"COUNT_CHANGES":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"CASE_SENSITIVE_LIKE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"RECURSIVE_TRIGGERS":  func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"RECURSIVE_TRIGGERS":  func(e *Engine) *Result {
+		val := int64(0)
+		if e.recursiveTriggers {
+			val = 1
+		}
+		return &Result{Rows: [][]interface{}{{val}}}
+	},
 	"READ_UNCOMMITTED":    func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"ENCODING":            func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{e.encoding}}} },
 	"SCHEMA_TABLE":        func(e *Engine) *Result { return &Result{Columns: []string{"type", "name", "tbl_name", "rootpage", "sql"}} },

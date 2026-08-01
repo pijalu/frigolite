@@ -39,6 +39,60 @@ type Page struct {
 	PageNum uint32
 }
 
+// PagerState is a deep snapshot of a pager's in-memory state, used for
+// statement-level rollback (e.g. a failed REPLACE that fired triggers).
+type PagerState struct {
+	pages    map[uint32]*Page
+	dirty    map[uint32]bool
+	numPages uint32
+	header   []byte
+}
+
+// Snapshot captures the pager's current in-memory pages and header so they
+// can be restored later with Restore.
+func (p *Pager) Snapshot() *PagerState {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	s := &PagerState{
+		pages:    make(map[uint32]*Page, len(p.pages)),
+		dirty:    make(map[uint32]bool, len(p.dirty)),
+		numPages: p.numPages,
+	}
+	if p.header != nil {
+		s.header = append([]byte(nil), p.header...)
+	}
+	for n, pg := range p.pages {
+		cp := &Page{PageNum: pg.PageNum, Data: append([]byte(nil), pg.Data...)}
+		s.pages[n] = cp
+		if p.dirty[n] {
+			s.dirty[n] = true
+		}
+	}
+	return s
+}
+
+// Restore replaces the pager's in-memory state with a snapshot taken earlier.
+func (p *Pager) Restore(s *PagerState) {
+	if s == nil {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.pages = make(map[uint32]*Page, len(s.pages))
+	for n, pg := range s.pages {
+		cp := &Page{PageNum: pg.PageNum, Data: append([]byte(nil), pg.Data...)}
+		p.pages[n] = cp
+	}
+	p.dirty = make(map[uint32]bool, len(s.dirty))
+	for n := range s.dirty {
+		p.dirty[n] = true
+	}
+	p.numPages = s.numPages
+	if s.header != nil {
+		p.header = append([]byte(nil), s.header...)
+	}
+}
+
 // Open opens a database file.
 func Open(path string, pageSize uint32) (*Pager, error) {
 	if pageSize == 0 {

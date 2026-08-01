@@ -1323,6 +1323,8 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		table := getString(getRHS(p, ruleNo, 8))
 		sortlist := getOrderByList(getRHS(p, ruleNo, 10))
 		where := getExpr(getRHS(p, ruleNo, 12))
+		// uniqueflag is RHS[2]: empty or "UNIQUE".
+		unique := strings.EqualFold(strings.TrimSpace(getString(getRHS(p, ruleNo, 2))), "UNIQUE")
 		// The sortlist is []OrderByTerm; convert to []IndexColumn.
 		var cols []sql.IndexColumn
 		for _, term := range sortlist {
@@ -1334,6 +1336,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Name:    name,
 			Table:   table,
 			Columns: cols,
+			Unique:  unique,
 			Where:   where,
 		}
 
