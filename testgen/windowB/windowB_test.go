@@ -410,8 +410,8 @@ func Test_windowB(t *testing.T) {
 			}
 			{ // "4.3"
 				_res = db.Exec("\n  SELECT 1 WINDOW win AS (PARTITION BY fake_column);\n")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT 1 WINDOW win AS (PARTITION BY fake_column);\n")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT 1 WINDOW win AS (PARTITION BY fake_column);\n")
 				}
 			}
 			db.Close()

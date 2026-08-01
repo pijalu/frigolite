@@ -189,8 +189,8 @@ func Test_fts3sort(t *testing.T) {
 					}
 					{ // "2.1." + tn
 						_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
-						if _res.Error == nil {
-							t.Errorf("expected error, got none\n  sql: %s", "\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
+						if _res.Error != nil {
+							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
 						}
 					}
 				}

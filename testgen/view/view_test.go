@@ -858,8 +858,8 @@ func Test_view(t *testing.T) {
 	}
 	{ // "view-29.1"
 		_res = db.Exec("\n  CREATE TABLE t2(c,d,e);\n  SELECT name FROM sqlite_schema ORDER BY name;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t2(c,d,e);\n  SELECT name FROM sqlite_schema ORDER BY name;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(c,d,e);\n  SELECT name FROM sqlite_schema ORDER BY name;\n")
 		}
 	}
 	db.Close()

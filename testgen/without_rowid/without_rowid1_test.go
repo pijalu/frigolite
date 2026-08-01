@@ -586,8 +586,8 @@ func Test_without_rowid1(t *testing.T) {
 			}
 			{ // "10.1"
 				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
 				}
 			}
 			{ // "10.2"
@@ -610,8 +610,8 @@ func Test_without_rowid1(t *testing.T) {
 			}
 			{ // "10.5"
 				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
 				}
 			}
 			{ // "10.6"

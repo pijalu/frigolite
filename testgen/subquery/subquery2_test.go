@@ -166,8 +166,8 @@ func Test_subquery2(t *testing.T) {
 		_ = _idx0
 			{ // "4." + tn
 				_res = db.Exec(sql)
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", sql)
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 				}
 			}
 		}

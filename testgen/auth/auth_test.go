@@ -1836,20 +1836,20 @@ func Test_auth(t *testing.T) {
 	}
 	{ // "auth-1.311"
 		_res = db.Exec("\n    WITH\n       auth1311(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT * FROM auth1311 ORDER BY x;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    WITH\n       auth1311(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT * FROM auth1311 ORDER BY x;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH\n       auth1311(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT * FROM auth1311 ORDER BY x;\n  ")
 		}
 	}
 	{ // "auth-1.312"
 		_res = db.Exec("\n    WITH RECURSIVE\n       auth1312(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT x, y FROM auth1312 ORDER BY x;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    WITH RECURSIVE\n       auth1312(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT x, y FROM auth1312 ORDER BY x;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH RECURSIVE\n       auth1312(x,y) AS (SELECT a+b, b-a FROM t1)\n    SELECT x, y FROM auth1312 ORDER BY x;\n  ")
 		}
 	}
 	{ // "auth-1.313"
 		_res = db.Exec("\n    WITH RECURSIVE\n       auth1313(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM auth1313 WHERE x<5)\n    SELECT * FROM t1;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    WITH RECURSIVE\n       auth1313(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM auth1313 WHERE x<5)\n    SELECT * FROM t1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH RECURSIVE\n       auth1313(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM auth1313 WHERE x<5)\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // "auth-1.314"

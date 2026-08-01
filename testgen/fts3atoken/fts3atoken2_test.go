@@ -107,8 +107,8 @@ func Test_fts3atoken2(t *testing.T) {
 	}
 	{ // "1.2.3"
 		_res = db.Exec("\n  SELECT fts3_tokenizer('mytok', $blob)\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT fts3_tokenizer('mytok', $blob)\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT fts3_tokenizer('mytok', $blob)\n")
 		}
 	}
 	{ // "1.2.4"

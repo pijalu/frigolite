@@ -114,8 +114,8 @@ func Test_corruptN(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		{ // "4.2"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")
 			}
 		}
 	}

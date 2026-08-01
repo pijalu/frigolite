@@ -269,8 +269,8 @@ func Test_fts3prefix(t *testing.T) {
 	}
 	{ // "5.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t4 USING fts4(prefix=\"\");\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE VIRTUAL TABLE t4 USING fts4(prefix=\"\");\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(prefix=\"\");\n")
 		}
 	}
 	{ // "5.3"

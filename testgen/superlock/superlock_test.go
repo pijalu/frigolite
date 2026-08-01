@@ -128,8 +128,8 @@ func Test_superlock(t *testing.T) {
 	}
 	{ // "2.5"
 		_res = db.Exec(" PRAGMA wal_checkpoint ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " PRAGMA wal_checkpoint ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " PRAGMA wal_checkpoint ")
 		}
 	}
 	{ // do_test "2.6"
@@ -158,8 +158,8 @@ func Test_superlock(t *testing.T) {
 	}
 	{ // "3.5"
 		_res = db.Exec(" PRAGMA wal_checkpoint ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " PRAGMA wal_checkpoint ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " PRAGMA wal_checkpoint ")
 		}
 	}
 	{ // do_test "3.6"
@@ -194,8 +194,8 @@ func Test_superlock(t *testing.T) {
 	}
 	{ // "4.5"
 		_res = db.Exec(" PRAGMA wal_checkpoint ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " PRAGMA wal_checkpoint ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " PRAGMA wal_checkpoint ")
 		}
 	}
 	{ // do_test "4.6"
@@ -230,15 +230,15 @@ func Test_superlock(t *testing.T) {
 	}
 	{ // "6.3"
 		_res = db.Exec(" SELECT * FROM t2 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t2 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t2 ")
 		}
 	}
 	// db_swap test.db2 test.db (unsupported command, not transpiled)
 	{ // "6.4"
 		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t1 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // "6.5"
@@ -268,15 +268,15 @@ func Test_superlock(t *testing.T) {
 	}
 	{ // "6.8"
 		_res = db.Exec(" SELECT * FROM t2 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t2 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t2 ")
 		}
 	}
 	// db_swap test.db2 test.db (unsupported command, not transpiled)
 	{ // "6.9"
 		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t1 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // "6.10"
@@ -309,15 +309,15 @@ func Test_superlock(t *testing.T) {
 	}
 	{ // "6.13"
 		_res = db.Exec(" SELECT * FROM t2 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t2 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t2 ")
 		}
 	}
 	// db_swap test.db2 test.db (unsupported command, not transpiled)
 	{ // "6.14"
 		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t1 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // "6.15"

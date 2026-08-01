@@ -68,8 +68,8 @@ func Test_wal8(t *testing.T) {
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA page_size = 4096;\n  VACUUM;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA page_size = 4096;\n  VACUUM;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 4096;\n  VACUUM;\n")
 		}
 	}
 	db2.Close()
@@ -87,8 +87,8 @@ func Test_wal8(t *testing.T) {
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  PRAGMA page_size = 4096;\n  VACUUM;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA page_size = 4096;\n  VACUUM;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 4096;\n  VACUUM;\n")
 		}
 	}
 	db2.Close()

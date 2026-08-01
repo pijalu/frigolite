@@ -442,20 +442,20 @@ func Test_with2(t *testing.T) {
 	}
 	{ // "6.7"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHRE 1;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHRE 1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n  WITH x AS (SELECT * FROM t1) DELETE FROM t2 WHRE 1;\n")
 		}
 	}
 	{ // "6.8"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = ;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = ;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = ;\n")
 		}
 	}
 	{ // "6.9"
 		_res = db.Exec(" \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = 1 WHERE a===b;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = 1 WHERE a===b;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n  WITH x AS (SELECT * FROM t1) UPDATE t2 SET a = 10, b = 1 WHERE a===b;\n")
 		}
 	}
 	{ // "6.10"
@@ -602,8 +602,8 @@ func Test_with2(t *testing.T) {
 	}
 	{ // "11.2"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(55);\n    SELECT * FROM v2;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    INSERT INTO t1 VALUES(55);\n    SELECT * FROM v2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(55);\n    SELECT * FROM v2;\n  ")
 		}
 	}
 	{ // "11.3"
@@ -620,8 +620,8 @@ func Test_with2(t *testing.T) {
 	}
 	{ // "11.5"
 		_res = db.Exec("\n    WITH x AS (\n      WITH y AS (\n         WITH z AS(SELECT * FROM t1)\n         SELECT * FROM no_such_table\n      ) SELECT a\n    ) SELECT * from t1;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    WITH x AS (\n      WITH y AS (\n         WITH z AS(SELECT * FROM t1)\n         SELECT * FROM no_such_table\n      ) SELECT a\n    ) SELECT * from t1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH x AS (\n      WITH y AS (\n         WITH z AS(SELECT * FROM t1)\n         SELECT * FROM no_such_table\n      ) SELECT a\n    ) SELECT * from t1;\n  ")
 		}
 	}
 	db.Close()

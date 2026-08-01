@@ -172,8 +172,8 @@ func Test_walckptnoop(t *testing.T) {
 	}
 	{ // "1.8"
 		_res = db.Exec("\n  COMMIT;\n  PRAGMA wal_checkpoint = noop;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  COMMIT;\n  PRAGMA wal_checkpoint = noop;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n  PRAGMA wal_checkpoint = noop;\n")
 		}
 	}
 	{ // do_test "1.9"

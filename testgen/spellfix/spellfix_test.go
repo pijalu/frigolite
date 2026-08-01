@@ -546,8 +546,8 @@ func Test_spellfix(t *testing.T) {
 							_ = sql // suppress unused warning
 							{ // "7.4.2." + tn + ".1"
 								_res = db.Exec(sql)
-								if _res.Error == nil {
-									t.Errorf("expected error, got none\n  sql: %s", sql)
+								if _res.Error != nil {
+									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 								}
 							}
 							{ // "7.4.2." + tn + ".2"
@@ -592,8 +592,8 @@ func Test_spellfix(t *testing.T) {
 								_ = sql // suppress unused warning
 								{ // "7.5.2." + tn + ".1"
 									_res = db.Exec(sql)
-									if _res.Error == nil {
-										t.Errorf("expected error, got none\n  sql: %s", sql)
+									if _res.Error != nil {
+										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 									}
 								}
 								{ // "7.5.2." + tn + ".2"

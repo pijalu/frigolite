@@ -129,8 +129,8 @@ func Test_walrestart(t *testing.T) {
 	}
 	{ // "1.5"
 		_res = db.Exec("\n  PRAGMA integrity_check\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA integrity_check\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA integrity_check\n")
 		}
 	}
 	// sqlite3_test_control_fault_install (unsupported command, not transpiled)

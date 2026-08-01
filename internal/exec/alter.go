@@ -1154,6 +1154,9 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 		newSQL := removeConstraintFromSQL(tableEntry.SQL, constraintName)
 		if newSQL != tableEntry.SQL {
 			tableEntry.SQL = newSQL
+			// Invalidate cached column/constraint info for this table.
+			delete(e.colCache, tableName)
+			delete(e.tcCache, tableName)
 	_ = e.schema.RemoveEntry(tableEntry.Name)
 	if err := e.schema.AddEntry(tableEntry); err != nil {
 		return &Result{Error: fmt.Errorf("failed to re-add entry after DROP CONSTRAINT: %w", err)}

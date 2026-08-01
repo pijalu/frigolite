@@ -127,8 +127,8 @@ func Test_join2(t *testing.T) {
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  SELECT * FROM aa JOIN cc ON (a=b) JOIN bb ON (b=c);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM aa JOIN cc ON (a=b) JOIN bb ON (b=c);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM aa JOIN cc ON (a=b) JOIN bb ON (b=c);\n")
 		}
 	}
 	db.Close()

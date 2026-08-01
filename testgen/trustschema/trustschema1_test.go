@@ -64,8 +64,8 @@ func Test_trustschema1(t *testing.T) {
 	}
 	{ // "1.110"
 		_res = db.Exec("\n  SELECT a, b, c FROM t1;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT a, b, c FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT a, b, c FROM t1;\n")
 		}
 	}
 	{ // "1.120"
@@ -76,8 +76,8 @@ func Test_trustschema1(t *testing.T) {
 	}
 	{ // "1.130"
 		_res = db.Exec("\n  SELECT a, b FROM t1;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT a, b FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT a, b FROM t1;\n")
 		}
 	}
 	{ // "1.140"
@@ -118,14 +118,14 @@ func Test_trustschema1(t *testing.T) {
 	}
 	{ // "1.211"
 		_res = db.Exec("\n  PRAGMA trusted_schema=On;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA trusted_schema=On;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA trusted_schema=On;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));\n")
 		}
 	}
 	{ // "1.220"
 		_res = db.Exec("\n  INSERT INTO t2 VALUES(1,2,3);\n  SELECT * FROM t2;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t2 VALUES(1,2,3);\n  SELECT * FROM t2;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2 VALUES(1,2,3);\n  SELECT * FROM t2;\n")
 		}
 	}
 	{ // "1.230"
@@ -160,8 +160,8 @@ func Test_trustschema1(t *testing.T) {
 	}
 	{ // "1.300"
 		_res = db.Exec("\n  CREATE TABLE t3(a,b DEFAULT(f2(25)));\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t3(a,b DEFAULT(f2(25)));\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a,b DEFAULT(f2(25)));\n")
 		}
 	}
 	{ // "1.310"
@@ -172,8 +172,8 @@ func Test_trustschema1(t *testing.T) {
 	}
 	{ // "1.311"
 		_res = db.Exec("\n  INSERT INTO t3(a,b) VALUES(1,2);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t3(a,b) VALUES(1,2);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(a,b) VALUES(1,2);\n")
 		}
 	}
 	{ // "1.320"
@@ -349,8 +349,8 @@ func Test_trustschema1(t *testing.T) {
 	}
 	{ // "2.140"
 		_res = db.Exec("\n  PRAGMA trusted_schema=ON;\n  SELECT * FROM v1b;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA trusted_schema=ON;\n  SELECT * FROM v1b;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA trusted_schema=ON;\n  SELECT * FROM v1b;\n")
 		}
 	}
 	{ // "2.141"

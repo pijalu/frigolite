@@ -220,20 +220,20 @@ func Test_e_resolve(t *testing.T) {
 	}
 	{ // "4.2"
 		_res = db.Exec(" SELECT * FROM main.n2 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM main.n2 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM main.n2 ")
 		}
 	}
 	{ // "4.3"
 		_res = db.Exec(" SELECT * FROM at1.n2 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM at1.n2 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM at1.n2 ")
 		}
 	}
 	{ // "4.4"
 		_res = db.Exec(" SELECT * FROM at2.n2 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM at2.n2 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM at2.n2 ")
 		}
 	}
 	{ // "5.1"
@@ -284,14 +284,14 @@ func Test_e_resolve(t *testing.T) {
 	}
 	{ // "6.2.2"
 		_res = db.Exec(" SELECT * FROM main.t1 ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM main.t1 ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM main.t1 ")
 		}
 	}
 	{ // "6.2.3"
 		_res = db.Exec(" SELECT * FROM aux.t1  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM aux.t1  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM aux.t1  ")
 		}
 	}
 	{ // "6.3.0"
@@ -308,8 +308,8 @@ func Test_e_resolve(t *testing.T) {
 	}
 	{ // "6.3.3"
 		_res = db.Exec(" SELECT * FROM aux.t1  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM aux.t1  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM aux.t1  ")
 		}
 	}
 	{ // "6.4.0"

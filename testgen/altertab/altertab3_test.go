@@ -505,8 +505,8 @@ func Test_altertab3(t *testing.T) {
 			}
 			{ // "19." + tn + ".2"
 				_res = db.Exec("\n    ALTER TABLE a RENAME TO g;\n  ")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n    ALTER TABLE a RENAME TO g;\n  ")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE a RENAME TO g;\n  ")
 				}
 			}
 		}
@@ -563,8 +563,8 @@ func Test_altertab3(t *testing.T) {
 		}
 		{ // "22.6"
 			_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t4;\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  ALTER TABLE t1 RENAME TO t4;\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO t4;\n")
 			}
 		}
 		db.Close()

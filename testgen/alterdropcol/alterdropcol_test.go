@@ -194,8 +194,8 @@ func Test_alterdropcol(t *testing.T) {
 		}
 		{ // "3.2"
 			_res = db.Exec("\n  ALTER TABLE t13 DROP COLUMN c;\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  ALTER TABLE t13 DROP COLUMN c;\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t13 DROP COLUMN c;\n")
 			}
 		}
 		// foreach {tn wo vs} "\n  1 \"\"              \"\"\n  2 \"\"              VIRTUAL\n  3 \"\"              STORED\n  4 \"WITHOUT ROWID\" STORED\n  5 \"WITHOUT ROWID\" VIRTUAL\n"

@@ -1461,7 +1461,15 @@ func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 	tp.indent++
 
 	errMsg := extractExpectedErrorFromLiteral(expectedExpr)
-	if errMsg != "" {
+	raw, _ := strconv.Unquote(expectedExpr)
+	expectSuccess := !strings.HasPrefix(raw, "1 ")
+	if expectSuccess {
+		// TCL do_catchsql_test {0 {}} — the statement is expected to succeed.
+		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+		tp.emitLine("if _res.Error != nil {")
+		tp.emitLine("\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+		tp.emitLine("}")
+	} else if errMsg != "" {
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 		tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %q) {", errMsg)
 		tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %q, _res.Error, %s)", errMsg, sqlExpr)

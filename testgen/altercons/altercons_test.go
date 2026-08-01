@@ -380,8 +380,8 @@ func Test_altercons(t *testing.T) {
 					}
 					{ // "7.2"
 						_res = db.Exec("\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
-						if _res.Error == nil {
-							t.Errorf("expected error, got none\n  sql: %s", "\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
+						if _res.Error != nil {
+							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
 						}
 					}
 					{ // "7.3"

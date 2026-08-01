@@ -154,8 +154,8 @@ func Test_walsetlk2(t *testing.T) {
 	// sqlite3_busy_timeout db 2000 (unsupported command, not transpiled)
 	{ // "2.2"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1 VALUES(7, 8);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(7, 8);\n")
 		}
 	}
 	{ // "2.3"
@@ -196,8 +196,8 @@ func Test_walsetlk2(t *testing.T) {
 		// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
 		{ // "2.6"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(13, 14);\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1 VALUES(13, 14);\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(13, 14);\n")
 			}
 		}
 		{ // "2.7"
@@ -227,8 +227,8 @@ func Test_walsetlk2(t *testing.T) {
 		// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
 		{ // "3.1"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 'seven');\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1 VALUES(7, 'seven');\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(7, 'seven');\n")
 			}
 		}
 		// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
@@ -257,8 +257,8 @@ func Test_walsetlk2(t *testing.T) {
 		// sqlite3_setlk_timeout db -1 (unsupported command, not transpiled)
 		{ // "3.4"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(13, 'thirteen');\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1 VALUES(13, 'thirteen');\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(13, 'thirteen');\n")
 			}
 		}
 	}

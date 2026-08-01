@@ -1273,8 +1273,8 @@ func Test_join(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // "join-26.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a,b);\n  CREATE TABLE t5(a,c);\n  CREATE TABLE t6(a,d);\n  SELECT * FROM t5 JOIN ((t4 JOIN (t5 JOIN t6)) t7);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t4(a,b);\n  CREATE TABLE t5(a,c);\n  CREATE TABLE t6(a,d);\n  SELECT * FROM t5 JOIN ((t4 JOIN (t5 JOIN t6)) t7);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a,b);\n  CREATE TABLE t5(a,c);\n  CREATE TABLE t6(a,d);\n  SELECT * FROM t5 JOIN ((t4 JOIN (t5 JOIN t6)) t7);\n")
 		}
 	}
 	db.Close()

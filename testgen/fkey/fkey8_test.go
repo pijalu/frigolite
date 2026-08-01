@@ -123,8 +123,8 @@ func Test_fkey8(t *testing.T) {
 		}
 		{ // "2.2.1"
 			_res = db.Exec("\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
 			}
 		}
 		db.Close()
@@ -250,8 +250,8 @@ func Test_fkey8(t *testing.T) {
 		}
 		{ // "7.2"
 			_res = db.Exec("\n  UPDATE aux.p1 SET pid = pid * 10;\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE aux.p1 SET pid = pid * 10;\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE aux.p1 SET pid = pid * 10;\n")
 			}
 		}
 		{ // "7.3"

@@ -63,20 +63,20 @@ func Test_emptytable(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // "emptytable-110"
 		_res = db.Exec("\n  SELECT count(*) FROM t1, t1, t1, t1, t1, t1, empty;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT count(*) FROM t1, t1, t1, t1, t1, t1, empty;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT count(*) FROM t1, t1, t1, t1, t1, t1, empty;\n")
 		}
 	}
 	{ // "emptytable-120"
 		_res = db.Exec("\n  SELECT count(*) FROM t1, t1 LEFT JOIN empty;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT count(*) FROM t1, t1 LEFT JOIN empty;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT count(*) FROM t1, t1 LEFT JOIN empty;\n")
 		}
 	}
 	{ // "emptytable-121"
 		_res = db.Exec("\n  SELECT count(*) FROM t1, t1 LEFT JOIN t1, empty;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT count(*) FROM t1, t1 LEFT JOIN t1, empty;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT count(*) FROM t1, t1 LEFT JOIN t1, empty;\n")
 		}
 	}
 }

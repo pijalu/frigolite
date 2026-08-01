@@ -84,8 +84,8 @@ func Test_walsetlk3(t *testing.T) {
 	// sqlite3_setlk_timeout -block db 2000 (unsupported command, not transpiled)
 	{ // "1.2"
 		_res = db.Exec("\n  SELECT * FROM t1\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t1\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1\n")
 		}
 	}
 	db.Close()
@@ -111,8 +111,8 @@ func Test_walsetlk3(t *testing.T) {
 	}
 	{ // "2.3"
 		_res = db.Exec("\n  SELECT * FROM x1\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM x1\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM x1\n")
 		}
 	}
 }

@@ -1652,8 +1652,8 @@ func Test_pager1(t *testing.T) {
 								}
 								{ // "pager1-14.1.2"
 									_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ROLLBACK;\n")
-									if _res.Error == nil {
-										t.Errorf("expected error, got none\n  sql: %s", "\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ROLLBACK;\n")
+									if _res.Error != nil {
+										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ROLLBACK;\n")
 									}
 								}
 								{ // "pager1-14.1.3"

@@ -78,8 +78,8 @@ func Test_autoindex5(t *testing.T) {
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(aaa);\n  INSERT INTO t1(aaa) VALUES(9);\n  SELECT (\n    SELECT aaa FROM t1 GROUP BY (\n      SELECT bbb FROM (\n        SELECT ccc AS bbb FROM (\n           SELECT 1 ccc\n        ) WHERE rowid IS NOT 1\n      ) WHERE bbb = 1\n    )\n  );\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  DROP TABLE t1;\n  CREATE TABLE t1(aaa);\n  INSERT INTO t1(aaa) VALUES(9);\n  SELECT (\n    SELECT aaa FROM t1 GROUP BY (\n      SELECT bbb FROM (\n        SELECT ccc AS bbb FROM (\n           SELECT 1 ccc\n        ) WHERE rowid IS NOT 1\n      ) WHERE bbb = 1\n    )\n  );\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(aaa);\n  INSERT INTO t1(aaa) VALUES(9);\n  SELECT (\n    SELECT aaa FROM t1 GROUP BY (\n      SELECT bbb FROM (\n        SELECT ccc AS bbb FROM (\n           SELECT 1 ccc\n        ) WHERE rowid IS NOT 1\n      ) WHERE bbb = 1\n    )\n  );\n")
 		}
 	}
 	_dbtmp0, err := frigolite.Open(":memory:")

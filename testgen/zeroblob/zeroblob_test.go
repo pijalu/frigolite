@@ -357,14 +357,14 @@ func Test_zeroblob(t *testing.T) {
 	}
 	{ // "11.3"
 		_res = db.Exec(" \n  SELECT quote(zeroblob(-1444444444444444));\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " \n  SELECT quote(zeroblob(-1444444444444444));\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n  SELECT quote(zeroblob(-1444444444444444));\n")
 		}
 	}
 	{ // "11.4"
 		_res = db.Exec("\n  SELECT quote(test_zeroblob(-1));\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT quote(test_zeroblob(-1));\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT quote(test_zeroblob(-1));\n")
 		}
 	}
 	// proc definition (not transpiled)

@@ -480,38 +480,38 @@ func Test_select6(t *testing.T) {
 	}
 	{ // "10.3"
 		_res = db.Exec("\n  SELECT * FROM t UNION ALL SELECT * FROM j\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t UNION ALL SELECT * FROM j\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t UNION ALL SELECT * FROM j\n")
 		}
 	}
 	{ // "10.4"
 		_res = db.Exec("\n  SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)\n")
 		}
 	}
 	{ // "10.5"
 		_res = db.Exec("\n  SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)\n")
 		}
 	}
 	{ // "10.6"
 		_res = db.Exec("\n  SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)\n")
 		}
 	}
 	{ // "10.7"
 		_res = db.Exec("\n  SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )\n")
 		}
 	}
 	{ // "10.8"
 		_res = db.Exec("\n  SELECT * FROM (\n    SELECT * FROM k UNION ALL\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j \n  )\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM (\n    SELECT * FROM k UNION ALL\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j \n  )\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (\n    SELECT * FROM k UNION ALL\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j \n  )\n")
 		}
 	}
 	{ // "11.1"

@@ -350,8 +350,8 @@ func Test_indexexpr2(t *testing.T) {
 	_ = abc // suppress unused warning
 	{ // "4.900"
 		_res = db.Exec("\n    SELECT * FROM explain WHERE rowid = $abc\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT * FROM explain WHERE rowid = $abc\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM explain WHERE rowid = $abc\n  ")
 		}
 	}
 	{ // "5.0"

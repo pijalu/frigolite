@@ -107,8 +107,8 @@ func Test_walprotocol2(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // "2.4"
 		_res = db.Exec("\n  BEGIN EXCLUSIVE;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  BEGIN EXCLUSIVE;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  BEGIN EXCLUSIVE;\n")
 		}
 	}
 	{ // "2.5"

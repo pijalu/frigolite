@@ -544,14 +544,14 @@ func Test_wherelimit(t *testing.T) {
 	}
 	{ // "wherelimit-4.2"
 		_res = db.Exec("\n    DELETE FROM tv WHERE 1 LIMIT 2;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    DELETE FROM tv WHERE 1 LIMIT 2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM tv WHERE 1 LIMIT 2;\n  ")
 		}
 	}
 	{ // "wherelimit-4.3"
 		_res = db.Exec("\n    DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;\n  ")
 		}
 	}
 	{ // "wherelimit-4.10"
@@ -562,8 +562,8 @@ func Test_wherelimit(t *testing.T) {
 	}
 	{ // "wherelimit-4.11"
 		_res = db.Exec("\n    DELETE FROM t3 WHERE a=5 LIMIT 2;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    DELETE FROM t3 WHERE a=5 LIMIT 2;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t3 WHERE a=5 LIMIT 2;\n  ")
 		}
 	}
 	{ // "wherelimit-4.12"

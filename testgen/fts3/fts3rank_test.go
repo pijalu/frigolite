@@ -92,8 +92,8 @@ func Test_fts3rank(t *testing.T) {
 	}
 	{ // "1.4"
 		_res = db.Exec("\n  SELECT * FROM t1 ORDER BY rank(x'0000000000000000') DESC, rowid\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t1 ORDER BY rank(x'0000000000000000') DESC, rowid\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1 ORDER BY rank(x'0000000000000000') DESC, rowid\n")
 		}
 	}
 	if tcl_platform_byteOrder == "littleEndian" {

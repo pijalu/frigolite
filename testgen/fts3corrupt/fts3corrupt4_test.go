@@ -310,14 +310,14 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  SELECT * FROM Table0 WHERE Table0 MATCH 'a';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM Table0 WHERE Table0 MATCH 'a';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM Table0 WHERE Table0 MATCH 'a';\n")
 		}
 	}
 	{ // "6.2"
 		_res = db.Exec("\n  INSERT INTO Table0(Table0) VALUES('optimize');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO Table0(Table0) VALUES('optimize');\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO Table0(Table0) VALUES('optimize');\n")
 		}
 	}
 	db.Close()
@@ -708,8 +708,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "10.1"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;\n")
 		}
 	}
 	{ // "10.3"
@@ -756,8 +756,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "13.1"
 		_res = db.Exec("\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
 		}
 	}
 	db.Close()
@@ -811,8 +811,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "16.1"
 		_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('optimize');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1(t1) VALUES('optimize');\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		}
 	}
 	db.Close()
@@ -837,8 +837,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "17.3"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  DROP TABLE IF EXISTS t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n")
 		}
 	}
 	db.Close()
@@ -851,8 +851,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "18.1"
 		_res = db.Exec("\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';\n")
 		}
 	}
 	db.Close()
@@ -913,8 +913,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "22.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  SELECT snippet(t1,'', '', '--',-1,01)==0\n    FROM t1 WHERE a MATCH 'rtree OR json1rtree OR json1';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA writable_schema = 1;\n  SELECT snippet(t1,'', '', '--',-1,01)==0\n    FROM t1 WHERE a MATCH 'rtree OR json1rtree OR json1';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  SELECT snippet(t1,'', '', '--',-1,01)==0\n    FROM t1 WHERE a MATCH 'rtree OR json1rtree OR json1';\n")
 		}
 	}
 	db.Close()
@@ -947,8 +947,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "24.2"
 		_res = db.Exec("\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';\n")
 		}
 	}
 	{ // "24.3"
@@ -959,8 +959,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "24.4"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT null<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT null<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT null<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "24.5"
@@ -986,32 +986,32 @@ func Test_fts3corrupt4(t *testing.T) {
 	// reset_prng_state (unsupported command, not transpiled)
 	{ // "25.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;\n")
 		}
 	}
 	{ // "25.2"
 		_res = db.Exec("\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*';\n")
 		}
 	}
 	{ // "25.3"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x +x FROM c WHERE 72<x)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x +x FROM c WHERE 72<x)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x +x FROM c WHERE 72<x)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "25.4"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE 599237<x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE 599237<x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE 599237<x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;\n")
 		}
 	}
 	{ // "25.5"
 		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;\n")
 		}
 	}
 	if tcl_platform_byteOrder == "littleEndian" {
@@ -1030,14 +1030,14 @@ func Test_fts3corrupt4(t *testing.T) {
 	} else {
 		{ // "25.6a"
 			_res = db.Exec("\n    INSERT INTO t1(t1) SELECT x FROM t2;\n  ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n    INSERT INTO t1(t1) SELECT x FROM t2;\n  ")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(t1) SELECT x FROM t2;\n  ")
 			}
 		}
 		{ // "25.6b"
 			_res = db.Exec("\n    INSERT INTO t1(t1) SELECT x FROM t2;\n  ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n    INSERT INTO t1(t1) SELECT x FROM t2;\n  ")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(t1) SELECT x FROM t2;\n  ")
 			}
 		}
 	}
@@ -1220,8 +1220,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "27.4"
 		_res = db.Exec("\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*h*';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*h*';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*h*';\n")
 		}
 	}
 	{ // "27.5"
@@ -1258,8 +1258,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "28.2"
 		_res = db.Exec("\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';\n")
 		}
 	}
 	{ // "28.3"
@@ -1270,8 +1270,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "28.4"
 		_res = db.Exec("\n  WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "28.5"
@@ -1282,8 +1282,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "28.6"
 		_res = db.Exec("\n  WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;\n")
 		}
 	}
 	{ // "28.7"
@@ -1417,8 +1417,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // "36.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,tokenize=porter);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f VALUES (1);\n  INSERT INTO f_stat VALUES (1,x'00000000000101010119013d00ffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a601f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a69201f63d010101f63d01010101010101010101010119013d00ffffff0400fa83717b71a6929797010101010101010101010119013d00ffff01f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d00fa03ffffffa69297979701f63d010101000000000101010101197e9797976567656565ffa63535354e');\n  INSERT INTO f(f) VALUES ('merge=53,216');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE VIRTUAL TABLE f USING fts3(a,tokenize=porter);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f VALUES (1);\n  INSERT INTO f_stat VALUES (1,x'00000000000101010119013d00ffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a601f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a69201f63d010101f63d01010101010101010101010119013d00ffffff0400fa83717b71a6929797010101010101010101010119013d00ffff01f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d00fa03ffffffa69297979701f63d010101000000000101010101197e9797976567656565ffa63535354e');\n  INSERT INTO f(f) VALUES ('merge=53,216');\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE f USING fts3(a,tokenize=porter);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f VALUES (1);\n  INSERT INTO f_stat VALUES (1,x'00000000000101010119013d00ffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a601f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a69201f63d010101f63d01010101010101010101010119013d00ffffff0400fa83717b71a6929797010101010101010101010119013d00ffff01f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d00fa03ffffffa69297979701f63d010101000000000101010101197e9797976567656565ffa63535354e');\n  INSERT INTO f(f) VALUES ('merge=53,216');\n")
 		}
 	}
 	db.Close()
@@ -1792,8 +1792,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	}
 	{ // "49.1"
 		_res = db.Exec("\n  SAVEPOINT one;\n  DELETE FROM t1 WHERE t1 MATCH 'c*';\n  SELECT matchinfo(t1,'pcx') IS NULL FROM t1 WHERE t1 MATCH 'f*e*';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SAVEPOINT one;\n  DELETE FROM t1 WHERE t1 MATCH 'c*';\n  SELECT matchinfo(t1,'pcx') IS NULL FROM t1 WHERE t1 MATCH 'f*e*';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SAVEPOINT one;\n  DELETE FROM t1 WHERE t1 MATCH 'c*';\n  SELECT matchinfo(t1,'pcx') IS NULL FROM t1 WHERE t1 MATCH 'f*e*';\n")
 		}
 	}
 	db.Close()

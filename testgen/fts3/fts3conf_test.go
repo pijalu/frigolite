@@ -130,14 +130,14 @@ func Test_fts3conf(t *testing.T) {
 			_ = R_1 // suppress unused warning
 			{ // "1." + tn + ".1"
 				_res = db.Exec(sql)
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", sql)
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 				}
 			}
 			{ // "1." + tn + ".2"
 				_res = db.Exec(" SELECT * FROM t1 ")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t1 ")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
 				}
 			}
 			_res = db.Exec("COMMIT")

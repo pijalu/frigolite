@@ -276,8 +276,8 @@ func Test_csv01(t *testing.T) {
 	}
 	{ // "4.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t4;\n  CREATE VIRTUAL TABLE temp.t4 USING csv_wr(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(b)) WITHOUT ROWID',\n    testflags=1\n  );\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  DROP TABLE IF EXISTS t4;\n  CREATE VIRTUAL TABLE temp.t4 USING csv_wr(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(b)) WITHOUT ROWID',\n    testflags=1\n  );\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t4;\n  CREATE VIRTUAL TABLE temp.t4 USING csv_wr(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a,b,c,d,PRIMARY KEY(b)) WITHOUT ROWID',\n    testflags=1\n  );\n")
 		}
 	}
 	{ // "4.2"

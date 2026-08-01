@@ -386,8 +386,8 @@ func Test_window9(t *testing.T) {
 		}
 		{ // "8.3"
 			_res = db.Exec("\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
 			}
 		}
 		{ // "8.4"

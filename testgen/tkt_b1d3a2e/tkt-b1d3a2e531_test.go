@@ -121,8 +121,8 @@ func Test_tkt_b1d3a2e531(t *testing.T) {
 	}
 	{ // "3.3"
 		_res = db.Exec("\n    DROP TABLE cc2;\n  COMMIT;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    DROP TABLE cc2;\n  COMMIT;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE cc2;\n  COMMIT;\n")
 		}
 	}
 }

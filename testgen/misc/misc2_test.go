@@ -75,26 +75,26 @@ func Test_misc2(t *testing.T) {
 	}
 	{ // "misc2-2.2"
 		_res = db.Exec("\n      SELECT rowid, * FROM (SELECT * FROM t1, t2);\n    ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n      SELECT rowid, * FROM (SELECT * FROM t1, t2);\n    ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      SELECT rowid, * FROM (SELECT * FROM t1, t2);\n    ")
 		}
 	}
 	{ // "misc2-2.2b"
 		_res = db.Exec("\n    SELECT 'rowid', * FROM (SELECT * FROM t1, t2);\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT 'rowid', * FROM (SELECT * FROM t1, t2);\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT 'rowid', * FROM (SELECT * FROM t1, t2);\n  ")
 		}
 	}
 	{ // "misc2-2.3"
 		_res = db.Exec("\n      CREATE VIEW v1 AS SELECT * FROM t1, t2;\n      SELECT rowid, * FROM v1;\n    ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n      CREATE VIEW v1 AS SELECT * FROM t1, t2;\n      SELECT rowid, * FROM v1;\n    ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW v1 AS SELECT * FROM t1, t2;\n      SELECT rowid, * FROM v1;\n    ")
 		}
 	}
 	{ // "misc2-2.3b"
 		_res = db.Exec("\n    SELECT 'rowid', * FROM v1;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT 'rowid', * FROM v1;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT 'rowid', * FROM v1;\n  ")
 		}
 	}
 	{ // do_test "misc2-2.4"

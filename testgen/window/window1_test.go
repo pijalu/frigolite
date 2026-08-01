@@ -950,8 +950,8 @@ func Test_window1(t *testing.T) {
 				_ = _idx4
 					{ // "18.1." + tn
 						_res = db.Exec(sql)
-						if _res.Error == nil {
-							t.Errorf("expected error, got none\n  sql: %s", sql)
+						if _res.Error != nil {
+							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 						}
 					}
 				}
@@ -967,8 +967,8 @@ func Test_window1(t *testing.T) {
 					_ = _idx5
 						{ // "18.2." + tn
 							_res = db.Exec(sql)
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", sql)
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 							}
 						}
 					}
@@ -1200,8 +1200,8 @@ func Test_window1(t *testing.T) {
 							}
 							{ // "22." + tn + ".1"
 								_res = db.Exec("\n    WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN " + expr + " PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a\n  ")
-								if _res.Error == nil {
-									t.Errorf("expected error, got none\n  sql: %s", "\n    WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN " + expr + " PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a\n  ")
+								if _res.Error != nil {
+									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN " + expr + " PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a\n  ")
 								}
 							}
 							res = "0 1"
@@ -1212,8 +1212,8 @@ func Test_window1(t *testing.T) {
 							}
 							{ // "22." + tn + ".2"
 								_res = db.Exec("\n    WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND " + expr + " FOLLOWING\n    ) FROM a\n  ")
-								if _res.Error == nil {
-									t.Errorf("expected error, got none\n  sql: %s", "\n    WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND " + expr + " FOLLOWING\n    ) FROM a\n  ")
+								if _res.Error != nil {
+									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND " + expr + " FOLLOWING\n    ) FROM a\n  ")
 								}
 							}
 						}
@@ -1661,8 +1661,8 @@ func Test_window1(t *testing.T) {
 						if err != nil { t.Fatal(err) }
 						{ // "40.1"
 							_res = db.Exec("\n    CREATE VIRTUAL TABLE t0 USING rtree(c0, c1, c2);\n    SELECT * FROM t0\n     WHERE ((0,0) IN (SELECT COUNT(*),LAG(5)OVER(PARTITION BY 0) FROM t0),0)<=(c1,0);\n  ")
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", "\n    CREATE VIRTUAL TABLE t0 USING rtree(c0, c1, c2);\n    SELECT * FROM t0\n     WHERE ((0,0) IN (SELECT COUNT(*),LAG(5)OVER(PARTITION BY 0) FROM t0),0)<=(c1,0);\n  ")
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t0 USING rtree(c0, c1, c2);\n    SELECT * FROM t0\n     WHERE ((0,0) IN (SELECT COUNT(*),LAG(5)OVER(PARTITION BY 0) FROM t0),0)<=(c1,0);\n  ")
 							}
 						}
 						db.Close()
@@ -2204,8 +2204,8 @@ func Test_window1(t *testing.T) {
 						}
 						{ // "54.2"
 							_res = db.Exec("\n  SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c>10;\n")
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c>10;\n")
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c>10;\n")
 							}
 						}
 						{ // "54.3"
@@ -2216,8 +2216,8 @@ func Test_window1(t *testing.T) {
 						}
 						{ // "54.4"
 							_res = db.Exec("\n  SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c>10;\n")
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c>10;\n")
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c>10;\n")
 							}
 						}
 						db.Close()
@@ -2294,8 +2294,8 @@ func Test_window1(t *testing.T) {
 						}
 						{ // "57.3"
 							_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(22);\n  CREATE TABLE t3(y);\n  INSERT INTO t3(y) VALUES(5),(11),(-9);\n  SELECT (\n    SELECT max(y) OVER( ORDER BY (SELECT x FROM (SELECT sum(y) AS x FROM t1)))\n  )\n  FROM t3;\n")
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", "\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(22);\n  CREATE TABLE t3(y);\n  INSERT INTO t3(y) VALUES(5),(11),(-9);\n  SELECT (\n    SELECT max(y) OVER( ORDER BY (SELECT x FROM (SELECT sum(y) AS x FROM t1)))\n  )\n  FROM t3;\n")
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(22);\n  CREATE TABLE t3(y);\n  INSERT INTO t3(y) VALUES(5),(11),(-9);\n  SELECT (\n    SELECT max(y) OVER( ORDER BY (SELECT x FROM (SELECT sum(y) AS x FROM t1)))\n  )\n  FROM t3;\n")
 							}
 						}
 						db.Close()
@@ -2336,8 +2336,8 @@ func Test_window1(t *testing.T) {
 						if err != nil { t.Fatal(err) }
 						{ // "61.1"
 							_res = db.Exec("\nCREATE TABLE t1(a);\nINSERT INTO t1 VALUES(5),(NULL),('seventeen');\nSELECT (SELECT max(x)OVER(ORDER BY x) % min(x)OVER(ORDER BY CASE x WHEN 889 THEN x WHEN x THEN x END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST((SELECT (SELECT max(x)OVER(ORDER BY x) / min(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN -true THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x) & sum ( a )OVER(ORDER BY CASE x WHEN -8 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a AS )) FROM t1) AS x FROM t1)) AS t1 )) FROM t1) AS x FROM t1)) AS x )) FROM t1) AS x FROM t1)) AS real)) FROM t1) AS x FROM t1);\n")
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", "\nCREATE TABLE t1(a);\nINSERT INTO t1 VALUES(5),(NULL),('seventeen');\nSELECT (SELECT max(x)OVER(ORDER BY x) % min(x)OVER(ORDER BY CASE x WHEN 889 THEN x WHEN x THEN x END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST((SELECT (SELECT max(x)OVER(ORDER BY x) / min(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN -true THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x) & sum ( a )OVER(ORDER BY CASE x WHEN -8 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a AS )) FROM t1) AS x FROM t1)) AS t1 )) FROM t1) AS x FROM t1)) AS x )) FROM t1) AS x FROM t1)) AS real)) FROM t1) AS x FROM t1);\n")
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\nCREATE TABLE t1(a);\nINSERT INTO t1 VALUES(5),(NULL),('seventeen');\nSELECT (SELECT max(x)OVER(ORDER BY x) % min(x)OVER(ORDER BY CASE x WHEN 889 THEN x WHEN x THEN x END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST((SELECT (SELECT max(x)OVER(ORDER BY x) / min(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN -true THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x) & sum ( a )OVER(ORDER BY CASE x WHEN -8 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a AS )) FROM t1) AS x FROM t1)) AS t1 )) FROM t1) AS x FROM t1)) AS x )) FROM t1) AS x FROM t1)) AS real)) FROM t1) AS x FROM t1);\n")
 							}
 						}
 						for _, tn := range tclSplitList("1 2") {
@@ -2347,8 +2347,8 @@ func Test_window1(t *testing.T) {
 							}
 							{ // "61.2." + tn
 								_res = db.Exec("\n    SELECT \n      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) \n    FROM (\n      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1\n    )\n\n  ")
-								if _res.Error == nil {
-									t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT \n      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) \n    FROM (\n      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1\n    )\n\n  ")
+								if _res.Error != nil {
+									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT \n      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) \n    FROM (\n      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1\n    )\n\n  ")
 								}
 							}
 						}
@@ -2684,8 +2684,8 @@ func Test_window1(t *testing.T) {
 								if err != nil { t.Fatal(err) }
 								{ // "71.0"
 									_res = db.Exec("\n  CREATE TABLE t0(a);\n  SELECT a FROM t0, (SELECT a AS b FROM t0)\n   WHERE (a,1)=(SELECT 2,2 UNION SELECT sum(b),max(b) OVER(ORDER BY b) ORDER BY 2)\n     AND b=4\n   ORDER BY b;\n")
-									if _res.Error == nil {
-										t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t0(a);\n  SELECT a FROM t0, (SELECT a AS b FROM t0)\n   WHERE (a,1)=(SELECT 2,2 UNION SELECT sum(b),max(b) OVER(ORDER BY b) ORDER BY 2)\n     AND b=4\n   ORDER BY b;\n")
+									if _res.Error != nil {
+										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a);\n  SELECT a FROM t0, (SELECT a AS b FROM t0)\n   WHERE (a,1)=(SELECT 2,2 UNION SELECT sum(b),max(b) OVER(ORDER BY b) ORDER BY 2)\n     AND b=4\n   ORDER BY b;\n")
 									}
 								}
 								{ // "72.1"

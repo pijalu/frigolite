@@ -102,8 +102,8 @@ func Test_rowvalue4(t *testing.T) {
 			_ = _idx1
 				{ // "2." + tn
 					_res = db.Exec(s)
-					if _res.Error == nil {
-						t.Errorf("expected error, got none\n  sql: %s", s)
+					if _res.Error != nil {
+						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, s)
 					}
 				}
 			}
@@ -282,8 +282,8 @@ func Test_rowvalue4(t *testing.T) {
 						}
 						{ // "7.2"
 							_res = db.Exec("\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
 							}
 						}
 						{ // "7.3"

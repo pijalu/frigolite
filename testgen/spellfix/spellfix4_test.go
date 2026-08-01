@@ -284,8 +284,8 @@ func Test_spellfix4(t *testing.T) {
 	}
 	{ // "410"
 		_res = db.Exec("\n  SELECT editdist3(format('abc%.9997c','x'),format('abc%.9997c','x'));\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT editdist3(format('abc%.9997c','x'),format('abc%.9997c','x'));\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT editdist3(format('abc%.9997c','x'),format('abc%.9997c','x'));\n")
 		}
 	}
 }

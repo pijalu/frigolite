@@ -533,8 +533,8 @@ func Test_e_createtable(t *testing.T) {
 		// do_createtable_tests 4.1.2 -error {\n  table "t5" has more than one primary key\n} {\n  1    "CREATE ... (unsupported command, not transpiled)
 		{ // "4.1.3"
 			_res = db.Exec("\n  CREATE TABLE t6(a, b); --ok\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t6(a, b); --ok\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a, b); --ok\n")
 			}
 		}
 		{ // "4.1.4"
@@ -669,8 +669,8 @@ func Test_e_createtable(t *testing.T) {
 				}
 				{ // "4.15." + tn + ".2"
 					_res = db.Exec(" \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'string' FROM " + tbl + ";\n  ")
-					if _res.Error == nil {
-						t.Errorf("expected error, got none\n  sql: %s", " \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'string' FROM " + tbl + ";\n  ")
+					if _res.Error != nil {
+						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'string' FROM " + tbl + ";\n  ")
 					}
 				}
 				{ // do_test "e_createtable-4.15." + tn + ".3"
@@ -713,8 +713,8 @@ func Test_e_createtable(t *testing.T) {
 					}
 					{ // "4.16." + tn + ".2"
 						_res = db.Exec(" \n    INSERT INTO " + tbl + " SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM " + tbl + "\n  ")
-						if _res.Error == nil {
-							t.Errorf("expected error, got none\n  sql: %s", " \n    INSERT INTO " + tbl + " SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM " + tbl + "\n  ")
+						if _res.Error != nil {
+							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO " + tbl + " SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM " + tbl + "\n  ")
 						}
 					}
 					{ // do_test "e_createtable-4.16." + tn + ".3"
@@ -757,8 +757,8 @@ func Test_e_createtable(t *testing.T) {
 						}
 						{ // "4.17." + tn + ".2"
 							_res = db.Exec(" \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'three' FROM " + tbl + "\n  ")
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", " \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'three' FROM " + tbl + "\n  ")
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'three' FROM " + tbl + "\n  ")
 							}
 						}
 						{ // do_test "e_createtable-4.17." + tn + ".3"
@@ -820,8 +820,8 @@ func Test_e_createtable(t *testing.T) {
 					}
 					{ // "4.19.1"
 						_res = db.Exec(" INSERT INTO t5 VALUES(NULL, 'not null') ")
-						if _res.Error == nil {
-							t.Errorf("expected error, got none\n  sql: %s", " INSERT INTO t5 VALUES(NULL, 'not null') ")
+						if _res.Error != nil {
+							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " INSERT INTO t5 VALUES(NULL, 'not null') ")
 						}
 					}
 					{ // "4.19.2"

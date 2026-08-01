@@ -188,8 +188,8 @@ func Test_zipfile2(t *testing.T) {
 		_ = blob // suppress unused warning
 		{ // "3.3." + i
 			_res = db.Exec("\n    SELECT name,mtime,data FROM zipfile($blob)\n  ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT name,mtime,data FROM zipfile($blob)\n  ")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT name,mtime,data FROM zipfile($blob)\n  ")
 			}
 		}
 		// incr i 1

@@ -121,8 +121,8 @@ func Test_upsert1(t *testing.T) {
 	}
 	{ // "upsert1-200"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(a+b);\n  INSERT INTO t1(a,b) VALUES(7,8) ON CONFLICT(a+b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a+b) DO NOTHING;\n  SELECT * FROM t1;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(a+b);\n  INSERT INTO t1(a,b) VALUES(7,8) ON CONFLICT(a+b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a+b) DO NOTHING;\n  SELECT * FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(a+b);\n  INSERT INTO t1(a,b) VALUES(7,8) ON CONFLICT(a+b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a+b) DO NOTHING;\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "upsert1-201"

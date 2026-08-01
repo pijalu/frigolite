@@ -73,8 +73,8 @@ func Test_fts4rename(t *testing.T) {
 	}
 	{ // "1.3"
 		_res = db.Exec("\n  ROLLBACK;\n  DROP TABLE t1;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  ROLLBACK;\n  DROP TABLE t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ROLLBACK;\n  DROP TABLE t1;\n")
 		}
 	}
 }

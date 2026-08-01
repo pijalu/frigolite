@@ -323,8 +323,8 @@ func Test_returning1(t *testing.T) {
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING *, '|';\n  SELECT * FROM t1 ORDER BY id;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING *, '|';\n  SELECT * FROM t1 ORDER BY id;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING *, '|';\n  SELECT * FROM t1 ORDER BY id;\n")
 		}
 	}
 	db.Close()
@@ -362,8 +362,8 @@ func Test_returning1(t *testing.T) {
 	}
 	{ // "7.6"
 		_res = db.Exec("\n  UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t1.b;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t1.b;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=b+y FROM t2 WHERE t2.x=t1.a RETURNING t1.b;\n")
 		}
 	}
 	{ // "7.7"
@@ -374,8 +374,8 @@ func Test_returning1(t *testing.T) {
 	}
 	{ // "7.8"
 		_res = db.Exec("\n  UPDATE t1 AS alias SET b=alias.b+1000 RETURNING t1.b;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 AS alias SET b=alias.b+1000 RETURNING t1.b;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 AS alias SET b=alias.b+1000 RETURNING t1.b;\n")
 		}
 	}
 	db.Close()
@@ -401,8 +401,8 @@ func Test_returning1(t *testing.T) {
 	}
 	{ // "8.4"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE t1.a=t2.b) AS x;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE t1.a=t2.b) AS x;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE t1.a=t2.b) AS x;\n")
 		}
 	}
 	{ // "9.1"
@@ -731,8 +731,8 @@ func Test_returning1(t *testing.T) {
 		}
 		{ // "19.1"
 			_res = db.Exec("\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
 			}
 		}
 		db.Close()

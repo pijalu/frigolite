@@ -410,8 +410,8 @@ func Test_alter3(t *testing.T) {
 	}
 	{ // "alter3-9.4"
 		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=2);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=2);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN c CHECK(a!=2);\n")
 		}
 	}
 	{ // "alter3-9.5"

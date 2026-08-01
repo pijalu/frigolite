@@ -224,8 +224,8 @@ func Test_fts3tok1(t *testing.T) {
 		}
 		{ // "2.2"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t USING fts4(tokenize=simple\"\"); \n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE VIRTUAL TABLE t USING fts4(tokenize=simple\"\"); \n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t USING fts4(tokenize=simple\"\"); \n")
 			}
 		}
 		{ // "2.3"

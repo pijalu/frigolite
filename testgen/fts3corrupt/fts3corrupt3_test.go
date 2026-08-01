@@ -85,8 +85,8 @@ func Test_fts3corrupt3(t *testing.T) {
 	}
 	{ // "1.3"
 		_res = db.Exec("\n  SELECT rowid FROM t1 WHERE t1 MATCH 'one'\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'one'\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'one'\n")
 		}
 	}
 	doc1 = "\"x \" 600"

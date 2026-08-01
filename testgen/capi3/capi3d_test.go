@@ -213,8 +213,8 @@ func Test_capi3d(t *testing.T) {
 	}
 	{ // "capi3d-4.2.3"
 		_res = db.Exec("\n  VACUUM\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  VACUUM\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  VACUUM\n")
 		}
 	}
 	{ // do_test "capi3d-4.2.4"
@@ -222,8 +222,8 @@ func Test_capi3d(t *testing.T) {
 	}
 	{ // "capi3d-4.2.5"
 		_res = db.Exec("\n  VACUUM\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  VACUUM\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  VACUUM\n")
 		}
 	}
 	{ // do_test "capi3d-4.2.6"

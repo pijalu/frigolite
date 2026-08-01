@@ -469,14 +469,14 @@ func Test_pragma(t *testing.T) {
 		}
 		{ // "pragma-3.6b"
 			_res = db.Exec("\n      PRAGMA integrity_check=t2\n    ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n      PRAGMA integrity_check=t2\n    ")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      PRAGMA integrity_check=t2\n    ")
 			}
 		}
 		{ // "pragma-3.6c"
 			_res = db.Exec("\n      PRAGMA integrity_check=sqlite_schema\n    ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n      PRAGMA integrity_check=sqlite_schema\n    ")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      PRAGMA integrity_check=sqlite_schema\n    ")
 			}
 		}
 		{ // do_test "pragma-3.7"

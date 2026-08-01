@@ -291,8 +291,8 @@ func Test_with1(t *testing.T) {
 	}
 	{ // "5.2"
 		_res = db.Exec("\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i ORDER BY 1)\n  SELECT x FROM i LIMIT 10;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i ORDER BY 1)\n  SELECT x FROM i LIMIT 10;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i ORDER BY 1)\n  SELECT x FROM i LIMIT 10;\n")
 		}
 	}
 	{ // "5.2.1"
@@ -333,8 +333,8 @@ func Test_with1(t *testing.T) {
 	}
 	{ // "5.3"
 		_res = db.Exec("\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i LIMIT 5)\n  SELECT x FROM i;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i LIMIT 5)\n  SELECT x FROM i;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i LIMIT 5)\n  SELECT x FROM i;\n")
 		}
 	}
 	{ // "5.4"

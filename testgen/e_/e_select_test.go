@@ -403,8 +403,8 @@ func Test_e_select(t *testing.T) {
 						_ = _idx4
 							{ // "e_select-4.2." + tn
 								_res = db.Exec(_select)
-								if _res.Error == nil {
-									t.Errorf("expected error, got none\n  sql: %s", _select)
+								if _res.Error != nil {
+									t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, _select)
 								}
 							}
 						}
@@ -488,8 +488,8 @@ func Test_e_select(t *testing.T) {
 										_ = res // suppress unused warning
 										{ // "e_select-4." + tn
 											_res = db.Exec(_select)
-											if _res.Error == nil {
-												t.Errorf("expected error, got none\n  sql: %s", _select)
+											if _res.Error != nil {
+												t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, _select)
 											}
 										}
 									}
@@ -539,8 +539,8 @@ func Test_e_select(t *testing.T) {
 											_ = _err_tcl // suppress unused warning
 											{ // "e_select-7.2." + tn
 												_res = db.Exec(_select)
-												if _res.Error == nil {
-													t.Errorf("expected error, got none\n  sql: %s", _select)
+												if _res.Error != nil {
+													t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, _select)
 												}
 											}
 										}

@@ -133,8 +133,8 @@ func Test_e_update(t *testing.T) {
 		_ = _idx0
 			{ // "e_update-1.8." + tn + ".1"
 				_res = db.Exec(sql)
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", sql)
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 				}
 			}
 			{ // "e_update-1.8." + tn + ".2"

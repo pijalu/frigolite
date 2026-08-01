@@ -163,6 +163,7 @@ func (e *Engine) DetachAll() {
 // --- CREATE TABLE ---
 
 func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
+	e.invalidateTableCaches()
 	// Resolve schema prefix and database context
 	rawName := s.Name
 	ctx := e.mainDB
@@ -229,6 +230,7 @@ func (e *Engine) createTableSQL(s *sql.CreateTableStmt) string {
 }
 
 func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt) *Result {
+	e.invalidateTableCaches()
 	// Execute the SELECT query
 	result := e.execSelect(s.AsSelect)
 	if result.Error != nil {
@@ -394,6 +396,7 @@ func formatTableConstraint(buf *strings.Builder, tc sql.TableConstraint) {
 // --- CREATE INDEX ---
 
 func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
+	e.invalidateTableCaches()
 	if err := e.authorize(auth.ActionCreateIndex, s.Name, s.Table, "", ""); err != nil {
 		return &Result{Error: err}
 	}
@@ -509,6 +512,7 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 // --- DROP TABLE ---
 
 func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
+	e.invalidateTableCaches()
 	if err := e.authorize(auth.ActionDropTable, s.Name, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
@@ -566,6 +570,7 @@ func (e *Engine) execDropView(s *sql.DropViewStmt) *Result {
 // --- DROP TRIGGER ---
 
 func (e *Engine) execDropTrigger(s *sql.DropTriggerStmt) *Result {
+	e.invalidateTableCaches()
 	if err := e.authorize(auth.ActionDropTrigger, s.Name, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
@@ -596,6 +601,7 @@ func (e *Engine) execDropTrigger(s *sql.DropTriggerStmt) *Result {
 // --- DROP INDEX ---
 
 func (e *Engine) execDropIndex(s *sql.DropIndexStmt) *Result {
+	e.invalidateTableCaches()
 	if err := e.authorize(auth.ActionDropIndex, s.Name, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
@@ -649,13 +655,13 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 		colsClause = "(" + strings.Join(s.Columns, ", ") + ")"
 	}
 	sqlStr := fmt.Sprintf("CREATE VIEW %s%s AS %s", viewName, colsClause, selectStmtToString(s.Select))
-	
+
 	// Check for duplicate view name
 	if existing, _ := ctx.Schema.FindView(viewName); existing != nil {
 		// Silently succeed for duplicate (compat with auto-generated tests)
 		return &Result{}
 	}
-	
+
 	entry := &schema.Entry{
 		Type:     schema.TypeView,
 		Name:     viewName,
@@ -672,6 +678,7 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 // --- CREATE TRIGGER ---
 
 func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
+	e.invalidateTableCaches()
 	if err := e.authorize(auth.ActionCreateTrigger, s.Name, s.Table, "", ""); err != nil {
 		return &Result{Error: err}
 	}
@@ -684,12 +691,16 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	if dotIdx := strings.Index(rawName, "."); dotIdx >= 0 {
 		prefix := rawName[:dotIdx]
 		schemaUpper := strings.ToUpper(prefix)
-		if schemaUpper != "MAIN" && schemaUpper != "TEMP" && schemaUpper != "TEMPORARY" {
-			if db := e.getDB(prefix); db != nil {
-				ctx = db
-			}
+		isSchema := schemaUpper == "MAIN" || schemaUpper == "TEMP" || schemaUpper == "TEMPORARY"
+		if db := e.getDB(prefix); db != nil {
+			ctx = db
+			isSchema = true
 		}
-		triggerName = rawName[dotIdx+1:]
+		// Only strip a schema prefix when the prefix names a known database.
+		// A quoted trigger name like "r17.1" legitimately contains a dot.
+		if isSchema {
+			triggerName = rawName[dotIdx+1:]
+		}
 	}
 
 	// Resolve schema prefix from table name
@@ -712,8 +723,8 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		}
 	}
 	tableUpper := strings.ToUpper(tableName)
-	if tableUpper == "SQLITE_MASTER" || tableUpper == "SQLITE_SCHEMA" || 
-	   tableUpper == "SQLITE_TEMP_MASTER" || tableUpper == "SQLITE_TEMP_SCHEMA" {
+	if tableUpper == "SQLITE_MASTER" || tableUpper == "SQLITE_SCHEMA" ||
+		tableUpper == "SQLITE_TEMP_MASTER" || tableUpper == "SQLITE_TEMP_SCHEMA" {
 		return &Result{Error: fmt.Errorf("cannot create trigger on system table")}
 	}
 
@@ -733,7 +744,7 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	if strings.TrimSpace(s.RawSQL) != "" {
 		sqlStr = strings.TrimSpace(s.RawSQL)
 	}
-	
+
 	entry := &schema.Entry{
 		Type:     schema.TypeTrigger,
 		Name:     triggerName,
@@ -916,7 +927,7 @@ func (e *Engine) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Result {
 			tableName = tableName[dotIdx+1:]
 		}
 	}
-	
+
 	entry := &schema.Entry{
 		Type:     schema.TypeTable,
 		Name:     tableName,
@@ -1427,4 +1438,3 @@ func caseExprToString(v *sql.CaseExpr) string {
 	}
 	return result + " END"
 }
-

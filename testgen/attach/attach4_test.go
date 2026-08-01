@@ -125,8 +125,8 @@ func Test_attach4(t *testing.T) {
 			}
 			{ // "1.2.2"
 				_res = db.Exec("\n  ATTACH 'x.db' AS next;\n")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n  ATTACH 'x.db' AS next;\n")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'x.db' AS next;\n")
 				}
 			}
 			{ // do_test "1.3"

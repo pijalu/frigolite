@@ -148,8 +148,8 @@ func Test_icu(t *testing.T) {
 	}
 	{ // "icu-5.1"
 		_res = db.Exec(" SELECT regexp('a[abc]c.*', 'abc') ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT regexp('a[abc]c.*', 'abc') ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT regexp('a[abc]c.*', 'abc') ")
 		}
 	}
 	{ // "icu-5.2"
@@ -166,8 +166,8 @@ func Test_icu(t *testing.T) {
 	}
 	{ // "icu-5.4"
 		_res = db.Exec(" \n    SELECT 'abc' REGEXP 'a[abc]c.*'\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " \n    SELECT 'abc' REGEXP 'a[abc]c.*'\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    SELECT 'abc' REGEXP 'a[abc]c.*'\n  ")
 		}
 	}
 	{ // "icu-5.5"

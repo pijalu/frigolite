@@ -633,8 +633,8 @@ func Test_sort(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		{ // "16.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
 			}
 		}
 		db.Close()

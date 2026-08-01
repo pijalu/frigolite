@@ -287,8 +287,8 @@ func Test_fts3comp1(t *testing.T) {
 		// proc definition (not transpiled)
 		{ // "4.1"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO v1 VALUES('one two three');\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
 		_dbtmp2, err := frigolite.Open("test.db")

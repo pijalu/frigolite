@@ -19,11 +19,11 @@ import (
 
 // Result holds the result of executing a SQL statement.
 type Result struct {
-	Columns        []string       // column names
-	Rows           [][]interface{} // data rows
-	Changes        int64          // number of changed rows
-	Error          error          // execution error
-	LastInsertRowID int64         // rowid of the last inserted row
+	Columns         []string        // column names
+	Rows            [][]interface{} // data rows
+	Changes         int64           // number of changed rows
+	Error           error           // execution error
+	LastInsertRowID int64           // rowid of the last inserted row
 }
 
 // DatabaseContext holds all per-database state for a single database connection.
@@ -46,36 +46,37 @@ type Engine struct {
 	mainDB    *DatabaseContext            // shortcut for "main"
 
 	// Legacy direct fields pointing to mainDB (kept for backward compat with existing code)
-	pager    *pager.Pager
-	schema   *schema.Manager
-	funcs    *function.Registry
-	vtabs    *vtab.Registry
-	lastRowID int64
-	lastChanges int64 // changes made by the last INSERT/UPDATE/DELETE
-	colCache  map[string][]sql.ColumnDef // cached column definitions (tableName -> colDefs)
-	stmtCache map[string][]sql.Stmt      // prepared statement cache (sqlText -> parsed stmts)
-	tableRootPages map[string]uint32     // tracked root pages (updated after splits)
-	tableCache     map[string]*cachedTableEntry // cached table entry lookups
-	nextRowIDCache map[uint32]int64      // cached next rowid per root page (keyed by rootPage)
-	templateCache  map[string]*sqlTemplateEntry // normalized SQL → cached AST template
-	triggerDepth int                    // prevents recursive trigger firing
-	triggerNewRow Row   // new row values for trigger execution (keyed as "new.colname")
-	triggerOldRow Row   // old row values for trigger execution (keyed as "old.colname")
-	hasTriggersCache map[string]bool   // cached trigger existence per table name
-	uniqueIdxCache  map[string][][]string // cached unique-index column lists per table name
-	inTransaction bool                  // tracks if we're inside a BEGIN/COMMIT block
-	ddlBuffer    []func()               // DDL undo operations for transaction rollback
-	outerRow     Row   // outer query row for correlated subquery resolution
-	outerRowStack []Row // stack of enclosing outer rows for multi-level correlation
-	outerRows    []RowMap // all outer rows for correlated aggregate evaluation
-	currentScanTable string // table name being scanned (for qualified column resolution)
-	resolvingViews   map[string]bool        // tracks views currently being resolved (circular reference detection)
-	legacyAlterTable bool                   // PRAGMA legacy_alter_table setting
-	recursiveTriggers bool                  // PRAGMA recursive_triggers setting (allows trigger re-entry)
-	encoding    string                   // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"
-	ftsTables   map[string]*fts.FTS3Table // FTS3/4/5 tables (table name -> instance)
-	currentFTSMatch string               // current FTS table for MATCH evaluation context
-	usingAutoIndex bool                  // tracks whether an ephemeral index is being used (for EQP)
+	pager             *pager.Pager
+	schema            *schema.Manager
+	funcs             *function.Registry
+	vtabs             *vtab.Registry
+	lastRowID         int64
+	lastChanges       int64                            // changes made by the last INSERT/UPDATE/DELETE
+	colCache          map[string][]sql.ColumnDef       // cached column definitions (tableName -> colDefs)
+	tcCache           map[string][]sql.TableConstraint // cached table-level constraints
+	stmtCache         map[string][]sql.Stmt            // prepared statement cache (sqlText -> parsed stmts)
+	tableRootPages    map[string]uint32                // tracked root pages (updated after splits)
+	tableCache        map[string]*cachedTableEntry     // cached table entry lookups
+	nextRowIDCache    map[uint32]int64                 // cached next rowid per root page (keyed by rootPage)
+	templateCache     map[string]*sqlTemplateEntry     // normalized SQL → cached AST template
+	triggerDepth      int                              // prevents recursive trigger firing
+	triggerNewRow     Row                              // new row values for trigger execution (keyed as "new.colname")
+	triggerOldRow     Row                              // old row values for trigger execution (keyed as "old.colname")
+	hasTriggersCache  map[string]bool                  // cached trigger existence per table name
+	uniqueIdxCache    map[string][][]string            // cached unique-index column lists per table name
+	inTransaction     bool                             // tracks if we're inside a BEGIN/COMMIT block
+	ddlBuffer         []func()                         // DDL undo operations for transaction rollback
+	outerRow          Row                              // outer query row for correlated subquery resolution
+	outerRowStack     []Row                            // stack of enclosing outer rows for multi-level correlation
+	outerRows         []RowMap                         // all outer rows for correlated aggregate evaluation
+	currentScanTable  string                           // table name being scanned (for qualified column resolution)
+	resolvingViews    map[string]bool                  // tracks views currently being resolved (circular reference detection)
+	legacyAlterTable  bool                             // PRAGMA legacy_alter_table setting
+	recursiveTriggers bool                             // PRAGMA recursive_triggers setting (allows trigger re-entry)
+	encoding          string                           // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"
+	ftsTables         map[string]*fts.FTS3Table        // FTS3/4/5 tables (table name -> instance)
+	currentFTSMatch   string                           // current FTS table for MATCH evaluation context
+	usingAutoIndex    bool                             // tracks whether an ephemeral index is being used (for EQP)
 }
 
 // Row provides column value lookup for expression evaluation.
@@ -165,6 +166,17 @@ func (e *Engine) updateRootPage(tableName string, newRoot uint32) {
 }
 
 // tableBTree creates a BTree for a table, using the engine's tracked root page.
+// invalidateTableCaches clears per-table caches that depend on the schema
+// (column defs, table constraints, unique-index columns). Called after any
+// DDL change (CREATE/DROP/ALTER TABLE, INDEX, TRIGGER) so stale entries from
+// a previous incarnation of the same table name are not reused.
+func (e *Engine) invalidateTableCaches() {
+	e.colCache = make(map[string][]sql.ColumnDef)
+	e.tcCache = make(map[string][]sql.TableConstraint)
+	e.uniqueIdxCache = make(map[string][][]string)
+	e.nextRowIDCache = make(map[uint32]int64)
+}
+
 func (e *Engine) tableBTree(tableName string, schemaRoot uint32, isTable bool) *btree.BTree {
 	return btree.NewBTree(e.pager, e.rootPage(tableName, schemaRoot), isTable)
 }
@@ -192,8 +204,8 @@ type cachedTableEntry struct {
 // avoiding full re-parsing. This primarily helps INSERT and UPDATE statements
 // with varying literal values (e.g. fmt.Sprintf-based benchmarks).
 type sqlTemplateEntry struct {
-	template string              // normalized SQL with ? for literals
-	ast      []sql.Stmt          // cached AST (with original values)
+	template string     // normalized SQL with ? for literals
+	ast      []sql.Stmt // cached AST (with original values)
 }
 
 // maxTemplateCacheSize limits the template cache entries.
@@ -299,7 +311,7 @@ func fastParseInt64(s string) int64 {
 	return n
 }
 
-// containsDoubleQuote checks if a string contains SQL escaped quotes ('').
+// containsDoubleQuote checks if a string contains SQL escaped quotes (”).
 func containsDoubleQuote(s string) bool {
 	for i := 0; i < len(s)-1; i++ {
 		if s[i] == '\'' && s[i+1] == '\'' {
@@ -410,6 +422,11 @@ func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
 	// Full parse using go-lemon generated parser
 	stmts, err := parse.ParseSQL(sqlStr)
 	if err != nil {
+		if len(stmts) > 0 {
+			// SQLite executes the parseable prefix before reporting a
+			// trailing syntax error. Don't cache partial parses.
+			return stmts, err
+		}
 		return nil, err
 	}
 	e.stmtCache[sqlStr] = stmts
@@ -444,19 +461,19 @@ func NewEngine(pg *pager.Pager) *Engine {
 			"MAIN": mainCtx,
 			"TEMP": mainCtx, // TEMP is an alias for main (no true temp db support yet)
 		},
-		mainDB:    mainCtx,
-		pager:     mainCtx.Pager,
-		schema:    mainCtx.Schema,
-		funcs:     function.NewRegistry(),
-		vtabs:     vtab.NewRegistry(),
-		colCache:  make(map[string][]sql.ColumnDef),
-		stmtCache: make(map[string][]sql.Stmt),
-		tableRootPages: make(map[string]uint32),
-		tableCache:     make(map[string]*cachedTableEntry),
-		nextRowIDCache: make(map[uint32]int64),
+		mainDB:           mainCtx,
+		pager:            mainCtx.Pager,
+		schema:           mainCtx.Schema,
+		funcs:            function.NewRegistry(),
+		vtabs:            vtab.NewRegistry(),
+		colCache:         make(map[string][]sql.ColumnDef),
+		stmtCache:        make(map[string][]sql.Stmt),
+		tableRootPages:   make(map[string]uint32),
+		tableCache:       make(map[string]*cachedTableEntry),
+		nextRowIDCache:   make(map[uint32]int64),
 		hasTriggersCache: make(map[string]bool),
-		encoding:  "UTF-8",
-		ftsTables: make(map[string]*fts.FTS3Table),
+		encoding:         "UTF-8",
+		ftsTables:        make(map[string]*fts.FTS3Table),
 	}
 	e.vtabs.RegisterDefaults()
 	// Register FTS modules (overrides NoopModule defaults)
@@ -488,6 +505,7 @@ func parseSchemaName(name string) (schema string, object string) {
 
 // resolveDB resolves a potentially schema-qualified name to a database context and the unqualified name.
 // If no schema prefix is present, returns nil for ctx (caller should use mainDB).
+//
 //lint:ignore U1000 Planned for P3 ATTACH
 func (e *Engine) resolveDB(name string) (ctx *DatabaseContext, object string) {
 	schemaName, object := parseSchemaName(name)

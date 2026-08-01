@@ -597,7 +597,12 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 		// the collation name. Comparison operators check for this
 		// marker and apply the correct collation.
 		if rightStr, ok := right.(string); ok {
-			return &collatedValue{value: left, collation: rightStr}, nil
+			switch strings.ToUpper(rightStr) {
+			case "", "BINARY", "NOCASE", "RTRIM":
+				return &collatedValue{value: left, collation: rightStr}, nil
+			default:
+				return nil, fmt.Errorf("no such collation sequence: %s", rightStr)
+			}
 		}
 		return left, nil
 	default:
@@ -1040,18 +1045,14 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 	return nil, fmt.Errorf("aggregate function %s not supported in this context", f.Name)
 }
 
-func (e *Engine) findNextRowID(rootPage uint32) int64 {
-	// Check cache first
-	if cached, ok := e.nextRowIDCache[rootPage]; ok {
-		next := cached + 1
-		e.nextRowIDCache[rootPage] = next
-		return next
-	}
-
-	tree := btree.NewBTree(e.pager, rootPage, true)
+func (e *Engine) findNextRowID(tableName string, rootPage uint32) int64 {
+	// NOTE: no cache here — SQLite assigns rowids by scanning the table for
+	// max(rowid)+1. A monotonic cache breaks correctness when rows are
+	// deleted (e.g. a REPLACE conflict-delete followed by a trigger re-insert
+	// must re-compute the rowid against the actual table contents).
+	tree := btree.NewBTree(e.pager, e.rootPage(tableName, rootPage), true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
-		e.nextRowIDCache[rootPage] = 1
 		return 1
 	}
 	var maxID int64
@@ -1068,9 +1069,7 @@ func (e *Engine) findNextRowID(rootPage uint32) int64 {
 			break
 		}
 	}
-	next := maxID + 1
-	e.nextRowIDCache[rootPage] = next
-	return next
+	return maxID + 1
 }
 
 func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
@@ -1100,6 +1099,28 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		return colDefs
 	}
 	return nil
+}
+
+// tableConstraints returns the table-level constraints (CHECK, UNIQUE, etc.)
+// parsed from the stored CREATE TABLE SQL. Results are cached per table.
+func (e *Engine) tableConstraints(tableName, createSQL string) []sql.TableConstraint {
+	if e.tcCache == nil {
+		e.tcCache = make(map[string][]sql.TableConstraint)
+	}
+	if cached, ok := e.tcCache[tableName]; ok {
+		return cached
+	}
+	parser := sql.NewParser(createSQL)
+	stmts := parser.Parse()
+	if len(stmts) == 0 {
+		return nil
+	}
+	ct, ok := stmts[0].(*sql.CreateTableStmt)
+	if !ok || ct == nil {
+		return nil
+	}
+	e.tcCache[tableName] = ct.Constraints
+	return ct.Constraints
 }
 
 // --- Value arithmetic helpers ---

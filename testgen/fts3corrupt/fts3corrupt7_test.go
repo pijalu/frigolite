@@ -79,8 +79,8 @@ func Test_fts3corrupt7(t *testing.T) {
 	}
 	{ // "1.1"
 		_res = db.Exec("\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'rtree NEAR rtree NEAR \"json1 enable\"';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'rtree NEAR rtree NEAR \"json1 enable\"';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'rtree NEAR rtree NEAR \"json1 enable\"';\n")
 		}
 	}
 	db.Close()

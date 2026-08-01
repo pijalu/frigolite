@@ -433,26 +433,26 @@ func Test_joinH(t *testing.T) {
 	}
 	{ // "9.8"
 		_res = db.Exec("\n  SELECT rowid FROM x1 JOIN (x2 JOIN wo2);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT rowid FROM x1 JOIN (x2 JOIN wo2);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT rowid FROM x1 JOIN (x2 JOIN wo2);\n")
 		}
 	}
 	{ // "9.9"
 		_res = db.Exec("\n  SELECT _rowid_ FROM wo1 JOIN (wo3 JOIN x3)\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT _rowid_ FROM wo1 JOIN (wo3 JOIN x3)\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT _rowid_ FROM wo1 JOIN (wo3 JOIN x3)\n")
 		}
 	}
 	{ // "9.10"
 		_res = db.Exec("\n  SELECT oid FROM wo1 JOIN (wo3 JOIN x3)\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT oid FROM wo1 JOIN (wo3 JOIN x3)\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT oid FROM wo1 JOIN (wo3 JOIN x3)\n")
 		}
 	}
 	{ // "9.11"
 		_res = db.Exec("\n  SELECT oid FROM wo2 JOIN (wo3 JOIN x3)\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT oid FROM wo2 JOIN (wo3 JOIN x3)\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT oid FROM wo2 JOIN (wo3 JOIN x3)\n")
 		}
 	}
 	db.Close()

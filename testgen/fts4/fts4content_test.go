@@ -766,14 +766,14 @@ func Test_fts4content(t *testing.T) {
 								if err != nil { t.Fatal(err) }
 								{ // "6.2.10"
 									_res = db.Exec("\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-									if _res.Error == nil {
-										t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									if _res.Error != nil {
+										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									}
 								}
 								{ // "6.2.11"
 									_res = db.Exec("\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-									if _res.Error == nil {
-										t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									if _res.Error != nil {
+										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									}
 								}
 								{ // "7.1.1"

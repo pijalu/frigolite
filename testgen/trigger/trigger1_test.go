@@ -611,8 +611,8 @@ func Test_trigger1(t *testing.T) {
 	}
 	{ // "trigger1-24.1"
 		_res = db.Exec("\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    SELECT raise(abort,format('attempt to insert %d where is not a power of 2',new.a))\n     WHERE (new.a & (new.a-1))!=0;\n  END;\n  INSERT INTO t1 VALUES(0),(1),(2),(4),(8),(65536);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    SELECT raise(abort,format('attempt to insert %d where is not a power of 2',new.a))\n     WHERE (new.a & (new.a-1))!=0;\n  END;\n  INSERT INTO t1 VALUES(0),(1),(2),(4),(8),(65536);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    SELECT raise(abort,format('attempt to insert %d where is not a power of 2',new.a))\n     WHERE (new.a & (new.a-1))!=0;\n  END;\n  INSERT INTO t1 VALUES(0),(1),(2),(4),(8),(65536);\n")
 		}
 	}
 	{ // "trigger1-24.2"

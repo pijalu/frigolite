@@ -158,8 +158,8 @@ func Test_upfrom2(t *testing.T) {
 					_ = _idx3
 						{ // "5." + tn
 							_res = db.Exec(update)
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", update)
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, update)
 							}
 						}
 					}

@@ -1254,8 +1254,8 @@ func Test_where(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.4"
 			_res = db.Exec("\n  SELECT * FROM t1 WHERE c='iii'\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t1 WHERE c='iii'\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1 WHERE c='iii'\n")
 			}
 		}
 		{ // "where-25.5"

@@ -175,14 +175,14 @@ func Test_json109(t *testing.T) {
 	}
 	{ // "2.3"
 		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$.b[0]',888);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b[0]',888);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b[0]',888);\n")
 		}
 	}
 	{ // "2.4"
 		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$.b.c.d[0]',888);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b.c.d[0]',888);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b.c.d[0]',888);\n")
 		}
 	}
 	{ // "2.5"
@@ -199,8 +199,8 @@ func Test_json109(t *testing.T) {
 	}
 	{ // "2.7"
 		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$[0]',888);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT json_array_insert('{a:[1,2,3]}','$[0]',888);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$[0]',888);\n")
 		}
 	}
 	{ // "2.8"

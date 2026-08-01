@@ -237,8 +237,8 @@ func Test_zipfile(t *testing.T) {
 	}
 	{ // "1.4.2"
 		_res = db.Exec("\n  SELECT zipfile_cds(mode) FROM zipfile('test.zip');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT zipfile_cds(mode) FROM zipfile('test.zip');\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT zipfile_cds(mode) FROM zipfile('test.zip');\n")
 		}
 	}
 	{ // "1.5.1"
@@ -425,8 +425,8 @@ func Test_zipfile(t *testing.T) {
 	}
 	{ // "2.3"
 		_res = db.Exec("\n  UPDATE zzz SET name = 'dirname3' WHERE name = 'dirname/';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE zzz SET name = 'dirname3' WHERE name = 'dirname/';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE zzz SET name = 'dirname3' WHERE name = 'dirname/';\n")
 		}
 	}
 	{ // "2.4"
@@ -508,20 +508,20 @@ func Test_zipfile(t *testing.T) {
 		_ = _idx0
 			{ // "3.1." + tn + ".0"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES($fname, NULL);\n  ")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n    INSERT INTO x1(name, data) VALUES($fname, NULL);\n  ")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES($fname, NULL);\n  ")
 				}
 			}
 			{ // "3.1." + tn + ".1"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES($fname || '/', NULL);\n  ")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n    INSERT INTO x1(name, data) VALUES($fname || '/', NULL);\n  ")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES($fname || '/', NULL);\n  ")
 				}
 			}
 			{ // "3.1." + tn + ".2"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES($fname, 'abcd');\n  ")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n    INSERT INTO x1(name, data) VALUES($fname, 'abcd');\n  ")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES($fname, 'abcd');\n  ")
 				}
 			}
 		}
@@ -565,8 +565,8 @@ func Test_zipfile(t *testing.T) {
 			_ = _idx1
 				{ // "4.5." + tn
 					_res = db.Exec("\n    WITH m(m) AS ( SELECT $mode)\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
-					if _res.Error == nil {
-						t.Errorf("expected error, got none\n  sql: %s", "\n    WITH m(m) AS ( SELECT $mode)\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
+					if _res.Error != nil {
+						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH m(m) AS ( SELECT $mode)\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
 					}
 				}
 			}

@@ -686,8 +686,8 @@ func Test_values(t *testing.T) {
 			}
 			{ // "18.2"
 				_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(IGNORE)),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(IGNORE)),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(IGNORE)),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
 				}
 			}
 			{ // "18.3.1"
@@ -716,8 +716,8 @@ func Test_values(t *testing.T) {
 			}
 			{ // "18.5.1"
 				_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),\n       (CASE WHEN new.z>7 THEN RAISE(ABORT,'error 18.5') ELSE 2 END);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),\n       (CASE WHEN new.z>7 THEN RAISE(ABORT,'error 18.5') ELSE 2 END);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),\n       (CASE WHEN new.z>7 THEN RAISE(ABORT,'error 18.5') ELSE 2 END);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;\n")
 				}
 			}
 			{ // "18.5.2"
@@ -728,8 +728,8 @@ func Test_values(t *testing.T) {
 			}
 			{ // "18.5.3"
 				_res = db.Exec("\n  SELECT * FROM t1;\n")
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t1;\n")
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1;\n")
 				}
 			}
 			db.Close()

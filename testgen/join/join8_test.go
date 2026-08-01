@@ -73,8 +73,8 @@ func Test_join8(t *testing.T) {
 	}
 	{ // "join8-1010"
 		_res = db.Exec("\n  SELECT a\n    FROM (\n          SELECT a\n            FROM (\n                  SELECT a\n                    FROM (\n                          SELECT a FROM t1 NATURAL LEFT JOIN t1\n                           WHERE (b, 2 ) IS ( SELECT 2 IN(2,2),2)\n                         )\n                    NATURAL LEFT FULL JOIN t1\n                   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n                   ORDER BY a ASC\n                 )\n            NATURAL LEFT JOIN t1\n           WHERE (b, 2 ) IS ( SELECT 3 IN(3,3),3)\n         )\n    NATURAL LEFT FULL JOIN t1\n   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n   ORDER BY a ASC;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT a\n    FROM (\n          SELECT a\n            FROM (\n                  SELECT a\n                    FROM (\n                          SELECT a FROM t1 NATURAL LEFT JOIN t1\n                           WHERE (b, 2 ) IS ( SELECT 2 IN(2,2),2)\n                         )\n                    NATURAL LEFT FULL JOIN t1\n                   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n                   ORDER BY a ASC\n                 )\n            NATURAL LEFT JOIN t1\n           WHERE (b, 2 ) IS ( SELECT 3 IN(3,3),3)\n         )\n    NATURAL LEFT FULL JOIN t1\n   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n   ORDER BY a ASC;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT a\n    FROM (\n          SELECT a\n            FROM (\n                  SELECT a\n                    FROM (\n                          SELECT a FROM t1 NATURAL LEFT JOIN t1\n                           WHERE (b, 2 ) IS ( SELECT 2 IN(2,2),2)\n                         )\n                    NATURAL LEFT FULL JOIN t1\n                   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n                   ORDER BY a ASC\n                 )\n            NATURAL LEFT JOIN t1\n           WHERE (b, 2 ) IS ( SELECT 3 IN(3,3),3)\n         )\n    NATURAL LEFT FULL JOIN t1\n   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n   ORDER BY a ASC;\n")
 		}
 	}
 	db.Close()
@@ -88,8 +88,8 @@ func Test_join8(t *testing.T) {
 	}
 	{ // "join8-2010"
 		_res = db.Exec("\n  SELECT * FROM t1 RIGHT JOIN t2 ON c=d JOIN t3 ON f=e;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t1 RIGHT JOIN t2 ON c=d JOIN t3 ON f=e;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1 RIGHT JOIN t2 ON c=d JOIN t3 ON f=e;\n")
 		}
 	}
 	db.Close()
@@ -158,8 +158,8 @@ func Test_join8(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // "join8-5000"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2(c,d) SELECT x, x FROM t1;\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT (SELECT c FROM sqlite_temp_schema FULL JOIN t2 ON d IN (1,2,3) ORDER BY d) AS x FROM t1;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2(c,d) SELECT x, x FROM t1;\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT (SELECT c FROM sqlite_temp_schema FULL JOIN t2 ON d IN (1,2,3) ORDER BY d) AS x FROM t1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2(c,d) SELECT x, x FROM t1;\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT (SELECT c FROM sqlite_temp_schema FULL JOIN t2 ON d IN (1,2,3) ORDER BY d) AS x FROM t1;\n")
 		}
 	}
 	db.Close()
@@ -503,8 +503,8 @@ func Test_join8(t *testing.T) {
 	}
 	{ // "join8-12040"
 		_res = db.Exec("\n  SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;\n")
 		}
 	}
 	db.Close()

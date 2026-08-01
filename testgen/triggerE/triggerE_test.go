@@ -80,14 +80,14 @@ func Test_triggerE(t *testing.T) {
 			_ = _res // catchsql
 			{ // "1.1." + tn
 				_res = db.Exec("CREATE TRIGGER tr1 " + defn)
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "CREATE TRIGGER tr1 " + defn)
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER tr1 " + defn)
 				}
 			}
 			{ // "1.2." + tn
 				_res = db.Exec("CREATE TEMP TRIGGER tr1 " + defn)
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "CREATE TEMP TRIGGER tr1 " + defn)
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "CREATE TEMP TRIGGER tr1 " + defn)
 				}
 			}
 		}

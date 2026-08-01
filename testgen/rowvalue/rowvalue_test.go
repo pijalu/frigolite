@@ -785,8 +785,8 @@ func Test_rowvalue(t *testing.T) {
 												}
 												{ // "14.2." + tn
 													_res = db.Exec(sql)
-													if _res.Error == nil {
-														t.Errorf("expected error, got none\n  sql: %s", sql)
+													if _res.Error != nil {
+														t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 													}
 												}
 											}
@@ -1356,8 +1356,8 @@ func Test_rowvalue(t *testing.T) {
 											}
 											{ // "20.1"
 												_res = db.Exec("\n  SELECT 1 WHERE (2,(2,0)) IS (2,(2,0));\n")
-												if _res.Error == nil {
-													t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT 1 WHERE (2,(2,0)) IS (2,(2,0));\n")
+												if _res.Error != nil {
+													t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT 1 WHERE (2,(2,0)) IS (2,(2,0));\n")
 												}
 											}
 											{ // "21.0"

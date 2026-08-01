@@ -415,8 +415,8 @@ func Test_join5(t *testing.T) {
 	}
 	{ // "9.2"
 		_res = db.Exec("\n  SELECT a FROM \n      (SELECT a FROM t1 NATURAL LEFT JOIN t1) NATURAL LEFT JOIN t1 \n  WHERE (rowid,1)<=(5,0);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT a FROM \n      (SELECT a FROM t1 NATURAL LEFT JOIN t1) NATURAL LEFT JOIN t1 \n  WHERE (rowid,1)<=(5,0);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT a FROM \n      (SELECT a FROM t1 NATURAL LEFT JOIN t1) NATURAL LEFT JOIN t1 \n  WHERE (rowid,1)<=(5,0);\n")
 		}
 	}
 	db.Close()

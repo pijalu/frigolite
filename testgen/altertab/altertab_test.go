@@ -746,8 +746,8 @@ func Test_altertab(t *testing.T) {
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "16.22"
 		_res = db.Exec("\n    ALTER TABLE y1_segments RENAME TO abc;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    ALTER TABLE y1_segments RENAME TO abc;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE y1_segments RENAME TO abc;\n  ")
 		}
 	}
 	// sqlite3_db_config db DEFENSIVE 1 (unsupported command, not transpiled)
@@ -766,8 +766,8 @@ func Test_altertab(t *testing.T) {
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "16.25"
 		_res = db.Exec("\n    ALTER TABLE abc RENAME TO y1_segments;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    ALTER TABLE abc RENAME TO y1_segments;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE abc RENAME TO y1_segments;\n  ")
 		}
 	}
 	// sqlite3_db_config db DEFENSIVE 1 (unsupported command, not transpiled)

@@ -100,20 +100,20 @@ func Test_misc8(t *testing.T) {
 	}
 	{ // "misc8-1.4"
 		_res = db.Exec("\n  BEGIN;\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam'';')), c\n   FROM t1 ORDER BY a;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  BEGIN;\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam'';')), c\n   FROM t1 ORDER BY a;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam'';')), c\n   FROM t1 ORDER BY a;\n")
 		}
 	}
 	{ // "misc8-1.5"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
 		}
 	}
 	{ // "misc8-1.6"
 		_res = db.Exec("\n  SELECT a, coalesce(b, eval('DELETE FROM t1; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT a, coalesce(b, eval('DELETE FROM t1; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT a, coalesce(b, eval('DELETE FROM t1; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;\n")
 		}
 	}
 	{ // "misc8-1.7"
@@ -124,8 +124,8 @@ func Test_misc8(t *testing.T) {
 	}
 	{ // "misc8-1.8"
 		_res = db.Exec("\n  PRAGMA empty_result_callbacks = 1;\n  SELECT eval('SELECT * FROM t1 WHERE 1 = 0;');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA empty_result_callbacks = 1;\n  SELECT eval('SELECT * FROM t1 WHERE 1 = 0;');\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA empty_result_callbacks = 1;\n  SELECT eval('SELECT * FROM t1 WHERE 1 = 0;');\n")
 		}
 	}
 	db.Close()
@@ -148,8 +148,8 @@ func Test_misc8(t *testing.T) {
 	_ = nosuch // suppress unused warning
 	{ // "misc8-3.0"
 		_res = db.Exec("\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
 		}
 	}
 	os.Remove("test.db")

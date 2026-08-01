@@ -246,14 +246,14 @@ func Test_basexx1(t *testing.T) {
 	}
 	{ // "118"
 		_res = db.Exec("\n  SELECT base64(zeroblob(2000_000_000))\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT base64(zeroblob(2000_000_000))\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT base64(zeroblob(2000_000_000))\n")
 		}
 	}
 	{ // "119"
 		_res = db.Exec("\n  SELECT base85(zeroblob(2000_000_000))\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT base85(zeroblob(2000_000_000))\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT base85(zeroblob(2000_000_000))\n")
 		}
 	}
 }

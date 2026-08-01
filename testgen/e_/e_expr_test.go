@@ -1422,8 +1422,8 @@ func Test_e_expr(t *testing.T) {
 												_ = _idx10
 													{ // "e_expr-11.1." + tn
 														_res = db.Exec("SELECT ?" + param_number)
-														if _res.Error == nil {
-															t.Errorf("expected error, got none\n  sql: %s", "SELECT ?" + param_number)
+														if _res.Error != nil {
+															t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT ?" + param_number)
 														}
 													}
 												}
@@ -1443,8 +1443,8 @@ func Test_e_expr(t *testing.T) {
 													_ = _idx11
 														{ // "e_expr-11.3." + tn
 															_res = db.Exec(sql)
-															if _res.Error == nil {
-																t.Errorf("expected error, got none\n  sql: %s", sql)
+															if _res.Error != nil {
+																t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 															}
 														}
 													}
@@ -1482,8 +1482,8 @@ func Test_e_expr(t *testing.T) {
 														_ = _idx12
 															{ // "e_expr-11.7." + tn
 																_res = db.Exec(sql)
-																if _res.Error == nil {
-																	t.Errorf("expected error, got none\n  sql: %s", sql)
+																if _res.Error != nil {
+																	t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 																}
 															}
 														}
@@ -2298,14 +2298,14 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		{ // "e_expr-14.6.3"
 																			_res = db.Exec(" SELECT 'A' LIKE 'a' ESCAPE 'x' ")
-																			if _res.Error == nil {
-																				t.Errorf("expected error, got none\n  sql: %s", " SELECT 'A' LIKE 'a' ESCAPE 'x' ")
+																			if _res.Error != nil {
+																				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT 'A' LIKE 'a' ESCAPE 'x' ")
 																			}
 																		}
 																		{ // "e_expr-14.6.4"
 																			_res = db.Exec("SELECT 'A' LIKE 'a' ESCAPE 'u00e6'")
-																			if _res.Error == nil {
-																				t.Errorf("expected error, got none\n  sql: %s", "SELECT 'A' LIKE 'a' ESCAPE 'u00e6'")
+																			if _res.Error != nil {
+																				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT 'A' LIKE 'a' ESCAPE 'u00e6'")
 																			}
 																		}
 																		{ // "e_expr-14.7.1"
@@ -3751,8 +3751,8 @@ func Test_e_expr(t *testing.T) {
 																								_ = _idx32
 																									{ // "e_expr-35.2." + tn
 																										_res = db.Exec(sql)
-																										if _res.Error == nil {
-																											t.Errorf("expected error, got none\n  sql: %s", sql)
+																										if _res.Error != nil {
+																											t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 																										}
 																									}
 																								}

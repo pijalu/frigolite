@@ -190,8 +190,8 @@ func Test_quote(t *testing.T) {
 		_ = _idx0
 			{ // "2.1." + tn
 				_res = db.Exec(sql)
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", sql)
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
 				}
 			}
 		}
@@ -276,8 +276,8 @@ func Test_quote(t *testing.T) {
 		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
 		{ // "3.5"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"x\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"x\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"x\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
 }

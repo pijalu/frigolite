@@ -124,8 +124,8 @@ func Test_date2(t *testing.T) {
 	}
 	{ // "date2-320"
 		_res = db.Exec("\n  CREATE INDEX t3b1 ON t3(datetime(b)) WHERE typeof(b)='real';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE INDEX t3b1 ON t3(datetime(b)) WHERE typeof(b)='real';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t3b1 ON t3(datetime(b)) WHERE typeof(b)='real';\n")
 		}
 	}
 	{ // "date2-330"
@@ -202,8 +202,8 @@ func Test_date2(t *testing.T) {
 	}
 	{ // "date2-601"
 		_res = db.Exec("\n  CREATE TABLE t601(a REAL, b TEXT, CHECK( a<julianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t601(a REAL, b TEXT, CHECK( a<julianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t601(a REAL, b TEXT, CHECK( a<julianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');\n")
 		}
 	}
 	{ // "date2-602"
@@ -232,8 +232,8 @@ func Test_date2(t *testing.T) {
 	}
 	{ // "date2-611"
 		_res = db.Exec("\n  CREATE TABLE t611(a,b);\n  CREATE INDEX t611x1 ON t611(julianday(a)+b);\n  INSERT INTO t611(a,b) VALUES('1970-01-01',10.0);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t611(a,b);\n  CREATE INDEX t611x1 ON t611(julianday(a)+b);\n  INSERT INTO t611(a,b) VALUES('1970-01-01',10.0);\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t611(a,b);\n  CREATE INDEX t611x1 ON t611(julianday(a)+b);\n  INSERT INTO t611(a,b) VALUES('1970-01-01',10.0);\n")
 		}
 	}
 	{ // "date2-612"

@@ -47,7 +47,6 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 
 		result := handleRule(ruleNo, p, lookahead, lookaheadToken)
 
-
 		// Default: pass through first RHS value if handler returned nil
 		// (Only for non-empty rules - empty rules have no RHS values)
 		if result == nil && size > 0 {
@@ -74,6 +73,8 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 					if end >= stmtStart && end <= len(input) {
 						if ct, ctOK := s.(*sql.CreateTableStmt); ctOK {
 							ct.RawSQL = strings.TrimSpace(input[stmtStart:end])
+						} else if tr, trOK := s.(*sql.CreateTriggerStmt); trOK {
+							tr.RawSQL = strings.TrimSpace(input[stmtStart:end])
 						}
 						stmtStart = end + 1
 					}
@@ -91,18 +92,19 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	})
 
 	// Feed tokens until EOF
+	var lalrErr error
 	for {
 		tok := tok.Next()
 		code := tokenCode(int(tok.Type), tok.Value)
 		if code < 0 {
-			parser.Finalize()
-			return nil, fmt.Errorf("near %q: syntax error", tok.Value)
+			lalrErr = fmt.Errorf("near %q: syntax error", tok.Value)
+			break
 		}
 
 		result := parser.Parse(code, tok)
 		if result == ParseError {
-			parser.Finalize()
-			return nil, fmt.Errorf("near %q: syntax error", tok.Value)
+			lalrErr = fmt.Errorf("near %q: syntax error", tok.Value)
+			break
 		}
 		if result == ParseAccept && code == 0 { // EOF
 			break
@@ -111,15 +113,42 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 
 	parser.Finalize()
 	if parser.SemanticErr != nil {
+		// The LALR parser understands the statement but rejected it on a
+		// semantic level. Only fall back to the RD parser if it produces a
+		// result for the whole input (e.g. ALTER TABLE DROP CONSTRAINT).
+		rdParser := sql.NewParser(input)
+		rdStmts := rdParser.Parse()
+		if rdParser.Err() == nil && len(rdStmts) > 0 {
+			return rdStmts, nil
+		}
 		return nil, parser.SemanticErr
 	}
-	if len(stmts) == 0 && pendingStmt != nil {
-		// No statements were collected via ecmd (no SEMI in input).
-		// Use pendingStmt as a fallback.
-		stmts = append(stmts, pendingStmt)
-	}
-	if len(stmts) == 0 {
-		return nil, fmt.Errorf("no statements parsed")
+	if lalrErr != nil || len(stmts) == 0 {
+		// The LALR grammar does not cover every statement (e.g. ALTER TABLE
+		// DROP CONSTRAINT). Fall back to the hand-written RD parser, which
+		// handles the full DDL surface.
+		rdParser := sql.NewParser(input)
+		rdStmts := rdParser.Parse()
+		if rdParser.Err() == nil && len(rdStmts) > 0 {
+			return rdStmts, nil
+		}
+		if lalrErr != nil {
+			if len(stmts) > 0 {
+				// SQLite prepares/executes statements incrementally: the
+				// parseable prefix runs and its error (if any) takes
+				// precedence over the trailing syntax error. Return the
+				// prefix with the error so callers can execute it.
+				return stmts, lalrErr
+			}
+			return nil, lalrErr
+		}
+		if pendingStmt != nil {
+			// No statements were collected via ecmd (no SEMI in input).
+			// Use pendingStmt as a fallback.
+			stmts = append(stmts, pendingStmt)
+		} else {
+			return nil, fmt.Errorf("no statements parsed")
+		}
 	}
 	// WITH-clause (CTE) merge: the LALR grammar currently drops the WITH
 	// prefix, so re-parse the input with the hand-written RD parser (which
@@ -1382,7 +1411,77 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 260: cmd ::= createkw trigger_decl BEGIN trigger_cmd_list END
 	case 260:
-		return nil // CREATE TRIGGER
+		decl, _ := getRHS(p, ruleNo, 2).(*triggerDeclInfo)
+		if decl == nil {
+			return nil
+		}
+		stmts := getStmtList(getRHS(p, ruleNo, 4))
+		return &sql.CreateTriggerStmt{
+			Name:        decl.name,
+			Table:       decl.table,
+			Event:       decl.event,
+			Time:        decl.time,
+			When:        decl.when,
+			Statements:  stmts,
+			IfNotExists: decl.ifNotExist,
+		}
+
+	// Rule 261: trigger_decl ::= temp TRIGGER ifnotexists nm dbnm trigger_time
+	//            trigger_event ON fullname foreach_clause when_clause
+	case 261:
+		return &triggerDeclInfo{
+			name:       getString(getRHS(p, ruleNo, 4)),
+			schema:     getString(getRHS(p, ruleNo, 5)),
+			time:       getString(getRHS(p, ruleNo, 6)),
+			event:      getString(getRHS(p, ruleNo, 7)),
+			table:      getString(getRHS(p, ruleNo, 9)),
+			when:       getExpr(getRHS(p, ruleNo, 11)),
+			ifNotExist: getBool(getRHS(p, ruleNo, 3)),
+		}
+
+	// Rule 270: trigger_cmd_list ::= trigger_cmd_list trigger_cmd SEMI
+	case 270:
+		list := getStmtList(getRHS(p, ruleNo, 1))
+		stmt := getStmt(getRHS(p, ruleNo, 2))
+		if stmt != nil {
+			list = append(list, stmt)
+		}
+		return list
+
+	// Rule 271: trigger_cmd_list ::= trigger_cmd SEMI
+	case 271:
+		stmt := getStmt(getRHS(p, ruleNo, 1))
+		if stmt == nil {
+			return []sql.Stmt(nil)
+		}
+		return []sql.Stmt{stmt}
+
+	// Rule 274: trigger_cmd ::= UPDATE orconf nm indexed_opt SET setlist from where_opt
+	case 274:
+		return &sql.UpdateStmt{
+			Table:       getString(getRHS(p, ruleNo, 3)),
+			Assignments: getAssignments(getRHS(p, ruleNo, 6)),
+			Where:       getExpr(getRHS(p, ruleNo, 8)),
+		}
+
+	// Rule 275: trigger_cmd ::= with insert_cmd INTO nm idlist_opt select
+	case 275:
+		cmd := getString(getRHS(p, ruleNo, 2))
+		table := getString(getRHS(p, ruleNo, 4))
+		columns := getStringList(getRHS(p, ruleNo, 5))
+		sel := getSelectStmt(getRHS(p, ruleNo, 6))
+		var values [][]sql.Expr
+		if sel != nil && sel.ValuesChain {
+			values = valuesFromSelect(sel)
+			sel = nil
+		}
+		return &sql.InsertStmt{
+			Table:     table,
+			Columns:   columns,
+			Values:    values,
+			Select:    sel,
+			IsReplace: strings.EqualFold(cmd, "REPLACE"),
+		}
 
 	// Rule 283: cmd ::= DROP TRIGGER ifexists fullname
 	case 283:
@@ -1790,6 +1889,18 @@ type setOpResult struct {
 	All bool
 }
 
+// triggerDeclInfo carries the parsed CREATE TRIGGER declaration parts
+// between the trigger_decl and cmd grammar rules.
+type triggerDeclInfo struct {
+	name       string
+	schema     string
+	time       string
+	event      string
+	table      string
+	when       sql.Expr
+	ifNotExist bool
+}
+
 func getString(v interface{}) string {
 	if v == nil {
 		return ""
@@ -1829,6 +1940,18 @@ func getStmt(v interface{}) sql.Stmt {
 	}
 	if s, ok := v.(sql.Stmt); ok {
 		return s
+	}
+	return nil
+}
+
+// getStmtList extracts a []sql.Stmt from a parser stack value (the
+// trigger_cmd_list rules produce []sql.Stmt).
+func getStmtList(v interface{}) []sql.Stmt {
+	if v == nil {
+		return nil
+	}
+	if l, ok := v.([]sql.Stmt); ok {
+		return l
 	}
 	return nil
 }

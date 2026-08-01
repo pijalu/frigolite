@@ -96,8 +96,8 @@ func Test_altercons2(t *testing.T) {
 			}
 			{ // "1." + tn + ".2"
 				_res = db.Exec(alter)
-				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", alter)
+				if _res.Error != nil {
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, alter)
 				}
 			}
 			{ // "1." + tn + ".3"
@@ -284,8 +284,8 @@ func Test_altercons2(t *testing.T) {
 		}
 		{ // "8.1"
 			_res = db.Exec("\n  ALTER TABLE abc DROP CONSTRAINT one\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  ALTER TABLE abc DROP CONSTRAINT one\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE abc DROP CONSTRAINT one\n")
 			}
 		}
 		{ // "8.2"

@@ -474,8 +474,8 @@ func Test_insert4(t *testing.T) {
 	_ = sqlite3_xferopt_count // suppress unused warning
 	{ // "12.5"
 		_res = db.Exec("\n    INSERT INTO dest SELECT * FROM src;\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    INSERT INTO dest SELECT * FROM src;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO dest SELECT * FROM src;\n  ")
 		}
 	}
 	{ // do_test "12.6"

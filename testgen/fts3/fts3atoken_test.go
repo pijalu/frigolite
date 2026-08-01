@@ -145,8 +145,8 @@ func Test_fts3atoken(t *testing.T) {
 	}
 	{ // "fts3atoken-1.10"
 		_res = db.Exec("\n  CREATE VIEW v110(x) AS\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE VIEW v110(x) AS\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v110(x) AS\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;\n")
 		}
 	}
 	{ // "fts3atoken-1.11"
@@ -157,8 +157,8 @@ func Test_fts3atoken(t *testing.T) {
 	}
 	{ // "fts3atoken-1.12"
 		_res = db.Exec("\n  CREATE TABLE t110(a,b);\n  CREATE TRIGGER r110 AFTER INSERT ON t110 BEGIN\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;\n  END;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t110(a,b);\n  CREATE TRIGGER r110 AFTER INSERT ON t110 BEGIN\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;\n  END;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t110(a,b);\n  CREATE TRIGGER r110 AFTER INSERT ON t110 BEGIN\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;\n  END;\n")
 		}
 	}
 	{ // "fts3atoken-1.13"
@@ -169,8 +169,8 @@ func Test_fts3atoken(t *testing.T) {
 	}
 	{ // "fts3atoken-1.14"
 		_res = db.Exec("\n  SELECT * FROM t110;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t110;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t110;\n")
 		}
 	}
 	{ // do_test "fts3atoken-2.1"

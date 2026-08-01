@@ -180,8 +180,8 @@ func Test_dbpage(t *testing.T) {
 	}
 	{ // "230"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA integrity_check;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA integrity_check;\n")
 		}
 	}
 	{ // "240"
@@ -210,8 +210,8 @@ func Test_dbpage(t *testing.T) {
 	}
 	{ // "270"
 		_res = db.Exec("\n  PRAGMA aux1.integrity_check;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA aux1.integrity_check;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA aux1.integrity_check;\n")
 		}
 	}
 	_dbtmp0, err := frigolite.Open(":memory:")
@@ -308,8 +308,8 @@ func Test_dbpage(t *testing.T) {
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // "630"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;\n")
 		}
 	}
 	_dbtmp2, err := frigolite.Open("test.db")

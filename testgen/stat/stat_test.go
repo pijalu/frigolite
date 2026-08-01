@@ -408,8 +408,8 @@ func Test_stat(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
 		}
 	}
 }

@@ -26,21 +26,21 @@ import (
 
 // DB is an open database connection.
 type DB struct {
-	pager    *pager.Pager
-	schema   *schema.Manager
-	engine   *exec.Engine
-	path     string
+	pager     *pager.Pager
+	schema    *schema.Manager
+	engine    *exec.Engine
+	path      string
 	lastRowID int64
 }
 
 // Result holds query results.
 type Result struct {
-	Columns        []string
-	Rows           [][]interface{}
-	Changes        int64
-	Error          error
+	Columns         []string
+	Rows            [][]interface{}
+	Changes         int64
+	Error           error
 	LastInsertRowID int64
-	SQL            string // The SQL statement that produced this result
+	SQL             string // The SQL statement that produced this result
 }
 
 // LastInsertRowID returns the rowid of the last inserted row.
@@ -116,14 +116,13 @@ func execResult(er *exec.Result) *Result {
 		return nil
 	}
 	return &Result{
-		Columns:        er.Columns,
-		Rows:           er.Rows,
-		Changes:        er.Changes,
-		Error:          er.Error,
+		Columns:         er.Columns,
+		Rows:            er.Rows,
+		Changes:         er.Changes,
+		Error:           er.Error,
 		LastInsertRowID: er.LastInsertRowID,
 	}
 }
-
 
 // Exec executes a SQL statement that does not return rows.
 // Multiple statements in the same string are all executed (consistent with
@@ -133,7 +132,7 @@ func (db *DB) Exec(sqlStr string) *Result {
 		return &Result{Error: fmt.Errorf("frigolite: database not initialized")}
 	}
 	stmts, err := db.engine.Prepare(sqlStr)
-	if err != nil {
+	if err != nil && len(stmts) == 0 {
 		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", err)}
 	}
 
@@ -147,6 +146,12 @@ func (db *DB) Exec(sqlStr string) *Result {
 		if res.LastInsertRowID > 0 {
 			db.lastRowID = res.LastInsertRowID
 		}
+	}
+
+	if err != nil {
+		// The parseable prefix executed without error; report the trailing
+		// syntax error (SQLite reaches it only after the prefix runs).
+		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", err)}
 	}
 
 	if lastResult == nil {
@@ -166,7 +171,7 @@ func (db *DB) Query(sqlStr string) *Result {
 		return &Result{Error: fmt.Errorf("frigolite: database not initialized"), SQL: sqlStr}
 	}
 	stmts, err := db.engine.Prepare(sqlStr)
-	if err != nil {
+	if err != nil && len(stmts) == 0 {
 		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", err), SQL: sqlStr}
 	}
 

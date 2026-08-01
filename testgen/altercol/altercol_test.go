@@ -305,8 +305,8 @@ func Test_altercol(t *testing.T) {
 		}
 		{ // "6.2"
 			_res = db.Exec("\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
+			if _res.Error != nil {
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
 			}
 		}
 		{ // "6.3"
@@ -741,8 +741,8 @@ func Test_altercol(t *testing.T) {
 						}
 						{ // "13.2." + tn + ".2"
 							_res = db.Exec("\n    ALTER TABLE x1 RENAME COLUMN t TO ttt;\n  ")
-							if _res.Error == nil {
-								t.Errorf("expected error, got none\n  sql: %s", "\n    ALTER TABLE x1 RENAME COLUMN t TO ttt;\n  ")
+							if _res.Error != nil {
+								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE x1 RENAME COLUMN t TO ttt;\n  ")
 							}
 						}
 					}

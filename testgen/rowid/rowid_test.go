@@ -1188,20 +1188,20 @@ func Test_rowid(t *testing.T) {
 	}
 	{ // "16.2"
 		_res = db.Exec(" SELECT rowid FROM t1, v1; ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM t1, v1; ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT rowid FROM t1, v1; ")
 		}
 	}
 	{ // "16.3"
 		_res = db.Exec(" SELECT rowid FROM t3, v1; ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM t3, v1; ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT rowid FROM t3, v1; ")
 		}
 	}
 	{ // "16.4"
 		_res = db.Exec(" SELECT rowid FROM t3, (SELECT 123); ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM t3, (SELECT 123); ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT rowid FROM t3, (SELECT 123); ")
 		}
 	}
 	{ // "16.5"
@@ -1218,14 +1218,14 @@ func Test_rowid(t *testing.T) {
 	}
 	{ // "16.6"
 		_res = db.Exec(" SELECT rowid FROM v1, t1; ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM v1, t1; ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT rowid FROM v1, t1; ")
 		}
 	}
 	{ // "16.7"
 		_res = db.Exec(" SELECT rowid FROM v1, t3; ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", " SELECT rowid FROM v1, t3; ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT rowid FROM v1, t3; ")
 		}
 	}
 	{ // "16.8"

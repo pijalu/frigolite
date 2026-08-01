@@ -94,8 +94,8 @@ func Test_vacuum_into(t *testing.T) {
 	os.Remove("out2.db")
 	{ // "vacuum-into-140"
 		_res = db.Exec("\n  VACUUM INTO 'out2.db';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  VACUUM INTO 'out2.db';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  VACUUM INTO 'out2.db';\n")
 		}
 	}
 	{ // "vacuum-into-150"
@@ -106,8 +106,8 @@ func Test_vacuum_into(t *testing.T) {
 	}
 	{ // "vacuum-into-200"
 		_res = db.Exec("\n  VACUUM main INTO ':memory:';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  VACUUM main INTO ':memory:';\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  VACUUM main INTO ':memory:';\n")
 		}
 	}
 	{ // "vacuum-into-300"

@@ -1242,8 +1242,8 @@ func Test_func(t *testing.T) {
 	}
 	{ // "func-18.13"
 		_res = db.Exec("\n    SELECT total(x) - ((1<<62)*2.0+1) FROM t6\n  ")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT total(x) - ((1<<62)*2.0+1) FROM t6\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT total(x) - ((1<<62)*2.0+1) FROM t6\n  ")
 		}
 	}
 	if tclBool("working_64bit_int") {

@@ -588,8 +588,8 @@ func Test_indexexpr1(t *testing.T) {
 	}
 	{ // "indexexpr1-820"
 		_res = db.Exec("\n  DROP INDEX t8bx;\n  CREATE UNIQUE INDEX t8bx ON t8(substr(b,2,4) COLLATE rtrim);\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  DROP INDEX t8bx;\n  CREATE UNIQUE INDEX t8bx ON t8(substr(b,2,4) COLLATE rtrim);\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX t8bx;\n  CREATE UNIQUE INDEX t8bx ON t8(substr(b,2,4) COLLATE rtrim);\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');\n")
 		}
 	}
 	{ // "indexexpr1-900"
