@@ -341,8 +341,8 @@ func Test_with2(t *testing.T) {
 	}
 	{ // "4.1"
 		_res = db.Exec("\n  WITH x() AS ( SELECT 1,2,3 )\n  SELECT * FROM x;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\")\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\")\\\": syntax error", _res.Error, "\n  WITH x() AS ( SELECT 1,2,3 )\n  SELECT * FROM x;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \")\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", _res.Error, "\n  WITH x() AS ( SELECT 1,2,3 )\n  SELECT * FROM x;\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -406,14 +406,14 @@ func Test_with2(t *testing.T) {
 	}
 	{ // "6.2"
 		_res = db.Exec("\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 VALUES(1, 2,);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\")\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\")\\\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 VALUES(1, 2,);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \")\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \")\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 VALUES(1, 2,);\n")
 		}
 	}
 	{ // "6.3"
 		_res = db.Exec("\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"FROM\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"FROM\\\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"FROM\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FROM\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1;\n")
 		}
 	}
 	{ // "6.3"
@@ -424,14 +424,14 @@ func Test_with2(t *testing.T) {
 	}
 	{ // "6.4"
 		_res = db.Exec("\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1 a a a;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"FROM\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"FROM\\\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1 a a a;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"FROM\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FROM\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1 a a a;\n")
 		}
 	}
 	{ // "6.5"
 		_res = db.Exec("\n  WITH x AS (SELECT * FROM t1)\n  DELETE FROM t2 WHERE;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\";\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\";\\\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  DELETE FROM t2 WHERE;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \";\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \";\": syntax error", _res.Error, "\n  WITH x AS (SELECT * FROM t1)\n  DELETE FROM t2 WHERE;\n")
 		}
 	}
 	{ // "6.6"

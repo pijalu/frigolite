@@ -146,8 +146,8 @@ func Test_select7(t *testing.T) {
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 0 (unsupported command, not transpiled)
 	{ // "select7-6.6"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \\\"\\\" - should this be a string literal in single-quotes?") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \\\"\\\" - should this be a string literal in single-quotes?", _res.Error, "\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \"\" - should this be a string literal in single-quotes?") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \"\" - should this be a string literal in single-quotes?", _res.Error, "\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
 		}
 	}
 	{ // "select7-6.7"

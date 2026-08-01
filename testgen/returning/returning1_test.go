@@ -317,8 +317,8 @@ func Test_returning1(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1 VALUES(1),(2),(4),(9);\n  INSERT INTO t2 VALUES(3,7), (4,25), (5,99);\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING t2.*;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "RETURNING may not use \\\"TABLE.*\\\" wildcards") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "RETURNING may not use \\\"TABLE.*\\\" wildcards", _res.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1 VALUES(1),(2),(4),(9);\n  INSERT INTO t2 VALUES(3,7), (4,25), (5,99);\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING t2.*;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "RETURNING may not use \"TABLE.*\" wildcards") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "RETURNING may not use \"TABLE.*\" wildcards", _res.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1 VALUES(1),(2),(4),(9);\n  INSERT INTO t2 VALUES(3,7), (4,25), (5,99);\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING t2.*;\n")
 		}
 	}
 	{ // "6.1"

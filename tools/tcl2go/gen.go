@@ -1428,15 +1428,19 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 }
 
 func extractExpectedErrorFromLiteral(expected string) string {
-	if len(expected) >= 2 && expected[0] == '"' && expected[len(expected)-1] == '"' {
-		inner := expected[1 : len(expected)-1]
-		if strings.HasPrefix(inner, "1 ") {
-			msg := strings.TrimSpace(inner[2:])
-			msg = strings.Trim(msg, "{}")
-			return strings.TrimSpace(msg)
-		}
+	// expected is a Go-quoted string literal (e.g. "1 {near \"#1\": syntax error}").
+	// Unquote it so embedded escapes resolve to real characters, then extract
+	// the message after the leading "1 " (SQLite error code + message).
+	raw, err := strconv.Unquote(expected)
+	if err != nil {
+		return ""
 	}
-	return ""
+	if !strings.HasPrefix(raw, "1 ") {
+		return ""
+	}
+	msg := strings.TrimSpace(raw[2:])
+	msg = strings.Trim(msg, "{}")
+	return strings.TrimSpace(msg)
 }
 
 func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {

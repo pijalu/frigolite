@@ -347,15 +347,15 @@ func Test_zipfile2(t *testing.T) {
 		}
 		{ // "6.1"
 			_res = db.Exec("\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"test1\\\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"test1\\\"", _res.Error, "\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"test1\"") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"test1\"", _res.Error, "\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
 			}
 		}
 		os.Remove("test.zip")
 		{ // "6.2"
 			_res = db.Exec("\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"testnew\\\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"testnew\\\"", _res.Error, "\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"testnew\"") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"testnew\"", _res.Error, "\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
 			}
 		}
 		os.Remove("test.zip")

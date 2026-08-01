@@ -866,8 +866,8 @@ func Test_conflict(t *testing.T) {
 							if err != nil { t.Fatal(err) }
 							{ // "conflict-16.1"
 								_res = db.Exec("\n  -- ON CONFLICT clauses are not allowed on column CHECK constraints\n  CREATE TABLE t1(a INT CHECK( a!=5 ) ON CONFLICT ignore);\n")
-								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"ON\\\": syntax error") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"ON\\\": syntax error", _res.Error, "\n  -- ON CONFLICT clauses are not allowed on column CHECK constraints\n  CREATE TABLE t1(a INT CHECK( a!=5 ) ON CONFLICT ignore);\n")
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ON\": syntax error") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", _res.Error, "\n  -- ON CONFLICT clauses are not allowed on column CHECK constraints\n  CREATE TABLE t1(a INT CHECK( a!=5 ) ON CONFLICT ignore);\n")
 								}
 							}
 							{ // "conflict-16.2"

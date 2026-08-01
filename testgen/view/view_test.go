@@ -280,8 +280,8 @@ func Test_view(t *testing.T) {
 	}
 	{ // "view-3.3.4"
 		_res = db.Exec("\n  CREATE VIEW v1err(x,y DESC,z) AS SELECT a, b+c, c-b FROM t1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "syntax error after column name \\\"y\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \\\"y\\\"", _res.Error, "\n  CREATE VIEW v1err(x,y DESC,z) AS SELECT a, b+c, c-b FROM t1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "syntax error after column name \"y\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \"y\"", _res.Error, "\n  CREATE VIEW v1err(x,y DESC,z) AS SELECT a, b+c, c-b FROM t1;\n")
 		}
 	}
 	{ // "view-3.3.5"
@@ -852,8 +852,8 @@ func Test_view(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // "view-29.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE VIEW IF NOT EXISTS IF AS SELECT null;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed database schema (IF) - near \\\"AS\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (IF) - near \\\"AS\\\": syntax error", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE VIEW IF NOT EXISTS IF AS SELECT null;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed database schema (IF) - near \"AS\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed database schema (IF) - near \"AS\": syntax error", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE VIEW IF NOT EXISTS IF AS SELECT null;\n")
 		}
 	}
 	{ // "view-29.1"

@@ -426,8 +426,8 @@ func Test_fkey5(t *testing.T) {
 	}
 	{ // "11.1"
 		_res = db.Exec("\n  PRAGMA foreign_key_check;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \\\"c11\\\" referencing \\\"tt\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \\\"c11\\\" referencing \\\"tt\\\"", _res.Error, "\n  PRAGMA foreign_key_check;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"c11\" referencing \"tt\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"c11\" referencing \"tt\"", _res.Error, "\n  PRAGMA foreign_key_check;\n")
 		}
 	}
 	db.Close()

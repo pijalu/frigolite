@@ -209,14 +209,14 @@ func Test_altercons2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"d\\\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"d\\\": syntax error", _res.Error, "\n  CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"d\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"d\": syntax error", _res.Error, "\n  CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)\n")
 			}
 		}
 		{ // "5.1"
 			_res = db.Exec("\n  CREATE TABLE def(CONSTRAINT abc CHECK( b!=c ), a, b, c);\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"CONSTRAINT\\\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"CONSTRAINT\\\": syntax error", _res.Error, "\n  CREATE TABLE def(CONSTRAINT abc CHECK( b!=c ), a, b, c);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"CONSTRAINT\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"CONSTRAINT\": syntax error", _res.Error, "\n  CREATE TABLE def(CONSTRAINT abc CHECK( b!=c ), a, b, c);\n")
 			}
 		}
 		db.Close()

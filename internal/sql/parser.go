@@ -2397,7 +2397,7 @@ func (p *Parser) dispatchColumnConstraint(col *ColumnDef) bool {
 		// Parse the constraint that follows the name using the proper handler
 		p.dispatchColumnConstraint(col)
 	case "AS":
-		p.skipGeneratedColumnAs()
+		p.parseGeneratedColumnAs(col)
 	default:
 		return false
 	}
@@ -2420,10 +2420,14 @@ func (p *Parser) skipConstraintName() {
 	}
 }
 
-func (p *Parser) skipGeneratedColumnAs() {
+func (p *Parser) parseGeneratedColumnAs(col *ColumnDef) {
 	p.next() // skip AS
 	if p.cur.Type == TokenLParen {
-		p.skipParenExpr()
+		p.next()
+		col.Generated = p.parseExpr()
+		if p.cur.Type == TokenRParen {
+			p.next()
+		}
 	}
 	// Optional STORED or VIRTUAL modifier after generated column expression
 	if p.cur.Type == TokenKeyword && (p.cur.Value == "STORED" || p.cur.Value == "VIRTUAL") {

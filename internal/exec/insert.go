@@ -144,6 +144,9 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 		}
 	}
 
+	// Compute any generated columns (b AS(expr)) that were not explicitly set.
+	e.computeGeneratedValues(colDefs, values)
+
 	record, err := storage.EncodeRecord(values)
 	if err != nil {
 		return &Result{Error: err}
@@ -591,6 +594,9 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			}
 		}
 
+		// Compute any generated columns (b AS(expr)) that were not explicitly set.
+		e.computeGeneratedValues(colDefs, values)
+
 		// Handle REPLACE: delete conflicting rows before inserting
 		if isReplace {
 			colIndex := buildColumnIndex(colDefs)
@@ -608,6 +614,10 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 
 		// Validate constraints before inserting
 		if err := e.checkConstraints(tableEntry, colDefs, values); err != nil {
+			// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
+			if isIgnoreableConflict(err, colDefs) {
+				continue
+			}
 			return &Result{Error: err}
 		}
 
@@ -643,6 +653,32 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		e.lastRowID = rowID
 	}
 	return &Result{Changes: changes, LastInsertRowID: e.lastRowID}
+}
+
+// computeGeneratedValues fills in values for generated columns (b AS(expr))
+// that are still nil. Generated expressions may reference other columns of
+// the same row, so evaluation uses a RowMap of the values built so far.
+func (e *Engine) computeGeneratedValues(colDefs []sql.ColumnDef, values []interface{}) {
+	var rowMap RowMap
+	for i, cd := range colDefs {
+		if cd.Generated == nil {
+			continue
+		}
+		if i >= len(values) || values[i] != nil {
+			continue // explicit value provided (or out of range)
+		}
+		if rowMap == nil {
+			rowMap = make(RowMap)
+			for j, v := range values {
+				if j < len(colDefs) {
+					rowMap[colDefs[j].Name] = v
+				}
+			}
+		}
+		if v, err := e.evalExpr(cd.Generated, rowMap); err == nil {
+			values[i] = v
+		}
+	}
 }
 
 // pkRowID returns the rowid for a new row, using the INTEGER PRIMARY KEY value

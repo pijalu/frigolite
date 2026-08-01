@@ -274,14 +274,14 @@ func Test_swarmvtab(t *testing.T) {
 	}
 	{ // "2.4"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sql error: near \\\"FROMdir\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sql error: near \\\"FROMdir\\\": syntax error", _res.Error, "\n  CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir');\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sql error: near \"FROMdir\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sql error: near \"FROMdir\": syntax error", _res.Error, "\n  CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir');\n")
 		}
 	}
 	{ // "2.5"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir', 'fetchdb');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sql error: near \\\"FROMdir\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sql error: near \\\"FROMdir\\\": syntax error", _res.Error, "\n  CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir', 'fetchdb');\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sql error: near \"FROMdir\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sql error: near \"FROMdir\": syntax error", _res.Error, "\n  CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir', 'fetchdb');\n")
 		}
 	}
 	i = "0"

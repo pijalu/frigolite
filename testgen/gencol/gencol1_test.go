@@ -435,8 +435,8 @@ func Test_gencol1(t *testing.T) {
 		}
 		{ // "gencol1-8.20"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0,\n    c1 AS(c0 + c2),\n    c2 AS(c1) CHECK(c2)\n  );\n  UPDATE t0 SET c0 = NULL;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "generated column loop on \\\"c2\\\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "generated column loop on \\\"c2\\\"", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0,\n    c1 AS(c0 + c2),\n    c2 AS(c1) CHECK(c2)\n  );\n  UPDATE t0 SET c0 = NULL;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "generated column loop on \"c2\"") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "generated column loop on \"c2\"", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0,\n    c1 AS(c0 + c2),\n    c2 AS(c1) CHECK(c2)\n  );\n  UPDATE t0 SET c0 = NULL;\n")
 			}
 		}
 		db.Close()

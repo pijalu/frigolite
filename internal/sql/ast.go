@@ -35,6 +35,11 @@ type SelectStmt struct {
 	CTEs     []CTEDef       // WITH clause CTE definitions
 	Windows  []WindowDef    // WINDOW clause definitions
 
+	// ValuesChain is set when this SELECT was parsed from a VALUES(...),(...)
+	// list (mvalues). It distinguishes INSERT...VALUES from a real
+	// INSERT...SELECT that happens to have no FROM clause.
+	ValuesChain bool
+
 	// unionTail caches the last element of the Union chain so appending a new
 	// member is O(1). It is only maintained by AppendUnion; callers that build
 	// chains by assigning Union directly must not rely on it.
@@ -267,6 +272,12 @@ type CreateTableStmt struct {
 	AsSelect    *SelectStmt // CREATE TABLE ... AS SELECT
 	Constraints []TableConstraint // table-level constraints
 	WithoutRowid bool // WITHOUT ROWID option
+
+	// RawSQL is the original CREATE TABLE statement text as written by the
+	// user. It is stored verbatim in sqlite_schema (matching SQLite) so that
+	// column constraints (PRIMARY KEY, UNIQUE, AS(...) generated columns,
+	// DEFAULT, NOT NULL, ...) survive round-tripping through the parser.
+	RawSQL string
 }
 
 func (s *CreateTableStmt) stmt() {}
@@ -285,6 +296,7 @@ type ColumnDef struct {
 	References     string
 	Default      Expr
 	Check        Expr
+	Generated    Expr  // generated column expression (b AS(expr)); nil for normal columns
 	Dropped      bool  // column has been dropped via ALTER TABLE DROP COLUMN
 }
 

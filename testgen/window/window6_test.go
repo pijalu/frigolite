@@ -342,20 +342,20 @@ func Test_window6(t *testing.T) {
 		}
 		{ // "9.4"
 			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"FOLLOWING\\\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"FOLLOWING\\\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"FOLLOWING\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FOLLOWING\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
 			}
 		}
 		{ // "9.5"
 			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"FOLLOWING\\\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"FOLLOWING\\\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"FOLLOWING\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"FOLLOWING\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
 			}
 		}
 		{ // "9.6"
 			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"PRECEDING\\\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"PRECEDING\\\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"PRECEDING\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"PRECEDING\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
 			}
 		}
 		// foreach {tn frame} "\n  1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"\n"

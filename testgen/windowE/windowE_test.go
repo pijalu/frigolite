@@ -119,8 +119,8 @@ func Test_windowE(t *testing.T) {
 	}
 	{ // "2.2"
 		_res = db.Exec("\n  SELECT min(x) FILTER (WHERE x_count(x) OVER w1) OVER w1 FROM t1\n    WINDOW w1 AS (PARTITION BY x OVER w1);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"OVER\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"OVER\\\": syntax error", _res.Error, "\n  SELECT min(x) FILTER (WHERE x_count(x) OVER w1) OVER w1 FROM t1\n    WINDOW w1 AS (PARTITION BY x OVER w1);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"OVER\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"OVER\": syntax error", _res.Error, "\n  SELECT min(x) FILTER (WHERE x_count(x) OVER w1) OVER w1 FROM t1\n    WINDOW w1 AS (PARTITION BY x OVER w1);\n")
 		}
 	}
 	db.Close()

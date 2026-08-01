@@ -194,8 +194,8 @@ func Test_window9(t *testing.T) {
 	}
 	{ // "3.3"
 		_res = db.Exec("\n  SELECT a, sum(a) OVER (ORDER BY a DESC) FROM t2 \n  ORDER BY EXISTS(\n    SELECT 1 FROM t2 ORDER BY sum(a) OVER (ORDER BY a)\n  ) OVER (ORDER BY a);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"OVER\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"OVER\\\": syntax error", _res.Error, "\n  SELECT a, sum(a) OVER (ORDER BY a DESC) FROM t2 \n  ORDER BY EXISTS(\n    SELECT 1 FROM t2 ORDER BY sum(a) OVER (ORDER BY a)\n  ) OVER (ORDER BY a);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"OVER\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"OVER\": syntax error", _res.Error, "\n  SELECT a, sum(a) OVER (ORDER BY a DESC) FROM t2 \n  ORDER BY EXISTS(\n    SELECT 1 FROM t2 ORDER BY sum(a) OVER (ORDER BY a)\n  ) OVER (ORDER BY a);\n")
 		}
 	}
 	{ // "3.4"

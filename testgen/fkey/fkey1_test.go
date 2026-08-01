@@ -185,8 +185,8 @@ func Test_fkey1(t *testing.T) {
 	}
 	{ // "6.1"
 		_res = db.Exec("\n  INSERT INTO c1 VALUES(1);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \\\"c1\\\" referencing \\\"p1\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \\\"c1\\\" referencing \\\"p1\\\"", _res.Error, "\n  INSERT INTO c1 VALUES(1);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "foreign key mismatch - \"c1\" referencing \"p1\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "foreign key mismatch - \"c1\" referencing \"p1\"", _res.Error, "\n  INSERT INTO c1 VALUES(1);\n")
 		}
 	}
 	{ // "6.2"

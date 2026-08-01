@@ -65,6 +65,7 @@ type Engine struct {
 	inTransaction bool                  // tracks if we're inside a BEGIN/COMMIT block
 	ddlBuffer    []func()               // DDL undo operations for transaction rollback
 	outerRow     Row   // outer query row for correlated subquery resolution
+	outerRowStack []Row // stack of enclosing outer rows for multi-level correlation
 	outerRows    []RowMap // all outer rows for correlated aggregate evaluation
 	currentScanTable string // table name being scanned (for qualified column resolution)
 	resolvingViews   map[string]bool        // tracks views currently being resolved (circular reference detection)
@@ -142,6 +143,9 @@ func (e *Engine) authorize(action auth.Action, arg1, arg2, arg3, arg4 string) er
 // any DDL operation that modifies the schema (CREATE, DROP, ALTER TABLE/INDEX/VIEW/TRIGGER).
 func (e *Engine) invalidateTableCache() {
 	e.tableCache = make(map[string]*cachedTableEntry)
+	// Column definitions are derived from sqlite_schema SQL; any DDL can
+	// change them, so drop the parsed-column cache too.
+	e.colCache = make(map[string][]sql.ColumnDef)
 }
 
 // rootPage returns the current root page for a table, checking the engine's

@@ -36,6 +36,7 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	tok := sql.NewTokenizer(input)
 	var stmts []sql.Stmt
 	var pendingStmt sql.Stmt
+	stmtStart := 0 // byte offset where the current statement begins
 
 	// OnReduce callback: handle grammar rule reductions
 	parser.OnReduce(func(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}) {
@@ -60,6 +61,22 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 			// 353 (ecmd ::= explain cmdx SEMI) complete a statement.
 			if ruleNo == 352 || ruleNo == 353 {
 				stmts = append(stmts, s)
+				// Capture the raw statement text. The SEMI token's Pos is its
+				// byte offset in input, so input[stmtStart:Pos] is the exact
+				// statement (SQLite stores original DDL text verbatim).
+				rhs := 2 // rule 352: cmdx SEMI
+				if ruleNo == 353 {
+					rhs = 3 // rule 353: explain cmdx SEMI
+				}
+				if semiTok, tokOK := getRHS(p, ruleNo, rhs).(sql.Token); tokOK {
+					end := semiTok.Pos
+					if end >= stmtStart && end <= len(input) {
+						if ct, ctOK := s.(*sql.CreateTableStmt); ctOK {
+							ct.RawSQL = strings.TrimSpace(input[stmtStart:end])
+						}
+						stmtStart = end + 1
+					}
+				}
 			}
 		}
 
@@ -78,13 +95,13 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 		code := tokenCode(int(tok.Type), tok.Value)
 		if code < 0 {
 			parser.Finalize()
-			return nil, fmt.Errorf("unexpected token: %s", tok.Value)
+			return nil, fmt.Errorf("near %q: syntax error", tok.Value)
 		}
 
 		result := parser.Parse(code, tok)
 		if result == ParseError {
 			parser.Finalize()
-			return nil, fmt.Errorf("syntax error near: %s", tok.Value)
+			return nil, fmt.Errorf("near %q: syntax error", tok.Value)
 		}
 		if result == ParseAccept && code == 0 { // EOF
 			break
@@ -405,7 +422,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 95: oneselect ::= mvalues
 	case 95:
-		return getRHS(p, ruleNo, 1)
+		sel := getSelectStmt(getRHS(p, ruleNo, 1))
+		if sel != nil {
+			sel.ValuesChain = true
+		}
+		return sel
 
 	// Rule 96: mvalues ::= values COMMA LP nexprlist RP
 	case 96:
@@ -756,9 +777,9 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		// A VALUES insert (INSERT INTO t VALUES(...),(...)) parses as a SELECT
 		// with no FROM. Convert it into s.Values tuples and clear s.Select so
 		// the engine uses the VALUES path (insertRow); a real INSERT...SELECT
-		// keeps s.Select.
+		// (even one without a FROM clause) keeps s.Select.
 		var values [][]sql.Expr
-		if sel != nil && sel.From.Name == "" {
+		if sel != nil && sel.ValuesChain {
 			values = valuesFromSelect(sel)
 			sel = nil
 		}
@@ -1491,7 +1512,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 381: oneselect ::= values
 	case 381:
-		return getRHS(p, ruleNo, 1)
+		sel := getSelectStmt(getRHS(p, ruleNo, 1))
+		if sel != nil {
+			sel.ValuesChain = true
+		}
+		return sel
 
 	// Rule 383: as ::= ID|STRING
 	case 383:

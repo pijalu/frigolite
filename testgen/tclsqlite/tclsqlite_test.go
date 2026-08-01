@@ -1502,8 +1502,8 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // "19.911"
 		_res = db.Exec("\n  SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid command name \\\"bind_fallback_does_not_exist\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid command name \\\"bind_fallback_does_not_exist\\\"", _res.Error, "\n  SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid command name \"bind_fallback_does_not_exist\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid command name \"bind_fallback_does_not_exist\"", _res.Error, "\n  SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi);\n")
 		}
 	}
 	{ // do_test "20.0"

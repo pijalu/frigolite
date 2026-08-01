@@ -70,8 +70,8 @@ func Test_fuzz_oss1(t *testing.T) {
 	}
 	{ // "fuzz-oss1-detach"
 		_res = db.Exec("\n  DETACH x IS #1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#1\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#1\\\": syntax error", _res.Error, "\n  DETACH x IS #1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#1\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", _res.Error, "\n  DETACH x IS #1;\n")
 		}
 	}
 }

@@ -351,8 +351,8 @@ func Test_stat(t *testing.T) {
 	}
 	{ // "7.2.2"
 		_res = db.Exec("\n  SELECT * FROM dbstat(123corp);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \\\"123corp\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \\\"123corp\\\"", _res.Error, "\n  SELECT * FROM dbstat(123corp);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"123corp\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123corp\"", _res.Error, "\n  SELECT * FROM dbstat(123corp);\n")
 		}
 	}
 	{ // "7.2.3"
@@ -369,8 +369,8 @@ func Test_stat(t *testing.T) {
 	}
 	{ // "7.2.4"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x3 USING dbstat(123corp);\n  SELECT * FROM x3;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \\\"123corp\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \\\"123corp\\\"", _res.Error, "\n  CREATE VIRTUAL TABLE x3 USING dbstat(123corp);\n  SELECT * FROM x3;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"123corp\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"123corp\"", _res.Error, "\n  CREATE VIRTUAL TABLE x3 USING dbstat(123corp);\n  SELECT * FROM x3;\n")
 		}
 	}
 	{ // "8.1"

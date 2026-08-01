@@ -122,14 +122,14 @@ func Test_tabfunc01(t *testing.T) {
 	}
 	{ // "tabfunc01-1.2b"
 		_res = db.Exec("\n  SELECT *, '|' FROM generate_series LIMIT 5;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "first argument to \\\"generate_series()\\\" missing or unusable") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to \\\"generate_series()\\\" missing or unusable", _res.Error, "\n  SELECT *, '|' FROM generate_series LIMIT 5;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "first argument to \"generate_series()\" missing or unusable") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to \"generate_series()\" missing or unusable", _res.Error, "\n  SELECT *, '|' FROM generate_series LIMIT 5;\n")
 		}
 	}
 	{ // "tabfunc01-1.2c"
 		_res = db.Exec("\n  SELECT *, '|' FROM generate_series(value) LIMIT 5;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "first argument to \\\"generate_series()\\\" missing or unusable") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to \\\"generate_series()\\\" missing or unusable", _res.Error, "\n  SELECT *, '|' FROM generate_series(value) LIMIT 5;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "first argument to \"generate_series()\" missing or unusable") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "first argument to \"generate_series()\" missing or unusable", _res.Error, "\n  SELECT *, '|' FROM generate_series(value) LIMIT 5;\n")
 		}
 	}
 	{ // "tabfunc01-1.3"

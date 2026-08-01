@@ -203,14 +203,12 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		Name:     tableName,
 		TblName:  tableName,
 		RootPage: pg.PageNum,
-		SQL:      e.buildCreateTableSQL(s),
+		SQL:      e.createTableSQL(s),
 	}
 
 	if err := ctx.Schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
 	}
-	// Cache column definitions
-	e.colCache[rawName] = s.Columns
 
 	// Handle CREATE TABLE ... AS SELECT
 	if s.AsSelect != nil {
@@ -218,6 +216,16 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	}
 
 	return &Result{Changes: 0}
+}
+
+// createTableSQL returns the SQL text to store in sqlite_schema for a table.
+// The original statement text is preferred (matching SQLite's verbatim
+// storage); the AST serialization is only a fallback when raw text is absent.
+func (e *Engine) createTableSQL(s *sql.CreateTableStmt) string {
+	if strings.TrimSpace(s.RawSQL) != "" {
+		return strings.TrimSpace(s.RawSQL)
+	}
+	return e.buildCreateTableSQL(s)
 }
 
 func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt) *Result {
@@ -241,6 +249,18 @@ func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt) *Result {
 	tableEntry, dbCtx, err := e.findTable(s.Name)
 	if err != nil {
 		return &Result{Error: err}
+	}
+
+	// Persist the derived column definitions in the schema SQL (matching
+	// SQLite, which stores "CREATE TABLE t(col1, col2)" for AS SELECT).
+	// Without this, column defs are only available from the in-memory cache,
+	// which is cleared by any later DDL (e.g. PRAGMA) — making the table's
+	// columns unresolvable.
+	if len(s.Columns) > 0 {
+		derivedSQL := e.buildCreateTableSQL(s)
+		if rerr := dbCtx.Schema.RenameEntryWithSQL(s.Name, s.Name, derivedSQL); rerr == nil {
+			tableEntry.SQL = derivedSQL
+		}
 	}
 
 	// Insert rows into the new table

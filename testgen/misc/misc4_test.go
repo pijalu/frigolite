@@ -191,8 +191,8 @@ func Test_misc4(t *testing.T) {
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "misc4-7.1"
 		_res = db.Exec("\n  CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE [M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \\\"[M%s%s%s%s%s%s%s%s%s%s%s%s%s\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \\\"[M%s%s%s%s%s%s%s%s%s%s%s%s%s\\\"", _res.Error, "\n  CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE [M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"[M%s%s%s%s%s%s%s%s%s%s%s%s%s\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"[M%s%s%s%s%s%s%s%s%s%s%s%s%s\"", _res.Error, "\n  CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE [M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;\n")
 		}
 	}
 	{ // "misc4-7.2"

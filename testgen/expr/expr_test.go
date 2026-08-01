@@ -253,8 +253,8 @@ func Test_expr(t *testing.T) {
 	// test_expr expr-1.126b {i1=8, i2=8} {CASE WHEN i1 IS DISTINCT FROM i2 THEN 'yes' ELSE '...} no (expr test, not transpiled)
 	{ // "expr-1.127"
 		_res = db.Exec("\n  SELECT 1 IS #1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#1\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#1\\\": syntax error", _res.Error, "\n  SELECT 1 IS #1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#1\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", _res.Error, "\n  SELECT 1 IS #1;\n")
 		}
 	}
 	if tclBool("working_64bit_int") {

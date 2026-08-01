@@ -476,8 +476,8 @@ func Test_colname(t *testing.T) {
 	}
 	{ // "colname-9.400"
 		_res = db.Exec("\n  CREATE TABLE t4 AS SELECT #0;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#0\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#0\\\": syntax error", _res.Error, "\n  CREATE TABLE t4 AS SELECT #0;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#0\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#0\": syntax error", _res.Error, "\n  CREATE TABLE t4 AS SELECT #0;\n")
 		}
 	}
 	{ // "colname-9.410"

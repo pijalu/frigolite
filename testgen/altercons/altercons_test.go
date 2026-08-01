@@ -410,14 +410,14 @@ func Test_altercons(t *testing.T) {
 					}
 					{ // "7.6"
 						_res = db.Exec("\n  ALTER TABLE v1 RENAME a TO c;\n")
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rename columns of view \\\"v1\\\"") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 RENAME a TO c;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rename columns of view \"v1\"") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \"v1\"", _res.Error, "\n  ALTER TABLE v1 RENAME a TO c;\n")
 						}
 					}
 					{ // "7.7"
 						_res = db.Exec("\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \\\"v1\\\"") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \"v1\"") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \"v1\"", _res.Error, "\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
 						}
 					}
 					{ // "7.8"
@@ -428,8 +428,8 @@ func Test_altercons(t *testing.T) {
 					}
 					{ // "7.9"
 						_res = db.Exec("\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \\\"v1\\\"") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \"v1\"") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \"v1\"", _res.Error, "\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
 						}
 					}
 					db.Close()
@@ -636,8 +636,8 @@ func Test_altercons(t *testing.T) {
 					}
 					{ // "10.3"
 						_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( x>#2 );\n")
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#2\\\": syntax error") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#2\\\": syntax error", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( x>#2 );\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#2\": syntax error") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#2\": syntax error", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( x>#2 );\n")
 						}
 					}
 }

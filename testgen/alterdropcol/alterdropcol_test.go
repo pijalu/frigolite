@@ -73,8 +73,8 @@ func Test_alterdropcol(t *testing.T) {
 	}
 	{ // "1.2"
 		_res = db.Exec("\n  ALTER TABLE v1 DROP COLUMN c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop column from view \\\"v1\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop column from view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 DROP COLUMN c;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop column from view \"v1\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop column from view \"v1\"", _res.Error, "\n  ALTER TABLE v1 DROP COLUMN c;\n")
 		}
 	}
 	{ // "1.3.1"
@@ -85,8 +85,8 @@ func Test_alterdropcol(t *testing.T) {
 	}
 	{ // "1.3.2"
 		_res = db.Exec("\n    ALTER TABLE ft1 DROP COLUMN two;\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop column from virtual table \\\"ft1\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop column from virtual table \\\"ft1\\\"", _res.Error, "\n    ALTER TABLE ft1 DROP COLUMN two;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop column from virtual table \"ft1\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop column from virtual table \"ft1\"", _res.Error, "\n    ALTER TABLE ft1 DROP COLUMN two;\n  ")
 		}
 	}
 	{ // "1.4"
@@ -97,8 +97,8 @@ func Test_alterdropcol(t *testing.T) {
 	}
 	{ // "1.5"
 		_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN d;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \\\"d\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \\\"d\\\"", _res.Error, "\n  ALTER TABLE t1 DROP COLUMN d;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \"d\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \"d\"", _res.Error, "\n  ALTER TABLE t1 DROP COLUMN d;\n")
 		}
 	}
 	{ // "1.6.1"
@@ -139,20 +139,20 @@ func Test_alterdropcol(t *testing.T) {
 	}
 	{ // "1.7.3"
 		_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN a;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop column \\\"a\\\": no other columns exist") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop column \\\"a\\\": no other columns exist", _res.Error, "\n  ALTER TABLE t1 DROP COLUMN a;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop column \"a\": no other columns exist") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop column \"a\": no other columns exist", _res.Error, "\n  ALTER TABLE t1 DROP COLUMN a;\n")
 		}
 	}
 	{ // "1.8"
 		_res = db.Exec("\n  ALTER TABLE t2 DROP COLUMN z\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop UNIQUE column: \\\"z\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop UNIQUE column: \\\"z\\\"", _res.Error, "\n  ALTER TABLE t2 DROP COLUMN z\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop UNIQUE column: \"z\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop UNIQUE column: \"z\"", _res.Error, "\n  ALTER TABLE t2 DROP COLUMN z\n")
 		}
 	}
 	{ // "1.9"
 		_res = db.Exec("\n  ALTER TABLE t2 DROP COLUMN x\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop PRIMARY KEY column: \\\"x\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop PRIMARY KEY column: \\\"x\\\"", _res.Error, "\n  ALTER TABLE t2 DROP COLUMN x\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot drop PRIMARY KEY column: \"x\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot drop PRIMARY KEY column: \"x\"", _res.Error, "\n  ALTER TABLE t2 DROP COLUMN x\n")
 		}
 	}
 	{ // "1.10"

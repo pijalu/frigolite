@@ -1988,8 +1988,8 @@ func Test_select1(t *testing.T) {
 	}
 	{ // "select1-16.2"
 		_res = db.Exec("\n  SELECT 1 FROM sqlite_master LIMIT 1,#1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#1\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#1\\\": syntax error", _res.Error, "\n  SELECT 1 FROM sqlite_master LIMIT 1,#1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#1\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", _res.Error, "\n  SELECT 1 FROM sqlite_master LIMIT 1,#1;\n")
 		}
 	}
 	{ // "select1-17.1"

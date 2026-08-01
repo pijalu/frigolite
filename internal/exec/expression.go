@@ -92,10 +92,11 @@ func (e *Engine) evalComplexExpr(expr sql.Expr, row Row) (interface{}, error) {
 }
 
 func (e *Engine) evalSubquery(v *sql.Subquery, row Row) (interface{}, error) {
-	// Save and restore outerRow for correlated subquery support
-	prevOuterRow := e.outerRow
-	e.outerRow = row
-	defer func() { e.outerRow = prevOuterRow }()
+	// Save and restore outerRow for correlated subquery support. Push the
+	// current outer row onto a stack so nested subqueries can resolve
+	// multi-level correlated references (outer → grandparent).
+	e.pushOuterRow(row)
+	defer e.popOuterRow()
 
 	result := e.execSelect(v.Select)
 	if result.Error != nil {
@@ -113,9 +114,8 @@ func (e *Engine) evalSubquery(v *sql.Subquery, row Row) (interface{}, error) {
 
 func (e *Engine) evalExists(v *sql.ExistsExpr, row Row) (interface{}, error) {
 	// Propagate outerRow for correlated subquery references
-	prevOuterRow := e.outerRow
-	e.outerRow = row
-	defer func() { e.outerRow = prevOuterRow }()
+	e.pushOuterRow(row)
+	defer e.popOuterRow()
 
 	result := e.execSelect(v.Select)
 	if result.Error != nil {
@@ -316,15 +316,18 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 				return val, nil
 			}
 		}
-		// Fallback to outer row for correlated references
-		if e.outerRow != nil {
+		// Fallback to outer rows for correlated references (qualified)
+		for _, outer := range e.outerRowsForResolution() {
+			if outer == nil {
+				continue
+			}
 			// Try qualified name first (e.g., "t1.a")
-			if val, ok := e.outerRow.Get(v.Table + "." + v.Name); ok {
+			if val, ok := outer.Get(v.Table + "." + v.Name); ok {
 				return val, nil
 			}
 			// If not found, try unqualified name (the outer row may store
 			// column values without table prefix, e.g., "a" instead of "t1.a")
-			if val, ok := e.outerRow.Get(v.Name); ok {
+			if val, ok := outer.Get(v.Name); ok {
 				return val, nil
 			}
 		}
@@ -336,13 +339,48 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 			return val, nil
 		}
 	}
-	// Fallback to outer row for correlated references (unqualified)
-	if e.outerRow != nil {
-		if val, ok := e.outerRow.Get(v.Name); ok {
+	// Fallback to outer rows for correlated references (unqualified)
+	for _, outer := range e.outerRowsForResolution() {
+		if outer == nil {
+			continue
+		}
+		if val, ok := outer.Get(v.Name); ok {
 			return val, nil
 		}
 	}
 	return nil, nil
+}
+
+// outerRowsForResolution returns the correlated-scope rows visible to the
+// current evaluation, innermost first: the current outerRow followed by the
+// stack of enclosing outer rows (for multi-level correlated subqueries).
+func (e *Engine) outerRowsForResolution() []Row {
+	rows := make([]Row, 0, len(e.outerRowStack)+1)
+	if e.outerRow != nil {
+		rows = append(rows, e.outerRow)
+	}
+	for i := len(e.outerRowStack) - 1; i >= 0; i-- {
+		rows = append(rows, e.outerRowStack[i])
+	}
+	return rows
+}
+
+// pushOuterRow sets row as the current outer scope for correlated subquery
+// resolution, preserving the previous scope on a stack.
+func (e *Engine) pushOuterRow(row Row) {
+	e.outerRowStack = append(e.outerRowStack, e.outerRow)
+	e.outerRow = row
+}
+
+// popOuterRow restores the outer scope saved by pushOuterRow.
+func (e *Engine) popOuterRow() {
+	n := len(e.outerRowStack)
+	if n == 0 {
+		e.outerRow = nil
+		return
+	}
+	e.outerRow = e.outerRowStack[n-1]
+	e.outerRowStack = e.outerRowStack[:n-1]
 }
 
 func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
@@ -642,19 +680,29 @@ func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
 	case "+":
 		return evalAdd(left, right)
 	case "-":
-		if left == nil || right == nil { return nil, nil }
+		if left == nil || right == nil {
+			return nil, nil
+		}
 		return subValues(left, right)
 	case "*":
-		if left == nil || right == nil { return nil, nil }
+		if left == nil || right == nil {
+			return nil, nil
+		}
 		return mulValues(left, right)
 	case "/":
-		if left == nil || right == nil { return nil, nil }
+		if left == nil || right == nil {
+			return nil, nil
+		}
 		return divValues(left, right)
 	case "%":
-		if left == nil || right == nil { return nil, nil }
+		if left == nil || right == nil {
+			return nil, nil
+		}
 		return modValues(left, right)
 	case "&":
-		if left == nil || right == nil { return nil, nil }
+		if left == nil || right == nil {
+			return nil, nil
+		}
 		return bitwiseAnd(left, right)
 	case "||":
 		return evalConcat(left, right)

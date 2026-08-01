@@ -391,8 +391,8 @@ func Test_index7(t *testing.T) {
 	}
 	{ // "index7-6.5"
 		_res = db.Exec("\n  CREATE INDEX t5a ON t5(a) WHERE a=#1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#1\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#1\\\": syntax error", _res.Error, "\n  CREATE INDEX t5a ON t5(a) WHERE a=#1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#1\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", _res.Error, "\n  CREATE INDEX t5a ON t5(a) WHERE a=#1;\n")
 		}
 	}
 	{ // "index7-7.0"

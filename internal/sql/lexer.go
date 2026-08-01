@@ -162,6 +162,8 @@ func (t *Tokenizer) Next() Token {
 		return t.readAtParam(pos)
 	case ch == ':':
 		return t.readColonParam(pos)
+	case ch == '#':
+		return t.readHashParam(pos)
 	case ch == '%':
 		t.pos++
 		t.last = Token{Type: TokenMod, Value: "%", Pos: pos}
@@ -284,11 +286,6 @@ func (t *Tokenizer) tryComment() *Token {
 	}
 	if ch == '/' && t.pos+1 < len(t.input) && t.input[t.pos+1] == '*' {
 		t.skipBlockComment()
-		tok := t.Next()
-		return &tok
-	}
-	if ch == '#' {
-		t.skipLineComment()
 		tok := t.Next()
 		return &tok
 	}
@@ -588,6 +585,30 @@ func (t *Tokenizer) readColonParam(pos int) Token {
 	}
 	value := t.input[start:t.pos]
 	t.last = Token{Type: TokenParam, Value: ":" + value, Pos: pos}
+	return t.last
+}
+
+// readHashParam handles '#' following SQLite's tokenizer rules: '#name' is a
+// variable (like :name), but '#' followed by a digit or anything else is an
+// illegal token whose text includes the following identifier characters so the
+// error message can quote it (e.g. `near "#1": syntax error`).
+func (t *Tokenizer) readHashParam(pos int) Token {
+	t.pos++ // skip #
+	if t.pos < len(t.input) && isIdentStart(t.input[t.pos]) {
+		start := t.pos
+		for t.pos < len(t.input) && isIdentPart(t.input[t.pos]) {
+			t.pos++
+		}
+		t.last = Token{Type: TokenParam, Value: "#" + t.input[start:t.pos], Pos: pos}
+		return t.last
+	}
+	end := t.pos
+	for end < len(t.input) && isIdentPart(t.input[end]) {
+		end++
+	}
+	value := t.input[t.pos:end]
+	t.pos = end
+	t.last = Token{Type: TokenError, Value: "#" + value, Pos: pos}
 	return t.last
 }
 

@@ -696,14 +696,14 @@ func Test_misc1(t *testing.T) {
 	}
 	{ // "misc1-21.1"
 		_res = db.Exec("\n  select''like''like''like#0;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#0\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#0\\\": syntax error", _res.Error, "\n  select''like''like''like#0;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#0\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#0\": syntax error", _res.Error, "\n  select''like''like''like#0;\n")
 		}
 	}
 	{ // "misc1-21.2"
 		_res = db.Exec("\n  VALUES(0,0x0MATCH#0;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \\\"0x0MATCH\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \\\"0x0MATCH\\\"", _res.Error, "\n  VALUES(0,0x0MATCH#0;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"0x0MATCH\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"0x0MATCH\"", _res.Error, "\n  VALUES(0,0x0MATCH#0;\n")
 		}
 	}
 	{ // "misc1-22.1"

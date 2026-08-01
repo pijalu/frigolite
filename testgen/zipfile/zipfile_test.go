@@ -784,8 +784,8 @@ func Test_zipfile(t *testing.T) {
 			}
 			{ // "10.1"
 				_res = db.Exec("\n  INSERT INTO z(name,data) VALUES('a0','one'),('a0','two');\n")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"a0\\\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"a0\\\"", _res.Error, "\n  INSERT INTO z(name,data) VALUES('a0','one'),('a0','two');\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"a0\"") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"a0\"", _res.Error, "\n  INSERT INTO z(name,data) VALUES('a0','one'),('a0','two');\n")
 				}
 			}
 			{ // "10.2"
@@ -886,8 +886,8 @@ func Test_zipfile(t *testing.T) {
 			}
 			{ // "11.6"
 				_res = db.Exec("\n  UPDATE z SET name = 'b1' WHERE name = 'b0';\n")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"b1\\\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"b1\\\"", _res.Error, "\n  UPDATE z SET name = 'b1' WHERE name = 'b0';\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"b1\"") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"b1\"", _res.Error, "\n  UPDATE z SET name = 'b1' WHERE name = 'b0';\n")
 				}
 			}
 			{ // "11.7"
@@ -904,14 +904,14 @@ func Test_zipfile(t *testing.T) {
 			}
 			{ // "11.8"
 				_res = db.Exec("\n  UPDATE z SET name = 'b1';\n")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"b1\\\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"b1\\\"", _res.Error, "\n  UPDATE z SET name = 'b1';\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"b1\"") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"b1\"", _res.Error, "\n  UPDATE z SET name = 'b1';\n")
 				}
 			}
 			{ // "11.9"
 				_res = db.Exec("\n  UPDATE z SET name = 'b2';\n")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"b2\\\"") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"b2\\\"", _res.Error, "\n  UPDATE z SET name = 'b2';\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"b2\"") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"b2\"", _res.Error, "\n  UPDATE z SET name = 'b2';\n")
 				}
 			}
 			{ // "11.10"

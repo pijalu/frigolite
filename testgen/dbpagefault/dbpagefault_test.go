@@ -79,8 +79,8 @@ func Test_dbpagefault(t *testing.T) {
 	}
 	{ // "3.2"
 		_res = db.Exec("\n  PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of virtual table \\\"sqlite_dbpage\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of virtual table \\\"sqlite_dbpage\\\"", _res.Error, "\n  PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of virtual table \"sqlite_dbpage\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of virtual table \"sqlite_dbpage\"", _res.Error, "\n  PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;\n")
 		}
 	}
 	db.Close()

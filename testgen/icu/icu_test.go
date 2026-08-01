@@ -178,8 +178,8 @@ func Test_icu(t *testing.T) {
 	}
 	{ // "icu-5.6"
 		_res = db.Exec("SELECT 'abc' REGEXP, 1")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\",\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\",\\\": syntax error", _res.Error, "SELECT 'abc' REGEXP, 1")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \",\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \",\": syntax error", _res.Error, "SELECT 'abc' REGEXP, 1")
 		}
 	}
 	// do_malloc_test icu-5.10 -sqlbody {\n    SELECT upper(char(0xfb04,0xdf,0xfb04,0xe8,0x...} (unsupported command, not transpiled)
@@ -212,8 +212,8 @@ func Test_icu(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // "icu-7.1"
 		_res = db.Exec("\n  SELECT icu_load_collation('en_US','error','xyzzy');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown collation strength \\\"xyzzy\\\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown collation strength \\\"xyzzy\\\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL", _res.Error, "\n  SELECT icu_load_collation('en_US','error','xyzzy');\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL", _res.Error, "\n  SELECT icu_load_collation('en_US','error','xyzzy');\n")
 		}
 	}
 	{ // "icu-7.2"

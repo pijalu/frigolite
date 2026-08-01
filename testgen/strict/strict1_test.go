@@ -74,20 +74,20 @@ func Test_strict1(t *testing.T) {
 	}
 	{ // "strict1-1.4"
 		_res = db.Exec("\n  CREATE TABLE t1(a BANJO PRIMARY KEY) WITHOUT ROWID, STRICT;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype for t1.a: \\\"BANJO\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.a: \\\"BANJO\\\"", _res.Error, "\n  CREATE TABLE t1(a BANJO PRIMARY KEY) WITHOUT ROWID, STRICT;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype for t1.a: \"BANJO\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.a: \"BANJO\"", _res.Error, "\n  CREATE TABLE t1(a BANJO PRIMARY KEY) WITHOUT ROWID, STRICT;\n")
 		}
 	}
 	{ // "strict1-1.5"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f DATE) strict;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype for t1.f: \\\"DATE\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.f: \\\"DATE\\\"", _res.Error, "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f DATE) strict;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype for t1.f: \"DATE\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.f: \"DATE\"", _res.Error, "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f DATE) strict;\n")
 		}
 	}
 	{ // "strict1-1.6"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f TEXT(50)) WITHOUT ROWID, STRICT;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype for t1.f: \\\"TEXT(50)\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.f: \\\"TEXT(50)\\\"", _res.Error, "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f TEXT(50)) WITHOUT ROWID, STRICT;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown datatype for t1.f: \"TEXT(50)\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown datatype for t1.f: \"TEXT(50)\"", _res.Error, "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f TEXT(50)) WITHOUT ROWID, STRICT;\n")
 		}
 	}
 	{ // "strict1-2.0"
@@ -248,8 +248,8 @@ func Test_strict1(t *testing.T) {
 	}
 	{ // "strict1-7.2"
 		_res = db.Exec("\n    ALTER TABLE t4 ADD COLUMN d VARCHAR;\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t4 after add column: unknown datatype for t4.d: \\\"VARCHAR\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t4 after add column: unknown datatype for t4.d: \\\"VARCHAR\\\"", _res.Error, "\n    ALTER TABLE t4 ADD COLUMN d VARCHAR;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t4 after add column: unknown datatype for t4.d: \"VARCHAR\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t4 after add column: unknown datatype for t4.d: \"VARCHAR\"", _res.Error, "\n    ALTER TABLE t4 ADD COLUMN d VARCHAR;\n  ")
 		}
 	}
 	{ // "strict1-7.3"

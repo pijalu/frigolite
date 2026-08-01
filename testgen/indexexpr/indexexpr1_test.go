@@ -486,8 +486,8 @@ func Test_indexexpr1(t *testing.T) {
 	}
 	{ // "indexexpr1-340"
 		_res = db.Exec("\n  CREATE TABLE e1(x,y,FOREIGN KEY(substr(y,1,5)) REFERENCES t1);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"(\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"(\\\": syntax error", _res.Error, "\n  CREATE TABLE e1(x,y,FOREIGN KEY(substr(y,1,5)) REFERENCES t1);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"(\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"(\": syntax error", _res.Error, "\n  CREATE TABLE e1(x,y,FOREIGN KEY(substr(y,1,5)) REFERENCES t1);\n")
 		}
 	}
 	{ // "indexexpr1-400"

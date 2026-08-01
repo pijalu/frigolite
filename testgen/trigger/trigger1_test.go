@@ -605,8 +605,8 @@ func Test_trigger1(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // "trigger1-23.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1 SELECT e_master LIMIT 1,#1;\n  END;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#1\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#1\\\": syntax error", _res.Error, "\n  CREATE TABLE t1(a INT);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1 SELECT e_master LIMIT 1,#1;\n  END;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#1\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"#1\": syntax error", _res.Error, "\n  CREATE TABLE t1(a INT);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1 SELECT e_master LIMIT 1,#1;\n  END;\n")
 		}
 	}
 	{ // "trigger1-24.1"

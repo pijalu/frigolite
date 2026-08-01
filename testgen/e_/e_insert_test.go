@@ -150,8 +150,8 @@ func Test_e_insert(t *testing.T) {
 		}
 		{ // "e_insert-5.2.1"
 			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"DEFAULT\\\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"DEFAULT\\\": syntax error", _res.Error, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"DEFAULT\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"DEFAULT\": syntax error", _res.Error, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
 			}
 		}
 		// delete_all_data (unsupported command, not transpiled)

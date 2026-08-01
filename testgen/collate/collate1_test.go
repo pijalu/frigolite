@@ -334,20 +334,20 @@ func Test_collate1(t *testing.T) {
 	}
 	{ // "6.2"
 		_res = db.Exec("\n  CREATE TABLE x1(a);\n  SELECT a FROM x1 ORDER BY a COLLATE \"\"\"\"\"\"\"\";\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: \\\"\\\"\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \\\"\\\"\\\"", _res.Error, "\n  CREATE TABLE x1(a);\n  SELECT a FROM x1 ORDER BY a COLLATE \"\"\"\"\"\"\"\";\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: \"\"\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", _res.Error, "\n  CREATE TABLE x1(a);\n  SELECT a FROM x1 ORDER BY a COLLATE \"\"\"\"\"\"\"\";\n")
 		}
 	}
 	{ // "6.3"
 		_res = db.Exec("\n  SELECT a FROM x1 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: \\\"\\\"\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \\\"\\\"\\\"", _res.Error, "\n  SELECT a FROM x1 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: \"\"\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", _res.Error, "\n  SELECT a FROM x1 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
 		}
 	}
 	{ // "6.4"
 		_res = db.Exec("\n  SELECT 0 UNION SELECT 0 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: \\\"\\\"\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \\\"\\\"\\\"", _res.Error, "\n  SELECT 0 UNION SELECT 0 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: \"\"\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: \"\"\"", _res.Error, "\n  SELECT 0 UNION SELECT 0 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";\n")
 		}
 	}
 	{ // "6.5"

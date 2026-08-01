@@ -98,14 +98,14 @@ func Test_e_select(t *testing.T) {
 	// do_join_test e_select-0.1.3 {\n  SELECT count(*) FROM t1 %JOIN% t2\n} {9} (unsupported command, not transpiled)
 	{ // "e_select-0.1.4"
 		_res = db.Exec("\n  SELECT count(*) FROM t1, t2 ON (t1.a=t2.a) USING (a)\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"USING\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"USING\\\": syntax error", _res.Error, "\n  SELECT count(*) FROM t1, t2 ON (t1.a=t2.a) USING (a)\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"USING\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"USING\": syntax error", _res.Error, "\n  SELECT count(*) FROM t1, t2 ON (t1.a=t2.a) USING (a)\n")
 		}
 	}
 	{ // "e_select-0.1.5"
 		_res = db.Exec("\n  SELECT count(*) FROM t1, t2 USING (a) ON (t1.a=t2.a)\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"ON\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"ON\\\": syntax error", _res.Error, "\n  SELECT count(*) FROM t1, t2 USING (a) ON (t1.a=t2.a)\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ON\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"ON\": syntax error", _res.Error, "\n  SELECT count(*) FROM t1, t2 USING (a) ON (t1.a=t2.a)\n")
 		}
 	}
 	// do_select_tests e_select-0.2 {\n  0000.1  "SELECT 1, 2, 3 " {1 2 3}\n  1000.1  "...} (unsupported command, not transpiled)

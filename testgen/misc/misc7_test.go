@@ -214,8 +214,8 @@ func Test_misc7(t *testing.T) {
 	_ = sqlite_where_trace // suppress unused warning
 	{ // "misc7-10.1"
 		_res = db.Exec("\n    INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UPSERT not implemented for virtual table \\\"t1\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UPSERT not implemented for virtual table \\\"t1\\\"", _res.Error, "\n    INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UPSERT not implemented for virtual table \"t1\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UPSERT not implemented for virtual table \"t1\"", _res.Error, "\n    INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;\n  ")
 		}
 	}
 	{ // do_test "misc7-11"

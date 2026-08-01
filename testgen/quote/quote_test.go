@@ -212,8 +212,8 @@ func Test_quote(t *testing.T) {
 		}
 		{ // "2.3.2"
 			_res = db.Exec("\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: c!=\\\"null\\\"") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c!=\\\"null\\\"", _res.Error, "\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: c!=\"null\"") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c!=\"null\"", _res.Error, "\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
 			}
 		}
 		{ // "2.4"
@@ -245,20 +245,20 @@ func Test_quote(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			_res = db.Exec("\n      CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;\n    ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \\\"b\\\" - should this be a string literal in single-quotes?") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \\\"b\\\" - should this be a string literal in single-quotes?", _res.Error, "\n      CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;\n    ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", _res.Error, "\n      CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;\n    ")
 			}
 		}
 		{ // "3.1"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \\\"b\\\" - should this be a string literal in single-quotes?") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \\\"b\\\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
 		{ // "3.2"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a,'b');\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \\\"b\\\" - should this be a string literal in single-quotes?") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \\\"b\\\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,'b');\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,'b');\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
 		{ // "3.3"
@@ -269,8 +269,8 @@ func Test_quote(t *testing.T) {
 		}
 		{ // "3.4"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \\\"b\\\" - should this be a string literal in single-quotes?") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \\\"b\\\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
 		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)

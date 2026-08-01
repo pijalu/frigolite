@@ -237,8 +237,8 @@ func Test_with1(t *testing.T) {
 	}
 	{ // "3.6"
 		_res = db.Exec("\n  WITH tmp AS ( SELECT * FROM t3 ),\n  SELECT * FROM tmp;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"SELECT\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"SELECT\\\": syntax error", _res.Error, "\n  WITH tmp AS ( SELECT * FROM t3 ),\n  SELECT * FROM tmp;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"SELECT\": syntax error") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"SELECT\": syntax error", _res.Error, "\n  WITH tmp AS ( SELECT * FROM t3 ),\n  SELECT * FROM tmp;\n")
 		}
 	}
 	{ // "4.1"
@@ -1025,8 +1025,8 @@ func Test_with1(t *testing.T) {
 		}
 		{ // "26.0"
 			_res = db.Exec("\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"O\\\": syntax error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"O\\\": syntax error", _res.Error, "\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"O\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"O\": syntax error", _res.Error, "\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
 			}
 		}
 		db.Close()

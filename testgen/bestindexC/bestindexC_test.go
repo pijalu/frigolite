@@ -319,8 +319,8 @@ func Test_bestindexC(t *testing.T) {
 			}
 			{ // "4.4"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"CREATE TABLE x1(insert)\");\n")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "declare_vtab: near \\\"insert\\\": syntax error") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "declare_vtab: near \\\"insert\\\": syntax error", _res.Error, "\n  CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"CREATE TABLE x1(insert)\");\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "declare_vtab: near \"insert\": syntax error") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "declare_vtab: near \"insert\": syntax error", _res.Error, "\n  CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"CREATE TABLE x1(insert)\");\n")
 				}
 			}
 			db.Close()
