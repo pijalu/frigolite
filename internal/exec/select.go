@@ -48,19 +48,21 @@ func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, colDefs 
 		return nil
 	}
 
-	// Partition rows by GROUP BY key
+	// Partition rows by GROUP BY key, keeping each key's representative
+	// values so the groups can be emitted in key order (SQLite sorts groups).
 	groups := make(map[string][]RowMap)
+	keyVals := make(map[string][]interface{})
 	var keyOrder []string
 
-	for ri, row := range rowMaps {
-		key := e.computeGroupByKey(s.GroupBy, row)
-		if ri == 175 {
-		}
+	for _, row := range rowMaps {
+		key, vals := e.computeGroupByKeyValues(s.GroupBy, row)
 		if _, exists := groups[key]; !exists {
 			keyOrder = append(keyOrder, key)
+			keyVals[key] = vals
 		}
 		groups[key] = append(groups[key], row)
 	}
+	e.sortGroupKeys(keyOrder, keyVals)
 
 	var outRows [][]interface{}
 	for _, key := range keyOrder {
@@ -80,6 +82,29 @@ func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, colDefs 
 
 	columns := e.buildColumnNames(s.Columns, colDefs)
 	return e.finalizeSelectResult(&Result{Columns: columns, Rows: outRows}, s, nil)
+}
+
+// sortGroupKeys orders GROUP BY output groups by their evaluated key values,
+// matching SQLite's sorted-group output (NULL sorts first).
+func (e *Engine) sortGroupKeys(keyOrder []string, keyVals map[string][]interface{}) {
+	if len(keyOrder) < 2 {
+		return
+	}
+	sort.SliceStable(keyOrder, func(i, j int) bool {
+		a := keyVals[keyOrder[i]]
+		b := keyVals[keyOrder[j]]
+		n := len(a)
+		if len(b) < n {
+			n = len(b)
+		}
+		for k := 0; k < n; k++ {
+			c := util.CompareValues(a[k], b[k])
+			if c != 0 {
+				return c < 0
+			}
+		}
+		return len(a) < len(b)
+	})
 }
 
 // buildIndexSQL builds the SQL string for creating an index.
@@ -2068,10 +2093,8 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 	groups := make(map[string][]RowMap)
 	var keyOrder []string
 
-	for ri, row := range rowMaps {
+	for _, row := range rowMaps {
 		key := e.computeGroupByKey(s.GroupBy, row)
-		if ri == 100 || ri == 120 || ri == 175 {
-		}
 		if _, exists := groups[key]; !exists {
 			keyOrder = append(keyOrder, key)
 		}
@@ -2116,16 +2139,28 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 // computeGroupByKey serializes the GROUP BY expression values for a row into a
 // string key used to partition rows into groups.
 func (e *Engine) computeGroupByKey(groupBy []sql.Expr, row Row) string {
+	key, _ := e.computeGroupByKeyValues(groupBy, row)
+	return key
+}
+
+// computeGroupByKeyValues evaluates each GROUP BY expression for a row,
+// returning a serialized string key and the raw evaluated values (used to
+// sort the output groups, matching SQLite's key-order GROUP BY output).
+func (e *Engine) computeGroupByKeyValues(groupBy []sql.Expr, row Row) (string, []interface{}) {
 	parts := make([]string, len(groupBy))
+	values := make([]interface{}, len(groupBy))
 	for i, expr := range groupBy {
 		v, err := e.evalExpr(expr, row)
 		if err != nil || v == nil {
 			parts[i] = "\x00"
+			values[i] = nil
 		} else {
-			parts[i] = fmt.Sprintf("%v", util.UnwrapColumnValue(v))
+			uv := util.UnwrapColumnValue(v)
+			parts[i] = fmt.Sprintf("%v", uv)
+			values[i] = uv
 		}
 	}
-	return strings.Join(parts, "\x00")
+	return strings.Join(parts, "\x00"), values
 }
 
 // evalHaving evaluates a HAVING expression by treating aggregate function
@@ -2929,6 +2964,9 @@ func selectNeedsRowMaps(e *Engine, s *sql.SelectStmt, tableName string) bool {
 		return true
 	}
 	if e.hasAggregates(s.Columns) {
+		return true
+	}
+	if len(s.GroupBy) > 0 || s.Having != nil {
 		return true
 	}
 	// WHERE clauses with subqueries (EXISTS, scalar subqueries) need row maps
