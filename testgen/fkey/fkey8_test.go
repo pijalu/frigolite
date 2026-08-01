@@ -5,6 +5,7 @@
 package fkey
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "strings"
@@ -85,7 +86,9 @@ func Test_fkey8(t *testing.T) {
 		schema := _items0[_idx0+3]
 		_ = schema // suppress unused warning
 		_ = _idx0
-			// drop_all_tables (unsupported command, not transpiled)
+			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			}
 			{ // do_test "1." + tn
 				_res = db.Exec(schema)
 				if _res.Error != nil {

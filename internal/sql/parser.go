@@ -874,13 +874,15 @@ func (p *Parser) parseParenTableRef() TableRef {
 		return ref
 	}
 	// Parenthesized join expression: (t2 JOIN t3 USING(a))
-	// Just skip tokens until the matching ')' is found
+	// Parse it as a derived table (subquery) whose result is the join.
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-		// Record the first table name if possible (for error messages etc.)
-		if p.cur.Type == TokenIdentifier || !isJoinKeyword(p.cur.Value) {
-			ref.Name = p.cur.Value
+		sub := &SelectStmt{}
+		sub.From = p.parseTableRef()
+		p.parseSelectJoins(sub)
+		if p.cur.Type == TokenRParen {
+			p.next()
 		}
-		p.skipParenContent()
+		ref.Subquery = sub
 		// Try to parse optional alias
 		ref = p.parseTableRefAlias(ref)
 		return ref

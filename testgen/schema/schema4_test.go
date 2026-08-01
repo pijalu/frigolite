@@ -5,6 +5,7 @@
 package schema
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -124,7 +125,9 @@ func Test_schema4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// drop_all_tables (unsupported command, not transpiled)
+	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
 	{ // "schema4-2.1"
 		_res = db.Exec("\n    CREATE TABLE log(x, a, b);\n    CREATE TABLE tbl(a, b);\n  \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 		if _res.Error != nil {

@@ -5,6 +5,7 @@
 package analyze
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "strconv"
 "strings"
@@ -694,7 +695,9 @@ func Test_analyze9(t *testing.T) {
 		schema := _items0[_idx0+1]
 		_ = schema // suppress unused warning
 		_ = _idx0
-			// drop_all_tables (unsupported command, not transpiled)
+			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			}
 			{ // do_test "11." + tn + ".1"
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -773,7 +776,9 @@ func Test_analyze9(t *testing.T) {
 			schema := _items1[_idx1+1]
 			_ = schema // suppress unused warning
 			_ = _idx1
-				// drop_all_tables (unsupported command, not transpiled)
+				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+				}
 				{ // do_test "12." + tn + ".1"
 					_res = db.Exec(schema)
 					if _res.Error != nil {
@@ -844,7 +849,9 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			// drop_all_tables (unsupported command, not transpiled)
+			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			}
 			{ // do_test "13.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);\n  ")
 				if _res.Error != nil {
@@ -901,7 +908,9 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'100' AND b<12\n")
 				}
 			}
-			// drop_all_tables (unsupported command, not transpiled)
+			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			}
 			{ // do_test "14.1"
 				_res = db.Exec(" CREATE TABLE t1(a, b INTEGER, c) ")
 				if _res.Error != nil {
@@ -942,7 +951,9 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			// proc definition (not transpiled)
-			// drop_all_tables (unsupported command, not transpiled)
+			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			}
 			{ // do_test "14.1.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
 				if _res.Error != nil {
@@ -1087,7 +1098,9 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			// drop_all_tables (unsupported command, not transpiled)
+			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			}
 			{ // "15.1"
 				_res = db.Exec("\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
 				if _res.Error != nil {

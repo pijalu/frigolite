@@ -5,6 +5,7 @@
 package dbstatus
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -185,7 +186,9 @@ func Test_dbstatus(t *testing.T) {
 				}
 				nSchema1 = tclLIndex("sqlite3_db_status", "db")
 				_ = nSchema1 // suppress unused warning
-				// drop_all_tables (unsupported command, not transpiled)
+				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+				}
 				nAlloc2 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 				_ = nAlloc2 // suppress unused warning
 				// incr nAlloc2 lookaside db
@@ -212,7 +215,9 @@ func Test_dbstatus(t *testing.T) {
 				}
 				nSchema3 = tclLIndex("sqlite3_db_status", "db")
 				_ = nSchema3 // suppress unused warning
-				// drop_all_tables (unsupported command, not transpiled)
+				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+				}
 				nAlloc4 = tclLIndex("sqlite3_status", "SQLITE_STATUS_MEMORY_USED")
 				_ = nAlloc4 // suppress unused warning
 				// incr nAlloc4 lookaside db

@@ -5,6 +5,7 @@
 package distinct
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "regexp"
 "testing"
@@ -104,7 +105,9 @@ func Test_distinct(t *testing.T) {
 				// do_distinct_not_noop_test 1.$tn $sql (unsupported command, not transpiled)
 			}
 		}
-		// drop_all_tables (unsupported command, not transpiled)
+		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		}
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b COLLATE nocase, c COLLATE nocase);\n\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n")
 			if _res.Error != nil {

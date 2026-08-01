@@ -5,6 +5,7 @@
 package analyze
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "strconv"
 "testing"
@@ -349,7 +350,9 @@ func Test_analyze3(t *testing.T) {
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
-	// drop_all_tables (unsupported command, not transpiled)
+	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
 	{ // do_test "analyze3-2.1"
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
 		if _res.Error != nil {
@@ -429,7 +432,9 @@ func Test_analyze3(t *testing.T) {
 		_ = like // suppress unused warning
 		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
 	}
-	// drop_all_tables (unsupported command, not transpiled)
+	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
 	// proc definition (not transpiled)
 	{ // do_test "analyze3-3.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
@@ -680,7 +685,9 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-5.1.1"
-		// drop_all_tables (unsupported command, not transpiled)
+		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		}
 		_res = db.Exec("\n    CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');\n  ")

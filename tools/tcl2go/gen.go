@@ -1305,6 +1305,12 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		} else {
 			tp.emitLine("// %s (expr test, not transpiled)", cmdName)
 		}
+	case "drop_all_tables":
+		// Drop every user table so later CREATE TABLE statements start fresh
+		// (matches the TCL helper used throughout the SQLite test suite).
+		tp.emitLine("for _, _t := range db.Query(\"SELECT name FROM sqlite_master WHERE type='table'\").Rows {")
+		tp.emitLine("\tdb.Exec(\"DROP TABLE \" + fmt.Sprint(_t[0]))")
+		tp.emitLine("}")
 	default:
 		// Check for dbN pattern (secondary db connections like db2, db3)
 		if len(cmdName) > 2 && cmdName[:2] == "db" && cmdName[2] >= '0' && cmdName[2] <= '9' {

@@ -5,6 +5,7 @@
 package rowvalue
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "strings"
 "testing"
@@ -299,7 +300,9 @@ func Test_rowvalue4(t *testing.T) {
 								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", _res.Error, "\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
 							}
 						}
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						{ // "8.1"
 							_res = db.Exec("\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
 							if _res.Error != nil {

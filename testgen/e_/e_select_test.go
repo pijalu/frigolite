@@ -5,6 +5,7 @@
 package e_
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "strconv"
 "strings"
@@ -251,7 +252,9 @@ func Test_e_select(t *testing.T) {
 							}
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // "e_select-3.0"
 						_res = db.Exec("\n  CREATE TABLE x1(k, x, y, z);\n  INSERT INTO x1 VALUES(1, 'relinquished', 'aphasia', 78.43);\n  INSERT INTO x1 VALUES(2, X'A8E8D66F',    X'07CF',   -81);\n  INSERT INTO x1 VALUES(3, -22,            -27.57,    NULL);\n  INSERT INTO x1 VALUES(4, NULL,           'bygone',  'picky');\n  INSERT INTO x1 VALUES(5, NULL,           96.28,     NULL);\n  INSERT INTO x1 VALUES(6, 0,              1,         2);\n\n  CREATE TABLE x2(k, x, y2);\n  INSERT INTO x2 VALUES(1, 50, X'B82838');\n  INSERT INTO x2 VALUES(5, 84.79, 65.88);\n  INSERT INTO x2 VALUES(3, -22, X'0E1BE452A393');\n  INSERT INTO x2 VALUES(7, 'mistrusted', 'standardized');\n")
 						if _res.Error != nil {
@@ -384,7 +387,9 @@ func Test_e_select(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT k FROM x1 NATURAL JOIN x2 WHERE x2.k-3\n")
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // "e_select-4.0"
 						_res = db.Exec("\n  CREATE TABLE z1(a, b, c);\n  CREATE TABLE z2(d, e);\n  CREATE TABLE z3(a, b);\n\n  INSERT INTO z1 VALUES(51.65, -59.58, 'belfries');\n  INSERT INTO z1 VALUES(-5, NULL, 75);\n  INSERT INTO z1 VALUES(-2.2, -23.18, 'suiters');\n  INSERT INTO z1 VALUES(NULL, 67, 'quartets');\n  INSERT INTO z1 VALUES(-1.04, -32.3, 'aspen');\n  INSERT INTO z1 VALUES(63, 'born', -26);\n\n  INSERT INTO z2 VALUES(NULL, 21);\n  INSERT INTO z2 VALUES(36, 6);\n\n  INSERT INTO z3 VALUES('subsistence', 'gauze');\n  INSERT INTO z3 VALUES(49.17, -67);\n")
 						if _res.Error != nil {
@@ -428,7 +433,9 @@ func Test_e_select(t *testing.T) {
 							}
 							// do_select_tests e_select-4.4 {\n  1 "SELECT a, b FROM z1"\n    {51.65 -59.58 -5 ...} (unsupported command, not transpiled)
 							// do_select_tests e_select-4.5 {\n  1 "SELECT count(a), max(a), count(b), max(b) F...} (unsupported command, not transpiled)
-							// drop_all_tables (unsupported command, not transpiled)
+							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
 							{ // "e_select-4.6.0"
 								_res = db.Exec("\n  CREATE TABLE a1(one PRIMARY KEY, two);\n  INSERT INTO a1 VALUES(1, 1);\n  INSERT INTO a1 VALUES(2, 3);\n  INSERT INTO a1 VALUES(3, 6);\n  INSERT INTO a1 VALUES(4, 10);\n\n  CREATE TABLE a2(one PRIMARY KEY, three);\n  INSERT INTO a2 VALUES(1, 1);\n  INSERT INTO a2 VALUES(3, 2);\n  INSERT INTO a2 VALUES(6, 3);\n  INSERT INTO a2 VALUES(10, 4);\n")
 								if _res.Error != nil {
@@ -467,7 +474,9 @@ func Test_e_select(t *testing.T) {
 										}
 									}
 								}
-								// drop_all_tables (unsupported command, not transpiled)
+								for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+									db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+								}
 								{ // "e_select-4.9.0"
 									_res = db.Exec("\n  CREATE TABLE b1(one PRIMARY KEY, two);\n  INSERT INTO b1 VALUES(1, 'o');\n  INSERT INTO b1 VALUES(4, 'f');\n  INSERT INTO b1 VALUES(3, 't');\n  INSERT INTO b1 VALUES(2, 't');\n  INSERT INTO b1 VALUES(5, 'f');\n  INSERT INTO b1 VALUES(7, 's');\n  INSERT INTO b1 VALUES(6, 's');\n\n  CREATE TABLE b2(x, y);\n  INSERT INTO b2 VALUES(NULL, 0);\n  INSERT INTO b2 VALUES(NULL, 1);\n  INSERT INTO b2 VALUES('xyz', 2);\n  INSERT INTO b2 VALUES('abc', 3);\n  INSERT INTO b2 VALUES('xyz', 4);\n\n  CREATE TABLE b3(a COLLATE nocase, b COLLATE binary);\n  INSERT INTO b3 VALUES('abc', 'abc');\n  INSERT INTO b3 VALUES('aBC', 'aBC');\n  INSERT INTO b3 VALUES('Def', 'Def');\n  INSERT INTO b3 VALUES('dEF', 'dEF');\n")
 									if _res.Error != nil {
@@ -504,7 +513,9 @@ func Test_e_select(t *testing.T) {
 									// do_select_tests e_select-4.15 {\n  1  "SELECT sum(down) FROM c1 GROUP BY up" {15 ...} (unsupported command, not transpiled)
 									// do_select_tests e_select-4.15 {\n  1  "SELECT i, j FROM c2 GROUP BY i%2"         ...} (unsupported command, not transpiled)
 									// do_select_tests e_select.4.16 -count {\n  1  "SELECT i, j FROM c2 GROUP BY i%2"         ...} (unsupported command, not transpiled)
-									// drop_all_tables (unsupported command, not transpiled)
+									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+									}
 									{ // "e_select-5.1.0"
 										_res = db.Exec("\n  CREATE TABLE h1(a, b);\n  INSERT INTO h1 VALUES(1, 'one');\n  INSERT INTO h1 VALUES(1, 'I');\n  INSERT INTO h1 VALUES(1, 'i');\n  INSERT INTO h1 VALUES(4, 'four');\n  INSERT INTO h1 VALUES(4, 'IV');\n  INSERT INTO h1 VALUES(4, 'iv');\n\n  CREATE TABLE h2(x COLLATE nocase);\n  INSERT INTO h2 VALUES('One');\n  INSERT INTO h2 VALUES('Two');\n  INSERT INTO h2 VALUES('Three');\n  INSERT INTO h2 VALUES('Four');\n  INSERT INTO h2 VALUES('one');\n  INSERT INTO h2 VALUES('two');\n  INSERT INTO h2 VALUES('three');\n  INSERT INTO h2 VALUES('four');\n\n  CREATE TABLE h3(c, d);\n  INSERT INTO h3 VALUES(1, NULL);\n  INSERT INTO h3 VALUES(2, NULL);\n  INSERT INTO h3 VALUES(3, NULL);\n  INSERT INTO h3 VALUES(4, '2');\n  INSERT INTO h3 VALUES(5, NULL);\n  INSERT INTO h3 VALUES(6, '2,3');\n  INSERT INTO h3 VALUES(7, NULL);\n  INSERT INTO h3 VALUES(8, '2,4');\n  INSERT INTO h3 VALUES(9, '3');\n")
 										if _res.Error != nil {
@@ -515,7 +526,9 @@ func Test_e_select(t *testing.T) {
 									// do_select_tests e_select-5 {\n  3.1 "SELECT ALL x FROM h2" {One Two Three Four...} (unsupported command, not transpiled)
 									// do_select_tests e_select-5.5 {\n  1  "SELECT DISTINCT d FROM h3" {{} 2 2,3 2,4 3...} (unsupported command, not transpiled)
 									// do_select_tests e_select-5.6 {\n  1  "SELECT DISTINCT b FROM h1"                ...} (unsupported command, not transpiled)
-									// drop_all_tables (unsupported command, not transpiled)
+									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+									}
 									{ // "e_select-7.1.0"
 										_res = db.Exec("\n  CREATE TABLE j1(a, b, c);\n  CREATE TABLE j2(e, f);\n  CREATE TABLE j3(g);\n")
 										if _res.Error != nil {
@@ -599,7 +612,9 @@ func Test_e_select(t *testing.T) {
 														}
 													}
 												}
-												// drop_all_tables (unsupported command, not transpiled)
+												for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+													db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+												}
 												{ // "e_select-7.4.0"
 													_res = db.Exec("\n  CREATE TABLE q1(a TEXT, b INTEGER, c);\n  CREATE TABLE q2(d NUMBER, e BLOB);\n  CREATE TABLE q3(f REAL, g);\n\n  INSERT INTO q1 VALUES(16, -87.66, NULL);\n  INSERT INTO q1 VALUES('legible', 94, -42.47);\n  INSERT INTO q1 VALUES('beauty', 36, NULL);\n\n  INSERT INTO q2 VALUES('legible', 1);\n  INSERT INTO q2 VALUES('beauty', 2);\n  INSERT INTO q2 VALUES(-65.91, 4);\n  INSERT INTO q2 VALUES('emanating', -16.56);\n\n  INSERT INTO q3 VALUES('beauty', 2);\n  INSERT INTO q3 VALUES('beauty', 2);\n")
 													if _res.Error != nil {
@@ -614,7 +629,9 @@ func Test_e_select(t *testing.T) {
 												tcl_nullvalue = "null"
 												// do_select_tests e_select-7.9 {\n  1   {SELECT NULL UNION ALL SELECT NULL} {null ...} (unsupported command, not transpiled)
 												tcl_nullvalue = ""
-												// drop_all_tables (unsupported command, not transpiled)
+												for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+													db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+												}
 												{ // "e_select-7.10.0"
 													_res = db.Exec("\n  CREATE TABLE y1(a COLLATE nocase, b COLLATE binary, c);\n  INSERT INTO y1 VALUES('Abc', 'abc', 'aBC');\n")
 													if _res.Error != nil {
@@ -622,7 +639,9 @@ func Test_e_select(t *testing.T) {
 													}
 												}
 												// do_select_tests e_select-7.10 {\n  1   {SELECT 'abc'                UNION SELECT ...} (unsupported command, not transpiled)
-												// drop_all_tables (unsupported command, not transpiled)
+												for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+													db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+												}
 												{ // "e_select-7.10.0"
 													_res = db.Exec("\n  CREATE TABLE w1(a TEXT, b NUMBER);\n  CREATE TABLE w2(a, b TEXT);\n\n  INSERT INTO w1 VALUES('1', 4.1);\n  INSERT INTO w2 VALUES(1, 4.1);\n")
 													if _res.Error != nil {
@@ -630,7 +649,9 @@ func Test_e_select(t *testing.T) {
 													}
 												}
 												// do_select_tests e_select-7.11 {\n  1  { SELECT a FROM w1 UNION SELECT a FROM w2 }...} (unsupported command, not transpiled)
-												// drop_all_tables (unsupported command, not transpiled)
+												for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+													db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+												}
 												{ // "e_select-7.12.0"
 													_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n")
 													if _res.Error != nil {
@@ -656,7 +677,9 @@ func Test_e_select(t *testing.T) {
 															}
 														}
 													}
-													// drop_all_tables (unsupported command, not transpiled)
+													for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+														db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+													}
 													{ // "e_select-8.1.0"
 														_res = db.Exec("\n  CREATE TABLE d1(x, y, z);\n\n  INSERT INTO d1 VALUES(1, 2, 3);\n  INSERT INTO d1 VALUES(2, 5, -1);\n  INSERT INTO d1 VALUES(1, 2, 8);\n  INSERT INTO d1 VALUES(1, 2, 7);\n  INSERT INTO d1 VALUES(2, 4, 93);\n  INSERT INTO d1 VALUES(1, 2, -20);\n  INSERT INTO d1 VALUES(1, 4, 93);\n  INSERT INTO d1 VALUES(1, 5, -1);\n\n  CREATE TABLE d2(a, b);\n  INSERT INTO d2 VALUES('gently', 'failings');\n  INSERT INTO d2 VALUES('commercials', 'bathrobe');\n  INSERT INTO d2 VALUES('iterate', 'sexton');\n  INSERT INTO d2 VALUES('babied', 'charitableness');\n  INSERT INTO d2 VALUES('solemnness', 'annexed');\n  INSERT INTO d2 VALUES('rejoicing', 'liabilities');\n  INSERT INTO d2 VALUES('pragmatist', 'guarded');\n  INSERT INTO d2 VALUES('barked', 'interrupted');\n  INSERT INTO d2 VALUES('reemphasizes', 'reply');\n  INSERT INTO d2 VALUES('lad', 'relenting');\n")
 														if _res.Error != nil {

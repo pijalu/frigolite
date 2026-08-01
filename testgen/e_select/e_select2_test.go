@@ -5,6 +5,7 @@
 package e_select
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -181,7 +182,9 @@ func Test_e_select2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// drop_all_tables (unsupported command, not transpiled)
+	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
 	{ // "e_select-2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES(2, 'B');\n  INSERT INTO t1 VALUES(1, 'A');\n  INSERT INTO t1 VALUES(4, 'D');\n  INSERT INTO t1 VALUES(NULL, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n\n  INSERT INTO t2 VALUES(1, 'A');\n  INSERT INTO t2 VALUES(2, NULL);\n  INSERT INTO t2 VALUES(5, 'E');\n  INSERT INTO t2 VALUES(NULL, NULL);\n  INSERT INTO t2 VALUES(3, 'C');\n\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('c');\n  INSERT INTO t3 VALUES('b');\n")
 		if _res.Error != nil {

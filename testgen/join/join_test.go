@@ -5,6 +5,7 @@
 package join
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -539,7 +540,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-11.1"
-		// drop_all_tables (unsupported command, not transpiled)
+		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		}
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t2 VALUES(1,'abc');\n    INSERT INTO t2 VALUES(2,'def');\n    SELECT * FROM t1 NATURAL JOIN t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t2 VALUES(1,'abc');\n    INSERT INTO t2 VALUES(2,'def');\n    SELECT * FROM t1 NATURAL JOIN t2;\n  ")
@@ -570,7 +573,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-11.5"
-		// drop_all_tables (unsupported command, not transpiled)
+		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		}
 		_res = db.Exec("\n    CREATE TABLE t1(a COLLATE nocase, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES('ONE', 1);\n    INSERT INTO t1 VALUES('two', 2);\n    INSERT INTO t2 VALUES('one', 1);\n    INSERT INTO t2 VALUES('two', 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a COLLATE nocase, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES('ONE', 1);\n    INSERT INTO t1 VALUES('two', 2);\n    INSERT INTO t2 VALUES('one', 1);\n    INSERT INTO t2 VALUES('two', 2);\n  ")
@@ -589,7 +594,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-11.8"
-		// drop_all_tables (unsupported command, not transpiled)
+		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		}
 		_res = db.Exec("\n    CREATE TABLE t1(a, b TEXT);\n    CREATE TABLE t2(b INTEGER, a);\n    INSERT INTO t1 VALUES('one', '1.0');\n    INSERT INTO t1 VALUES('two', '2');\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b TEXT);\n    CREATE TABLE t2(b INTEGER, a);\n    INSERT INTO t1 VALUES('one', '1.0');\n    INSERT INTO t1 VALUES('two', '2');\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');\n  ")

@@ -5,6 +5,7 @@
 package fkey
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "strings"
 "testing"
@@ -165,7 +166,9 @@ func Test_fkey2(t *testing.T) {
 				}
 			}
 		}
-		// drop_all_tables (unsupported command, not transpiled)
+		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		}
 		{ // do_test "fkey2-1.2.0"
 			_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{DEFERRABLE"))
 			if _res.Error != nil {
@@ -223,7 +226,9 @@ func Test_fkey2(t *testing.T) {
 					}
 				}
 			}
-			// drop_all_tables (unsupported command, not transpiled)
+			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+			}
 			{ // do_test "fkey2-1.3.0"
 				_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
 				if _res.Error != nil {
@@ -293,7 +298,9 @@ func Test_fkey2(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
 				}
-				// drop_all_tables (unsupported command, not transpiled)
+				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+				}
 				{ // do_test "fkey2-1.4.0"
 					_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
 					if _res.Error != nil {
@@ -335,7 +342,9 @@ func Test_fkey2(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-1.5.1"
 						r = db.Query("\n    CREATE TABLE i(i INTEGER PRIMARY KEY);\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n  ")
 						if r.Error != nil {
@@ -346,7 +355,9 @@ func Test_fkey2(t *testing.T) {
 						_res = db.Exec(" DELETE FROM i ")
 						_ = _res // catchsql
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-1.6.1"
 						r = db.Query("\n    CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;\n  ")
 						if r.Error != nil {
@@ -357,7 +368,9 @@ func Test_fkey2(t *testing.T) {
 						_res = db.Exec(" DELETE FROM i ")
 						_ = _res // catchsql
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-1.7.1"
 						_res = db.Exec("\n    CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY);\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');\n  ")
 						if _res.Error != nil {
@@ -366,7 +379,9 @@ func Test_fkey2(t *testing.T) {
 						_res = db.Exec(" DELETE FROM i ")
 						_ = _res // catchsql
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-1.7.2"
 						_res = db.Exec("\n    CREATE TABLE i(i TEXT PRIMARY KEY);        -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n  ")
 						if _res.Error != nil {
@@ -462,7 +477,9 @@ func Test_fkey2(t *testing.T) {
 					// fkey2-2-test 73 1 DELETE FROM node (unsupported command, not transpiled)
 					// fkey2-2-test 74 0 INSERT INTO node(nodeid) SELECT DISTINCT parent FR... (unsupported command, not transpiled)
 					// fkey2-2-test 75 0 COMMIT (unsupported command, not transpiled)
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-3.1.1"
 						_res = db.Exec("\n    CREATE TABLE ab(a PRIMARY KEY, b);\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    );\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );\n  ")
 						if _res.Error != nil {
@@ -521,7 +538,9 @@ func Test_fkey2(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-4.1"
 						_res = db.Exec("\n    CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    );\n    CREATE TABLE t2(node PRIMARY KEY, parent);\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t1 VALUES(1, NULL);\n    INSERT INTO t1 VALUES(2, 1);\n    INSERT INTO t1 VALUES(3, 1);\n    INSERT INTO t1 VALUES(4, 2);\n    INSERT INTO t1 VALUES(5, 2);\n    INSERT INTO t1 VALUES(6, 3);\n    INSERT INTO t1 VALUES(7, 3);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
 						if _res.Error != nil {
@@ -560,7 +579,9 @@ func Test_fkey2(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-5.1"
 						_res = db.Exec("\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      CREATE TABLE t2(a PRIMARY KEY, b REFERENCES t1(a));\n      INSERT INTO t1 VALUES('hello', 'world');\n      INSERT INTO t2 VALUES('key', 'hello');\n    ")
 						if _res.Error != nil {
@@ -629,14 +650,18 @@ func Test_fkey2(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = on ")
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-6.1"
 						_res = db.Exec("\n      CREATE TABLE t1(a REFERENCES t2(c), b);\n      CREATE TABLE t2(c UNIQUE, b);\n      INSERT INTO t2 VALUES(1, 2);\n      INSERT INTO t1 VALUES(1, 2);\n      VACUUM;\n    ")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a REFERENCES t2(c), b);\n      CREATE TABLE t2(c UNIQUE, b);\n      INSERT INTO t2 VALUES(1, 2);\n      INSERT INTO t1 VALUES(1, 2);\n      VACUUM;\n    ")
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-7.1"
 						_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(c INTEGER PRIMARY KEY REFERENCES t1, b);\n  ")
 						if _res.Error != nil {
@@ -681,7 +706,9 @@ func Test_fkey2(t *testing.T) {
 						_res = db.Exec(" UPDATE t2 SET rowid = 3 ")
 						_ = _res // catchsql
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					// proc definition (not transpiled)
 					// fkey2-8-test 1 { PRAGMA foreign_keys = 0     } 0 (unsupported command, not transpiled)
 					// fkey2-8-test 2 { PRAGMA foreign_keys = 1     } 1 (unsupported command, not transpiled)
@@ -699,7 +726,9 @@ func Test_fkey2(t *testing.T) {
 					// fkey2-8-test 14 { PRAGMA foreign_keys = yes   } 1 (unsupported command, not transpiled)
 					// fkey2-8-test 15 { PRAGMA foreign_keys = false } 0 (unsupported command, not transpiled)
 					// fkey2-8-test 16 { PRAGMA foreign_keys = true  } 1 (unsupported command, not transpiled)
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-9.1.1"
 						_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    );\n    DELETE FROM t1;\n  ")
 						if _res.Error != nil {
@@ -756,7 +785,9 @@ func Test_fkey2(t *testing.T) {
 					_ = tn // suppress unused warning
 					for _, zSql := range tclSplitList("{\n  CREATE TABLE p(a PRIMARY KEY, b);\n  CREATE TABLE c(x REFERENCES p(c));\n} {\n  CREATE TABLE c(x REFERENCES v(y));\n  CREATE VIEW v AS SELECT x AS y FROM c;\n} {\n  CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n  CREATE TABLE c(x REFERENCES p);\n} {\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n}") {
 					_ = zSql // suppress unused warning
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						{ // do_test "fkey2-10.1." + "incr tn"
 							_res = db.Exec(zSql)
 							if _res.Error != nil {
@@ -767,33 +798,45 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					{ // do_test "fkey2-10.2.1"
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(c, d, FOREIGN KEY(rowid) REFERENCES t1(a));\n  ")
 						_ = _res // catchsql
 					}
 					{ // do_test "fkey2-10.2.2"
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(rowid, d, FOREIGN KEY(rowid) REFERENCES t1(a));\n  ")
 						_ = _res // catchsql
 					}
 					{ // do_test "fkey2-10.2.1"
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, a, b) VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(1, 1);\n  ")
 						_ = _res // catchsql
 					}
 					{ // do_test "fkey2-10.2.2"
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						_res = db.Exec("\n    CREATE TABLE t1(rowid PRIMARY KEY, b);\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, b) VALUES(1, 1);\n    INSERT INTO t2 VALUES(1, 1);\n  ")
 						_ = _res // catchsql
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-11.1.1"
 						r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, rowid, _rowid_, oid);\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100, 'abc', 'def', 'ghi');\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;\n  ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, rowid, _rowid_, oid);\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100, 'abc', 'def', 'ghi');\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;\n  ")
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-12.1.1"
 						_res = db.Exec("\n    CREATE TABLE t1(a, b PRIMARY KEY);\n    CREATE TABLE t2(\n      x REFERENCES t1 ON UPDATE RESTRICT DEFERRABLE INITIALLY DEFERRED \n    );\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
 						if _res.Error != nil {
@@ -836,7 +879,9 @@ func Test_fkey2(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2, 'two');\n    COMMIT;\n  ")
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-12.2.1"
 						r = db.Query("\n    CREATE TABLE t1(x COLLATE NOCASE PRIMARY KEY);\n    CREATE TRIGGER tt1 AFTER DELETE ON t1 \n      WHEN EXISTS ( SELECT 1 FROM t2 WHERE old.x = y )\n    BEGIN\n      INSERT INTO t1 VALUES(old.x);\n    END;\n    CREATE TABLE t2(y REFERENCES t1);\n    INSERT INTO t1 VALUES('A');\n    INSERT INTO t1 VALUES('B');\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
 						if r.Error != nil {
@@ -867,7 +912,9 @@ func Test_fkey2(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-12.3.1"
 						_res = db.Exec("\n    CREATE TABLE up(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      PRIMARY KEY(c34, c35)\n    );\n    CREATE TABLE down(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      FOREIGN KEY(c39, c38) REFERENCES up ON UPDATE CASCADE\n    );\n  ")
 						if _res.Error != nil {
@@ -898,7 +945,9 @@ func Test_fkey2(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM up WHERE c34 = 'possibly';\n    SELECT c34, c35 FROM up;\n    SELECT c39, c38 FROM down;\n  ")
 						}
 					}
-					// drop_all_tables (unsupported command, not transpiled)
+					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+					}
 					{ // do_test "fkey2-13.1.1"
 						_res = db.Exec("\n    CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c));\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);\n  ")
 						if _res.Error != nil {
@@ -950,7 +999,9 @@ func Test_fkey2(t *testing.T) {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    REPLACE INTO pp(rowid, a, b, c) VALUES(2, 2, 2, 3);\n    SELECT rowid, * FROM pp;\n    SELECT * FROM cc;\n  ")
 							}
 						}
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						{ // do_test "fkey2-14.1.1"
 							_res = db.Exec(" \n      CREATE TABLE t1(a PRIMARY KEY);\n      CREATE TABLE t2(a, b);\n      INSERT INTO t2 VALUES(1,2);\n    ")
 							if _res.Error != nil {
@@ -994,7 +1045,9 @@ func Test_fkey2(t *testing.T) {
 						}
 						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2.2.1"
-							// drop_all_tables (unsupported command, not transpiled)
+							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
 							_res = db.Exec("\n      CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1);\n      CREATE TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2);\n      CREATE TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);\n    ")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1);\n      CREATE TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2);\n      CREATE TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);\n    ")
@@ -1038,7 +1091,9 @@ func Test_fkey2(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES(1, NULL, 1) ")
 							}
 						}
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						{ // do_test "fkey2-14.1tmp.1"
 							_res = db.Exec(" \n      CREATE TEMP TABLE t1(a PRIMARY KEY);\n      CREATE TEMP TABLE t2(a, b);\n      INSERT INTO temp.t2 VALUES(1,2);\n    ")
 							if _res.Error != nil {
@@ -1081,7 +1136,9 @@ func Test_fkey2(t *testing.T) {
 						}
 						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2tmp.2.1"
-							// drop_all_tables (unsupported command, not transpiled)
+							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
 							_res = db.Exec("\n      CREATE TEMP TABLE t1(a PRIMARY KEY, b REFERENCES t1);\n      CREATE TEMP TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2);\n      CREATE TEMP TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);\n    ")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TABLE t1(a PRIMARY KEY, b REFERENCES t1);\n      CREATE TEMP TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2);\n      CREATE TEMP TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);\n    ")
@@ -1125,7 +1182,9 @@ func Test_fkey2(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES(1, NULL, 1) ")
 							}
 						}
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						{ // do_test "fkey2-14.1aux.1"
 							_res = db.Exec(" \n      ATTACH ':memory:' AS aux;\n      CREATE TABLE aux.t1(a PRIMARY KEY);\n      CREATE TABLE aux.t2(a, b);\n      INSERT INTO aux.t2(a,b) VALUES(1,2);\n    ")
 							if _res.Error != nil {
@@ -1168,7 +1227,9 @@ func Test_fkey2(t *testing.T) {
 						}
 						// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 						{ // do_test "fkey2-14.2aux.2.1"
-							// drop_all_tables (unsupported command, not transpiled)
+							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
 							_res = db.Exec("\n      CREATE TABLE aux.t1(a PRIMARY KEY, b REFERENCES t1);\n      CREATE TABLE aux.t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2);\n      CREATE TABLE aux.t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);\n    ")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE aux.t1(a PRIMARY KEY, b REFERENCES t1);\n      CREATE TABLE aux.t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2);\n      CREATE TABLE aux.t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);\n    ")
@@ -1213,7 +1274,9 @@ func Test_fkey2(t *testing.T) {
 							}
 						}
 						{ // do_test "fkey-2.14.3.1"
-							// drop_all_tables (unsupported command, not transpiled)
+							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
 							_res = db.Exec("\n    CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;\n  ")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;\n  ")
@@ -1301,7 +1364,9 @@ func Test_fkey2(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;\n  ")
 							}
 						}
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						{ // do_test "fkey-2.14.4.1"
 							_res = db.Exec("\n    CREATE TABLE t1(x REFERENCES v); \n    CREATE VIEW v AS SELECT * FROM t1;\n  ")
 							if _res.Error != nil {
@@ -1327,7 +1392,9 @@ func Test_fkey2(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE v;\n    ")
 							}
 						}
-						// drop_all_tables (unsupported command, not transpiled)
+						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+						}
 						// proc definition (not transpiled)
 						{ // do_test "fkey2-15.1.1"
 							_res = db.Exec("\n    CREATE TABLE pp(a PRIMARY KEY, b);\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);\n  ")
@@ -1380,7 +1447,9 @@ func Test_fkey2(t *testing.T) {
 							zSchema := _items5[_idx5+1]
 							_ = zSchema // suppress unused warning
 							_ = _idx5
-								// drop_all_tables (unsupported command, not transpiled)
+								for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+									db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+								}
 								{ // do_test "fkey2-16.1." + tn + ".1"
 									_res = db.Exec(zSchema)
 									if _res.Error != nil {
@@ -1424,7 +1493,9 @@ func Test_fkey2(t *testing.T) {
 									_ = _res // catchsql
 								}
 							}
-							// drop_all_tables (unsupported command, not transpiled)
+							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
 							{ // do_test "fkey2-17.1.1"
 								r = db.Query(" PRAGMA count_changes = 1 ")
 								if r.Error != nil {
@@ -1499,7 +1570,9 @@ func Test_fkey2(t *testing.T) {
 								// sqlite3_finalize $STMT (unsupported command, not transpiled)
 							}
 							// verify_ex_errcode fkey2-17.1.14b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
-							// drop_all_tables (unsupported command, not transpiled)
+							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
 							{ // do_test "fkey2-17.2.1"
 								_res = db.Exec("\n    CREATE TABLE high(\"a'b!\" PRIMARY KEY, b);\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
 								if _res.Error != nil {
@@ -1666,7 +1739,9 @@ func Test_fkey2(t *testing.T) {
 							{ // do_test "fkey2-19.4"
 								// sqlite3_finalize $S (unsupported command, not transpiled)
 							}
-							// drop_all_tables (unsupported command, not transpiled)
+							for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+							}
 							{ // do_test "fkey2-20.1"
 								_res = db.Exec("\n    CREATE TABLE pp(a PRIMARY KEY, b);\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp);\n  ")
 								if _res.Error != nil {
@@ -1781,7 +1856,9 @@ func Test_fkey2(t *testing.T) {
 											}
 										}
 									}
-									// drop_all_tables (unsupported command, not transpiled)
+									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+									}
 									{ // do_test "fkey2-genfkey.1.1"
 										_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));\n  ")
 										if _res.Error != nil {
@@ -1878,7 +1955,9 @@ func Test_fkey2(t *testing.T) {
 										_res = db.Exec(" UPDATE t3 SET h = 'hello' WHERE i = 3")
 										_ = _res // catchsql
 									}
-									// drop_all_tables (unsupported command, not transpiled)
+									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+									}
 									{ // do_test "fkey2-genfkey.2.1"
 										_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
 										if _res.Error != nil {
@@ -1915,7 +1994,9 @@ func Test_fkey2(t *testing.T) {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
 										}
 									}
-									// drop_all_tables (unsupported command, not transpiled)
+									for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+										db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+									}
 									{ // do_test "fkey2-genfkey.3.1"
 										_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b));\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );\n  ")
 										if _res.Error != nil {

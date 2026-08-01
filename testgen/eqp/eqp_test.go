@@ -5,6 +5,7 @@
 package eqp
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -152,7 +153,9 @@ func Test_eqp(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t3 JOIN (SELECT 1 UNION ALL SELECT a FROM t3 LIMIT 17) abc\n")
 		}
 	}
-	// drop_all_tables (unsupported command, not transpiled)
+	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x INT, y INT, ex TEXT);\n\n  CREATE TABLE t2(x INT, y INT, ex TEXT);\n  CREATE INDEX t2i1 ON t2(x);\n")
 		if _res.Error != nil {
@@ -272,7 +275,9 @@ func Test_eqp(t *testing.T) {
 		}
 	}
 	if false {
-		// drop_all_tables (unsupported command, not transpiled)
+		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+		}
 		{ // "5.1.0"
 			_res = db.Exec(" CREATE TABLE t1(a INT, b INT, ex TEXT) ")
 			if _res.Error != nil {
@@ -329,7 +334,9 @@ func Test_eqp(t *testing.T) {
 			// do_peqp_test 6.1 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, 99 FROM...} [string trimleft {\n... (unsupported command, not transpiled)
 		}
 	}
-	// drop_all_tables (unsupported command, not transpiled)
+	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, ex CHAR(100));\n  CREATE TABLE t2(a INT, b INT, ex CHAR(100));\n  CREATE INDEX i1 ON t2(a);\n")
 		if _res.Error != nil {
@@ -349,7 +356,9 @@ func Test_eqp(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// det 7.4 SELECT count(*) FROM t1 {\n  QUERY PLAN\n  `--SCAN t1\n} (unsupported command, not transpiled)
 	// det 7.5 SELECT count(*) FROM t2 {\n  QUERY PLAN\n  `--SCAN t2 USING COVERING INDEX .... (unsupported command, not transpiled)
-	// drop_all_tables (unsupported command, not transpiled)
+	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE TABLE t2(a, b, c);\n")
 		if _res.Error != nil {
