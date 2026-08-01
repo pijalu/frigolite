@@ -3503,6 +3503,11 @@ func (p *Parser) parsePrimaryExprInner() Expr {
 		if tableName != "" && nameVal == "*" {
 			return &ColumnRef{Table: tableName, Name: "*", TableTok: tableTok}
 		}
+		// Qualified function call: table.func(args) — SQLite treats the
+		// qualifier as a schema name and ignores it for built-ins.
+		if p.cur.Type == TokenLParen {
+			return p.parseFunctionCall(nameVal)
+		}
 		return &ColumnRef{Table: tableName, Name: nameVal, TableTok: tableTok, NameTok: TokenInfo{Start: nameStart, End: nameEnd}}
 
 	case TokenLParen:

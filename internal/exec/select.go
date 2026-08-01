@@ -54,8 +54,9 @@ func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, colDefs 
 	keyVals := make(map[string][]interface{})
 	var keyOrder []string
 
+	groupBy := resolveGroupByOrdinals(s)
 	for _, row := range rowMaps {
-		key, vals := e.computeGroupByKeyValues(s.GroupBy, row)
+		key, vals := e.computeGroupByKeyValues(groupBy, row)
 		if _, exists := groups[key]; !exists {
 			keyOrder = append(keyOrder, key)
 			keyVals[key] = vals
@@ -2093,8 +2094,9 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 	groups := make(map[string][]RowMap)
 	var keyOrder []string
 
+	groupBy := resolveGroupByOrdinals(s)
 	for _, row := range rowMaps {
-		key := e.computeGroupByKey(s.GroupBy, row)
+		key := e.computeGroupByKey(groupBy, row)
 		if _, exists := groups[key]; !exists {
 			keyOrder = append(keyOrder, key)
 		}
@@ -2134,6 +2136,27 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 		return e.finalizeSelectResult(&Result{Columns: columns, Rows: [][]interface{}{}}, s, nil)
 	}
 	return e.finalizeSelectResult(&Result{Columns: columns, Rows: outRows}, s, nil)
+}
+
+// resolveGroupByOrdinals maps numeric GROUP BY terms (e.g., GROUP BY 2) to
+// the corresponding SELECT column expression (1-based ordinal).
+func resolveGroupByOrdinals(s *sql.SelectStmt) []sql.Expr {
+	if len(s.GroupBy) == 0 {
+		return nil
+	}
+	resolved := make([]sql.Expr, len(s.GroupBy))
+	for i, g := range s.GroupBy {
+		if num, ok := g.(*sql.NumericLit); ok {
+			var ord int64
+			fmt.Sscanf(num.Value, "%d", &ord)
+			if ord >= 1 && int(ord) <= len(s.Columns) {
+				resolved[i] = s.Columns[ord-1].Expr
+				continue
+			}
+		}
+		resolved[i] = g
+	}
+	return resolved
 }
 
 // computeGroupByKey serializes the GROUP BY expression values for a row into a
