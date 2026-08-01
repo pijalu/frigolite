@@ -847,7 +847,7 @@ func (e *Engine) evalIsNull(v *sql.IsNull, row Row) (interface{}, error) {
 	}
 	// Unwrap ColumnValue so we check for actual NULL, not just wrapper nil
 	operand = util.UnwrapColumnValue(operand)
-	return operand == nil, nil
+	return boolToInt(operand == nil), nil
 }
 
 func (e *Engine) evalIsNotNull(v *sql.IsNotNull, row Row) (interface{}, error) {
@@ -857,7 +857,7 @@ func (e *Engine) evalIsNotNull(v *sql.IsNotNull, row Row) (interface{}, error) {
 	}
 	// Unwrap ColumnValue so we check for actual NULL, not just wrapper nil
 	operand = util.UnwrapColumnValue(operand)
-	return operand != nil, nil
+	return boolToInt(operand != nil), nil
 }
 
 func (e *Engine) evalIsTrue(v *sql.IsTrue, row Row) (interface{}, error) {
@@ -956,7 +956,7 @@ func (e *Engine) evalBetween(v *sql.Between, row Row) (interface{}, error) {
 	if v.Negated {
 		result = !result
 	}
-	return result, nil
+	return boolToInt(result), nil
 }
 
 func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
@@ -981,7 +981,7 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 	if v.Negated {
 		found = !found
 	}
-	return found, nil
+	return boolToInt(found), nil
 }
 
 func (e *Engine) evalBool(expr sql.Expr, row Row) (bool, error) {

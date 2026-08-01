@@ -2292,7 +2292,7 @@ func (e *Engine) evalHavingExpr(expr sql.Expr, groupRows []RowMap) (interface{},
 			return nil, err
 		}
 		operand = util.UnwrapColumnValue(operand)
-		return operand == nil, nil
+		return boolToInt(operand == nil), nil
 	case *sql.IsNotNull:
 		return e.evalHavingIsNotNull(v, groupRows)
 	case *sql.IsDistinctFrom:
@@ -2329,7 +2329,7 @@ func (e *Engine) evalHavingUnary(v *sql.UnaryOp, groupRows []RowMap) (interface{
 		if operand == nil {
 			return nil, nil
 		}
-		return !toBool(operand), nil
+		return boolToInt(!toBool(operand)), nil
 	case "-":
 		return negateValue(operand)
 	default:
@@ -2343,7 +2343,7 @@ func (e *Engine) evalHavingIsNotNull(v *sql.IsNotNull, groupRows []RowMap) (inte
 		return nil, err
 	}
 	operand = util.UnwrapColumnValue(operand)
-	return operand != nil, nil
+	return boolToInt(operand != nil), nil
 }
 
 func (e *Engine) evalHavingIsDistinctFrom(v *sql.IsDistinctFrom, groupRows []RowMap) (interface{}, error) {

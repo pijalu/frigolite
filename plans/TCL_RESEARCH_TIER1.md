@@ -4,7 +4,7 @@
 **Package list**: `plans/PACKAGES_TIER1.txt` (58 packages)
 **Measured this session** (`go test -tags testgen -count=1 -timeout 90s` per package, parallel sweep):
 **27 PASS / 31 FAIL** — identical FAIL set to `plans/HANDOVER_TIER1.md`.
-**Progress**: T1.1 DONE (delete3 green 2.9s), T1.2 DONE (selectG 145s→5s via rowid cache) — remaining 27 FAIL pending.
+**Progress**: T1.1 DONE (delete3 green 2.9s), T1.2 DONE (selectG 145s→5s via rowid cache), T1.3 DONE (cse green — comparison/IN/IS NULL/BETWEEN/logical never emit Go bool) — remaining 27 FAIL pending.
 
 - **PASS (27)**: insert, delete_, update, null, types, coalesce, literal, select2,
   select3, select4, select5, select6, select8, select9, selectB, selectE, selectF,
@@ -57,7 +57,7 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 ### Status
 - [x] T1.1 — delete3 hang: INTEGER PK direct-seek + single-pass delete (commit pending)
 - [x] T1.2 — selectG O(n²): rowid cache in findNextRowID, bump on insert, invalidate on delete (commit pending)
-- [ ] T1.3
+- [x] T1.3 — cse bool→0/1: evalIsNull/evalIsNotNull/evalBetween/evalInList + HAVING IsNull/NOT/IsNotNull now emit int64(0/1)
 - [ ] T1.4
 - [ ] T1.5
 - [ ] T1.6
@@ -212,11 +212,14 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 ### C. ENGINE bugs — expressions / values / CAST
 
 15. **cse** — `/Users/muaddib/dev/sqlite/test/cse.test:257-300` (3.2-3.5)
-    `SELECT 1000 IN (SELECT x FROM t2), 1000 = y FROM t3` — the engine returns
-    Go `bool` `false`; SQLite renders `0`. **Fix (engine)**: all comparison /
-    logical / IN operators must produce `int64(1)`/`int64(0)`, never Go `bool`
-    (or fix `flatten` to render `bool` as 0/1 — but engine-side is correct per
-    SQLite's value model).
+     `SELECT 1000 IN (SELECT x FROM t2), 1000 = y FROM t3` — the engine returns
+     Go `bool` `false`; SQLite renders `0`. **FIXED (T1.3, 2026-08-01)**:
+     `evalIsNull`, `evalIsNotNull`, `evalBetween`, `evalInList` in
+     `internal/exec/expression.go` and the HAVING IsNull/NOT/IsNotNull cases in
+     `internal/exec/select.go` now return `boolToInt(...)` — the value model
+     never emits Go `bool` for SQL results (engine-side fix, per SQLite's value
+     model; `flatten` left unchanged). cse 3.2-3.5 green; harness "result
+     mismatch" count dropped 1719→94.
 
 16. **numcast (engine part)** — `/Users/muaddib/dev/sqlite/test/numcast.test:27-35`
     Once transpilation is fixed, `CAST(' 876xyz' AS real)` must be `876.0` and
