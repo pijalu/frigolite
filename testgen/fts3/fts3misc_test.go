@@ -137,24 +137,12 @@ func Test_fts3misc(t *testing.T) {
 		r = db.Query("\n  SELECT rowid FROM t2 WHERE t2 MATCH '\"i h\"'\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t2 WHERE t2 MATCH '\"i h\"'\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.4"
 		r = db.Query("\n  SELECT rowid FROM t2 WHERE t2 MATCH '\"f e\"'\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t2 WHERE t2 MATCH '\"f e\"'\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.5"

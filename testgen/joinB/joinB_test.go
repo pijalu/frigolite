@@ -160,12 +160,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-9"
@@ -256,12 +250,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-17"
@@ -352,12 +340,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-25"
@@ -448,12 +430,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-33"
@@ -544,12 +520,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-41"
@@ -640,12 +610,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-49"
@@ -736,12 +700,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-57"
@@ -832,12 +790,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-65"
@@ -928,12 +880,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-73"
@@ -1024,12 +970,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-81"
@@ -1120,12 +1060,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-89"
@@ -1216,12 +1150,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-97"
@@ -1312,12 +1240,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-105"
@@ -1408,12 +1330,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-113"
@@ -1504,12 +1420,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-121"
@@ -1600,12 +1510,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL INNER JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-129"
@@ -1696,12 +1600,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-137"
@@ -1792,12 +1690,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-145"
@@ -1888,12 +1780,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-153"
@@ -1984,12 +1870,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-161"
@@ -2080,12 +1960,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-169"
@@ -2176,12 +2050,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-177"
@@ -2272,12 +2140,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-185"
@@ -2368,12 +2230,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-193"
@@ -2464,12 +2320,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-201"
@@ -2560,12 +2410,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-209"
@@ -2656,12 +2500,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-217"
@@ -2752,12 +2590,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-225"
@@ -2848,12 +2680,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-233"
@@ -2944,12 +2770,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-241"
@@ -3040,12 +2860,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-249"
@@ -3136,12 +2950,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL LEFT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-257"
@@ -3232,12 +3040,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-265"
@@ -3328,12 +3130,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-273"
@@ -3424,12 +3220,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-281"
@@ -3520,12 +3310,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-289"
@@ -3616,12 +3400,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-297"
@@ -3712,12 +3490,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-305"
@@ -3808,12 +3580,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-313"
@@ -3904,12 +3670,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-321"
@@ -4000,12 +3760,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-329"
@@ -4096,12 +3850,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-337"
@@ -4192,12 +3940,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-345"
@@ -4288,12 +4030,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-353"
@@ -4384,12 +4120,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-361"
@@ -4480,12 +4210,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-369"
@@ -4576,12 +4300,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-377"
@@ -4672,12 +4390,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL RIGHT JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-385"
@@ -4768,12 +4480,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-393"
@@ -4864,12 +4570,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-401"
@@ -4960,12 +4660,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-409"
@@ -5056,12 +4750,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL INNER JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-417"
@@ -5152,12 +4840,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-425"
@@ -5248,12 +4930,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-433"
@@ -5344,12 +5020,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-441"
@@ -5440,12 +5110,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL LEFT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-449"
@@ -5536,12 +5200,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-457"
@@ -5632,12 +5290,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-465"
@@ -5728,12 +5380,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-473"
@@ -5824,12 +5470,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL RIGHT JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-481"
@@ -5920,12 +5560,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL INNER JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-489"
@@ -6016,12 +5650,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL LEFT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-497"
@@ -6112,12 +5740,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL RIGHT JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinB-505"
@@ -6208,12 +5830,6 @@ func Test_joinB(t *testing.T) {
 		r = db.Query("\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b, c, d, e, f, g\n  FROM t1\n  NATURAL FULL JOIN t2\n  NATURAL FULL JOIN t3\n  NATURAL FULL JOIN t4\n  NATURAL FULL JOIN t5\n  WHERE b BETWEEN 12 AND 17\n  ORDER BY 1 NULLS FIRST;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

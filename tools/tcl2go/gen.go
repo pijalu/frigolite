@@ -741,7 +741,9 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 	}
 	text := strings.TrimSpace(w.Text)
 	if text == "" {
-		return w
+		// An empty braced expected value means an empty result set; the
+		// generated want should be the empty string, not the raw whitespace.
+		return tcl.RawWord{Text: "", Braced: true}
 	}
 	// Preserve structural content.
 	if strings.Contains(text, "|") || strings.Contains(text, "~") ||

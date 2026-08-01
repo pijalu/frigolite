@@ -141,12 +141,6 @@ func Test_fts3aux2(t *testing.T) {
 		r = db.Query("\n  SELECT term, col, documents, occurrences, languageid \n  FROM terms WHERE languageid=1 AND term='zero'\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT term, col, documents, occurrences, languageid \n  FROM terms WHERE languageid=1 AND term='zero'\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.3.4"

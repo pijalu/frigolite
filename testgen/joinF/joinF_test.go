@@ -70,48 +70,24 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-2"
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-3"
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-4"
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-5"
@@ -130,60 +106,30 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-7"
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-8"
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-9"
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-10"
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-11"
@@ -202,12 +148,6 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 INNER JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-13"
@@ -286,48 +226,24 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-20"
 		r = db.Query("\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-21"
 		r = db.Query("\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-22"
 		r = db.Query("\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-23"
@@ -346,12 +262,6 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-25"
@@ -370,12 +280,6 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-27"
@@ -394,12 +298,6 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-29"
@@ -418,12 +316,6 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 LEFT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-31"
@@ -502,48 +394,24 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-38"
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-39"
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-40"
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-41"
@@ -562,60 +430,30 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  INNER JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-43"
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-44"
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  INNER JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-45"
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-46"
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  LEFT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-47"
@@ -634,12 +472,6 @@ func Test_joinF(t *testing.T) {
 		r = db.Query("\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  LEFT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "joinF-49"

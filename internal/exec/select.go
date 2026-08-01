@@ -577,7 +577,7 @@ func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 	selectSQL := strings.TrimSpace(sqlStr[idx+3:])
 	trimmedUpper := strings.ToUpper(strings.TrimSpace(selectSQL))
 	// Allow SELECT or WITH (CTE) as the start of the view body
-	if !strings.HasPrefix(trimmedUpper, "SELECT") && !strings.HasPrefix(trimmedUpper, "WITH") {
+	if !strings.HasPrefix(trimmedUpper, "SELECT") && !strings.HasPrefix(trimmedUpper, "WITH") && !strings.HasPrefix(trimmedUpper, "VALUES") {
 		return &Result{Error: fmt.Errorf("exec: view does not contain SELECT: %s", sqlStr)}
 	}
 	// Check for circular view references before expanding
@@ -1271,7 +1271,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 				leftMap, rightMaps, &combinedMaps, tableName, effectiveJoin, s, rightDefs, autoIndex,
 				isRightOrFull, matchedRight, leftIdx)
 			if !matched && (join.JoinType == "LEFT" || join.JoinType == "FULL") {
-				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName))
+				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName, leftName))
 			}
 		}
 
@@ -1279,7 +1279,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		if isRightOrFull {
 			for ri, rm := range rightMaps {
 				if !matchedRight[ri] {
-					combinedMaps = append(combinedMaps, e.buildRightJoinUnmatched(rm, currentDefs, rightDefsNamed, tableName))
+					combinedMaps = append(combinedMaps, e.buildRightJoinUnmatched(rm, currentDefs, rightDefsNamed, tableName, leftName))
 				}
 			}
 		}
@@ -1377,11 +1377,14 @@ func (e *Engine) processJoinRow(leftMap RowMap, rightMaps []RowMap, combinedMaps
 
 // buildRightJoinUnmatched creates a combined row for an unmatched right row
 // in a RIGHT or FULL JOIN. The left side columns are set to NULL.
-func (e *Engine) buildRightJoinUnmatched(rightMap RowMap, leftDefs, rightDefs []sql.ColumnDef, tableName string) RowMap {
+func (e *Engine) buildRightJoinUnmatched(rightMap RowMap, leftDefs, rightDefs []sql.ColumnDef, tableName, leftTableName string) RowMap {
 	combined := make(RowMap)
 	// Set all left-side columns to NULL (both qualified and unqualified)
 	for _, cd := range leftDefs {
 		combined[cd.Name] = nil
+		if leftTableName != "" {
+			combined[leftTableName+"."+cd.Name] = nil
+		}
 	}
 	// Set right-side columns from the right row
 	for _, cd := range rightDefs {
@@ -1623,10 +1626,13 @@ func (e *Engine) prefixRightColDefs(rightDefs, leftDefs []sql.ColumnDef, tableNa
 }
 
 // buildLeftJoinRow creates a row for LEFT JOIN when no match is found.
-func (e *Engine) buildLeftJoinRow(leftMap RowMap, rightDefs []sql.ColumnDef, tableName string) RowMap {
+func (e *Engine) buildLeftJoinRow(leftMap RowMap, rightDefs []sql.ColumnDef, tableName, leftTableName string) RowMap {
 	combined := make(RowMap)
 	for k, v := range leftMap {
 		combined[k] = v
+		if leftTableName != "" && !strings.Contains(k, ".") && k != "rowid" {
+			combined[leftTableName+"."+k] = v
+		}
 	}
 	for _, cd := range rightDefs {
 		combined[tableName+"."+cd.Name] = nil
@@ -3639,6 +3645,13 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 			for _, cd := range colDefs {
 				if cd.Dropped {
 					continue
+				}
+				if ref.Table != "" {
+					// Qualified star: only include columns of that table,
+					// identified by the qualified key in the combined row map.
+					if _, exists := row.Get(ref.Table + "." + cd.Name); !exists {
+						continue
+					}
 				}
 				if val, exists := row.Get(cd.Name); exists {
 					outRow = append(outRow, util.UnwrapColumnValue(val))

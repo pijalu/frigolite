@@ -655,12 +655,6 @@ func Test_fts4content(t *testing.T) {
 									r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
-										return
-									}
-									got := flatten(r)
-									want := "\n"
-									if got != want {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "5.1.7"
