@@ -47,6 +47,7 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 
 		result := handleRule(ruleNo, p, lookahead, lookaheadToken)
 
+
 		// Default: pass through first RHS value if handler returned nil
 		// (Only for non-empty rules - empty rules have no RHS values)
 		if result == nil && size > 0 {
@@ -783,21 +784,26 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			values = valuesFromSelect(sel)
 			sel = nil
 		}
+		// insert_cmd is "INSERT" or "REPLACE" (rules 173/174).
+		cmd := getString(getRHS(p, ruleNo, 2))
 		return &sql.InsertStmt{
-			Table:   table,
-			Columns: columns,
-			Values:  values,
-			Select:  sel,
-			CTEs:    getCTEDefs(getRHS(p, ruleNo, 1)),
+			Table:     table,
+			Columns:   columns,
+			Values:    values,
+			Select:    sel,
+			IsReplace: strings.EqualFold(cmd, "REPLACE"),
+			CTEs:      getCTEDefs(getRHS(p, ruleNo, 1)),
 		}
 
 	// Rule 165: cmd ::= with insert_cmd INTO xfullname idlist_opt DEFAULT VALUES returning
 	case 165:
 		table := getString(getRHS(p, ruleNo, 4))
 		columns := getStringList(getRHS(p, ruleNo, 5))
+		cmd := getString(getRHS(p, ruleNo, 2))
 		return &sql.InsertStmt{
-			Table:   table,
-			Columns: columns,
+			Table:     table,
+			Columns:   columns,
+			IsReplace: strings.EqualFold(cmd, "REPLACE"),
 		}
 
 	// Rule 166: upsert ::=
@@ -1378,6 +1384,10 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 283: cmd ::= DROP TRIGGER ifexists fullname
 	case 283:
 		return nil
+
+	// Rule 288: cmd ::= REINDEX
+	case 288:
+		return &sql.ReindexStmt{}
 
 	// Rule 292: cmd ::= ALTER TABLE fullname RENAME TO nm
 	case 292:

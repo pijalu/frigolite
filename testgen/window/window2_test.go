@@ -5,6 +5,7 @@
 package window
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -711,7 +712,16 @@ func Test_window2(t *testing.T) {
 	{ // do_test "4.9"
 		myres = ""
 		_ = myres // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows0 := db.Query("SELECT \n    rank() OVER win AS rank,\n    cume_dist() OVER win AS cume_dist FROM t1\n  WINDOW win AS (ORDER BY 1);")
+		if _rows0.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "SELECT \n    rank() OVER win AS rank,\n    cume_dist() OVER win AS cume_dist FROM t1\n  WINDOW win AS (ORDER BY 1);")
+		}
+		for _, _row0 := range _rows0.Rows {
+		_ = _row0 // suppress unused warning
+		_r := fmt.Sprint(_row0[0])
+		_ = _r // suppress unused warning
+			myres = tclListAppend(myres, "format %.4f [set r]")
+		}
 		res2 = "1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000"
 		_ = res2 // suppress unused warning
 		i = "0"
@@ -752,7 +762,16 @@ func Test_window2(t *testing.T) {
 	{ // do_test "5.1"
 		myres = ""
 		_ = myres // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows1 := db.Query("SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z;")
+		if _rows1.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows1.Error, "SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z;")
+		}
+		for _, _row1 := range _rows1.Rows {
+		_ = _row1 // suppress unused warning
+		_r := fmt.Sprint(_row1[0])
+		_ = _r // suppress unused warning
+			myres = tclListAppend(myres, "format %.4f [set r]")
+		}
 		res2 = "7.2000 8.7500 10.0000 11.0000 15.0000"
 		_ = res2 // suppress unused warning
 		i = "0"

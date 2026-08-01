@@ -5,6 +5,7 @@
 package tkt_31338dca7
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -75,7 +76,19 @@ func Test_tkt_31338dca7e(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-31338-3.1"
-		// skip: foreach over unresolved TCL command
+		_rows0 := db.Query("SELECT name FROM sqlite_master WHERE type='table'")
+		if _rows0.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "SELECT name FROM sqlite_master WHERE type='table'")
+		}
+		for _, _row0 := range _rows0.Rows {
+		_ = _row0 // suppress unused warning
+		x := fmt.Sprint(_row0[0])
+		_ = x // suppress unused warning
+			_res = db.Exec("DROP TABLE " + x)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + x)
+			}
+		}
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE TABLE t2(e,f);\n    INSERT INTO t1 VALUES(1,2,3,4);\n    INSERT INTO t2 VALUES(10,-8);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE TABLE t3(g);\n    INSERT INTO t3 VALUES(4);\n    CREATE TABLE t4(h);\n    INSERT INTO t4 VALUES(5);\n\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE TABLE t2(e,f);\n    INSERT INTO t1 VALUES(1,2,3,4);\n    INSERT INTO t2 VALUES(10,-8);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE TABLE t3(g);\n    INSERT INTO t3 VALUES(4);\n    CREATE TABLE t4(h);\n    INSERT INTO t4 VALUES(5);\n\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")

@@ -5,6 +5,7 @@
 package fts3
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "strconv"
 "strings"
@@ -297,5 +298,69 @@ func Test_fts3query(t *testing.T) {
 					}
 				}
 			}
-			// skip: foreach over unresolved TCL command
+			_rows2 := db.Query("SELECT rowid FROM t4")
+			if _rows2.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT rowid FROM t4")
+			}
+			for _, _row2 := range _rows2.Rows {
+			_ = _row2 // suppress unused warning
+			ii := fmt.Sprint(_row2[0])
+			_ = ii // suppress unused warning
+				res1 = "db eval {SELECT rowid FROM t4 WHERE rowid > $ii}"
+				_ = res1 // suppress unused warning
+				res2 = "db eval {SELECT rowid FROM t4 WHERE rowid < $ii}"
+				_ = res2 // suppress unused warning
+				res1s = "db eval {SELECT rowid FROM t4 WHERE rowid > $ii ORDER BY +rowid DESC}"
+				_ = res1s // suppress unused warning
+				res2s = "db eval {SELECT rowid FROM t4 WHERE rowid < $ii ORDER BY +rowid DESC}"
+				_ = res2s // suppress unused warning
+				{ // "7.3." + ii + ".1"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > $ii\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > $ii\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res1
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "7.3." + ii + ".2"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < $ii\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < $ii\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res2
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "7.3." + ii + ".3"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > $ii ORDER BY rowid DESC\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > $ii ORDER BY rowid DESC\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res1s
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "7.3." + ii + ".4"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < $ii ORDER BY rowid DESC\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < $ii ORDER BY rowid DESC\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res2s
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+			}
 }

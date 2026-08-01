@@ -521,6 +521,18 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			tableEntry.Name, expectedCount, numSelectCols)}
 	}
 
+	// Route FTS virtual table inserts directly to the FTS table (same as
+	// insertRow): the SELECT result rows become FTS documents.
+	if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
+		var changes int64
+		for _, row := range selectResult.Rows {
+			nextRowID := ftsTable.Insert(row)
+			e.lastRowID = nextRowID
+			changes++
+		}
+		return &Result{Changes: changes, LastInsertRowID: e.lastRowID}
+	}
+
 	// Build a column mapping for the INSERT column list.
 	// Handle _rowid_ specially (maps to the implicit rowid, not a table column).
 	// Handle duplicate column names by only using the first occurrence.

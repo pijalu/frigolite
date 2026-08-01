@@ -5,6 +5,7 @@
 package filter
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -225,7 +226,16 @@ func Test_filter2(t *testing.T) {
 	{ // do_test "1.14"
 		myres = ""
 		_ = myres // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows0 := db.Query("SELECT \n    avg(b) FILTER (WHERE b>a),\n    avg(b) FILTER (WHERE b<a)\n  FROM t1 GROUP BY (a%2) ORDER BY 1,2;")
+		if _rows0.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "SELECT \n    avg(b) FILTER (WHERE b>a),\n    avg(b) FILTER (WHERE b<a)\n  FROM t1 GROUP BY (a%2) ORDER BY 1,2;")
+		}
+		for _, _row0 := range _rows0.Rows {
+		_ = _row0 // suppress unused warning
+		_r := fmt.Sprint(_row0[0])
+		_ = _r // suppress unused warning
+			myres = tclListAppend(myres, "format %.4f [set r]")
+		}
 		res2 = "30.8333 13.7273 31.4167 13.0000"
 		_ = res2 // suppress unused warning
 		i = "0"

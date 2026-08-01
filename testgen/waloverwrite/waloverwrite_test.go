@@ -5,6 +5,7 @@
 package waloverwrite
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -105,7 +106,19 @@ func Test_waloverwrite(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
-					// skip: foreach over unresolved TCL command
+					_rows2 := db.Query("SELECT x FROM t1")
+					if _rows2.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT x FROM t1")
+					}
+					for _, _row2 := range _rows2.Rows {
+					_ = _row2 // suppress unused warning
+					x := fmt.Sprint(_row2[0])
+					_ = x // suppress unused warning
+						_res = db.Exec(" UPDATE t1 SET y = randomblob(799) WHERE x=" + x + " ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(799) WHERE x=" + x + " ")
+						}
+					}
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -166,7 +179,19 @@ func Test_waloverwrite(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1 }() {
-					// skip: foreach over unresolved TCL command
+					_rows3 := db.Query("SELECT x FROM t1")
+					if _rows3.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _rows3.Error, "SELECT x FROM t1")
+					}
+					for _, _row3 := range _rows3.Rows {
+					_ = _row3 // suppress unused warning
+					x := fmt.Sprint(_row3[0])
+					_ = x // suppress unused warning
+						_res = db.Exec(" UPDATE t1 SET y = randomblob(798) WHERE x=" + x + " ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(798) WHERE x=" + x + " ")
+						}
+					}
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -186,7 +211,19 @@ func Test_waloverwrite(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
-					// skip: foreach over unresolved TCL command
+					_rows4 := db.Query("SELECT x FROM t1")
+					if _rows4.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT x FROM t1")
+					}
+					for _, _row4 := range _rows4.Rows {
+					_ = _row4 // suppress unused warning
+					x := fmt.Sprint(_row4[0])
+					_ = x // suppress unused warning
+						_res = db.Exec(" UPDATE t1 SET y = randomblob(797) WHERE x=" + x + " ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(797) WHERE x=" + x + " ")
+						}
+					}
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)

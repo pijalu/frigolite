@@ -5,6 +5,7 @@
 package literal
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -83,7 +84,16 @@ func Test_literal2(t *testing.T) {
 	{ // do_test "2.1"
 		myres = ""
 		_ = myres // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows0 := db.Query("SELECT 1.0e1_2")
+		if _rows0.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "SELECT 1.0e1_2")
+		}
+		for _, _row0 := range _rows0.Rows {
+		_ = _row0 // suppress unused warning
+		_r := fmt.Sprint(_row0[0])
+		_ = _r // suppress unused warning
+			myres = tclListAppend(myres, "format %.4f [set r]")
+		}
 		res2 = "1000000000000.0000"
 		_ = res2 // suppress unused warning
 		i = "0"

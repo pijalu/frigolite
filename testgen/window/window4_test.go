@@ -5,6 +5,7 @@
 package window
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -2457,7 +2458,16 @@ func Test_window4(t *testing.T) {
 	{ // do_test "9.3"
 		myres = ""
 		_ = myres // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows0 := db.Query("SELECT x, percent_rank() OVER (PARTITION BY x ORDER BY x) FROM t2")
+		if _rows0.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "SELECT x, percent_rank() OVER (PARTITION BY x ORDER BY x) FROM t2")
+		}
+		for _, _row0 := range _rows0.Rows {
+		_ = _row0 // suppress unused warning
+		_r := fmt.Sprint(_row0[0])
+		_ = _r // suppress unused warning
+			myres = tclListAppend(myres, "format %.4f [set r]")
+		}
 		res2 = "1.0000 0.0000 1.0000 0.0000 1.0000 0.0000 4.0000 0.0000 4.0000 0.0000 6.0000 0.0000 7.0000 0.0000"
 		_ = res2 // suppress unused warning
 		i = "0"
@@ -2492,7 +2502,16 @@ func Test_window4(t *testing.T) {
 	{ // do_test "9.6"
 		myres = ""
 		_ = myres // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows1 := db.Query("SELECT percent_rank() OVER () FROM t1")
+		if _rows1.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows1.Error, "SELECT percent_rank() OVER () FROM t1")
+		}
+		for _, _row1 := range _rows1.Rows {
+		_ = _row1 // suppress unused warning
+		_r := fmt.Sprint(_row1[0])
+		_ = _r // suppress unused warning
+			myres = tclListAppend(myres, "format %.4f [set r]")
+		}
 		res2 = "0.0000 0.0000 0.0000"
 		_ = res2 // suppress unused warning
 		i = "0"
@@ -2503,7 +2522,16 @@ func Test_window4(t *testing.T) {
 	{ // do_test "9.7"
 		myres = ""
 		_ = myres // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows2 := db.Query("SELECT cume_dist() OVER () FROM t1")
+		if _rows2.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT cume_dist() OVER () FROM t1")
+		}
+		for _, _row2 := range _rows2.Rows {
+		_ = _row2 // suppress unused warning
+		_r := fmt.Sprint(_row2[0])
+		_ = _r // suppress unused warning
+			myres = tclListAppend(myres, "format %.4f [set r]")
+		}
 		res2 = "1.0000 1.0000 1.0000"
 		_ = res2 // suppress unused warning
 		i = "0"
@@ -2670,7 +2698,16 @@ func Test_window4(t *testing.T) {
 	{ // do_test "12.2"
 		myres = ""
 		_ = myres // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows3 := db.Query("SELECT (SELECT avg(a)) FROM t2 ORDER BY 1")
+		if _rows3.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows3.Error, "SELECT (SELECT avg(a)) FROM t2 ORDER BY 1")
+		}
+		for _, _row3 := range _rows3.Rows {
+		_ = _row3 // suppress unused warning
+		_r := fmt.Sprint(_row3[0])
+		_ = _r // suppress unused warning
+			myres = tclListAppend(myres, "format %.4f [set r]")
+		}
 		res2 = "2.0000"
 		_ = res2 // suppress unused warning
 		i = "0"
@@ -2681,7 +2718,16 @@ func Test_window4(t *testing.T) {
 	{ // do_test "12.3"
 		myres = ""
 		_ = myres // suppress unused warning
-		// skip: foreach over unresolved TCL command
+		_rows4 := db.Query("SELECT \n    (SELECT avg(a) UNION SELECT min(a) OVER ()) \n  FROM t2 GROUP BY a\n  ORDER BY 1")
+		if _rows4.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT \n    (SELECT avg(a) UNION SELECT min(a) OVER ()) \n  FROM t2 GROUP BY a\n  ORDER BY 1")
+		}
+		for _, _row4 := range _rows4.Rows {
+		_ = _row4 // suppress unused warning
+		_r := fmt.Sprint(_row4[0])
+		_ = _r // suppress unused warning
+			myres = tclListAppend(myres, "format %.4f [set r]")
+		}
 		res2 = "1.0000 2.0000 3.0000"
 		_ = res2 // suppress unused warning
 		i = "0"

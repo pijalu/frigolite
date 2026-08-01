@@ -227,7 +227,60 @@ type Cell struct {
 	Type    CellType
 	LeftPtr uint32           // for interior cells
 	RowID   int64            // for table cells
-	Payload []byte           // raw payload
+	Payload []byte           // full payload for in-memory cells; local payload (view) for decoded cells
+	// PayloadLen is the full payload length as stored in the cell header.
+	// For cells built in memory it is 0, meaning len(Payload) is the length.
+	// For cells decoded from a page it is the header length, which may exceed
+	// len(Payload) when part of the payload lives on overflow pages.
+	PayloadLen int
+	// LocalLen is the number of payload bytes stored inside the cell itself
+	// (the rest lives on overflow pages). 0 means the whole payload is local.
+	LocalLen int
+	// Overflow is the first overflow page number (0 = payload fits in cell).
+	Overflow uint32
+}
+
+// MaxLocalPayload returns the maximum number of payload bytes stored directly
+// in a cell before overflow pages are required (SQLite file format).
+func MaxLocalPayload(pageSize int, cellType CellType) int {
+	usable := pageSize
+	switch cellType {
+	case CellTableLeaf, CellIndexLeaf:
+		return usable - 35
+	default:
+		return (usable-12)*64/255 - 23
+	}
+}
+
+// MinLocalPayload returns the minimum local payload size used when a cell
+// spills to overflow pages (SQLite file format).
+func MinLocalPayload(pageSize int, cellType CellType) int {
+	switch cellType {
+	case CellTableLeaf, CellIndexLeaf:
+		return 32
+	default:
+		return ((pageSize-12)*32/255 - 23)
+	}
+}
+
+// LocalPayloadSize returns how many payload bytes are stored inside the cell
+// itself for a payload of the given length; the remainder (if any) is stored
+// on overflow pages. Uses the same distribution formula as SQLite so files
+// remain interchangeable.
+func LocalPayloadSize(payloadLen, pageSize int, cellType CellType) int {
+	maxLocal := MaxLocalPayload(pageSize, cellType)
+	if payloadLen <= maxLocal {
+		return payloadLen
+	}
+	mn := MinLocalPayload(pageSize, cellType)
+	nLocal := mn + (payloadLen-mn)%(pageSize-4)
+	if nLocal > maxLocal {
+		nLocal = maxLocal
+	}
+	if nLocal > payloadLen-4 {
+		nLocal = payloadLen - 4
+	}
+	return nLocal
 }
 
 // DecodeCell decodes a b-tree cell from the given page data at the given offset.
@@ -260,12 +313,22 @@ func decodeTableLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	c.RowID = int64(rowid)
 
 	// Payload — reference page data directly (no copy) for read-only use.
-	// EncodeCell copies the payload when encoding for writes.
-	payloadLen := int(plen)
-	if pos+payloadLen > len(data) {
-		payloadLen = len(data) - pos
+	// Only the local portion is stored in the cell; the rest is on overflow
+	// pages reachable via the 4-byte overflow pointer that follows.
+	c.PayloadLen = int(plen)
+	local := LocalPayloadSize(c.PayloadLen, pageSize, CellTableLeaf)
+	c.LocalLen = local
+	if pos+local > len(data) {
+		local = len(data) - pos
 	}
-	c.Payload = data[pos : pos+payloadLen]
+	c.Payload = data[pos : pos+local]
+	pos += local
+	if c.LocalLen < c.PayloadLen {
+		if pos+4 > len(data) {
+			return nil, fmt.Errorf("storage: truncated table leaf cell (overflow pointer missing)")
+		}
+		c.Overflow = binary.BigEndian.Uint32(data[pos : pos+4])
+	}
 
 	return c, nil
 }
@@ -285,11 +348,20 @@ func decodeIndexLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	plen, n := util.GetVarint(data[pos:])
 	pos += n
 
-	payloadLen := int(plen)
-	if pos+payloadLen > len(data) {
-		payloadLen = len(data) - pos
+	c.PayloadLen = int(plen)
+	local := LocalPayloadSize(c.PayloadLen, pageSize, CellIndexLeaf)
+	c.LocalLen = local
+	if pos+local > len(data) {
+		local = len(data) - pos
 	}
-	c.Payload = data[pos : pos+payloadLen]
+	c.Payload = data[pos : pos+local]
+	pos += local
+	if c.LocalLen < c.PayloadLen {
+		if pos+4 > len(data) {
+			return nil, fmt.Errorf("storage: truncated index leaf cell (overflow pointer missing)")
+		}
+		c.Overflow = binary.BigEndian.Uint32(data[pos : pos+4])
+	}
 
 	return c, nil
 }
@@ -325,15 +397,32 @@ func EncodeCell(c *Cell) []byte {
 }
 
 func encodeTableLeafCell(c *Cell) []byte {
-	plen := len(c.Payload)
+	plen := c.PayloadLen
+	if plen == 0 {
+		plen = len(c.Payload)
+	}
+	local := c.LocalLen
+	if local == 0 {
+		local = plen
+	}
 	plenLen := util.VarintLen(uint64(plen))
 	rowidLen := util.VarintLen(uint64(c.RowID))
-	totalLen := plenLen + rowidLen + plen
+	// The cell stores the full payload length in the header, the local
+	// payload portion, then a 4-byte overflow pointer when the payload
+	// spills to overflow pages.
+	totalLen := plenLen + rowidLen + local
+	if local < plen {
+		totalLen += 4
+	}
 	buf := make([]byte, totalLen)
 	pos := 0
 	pos += util.PutVarint(buf[pos:], uint64(plen))
 	pos += util.PutVarint(buf[pos:], uint64(c.RowID))
-	copy(buf[pos:], c.Payload)
+	copy(buf[pos:], c.Payload[:local])
+	pos += local
+	if local < plen {
+		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
+	}
 	return buf
 }
 
@@ -346,12 +435,27 @@ func encodeTableInteriorCell(c *Cell) []byte {
 }
 
 func encodeIndexLeafCell(c *Cell) []byte {
-	plen := len(c.Payload)
+	plen := c.PayloadLen
+	if plen == 0 {
+		plen = len(c.Payload)
+	}
+	local := c.LocalLen
+	if local == 0 {
+		local = plen
+	}
 	plenLen := util.VarintLen(uint64(plen))
-	buf := make([]byte, plenLen+plen)
+	totalLen := plenLen + local
+	if local < plen {
+		totalLen += 4
+	}
+	buf := make([]byte, totalLen)
 	pos := 0
 	pos += util.PutVarint(buf[pos:], uint64(plen))
-	copy(buf[pos:], c.Payload)
+	copy(buf[pos:], c.Payload[:local])
+	pos += local
+	if local < plen {
+		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
+	}
 	return buf
 }
 

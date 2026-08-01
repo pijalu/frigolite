@@ -5,6 +5,7 @@
 package fts4
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "testing"
 )
@@ -156,8 +157,34 @@ func Test_fts4growth(t *testing.T) {
 	}
 	// fts_kjv_genesis (unsupported command, not transpiled)
 	{ // do_test "2.2"
-		// skip: foreach over unresolved TCL command
-		// skip: foreach over unresolved TCL command
+		_rows0 := db.Query("SELECT docid FROM t1")
+		if _rows0.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "SELECT docid FROM t1")
+		}
+		for _, _row0 := range _rows0.Rows {
+		_ = _row0 // suppress unused warning
+		id := fmt.Sprint(_row0[0])
+		_ = id // suppress unused warning
+			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT " + id + ", words FROM t1 WHERE docid=" + id + "\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT " + id + ", words FROM t1 WHERE docid=" + id + "\n    ")
+			}
+		}
+		_rows1 := db.Query("SELECT docid FROM t1")
+		if _rows1.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows1.Error, "SELECT docid FROM t1")
+		}
+		for _, _row1 := range _rows1.Rows {
+		_ = _row1 // suppress unused warning
+		id := fmt.Sprint(_row1[0])
+		_ = id // suppress unused warning
+			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + id + "\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + id + "\n    ")
+			}
+			if tclBool("db one {SELECT count(*) FROM x2_segdir WHERE level<2}" + "==2") {
+			}
+		}
 	}
 	{ // "2.3"
 		r = db.Query(" \n  SELECT count(*) FROM x2_segdir WHERE level=2;\n  SELECT count(*) FROM x2_segdir WHERE level=3;\n")
@@ -387,8 +414,32 @@ func Test_fts4growth(t *testing.T) {
 	// fts_kjv_genesis (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "5.2"
-		// skip: foreach over unresolved TCL command
-		// skip: foreach over unresolved TCL command
+		_rows2 := db.Query("SELECT rowid FROM t1")
+		if _rows2.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT rowid FROM t1")
+		}
+		for _, _row2 := range _rows2.Rows {
+		_ = _row2 // suppress unused warning
+		_r := fmt.Sprint(_row2[0])
+		_ = _r // suppress unused warning
+			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + _r + "\n    ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + _r + "\n    ")
+			}
+		}
+		_rows3 := db.Query("SELECT docid FROM t1 LIMIT -1 OFFSET 20")
+		if _rows3.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", _rows3.Error, "SELECT docid FROM t1 LIMIT -1 OFFSET 20")
+		}
+		for _, _row3 := range _rows3.Rows {
+		_ = _row3 // suppress unused warning
+		d := fmt.Sprint(_row3[0])
+		_ = d // suppress unused warning
+			_res = db.Exec(" DELETE FROM x2 WHERE docid = " + d + " ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x2 WHERE docid = " + d + " ")
+			}
+		}
 		r = db.Query("\n    INSERT INTO x2(x2) VALUES('optimize');\n    SELECT level, idx, end_block FROM x2_segdir\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO x2(x2) VALUES('optimize');\n    SELECT level, idx, end_block FROM x2_segdir\n  ")

@@ -292,17 +292,47 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 	if s.Distinct {
 		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps)
 	}
-	// Handle UNION before ORDER BY (ORDER BY on compound SELECT applies to the merged result)
+	// Handle UNION before ORDER BY (ORDER BY on compound SELECT applies to the merged result).
+	// The parser attaches a trailing ORDER BY / LIMIT / OFFSET to the LAST member
+	// of the compound chain (SQLite does the same); find it and apply it here.
+	orderBy := s.OrderBy
+	limit := s.Limit
+	offset := s.Offset
 	if s.Union != nil {
 		result.Rows = e.mergeUnionRows(result.Rows, s.Union, s.SetOp, s.UnionAll)
+		last := s
+		for last.Union != nil {
+			last = last.Union
+		}
+		if len(last.OrderBy) > 0 {
+			orderBy = last.OrderBy
+		}
+		if last.Limit != nil {
+			limit = last.Limit
+		}
+		if last.Offset != nil {
+			offset = last.Offset
+		}
+		// The head's rowMaps only cover its own rows; rebuild them from the
+		// merged result so ORDER BY can resolve columns across all members.
+		rowMaps = make([]RowMap, len(result.Rows))
+		for i, row := range result.Rows {
+			m := make(RowMap)
+			for j, v := range row {
+				if j < len(result.Columns) {
+					m[result.Columns[j]] = v
+				}
+			}
+			rowMaps[i] = m
+		}
 	}
-	if len(s.OrderBy) > 0 {
-		if err := validateOrderBy(s.OrderBy, len(result.Columns)); err != nil {
+	if len(orderBy) > 0 {
+		if err := validateOrderBy(orderBy, len(result.Columns)); err != nil {
 			return &Result{Error: err}
 		}
-		e.sortRowsWithMaps(result, s.OrderBy, rowMaps)
+		e.sortRowsWithMaps(result, orderBy, rowMaps)
 	}
-	result.Rows = applyLimitOffset(result.Rows, s.Limit, s.Offset)
+	result.Rows = applyLimitOffset(result.Rows, limit, offset)
 	return result
 }
 
@@ -662,14 +692,34 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 
 // finalizeNoFromSelect applies ORDER BY and LIMIT/OFFSET to a no-FROM SELECT result.
 func (e *Engine) finalizeNoFromSelect(result *Result, s *sql.SelectStmt) {
-	if len(s.OrderBy) > 0 {
+	// A trailing ORDER BY / LIMIT / OFFSET on a compound lives on its LAST
+	// member (SQLite attaches it there); hoist it here for no-FROM selects.
+	orderBy := s.OrderBy
+	limit := s.Limit
+	offset := s.Offset
+	if s.Union != nil {
+		last := s
+		for last.Union != nil {
+			last = last.Union
+		}
+		if len(last.OrderBy) > 0 {
+			orderBy = last.OrderBy
+		}
+		if last.Limit != nil {
+			limit = last.Limit
+		}
+		if last.Offset != nil {
+			offset = last.Offset
+		}
+	}
+	if len(orderBy) > 0 {
 		rowMaps := e.buildNoFromRowMaps(result.Rows, result.Columns)
-		e.sortRowsWithMaps(result, s.OrderBy, rowMaps)
+		e.sortRowsWithMaps(result, orderBy, rowMaps)
 	}
 	// Apply LIMIT/OFFSET
-	limitExpr, offsetExpr := s.Limit, s.Offset
-	if s.Limit != nil {
-		if v, err := e.evalExpr(s.Limit, nil); err == nil {
+	limitExpr, offsetExpr := limit, offset
+	if limit != nil {
+		if v, err := e.evalExpr(limit, nil); err == nil {
 			switch n := v.(type) {
 			case int64:
 				limitExpr = &sql.NumericLit{Value: strconv.FormatInt(n, 10)}
@@ -678,8 +728,8 @@ func (e *Engine) finalizeNoFromSelect(result *Result, s *sql.SelectStmt) {
 			}
 		}
 	}
-	if s.Offset != nil {
-		if v, err := e.evalExpr(s.Offset, nil); err == nil {
+	if offset != nil {
+		if v, err := e.evalExpr(offset, nil); err == nil {
 			switch n := v.(type) {
 			case int64:
 				offsetExpr = &sql.NumericLit{Value: strconv.FormatInt(n, 10)}
@@ -688,7 +738,7 @@ func (e *Engine) finalizeNoFromSelect(result *Result, s *sql.SelectStmt) {
 			}
 		}
 	}
-	if s.Limit != nil || s.Offset != nil {
+	if limit != nil || offset != nil {
 		result.Rows = applyLimitOffset(result.Rows, limitExpr, offsetExpr)
 	}
 }

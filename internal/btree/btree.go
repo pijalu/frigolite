@@ -439,7 +439,11 @@ func (c *Cursor) ReadCell() (*storage.Cell, error) {
 	}
 
 	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx))
-	return storage.DecodeCell(pg.Data, cellOff, cellType, int(c.tx.pageSize))
+	cell, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(c.tx.pageSize))
+	if err != nil {
+		return nil, err
+	}
+	return c.tx.readOverflow(cell)
 }
 
 // ReadCellData reads the current cell's payload data and rowID for table leaf
@@ -482,12 +486,29 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 	pos += n
 	rowID = int64(rowid)
 
-	// Slice the payload from the page data (no copy)
-	payloadLen := int(plen)
-	if pos+payloadLen > len(pg.Data) {
+	// Slice the local payload from the page data (no copy)
+	payloadLen := storage.LocalPayloadSize(int(plen), int(c.tx.pageSize), storage.CellTableLeaf)
+	if payloadLen > len(pg.Data)-pos {
 		payloadLen = len(pg.Data) - pos
 	}
 	payload = pg.Data[pos : pos+payloadLen]
+	pos += payloadLen
+
+	// If the payload spills to overflow pages, follow the chain.
+	if payloadLen < int(plen) {
+		cell := &storage.Cell{
+			Type:       storage.CellTableLeaf,
+			RowID:      rowID,
+			Payload:    payload,
+			PayloadLen: int(plen),
+			Overflow:   binary.BigEndian.Uint32(pg.Data[pos : pos+4]),
+		}
+		full, err := c.tx.readOverflow(cell)
+		if err != nil {
+			return nil, 0, err
+		}
+		return full.Payload, rowID, nil
+	}
 
 	return payload, rowID, nil
 }
@@ -550,9 +571,109 @@ func (t *BTree) insertPage(pageNum uint32, newCell *storage.Cell) (uint64, uint3
 	}
 }
 
+// prepareCell writes overflow pages for a cell whose payload exceeds what
+// fits in the cell itself, mutating the cell to reference the overflow chain
+// (PayloadLen = full length, LocalLen = local portion, Overflow = first
+// overflow page). The Payload slice is left intact so callers can still use
+// the full key for ordering comparisons. For cells that fit, it leaves the
+// cell unchanged.
+func (t *BTree) prepareCell(c *storage.Cell) error {
+	cellType := storage.CellTableLeaf
+	if !t.isTable {
+		cellType = storage.CellIndexLeaf
+	}
+	plen := len(c.Payload)
+	local := storage.LocalPayloadSize(plen, int(t.pageSize), cellType)
+	if local >= plen {
+		return nil
+	}
+	first, err := t.writeOverflowPages(c.Payload[local:])
+	if err != nil {
+		return err
+	}
+	c.Overflow = first
+	c.PayloadLen = plen
+	c.LocalLen = local
+	return nil
+}
+
+// writeOverflowPages stores payload on a chain of overflow pages and returns
+// the first page number. Each overflow page holds up to pageSize-4 payload
+// bytes, prefixed with a 4-byte big-endian next-page pointer (0 = last).
+func (t *BTree) writeOverflowPages(payload []byte) (uint32, error) {
+	chunk := int(t.pageSize) - 4
+	var first uint32
+	var prev *pager.Page
+	pos := 0
+	for pos < len(payload) {
+		pg := t.pager.AllocatePage()
+		end := pos + chunk
+		if end > len(payload) {
+			end = len(payload)
+		}
+		copy(pg.Data[4:], payload[pos:end])
+		if prev != nil {
+			binary.BigEndian.PutUint32(prev.Data[0:4], pg.PageNum)
+			if err := t.pager.WritePage(prev); err != nil {
+				return 0, err
+			}
+		} else {
+			first = pg.PageNum
+		}
+		prev = pg
+		pos = end
+	}
+	if prev != nil {
+		binary.BigEndian.PutUint32(prev.Data[0:4], 0) // last page
+		if err := t.pager.WritePage(prev); err != nil {
+			return 0, err
+		}
+	}
+	return first, nil
+}
+
+// readOverflow expands a decoded cell's local payload to the full payload by
+// following the overflow chain. The returned cell is a copy when expansion is
+// needed; the input cell is never mutated so it can still be re-encoded.
+// Cells without overflow are returned unchanged.
+func (t *BTree) readOverflow(c *storage.Cell) (*storage.Cell, error) {
+	if c.Overflow == 0 {
+		return c, nil
+	}
+	full := make([]byte, 0, c.PayloadLen)
+	full = append(full, c.Payload...)
+	pageNum := c.Overflow
+	remaining := c.PayloadLen - len(c.Payload)
+	for remaining > 0 {
+		pg, err := t.pager.ReadPage(pageNum)
+		if err != nil {
+			return nil, err
+		}
+		next := binary.BigEndian.Uint32(pg.Data[0:4])
+		chunk := int(t.pageSize) - 4
+		n := chunk
+		if n > remaining {
+			n = remaining
+		}
+		full = append(full, pg.Data[4:4+n]...)
+		remaining -= n
+		pageNum = next
+		if pageNum == 0 && remaining > 0 {
+			return nil, fmt.Errorf("btree: overflow chain ended early")
+		}
+	}
+	c2 := *c
+	c2.Payload = full
+	c2.Overflow = 0
+	return &c2, nil
+}
+
 // insertLeafPage inserts a cell into a leaf page. If the leaf is full, it splits.
 func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell) (uint64, uint32, error) {
 	coff := contentOffset(pg.PageNum)
+	if err := t.prepareCell(newCell); err != nil {
+		return 0, 0, err
+	}
 	cellData := storage.EncodeCell(newCell)
 
 	if leafHasRoom(pg, page, cellData, coff, t.pageSize) {
@@ -568,8 +689,9 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, newCell 
 		return 0, 0, fmt.Errorf("btree: cell too large for page (size=%d, pageSize=%d)", len(cellData), t.pageSize)
 	}
 
-	// Split the leaf
-	newLeafNum, medianKey, err := t.splitLeaf(pg, page)
+	// Split the leaf, distributing existing cells plus the new cell across
+	// both pages by size (the new cell is already written by the split).
+	newLeafNum, medianKey, err := t.splitLeaf(pg, page, newCell, cellData)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -582,21 +704,6 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, newCell 
 	}
 	if err := t.pager.WritePage(newPg); err != nil {
 		return 0, 0, err
-	}
-
-	// Insert the new cell into the correct half
-	if t.isTable && newCell.RowID >= int64(medianKey) {
-		if err := t.writeLeafCell(newPg, nil, newCell, cellData, contentOffset(newPg.PageNum)); err != nil {
-			return 0, 0, err
-		}
-	} else if !t.isTable && util.CompareValues(newCell.Payload, cellData) >= 0 {
-		if err := t.writeLeafCell(newPg, nil, newCell, cellData, contentOffset(newPg.PageNum)); err != nil {
-			return 0, 0, err
-		}
-	} else {
-		if err := t.writeLeafCell(pg, nil, newCell, cellData, coff); err != nil {
-			return 0, 0, err
-		}
 	}
 
 	return medianKey, newLeafNum, nil
@@ -731,17 +838,23 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 	return t.pager.WritePage(pg)
 }
 
-// splitLeaf splits a leaf page's existing cells between the original page
-// and a new page. Does NOT include the new cell. Returns (newLeafPageNum, medianKey, error).
-func (t *BTree) splitLeaf(pg *pager.Page, page *storage.BTreePage) (uint32, uint64, error) {
+// splitEntry is a cell plus its encoded byte form and (for index b-trees)
+// its full sort key, used during leaf splitting.
+type splitEntry struct {
+	cell     *storage.Cell
+	cellData []byte
+	key      []byte // sort key for index b-trees (full payload)
+}
+
+// splitLeaf splits a leaf page's cells — plus the incoming new cell — between
+// the original page and a newly allocated page, distributing by size so both
+// halves fit (SQLite rebalances with the new cell included). Returns
+// (newLeafPageNum, medianKey, error).
+func (t *BTree) splitLeaf(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, newCellData []byte) (uint32, uint64, error) {
 	coff := contentOffset(pg.PageNum)
 
 	// Read existing cells
-	type entry struct {
-		cell     *storage.Cell
-		cellData []byte
-	}
-	var cells []entry
+	var cells []splitEntry
 
 	cellType := storage.CellTableLeaf
 	if !t.isTable {
@@ -754,10 +867,21 @@ func (t *BTree) splitLeaf(pg *pager.Page, page *storage.BTreePage) (uint32, uint
 		if err != nil {
 			return 0, 0, err
 		}
-		cells = append(cells, entry{c, storage.EncodeCell(c)})
+		e := splitEntry{c, storage.EncodeCell(c), nil}
+		if !t.isTable {
+			full, err := t.readOverflow(c)
+			if err != nil {
+				return 0, 0, err
+			}
+			e.key = full.Payload
+		}
+		cells = append(cells, e)
 	}
+	// Include the new cell in the redistribution.
+	nc := splitEntry{newCell, newCellData, newCell.Payload}
+	cells = append(cells, nc)
 
-	// Sort by rowid/key
+	// Sort by key (rowid for tables, full payload for indexes).
 	if t.isTable {
 		for i := 0; i < len(cells); i++ {
 			for j := i + 1; j < len(cells); j++ {
@@ -766,14 +890,41 @@ func (t *BTree) splitLeaf(pg *pager.Page, page *storage.BTreePage) (uint32, uint
 				}
 			}
 		}
+	} else {
+		for i := 0; i < len(cells); i++ {
+			for j := i + 1; j < len(cells); j++ {
+				if util.CompareValues(cells[i].key, cells[j].key) > 0 {
+					cells[i], cells[j] = cells[j], cells[i]
+				}
+			}
+		}
 	}
-
-	splitIdx := len(cells) / 2
 
 	// Allocate new leaf
 	newPg := t.pager.AllocatePage()
 	newCoff := contentOffset(newPg.PageNum)
 	newPg.Data[newCoff] = pg.Data[coff] // same page type
+
+	// Find a split point (both pages non-empty) where each page's cells fit.
+	// Prefer a balanced split by searching outward from the middle.
+	splitIdx := -1
+	bestDelta := len(cells) + 1
+	for i := 1; i < len(cells); i++ {
+		if !leafCellsFit(cellDatas(cells[:i]), coff, int(t.pageSize)) {
+			continue
+		}
+		if !leafCellsFit(cellDatas(cells[i:]), newCoff, int(t.pageSize)) {
+			continue
+		}
+		delta := abs(i - len(cells)/2)
+		if delta < bestDelta {
+			bestDelta = delta
+			splitIdx = i
+		}
+	}
+	if splitIdx < 0 {
+		return 0, 0, fmt.Errorf("btree: split failed: cannot balance leaf pages")
+	}
 
 	// Clear original leaf content (except page type)
 	for i := coff + 1; i < int(t.pageSize); i++ {
@@ -816,7 +967,7 @@ func (t *BTree) splitLeaf(pg *pager.Page, page *storage.BTreePage) (uint32, uint
 	binary.BigEndian.PutUint16(newPg.Data[newCoff+3:newCoff+5], rightCount)
 	binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], uint16(rightEnd))
 
-	// Median key = first rowid of the right leaf
+	// Median key = first key of the right leaf
 	var medianKey uint64
 	if t.isTable {
 		medianKey = uint64(cells[splitIdx].cell.RowID)
@@ -828,6 +979,35 @@ func (t *BTree) splitLeaf(pg *pager.Page, page *storage.BTreePage) (uint32, uint
 	binary.BigEndian.PutUint32(pg.Data[int(t.pageSize)-4:int(t.pageSize)], newPg.PageNum)
 
 	return newPg.PageNum, medianKey, nil
+}
+
+// cellDatas extracts the encoded cell byte slices from a split entry list.
+func cellDatas(cells []splitEntry) [][]byte {
+	out := make([][]byte, len(cells))
+	for i, c := range cells {
+		out[i] = c.cellData
+	}
+	return out
+}
+
+// leafCellsFit reports whether the given cell byte slices fit in a leaf page
+// with the given content offset, leaving room for the cell pointer array and
+// the 4-byte right-sibling chain pointer at the page end.
+func leafCellsFit(cells [][]byte, coff, pageSize int) bool {
+	total := 0
+	for _, d := range cells {
+		total += len(d)
+	}
+	ptrEnd := coff + storage.CellPointerOffset + len(cells)*2 + 2
+	contentEnd := pageSize - 4
+	return contentEnd-total >= ptrEnd
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
 
 // createInteriorRoot creates an interior page pointing to two children.
@@ -1085,6 +1265,14 @@ func (t *BTree) DeleteCell(cellIdx int) error {
 	page.CellCount--
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
 
+	// If the page became empty, reset the content pointer so the next
+	// insert treats it as a fresh page (otherwise the stale content end
+	// makes leafHasRoom think the empty page is full).
+	if page.CellCount == 0 {
+		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], 0) // cell content
+		pg.Data[coff+7] = 0                                     // frag free
+	}
+
 	// For simplicity, we don't reclaim the cell data space immediately.
 	// The cell data becomes part of the free space and will be overwritten
 	// by subsequent inserts. This is a valid approach for a simple implementation.
@@ -1150,7 +1338,11 @@ func (t *BTree) cellMatches(pg *pager.Page, page *storage.BTreePage, idx int, fn
 	if err != nil {
 		return false
 	}
-	return fn(cell)
+	full, err := t.readOverflow(cell)
+	if err != nil {
+		return false
+	}
+	return fn(full)
 }
 
 func (t *BTree) findInsertPositionTable(pg *pager.Page, page *storage.BTreePage, rowID int64) int {
@@ -1178,7 +1370,11 @@ func (t *BTree) findInsertPositionIndex(pg *pager.Page, page *storage.BTreePage,
 		if err != nil {
 			return lo
 		}
-		if util.CompareValues(cell.Payload, key) < 0 {
+		full, err := t.readOverflow(cell)
+		if err != nil {
+			return lo
+		}
+		if util.CompareValues(full.Payload, key) < 0 {
 			lo = mid + 1
 		} else {
 			hi = mid - 1

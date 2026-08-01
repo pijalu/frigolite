@@ -1714,9 +1714,16 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	varNames := tp.parseVarList(args[0])
 	listExpr := tp.goStringLiteral(args[1])
 
-	// Skip foreach over unresolved TCL commands (e.g., [db eval ...])
-	// The transpiler can't execute TCL commands at generation time.
+	// foreach over [db eval ...]: the transpiler can't execute TCL at
+	// generation time, but the common cleanup pattern
+	//   foreach tab [db eval {SELECT name FROM sqlite_master ...}] {
+	//     db eval "DROP TABLE $tab"
+	//   }
+	// is static enough to emit directly as a Go query loop.
 	if strings.Contains(strings.ToLower(args[1].Text), "db eval") {
+		if tp.emitDBEvalForeach(args, varNames) {
+			return
+		}
 		tp.emitLine("// skip: foreach over unresolved TCL command")
 		return
 	}
@@ -1776,6 +1783,68 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	} else {
 		tp.emitLine("}")
 	}
+}
+
+// emitDBEvalForeach transpiles a foreach whose list is a bracketed
+// `db eval {SQL}` command (e.g. the common "drop all tables" cleanup):
+//
+//	foreach tab [db eval {SELECT name FROM sqlite_master WHERE type = 'table'}] {
+//	  db eval "DROP TABLE $tab"
+//	}
+//
+// It emits a Go loop over db.Query(SQL).Rows with the loop variable bound
+// to the first column of each row. Returns false when the pattern does not
+// match so the caller can fall back to the skip comment.
+func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) bool {
+	if len(args) < 3 || len(varNames) != 1 {
+		return false
+	}
+	text := strings.TrimSpace(args[1].Text)
+	prefix := "[db eval "
+	if !strings.HasPrefix(text, prefix) || !strings.HasSuffix(text, "]") {
+		return false
+	}
+	inner := strings.TrimSpace(text[len(prefix):])
+	inner = strings.TrimSuffix(inner, "]")
+	if !strings.HasPrefix(inner, "{") || !strings.HasSuffix(inner, "}") {
+		return false
+	}
+	sql := strings.TrimSpace(inner[1 : len(inner)-1])
+	bodyCmds := tp.parseBracedBody(args, 2)
+	if bodyCmds == nil {
+		return false
+	}
+	goVN := tclVarToGo(varNames[0])
+	if goVN == tp.dbVar {
+		goVN = goVN + "_iter"
+	}
+	rowsVar := fmt.Sprintf("_rows%d", tp.varCount)
+	rowVar := fmt.Sprintf("_row%d", tp.varCount)
+	tp.varCount++
+	tp.emitLine("%s := db.Query(%q)", rowsVar, sql)
+	tp.emitLine("if %s.Error != nil {", rowsVar)
+	tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", %s.Error, %q)", rowsVar, sql)
+	tp.emitLine("}")
+	tp.emitLine("for _, %s := range %s.Rows {", rowVar, rowsVar)
+	tp.emitLine("_ = %s // suppress unused warning", rowVar)
+	tp.emitLine("%s := fmt.Sprint(%s[0])", goVN, rowVar)
+	tp.emitLine("_ = %s // suppress unused warning", goVN)
+	tp.indent++
+	bodyTP := &transpiler{
+		sb:       tp.sb,
+		indent:   tp.indent,
+		dbVar:    tp.dbVar,
+		t:        tp.t,
+		varCount: tp.varCount,
+		vars:     tp.vars,
+		forIncrs: append(tp.forIncrs, nil),
+	}
+	bodyTP.processCommands(bodyCmds)
+	tp.varCount = bodyTP.varCount
+	tp.indent = bodyTP.indent
+	tp.indent--
+	tp.emitLine("}")
+	return true
 }
 
 func (tp *transpiler) parseVarList(w tcl.RawWord) []string {

@@ -5,6 +5,7 @@
 package insert
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "strconv"
 "testing"
@@ -149,9 +150,21 @@ func Test_insert3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t6(x,y DEFAULT 4.3, z DEFAULT x'6869');\n      INSERT INTO t6 DEFAULT VALUES;\n      SELECT * FROM t6;\n    ")
 		}
 	}
-	// skip: foreach over unresolved TCL command
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	_rows0 := db.Query("SELECT name FROM sqlite_master WHERE type = 'table'")
+	if _rows0.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", _rows0.Error, "SELECT name FROM sqlite_master WHERE type = 'table'")
+	}
+	for _, _row0 := range _rows0.Rows {
+	_ = _row0 // suppress unused warning
+	tab := fmt.Sprint(_row0[0])
+	_ = tab // suppress unused warning
+		_res = db.Exec("DROP TABLE " + tab)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + tab)
+		}
+	}
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "insert3-4.1"
 		_res = db.Exec(" \n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));\n  ")
