@@ -373,7 +373,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		// multiselect_op = getRHS(p, ruleNo, 2) - returns (SetOp, bool for ALL)
 		op := getSetOp(getRHS(p, ruleNo, 2))
-		left.AppendUnion(right, op, false)
+		all := false
+		if sr, ok := getRHS(p, ruleNo, 2).(setOpResult); ok {
+			all = sr.All
+		}
+		left.AppendUnion(right, op, all)
 		return left
 
 	// Rule 89: multiselect_op ::= UNION

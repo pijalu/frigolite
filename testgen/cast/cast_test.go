@@ -978,9 +978,15 @@ func Test_cast(t *testing.T) {
 		}
 	}
 	{ // "cast-10.1"
-		_res = db.Exec("\n  VALUES(CAST(44 AS REAL)),(55);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VALUES(CAST(44 AS REAL)),(55);\n")
+		r = db.Query("\n  VALUES(CAST(44 AS REAL)),(55);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(CAST(44 AS REAL)),(55);\n")
+			return
+		}
+		got := flatten(r)
+		want := "44.0 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "cast-10.2"

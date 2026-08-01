@@ -923,21 +923,39 @@ func Test_select4(t *testing.T) {
 		}
 	}
 	{ // "select4-14.12"
-		_res = db.Exec("\n  VALUES(1) UNION VALUES(2);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2", _res.Error, "\n  VALUES(1) UNION VALUES(2);\n")
+		r = db.Query("\n  VALUES(1) UNION VALUES(2);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(1) UNION VALUES(2);\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "select4-14.13"
-		_res = db.Exec("\n  VALUES(1),(2),(3) EXCEPT VALUES(2);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3", _res.Error, "\n  VALUES(1),(2),(3) EXCEPT VALUES(2);\n")
+		r = db.Query("\n  VALUES(1),(2),(3) EXCEPT VALUES(2);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(1),(2),(3) EXCEPT VALUES(2);\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "select4-14.14"
-		_res = db.Exec("\n  VALUES(1),(2),(3) EXCEPT VALUES(1),(3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VALUES(1),(2),(3) EXCEPT VALUES(1),(3);\n")
+		r = db.Query("\n  VALUES(1),(2),(3) EXCEPT VALUES(1),(3);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(1),(2),(3) EXCEPT VALUES(1),(3);\n")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "select4-14.15"
@@ -953,15 +971,27 @@ func Test_select4(t *testing.T) {
 		}
 	}
 	{ // "select4-14.16"
-		_res = db.Exec("\n  VALUES(1),(2),(3),(4) UNION ALL SELECT 5 LIMIT 99;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3 4 5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3 4 5", _res.Error, "\n  VALUES(1),(2),(3),(4) UNION ALL SELECT 5 LIMIT 99;\n")
+		r = db.Query("\n  VALUES(1),(2),(3),(4) UNION ALL SELECT 5 LIMIT 99;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(1),(2),(3),(4) UNION ALL SELECT 5 LIMIT 99;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "select4-14.17"
-		_res = db.Exec("\n  VALUES(1),(2),(3),(4) UNION ALL SELECT 5 LIMIT 3;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3", _res.Error, "\n  VALUES(1),(2),(3),(4) UNION ALL SELECT 5 LIMIT 3;\n")
+		r = db.Query("\n  VALUES(1),(2),(3),(4) UNION ALL SELECT 5 LIMIT 3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(1),(2),(3),(4) UNION ALL SELECT 5 LIMIT 3;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "select4-15.1"

@@ -1363,7 +1363,8 @@ func isQueryStmt(stmt string) bool {
 	if strings.HasPrefix(upper, "SELECT") ||
 		strings.HasPrefix(upper, "PRAGMA") ||
 		strings.HasPrefix(upper, "EXPLAIN") ||
-		strings.HasPrefix(upper, "WITH") {
+		strings.HasPrefix(upper, "WITH") ||
+		strings.HasPrefix(upper, "VALUES") {
 		return true
 	}
 	// INSERT/UPDATE/DELETE with RETURNING should use db.Query

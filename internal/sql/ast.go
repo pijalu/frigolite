@@ -22,18 +22,18 @@ type SelectStmt struct {
 	Distinct bool
 	Columns  []SelectColumn
 	From     TableRef
-	Joins    []JoinClause   // JOIN clauses
+	Joins    []JoinClause // JOIN clauses
 	Where    Expr
 	GroupBy  []Expr
 	Having   Expr
 	OrderBy  []OrderByTerm
 	Limit    Expr
 	Offset   Expr
-	Union    *SelectStmt    // combined query (optional)
-	SetOp    SetOp          // UNION / INTERSECT / EXCEPT
-	UnionAll bool           // UNION ALL vs UNION
-	CTEs     []CTEDef       // WITH clause CTE definitions
-	Windows  []WindowDef    // WINDOW clause definitions
+	Union    *SelectStmt // combined query (optional)
+	SetOp    SetOp       // UNION / INTERSECT / EXCEPT
+	UnionAll bool        // UNION ALL vs UNION
+	CTEs     []CTEDef    // WITH clause CTE definitions
+	Windows  []WindowDef // WINDOW clause definitions
 
 	// ValuesChain is set when this SELECT was parsed from a VALUES(...),(...)
 	// list (mvalues). It distinguishes INSERT...VALUES from a real
@@ -60,7 +60,12 @@ func (s *SelectStmt) AppendUnion(next *SelectStmt, op SetOp, unionAll bool) {
 	tail.Union = next
 	tail.SetOp = op
 	tail.UnionAll = unionAll
+	// The new chain tail is next's tail (next may itself be a compound chain,
+	// e.g. a multi-row VALUES whose internal UNION ALL chain must be preserved).
 	s.unionTail = next
+	if next.unionTail != nil {
+		s.unionTail = next.unionTail
+	}
 }
 
 // CTEDef represents a Common Table Expression definition.
@@ -74,10 +79,10 @@ type CTEDef struct {
 type SetOp int
 
 const (
-	SetNone        SetOp = iota
-	SetUnion              // UNION
-	SetIntersect          // INTERSECT
-	SetExcept             // EXCEPT
+	SetNone      SetOp = iota
+	SetUnion           // UNION
+	SetIntersect       // INTERSECT
+	SetExcept          // EXCEPT
 )
 
 // WindowDef represents a named window definition in a WINDOW clause.
@@ -139,9 +144,9 @@ func (s *SelectStmt) stmt() {}
 // JoinClause represents a JOIN clause.
 type JoinClause struct {
 	Table     TableRef
-	JoinType  string // "INNER", "LEFT", "RIGHT", "CROSS", ""
-	On        Expr   // ON condition
-	CommaJoin bool   // true if this is a comma-join (FROM t1, t2) not explicit CROSS JOIN
+	JoinType  string   // "INNER", "LEFT", "RIGHT", "CROSS", ""
+	On        Expr     // ON condition
+	CommaJoin bool     // true if this is a comma-join (FROM t1, t2) not explicit CROSS JOIN
 	Using     []string // USING(column-list) columns, merged by the join
 }
 
@@ -174,8 +179,8 @@ type InsertStmt struct {
 	Select       *SelectStmt // for INSERT ... SELECT
 	CTEs         []CTEDef    // WITH clause CTE definitions
 	OnConflict   *OnConflictClause
-	IsReplace    bool        // true for REPLACE INTO or INSERT OR REPLACE
-	OrIgnore     bool        // true for INSERT OR IGNORE
+	IsReplace    bool // true for REPLACE INTO or INSERT OR REPLACE
+	OrIgnore     bool // true for INSERT OR IGNORE
 	Returning    SelectColumn
 	HasReturning bool
 }
@@ -184,7 +189,7 @@ func (s *InsertStmt) stmt() {}
 
 // OnConflictClause represents an ON CONFLICT ... DO ... clause.
 type OnConflictClause struct {
-	ConflictColumn string       // optional conflict target column
+	ConflictColumn string // optional conflict target column
 	Action         ConflictAction
 	Assignments    []Assignment // for DO UPDATE SET
 	Where          Expr         // optional WHERE for DO UPDATE
@@ -200,16 +205,16 @@ const (
 
 // UpdateStmt represents an UPDATE statement.
 type UpdateStmt struct {
-	Table          string
-	OnConflict     string       // "REPLACE", "IGNORE", etc. from UPDATE OR <action>
-	Assignments    []Assignment
+	Table           string
+	OnConflict      string // "REPLACE", "IGNORE", etc. from UPDATE OR <action>
+	Assignments     []Assignment
 	SetParenColumns []string // when set, indicates SET (col1,col2)=(val1,val2) format
-	Where          Expr
-	OrderBy        []OrderByTerm
-	Limit          Expr
-	Offset         Expr
-	Returning      SelectColumn
-	HasReturning   bool
+	Where           Expr
+	OrderBy         []OrderByTerm
+	Limit           Expr
+	Offset          Expr
+	Returning       SelectColumn
+	HasReturning    bool
 }
 
 func (s *UpdateStmt) stmt() {}
@@ -241,7 +246,7 @@ const (
 	ConstraintPrimaryKey ConstraintType = "PRIMARY KEY"
 	ConstraintUnique     ConstraintType = "UNIQUE"
 	ConstraintCheck      ConstraintType = "CHECK"
-	ConstraintForeignKey  ConstraintType = "FOREIGN KEY"
+	ConstraintForeignKey ConstraintType = "FOREIGN KEY"
 )
 
 // IndexedColumn represents a column in a table constraint (PRIMARY KEY, UNIQUE, etc.).
@@ -260,20 +265,20 @@ func (e *ParenExpr) expr() {}
 
 // TableConstraint represents a table-level constraint in CREATE TABLE.
 type TableConstraint struct {
-	Type    ConstraintType // PRIMARY KEY, UNIQUE, CHECK, FOREIGN KEY
-	Name    string         // optional constraint name
-	Expr    Expr           // for CHECK: the check expression
+	Type    ConstraintType  // PRIMARY KEY, UNIQUE, CHECK, FOREIGN KEY
+	Name    string          // optional constraint name
+	Expr    Expr            // for CHECK: the check expression
 	Columns []IndexedColumn // for PRIMARY KEY/UNIQUE: indexed columns with options
 }
 
 type CreateTableStmt struct {
-	Name        string
-	NameTok     TokenInfo // byte position of the table name in original SQL
-	Columns     []ColumnDef
-	IfNotExists bool
-	AsSelect    *SelectStmt // CREATE TABLE ... AS SELECT
-	Constraints []TableConstraint // table-level constraints
-	WithoutRowid bool // WITHOUT ROWID option
+	Name         string
+	NameTok      TokenInfo // byte position of the table name in original SQL
+	Columns      []ColumnDef
+	IfNotExists  bool
+	AsSelect     *SelectStmt       // CREATE TABLE ... AS SELECT
+	Constraints  []TableConstraint // table-level constraints
+	WithoutRowid bool              // WITHOUT ROWID option
 
 	// RawSQL is the original CREATE TABLE statement text as written by the
 	// user. It is stored verbatim in sqlite_schema (matching SQLite) so that
@@ -286,30 +291,30 @@ func (s *CreateTableStmt) stmt() {}
 
 // ColumnDef represents a column definition in CREATE TABLE.
 type ColumnDef struct {
-	Name         string
-	Type         string
-	NotNull      bool
-	PrimaryKey   bool
-	AutoInc      bool
-	Unique       bool
-	OnConflict   string // optional: REPLACE, ABORT, FAIL, ROLLBACK, IGNORE
-	Collate      string
+	Name           string
+	Type           string
+	NotNull        bool
+	PrimaryKey     bool
+	AutoInc        bool
+	Unique         bool
+	OnConflict     string // optional: REPLACE, ABORT, FAIL, ROLLBACK, IGNORE
+	Collate        string
 	ConstraintName string // optional: CONSTRAINT name before constraint clause
 	References     string
-	Default      Expr
-	Check        Expr
-	Generated    Expr  // generated column expression (b AS(expr)); nil for normal columns
-	Dropped      bool  // column has been dropped via ALTER TABLE DROP COLUMN
+	Default        Expr
+	Check          Expr
+	Generated      Expr // generated column expression (b AS(expr)); nil for normal columns
+	Dropped        bool // column has been dropped via ALTER TABLE DROP COLUMN
 }
 
 // CreateIndexStmt represents a CREATE INDEX statement.
 type CreateIndexStmt struct {
-	Name    string
-	Table   string
+	Name     string
+	Table    string
 	TableTok TokenInfo // byte position of the Table name in original SQL
-	Columns []IndexColumn
-	Unique  bool
-	Where   Expr // optional WHERE clause for partial indexes
+	Columns  []IndexColumn
+	Unique   bool
+	Where    Expr // optional WHERE clause for partial indexes
 }
 
 func (s *CreateIndexStmt) stmt() {}
@@ -356,15 +361,15 @@ func (s *DropViewStmt) stmt() {}
 
 // CreateTriggerStmt represents a CREATE TRIGGER statement.
 type CreateTriggerStmt struct {
-	Name       string
-	Table      string
-	TableTok   TokenInfo // byte position of the Table name in original SQL
-	Event      string // INSERT, UPDATE, DELETE
-	Time       string // BEFORE, AFTER, INSTEAD OF
-	When       Expr   // WHEN clause (optional)
-	Statements []Stmt
+	Name        string
+	Table       string
+	TableTok    TokenInfo // byte position of the Table name in original SQL
+	Event       string    // INSERT, UPDATE, DELETE
+	Time        string    // BEFORE, AFTER, INSTEAD OF
+	When        Expr      // WHEN clause (optional)
+	Statements  []Stmt
 	IfNotExists bool
-	RawSQL     string // original CREATE TRIGGER text (verbatim storage)
+	RawSQL      string // original CREATE TRIGGER text (verbatim storage)
 }
 
 func (s *CreateTriggerStmt) stmt() {}
@@ -388,8 +393,8 @@ func (s *DropTriggerStmt) stmt() {}
 
 // ExplainStmt wraps another statement with EXPLAIN.
 type ExplainStmt struct {
-	Statement  Stmt
-	QueryPlan  bool // true for EXPLAIN QUERY PLAN
+	Statement Stmt
+	QueryPlan bool // true for EXPLAIN QUERY PLAN
 }
 
 func (s *ExplainStmt) stmt() {}
@@ -419,14 +424,14 @@ func (s *PragmaStmt) stmt() {}
 
 // AlterTableStmt represents an ALTER TABLE statement.
 type AlterTableStmt struct {
-	Table     string
-	TableTok  TokenInfo // byte position of the Table name in original SQL
-	Action    string // "RENAME", "ADD", "DROP", "ALTER"
-	NewName   string // for RENAME
-	Column    string // for ADD/DROP columns
-	ColumnTok TokenInfo // byte position of the Column name in original SQL (for RENAME COLUMN)
-	ColDef    ColumnDef // for ADD
-	AlterColAction string // "SET NOT NULL" or "DROP NOT NULL" for ALTER COLUMN
+	Table          string
+	TableTok       TokenInfo // byte position of the Table name in original SQL
+	Action         string    // "RENAME", "ADD", "DROP", "ALTER"
+	NewName        string    // for RENAME
+	Column         string    // for ADD/DROP columns
+	ColumnTok      TokenInfo // byte position of the Column name in original SQL (for RENAME COLUMN)
+	ColDef         ColumnDef // for ADD
+	AlterColAction string    // "SET NOT NULL" or "DROP NOT NULL" for ALTER COLUMN
 }
 
 func (s *AlterTableStmt) stmt() {}
@@ -536,7 +541,7 @@ func (e *BlobLit) expr() {}
 type FuncCall struct {
 	Name     string
 	Args     []Expr
-	Distinct bool         // DISTINCT keyword inside function, e.g. COUNT(DISTINCT x)
+	Distinct bool          // DISTINCT keyword inside function, e.g. COUNT(DISTINCT x)
 	OrderBy  []OrderByTerm // ORDER BY inside aggregate function call
 	Filter   Expr          // FILTER (WHERE condition) — nil if no FILTER
 	Over     *WindowDef    // OVER clause for window functions (nil if not a window function)
@@ -602,9 +607,9 @@ func (e *Between) expr() {}
 
 // InList represents an IN (list) expression.
 type InList struct {
-	Operand  Expr
-	List     []Expr
-	Negated  bool
+	Operand Expr
+	List    []Expr
+	Negated bool
 }
 
 func (e *InList) expr() {}
@@ -626,9 +631,9 @@ func (e *ExistsExpr) expr() {}
 
 // CaseExpr represents a CASE WHEN THEN ELSE expression.
 type CaseExpr struct {
-	Operand Expr      // CASE x WHEN ... (optional)
+	Operand Expr // CASE x WHEN ... (optional)
 	Whens   []WhenClause
-	Else    Expr       // ELSE expression (optional)
+	Else    Expr // ELSE expression (optional)
 }
 
 func (e *CaseExpr) expr() {}

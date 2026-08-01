@@ -17,7 +17,6 @@ import (
 
 // --- SELECT ---
 
-
 // handleSelectAggregates evaluates aggregates. Returns the result if aggregates
 // were processed and a result is available, or nil if no aggregates or empty result.
 func (e *Engine) handleSelectAggregates(s *sql.SelectStmt, rowMaps []RowMap, colDefs []sql.ColumnDef) *Result {
@@ -112,7 +111,6 @@ func buildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool, w
 	}
 	return buf.String()
 }
-
 
 func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	// Validate expressions before executing: check for invalid ORDER BY usage and
@@ -255,30 +253,30 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	}
 
 	// If there are JOINs, process them (nested-loop join)
-		if len(s.Joins) > 0 {
-			var err error
-			allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
-			if err != nil {
-				return &Result{Error: err}
-			}
-			// Apply the WHERE filter to the joined result. execJoins only applies
-			// per-join ON conditions; the statement-level WHERE must be applied
-			// after the full join is built.
-			if s.Where != nil {
-				filtered := allRowMaps[:0]
-				for _, rowMap := range allRowMaps {
-					if e.rowPassesWhere(s.Where, rowMap, nil) {
-						filtered = append(filtered, rowMap)
-					}
-				}
-				allRowMaps = filtered
-			}
-			// Rebuild allRows from combined row maps using SELECT columns
-			allRows = make([][]interface{}, len(allRowMaps))
-			for i, rowMap := range allRowMaps {
-				allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
-			}
+	if len(s.Joins) > 0 {
+		var err error
+		allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
+		if err != nil {
+			return &Result{Error: err}
 		}
+		// Apply the WHERE filter to the joined result. execJoins only applies
+		// per-join ON conditions; the statement-level WHERE must be applied
+		// after the full join is built.
+		if s.Where != nil {
+			filtered := allRowMaps[:0]
+			for _, rowMap := range allRowMaps {
+				if e.rowPassesWhere(s.Where, rowMap, nil) {
+					filtered = append(filtered, rowMap)
+				}
+			}
+			allRowMaps = filtered
+		}
+		// Rebuild allRows from combined row maps using SELECT columns
+		allRows = make([][]interface{}, len(allRowMaps))
+		for i, rowMap := range allRowMaps {
+			allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
+		}
+	}
 
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
 		return result
@@ -299,11 +297,38 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 	limit := s.Limit
 	offset := s.Offset
 	if s.Union != nil {
-		result.Rows = e.mergeUnionRows(result.Rows, s.Union, s.SetOp, s.UnionAll)
-		last := s
-		for last.Union != nil {
-			last = last.Union
+		// Merge the FULL compound chain, one member at a time. A member may
+		// itself be a multi-tuple VALUES (chain of UNION ALL members), so
+		// evaluate each member's own rows (Union detached) and apply the set
+		// operator carried on the link.
+		cur := s
+		for cur.Union != nil {
+			member := cur.Union
+			if member.ValuesChain {
+				// A VALUES member is a single operand: evaluate its full
+				// tuple list (the internal UNION ALL chain of one node per
+				// tuple) as one set before the link's operator applies.
+				memberResult := e.execValuesGroup(member)
+				if memberResult.Error == nil {
+					result.Rows = applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll)
+				}
+				// Skip the VALUES group's internal tuple nodes (links that
+				// are UNION ALL); stop at the next real compound member.
+				for member.Union != nil && member.SetOp == sql.SetUnion && member.UnionAll {
+					member = member.Union
+				}
+				cur = member
+				continue
+			}
+			memberCopy := *member
+			memberCopy.Union = nil
+			memberResult := e.execSelect(&memberCopy)
+			if memberResult.Error == nil {
+				result.Rows = applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll)
+			}
+			cur = member
 		}
+		last := cur
 		if len(last.OrderBy) > 0 {
 			orderBy = last.OrderBy
 		}
@@ -341,8 +366,11 @@ func (e *Engine) mergeUnionRows(rows [][]interface{}, union *sql.SelectStmt, op 
 	if unionResult.Error != nil {
 		return rows
 	}
-	rightRows := unionResult.Rows
+	return applySetOp(rows, unionResult.Rows, op, unionAll)
+}
 
+// applySetOp combines left and right row sets with a compound set operator.
+func applySetOp(rows, rightRows [][]interface{}, op sql.SetOp, unionAll bool) [][]interface{} {
 	switch op {
 	case sql.SetUnion:
 		if unionAll {
@@ -360,6 +388,31 @@ func (e *Engine) mergeUnionRows(rows [][]interface{}, union *sql.SelectStmt, op 
 	default:
 		return append(rows, rightRows...)
 	}
+}
+
+// execValuesGroup evaluates a VALUES-select head together with its internal
+// tuple chain (one UNION ALL node per tuple) as a single row set.
+func (e *Engine) execValuesGroup(head *sql.SelectStmt) *Result {
+	memberCopy := *head
+	memberCopy.Union = nil
+	res := e.execSelect(&memberCopy)
+	if res.Error != nil {
+		return res
+	}
+	cur := head
+	for cur.Union != nil && cur.SetOp == sql.SetUnion && cur.UnionAll {
+		next := cur.Union
+		nextCopy := *next
+		nextCopy.Union = nil
+		nres := e.execSelect(&nextCopy)
+		if nres.Error != nil {
+			return nres
+		}
+		res.Rows = append(res.Rows, nres.Rows...)
+		cur = next
+	}
+	fmt.Printf("DBG execValuesGroup rows=%v\n", res.Rows)
+	return res
 }
 
 // dedupeRows removes duplicate rows using CompareValues-based keys.
@@ -620,38 +673,37 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 		}
 	}
 
-	// Handle UNION / INTERSECT / EXCEPT for no-FROM selects
+	// Handle UNION / INTERSECT / EXCEPT for no-FROM selects — merge the FULL
+	// compound chain (a VALUES member's internal tuple chain is one operand).
 	if s.Union != nil {
-		unionResult := e.execSelect(s.Union)
-		if unionResult.Error != nil {
-			return unionResult
-		}
-		allRows := append([][]interface{}{outRow}, unionResult.Rows...)
-		switch s.SetOp {
-		case sql.SetUnion:
-			if s.UnionAll {
-				// UNION ALL: concatenate without dedup
-				result := &Result{Columns: columns, Rows: allRows}
-				e.finalizeNoFromSelect(result, s)
-				return result
+		rows := [][]interface{}{outRow}
+		cur := s
+		for cur.Union != nil {
+			member := cur.Union
+			if member.ValuesChain {
+				memberResult := e.execValuesGroup(member)
+				if memberResult.Error != nil {
+					return memberResult
+				}
+				rows = applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll)
+				for member.Union != nil && member.SetOp == sql.SetUnion && member.UnionAll {
+					member = member.Union
+				}
+				cur = member
+				continue
 			}
-			// UNION: deduplicate
-			result := &Result{Columns: columns, Rows: dedupeRows(allRows)}
-			e.finalizeNoFromSelect(result, s)
-			return result
-		case sql.SetIntersect:
-			result := &Result{Columns: columns, Rows: intersectRows([][]interface{}{outRow}, unionResult.Rows)}
-			e.finalizeNoFromSelect(result, s)
-			return result
-		case sql.SetExcept:
-			result := &Result{Columns: columns, Rows: exceptRows([][]interface{}{outRow}, unionResult.Rows)}
-			e.finalizeNoFromSelect(result, s)
-			return result
-		default:
-			result := &Result{Columns: columns, Rows: allRows}
-			e.finalizeNoFromSelect(result, s)
-			return result
+			memberCopy := *member
+			memberCopy.Union = nil
+			memberResult := e.execSelect(&memberCopy)
+			if memberResult.Error != nil {
+				return memberResult
+			}
+			rows = applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll)
+			cur = member
 		}
+		result := &Result{Columns: columns, Rows: rows}
+		e.finalizeNoFromSelect(result, s)
+		return result
 	}
 
 	// No UNION: apply ORDER BY and LIMIT/OFFSET
@@ -966,6 +1018,7 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: outRows}
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }
+
 // the base table rows and each joined table. Returns combined rowMaps and
 // colDefs.
 
@@ -1189,7 +1242,6 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 	return currentMaps, currentDefs, nil
 }
 
-
 // processJoinRowTrackingRight processes a single left row against all right rows
 // for a JOIN, optionally tracking which right rows were matched (for RIGHT/FULL JOIN).
 // When trackMatchedRight is true, disables the autoIndex hash optimization so that
@@ -1369,7 +1421,6 @@ func extractEquiJoinCols(on sql.Expr, leftTableName, rightTableName string) (str
 	}
 	return "", ""
 }
-
 
 // buildCombinedRowMap creates a combined row map from left and right join sides.
 // It stores values under both unqualified names and table-prefixed names so that
@@ -1555,7 +1606,7 @@ func (e *Engine) aggHasColumnRef(columns []sql.SelectColumn) bool {
 		if fn, ok := col.Expr.(*sql.FuncCall); ok {
 			if reg, found := e.funcs.Find(fn.Name); found && reg.Type == function.TypeAggregate {
 				for _, arg := range fn.Args {
-						if e.exprHasColumnRef(arg) {
+					if e.exprHasColumnRef(arg) {
 						return true
 					}
 				}
@@ -1747,6 +1798,7 @@ func exprHasColRefInMap(expr sql.Expr, colNames map[string]bool) bool {
 
 // exprHasCorrelatedSubquery checks if an expression tree contains a subquery
 // that has a correlated aggregate.
+//
 //lint:ignore U1000  Planned for query optimization
 func (e *Engine) exprHasCorrelatedSubquery(expr sql.Expr) bool {
 	if expr == nil {
@@ -1800,7 +1852,7 @@ func (e *Engine) evalAggOverOuterRows(s *sql.SelectStmt, outerRows []RowMap) []i
 						if err != nil {
 							args[i] = nil
 						} else {
-   				args[i] = util.UnwrapColumnValue(v)
+							args[i] = util.UnwrapColumnValue(v)
 						}
 					}
 					if err := agg.Step(args); err != nil {
@@ -2233,7 +2285,6 @@ func (e *Engine) evalHavingSubquery(v *sql.Subquery, groupRows []RowMap) (interf
 	e.outerRows = prevOuterRows
 	return result, err
 }
-
 
 func (e *Engine) evalAggregateExpr(expr sql.Expr, rowMaps []RowMap) (interface{}, error) {
 	switch v := expr.(type) {
@@ -3446,7 +3497,9 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 				if cd.Dropped {
 					continue
 				}
-				if val, exists := row.Get(cd.Name); exists { outRow = append(outRow, util.UnwrapColumnValue(val)) }
+				if val, exists := row.Get(cd.Name); exists {
+					outRow = append(outRow, util.UnwrapColumnValue(val))
+				}
 			}
 		} else {
 			v, err := e.evalExpr(col.Expr, row)

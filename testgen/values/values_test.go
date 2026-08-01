@@ -397,9 +397,15 @@ func Test_values(t *testing.T) {
 			}
 		}
 		{ // "6.2"
-			_res = db.Exec("\n  VALUES(CAST(44 AS REAL)),(55);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VALUES(CAST(44 AS REAL)),(55);\n")
+			r = db.Query("\n  VALUES(CAST(44 AS REAL)),(55);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(CAST(44 AS REAL)),(55);\n")
+				return
+			}
+			got := flatten(r)
+			want := "44.0 55"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "7.1"
@@ -466,15 +472,27 @@ func Test_values(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "9.1"
-				_res = db.Exec("\n  VALUES(456), (123), (NULL) UNION ALL SELECT 122 ORDER BY 1\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VALUES(456), (123), (NULL) UNION ALL SELECT 122 ORDER BY 1\n")
+				r = db.Query("\n  VALUES(456), (123), (NULL) UNION ALL SELECT 122 ORDER BY 1\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(456), (123), (NULL) UNION ALL SELECT 122 ORDER BY 1\n")
+					return
+				}
+				got := flatten(r)
+				want := "{} 122 123 456"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "9.2"
-				_res = db.Exec("\n  VALUES (1, 2), (3, 4), (\n    ( SELECT column1 FROM ( VALUES (5, 6), (7, 8) ) ),\n    ( SELECT max(column2) FROM ( VALUES (5, 1), (7, 6) ) )\n  )\n")
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3 4 5 6") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3 4 5 6", _res.Error, "\n  VALUES (1, 2), (3, 4), (\n    ( SELECT column1 FROM ( VALUES (5, 6), (7, 8) ) ),\n    ( SELECT max(column2) FROM ( VALUES (5, 1), (7, 6) ) )\n  )\n")
+				r = db.Query("\n  VALUES (1, 2), (3, 4), (\n    ( SELECT column1 FROM ( VALUES (5, 6), (7, 8) ) ),\n    ( SELECT max(column2) FROM ( VALUES (5, 1), (7, 6) ) )\n  )\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES (1, 2), (3, 4), (\n    ( SELECT column1 FROM ( VALUES (5, 6), (7, 8) ) ),\n    ( SELECT max(column2) FROM ( VALUES (5, 1), (7, 6) ) )\n  )\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 6"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "10.1"

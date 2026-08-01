@@ -1538,45 +1538,87 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						{ // "35.2"
-							_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2), (3);\n  VALUES(1) INTERSECT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2), (3);\n  VALUES(1) INTERSECT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
+							r = db.Query("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2), (3);\n  VALUES(1) INTERSECT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2), (3);\n  VALUES(1) INTERSECT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
+								return
+							}
+							got := flatten(r)
+							want := "1"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "35.3"
-							_res = db.Exec("\n  VALUES(8) EXCEPT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VALUES(8) EXCEPT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
+							r = db.Query("\n  VALUES(8) EXCEPT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(8) EXCEPT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
+								return
+							}
+							got := flatten(r)
+							want := "8"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "35.4"
-							_res = db.Exec("\n  VALUES(1) UNION \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3 6") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 6", _res.Error, "\n  VALUES(1) UNION \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
+							r = db.Query("\n  VALUES(1) UNION \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(1) UNION \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;\n")
+								return
+							}
+							got := flatten(r)
+							want := "1 3 6"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "36.10"
-							_res = db.Exec("\n  VALUES(count(*)OVER());\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VALUES(count(*)OVER());\n")
+							r = db.Query("\n  VALUES(count(*)OVER());\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(count(*)OVER());\n")
+								return
+							}
+							got := flatten(r)
+							want := "1"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "36.20"
-							_res = db.Exec("\n  VALUES(count(*)OVER()),(2);\n")
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2", _res.Error, "\n  VALUES(count(*)OVER()),(2);\n")
+							r = db.Query("\n  VALUES(count(*)OVER()),(2);\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(count(*)OVER()),(2);\n")
+								return
+							}
+							got := flatten(r)
+							want := "1 2"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "36.30"
-							_res = db.Exec("\n  VALUES(2),(count(*)OVER());\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VALUES(2),(count(*)OVER());\n")
+							r = db.Query("\n  VALUES(2),(count(*)OVER());\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(2),(count(*)OVER());\n")
+								return
+							}
+							got := flatten(r)
+							want := "2 1"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "36.40"
-							_res = db.Exec("\n  VALUES(2),(3),(count(*)OVER()),(4),(5);\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VALUES(2),(3),(count(*)OVER()),(4),(5);\n")
+							r = db.Query("\n  VALUES(2),(3),(count(*)OVER()),(4),(5);\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VALUES(2),(3),(count(*)OVER()),(4),(5);\n")
+								return
+							}
+							got := flatten(r)
+							want := "2 3 1 4 5"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						db.Close()

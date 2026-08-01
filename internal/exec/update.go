@@ -110,7 +110,7 @@ func (e *Engine) collectUpdateChanges(rootPage uint32, colIndex map[string]int, 
 
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
 		if e.rowMatchesWhere(s.Where, row) {
-			ch, err := e.buildUpdateChange(cell, rec, colIndex, s, row)
+			ch, err := e.buildUpdateChange(cell, rec, colIndex, colDefs, s, row)
 			if err != nil {
 				return nil, err
 			}
@@ -125,7 +125,7 @@ func (e *Engine) collectUpdateChanges(rootPage uint32, colIndex map[string]int, 
 	return changes, nil
 }
 
-func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colIndex map[string]int, s *sql.UpdateStmt, row Row) (*updateChange, error) {
+func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, row Row) (*updateChange, error) {
 	// Allocate values array large enough to hold all columns,
 	// not just those present in the current record.
 	maxIdx := len(rec.Values)
@@ -153,7 +153,11 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 		// Unwrap ColumnValue to avoid storing internal wrapper types
 		// in the record — only raw values should be serialized.
 		v = util.UnwrapColumnValue(v)
+		// Apply the column's type affinity (e.g. a REAL column stores 1 as 1.0).
 		if idx >= 0 && idx < len(values) {
+			if idx < len(colDefs) {
+				v = util.ApplyColumnAffinity(v, colDefs[idx].Type)
+			}
 			values[idx] = v
 		}
 	}
