@@ -274,7 +274,7 @@ func Test_indexexpr2(t *testing.T) {
 	cnt = "0"
 	_ = cnt // suppress unused warning
 	// proc definition (not transpiled)
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));\n  ")

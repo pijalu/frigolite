@@ -6,7 +6,6 @@ package wherelfault
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -62,8 +61,8 @@ func Test_wherelfault(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 1.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT...} -body {\n  exe... (unsupported command, not transpiled)
 	// do_faultsim_test 1.2 -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT...} -body {\n  exe... (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.1.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n")

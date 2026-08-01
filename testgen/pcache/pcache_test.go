@@ -6,7 +6,6 @@ package pcache
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -56,8 +55,8 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.2"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA cache_size=12;\n    PRAGMA auto_vacuum=0;\n    PRAGMA mmap_size=0;\n  ")
 		if r.Error != nil {

@@ -6,7 +6,6 @@ package conflict
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -399,8 +398,8 @@ func Test_conflict2(t *testing.T) {
 									_ = t3 // suppress unused warning
 								}
 								{ // do_test "conflict2-6." + i
-									os.Remove("test.db")
-									db, err = frigolite.Open("test.db")
+									_dbtmp6, err := frigolite.Open("test.db")
+									_ = _dbtmp6 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									if conf1 != "" {
 										conf1 = "ON CONFLICT " + conf1

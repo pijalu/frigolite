@@ -6,7 +6,6 @@ package strict
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -59,8 +58,8 @@ func Test_strict2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');\n")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "strict2-1.2"
 		r = db.Query("\n  PRAGMA quick_check('t1');\n")

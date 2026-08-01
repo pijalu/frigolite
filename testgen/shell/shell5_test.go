@@ -353,8 +353,7 @@ func Test_shell5(t *testing.T) {
 		}
 		os.Remove("test.db")
 		// catchcmd test.db {.mode csv\n    CREATE TABLE t1(a,b,c);\n.import sh...} (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT *, '|' FROM t1 ORDER BY rowid")
 		if _res.Error != nil {
@@ -374,8 +373,7 @@ func Test_shell5(t *testing.T) {
 		// close $out
 		os.Remove("test.db")
 		// catchcmd test.db {.mode csv\n    CREATE TABLE t1(a,b,c,d);\n.import ...} (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT hex(c) FROM t1 ORDER BY rowid")
 		if _res.Error != nil {
@@ -393,8 +391,7 @@ func Test_shell5(t *testing.T) {
 		// close $out
 		os.Remove("test.db")
 		// catchcmd test.db {\n    CREATE TABLE t1(a,b,c,d);\n.import --csv --q...} (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT b, c FROM t1 ORDER BY rowid")
 		if _res.Error != nil {
@@ -420,8 +417,7 @@ func Test_shell5(t *testing.T) {
 		}
 		os.Remove("test.db")
 		// catchcmd test.db {.mode csv\n.import shell5.csv t1\n  } (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT *, '|' FROM t1")
 		if _res.Error != nil {
@@ -431,8 +427,7 @@ func Test_shell5(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell5-2.1"
 		fd = "open shell5.csv w"

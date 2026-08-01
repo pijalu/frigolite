@@ -6,7 +6,6 @@ package vtabdrop
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -85,8 +84,8 @@ func Test_vtabdrop(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.3"
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
@@ -135,8 +134,8 @@ func Test_vtabdrop(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.3"
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
@@ -185,8 +184,8 @@ func Test_vtabdrop(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.3"
 		r = db.Query("\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")

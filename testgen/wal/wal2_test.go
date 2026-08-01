@@ -225,8 +225,8 @@ func Test_wal2(t *testing.T) {
 		// testvfs tvfs (unsupported command, not transpiled)
 		// tvfs script tvfs_cb (unsupported command, not transpiled)
 		// tvfs filter xShmOpen (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -252,19 +252,19 @@ func Test_wal2(t *testing.T) {
 	INITSLOT = "list                                     \\\n  {4 1 lock exclusive} {4 1 unlock exclusive}          \\"
 	_ = INITSLOT // suppress unused warning
 	// foreach {tn iInsert res wal_index_hdr_mod wal_locks} "\n         2    5   {5 15}    0             {" + RECOVER + " " + READ + "}\n         3    6   {6 21}    1             {" + RECOVER + " " + READ + "}\n         4    7   {7 28}    2             {" + RECOVER + " " + READ + "}\n         5    8   {8 36}    3             {" + RECOVER + " " + READ + "}\n         6    9   {9 45}    4             {" + RECOVER + " " + READ + "}\n         7   10   {10 55}   5             {" + RECOVER + " " + READ + "}\n         8   11   {11 66}   6             {" + RECOVER + " " + READ + "}\n         9   12   {12 78}   7             {" + RECOVER + " " + READ + "}\n        10   13   {13 91}   8             {" + RECOVER + " " + READ + "}\n        11   14   {14 105}  9             {" + RECOVER + " " + READ + "}\n        12   15   {15 120}  -1            {" + INITSLOT + " " + READ + "}\n"
-	_items0 := tclSplitList("\n         2    5   {5 15}    0             {" + RECOVER + " " + READ + "}\n         3    6   {6 21}    1             {" + RECOVER + " " + READ + "}\n         4    7   {7 28}    2             {" + RECOVER + " " + READ + "}\n         5    8   {8 36}    3             {" + RECOVER + " " + READ + "}\n         6    9   {9 45}    4             {" + RECOVER + " " + READ + "}\n         7   10   {10 55}   5             {" + RECOVER + " " + READ + "}\n         8   11   {11 66}   6             {" + RECOVER + " " + READ + "}\n         9   12   {12 78}   7             {" + RECOVER + " " + READ + "}\n        10   13   {13 91}   8             {" + RECOVER + " " + READ + "}\n        11   14   {14 105}  9             {" + RECOVER + " " + READ + "}\n        12   15   {15 120}  -1            {" + INITSLOT + " " + READ + "}\n")
-	for _idx0 := 0; _idx0+5 <= len(_items0); _idx0 += 5 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n         2    5   {5 15}    0             {" + RECOVER + " " + READ + "}\n         3    6   {6 21}    1             {" + RECOVER + " " + READ + "}\n         4    7   {7 28}    2             {" + RECOVER + " " + READ + "}\n         5    8   {8 36}    3             {" + RECOVER + " " + READ + "}\n         6    9   {9 45}    4             {" + RECOVER + " " + READ + "}\n         7   10   {10 55}   5             {" + RECOVER + " " + READ + "}\n         8   11   {11 66}   6             {" + RECOVER + " " + READ + "}\n         9   12   {12 78}   7             {" + RECOVER + " " + READ + "}\n        10   13   {13 91}   8             {" + RECOVER + " " + READ + "}\n        11   14   {14 105}  9             {" + RECOVER + " " + READ + "}\n        12   15   {15 120}  -1            {" + INITSLOT + " " + READ + "}\n")
+	for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		iInsert := _items0[_idx0+1]
+		iInsert := _items1[_idx1+1]
 		_ = iInsert // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items1[_idx1+2]
 		_ = res // suppress unused warning
-		wal_index_hdr_mod := _items0[_idx0+3]
+		wal_index_hdr_mod := _items1[_idx1+3]
 		_ = wal_index_hdr_mod // suppress unused warning
-		wal_locks := _items0[_idx0+4]
+		wal_locks := _items1[_idx1+4]
 		_ = wal_locks // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "wal2-1." + tn + ".1"
 				_res = db.Exec(" INSERT INTO t1 VALUES(" + iInsert + ") ")
 				if _res.Error != nil {
@@ -298,8 +298,8 @@ func Test_wal2(t *testing.T) {
 			// tvfs script tvfs_cb (unsupported command, not transpiled)
 			// tvfs filter xShmOpen (unsupported command, not transpiled)
 			// proc definition (not transpiled)
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
@@ -319,19 +319,19 @@ func Test_wal2(t *testing.T) {
 			}
 		}
 		// foreach {tn iInsert res0 res1 wal_index_hdr_mod} "\n         2    5   {4 10}   {5 15}    0\n         3    6   {5 15}   {6 21}    1\n         4    7   {6 21}   {7 28}    2\n         5    8   {7 28}   {8 36}    3\n         6    9   {8 36}   {9 45}    4\n         7   10   {9 45}   {10 55}   5\n         8   11   {10 55}  {11 66}   6\n         9   12   {11 66}  {12 78}   7\n"
-		_items1 := tclSplitList("\n         2    5   {4 10}   {5 15}    0\n         3    6   {5 15}   {6 21}    1\n         4    7   {6 21}   {7 28}    2\n         5    8   {7 28}   {8 36}    3\n         6    9   {8 36}   {9 45}    4\n         7   10   {9 45}   {10 55}   5\n         8   11   {10 55}  {11 66}   6\n         9   12   {11 66}  {12 78}   7\n")
-		for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
-			tn := _items1[_idx1+0]
+		_items3 := tclSplitList("\n         2    5   {4 10}   {5 15}    0\n         3    6   {5 15}   {6 21}    1\n         4    7   {6 21}   {7 28}    2\n         5    8   {7 28}   {8 36}    3\n         6    9   {8 36}   {9 45}    4\n         7   10   {9 45}   {10 55}   5\n         8   11   {10 55}  {11 66}   6\n         9   12   {11 66}  {12 78}   7\n")
+		for _idx3 := 0; _idx3+5 <= len(_items3); _idx3 += 5 {
+			tn := _items3[_idx3+0]
 			_ = tn // suppress unused warning
-			iInsert := _items1[_idx1+1]
+			iInsert := _items3[_idx3+1]
 			_ = iInsert // suppress unused warning
-			res0 := _items1[_idx1+2]
+			res0 := _items3[_idx3+2]
 			_ = res0 // suppress unused warning
-			res1 := _items1[_idx1+3]
+			res1 := _items3[_idx3+3]
 			_ = res1 // suppress unused warning
-			wal_index_hdr_mod := _items1[_idx1+4]
+			wal_index_hdr_mod := _items3[_idx3+4]
 			_ = wal_index_hdr_mod // suppress unused warning
-			_ = _idx1
+			_ = _idx3
 				// tvfs filter xShmLock (unsupported command, not transpiled)
 				{ // do_test "wal2-2." + tn + ".1"
 					oldhdr = "set_tvfs_hdr $::filename"
@@ -382,8 +382,8 @@ func Test_wal2(t *testing.T) {
 					// proc definition (not transpiled)
 					// testvfs tvfs (unsupported command, not transpiled)
 					// tvfs script tvfs_cb (unsupported command, not transpiled)
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
+					_dbtmp0, err := frigolite.Open("test.db")
+					_ = _dbtmp0 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n  ")
 					if _res.Error != nil {
@@ -423,8 +423,8 @@ func Test_wal2(t *testing.T) {
 				os.Remove("test.db")
 			}
 			{ // do_test "wal2-4.1"
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE data(x);\n    INSERT INTO data VALUES('need xShmOpen to see this');\n    PRAGMA wal_checkpoint;\n  ")
 				if r.Error != nil {
@@ -433,16 +433,16 @@ func Test_wal2(t *testing.T) {
 			}
 			{ // do_test "wal2-4.2"
 				// testvfs tvfs -noshm 1 (unsupported command, not transpiled)
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp5, err := frigolite.Open("test.db")
+				_ = _dbtmp5 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" SELECT * FROM data ")
 				_ = _res // catchsql
 			}
 			{ // do_test "wal2-4.3"
 				// testvfs tvfs (unsupported command, not transpiled)
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp6, err := frigolite.Open("test.db")
+				_ = _dbtmp6 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" SELECT * FROM data ")
 				_ = _res // catchsql
@@ -472,8 +472,8 @@ func Test_wal2(t *testing.T) {
 				_ = tvfs_cb_return // suppress unused warning
 				// testvfs tvfs (unsupported command, not transpiled)
 				// tvfs script tvfs_cb (unsupported command, not transpiled)
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp7, err := frigolite.Open("test.db")
+				_ = _dbtmp7 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);\n  ")
 				if _res.Error != nil {
@@ -491,8 +491,7 @@ func Test_wal2(t *testing.T) {
 			// tvfs delete (unsupported command, not transpiled)
 			{ // do_test "wal2-6.1.1"
 				os.Remove("test.db")
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    Pragma Journal_Mode = Wal;\n  ")
 				if r.Error != nil {
@@ -535,8 +534,7 @@ func Test_wal2(t *testing.T) {
 			}
 			{ // do_test "wal2-6.2.1"
 				os.Remove("test.db")
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    Pragma Locking_Mode = Exclusive;\n    Pragma Journal_Mode = Wal;\n    Pragma Lock_Status;\n  ")
 				if r.Error != nil {
@@ -550,8 +548,8 @@ func Test_wal2(t *testing.T) {
 				}
 			}
 			{ // do_test "wal2-6.2.3"
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp8, err := frigolite.Open("test.db")
+				_ = _dbtmp8 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" SELECT * FROM sqlite_master ")
 				if r.Error != nil {
@@ -604,8 +602,7 @@ func Test_wal2(t *testing.T) {
 			}
 			{ // do_test "wal2-6.3.1"
 				os.Remove("test.db")
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Chico');\n      INSERT INTO t1 VALUES('Harpo');\n    COMMIT;\n  ")
 				if _res.Error != nil {
@@ -668,8 +665,7 @@ func Test_wal2(t *testing.T) {
 				// proc definition (not transpiled)
 				// testvfs tvfs (unsupported command, not transpiled)
 				// tvfs script tvfs_cb (unsupported command, not transpiled)
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				// set  (invalid identifier, skipped)
 			}
@@ -686,17 +682,17 @@ func Test_wal2(t *testing.T) {
 			READMARK1_WRITE = "\n  {4 1 lock shared} \n    {0 1 lock exclusive} {0 1 unlock exclusive} \n  {4 1 unlock shared}\n"
 			_ = READMARK1_WRITE // suppress unused warning
 			// foreach {tn sql res expected_locks} "\n  2 {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Leonard');\n      INSERT INTO t1 VALUES('Arthur');\n    COMMIT;\n  } {wal} {\n    $RECOVERY \n    $READMARK0_WRITE\n  }\n\n  3 {\n    # This test should do the READMARK1_SET locking to populate the \n    # aReadMark[1] slot with the current mxFrame value. Followed by\n    # READMARK1_READ to read the database.\n    #\n    SELECT * FROM t1\n  } {Leonard Arthur} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n\n  4 {\n    # aReadMark[1] is already set to mxFrame. So just READMARK1_READ\n    # this time, not READMARK1_SET.\n    #\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur Leonard} { \n    $READMARK1_READ \n  }\n\n  5 {\n    PRAGMA locking_mode = exclusive\n  } {exclusive} { } \n\n  6 {\n    INSERT INTO t1 VALUES('Julius Henry');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry}} {\n    $READMARK1_READ\n  }\n\n  7 {\n    INSERT INTO t1 VALUES('Karl');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry} Karl} { }\n\n  8 {\n    PRAGMA locking_mode = normal\n  } {normal} { }\n\n  9 {\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur {Julius Henry} Karl Leonard} $READMARK1_READ\n\n  10 { DELETE FROM t1 } {} $READMARK1_WRITE\n\n  11 {\n    SELECT * FROM t1\n  } {} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n"
-			_items2 := tclSplitList("\n  2 {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Leonard');\n      INSERT INTO t1 VALUES('Arthur');\n    COMMIT;\n  } {wal} {\n    $RECOVERY \n    $READMARK0_WRITE\n  }\n\n  3 {\n    # This test should do the READMARK1_SET locking to populate the \n    # aReadMark[1] slot with the current mxFrame value. Followed by\n    # READMARK1_READ to read the database.\n    #\n    SELECT * FROM t1\n  } {Leonard Arthur} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n\n  4 {\n    # aReadMark[1] is already set to mxFrame. So just READMARK1_READ\n    # this time, not READMARK1_SET.\n    #\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur Leonard} { \n    $READMARK1_READ \n  }\n\n  5 {\n    PRAGMA locking_mode = exclusive\n  } {exclusive} { } \n\n  6 {\n    INSERT INTO t1 VALUES('Julius Henry');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry}} {\n    $READMARK1_READ\n  }\n\n  7 {\n    INSERT INTO t1 VALUES('Karl');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry} Karl} { }\n\n  8 {\n    PRAGMA locking_mode = normal\n  } {normal} { }\n\n  9 {\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur {Julius Henry} Karl Leonard} $READMARK1_READ\n\n  10 { DELETE FROM t1 } {} $READMARK1_WRITE\n\n  11 {\n    SELECT * FROM t1\n  } {} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n")
-			for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
-				tn := _items2[_idx2+0]
+			_items9 := tclSplitList("\n  2 {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Leonard');\n      INSERT INTO t1 VALUES('Arthur');\n    COMMIT;\n  } {wal} {\n    $RECOVERY \n    $READMARK0_WRITE\n  }\n\n  3 {\n    # This test should do the READMARK1_SET locking to populate the \n    # aReadMark[1] slot with the current mxFrame value. Followed by\n    # READMARK1_READ to read the database.\n    #\n    SELECT * FROM t1\n  } {Leonard Arthur} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n\n  4 {\n    # aReadMark[1] is already set to mxFrame. So just READMARK1_READ\n    # this time, not READMARK1_SET.\n    #\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur Leonard} { \n    $READMARK1_READ \n  }\n\n  5 {\n    PRAGMA locking_mode = exclusive\n  } {exclusive} { } \n\n  6 {\n    INSERT INTO t1 VALUES('Julius Henry');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry}} {\n    $READMARK1_READ\n  }\n\n  7 {\n    INSERT INTO t1 VALUES('Karl');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry} Karl} { }\n\n  8 {\n    PRAGMA locking_mode = normal\n  } {normal} { }\n\n  9 {\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur {Julius Henry} Karl Leonard} $READMARK1_READ\n\n  10 { DELETE FROM t1 } {} $READMARK1_WRITE\n\n  11 {\n    SELECT * FROM t1\n  } {} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n")
+			for _idx9 := 0; _idx9+4 <= len(_items9); _idx9 += 4 {
+				tn := _items9[_idx9+0]
 				_ = tn // suppress unused warning
-				sql := _items2[_idx2+1]
+				sql := _items9[_idx9+1]
 				_ = sql // suppress unused warning
-				res := _items2[_idx2+2]
+				res := _items9[_idx9+2]
 				_ = res // suppress unused warning
-				expected_locks := _items2[_idx2+3]
+				expected_locks := _items9[_idx9+3]
 				_ = expected_locks // suppress unused warning
-				_ = _idx2
+				_ = _idx9
 					L = "list"
 					_ = L // suppress unused warning
 					for _, el := range tclSplitList(expected_locks) {
@@ -727,8 +723,8 @@ func Test_wal2(t *testing.T) {
 				}
 				// tvfs delete (unsupported command, not transpiled)
 				{ // do_test "wal2-6.5.1"
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
+					_dbtmp10, err := frigolite.Open("test.db")
+					_ = _dbtmp10 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA locking_mode = exclusive;\n    CREATE TABLE t2(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t2 VALUES('I', 'II');\n    PRAGMA journal_mode;\n  ")
 					if r.Error != nil {
@@ -752,8 +748,8 @@ func Test_wal2(t *testing.T) {
 					// testvfs T (unsupported command, not transpiled)
 					// T script lock_control (unsupported command, not transpiled)
 					// T filter {} (unsupported command, not transpiled)
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
+					_dbtmp11, err := frigolite.Open("test.db")
+					_ = _dbtmp11 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" SELECT * FROM sqlite_master ")
 					if r.Error != nil {
@@ -803,8 +799,8 @@ func Test_wal2(t *testing.T) {
 				// T delete (unsupported command, not transpiled)
 				os.Remove("test.db")
 				{ // do_test "wal2-7.1.1"
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
+					_dbtmp12, err := frigolite.Open("test.db")
+					_ = _dbtmp12 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
 					if _res.Error != nil {
@@ -838,8 +834,8 @@ func Test_wal2(t *testing.T) {
 				db2.Close()
 				os.Remove("test.db")
 				{ // do_test "wal2-8.1.2"
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
+					_dbtmp13, err := frigolite.Open("test.db")
+					_ = _dbtmp13 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(8188*1020));\n    CREATE TABLE t2(y);\n    PRAGMA wal_checkpoint;\n  ")
 					if r.Error != nil {
@@ -875,8 +871,8 @@ func Test_wal2(t *testing.T) {
 				// tvfs filter xShmOpen (unsupported command, not transpiled)
 				os.Remove("test.db")
 				{ // do_test "wal2-9.1"
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
+					_dbtmp14, err := frigolite.Open("test.db")
+					_ = _dbtmp14 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');\n  ")
 					if _res.Error != nil {
@@ -898,17 +894,17 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				// foreach {tn hdr1 hdr2 res} "list                                            \\\n  3  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  4  $wih(1)                $wih(2)                {Barton Deakin Watson}   \\\n  5  $wih(2)                $wih(1)                {Barton Deakin Watson}   \\\n  6  $wih(2)                $wih(2)                {Barton Deakin Watson}   \\\n  7  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  8  {0 0 0 0 0 0 0 0 0 0 0 0} {0 0 0 0 0 0 0 0 0 0 0 0} {Barton Deakin Watson}"
-				_items3 := tclSplitList("list                                            \\\n  3  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  4  $wih(1)                $wih(2)                {Barton Deakin Watson}   \\\n  5  $wih(2)                $wih(1)                {Barton Deakin Watson}   \\\n  6  $wih(2)                $wih(2)                {Barton Deakin Watson}   \\\n  7  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  8  {0 0 0 0 0 0 0 0 0 0 0 0} {0 0 0 0 0 0 0 0 0 0 0 0} {Barton Deakin Watson}")
-				for _idx3 := 0; _idx3+4 <= len(_items3); _idx3 += 4 {
-					tn := _items3[_idx3+0]
+				_items15 := tclSplitList("list                                            \\\n  3  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  4  $wih(1)                $wih(2)                {Barton Deakin Watson}   \\\n  5  $wih(2)                $wih(1)                {Barton Deakin Watson}   \\\n  6  $wih(2)                $wih(2)                {Barton Deakin Watson}   \\\n  7  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  8  {0 0 0 0 0 0 0 0 0 0 0 0} {0 0 0 0 0 0 0 0 0 0 0 0} {Barton Deakin Watson}")
+				for _idx15 := 0; _idx15+4 <= len(_items15); _idx15 += 4 {
+					tn := _items15[_idx15+0]
 					_ = tn // suppress unused warning
-					hdr1 := _items3[_idx3+1]
+					hdr1 := _items15[_idx15+1]
 					_ = hdr1 // suppress unused warning
-					hdr2 := _items3[_idx3+2]
+					hdr2 := _items15[_idx15+2]
 					_ = hdr2 // suppress unused warning
-					res := _items3[_idx3+3]
+					res := _items15[_idx15+3]
 					_ = res // suppress unused warning
-					_ = _idx3
+					_ = _idx15
 						{ // do_test "wal2-9." + tn
 							// set_tvfs_hdr $::filename $hdr1 $hdr2 (unsupported command, not transpiled)
 							r = db.Query(" SELECT * FROM x ")
@@ -1016,8 +1012,8 @@ func Test_wal2(t *testing.T) {
 						umask = "0"
 						_ = umask // suppress unused warning
 						{ // do_test "wal2-12.1"
-							os.Remove("test.db")
-							db, err = frigolite.Open("test.db")
+							_dbtmp0, err := frigolite.Open("test.db")
+							_ = _dbtmp0 // sqlite3 db connection
 							if err != nil { t.Fatal(err) }
 							r = db.Query(" \n      CREATE TABLE tx(y, z);\n      PRAGMA journal_mode = WAL;\n    ")
 							if r.Error != nil {
@@ -1027,13 +1023,13 @@ func Test_wal2(t *testing.T) {
 							_ = _list
 						}
 						// foreach {tn permissions} "\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  "
-						_items0 := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
-						for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-							tn := _items0[_idx0+0]
+						_items1 := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
+						for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+							tn := _items1[_idx1+0]
 							_ = tn // suppress unused warning
-							permissions := _items0[_idx0+1]
+							permissions := _items1[_idx1+1]
 							_ = permissions // suppress unused warning
-							_ = _idx0
+							_ = _idx1
 								if tcl_version >= "9.0" {
 									effective = "format %.5d [expr $permissions & ~$umask]"
 									_ = effective // suppress unused warning
@@ -1050,8 +1046,8 @@ func Test_wal2(t *testing.T) {
 									_ = _list
 								}
 								{ // do_test "wal2-12.2." + tn + ".3"
-									os.Remove("test.db")
-									db, err = frigolite.Open("test.db")
+									_dbtmp2, err := frigolite.Open("test.db")
+									_ = _dbtmp2 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									_res = db.Exec(" INSERT INTO tx DEFAULT VALUES ")
 									if _res.Error != nil {
@@ -1147,15 +1143,15 @@ func Test_wal2(t *testing.T) {
 								}
 							}
 							// foreach {tn sql reslist} "\n  1 { }                                 {10 0 4 0 6 0}\n  2 { PRAGMA checkpoint_fullfsync = 1 } {10 6 4 3 6 3}\n  3 { PRAGMA checkpoint_fullfsync = 0 } {10 0 4 0 6 0}\n"
-							_items4 := tclSplitList("\n  1 { }                                 {10 0 4 0 6 0}\n  2 { PRAGMA checkpoint_fullfsync = 1 } {10 6 4 3 6 3}\n  3 { PRAGMA checkpoint_fullfsync = 0 } {10 0 4 0 6 0}\n")
-							for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-								tn := _items4[_idx4+0]
+							_items16 := tclSplitList("\n  1 { }                                 {10 0 4 0 6 0}\n  2 { PRAGMA checkpoint_fullfsync = 1 } {10 6 4 3 6 3}\n  3 { PRAGMA checkpoint_fullfsync = 0 } {10 0 4 0 6 0}\n")
+							for _idx16 := 0; _idx16+3 <= len(_items16); _idx16 += 3 {
+								tn := _items16[_idx16+0]
 								_ = tn // suppress unused warning
-								sql := _items4[_idx4+1]
+								sql := _items16[_idx16+1]
 								_ = sql // suppress unused warning
-								reslist := _items4[_idx4+2]
+								reslist := _items16[_idx16+2]
 								_ = reslist // suppress unused warning
-								_ = _idx4
+								_ = _idx16
 									if strings.TrimSpace(sql) == "" {
 									}
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -1242,26 +1238,25 @@ func Test_wal2(t *testing.T) {
 									_ = _catchErr // suppress unused warning
 								}
 								// foreach {tn settings restart_sync commit_sync ckpt_sync} "\n  1  {0 0 off}     {0 0}  {0 0}  {0 0}\n  2  {0 0 normal}  {1 0}  {0 0}  {2 0}\n  3  {0 0 full}    {2 0}  {1 0}  {2 0}\n\n  4  {0 1 off}     {0 0}  {0 0}  {0 0}\n  5  {0 1 normal}  {0 1}  {0 0}  {0 2}\n  6  {0 1 full}    {0 2}  {0 1}  {0 2}\n\n  7  {1 0 off}     {0 0}  {0 0}  {0 0}\n  8  {1 0 normal}  {0 1}  {0 0}  {0 2}\n  9  {1 0 full}    {1 1}  {1 0}  {0 2}\n\n  10 {1 1 off}     {0 0}  {0 0}  {0 0}\n  11 {1 1 normal}  {0 1}  {0 0}  {0 2}\n  12 {1 1 full}    {0 2}  {0 1}  {0 2}\n"
-								_items5 := tclSplitList("\n  1  {0 0 off}     {0 0}  {0 0}  {0 0}\n  2  {0 0 normal}  {1 0}  {0 0}  {2 0}\n  3  {0 0 full}    {2 0}  {1 0}  {2 0}\n\n  4  {0 1 off}     {0 0}  {0 0}  {0 0}\n  5  {0 1 normal}  {0 1}  {0 0}  {0 2}\n  6  {0 1 full}    {0 2}  {0 1}  {0 2}\n\n  7  {1 0 off}     {0 0}  {0 0}  {0 0}\n  8  {1 0 normal}  {0 1}  {0 0}  {0 2}\n  9  {1 0 full}    {1 1}  {1 0}  {0 2}\n\n  10 {1 1 off}     {0 0}  {0 0}  {0 0}\n  11 {1 1 normal}  {0 1}  {0 0}  {0 2}\n  12 {1 1 full}    {0 2}  {0 1}  {0 2}\n")
-								for _idx5 := 0; _idx5+5 <= len(_items5); _idx5 += 5 {
-									tn := _items5[_idx5+0]
+								_items17 := tclSplitList("\n  1  {0 0 off}     {0 0}  {0 0}  {0 0}\n  2  {0 0 normal}  {1 0}  {0 0}  {2 0}\n  3  {0 0 full}    {2 0}  {1 0}  {2 0}\n\n  4  {0 1 off}     {0 0}  {0 0}  {0 0}\n  5  {0 1 normal}  {0 1}  {0 0}  {0 2}\n  6  {0 1 full}    {0 2}  {0 1}  {0 2}\n\n  7  {1 0 off}     {0 0}  {0 0}  {0 0}\n  8  {1 0 normal}  {0 1}  {0 0}  {0 2}\n  9  {1 0 full}    {1 1}  {1 0}  {0 2}\n\n  10 {1 1 off}     {0 0}  {0 0}  {0 0}\n  11 {1 1 normal}  {0 1}  {0 0}  {0 2}\n  12 {1 1 full}    {0 2}  {0 1}  {0 2}\n")
+								for _idx17 := 0; _idx17+5 <= len(_items17); _idx17 += 5 {
+									tn := _items17[_idx17+0]
 									_ = tn // suppress unused warning
-									settings := _items5[_idx5+1]
+									settings := _items17[_idx17+1]
 									_ = settings // suppress unused warning
-									restart_sync := _items5[_idx5+2]
+									restart_sync := _items17[_idx17+2]
 									_ = restart_sync // suppress unused warning
-									commit_sync := _items5[_idx5+3]
+									commit_sync := _items17[_idx17+3]
 									_ = commit_sync // suppress unused warning
-									ckpt_sync := _items5[_idx5+4]
+									ckpt_sync := _items17[_idx17+4]
 									_ = ckpt_sync // suppress unused warning
-									_ = _idx5
+									_ = _idx17
 										os.Remove("test.db")
 										// testvfs tvfs -default 1 (unsupported command, not transpiled)
 										// tvfs filter xSync (unsupported command, not transpiled)
 										// tvfs script xSyncCb (unsupported command, not transpiled)
 										// proc definition (not transpiled)
-										os.Remove("test.db")
-										db, err = frigolite.Open("test.db")
+										db, err = frigolite.Open("")
 										if err != nil { t.Fatal(err) }
 										{ // "15." + tn + ".1"
 											r = db.Query("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = " + tclLIndex(settings, "0") + ";\n    PRAGMA fullfsync = " + tclLIndex(settings, "1") + ";\n    PRAGMA synchronous = " + tclLIndex(settings, "2") + ";\n  ")

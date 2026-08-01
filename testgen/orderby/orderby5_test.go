@@ -6,7 +6,6 @@ package orderby
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "regexp"
 "strings"
 "testing"
@@ -373,8 +372,8 @@ func Test_orderby5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);\n")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "4.3.2"
 		_res = db.Exec("\n  SELECT a FROM t5 WHERE b='def' ORDER BY b;\n")

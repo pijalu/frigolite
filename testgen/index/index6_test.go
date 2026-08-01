@@ -681,7 +681,7 @@ func Test_index6(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "index6-17.1"
 		r = db.Query("\n  CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(0) WHERE c0 GLOB c0;\n  INSERT INTO t0 VALUES (0);\n  CREATE UNIQUE INDEX i1 ON t0(0);\n  PRAGMA integrity_check;\n")

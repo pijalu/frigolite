@@ -107,8 +107,7 @@ func Test_resetdb(t *testing.T) {
 	}
 	db2.Close()
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=8192;\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20)\n    INSERT INTO t1(a,b) SELECT x, randomblob(1300) FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  SELECT sum(a), sum(length(b)) FROM t1;\n  PRAGMA integrity_check;\n  PRAGMA journal_mode;\n  PRAGMA page_size;\n  PRAGMA page_count;\n")
@@ -152,8 +151,8 @@ func Test_resetdb(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db2.Close()
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "500"
 		// sqlite3_finalize [\n    sqlite3_prepare db "SELECT 1 FROM sqlite_ma... (unsupported command, not transpiled)
@@ -271,8 +270,8 @@ func Test_resetdb(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

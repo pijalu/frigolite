@@ -6,7 +6,6 @@ package values
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strings"
 "testing"
 )
@@ -562,8 +561,8 @@ func Test_values(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA encoding = utf16;\n  CREATE TABLE t1(a, b);\n")
 				}
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "14.2"
 				_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (17, 'craft'),\n    (16, 'urtlek' IN(1,2,3));\n")

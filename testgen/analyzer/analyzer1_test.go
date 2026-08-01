@@ -74,8 +74,7 @@ func Test_analyzer1(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "analyzer1-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<250)\n    INSERT INTO t1(a,b) SELECT x, randomblob(200) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;\n  ")

@@ -64,6 +64,7 @@ type Engine struct {
 	triggerOldRow     Row                              // old row values for trigger execution (keyed as "old.colname")
 	hasTriggersCache  map[string]bool                  // cached trigger existence per table name
 	uniqueIdxCache    map[string][]uniqueIndexDef      // cached unique-index definitions per table name
+	fkCache           map[string][]fkCascadeRef        // cached FK ON DELETE CASCADE refs per parent table
 	inTransaction     bool                             // tracks if we're inside a BEGIN/COMMIT block
 	ddlBuffer         []func()                         // DDL undo operations for transaction rollback
 	outerRow          Row                              // outer query row for correlated subquery resolution
@@ -175,6 +176,7 @@ func (e *Engine) invalidateTableCaches() {
 	e.tcCache = make(map[string][]sql.TableConstraint)
 	e.uniqueIdxCache = make(map[string][]uniqueIndexDef)
 	e.nextRowIDCache = make(map[uint32]int64)
+	e.fkCache = make(map[string][]fkCascadeRef)
 }
 
 func (e *Engine) tableBTree(tableName string, schemaRoot uint32, isTable bool) *btree.BTree {

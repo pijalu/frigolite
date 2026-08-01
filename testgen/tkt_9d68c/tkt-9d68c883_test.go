@@ -6,7 +6,6 @@ package tkt_9d68c
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -62,8 +61,8 @@ func Test_tkt_9d68c883(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 		// sqlite3_simulate_device -sectorsize 8192 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // do_test "tkt-9d68c88-2." + i
 			_res = db.Exec("\n      BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');\n    ")

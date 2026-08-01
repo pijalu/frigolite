@@ -6,7 +6,6 @@ package pageropt
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -106,14 +105,14 @@ func Test_pageropt(t *testing.T) {
 		// pagercount_sql {\n    SELECT hex(x) FROM t1\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "pageropt-2.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// pagercount_sql {\n    DELETE FROM t1 WHERE rowid=1\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "pageropt-2.2"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(1500));\n  } (unsupported command, not transpiled)
 	}
@@ -133,14 +132,14 @@ func Test_pageropt(t *testing.T) {
 		// pagercount_sql {\n    DELETE FROM t1;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "pageropt-4.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(11300))\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "pageropt-4.2"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// pagercount_sql {\n    DELETE FROM t1\n  } (unsupported command, not transpiled)
 	}

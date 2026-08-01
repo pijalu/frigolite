@@ -94,8 +94,7 @@ func Test_thread002(t *testing.T) {
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 3 }() {
 			os.Remove("test$")
-			os.Remove("test$")
-			db, err = frigolite.Open("test$")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);\n    ")
 			if _res.Error != nil {
@@ -148,8 +147,8 @@ func Test_thread002(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 3 }() {
 		{ // do_test "thread002.3." + ii
-			os.Remove("test$")
-			db, err = frigolite.Open("test$")
+			_dbtmp0, err := frigolite.Open("test$")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			res = "list                         \\\n      [execsql {SELECT count(*) FROM t1}] \\\n      [execsql {PRAGMA integrity_check}]  \\"
 			_ = res // suppress unused warning

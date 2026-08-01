@@ -6,7 +6,6 @@ package lastinsert
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -180,8 +179,8 @@ func Test_lastinsert(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "lastinsert-8.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t3(a, b);\n    CREATE TRIGGER after_t2 AFTER INSERT ON t2 BEGIN\n      INSERT INTO t3 VALUES(new.x, new.y);\n    END;\n    INSERT INTO t2 VALUES(5000000000, 1);\n    SELECT last_insert_rowid();\n  ")
 		if r.Error != nil {

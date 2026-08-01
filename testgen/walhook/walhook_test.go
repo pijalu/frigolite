@@ -6,7 +6,6 @@ package walhook
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -109,8 +108,8 @@ func Test_walhook(t *testing.T) {
 		// file size test.db
 	}
 	db2.Close()
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walhook-2.1"
 		r = db.Query(" PRAGMA synchronous = NORMAL ")
@@ -135,17 +134,17 @@ func Test_walhook(t *testing.T) {
 		}
 	}
 	// foreach {tn sql dbpages logpages} "\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n"
-	_items0 := tclSplitList("\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n")
-	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n")
+	for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		dbpages := _items0[_idx0+2]
+		dbpages := _items1[_idx1+2]
 		_ = dbpages // suppress unused warning
-		logpages := _items0[_idx0+3]
+		logpages := _items1[_idx1+3]
 		_ = logpages // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "walhook-2." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {

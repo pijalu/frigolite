@@ -6,7 +6,6 @@ package snapshot
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -410,8 +409,8 @@ func Test_snapshot(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			// testvfs tvfs (unsupported command, not transpiled)
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // tn + ".5.1"
 				r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      SELECT * FROM x1;\n  ")

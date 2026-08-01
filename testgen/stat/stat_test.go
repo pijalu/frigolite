@@ -97,8 +97,7 @@ func Test_stat(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-0.2"
@@ -230,8 +229,7 @@ func Test_stat(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-5.1"

@@ -101,8 +101,7 @@ func Test_shared2(t *testing.T) {
 		// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shared2-4.1"
 		_res = db.Exec("\n    CREATE TABLE t0(a, b);\n    CREATE TABLE t1(a, b DEFAULT 'hello world');\n  ")
@@ -110,8 +109,8 @@ func Test_shared2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a, b);\n    CREATE TABLE t1(a, b DEFAULT 'hello world');\n  ")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -129,8 +128,8 @@ func Test_shared2(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "shared2-5.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

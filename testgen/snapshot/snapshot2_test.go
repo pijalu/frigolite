@@ -69,8 +69,8 @@ func Test_snapshot2(t *testing.T) {
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
 		_ = _list
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.2"
 		r = db.Query(" SELECT * FROM t1 ")
@@ -115,8 +115,8 @@ func Test_snapshot2(t *testing.T) {
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
 		_ = _list
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.2.2"
 		r = db.Query(" SELECT * FROM t1 ")
@@ -171,8 +171,8 @@ func Test_snapshot2(t *testing.T) {
 	}
 	{ // do_test "2.1"
 		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT * FROM sqlite_master")
 		if r.Error != nil {
@@ -194,8 +194,8 @@ func Test_snapshot2(t *testing.T) {
 	}
 	{ // do_test "2.2"
 		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT * FROM sqlite_master")
 		if r.Error != nil {
@@ -240,8 +240,8 @@ func Test_snapshot2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
 		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// sqlite3_snapshot_recover db main (unsupported command, not transpiled)
 		_res = db.Exec("BEGIN")

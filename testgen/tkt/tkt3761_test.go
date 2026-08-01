@@ -51,7 +51,7 @@ func Test_tkt3761(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3761-1.1"
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=INCREMENTAL;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(900));\n    INSERT INTO t1 VALUES(zeroblob(900));\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    BEGIN;\n    DELETE FROM t1 WHERE rowid%2;\n    PRAGMA incremental_vacuum(4);\n    ROLLBACK;\n  ")
 		if _res.Error != nil {

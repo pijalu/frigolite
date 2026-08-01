@@ -718,7 +718,7 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "misc1-23.1"
@@ -728,7 +728,7 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	// database_may_be_corrupt (unsupported command, not transpiled)
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "misc1-23.2"
@@ -737,7 +737,7 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: F", _res.Error, "\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "misc1-23.3"
@@ -786,7 +786,7 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "misc1-28.0"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE UNIQUE INDEX t1x ON t1(x) WHERE x=1;\n  INSERT OR ABORT INTO t1 DEFAULT VALUES;\n  UPDATE OR REPLACE t1 SET x = 1;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")

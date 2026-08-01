@@ -94,8 +94,8 @@ func Test_e_reindex(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "e_reindex-1.2"
@@ -104,8 +104,8 @@ func Test_e_reindex(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;\n")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "e_reindex-1.3"
 		r = db.Query("\n  PRAGMA integrity_check;\n")
@@ -133,8 +133,7 @@ func Test_e_reindex(t *testing.T) {
 	}
 	os.Remove("test.db2")
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

@@ -91,8 +91,8 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SAVEPOINT sp1 ")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-1.4.1"
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    RELEASE sp1;\n  ")
@@ -529,8 +529,7 @@ func Test_savepoint(t *testing.T) {
 	}
 	// wal_check_journal_mode savepoint-5.5 (unsupported command, not transpiled)
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-6.1"
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
@@ -576,8 +575,7 @@ func Test_savepoint(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// wal_check_journal_mode savepoint-6.5 (unsupported command, not transpiled)
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-7.1"
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
@@ -626,8 +624,7 @@ func Test_savepoint(t *testing.T) {
 	// wal_check_journal_mode savepoint-7.3.3 (unsupported command, not transpiled)
 	{ // do_test "savepoint-7.4.1"
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
 		if r.Error != nil {
@@ -890,8 +887,7 @@ func Test_savepoint(t *testing.T) {
 	}
 	{ // do_test "savepoint-11.1"
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = full; ")
 		if r.Error != nil {
@@ -994,8 +990,8 @@ func Test_savepoint(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove("test.db")
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n      BEGIN;\n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 2);\n      COMMIT;\n      PRAGMA journal_mode = off;\n    ")
 			if r.Error != nil {
@@ -1025,8 +1021,8 @@ func Test_savepoint(t *testing.T) {
 	// do_multiclient_test tn {\n  do_test savepoint-14.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
 	// do_multiclient_test tn {\n  do_test savepoint-15.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
 	// do_multiclient_test tn {\n  do_test savepoint-16.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "savepoint-17.1"
 		_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t6(a, b);\n    INSERT INTO t6 VALUES(1, 2);\n    SAVEPOINT one;\n      INSERT INTO t6 VALUES(3, 4);\n    ROLLBACK TO one;\n    SELECT * FROM t6;\n  ROLLBACK;\n")

@@ -6,7 +6,6 @@ package vacuum
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -239,8 +238,8 @@ func Test_vacuum3(t *testing.T) {
 				}
 				{ // do_test "vacuum3-4.1"
 					// delete_file test.db (unsupported command, not transpiled)
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
+					_dbtmp3, err := frigolite.Open("test.db")
+					_ = _dbtmp3 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
 					if _res.Error != nil {

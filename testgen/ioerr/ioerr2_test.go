@@ -6,7 +6,6 @@ package ioerr
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -97,8 +96,8 @@ func Test_ioerr2(t *testing.T) {
 		N = "1" // TCL namespace variable
 		_ = N // suppress unused warning
 		for tclBool(_go) {
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			sqlite_io_error_hit = "0" // TCL namespace variable
 			_ = sqlite_io_error_hit // suppress unused warning

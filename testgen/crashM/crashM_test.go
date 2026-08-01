@@ -65,8 +65,8 @@ func Test_crashM(t *testing.T) {
 		os.Remove(f)
 	}
 	// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
-	os.Remove("file:test1.db?8_3_names=1")
-	db, err = frigolite.Open("file:test1.db?8_3_names=1")
+	_dbtmp0, err := frigolite.Open("file:test1.db?8_3_names=1")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// sqlite3_multiplex_control db main chunk_size [expr 64*1024] (unsupported command, not transpiled)
 	{ // "1.0"

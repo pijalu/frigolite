@@ -58,8 +58,8 @@ func Test_pragma2(t *testing.T) {
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	// delete_file test.db test.db-journal (unsupported command, not transpiled)
 	// delete_file test3.db test3.db-journal (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -142,8 +142,8 @@ func Test_pragma2(t *testing.T) {
 	}
 	// delete_file test.db test.db-journal (unsupported command, not transpiled)
 	// delete_file test2.db test2.db-journal (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "pragma2-4.1"
 		r = db.Query("\n  PRAGMA main.cache_size=2000;\n  PRAGMA temp.cache_size=2000;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;\n")
@@ -226,8 +226,7 @@ func Test_pragma2(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "pragma2-5.1"
 		r = db.Query("\n  PRAGMA page_size=16384;\n  CREATE TABLE t1(x);\n  PRAGMA cache_size=2;\n  PRAGMA cache_spill=YES;\n  PRAGMA cache_spill;\n")

@@ -683,8 +683,7 @@ func Test_fts3aux1(t *testing.T) {
 			}
 		}
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "4.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(x);\n  CREATE VIRTUAL TABLE terms USING fts4aux(x1);\n  CREATE TABLE x2(y);\n  CREATE TABLE x3(y);\n  CREATE INDEX i1 ON x3(y);\n\n  INSERT INTO x1 VALUES('a b c d e');\n  INSERT INTO x1 VALUES('f g h i j');\n  INSERT INTO x1 VALUES('k k l l a');\n\n  INSERT INTO x2 SELECT term FROM terms WHERE col = '*';\n  INSERT INTO x3 SELECT term FROM terms WHERE col = '*';\n")

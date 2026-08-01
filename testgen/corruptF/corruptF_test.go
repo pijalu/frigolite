@@ -6,7 +6,6 @@ package corruptF
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -76,8 +75,8 @@ func Test_corruptF(t *testing.T) {
 	}
 	{ // do_test "1.5"
 		// hexio_write test.db [expr 2*1024 + 8] 00000006 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "1.6"
@@ -129,8 +128,8 @@ func Test_corruptF(t *testing.T) {
 	}
 	{ // do_test "2.5"
 		// hexio_write test.db [expr 2*1024 + 8] 00000005 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "2.6"

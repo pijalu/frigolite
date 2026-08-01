@@ -320,8 +320,8 @@ func Test_corrupt2(t *testing.T) {
 	}
 	{ // do_test "14.2"
 		// hexio_write test.db 36 [hexio_render_int32 2] (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA freelist_count ")
 		if r.Error != nil {

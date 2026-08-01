@@ -306,8 +306,7 @@ func Test_crash(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "crash-5.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);                          -- Root page 3\n    INSERT INTO abc VALUES(randstr(1500,1500), 0, 0);   -- Overflow page 4\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")

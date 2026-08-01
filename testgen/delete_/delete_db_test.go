@@ -6,7 +6,6 @@ package delete_
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -64,8 +63,8 @@ func Test_delete_db(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// delete_all (unsupported command, not transpiled)
-	os.Remove("test2.database")
-	db, err = frigolite.Open("test2.database")
+	_dbtmp0, err := frigolite.Open("test2.database")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n  ")
@@ -93,8 +92,8 @@ func Test_delete_db(t *testing.T) {
 	}
 	// delete_all (unsupported command, not transpiled)
 	// sqlite3_multiplex_initialize  0 (unsupported command, not transpiled)
-	os.Remove("test2.database")
-	db, err = frigolite.Open("test2.database")
+	_dbtmp1, err := frigolite.Open("test2.database")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// sqlite3_multiplex_control db main chunk_size 32768 (unsupported command, not transpiled)
 	{ // do_test "1.3.0"
@@ -126,8 +125,8 @@ func Test_delete_db(t *testing.T) {
 		// files (unsupported command, not transpiled)
 	}
 	// delete_all (unsupported command, not transpiled)
-	os.Remove("file:test2.db?8_3_names=1")
-	db, err = frigolite.Open("file:test2.db?8_3_names=1")
+	_dbtmp2, err := frigolite.Open("file:test2.db?8_3_names=1")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.1.0"
 		_res = db.Exec("\n      CREATE TABLE t1(x, y);\n      BEGIN;\n        INSERT INTO t1 VALUES(1, 2);\n    ")
@@ -155,8 +154,8 @@ func Test_delete_db(t *testing.T) {
 	}
 	// delete_all (unsupported command, not transpiled)
 	// sqlite3_multiplex_initialize  0 (unsupported command, not transpiled)
-	os.Remove("file:test2.db?8_3_names=1")
-	db, err = frigolite.Open("file:test2.db?8_3_names=1")
+	_dbtmp3, err := frigolite.Open("file:test2.db?8_3_names=1")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// sqlite3_multiplex_control db main chunk_size 32768 (unsupported command, not transpiled)
 	{ // do_test "2.3.0"

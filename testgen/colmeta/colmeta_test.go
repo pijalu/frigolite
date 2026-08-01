@@ -6,7 +6,6 @@ package colmeta
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -103,8 +102,8 @@ func Test_colmeta(t *testing.T) {
 				_list := tclList([]string{"0", "set msg"})
 				_ = _list
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			DB = "sqlite3_connection_pointer db" // TCL namespace variable
 			_ = DB // suppress unused warning

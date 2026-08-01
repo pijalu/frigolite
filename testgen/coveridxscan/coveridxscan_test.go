@@ -6,7 +6,6 @@ package coveridxscan
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "strings"
 "testing"
@@ -100,8 +99,8 @@ func Test_coveridxscan(t *testing.T) {
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_cis 0 (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "3.1"
 		_res = db.Exec("SELECT a FROM t1")
@@ -123,8 +122,8 @@ func Test_coveridxscan(t *testing.T) {
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_cis 1 (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.1"
 		_res = db.Exec("SELECT a FROM t1")

@@ -63,8 +63,8 @@ func Test_fts3shared(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -192,13 +192,13 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n"
-	_items0 := tclSplitList("\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "2.4." + tn
 				_res = db.Exec("BEGIN")
 				if _res.Error != nil {
@@ -225,13 +225,13 @@ func Test_fts3shared(t *testing.T) {
 			}
 		}
 		// foreach {tn sql} "\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n"
-		_items1 := tclSplitList("\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn := _items1[_idx1+0]
+		_items2 := tclSplitList("\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n")
+		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			sql := _items1[_idx1+1]
+			sql := _items2[_idx2+1]
 			_ = sql // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				{ // do_test "2.5." + tn
 					_res = db.Exec("BEGIN")
 					if _res.Error != nil {

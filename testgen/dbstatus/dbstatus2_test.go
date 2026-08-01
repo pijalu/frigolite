@@ -6,7 +6,6 @@ package dbstatus
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -77,8 +76,8 @@ func Test_dbstatus2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA mmap_size = 0 ")
 		if r.Error != nil {

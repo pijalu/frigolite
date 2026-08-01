@@ -6,7 +6,6 @@ package select4
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "strings"
 "testing"
@@ -789,8 +788,8 @@ func Test_select4(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "select4-13.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t13(a,b);\n    INSERT INTO t13 VALUES(1,1);\n    INSERT INTO t13 VALUES(2,1);\n    INSERT INTO t13 VALUES(3,1);\n    INSERT INTO t13 VALUES(2,2);\n    INSERT INTO t13 VALUES(3,2);\n    INSERT INTO t13 VALUES(4,2);\n    CREATE INDEX t13ab ON t13(a,b);\n    SELECT DISTINCT b from t13 WHERE a IN (1,2,3);\n  ")
 		if _res.Error != nil {

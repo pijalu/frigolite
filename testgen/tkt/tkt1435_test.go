@@ -51,7 +51,7 @@ func Test_tkt1435(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt1435-1.0"
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE Instances(\n    \tinstanceId INTEGER PRIMARY KEY,\n    \ttroveName STR,\n    \tversionId INT,\n    \tflavorId INT,\n    \ttimeStamps STR,\n    \tisPresent INT,\n    \tpinned BOOLEAN\n    );\n    INSERT INTO \"Instances\"\n       VALUES(1, 'libhello:runtime', 1, 1, 1126929880.094, 1, 1);\n    INSERT INTO \"Instances\"\n       VALUES(2, 'libhello:user', 1, 1, 1126929880.094, 1, 0);\n    INSERT INTO \"Instances\"\n       VALUES(3, 'libhello:script', 1, 1, 1126929880.094, 1, 0);\n    INSERT INTO \"Instances\"\n       VALUES(4, 'libhello', 1, 1, 1126929880.094, 1, 0);\n    \n    CREATE TABLE Versions(versionId INTEGER PRIMARY KEY,version STR UNIQUE);\n    INSERT INTO \"Versions\" VALUES(0, NULL);\n    INSERT INTO \"Versions\" VALUES(1, '/localhost@rpl:linux/0-1-1');\n    \n    CREATE TABLE Flavors(flavorId integer primary key, flavor str unique);\n    INSERT INTO \"Flavors\" VALUES(0, NULL);\n    INSERT INTO \"Flavors\" VALUES(1, '1#x86');\n    \n    CREATE TEMPORARY TABLE tlList (\n       row INTEGER PRIMARY KEY,\n       name STRING,\n       version STRING,\n       flavor STRING\n    );\n    \n    INSERT INTO tlList \n      values(NULL, 'libhello:script', '/localhost@rpl:linux/0-1-1', '1#x86');\n    INSERT INTO tlList \n      values(NULL, 'libhello:user', '/localhost@rpl:linux/0-1-1', '1#x86');\n    INSERT INTO tlList \n      values(NULL, 'libhello:runtime', '/localhost@rpl:linux/0-1-1', '1#x86');\n  ")
 		if _res.Error != nil {

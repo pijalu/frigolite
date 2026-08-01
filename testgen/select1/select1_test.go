@@ -7,7 +7,6 @@ package select1
 import (
 "fmt"
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "strings"
 "testing"
@@ -1958,8 +1957,8 @@ func Test_select1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + tab)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "select1-14.1"
 		r = db.Query(" \n    SELECT * FROM sqlite_master WHERE rowid>10; \n    SELECT * FROM sqlite_master WHERE rowid=10;\n    SELECT * FROM sqlite_master WHERE rowid<10;\n    SELECT * FROM sqlite_master WHERE rowid<=10;\n    SELECT * FROM sqlite_master WHERE rowid>=10;\n    SELECT * FROM sqlite_master;\n  ")

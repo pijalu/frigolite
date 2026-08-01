@@ -6,7 +6,6 @@ package carrayfault
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -61,8 +60,8 @@ func Test_carrayfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "carrayfault"
 	_ = testprefix // suppress unused warning
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n")
@@ -73,13 +72,13 @@ func Test_carrayfault(t *testing.T) {
 	STMT = ""
 	_ = STMT // suppress unused warning
 	// foreach {tn mem} "\n  1 -static\n  2 -transient\n  3 -malloc\n"
-	_items0 := tclSplitList("\n  1 -static\n  2 -transient\n  3 -malloc\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 -static\n  2 -transient\n  3 -malloc\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		mem := _items0[_idx0+1]
+		mem := _items1[_idx1+1]
 		_ = mem // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			// do_faultsim_test 2.$tn -faults oom* -prep {\n  } -body {\n    sqlite3_carray_bind $::mem -int64 $... (unsupported command, not transpiled)
 		}
 		// do_faultsim_test 3 -faults oom* -prep {\n} -body {\n    sqlite3_carray_bind -transient -text $::S... (unsupported command, not transpiled)

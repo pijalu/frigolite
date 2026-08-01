@@ -6,7 +6,6 @@ package fts4
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strings"
 "testing"
 )
@@ -214,8 +213,8 @@ func Test_fts4check(t *testing.T) {
 					}
 				}
 				{ // do_test "4.2"
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
+					_dbtmp3, err := frigolite.Open("test.db")
+					_ = _dbtmp3 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    INSERT INTO t4(t4) VALUES('integrity-check');\n  ")
 					_ = _res // catchsql

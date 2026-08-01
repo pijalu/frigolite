@@ -6,7 +6,6 @@ package auth
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -115,8 +114,8 @@ func Test_auth2(t *testing.T) {
 	{ // do_test "auth2-1.8"
 		_ = flist // TCL namespace variable (query)
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

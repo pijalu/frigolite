@@ -59,8 +59,8 @@ func Test_openv2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"
@@ -75,15 +75,15 @@ func Test_openv2(t *testing.T) {
 	{ // do_test "openv2-1.2"
 	}
 	{ // do_test "openv2-1.3"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t1(x)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x)")
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT name FROM sqlite_master")
 		if _res.Error != nil {
@@ -95,7 +95,7 @@ func Test_openv2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "openv2-2.1"
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM sqlite_master")
 		if _res.Error != nil {

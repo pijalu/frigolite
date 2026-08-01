@@ -6,7 +6,6 @@ package mallocC
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -83,8 +82,8 @@ func Test_mallocC(t *testing.T) {
 		// sqlite3_config_lookaside 50 500 (unsupported command, not transpiled)
 		// sqlite3_initialize (unsupported command, not transpiled)
 		// autoinstall_test_functions (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	// do_mallocC_test 1 -sql {\n  BEGIN;\n  -- Allocate 32 new root pages. This ...} (unsupported command, not transpiled)

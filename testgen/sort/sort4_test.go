@@ -6,7 +6,6 @@ package sort
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -121,8 +120,8 @@ func Test_sort4(t *testing.T) {
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	if tclBool("!" + "*MAX_WORKER_THREADS=0* [db eval {PRAGMA compile_options}]") {
 		{ // do_test "sort4-init001"

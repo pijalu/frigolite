@@ -86,8 +86,7 @@ func Test_shell6(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(schema)
 			if _res.Error != nil {

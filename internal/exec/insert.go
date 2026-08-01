@@ -665,6 +665,11 @@ func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entr
 				return trigResult
 			}
 		}
+		// Foreign key ON DELETE CASCADE: delete child rows that reference
+		// this row's key values (firing their DELETE triggers).
+		if cascadeResult := e.cascadeDelete(tableEntry, colDefs, conflictValues); cascadeResult.Error != nil {
+			return cascadeResult
+		}
 	}
 	return &Result{}
 }

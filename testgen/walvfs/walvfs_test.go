@@ -6,7 +6,6 @@ package walvfs
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strings"
 "testing"
 )
@@ -76,8 +75,8 @@ func Test_walvfs(t *testing.T) {
 	sync_count = "0" // TCL namespace variable
 	_ = sync_count // suppress unused warning
 	// proc definition (not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA journal_mode = wal;\n  PRAGMA synchronous = normal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n  PRAGMA wal_checkpoint;\n")
@@ -101,8 +100,8 @@ func Test_walvfs(t *testing.T) {
 		_ = sync_count // TCL namespace variable (query)
 	}
 	// tvfs devchar sequential (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.2"
 		r = db.Query("\n  PRAGMA synchronous = normal;\n  INSERT INTO t1 VALUES(13, 14, 15);\n  INSERT INTO t1 VALUES(16, 17, 18);\n  PRAGMA wal_checkpoint;\n")
@@ -160,8 +159,8 @@ func Test_walvfs(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// tvfs filter {} (unsupported command, not transpiled)
 	{ // "3.0"
@@ -205,8 +204,8 @@ func Test_walvfs(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.0"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t1(x);\n    PRAGMA journal_mode = wal;\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n    )\n    INSERT INTO t1 SELECT randomblob(750) FROM s;\n  ")
 		if r.Error != nil {
@@ -216,8 +215,8 @@ func Test_walvfs(t *testing.T) {
 	// tvfs filter xShmMap (unsupported command, not transpiled)
 	// tvfs script xShmMap (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp4, err := frigolite.Open("test.db")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		_res = db.Exec("\n  SELECT count(*) FROM t1\n")
@@ -238,8 +237,8 @@ func Test_walvfs(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp5, err := frigolite.Open("test.db")
+	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// tvfs filter {} (unsupported command, not transpiled)
 	{ // "5.0"
@@ -324,8 +323,8 @@ func Test_walvfs(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// tvfs filter {} (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp6, err := frigolite.Open("test.db")
+	_ = _dbtmp6 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n  )\n  INSERT INTO t1 SELECT randomblob(750) FROM s;\n")
@@ -363,8 +362,8 @@ func Test_walvfs(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// tvfs filter {} (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp7, err := frigolite.Open("test.db")
+	_ = _dbtmp7 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n  )\n  INSERT INTO t1 SELECT randomblob(750) FROM s;\n")
@@ -397,8 +396,8 @@ func Test_walvfs(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// testvfs tvfs2 -iversion 2 (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp8, err := frigolite.Open("test.db")
+	_ = _dbtmp8 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "8.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20 )\n  INSERT INTO t1 SELECT randomblob(75) FROM s;\n")
@@ -449,8 +448,8 @@ func Test_walvfs(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp9, err := frigolite.Open("test.db")
+	_ = _dbtmp9 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "9.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20 )\n  INSERT INTO t1 SELECT randomblob(75) FROM s;\n")

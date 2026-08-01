@@ -6,7 +6,6 @@ package zerodamage
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -73,8 +72,8 @@ func Test_zerodamage(t *testing.T) {
 	{ // do_test "zerodamage-2.0"
 		// testvfs tv -default 1 (unsupported command, not transpiled)
 		// tv sectorsize 8192 (unsupported command, not transpiled)
-		os.Remove("file:test.db?psow=TRUE")
-		db, err = frigolite.Open("file:test.db?psow=TRUE")
+		_dbtmp0, err := frigolite.Open("file:test.db?psow=TRUE")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		max_journal_size = "0" // TCL namespace variable
 		_ = max_journal_size // suppress unused warning
@@ -101,8 +100,8 @@ func Test_zerodamage(t *testing.T) {
 	{ // do_test "zerodamage-2.1"
 		max_journal_size = "0" // TCL namespace variable
 		_ = max_journal_size // suppress unused warning
-		os.Remove("file:test.db?psow=FALSE")
-		db, err = frigolite.Open("file:test.db?psow=FALSE")
+		_dbtmp1, err := frigolite.Open("file:test.db?psow=FALSE")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    UPDATE t1 SET y=randomblob(50) WHERE x=124;\n  ")
 		if _res.Error != nil {
@@ -120,8 +119,8 @@ func Test_zerodamage(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       PRAGMA journal_mode=WAL;\n    ")
 			}
-			os.Remove("file:test.db?psow=TRUE")
-			db, err = frigolite.Open("file:test.db?psow=TRUE")
+			_dbtmp0, err := frigolite.Open("file:test.db?psow=TRUE")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n       UPDATE t1 SET y=randomblob(50) WHERE x=124;\n    ")
 			if _res.Error != nil {
@@ -130,8 +129,8 @@ func Test_zerodamage(t *testing.T) {
 			// file size test.db-wal
 		}
 		{ // do_test "zerodamage-3.1"
-			os.Remove("file:test.db?psow=FALSE")
-			db, err = frigolite.Open("file:test.db?psow=FALSE")
+			_dbtmp1, err := frigolite.Open("file:test.db?psow=FALSE")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n       PRAGMA synchronous=FULL;\n       UPDATE t1 SET y=randomblob(50) WHERE x=124;\n    ")
 			if _res.Error != nil {

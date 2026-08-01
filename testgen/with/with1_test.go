@@ -954,7 +954,7 @@ func Test_with1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many FROM clause terms, max: 200", _res.Error, "\n  WITH RECURSIVE c AS NOT MATERIALIZED (\n     WITH RECURSIVE c AS NOT MATERIALIZED (\n        WITH RECURSIVE c AS NOT MATERIALIZED (\n           WITH RECURSIVE c AS NOT MATERIALIZED (\n               WITH  c AS (VALUES(0))\n               SELECT 1 FROM c LEFT JOIN c ON ltrim(1)\n           )\n           SELECT 1 FROM c,c,c,c,c,c,c,c,c\n        )\n        SELECT  2 FROM c,c,c,c,c,c,c,c,c\n     )\n     SELECT 3 FROM c,c,c,c,c,c,c,c,c\n  )\n  SELECT 4 FROM c,c,c,c,c,c,c,c,c;\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "23.1"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER NULL PRIMARY KEY, name Text);\n  INSERT INTO t1 VALUES (1, 'john');\n  INSERT INTO t1 VALUES (2, 'james');\n  INSERT INTO t1 VALUES (3, 'jingle');\n  INSERT INTO t1 VALUES (4, 'himer');\n  INSERT INTO t1 VALUES (5, 'smith');\n  CREATE VIEW v2 AS\n    WITH t4(Name) AS (VALUES ('A'), ('B'))\n    SELECT Name Name FROM t4;\n  CREATE VIEW v3 AS\n    WITH t4(Att, Val, Act) AS (VALUES\n      ('C', 'D', 'E'),\n      ('F', 'G', 'H')\n    )\n    SELECT D.Id Id, P.Name Protocol, T.Att Att, T.Val Val, T.Act Act\n    FROM t1 D\n    CROSS JOIN v2 P\n    CROSS JOIN t4 T;\n  SELECT * FROM v3;\n")

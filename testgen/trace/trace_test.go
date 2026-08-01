@@ -6,7 +6,6 @@ package trace
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -129,8 +128,8 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-1.7"
 		_ = stmtlist // TCL namespace variable (query)
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -204,8 +203,8 @@ func Test_trace(t *testing.T) {
 	}
 	{ // do_test "trace-3.5"
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -306,7 +305,7 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.6"
 	}
 	{ // do_test "trace-6.100"
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6(" + "$::t6str" + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		if _res.Error != nil {
@@ -322,7 +321,7 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.101"
 	}
 	{ // do_test "trace-6.200"
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6(" + "$::t6str" + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		if _res.Error != nil {

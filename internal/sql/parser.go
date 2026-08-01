@@ -154,33 +154,33 @@ func tokenName(typ TokenType, value string) string {
 		return "keyword"
 	}
 	names := map[TokenType]string{
-		TokenEOF:        "end of input",
-		TokenError:      "error",
-		TokenIdentifier: "identifier",
-		TokenString:     "string",
-		TokenNumber:     "number",
-		TokenBlob:       "blob",
-		TokenEq:         "'='",
-		TokenNeq:        "'!=' or '<>'",
-		TokenLt:         "'<'",
-		TokenGt:         "'>'",
-		TokenLe:         "'<='",
-		TokenGe:         "'>='",
-		TokenPlus:       "'+'",
-		TokenMinus:      "'-'",
-		TokenStar:       "'*'",
-		TokenSlash:      "'/'",
-		TokenArrow:      "'->'",
+		TokenEOF:         "end of input",
+		TokenError:       "error",
+		TokenIdentifier:  "identifier",
+		TokenString:      "string",
+		TokenNumber:      "number",
+		TokenBlob:        "blob",
+		TokenEq:          "'='",
+		TokenNeq:         "'!=' or '<>'",
+		TokenLt:          "'<'",
+		TokenGt:          "'>'",
+		TokenLe:          "'<='",
+		TokenGe:          "'>='",
+		TokenPlus:        "'+'",
+		TokenMinus:       "'-'",
+		TokenStar:        "'*'",
+		TokenSlash:       "'/'",
+		TokenArrow:       "'->'",
 		TokenDoubleArrow: "'->>'",
-		TokenMod:        "'%'",
-		TokenBitAnd:     "'&'",
-		TokenLParen:     "'('",
-		TokenRParen:     "')'",
-		TokenComma:      "','",
-		TokenSemicolon:  "';'",
-		TokenDot:        "'.'",
-		TokenConcat:     "'||'",
-		TokenParam:      "'?'",
+		TokenMod:         "'%'",
+		TokenBitAnd:      "'&'",
+		TokenLParen:      "'('",
+		TokenRParen:      "')'",
+		TokenComma:       "','",
+		TokenSemicolon:   "';'",
+		TokenDot:         "'.'",
+		TokenConcat:      "'||'",
+		TokenParam:       "'?'",
 	}
 	if name, ok := names[typ]; ok {
 		return name
@@ -294,7 +294,7 @@ func (p *Parser) parseEndAsCommit() Stmt {
 		p.next()
 	}
 	return &CommitStmt{}
-}  
+}
 
 func (p *Parser) parseExplain() Stmt {
 	p.next() // skip EXPLAIN
@@ -726,12 +726,12 @@ func (p *Parser) parseOneWindowDef() WindowDef {
 			} else if p.cur.Type == TokenComma {
 				p.next()
 			} else {
-					// Parse expressions (handles function calls like percent_rank() OVER w1)
-					expr := p.parseExpr()
-					if expr != nil {
-						partitions = append(partitions, expr)
-					}
+				// Parse expressions (handles function calls like percent_rank() OVER w1)
+				expr := p.parseExpr()
+				if expr != nil {
+					partitions = append(partitions, expr)
 				}
+			}
 		}
 		if p.cur.Type == TokenRParen {
 			p.next()
@@ -1992,7 +1992,7 @@ func (p *Parser) skipTableConstraint() {
 		}
 		// Optional ON DELETE/UPDATE clauses
 		for p.cur.Type == TokenKeyword && p.cur.Value == "ON" {
-			p.parseReferencesOnAction()
+			p.parseReferencesOnAction(nil)
 		}
 		// Optional MATCH clause
 		if p.cur.Type == TokenKeyword && p.cur.Value == "MATCH" {
@@ -2084,28 +2084,28 @@ func (p *Parser) parseParenIdentList() []IndexedColumn {
 				return cols
 			}
 			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString {
-					col := IndexedColumn{Name: p.cur.Value}
+				col := IndexedColumn{Name: p.cur.Value}
+				p.next()
+				// Optional COLLATE clause
+				if p.cur.Type == TokenKeyword && p.cur.Value == "COLLATE" {
 					p.next()
-					// Optional COLLATE clause
-					if p.cur.Type == TokenKeyword && p.cur.Value == "COLLATE" {
-						p.next()
-						if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString {
-							col.Collate = p.cur.Value
-							p.next()
-						}
-					}
-					// Optional ASC/DESC
-					if p.cur.Type == TokenKeyword && (p.cur.Value == "ASC" || p.cur.Value == "DESC") {
-						if p.cur.Value == "DESC" {
-							col.Desc = true
-						}
+					if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString {
+						col.Collate = p.cur.Value
 						p.next()
 					}
-					cols = append(cols, col)
-				} else {
-					// Token doesn't match expected identifier/string — break to avoid infinite loop
-					break
 				}
+				// Optional ASC/DESC
+				if p.cur.Type == TokenKeyword && (p.cur.Value == "ASC" || p.cur.Value == "DESC") {
+					if p.cur.Value == "DESC" {
+						col.Desc = true
+					}
+					p.next()
+				}
+				cols = append(cols, col)
+			} else {
+				// Token doesn't match expected identifier/string — break to avoid infinite loop
+				break
+			}
 			if p.cur.Type == TokenComma {
 				p.next()
 			}
@@ -2204,7 +2204,7 @@ func (p *Parser) skipForeignKeyClauses() {
 			p.next() // ON
 			if p.cur.Type == TokenKeyword && (p.cur.Value == "DELETE" || p.cur.Value == "UPDATE") {
 				p.next()
-				p.parseReferencesOnAction()
+				p.parseReferencesOnAction(nil)
 			}
 		}
 	}
@@ -2488,7 +2488,7 @@ func (p *Parser) parseReferencesConstraint(col *ColumnDef) {
 	}
 	// Optional ON DELETE/UPDATE clauses
 	for p.cur.Type == TokenKeyword && p.cur.Value == "ON" {
-		p.parseReferencesOnAction()
+		p.parseReferencesOnAction(col)
 	}
 	// Optional MATCH clause
 	if p.cur.Type == TokenKeyword && p.cur.Value == "MATCH" {
@@ -2502,22 +2502,30 @@ func (p *Parser) parseReferencesConstraint(col *ColumnDef) {
 }
 
 // parseReferencesOnAction consumes ON DELETE/UPDATE SET NULL|DEFAULT|CASCADE|RESTRICT|NO ACTION.
-func (p *Parser) parseReferencesOnAction() {
+func (p *Parser) parseReferencesOnAction(col *ColumnDef) {
 	p.next() // skip ON
 	if p.cur.Type == TokenKeyword && (p.cur.Value == "DELETE" || p.cur.Value == "UPDATE") {
+		action := p.cur.Value
 		p.next()
 		if p.cur.Type == TokenKeyword && p.cur.Value == "SET" {
+			action += " SET"
 			p.next()
 			if p.cur.Type == TokenKeyword && (p.cur.Value == "NULL" || p.cur.Value == "DEFAULT") {
+				action += " " + p.cur.Value
 				p.next()
 			}
 		} else if p.cur.Type == TokenKeyword && (p.cur.Value == "CASCADE" || p.cur.Value == "RESTRICT") {
+			action += " " + p.cur.Value
 			p.next()
 		} else if p.cur.Type == TokenKeyword && p.cur.Value == "NO" {
+			action += " NO ACTION"
 			p.next()
 			if p.cur.Type == TokenKeyword && p.cur.Value == "ACTION" {
 				p.next()
 			}
+		}
+		if col != nil {
+			col.References += " ON " + action
 		}
 	}
 }
@@ -4116,10 +4124,10 @@ func (p *Parser) parseWindowClause() (over *WindowDef, filter Expr) {
 // after a function call. This is a stub: the window clause is parsed but not
 //lint:ignore U1000 Parser utility for future use
 // semantically analyzed.
- func (p *Parser) skipWindowClause() {
- 	if p.cur.Type == TokenKeyword && p.cur.Value == "OVER" {
- 		p.next() // skip OVER
- 		p.skipWindowSpec()
+func (p *Parser) skipWindowClause() {
+	if p.cur.Type == TokenKeyword && p.cur.Value == "OVER" {
+		p.next() // skip OVER
+		p.skipWindowSpec()
 	}
 	if p.cur.Type == TokenKeyword && p.cur.Value == "FILTER" {
 		p.next() // skip FILTER

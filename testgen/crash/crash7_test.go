@@ -75,8 +75,8 @@ func Test_crash7(t *testing.T) {
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 64 }() {
 			// delete_file test.db (unsupported command, not transpiled)
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			from_size = tclExprWith("1024 << ($ii&3)", map[string]string{"ii": ii})
 			_ = from_size // suppress unused warning
@@ -91,8 +91,8 @@ func Test_crash7(t *testing.T) {
 			{ // do_test "crash7-1." + ii + ".crash"
 				// crashsql -file $f \n         PRAGMA page_size = $to_size;\n         ... (unsupported command, not transpiled)
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -106,8 +106,7 @@ func Test_crash7(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  DELETE FROM t1 WHERE rowid%2;\n")

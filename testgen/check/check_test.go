@@ -158,8 +158,8 @@ func Test_check(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(1,2.2,'three');\n    SELECT * FROM t2;\n  ")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
 	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
@@ -479,8 +479,7 @@ func Test_check(t *testing.T) {
 	}
 	db2.Close()
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "10.1"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE VIEW v1(y) AS SELECT x FROM t1;\n  PRAGMA integrity_check;\n")

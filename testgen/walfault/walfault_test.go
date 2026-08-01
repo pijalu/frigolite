@@ -6,7 +6,6 @@ package walfault
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -71,8 +70,8 @@ func Test_walfault(t *testing.T) {
 	}
 	// do_faultsim_test walfault-1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { PRAGMA... (unsupported command, not transpiled)
 	{ // do_test "walfault-2-pre-1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE x(y, z, UNIQUE(y, z));\n      INSERT INTO x VALUES(randomblob(100), randomblob(100));\n    COMMIT;\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n  ")
 		if _res.Error != nil {
@@ -93,8 +92,8 @@ func Test_walfault(t *testing.T) {
 	}
 	// do_faultsim_test walfault-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT... (unsupported command, not transpiled)
 	{ // do_test "walfault-3-pre-1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(1500));\n  ")
 		if _res.Error != nil {
@@ -163,8 +162,8 @@ func Test_walfault(t *testing.T) {
 	}
 	// do_faultsim_test walfault-10 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    ...} -body ... (unsupported command, not transpiled)
 	{ // do_test "walfault-11-pre-1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    8\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   16\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   32\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   64\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  128\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  256\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  512\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 1024\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 2048\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 4096\n    COMMIT;\n  ")
 		if _res.Error != nil {

@@ -68,8 +68,8 @@ func Test_wal6(t *testing.T) {
 	for _, jmode := range tclSplitList(all_journal_modes) {
 	_ = jmode // suppress unused warning
 		{ // do_test "wal6-1.0." + jmode
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA journal_mode = " + jmode + ";")
 			if r.Error != nil {
@@ -96,8 +96,8 @@ func Test_wal6(t *testing.T) {
 		}
 		if tcl_platform_os == "Windows NT" {
 			if tclBool(jmode + "==\"persist\" || " + jmode + "==\"truncate\"") {
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 			}
 		}

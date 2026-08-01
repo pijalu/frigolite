@@ -6,7 +6,6 @@ package uri
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -76,8 +75,8 @@ func Test_uri2(t *testing.T) {
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					os.Remove(uri)
-					db, err = frigolite.Open(uri)
+					_dbtmp0, err := frigolite.Open(uri)
+					_ = _dbtmp0 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					if _catchErr != nil {
 						rc = "1"

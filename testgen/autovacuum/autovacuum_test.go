@@ -477,8 +477,8 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-3.2"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -493,8 +493,7 @@ func Test_autovacuum(t *testing.T) {
 	}
 	{ // do_test "autovacuum-3.4"
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -522,8 +521,7 @@ func Test_autovacuum(t *testing.T) {
 	}
 	{ // do_test "autovacuum-4.0"
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -576,7 +574,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-5.1"
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil {
@@ -584,7 +582,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-6.1"
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil {
@@ -594,8 +592,7 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-7.1"
 		os.Remove("test.db")
 		os.Remove("test.db-journal")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
 		if _res.Error != nil {
@@ -611,8 +608,8 @@ func Test_autovacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "autovacuum-7.3"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
@@ -621,8 +618,8 @@ func Test_autovacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "autovacuum-8.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

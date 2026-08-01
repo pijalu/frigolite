@@ -6,7 +6,6 @@ package corruptI
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "strings"
 "testing"
@@ -86,8 +85,8 @@ func Test_corruptI(t *testing.T) {
 		off = tclExprWith("2*1024 + $offset + 1", map[string]string{"offset": offset})
 		_ = off // suppress unused warning
 		// hexio_write test.db $off 7f06 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 WHERE a = 10 ")
 		_ = _res // catchsql
@@ -98,8 +97,8 @@ func Test_corruptI(t *testing.T) {
 		off = tclExprWith("2*1024 + $offset + 1", map[string]string{"offset": offset})
 		_ = off // suppress unused warning
 		// hexio_write test.db $off FFFF7f02 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 WHERE a = 10 ")
 		_ = _res // catchsql
@@ -118,8 +117,8 @@ func Test_corruptI(t *testing.T) {
 		off = tclExprWith("(5-1)*1024 + $offset + 1", map[string]string{"offset": offset})
 		_ = off // suppress unused warning
 		// hexio_write test.db $off FFFF0004 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM r WHERE x >= 10.0 ")
 		_ = _res // catchsql
@@ -141,8 +140,8 @@ func Test_corruptI(t *testing.T) {
 		}
 		{ // do_test "3.2"
 			// hexio_write test.db [expr 512+3] 0054 (unsupported command, not transpiled)
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" INSERT INTO t1 VALUES(5, 'klmnopqrst') ")
 			if _res.Error != nil {
@@ -153,8 +152,8 @@ func Test_corruptI(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(7, 'klmnopqrst') ")
 			}
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "3.3"
 			_res = db.Exec("\n     INSERT INTO t1 VALUES(9, 'klmnopqrst');\n   ")
@@ -179,8 +178,8 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "4.1"
 		// hexio_write test.db [expr $offset + 8 + 2] 0000 (unsupported command, not transpiled)
 		// hexio_write test.db [expr $offset + 5] 0000 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DELETE FROM t1 WHERE a=0 ")
 		_ = _res // catchsql
@@ -233,8 +232,8 @@ func Test_corruptI(t *testing.T) {
 		// hexio_write test.db [expr 512*($nPage-1)] [\n    format "%.8X%.8X%.8X" 0 1 [expr $nPage+1]\n... (unsupported command, not transpiled)
 	}
 	{ // do_test "5.3"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE tx(x); ")
 		_ = _res // catchsql
@@ -250,8 +249,8 @@ func Test_corruptI(t *testing.T) {
 	}
 	{ // do_test "6.1"
 		// hexio_write test.db 616 8FFFFFFF7F02 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid=2 ")
 		if _res.Error != nil {
@@ -281,8 +280,8 @@ func Test_corruptI(t *testing.T) {
 		}
 	}
 	{ // do_test "7.2"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp6, err := frigolite.Open("test.db")
+		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" UPDATE t1 SET x='d' AND y='D' WHERE rowid = 2 ")
 		_ = _res // catchsql
@@ -298,15 +297,15 @@ func Test_corruptI(t *testing.T) {
 	}
 	{ // do_test "8.1"
 		// hexio_write test.db [expr 1024 + 8] 00000001 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp7, err := frigolite.Open("test.db")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DELETE FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "8.2"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp8, err := frigolite.Open("test.db")
+		_ = _dbtmp8 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {

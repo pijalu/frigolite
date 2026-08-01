@@ -63,7 +63,7 @@ func Test_numcast(t *testing.T) {
 	for _, enc := range tclSplitList("utf8 utf16le utf16be") {
 	_ = enc // suppress unused warning
 		{ // do_test "numcast-" + enc + ".0"
-			db, err = frigolite.Open(":memory:")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA encoding='" + enc + "'")
 			if _res.Error != nil {

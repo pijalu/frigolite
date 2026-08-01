@@ -55,8 +55,7 @@ func Test_wal8(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -74,8 +73,7 @@ func Test_wal8(t *testing.T) {
 	}
 	db2.Close()
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -93,8 +91,7 @@ func Test_wal8(t *testing.T) {
 	}
 	db2.Close()
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

@@ -62,8 +62,8 @@ func Test_trigger4(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger4-1.3"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    insert into test values(4,5,6);\n    select * from test1;\n  ")
 		if r.Error != nil {
@@ -89,8 +89,8 @@ func Test_trigger4(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger4-2.3"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    update test set b=66 where id=4;\n    select * from test1;\n  ")
 		if r.Error != nil {
@@ -108,8 +108,8 @@ func Test_trigger4(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "trigger4-3.2"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    insert into test values(7,8,9);\n  ")
 		_ = _res // catchsql
@@ -137,8 +137,8 @@ func Test_trigger4(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger4-3.7"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    update test set b=99 where id=7;\n    select * from test2;\n  ")
 		if r.Error != nil {
@@ -148,8 +148,7 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-4.1"
 		os.Remove("trigtest.db")
 		os.Remove("trigtest.db-journal")
-		os.Remove("trigtest.db")
-		db, err = frigolite.Open("trigtest.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("drop table tbl; drop view vw")
 		_ = _res // catchsql

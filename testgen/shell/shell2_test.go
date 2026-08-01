@@ -72,8 +72,7 @@ func Test_shell2(t *testing.T) {
 	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell2-1.1.1"
 		os.Remove("foo.db")

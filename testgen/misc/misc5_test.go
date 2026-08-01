@@ -136,8 +136,7 @@ func Test_misc5(t *testing.T) {
 			_putsMsg := fd
 			_ = _putsMsg
 			// close $fd
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(a,b,c);\n    ")
 			_ = _res // catchsql
@@ -171,8 +170,7 @@ func Test_misc5(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc5-6.1"
 		_res = db.Exec("\n      SELECT * FROM sqlite_master \n      UNION ALL \n      SELECT * FROM sqlite_master\n      LIMIT (SELECT count(*) FROM blah);\n    ")

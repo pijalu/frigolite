@@ -150,8 +150,8 @@ func Test_alterlegacy(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.2"
 		_res = db.Exec("\n    ALTER TABLE fff RENAME TO ggg;\n  ")

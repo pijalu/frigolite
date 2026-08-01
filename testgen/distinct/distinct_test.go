@@ -241,7 +241,7 @@ func Test_distinct(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			db, err = frigolite.Open(":memory:")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "6.1"
 				r = db.Query("\n  CREATE TABLE jjj(x);\n  SELECT (SELECT 'mmm' UNION SELECT DISTINCT max(name) ORDER BY 1) \n    FROM sqlite_master;\n")

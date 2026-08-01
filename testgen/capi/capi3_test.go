@@ -390,8 +390,8 @@ func Test_capi3(t *testing.T) {
 	ENC = tclExecSQL(db, "{pragma encoding}") // TCL namespace variable
 	_ = ENC // suppress unused warning
 	{ // do_test "capi3-6.0"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
@@ -428,8 +428,8 @@ func Test_capi3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
@@ -439,8 +439,7 @@ func Test_capi3(t *testing.T) {
 	if tclBool("!" + "sqlite3 -has-codec") {
 		{ // do_test "capi3-8.1"
 			os.Remove("test.db")
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(a);\n    ")
 			if _res.Error != nil {
@@ -448,8 +447,8 @@ func Test_capi3(t *testing.T) {
 			}
 		}
 		{ // do_test "capi3-8.2"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 			_res = db.Exec("\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES(NULL,NULL,NULL,NULL,NULL);\n    ")
@@ -461,8 +460,8 @@ func Test_capi3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
@@ -470,8 +469,7 @@ func Test_capi3(t *testing.T) {
 		}
 		{ // do_test "capi3-8.4"
 			os.Remove("test.db")
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 			_res = db.Exec("\n      CREATE TABLE t1(a);\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES('table',NULL,NULL,NULL,NULL);\n    ")
@@ -483,8 +481,8 @@ func Test_capi3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 			}
 			_res = db.Exec("\n      SELECT * FROM sqlite_master;\n    ")
@@ -498,13 +496,13 @@ func Test_capi3(t *testing.T) {
 	test_number = "1"
 	_ = test_number // suppress unused warning
 	// foreach {code english} code2english
-	_items0 := tclSplitList(code2english)
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		code := _items0[_idx0+0]
+	_items1 := tclSplitList(code2english)
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		code := _items1[_idx1+0]
 		_ = code // suppress unused warning
-		english := _items0[_idx0+1]
+		english := _items1[_idx1+1]
 		_ = english // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "capi3-9." + test_number
 				_res = db.Exec("sqlite3_test_errstr " + code)
 				if _res.Error != nil {
@@ -521,8 +519,8 @@ func Test_capi3(t *testing.T) {
 		}
 		if tclBool("permutation" + " != \"nofaultsim\"") {
 			{ // do_test "capi3-10-1"
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				DB = "sqlite3_connection_pointer db"
 				_ = DB // suppress unused warning
@@ -538,8 +536,8 @@ func Test_capi3(t *testing.T) {
 			}
 			// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 			{ // do_test "capi3-10-4"
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				DB = "sqlite3_connection_pointer db"
 				_ = DB // suppress unused warning
@@ -555,8 +553,7 @@ func Test_capi3(t *testing.T) {
 			}
 			// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning

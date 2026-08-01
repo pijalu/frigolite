@@ -794,7 +794,7 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "join-14.10"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1),(2),(3);\n  CREATE VIEW v2 AS SELECT a, 1 AS b FROM t1;\n  CREATE TABLE t3(x);\n  INSERT INTO t3 VALUES(2),(4);\n  SELECT *, '|' FROM t3 LEFT JOIN v2 ON a=x WHERE b=1;\n")
@@ -832,7 +832,7 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "join-14.20"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, c2 INTEGER);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c3 INTEGER);\n  INSERT INTO t1(id) VALUES(456);\n  INSERT INTO t3(id) VALUES(1),(2);\n  SELECT t1.id, x2.id, x3.id\n  FROM t1\n  LEFT JOIN (SELECT * FROM t2) AS x2 ON t1.id=x2.c2\n  LEFT JOIN t3 AS x3 ON x2.id=x3.c3;\n")
@@ -846,7 +846,7 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "join-15.100"
 		r = db.Query("\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1 VALUES(1,2),(3,4);\n  CREATE TABLE t2(x INT, y INT);\n  SELECT *, 'x'\n    FROM t1 LEFT JOIN t2\n   WHERE CASE WHEN FALSE THEN a=x ELSE 1 END;\n")
@@ -1070,7 +1070,7 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "join-20.1"
 		r = db.Query("\n  CREATE TABLE t1(c1);\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n  SELECT * FROM t0 LEFT JOIN t1 WHERE NULL IN (c1);\n")

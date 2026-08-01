@@ -218,8 +218,8 @@ func Test_alter2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 		}
 		// set  (invalid identifier, skipped)
@@ -246,8 +246,8 @@ func Test_alter2(t *testing.T) {
 	_ = default_file_format // suppress unused warning
 	{ // do_test "alter2-5.1"
 		// set_file_format 2 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT 1 FROM sqlite_master LIMIT 1;")
 		if r.Error != nil {
@@ -266,8 +266,8 @@ func Test_alter2(t *testing.T) {
 	}
 	{ // do_test "alter2-6.1"
 		// set_file_format 2 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// get_file_format (unsupported command, not transpiled)
 	}

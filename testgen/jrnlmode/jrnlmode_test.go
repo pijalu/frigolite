@@ -270,8 +270,7 @@ func Test_jrnlmode(t *testing.T) {
 	}
 	os.Remove("test2.db")
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "jrnlmode-3.1"
 		_res = db.Exec(" \n      CREATE TABLE x(n INTEGER); \n      ATTACH 'test2.db' AS a; \n      create table a.x ( n integer ); \n      insert into a.x values(1); \n      insert into a.x values (2); \n      insert into a.x values (3); \n      insert into a.x values (4); \n    ")
@@ -290,8 +289,7 @@ func Test_jrnlmode(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "jrnlmode-4.1"
 		_res = db.Exec("\n      PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);\n    ")
@@ -325,8 +323,7 @@ func Test_jrnlmode(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	if tclBool("atomic_batch_write test.db" + "==0") {
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "jrnlmode-5.1"
 			r = db.Query("pragma page_size=1024")
@@ -540,8 +537,8 @@ func Test_jrnlmode(t *testing.T) {
 		_ = f // suppress unused warning
 			os.Remove(f)
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      PRAGMA journal_mode = memory;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 1024;\n      PRAGMA user_version = 5;\n      PRAGMA user_version;\n    ")
 		if r.Error != nil {

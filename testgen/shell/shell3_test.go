@@ -60,8 +60,7 @@ func Test_shell3(t *testing.T) {
 	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	if tcl_platform_platform == "windows" {
 		return

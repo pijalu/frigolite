@@ -6,7 +6,6 @@ package corruptN
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strings"
 "testing"
 )
@@ -90,8 +89,8 @@ func Test_corruptN(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = 'CREATE TABLE sqlite_sequence(name-seq)' \n      WHERE name = 'sqlite_sequence';\n  ")
 			}
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "3.1"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    INSERT INTO t1(y) VALUES('abc');\n  ")
@@ -108,8 +107,8 @@ func Test_corruptN(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n    INSERT INTO x1 VALUES(1, 1, 2);\n    INSERT INTO x1 VALUES(2, 2, 3);\n    INSERT INTO x1 VALUES(3, 3, 4);\n    INSERT INTO x1 VALUES(4, 5, 6);\n    PRAGMA writable_schema = 1;\n\n    UPDATE sqlite_schema SET rootpage = (\n      SELECT rootpage FROM sqlite_schema WHERE name = 'sqlite_autoindex_x1_2'\n    ) WHERE name = 'sqlite_autoindex_x1_1';\n  ")
 			}
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "4.2"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);\n  ")
@@ -129,8 +128,8 @@ func Test_corruptN(t *testing.T) {
 		}
 	}
 	if tclBool("info exists ::G(perm:presql)" + "==0 || " + G_perm_presql + "==\"\"") {
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "5.1"
 			r = db.Query("\n      PRAGMA writable_schema = 1;\n      SELECT * FROM t1\n    ")

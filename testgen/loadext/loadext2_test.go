@@ -6,7 +6,6 @@ package loadext
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -86,8 +85,8 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.5"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		_ = _res // catchsql
@@ -118,8 +117,8 @@ func Test_loadext2(t *testing.T) {
 	}
 	{ // do_test "loadext2-1.9"
 		// sqlite3_auto_extension_sqr (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		_ = _res // catchsql
@@ -131,8 +130,8 @@ func Test_loadext2(t *testing.T) {
 	{ // do_test "loadext2-1.11"
 		// sqlite3_reset_auto_extension (unsupported command, not transpiled)
 		// sqlite3_auto_extension_cube (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		_ = _res // catchsql
@@ -147,8 +146,8 @@ func Test_loadext2(t *testing.T) {
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"

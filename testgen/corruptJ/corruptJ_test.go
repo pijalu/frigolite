@@ -68,16 +68,15 @@ func Test_corruptJ(t *testing.T) {
 	}
 	{ // do_test "1.2"
 		// hexio_write test.db [expr {2*1024-2}] 02 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DROP TABLE t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "2.1"
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(200) FROM c;\n  ")
 		if _res.Error != nil {
@@ -89,8 +88,8 @@ func Test_corruptJ(t *testing.T) {
 	}
 	{ // do_test "2.2b"
 		// hexio_write test.db [expr {9*1024+391}] 00000002 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA secure_delete=ON; DROP TABLE t1; ")
 		_ = _res // catchsql

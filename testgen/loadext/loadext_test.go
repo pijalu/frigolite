@@ -159,8 +159,8 @@ func Test_loadext(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db2.Close()
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// sqlite3_enable_load_extension db 1 (unsupported command, not transpiled)
 	{ // do_test "loadext-2.1"
@@ -246,8 +246,8 @@ func Test_loadext(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// sqlite3_enable_load_extension db 1 (unsupported command, not transpiled)
 	{ // do_test "loadext-3.1"
@@ -291,8 +291,8 @@ func Test_loadext(t *testing.T) {
 		_res = db.Exec("\n    SELECT sqlite3_status(23) AS mused\n  ")
 		_ = _res // catchsql
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "loadext-4.1"
 		_res = db.Exec("\n    SELECT load_extension(" + testextension + ",'testloadext_init')\n  ")

@@ -6,7 +6,6 @@ package tkt
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -56,8 +55,8 @@ func Test_tkt2643(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ANALYZE;\n  ")
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE INDEX i1 ON t1(c);\n    SELECT count(*) FROM t1 WHERE c IS NOT NULL\n  ")
 		if r.Error != nil {

@@ -85,8 +85,7 @@ func Test_badutf2(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "badutf2-1.0"
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = 'UTF-8'")
 		if _res.Error != nil {

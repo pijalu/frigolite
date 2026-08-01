@@ -6,7 +6,6 @@ package sort
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -60,8 +59,8 @@ func Test_sort2(t *testing.T) {
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// skip: foreach over unresolved TCL command
 }

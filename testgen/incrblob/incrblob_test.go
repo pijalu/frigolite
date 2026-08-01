@@ -160,8 +160,7 @@ func Test_incrblob(t *testing.T) {
 		if func() bool { AutoVacuumMode_n, _AutoVacuumMode_e := strconv.Atoi(AutoVacuumMode); if _AutoVacuumMode_e != nil { return false }; return AutoVacuumMode_n > 0 }() {
 		}
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("PRAGMA mmap_size = 0")
 		if r.Error != nil {
@@ -207,8 +206,8 @@ func Test_incrblob(t *testing.T) {
 			}
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".3"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA mmap_size = 0")
 			if r.Error != nil {
@@ -226,8 +225,8 @@ func Test_incrblob(t *testing.T) {
 			_ = tclStringRange("db one {SELECT v FROM blobs}", "end-19", "end") // string range result
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".5"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA mmap_size = 0")
 			if r.Error != nil {
@@ -248,8 +247,8 @@ func Test_incrblob(t *testing.T) {
 			_ = tclStringRange("db one {SELECT v FROM blobs}", "end-39", "end-20") // string range result
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".8"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA mmap_size = 0 ")
 			if r.Error != nil {
@@ -727,13 +726,13 @@ func Test_incrblob(t *testing.T) {
 		}
 	}
 	// foreach {tn arg} "1 \"\" 2 -readonly"
-	_items0 := tclSplitList("1 \"\" 2 -readonly")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items3 := tclSplitList("1 \"\" 2 -readonly")
+	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+		tn := _items3[_idx3+0]
 		_ = tn // suppress unused warning
-		arg := _items0[_idx0+1]
+		arg := _items3[_idx3+1]
 		_ = arg // suppress unused warning
-		_ = _idx0
+		_ = _idx3
 			_res = db.Exec("\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
@@ -803,8 +802,7 @@ func Test_incrblob(t *testing.T) {
 		_ = data // suppress unused warning
 		// close $fd
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "incrblob-7.2.1"
 			_res = db.Exec("\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + data + ");\n  ")

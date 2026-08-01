@@ -151,8 +151,8 @@ func Test_notify2(t *testing.T) {
 			ThreadSetup = "set xStep " + xStep + ";set xPrepare " + xPrepare + ";set nSecond " + nSecond
 			_ = ThreadSetup // suppress unused warning
 			{ // do_test "notify2-" + iTest + ".1.1"
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      ATTACH 'test2.db' AS aux2;\n      ATTACH 'test3.db' AS aux3;\n      CREATE TABLE main.t1(a INTEGER PRIMARY KEY, b);\n      CREATE TABLE aux2.t2(a INTEGER PRIMARY KEY, b);\n      CREATE TABLE aux3.t3(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 SELECT NULL, 0;\n      INSERT INTO t2 SELECT NULL, 0;\n      INSERT INTO t3 SELECT NULL, 0;\n    ")
 				if _res.Error != nil {
@@ -206,8 +206,8 @@ func Test_notify2(t *testing.T) {
 				}
 			}
 			{ // do_test "notify2-" + iTest + ".3.1"
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp2, err := frigolite.Open("test.db")
+				_ = _dbtmp2 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      ATTACH 'test2.db' AS aux2;\n      ATTACH 'test3.db' AS aux3;\n    ")
 				if _res.Error != nil {

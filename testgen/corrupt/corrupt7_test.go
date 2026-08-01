@@ -6,7 +6,6 @@ package corrupt
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -74,8 +73,8 @@ func Test_corrupt7(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "corrupt7-2.1"
 		// hexio_write test.db 1062 FF (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check(1)")
 		if _res.Error != nil {
@@ -84,8 +83,8 @@ func Test_corrupt7(t *testing.T) {
 	}
 	{ // do_test "corrupt7-2.2"
 		// hexio_write test.db 1062 04 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check(1)")
 		if _res.Error != nil {

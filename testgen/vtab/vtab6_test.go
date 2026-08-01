@@ -6,7 +6,6 @@ package vtab
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -482,8 +481,8 @@ func Test_vtab6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab6-11.3.1"

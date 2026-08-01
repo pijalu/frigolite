@@ -160,8 +160,8 @@ func Test_vacuum_into(t *testing.T) {
 	} else {
 		// file attributes test.db -permissions 292
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // "vacuum-into-500"
@@ -186,8 +186,8 @@ func Test_vacuum_into(t *testing.T) {
 		os.Remove("test.db")
 		os.Remove("test.db2")
 		{ // do_test "vacuum-into-600"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA page_size=4096;\n      PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(19);\n      CREATE INDEX t1a ON t1(a);\n      PRAGMA integrity_check;\n    ")
 			if _res.Error != nil {
@@ -213,8 +213,8 @@ func Test_vacuum_into(t *testing.T) {
 			}
 		}
 		{ // do_test "vacuum-into-630"
-			os.Remove("test.db2")
-			db, err = frigolite.Open("test.db2")
+			_dbtmp1, err := frigolite.Open("test.db2")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA page_size;\n      PRAGMA integrity_check;\n    ")
 			if _res.Error != nil {
@@ -236,15 +236,15 @@ func Test_vacuum_into(t *testing.T) {
 		}
 	}
 	// foreach {tn pragma res} "\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n"
-	_items0 := tclSplitList("\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		pragma := _items0[_idx0+1]
+		pragma := _items1[_idx1+1]
 		_ = pragma // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items1[_idx1+2]
 		_ = res // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			os.Remove("test.db2")
 			{ // "vacuum-into-" + tn + ".1"
 				_res = db.Exec("\n    " + pragma + " ;\n    VACUUM INTO 'test.db2'\n  ")

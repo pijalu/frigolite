@@ -6,7 +6,6 @@ package fts3
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -80,8 +79,8 @@ func Test_fts3fault(t *testing.T) {
 	}
 	// do_faultsim_test 2 -prep { \n  sqlite3 db test.db\n  execsql {\n    BEGIN;\n...} -body {\n  execs... (unsupported command, not transpiled)
 	{ // do_test "fts3fault-3.0"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE VIRTUAL TABLE t3 USING fts4; ")
 		if _res.Error != nil {

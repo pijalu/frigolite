@@ -231,7 +231,7 @@ func Test_intreal(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		r = db.Query("\n  CREATE TABLE t0 (c0 REAL, c1);\n  CREATE UNIQUE INDEX i0 ON t0(c1, 0 | c0);\n  INSERT INTO t0(c0) VALUES (4750228396194493326), (0);\n  UPDATE OR REPLACE t0 SET c0 = 'a', c1 = '';\n  SELECT * FROM t0 ORDER BY t0.c1;\n  PRAGMA integrity_check;\n")

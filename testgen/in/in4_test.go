@@ -6,7 +6,6 @@ package in
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "regexp"
 "strings"
 "testing"
@@ -682,8 +681,8 @@ func Test_in4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  CREATE UNIQUE INDEX t1y ON t1(y);\n  INSERT INTO t1 VALUES(111, 'AAA'),(222, 'BBB'),(333, 'CCC');\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('BBB'),('AAA');\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1', 't1y','100 1');\n")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
 		r = db.Query("\n  SELECT t1.x FROM t2 CROSS JOIN t1 WHERE t2.z = t1.y;\n")

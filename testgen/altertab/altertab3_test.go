@@ -6,7 +6,6 @@ package altertab
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strings"
 "testing"
 )
@@ -511,7 +510,7 @@ func Test_altertab3(t *testing.T) {
 				}
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "20.10"
 			_res = db.Exec("\n  CREATE TABLE s(a, b, c);\n  CREATE INDEX k ON s( (WITH s AS( SELECT * ) VALUES(2) ) IN () );\n  ALTER TABLE s RENAME a TO a2;\n")
@@ -597,8 +596,8 @@ func Test_altertab3(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v2 is circularly defined", _res.Error, "\n  SELECT * FROM v2\n")
 			}
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "23.3"
 			_res = db.Exec("\n  ALTER TABLE v0 RENAME TO t3 ;\n")

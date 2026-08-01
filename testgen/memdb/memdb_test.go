@@ -6,7 +6,6 @@ package memdb
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -95,7 +94,7 @@ func Test_memdb(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "memdb-1.1"
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
 		if r.Error != nil {
@@ -432,7 +431,7 @@ func Test_memdb(t *testing.T) {
 				}
 			}
 			{ // do_test "memdb-8.1"
-				db, err = frigolite.Open(":memory:")
+				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    PRAGMA auto_vacuum=TRUE;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    SELECT count(*) FROM t1;\n  ")
 				if r.Error != nil {
@@ -446,8 +445,8 @@ func Test_memdb(t *testing.T) {
 				}
 			}
 			{ // do_test "memdb-9.1"
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp2, err := frigolite.Open("test.db")
+				_ = _dbtmp2 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
 				if _res.Error != nil {

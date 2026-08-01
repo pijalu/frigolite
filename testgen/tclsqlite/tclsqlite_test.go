@@ -1267,7 +1267,7 @@ func Test_tclsqlite(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // do_test "tcl-15.0"
@@ -1299,8 +1299,7 @@ func Test_tclsqlite(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "tcl-16.100"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2),(2,NULL),(3,'xyz');\n")
@@ -1547,8 +1546,8 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "21.0"
 	}
 	{ // do_test "21.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
@@ -1569,8 +1568,8 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "21.2"
 	_ = rc // suppress unused warning
@@ -1590,7 +1589,7 @@ func Test_tclsqlite(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "22.1"
 		{

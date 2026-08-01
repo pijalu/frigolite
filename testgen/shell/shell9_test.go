@@ -80,8 +80,8 @@ func Test_shell9(t *testing.T) {
 		os.Remove("test.db")
 		// catchcmd test.db .read testdump.txt (unsupported command, not transpiled)
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.2"
 		r = db.Query("\n  SELECT * FROM t1;\n")

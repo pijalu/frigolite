@@ -333,8 +333,8 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	{ // do_test "attach-2.16"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    ATTACH 'test2.db' AS db2;\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
 		if r.Error != nil {
@@ -343,8 +343,8 @@ func Test_attach(t *testing.T) {
 	}
 	{ // do_test "attach-3.1"
 		db2.Close()
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
@@ -547,8 +547,8 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	{ // do_test "attach-5.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2.Close()
 		os.Remove("test2.db")
@@ -600,8 +600,7 @@ func Test_attach(t *testing.T) {
 			db2.Close()
 		}
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(a,b);\n      CREATE TRIGGER x1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2(a,b) SELECT key, value FROM json_each(NEW.x);\n      END;\n      INSERT INTO t1(x) VALUES('{\"a\":1}');\n      SELECT * FROM t2;\n    ")
 		if _res.Error != nil {
@@ -662,8 +661,7 @@ func Test_attach(t *testing.T) {
 	os.Remove("no-such-file")
 	{ // do_test "attach-7.1"
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      DETACH RAISE ( IGNORE ) IN ( SELECT \"AAAAAA\" . * ORDER BY \n      REGISTER LIMIT \"AAAAAA\" . \"AAAAAA\" OFFSET RAISE ( IGNORE ) NOT NULL )\n    ")
 		_ = _res // catchsql
@@ -718,8 +716,8 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-10.2"
 		_ = tclLRange(tclExecSQL(db, "{\n    PRAGMA database_list;\n  }"), "9", "end") // lrange result
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "attach-11.1"
 		r = db.Query("\n  ATTACH printf('file:%09000x/x.db?mode=memory&cache=shared',1) AS aux1;\n  CREATE TABLE aux1.t1(x,y);\n  INSERT INTO aux1.t1(x,y) VALUES(1,2),(3,4);\n  SELECT * FROM aux1.t1;\n")
@@ -733,7 +731,7 @@ func Test_attach(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "attach-12.1"
 		r = db.Query("\n  CREATE TABLE Table1 (col TEXT NOT NULL PRIMARY KEY);\n  ATTACH ':memory:' AS db2;\n  CREATE TABLE db2.Table2(col1 INTEGER, col2 INTEGER, col3 INTEGER, col4);\n  CREATE UNIQUE INDEX db2.idx_col1_unique ON Table2 (col1);\n  CREATE UNIQUE INDEX db2.idx_col23_unique ON Table2 (col2, col3);\n  CREATE INDEX db2.idx_col2 ON Table2 (col2);\n  INSERT INTO Table2 VALUES(1,2,3,4);\n  PRAGMA integrity_check;\n")
@@ -751,7 +749,7 @@ func Test_attach(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "attach-13.1"
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE base(x);")
 		if _res.Error != nil {

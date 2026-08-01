@@ -73,8 +73,7 @@ func Test_jrnlmode3(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "jrnlmode3-2.1"
 		_res = db.Exec("\n    PRAGMA locking_mode=EXCLUSIVE;\n    PRAGMA journal_mode=OFF;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
@@ -106,8 +105,7 @@ func Test_jrnlmode3(t *testing.T) {
 				}
 			}
 			os.Remove("test.db")
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "jrnlmode3-3." + cnt + ".1-(" + fromjmode + "-to-" + tojmode + ")"
 				_res = db.Exec("PRAGMA journal_mode = " + fromjmode + ";")

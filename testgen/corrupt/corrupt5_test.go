@@ -6,7 +6,6 @@ package corrupt
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -58,8 +57,8 @@ func Test_corrupt5(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';\n  ")
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		_ = _res // catchsql

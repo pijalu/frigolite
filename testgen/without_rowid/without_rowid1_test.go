@@ -548,7 +548,7 @@ func Test_without_rowid1(t *testing.T) {
 					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
 				}
 			}
-			db, err = frigolite.Open(":memory:")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "8.1"
 				r = db.Query("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY UNIQUE, b) WITHOUT ROWID;\n  CREATE INDEX t1x ON t1(x);\n  INSERT INTO t1(x,b) VALUES('funny','buffalo');\n  SELECT type, name, '|' FROM sqlite_master;\n")

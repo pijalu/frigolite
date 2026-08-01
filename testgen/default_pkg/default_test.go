@@ -117,8 +117,7 @@ func Test_default(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "default-4.0"
@@ -127,8 +126,8 @@ func Test_default(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';\n")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "default-4.1"
 		r = db.Query("\n  INSERT INTO t1(a) VALUES('xyzzy');\n  SELECT a, quote(b) FROM t1;\n")

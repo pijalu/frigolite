@@ -6,7 +6,6 @@ package altercons
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strings"
 "testing"
 )
@@ -118,8 +117,8 @@ func Test_altercons2(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// proc definition (not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c);\n")

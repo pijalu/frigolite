@@ -132,8 +132,7 @@ func Test_e_fts3(t *testing.T) {
 		_ = enc // suppress unused warning
 		_ = _idx0
 			os.Remove("test.db")
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			if tclBool(DO_MALLOC_TEST) {
 				// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
@@ -380,8 +379,7 @@ func Test_e_fts3(t *testing.T) {
 					for _, DO_MALLOC_TEST := range tclSplitList("0 1 2") {
 					_ = DO_MALLOC_TEST // suppress unused warning
 						os.Remove("test.db")
-						os.Remove("test.db")
-						db, err = frigolite.Open("test.db")
+						db, err = frigolite.Open("")
 						if err != nil { t.Fatal(err) }
 						if tclBool(DO_MALLOC_TEST) {
 							// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)

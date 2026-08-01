@@ -6,7 +6,6 @@ package analyze
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "strings"
 "testing"
@@ -1094,8 +1093,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
 				}
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.2"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1115,8 +1114,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
 				}
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp3, err := frigolite.Open("test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.4"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1136,8 +1135,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
 				}
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp4, err := frigolite.Open("test.db")
+			_ = _dbtmp4 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.6"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1157,8 +1156,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
 				}
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp5, err := frigolite.Open("test.db")
+			_ = _dbtmp5 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.8"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1178,8 +1177,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
 				}
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp6, err := frigolite.Open("test.db")
+			_ = _dbtmp6 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.10"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1199,8 +1198,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
 				}
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp7, err := frigolite.Open("test.db")
+			_ = _dbtmp7 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.12"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1479,15 +1478,15 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			// foreach {tn where res} "\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n"
-			_items2 := tclSplitList("\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n")
-			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-				tn := _items2[_idx2+0]
+			_items8 := tclSplitList("\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n")
+			for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
+				tn := _items8[_idx8+0]
 				_ = tn // suppress unused warning
-				where := _items2[_idx2+1]
+				where := _items8[_idx8+1]
 				_ = where // suppress unused warning
-				res := _items2[_idx2+2]
+				res := _items8[_idx8+2]
 				_ = res // suppress unused warning
-				_ = _idx2
+				_ = _idx8
 					{ // "22.2." + tn
 						r = db.Query("EXPLAIN QUERY PLAN " + "SELECT * FROM t3 WHERE " + where)
 						if r.Error != nil {
@@ -1521,15 +1520,15 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 				// foreach {tn where eqp} "\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n"
-				_items3 := tclSplitList("\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n")
-				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-					tn := _items3[_idx3+0]
+				_items9 := tclSplitList("\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n")
+				for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
+					tn := _items9[_idx9+0]
 					_ = tn // suppress unused warning
-					where := _items3[_idx3+1]
+					where := _items9[_idx9+1]
 					_ = where // suppress unused warning
-					eqp := _items3[_idx3+2]
+					eqp := _items9[_idx9+2]
 					_ = eqp // suppress unused warning
-					_ = _idx3
+					_ = _idx9
 						{ // "24." + tn
 							r = db.Query("EXPLAIN QUERY PLAN " + "SeLeCt * FROM t5 WHERE " + where)
 							if r.Error != nil {

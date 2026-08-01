@@ -6,7 +6,6 @@ package where
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "regexp"
 "strconv"
 "strings"
@@ -1139,7 +1138,7 @@ func Test_where(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "where-22.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  CREATE INDEX t1a ON t1(a);\n  INSERT INTO t1(a) VALUES(NULL),(NULL),(42),(NULL),(NULL);\n  CREATE TABLE t2(dummy INT);\n  SELECT count(*) FROM t1 LEFT JOIN t2 ON a IS NOT NULL;\n")
@@ -1225,8 +1224,8 @@ func Test_where(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.1"
 			_res = db.Exec("\n  DELETE FROM t1 WHERE c='iii'\n")
@@ -1249,8 +1248,8 @@ func Test_where(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.4"
 			_res = db.Exec("\n  SELECT * FROM t1 WHERE c='iii'\n")
@@ -1264,7 +1263,7 @@ func Test_where(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "corrupt database", _res.Error, "\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "where-26.1"
 			r = db.Query("\n  CREATE TABLE t0(c0 INTEGER PRIMARY KEY, c1 TEXT);\n  INSERT INTO t0(c0, c1) VALUES (1, 'a');\n  CREATE TABLE t1(c0 INT PRIMARY KEY, c1 TEXT);\n  INSERT INTO t1(c0, c1) VALUES (1, 'a');\n  SELECT * FROM t0 WHERE '-1' BETWEEN 0 AND t0.c0;\n")

@@ -166,8 +166,7 @@ func Test_enc(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n  SELECT * FROM t2;\n")
 		}
 	}
-	os.Remove("test.db3")
-	db, err = frigolite.Open("test.db3")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.4"
 		r = db.Query("\n  SELECT * FROM t3;\n  PRAGMA encoding = 'UTF-16le';\n  SELECT * FROM t3;\n")
@@ -181,8 +180,8 @@ func Test_enc(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db3")
-	db, err = frigolite.Open("test.db3")
+	_dbtmp0, err := frigolite.Open("test.db3")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.5"
 		r = db.Query("\n  PRAGMA encoding = 'UTF-16le';\n  PRAGMA encoding;\n")
@@ -221,8 +220,8 @@ func Test_enc(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n  SELECT * FROM t2;\n  SELECT * FROM t1;\n")
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.9"
 		_res = db.Exec("\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
@@ -243,15 +242,14 @@ func Test_enc(t *testing.T) {
 		}
 	}
 	os.Remove("utf16.db")
-	os.Remove("utf16.db")
-	db, err = frigolite.Open("utf16.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');")
 	}
-	os.Remove("utf16.db")
-	db, err = frigolite.Open("utf16.db")
+	_dbtmp2, err := frigolite.Open("utf16.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "enc-13.1"
 		_res = db.Exec("PRAGMA function_list")
@@ -263,8 +261,8 @@ func Test_enc(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t3 USING rtree(id,x1,x2)")
 	}
-	os.Remove("utf16.db")
-	db, err = frigolite.Open("utf16.db")
+	_dbtmp3, err := frigolite.Open("utf16.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "enc-13.2"
 		r = db.Query("\n    WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;\n  ")

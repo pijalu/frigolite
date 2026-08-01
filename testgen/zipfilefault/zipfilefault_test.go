@@ -63,8 +63,8 @@ func Test_zipfilefault(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  load_static_ext...} -body {\n  execs... (unsupported command, not transpiled)
 	os.Remove("test.zip")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db zipfile (unsupported command, not transpiled)
 	{ // "2.0"

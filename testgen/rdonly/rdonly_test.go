@@ -6,7 +6,6 @@ package rdonly
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -68,8 +67,8 @@ func Test_rdonly(t *testing.T) {
 	}
 	{ // do_test "rdonly-1.3"
 		// hexio_write test.db 18 03 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -85,8 +84,8 @@ func Test_rdonly(t *testing.T) {
 	}
 	{ // do_test "rdonly-1.5"
 		// hexio_write test.db 18 01 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql

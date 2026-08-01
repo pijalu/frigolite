@@ -6,7 +6,6 @@ package ioerr
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -62,8 +61,8 @@ func Test_ioerr6(t *testing.T) {
 	{ // do_test "1.1"
 		// testvfs shmfault -default true (unsupported command, not transpiled)
 		// shmfault devchar atomic (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 4);\n    INSERT INTO t1 VALUES(3, 6);\n    INSERT INTO t1 VALUES(4, 8);\n  ")
 		if _res.Error != nil {

@@ -165,8 +165,7 @@ func Test_symlink(t *testing.T) {
 			db2.Close()
 		}
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(x) ")
 		if _res.Error != nil {
@@ -244,8 +243,8 @@ func Test_symlink(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
-				os.Remove("[string repeat x 100]/ 6")
-				db, err = frigolite.Open("[string repeat x 100]/ 6")
+				_dbtmp0, err := frigolite.Open("[string repeat x 100]/ 6")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				if _catchErr != nil {
 					res = "1"
@@ -261,8 +260,8 @@ func Test_symlink(t *testing.T) {
 			// file mkdir x
 			// file mkdir y
 			// file mkdir z
-			os.Remove("x/test.db")
-			db, err = frigolite.Open("x/test.db")
+			_dbtmp1, err := frigolite.Open("x/test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// file link y/test.db ../x/test.db
 			// file link z/test.db ../y/test.db
@@ -272,8 +271,8 @@ func Test_symlink(t *testing.T) {
 			}
 		}
 		{ // do_test "4.2.1"
-			os.Remove("y/test.db")
-			db, err = frigolite.Open("y/test.db")
+			_dbtmp2, err := frigolite.Open("y/test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -285,8 +284,8 @@ func Test_symlink(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "4.3.1"
-			os.Remove("z/test.db")
-			db, err = frigolite.Open("z/test.db")
+			_dbtmp3, err := frigolite.Open("z/test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -304,8 +303,8 @@ func Test_symlink(t *testing.T) {
 			// set  (invalid identifier, skipped)
 		}
 		{ // do_test "4.4.1"
-			os.Remove("w/test.db")
-			db, err = frigolite.Open("w/test.db")
+			_dbtmp4, err := frigolite.Open("w/test.db")
+			_ = _dbtmp4 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {

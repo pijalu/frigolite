@@ -73,8 +73,7 @@ func Test_crash5(t *testing.T) {
 		_ = jj // suppress unused warning
 		for func() bool { jj_n, _jj_e := strconv.Atoi(jj); if _jj_e != nil { return false }; return jj_n < 100 }() {
 			os.Remove("test.db")
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			c = "3 1500"
 			_ = c // suppress unused warning
@@ -86,8 +85,8 @@ func Test_crash5(t *testing.T) {
 				// crashsql -delay 1 -file test.db-journal -seed $ii -tclbody [join [list \\n        [list s... (unsupported command, not transpiled)
 				// expr 1 → "1"
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // do_test "crash5-" + ii + "." + jj + ".2"
 				_res = db.Exec("pragma integrity_check")

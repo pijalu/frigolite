@@ -6,7 +6,6 @@ package corruptA
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -72,8 +71,8 @@ func Test_corruptA(t *testing.T) {
 	{ // do_test "corruptA-2.1"
 		tclFileCopy("test.db-template", "test.db")
 		// hexio_write test.db 19 $unreadable_version (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
@@ -81,8 +80,8 @@ func Test_corruptA(t *testing.T) {
 	{ // do_test "corruptA-2.2"
 		tclFileCopy("test.db-template", "test.db")
 		// hexio_write test.db 21 41 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
@@ -90,8 +89,8 @@ func Test_corruptA(t *testing.T) {
 	{ // do_test "corruptA-2.3"
 		tclFileCopy("test.db-template", "test.db")
 		// hexio_write test.db 22 1f (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
@@ -99,8 +98,8 @@ func Test_corruptA(t *testing.T) {
 	{ // do_test "corruptA-2.4"
 		tclFileCopy("test.db-template", "test.db")
 		// hexio_write test.db 23 21 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql

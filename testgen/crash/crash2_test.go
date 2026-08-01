@@ -6,7 +6,6 @@ package crash
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -71,8 +70,8 @@ func Test_crash2(t *testing.T) {
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5 }() {
 		{ // do_test "crash2-1.2." + ii
 			// crashsql -file test.db -blocksize 2048 [subst {\n      [string repeat {SELECT random();} ... (unsupported command, not transpiled)
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil {
@@ -129,8 +128,8 @@ func Test_crash2(t *testing.T) {
 			// crashsql -blocksize $sector -delay [expr $i%5 + 1] -file test.db-journal \n       PRAGMA ... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash2-2." + i + ".2"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// signature (unsupported command, not transpiled)
 		}
@@ -153,8 +152,8 @@ func Test_crash2(t *testing.T) {
 			// crashsql -blocksize $sector -file test.db \n       BEGIN;\n       SELECT random() FROM ab... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash2-3." + i + ".2"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// signature (unsupported command, not transpiled)
 		}

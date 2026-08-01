@@ -6,7 +6,6 @@ package sort
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "regexp"
 "strconv"
 "strings"
@@ -87,8 +86,8 @@ func Test_sort(t *testing.T) {
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sort-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(\n       n int,\n       v varchar(10),\n       log int,\n       roman varchar(10),\n       flt real\n    );\n    INSERT INTO t1 VALUES(1,'one',0,'I',3.141592653);\n    INSERT INTO t1 VALUES(2,'two',1,'II',2.15);\n    INSERT INTO t1 VALUES(3,'three',1,'III',4221.0);\n    INSERT INTO t1 VALUES(4,'four',2,'IV',-0.0013442);\n    INSERT INTO t1 VALUES(5,'five',2,'V',-11);\n    INSERT INTO t1 VALUES(6,'six',2,'VI',0.123);\n    INSERT INTO t1 VALUES(7,'seven',2,'VII',123.0);\n    INSERT INTO t1 VALUES(8,'eight',3,'VIII',-1.6);\n  ")
@@ -532,23 +531,23 @@ func Test_sort(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore coremutex fakeheap softheaplimit} "\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n"
-	_items0 := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
-	for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
+	for _idx1 := 0; _idx1+7 <= len(_items1); _idx1 += 7 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		mmap_limit := _items0[_idx0+1]
+		mmap_limit := _items1[_idx1+1]
 		_ = mmap_limit // suppress unused warning
-		nWorker := _items0[_idx0+2]
+		nWorker := _items1[_idx1+2]
 		_ = nWorker // suppress unused warning
-		tmpstore := _items0[_idx0+3]
+		tmpstore := _items1[_idx1+3]
 		_ = tmpstore // suppress unused warning
-		coremutex := _items0[_idx0+4]
+		coremutex := _items1[_idx1+4]
 		_ = coremutex // suppress unused warning
-		fakeheap := _items0[_idx0+5]
+		fakeheap := _items1[_idx1+5]
 		_ = fakeheap // suppress unused warning
-		softheaplimit := _items0[_idx0+6]
+		softheaplimit := _items1[_idx1+6]
 		_ = softheaplimit // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			// sqlite3_shutdown (unsupported command, not transpiled)
 			if tclBool(coremutex) {
 				// sqlite3_config multithread (unsupported command, not transpiled)

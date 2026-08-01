@@ -185,7 +185,7 @@ func Test_misc4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM abc LEFT JOIN def ON (abc.a=def.d);\n  ")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "misc4-7.1"

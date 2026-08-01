@@ -6,7 +6,6 @@ package autoanalyze
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -139,8 +138,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-300"
 		r = db.Query("\n  SELECT * FROM t1 WHERE d=45;\n")
@@ -166,8 +165,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-310"
 		r = db.Query("\n  SELECT * FROM t1 WHERE d=45 AND a=45;\n")
@@ -193,8 +192,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-320"
 		r = db.Query("\n  SELECT * FROM t1 WHERE d=45 AND a IN (45,46);\n")
@@ -220,8 +219,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-400"
 		r = db.Query("\n  SELECT * FROM t1 WHERE b=45;\n")
@@ -247,8 +246,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp4, err := frigolite.Open("test.db")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-500"
 		r = db.Query("\n  SELECT (flgs & 0x0100)!=0 FROM pragma_stats WHERE tbl='t1' AND idx IS NULL;\n")

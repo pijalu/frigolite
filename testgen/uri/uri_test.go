@@ -145,8 +145,8 @@ func Test_uri(t *testing.T) {
 			{ // do_test "1." + tn + ".3"
 				// file exists file
 			}
-			os.Remove("xxx.db")
-			db, err = frigolite.Open("xxx.db")
+			_dbtmp1, err := frigolite.Open("xxx.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" ATTACH " + uri + " AS aux ")
 			_ = _res // catchsql
@@ -160,15 +160,15 @@ func Test_uri(t *testing.T) {
 		// tvfs script open_method (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		// foreach {tn uri kvlist} "\n  1      file:test.db?hello=world                     {hello world}\n  2      file:test.db?hello&world                     {hello {} world {}}\n  3      file:test.db?hello=1&world=2&vfs=tvfs        {hello 1 world 2 vfs tvfs}\n  4      file:test.db?hello=1&world=2&vfs=tvfs2        {}\n  5      file:test.db?%68%65%6C%6C%6F=%77%6F%72%6C%64 {hello world}\n  6      file:testdb%00.db?hello%00extra=world%00ex   {hello world}\n  7      file:testdb%00.db?hello%00=world%00          {hello world}\n  8      file:testdb%00.db?=world&xyz=abc             {xyz abc}\n  9      file:test.db?%00hello=world&xyz=abc          {xyz abc}\n  10     file:test.db?hello=%00world&xyz=             {hello {} xyz {}}\n  11     file:test.db?=#ravada                        {}\n  12     file:test.db?&&&&&&&&hello=world&&&&&&&      {hello world}\n\n  13     test.db?&&&&&&&&hello=world&&&&&&&           {}\n  14     http:test.db?hello&world                     {}\n"
-		_items1 := tclSplitList("\n  1      file:test.db?hello=world                     {hello world}\n  2      file:test.db?hello&world                     {hello {} world {}}\n  3      file:test.db?hello=1&world=2&vfs=tvfs        {hello 1 world 2 vfs tvfs}\n  4      file:test.db?hello=1&world=2&vfs=tvfs2        {}\n  5      file:test.db?%68%65%6C%6C%6F=%77%6F%72%6C%64 {hello world}\n  6      file:testdb%00.db?hello%00extra=world%00ex   {hello world}\n  7      file:testdb%00.db?hello%00=world%00          {hello world}\n  8      file:testdb%00.db?=world&xyz=abc             {xyz abc}\n  9      file:test.db?%00hello=world&xyz=abc          {xyz abc}\n  10     file:test.db?hello=%00world&xyz=             {hello {} xyz {}}\n  11     file:test.db?=#ravada                        {}\n  12     file:test.db?&&&&&&&&hello=world&&&&&&&      {hello world}\n\n  13     test.db?&&&&&&&&hello=world&&&&&&&           {}\n  14     http:test.db?hello&world                     {}\n")
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			tn := _items1[_idx1+0]
+		_items2 := tclSplitList("\n  1      file:test.db?hello=world                     {hello world}\n  2      file:test.db?hello&world                     {hello {} world {}}\n  3      file:test.db?hello=1&world=2&vfs=tvfs        {hello 1 world 2 vfs tvfs}\n  4      file:test.db?hello=1&world=2&vfs=tvfs2        {}\n  5      file:test.db?%68%65%6C%6C%6F=%77%6F%72%6C%64 {hello world}\n  6      file:testdb%00.db?hello%00extra=world%00ex   {hello world}\n  7      file:testdb%00.db?hello%00=world%00          {hello world}\n  8      file:testdb%00.db?=world&xyz=abc             {xyz abc}\n  9      file:test.db?%00hello=world&xyz=abc          {xyz abc}\n  10     file:test.db?hello=%00world&xyz=             {hello {} xyz {}}\n  11     file:test.db?=#ravada                        {}\n  12     file:test.db?&&&&&&&&hello=world&&&&&&&      {hello world}\n\n  13     test.db?&&&&&&&&hello=world&&&&&&&           {}\n  14     http:test.db?hello&world                     {}\n")
+		for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			uri := _items1[_idx1+1]
+			uri := _items2[_idx2+1]
 			_ = uri // suppress unused warning
-			kvlist := _items1[_idx1+2]
+			kvlist := _items2[_idx2+2]
 			_ = kvlist // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				if func() bool { l_n, l_e := strconv.Atoi("%00 $uri"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n >= r_n }() {
 				}
 				if tclBool(tcl_platform_platform + " == \"windows\" && " + tn + ">12") {
@@ -182,8 +182,8 @@ func Test_uri(t *testing.T) {
 					_ = arglist // TCL namespace variable (query)
 				}
 				// sqlite3_close $DB (unsupported command, not transpiled)
-				os.Remove("xxx.db")
-				db, err = frigolite.Open("xxx.db")
+				_dbtmp3, err := frigolite.Open("xxx.db")
+				_ = _dbtmp3 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				arglist = "" // TCL namespace variable
 				_ = arglist // suppress unused warning
@@ -202,19 +202,19 @@ func Test_uri(t *testing.T) {
 				_ = _list
 			}
 			// foreach {tn mode create_ok write_ok readonly_ok} "\n  1    ro    0   0   1\n  2    rw    0   1   0\n  3    rwc   1   1   0\n"
-			_items2 := tclSplitList("\n  1    ro    0   0   1\n  2    rw    0   1   0\n  3    rwc   1   1   0\n")
-			for _idx2 := 0; _idx2+5 <= len(_items2); _idx2 += 5 {
-				tn := _items2[_idx2+0]
+			_items4 := tclSplitList("\n  1    ro    0   0   1\n  2    rw    0   1   0\n  3    rwc   1   1   0\n")
+			for _idx4 := 0; _idx4+5 <= len(_items4); _idx4 += 5 {
+				tn := _items4[_idx4+0]
 				_ = tn // suppress unused warning
-				mode := _items2[_idx2+1]
+				mode := _items4[_idx4+1]
 				_ = mode // suppress unused warning
-				create_ok := _items2[_idx2+2]
+				create_ok := _items4[_idx4+2]
 				_ = create_ok // suppress unused warning
-				write_ok := _items2[_idx2+3]
+				write_ok := _items4[_idx4+3]
 				_ = write_ok // suppress unused warning
-				readonly_ok := _items2[_idx2+4]
+				readonly_ok := _items4[_idx4+4]
 				_ = readonly_ok // suppress unused warning
-				_ = _idx2
+				_ = _idx4
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
@@ -233,8 +233,7 @@ func Test_uri(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 					}
 					os.Remove("test.db")
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
+					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" CREATE TABLE t1(a, b) ")
 					if _res.Error != nil {
@@ -245,8 +244,8 @@ func Test_uri(t *testing.T) {
 					A_0 = "1 {attempt to write a readonly database}"
 					_ = A_0 // suppress unused warning
 					{ // do_test "4.1." + tn + ".2"
-						os.Remove("file:test.db?mode=" + mode)
-						db, err = frigolite.Open("file:test.db?mode=" + mode)
+						_dbtmp5, err := frigolite.Open("file:test.db?mode=" + mode)
+						_ = _dbtmp5 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
 						_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 						_ = _res // catchsql
@@ -263,17 +262,17 @@ func Test_uri(t *testing.T) {
 				orig = "sqlite3_enable_shared_cache"
 				_ = orig // suppress unused warning
 				// foreach {tn options sc_default is_shared} "\n  1    \"\"                1   1\n  2    \"cache=private\"   1   0\n  3    \"cache=shared\"    1   1\n  4    \"\"                0   0\n  5    \"cache=private\"   0   0\n  6    \"cache=shared\"    0   1\n"
-				_items3 := tclSplitList("\n  1    \"\"                1   1\n  2    \"cache=private\"   1   0\n  3    \"cache=shared\"    1   1\n  4    \"\"                0   0\n  5    \"cache=private\"   0   0\n  6    \"cache=shared\"    0   1\n")
-				for _idx3 := 0; _idx3+4 <= len(_items3); _idx3 += 4 {
-					tn := _items3[_idx3+0]
+				_items6 := tclSplitList("\n  1    \"\"                1   1\n  2    \"cache=private\"   1   0\n  3    \"cache=shared\"    1   1\n  4    \"\"                0   0\n  5    \"cache=private\"   0   0\n  6    \"cache=shared\"    0   1\n")
+				for _idx6 := 0; _idx6+4 <= len(_items6); _idx6 += 4 {
+					tn := _items6[_idx6+0]
 					_ = tn // suppress unused warning
-					options := _items3[_idx3+1]
+					options := _items6[_idx6+1]
 					_ = options // suppress unused warning
-					sc_default := _items3[_idx3+2]
+					sc_default := _items6[_idx6+2]
 					_ = sc_default // suppress unused warning
-					is_shared := _items3[_idx3+3]
+					is_shared := _items6[_idx6+3]
 					_ = is_shared // suppress unused warning
-					_ = _idx3
+					_ = _idx6
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
@@ -285,8 +284,8 @@ func Test_uri(t *testing.T) {
 						db2.Exec("CREATE TABLE t1(a, b)")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 						// sqlite3_enable_shared_cache $sc_default (unsupported command, not transpiled)
-						os.Remove("file:test.db?" + options)
-						db, err = frigolite.Open("file:test.db?" + options)
+						_dbtmp7, err := frigolite.Open("file:test.db?" + options)
+						_ = _dbtmp7 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
 						_res = db.Exec("SELECT * FROM t1")
 						if _res.Error != nil {
@@ -326,8 +325,8 @@ func Test_uri(t *testing.T) {
 					}
 					// eval (dynamic, not transpiled)
 					{ // do_test "5.1.1"
-						os.Remove("file:test.db1?vfs=tvfs1")
-						db, err = frigolite.Open("file:test.db1?vfs=tvfs1")
+						_dbtmp8, err := frigolite.Open("file:test.db1?vfs=tvfs1")
+						_ = _dbtmp8 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
 						_res = db.Exec("\n      ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');\n    ")
 						if _res.Error != nil {
@@ -345,15 +344,15 @@ func Test_uri(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 					}
 					// foreach {tn uri res} "\n  1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}\n"
-					_items4 := tclSplitList("\n  1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}\n")
-					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-						tn := _items4[_idx4+0]
+					_items9 := tclSplitList("\n  1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}\n")
+					for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
+						tn := _items9[_idx9+0]
 						_ = tn // suppress unused warning
-						uri := _items4[_idx4+1]
+						uri := _items9[_idx9+1]
 						_ = uri // suppress unused warning
-						res := _items4[_idx4+2]
+						res := _items9[_idx9+2]
 						_ = res // suppress unused warning
-						_ = _idx4
+						_ = _idx9
 							if tcl_platform_platform == "windows" {
 								uri = ""
 								_ = uri // suppress unused warning
@@ -374,8 +373,8 @@ func Test_uri(t *testing.T) {
 						}
 						os.Remove("test.db")
 						{ // do_test "7.1"
-							os.Remove("test.db")
-							db, err = frigolite.Open("test.db")
+							_dbtmp10, err := frigolite.Open("test.db")
+							_ = _dbtmp10 // sqlite3 db connection
 							if err != nil { t.Fatal(err) }
 							_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
 							if _res.Error != nil {
@@ -383,8 +382,8 @@ func Test_uri(t *testing.T) {
 							}
 						}
 						{ // do_test "7.2"
-							os.Remove("file:test.db?mode=ro")
-							db, err = frigolite.Open("file:test.db?mode=ro")
+							_dbtmp11, err := frigolite.Open("file:test.db?mode=ro")
+							_ = _dbtmp11 // sqlite3 db connection
 							if err != nil { t.Fatal(err) }
 							_res = db.Exec(" ATTACH 'file:test.db2?mode=rw' AS aux ")
 							if _res.Error != nil {

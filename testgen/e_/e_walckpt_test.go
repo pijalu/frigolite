@@ -121,19 +121,19 @@ func Test_e_walckpt(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// skip: foreach over unresolved TCL command
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// foreach {tn mode res} "\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n"
-	_items0 := tclSplitList("\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		mode := _items0[_idx0+1]
+		mode := _items1[_idx1+1]
 		_ = mode // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items1[_idx1+2]
 		_ = res // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "4." + tn
 				_list := tclList([]string{"0", msg})
 				_ = _list
@@ -143,8 +143,7 @@ func Test_e_walckpt(t *testing.T) {
 		_ = tn // suppress unused warning
 			os.Remove("test.db")
 			// testvfs tvfs (unsupported command, not transpiled)
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
 			if _res.Error != nil {

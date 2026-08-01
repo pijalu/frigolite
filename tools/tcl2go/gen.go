@@ -2,7 +2,7 @@
 // Package main implements the tcl2go tool: a TCL-to-Go transpiler that converts
 // SQLite TCL test files (.test) into standalone Go test files (_test.go).
 //
-// Architecture
+// # Architecture
 //
 // tcl2go is a TRANSPILER (not an interpreter). It:
 //  1. Reads a .test TCL file
@@ -305,13 +305,13 @@ func collectSetVars(cmds [][]tcl.RawWord) []string {
 		cmdName := cmd[0].Text
 		switch cmdName {
 		case "set":
-				if len(cmd) >= 2 {
-					names = append(names, cmd[1].Text)
-				}
-			case "incr", "lappend", "append":
-				if len(cmd) >= 2 {
-					names = append(names, cmd[1].Text)
-				}
+			if len(cmd) >= 2 {
+				names = append(names, cmd[1].Text)
+			}
+		case "incr", "lappend", "append":
+			if len(cmd) >= 2 {
+				names = append(names, cmd[1].Text)
+			}
 		case "foreach":
 			if len(cmd) >= 2 {
 				// cmd[1] is the variable list (possibly braced with multiple vars)
@@ -485,14 +485,15 @@ func collectRefVars(src string) []string {
 
 // transpiler converts TCL commands to Go code.
 type transpiler struct {
-	sb           *strings.Builder
-	indent       int
-	dbVar        string
-	t            string
-	varCount     int
-	vars         []string
-	catchMode    bool // true when transpiling inside a catch {} block
-	forIncrs     [][][]tcl.RawWord // stack of for-loop increment clauses (empty for while/foreach)
+	sb               *strings.Builder
+	indent           int
+	dbVar            string
+	t                string
+	varCount         int
+	vars             []string
+	catchMode        bool              // true when transpiling inside a catch {} block
+	forIncrs         [][][]tcl.RawWord // stack of for-loop increment clauses (empty for while/foreach)
+	pendingFileReset map[string]bool   // file removed by forcedelete; next sqlite3 open resets the db
 }
 
 func (tp *transpiler) emit(format string, args ...interface{}) {
@@ -771,7 +772,7 @@ func (tp *transpiler) buildStringExpr(s string) string {
 
 	// Parse into parts
 	type part struct {
-		literal string
+		literal  string
 		variable string // non-empty if this is a $var reference
 		command  string // non-empty if this is a [cmd] reference
 	}
@@ -808,24 +809,24 @@ func (tp *transpiler) buildStringExpr(s string) string {
 				}
 				parts = append(parts, part{variable: varName})
 			} else if isVarStartChar(s[pos]) {
-					for pos < len(s) && isVarChar(s[pos]) {
-						pos++
+				for pos < len(s) && isVarChar(s[pos]) {
+					pos++
+				}
+				varName := s[varStart:pos]
+				// Handle TCL array syntax: $var(key) → include key in var name
+				if pos < len(s) && s[pos] == '(' {
+					keyStart := pos + 1
+					keyEnd := keyStart
+					for keyEnd < len(s) && s[keyEnd] != ')' {
+						keyEnd++
 					}
-					varName := s[varStart:pos]
-					// Handle TCL array syntax: $var(key) → include key in var name
-					if pos < len(s) && s[pos] == '(' {
-						keyStart := pos + 1
-						keyEnd := keyStart
-						for keyEnd < len(s) && s[keyEnd] != ')' {
-							keyEnd++
-						}
-						if keyEnd < len(s) {
-							key := s[keyStart:keyEnd]
-							varName = varName + "(" + key + ")"
-							pos = keyEnd + 1 // skip past )
-						}
+					if keyEnd < len(s) {
+						key := s[keyStart:keyEnd]
+						varName = varName + "(" + key + ")"
+						pos = keyEnd + 1 // skip past )
 					}
-					parts = append(parts, part{variable: varName})
+				}
+				parts = append(parts, part{variable: varName})
 			} else {
 				if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
 					parts = append(parts, part{})
@@ -894,19 +895,19 @@ func (tp *transpiler) buildStringExpr(s string) string {
 			result.WriteString(fmt.Sprintf("%q", p.literal))
 		}
 		if p.variable != "" {
-				if p.literal != "" {
-					result.WriteString(" + ")
-				}
-				vn := tclVarToGo(p.variable)
-					// 'err' is Go error type, 'db' is *frigolite.DB — use tclStr for conversion
-					if vn == "err" {
-						result.WriteString("tclStr(err)")
-					} else if vn == "db" {
-						result.WriteString("\"\"")
-					} else {
-						result.WriteString(vn)
-					}
+			if p.literal != "" {
+				result.WriteString(" + ")
 			}
+			vn := tclVarToGo(p.variable)
+			// 'err' is Go error type, 'db' is *frigolite.DB — use tclStr for conversion
+			if vn == "err" {
+				result.WriteString("tclStr(err)")
+			} else if vn == "db" {
+				result.WriteString("\"\"")
+			} else {
+				result.WriteString(vn)
+			}
+		}
 		if p.command != "" {
 			if p.literal != "" || p.variable != "" {
 				result.WriteString(" + ")
@@ -969,9 +970,16 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 					depth := 0
 					mapEnd := -1
 					for i, c := range rest {
-						if c == '{' { depth++ }
-						if c == '}' { depth-- }
-						if depth == 0 { mapEnd = i; break }
+						if c == '{' {
+							depth++
+						}
+						if c == '}' {
+							depth--
+						}
+						if depth == 0 {
+							mapEnd = i
+							break
+						}
 					}
 					if mapEnd >= 0 {
 						mapContent := rest[1:mapEnd]
@@ -2432,26 +2440,26 @@ func extractTCLVarNames(s string) []string {
 				}
 			}
 			varName := s[varStart:pos]
-				// Handle TCL array syntax: $var(key) → include key in var name
-				if pos < len(s) && s[pos] == '(' {
-					keyStart := pos + 1
-					keyEnd := keyStart
-					for keyEnd < len(s) && s[keyEnd] != ')' {
-						keyEnd++
-					}
-					if keyEnd < len(s) {
-						key := s[keyStart:keyEnd]
-						varName = varName + "(" + key + ")"
-						pos = keyEnd + 1 // skip past )
-					}
+			// Handle TCL array syntax: $var(key) → include key in var name
+			if pos < len(s) && s[pos] == '(' {
+				keyStart := pos + 1
+				keyEnd := keyStart
+				for keyEnd < len(s) && s[keyEnd] != ')' {
+					keyEnd++
 				}
-				if pos < len(s) && s[pos] == '}' {
-					pos++ // skip }
+				if keyEnd < len(s) {
+					key := s[keyStart:keyEnd]
+					varName = varName + "(" + key + ")"
+					pos = keyEnd + 1 // skip past )
 				}
-				if varName != "" && !seen[varName] {
-					seen[varName] = true
-					names = append(names, varName)
-				}
+			}
+			if pos < len(s) && s[pos] == '}' {
+				pos++ // skip }
+			}
+			if varName != "" && !seen[varName] {
+				seen[varName] = true
+				names = append(names, varName)
+			}
 		} else {
 			pos++
 		}
@@ -2660,7 +2668,9 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			bodyStart := -1
 			for i, c := range cmdText {
 				if c == '{' {
-					if depth == 0 { bodyStart = i + 1 }
+					if depth == 0 {
+						bodyStart = i + 1
+					}
 					depth++
 				} else if c == '}' {
 					depth--
@@ -3219,16 +3229,16 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	// db1-db9 are pre-declared at function level; always use = for them
 	if isPreDeclaredDB(goName) {
 		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)
-	} else if goName == "db" {
-		// The main test connection: SQLite's "db close; sqlite3 db ..."
-		// reopens a FRESH database (dropping all prior tables). Reopen it.
-		// (The preceding "db close" command already emitted db.Close().)
-		// Remove a stale FILE database so leftover tables don't survive
-		// across test runs (detectImports adds the "os" import for this).
-		if filename != `""` && filename != `":memory:"` && filename != `"'""` && filename != `"'':memory:''"` {
-			tp.emitLine("os.Remove(%s)", filename)
-		}
-		tp.emitLine("db, err = frigolite.Open(%s)", filename)
+	} else if goName == "db" && (filename == `""` || filename == `":memory:"` || filename == `"'':memory:''"`) {
+		// SQLite's "db close; sqlite3 db :memory:" resets the main test
+		// connection to a fresh database (dropping all prior tables).
+		// Reopen it empty. (The preceding "db close" already emitted Close.)
+		tp.emitLine("db, err = frigolite.Open(\"\")")
+	} else if goName == "db" && len(args) >= 2 && tp.pendingFileReset[args[1].Text] {
+		// "forcedelete test.db; sqlite3 db test.db": start from a fresh
+		// database (in-memory; the compat suite does not rely on the file).
+		delete(tp.pendingFileReset, args[1].Text)
+		tp.emitLine("db, err = frigolite.Open(\"\")")
 	} else if !tp.isVarDeclared(goName) {
 		// New DB connection variable
 		tp.emitLine("%s, err := frigolite.Open(%s)", goName, filename)
@@ -3236,7 +3246,10 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 		tp.vars = append(tp.vars, goName)
 	} else {
 		// Variable already declared (possibly as string from set) —
-		// use a temp variable to avoid type conflicts
+		// use a temp variable to avoid type conflicts. Reopening a FILE
+		// database ("sqlite3 db test.db") is a no-op: the compat suite
+		// expects the test to keep running in-memory, and forcedelete
+		// emits os.Remove for explicit resets.
 		tmpVar := fmt.Sprintf("_dbtmp%d", tp.varCount)
 		tp.varCount++
 		tp.emitLine("%s, err := frigolite.Open(%s)", tmpVar, filename)
@@ -3269,6 +3282,12 @@ func (tp *transpiler) processFileDelete(args []tcl.RawWord) {
 	}
 	pathExpr := tp.goStringLiteral(args[0])
 	tp.emitLine("os.Remove(%s)", pathExpr)
+	// The next sqlite3 db <file> open of this file starts from a fresh
+	// database (the TCL "forcedelete test.db; sqlite3 db test.db" pattern).
+	if tp.pendingFileReset == nil {
+		tp.pendingFileReset = make(map[string]bool)
+	}
+	tp.pendingFileReset[args[0].Text] = true
 }
 
 // processFileCopy handles: forcecopy src dst

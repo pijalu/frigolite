@@ -6,7 +6,6 @@ package corrupt
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "strings"
 "testing"
@@ -107,8 +106,8 @@ func Test_corrupt4(t *testing.T) {
 	}
 	{ // do_test "corrupt4-1.4"
 		// hexio_write test.db [expr {$::baseaddr+4}] [hexio_render_int32 -100000000] (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    DROP TABLE t2\n  ")
 		_ = _res // catchsql
@@ -164,8 +163,8 @@ func Test_corrupt4(t *testing.T) {
 	// put4byte $fd $offChild 1 (unsupported command, not transpiled)
 	// close $fd
 	if tclBool("!" + "info exists ::G(perm:presql)") {
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "2.2"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    SELECT * FROM sqlite_schema;\n  ")

@@ -106,8 +106,8 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		// tvfs script xDelete (unsupported command, not transpiled)
 		// tvfs filter xDelete (unsupported command, not transpiled)
 		// proc definition (not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

@@ -6,7 +6,6 @@ package memdb
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "strings"
 "testing"
@@ -70,8 +69,8 @@ func Test_memdb2(t *testing.T) {
 		_ = _idx0
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
 			}
-			os.Remove(fname)
-			db, err = frigolite.Open(fname)
+			_dbtmp1, err := frigolite.Open(fname)
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open(fname)
 			if err != nil { t.Fatal(err) }

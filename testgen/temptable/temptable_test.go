@@ -402,8 +402,8 @@ func Test_temptable(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			// file attributes test.db -readonly 1
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		if tclBool("file writable test.db") {
 			t.Errorf("TCL error: %s", "Unable to make the database file test.db readonly - rerun this test as an unprivileged user")
@@ -440,8 +440,8 @@ func Test_temptable(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-6.8"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t8,t9;\n  ")
 		_ = _res // catchsql
@@ -462,8 +462,8 @@ func Test_temptable(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db")
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "temptable-8.1"

@@ -6,7 +6,6 @@ package indexA
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strings"
 "testing"
 )
@@ -539,8 +538,8 @@ func Test_indexA(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX ex1 ON t1(c) WHERE b IS 'abc' COLLATE xyz;\n")
 				}
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "5.3"
 				r = db.Query("\n  SELECT * FROM t1\n")

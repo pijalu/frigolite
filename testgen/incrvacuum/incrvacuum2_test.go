@@ -153,8 +153,7 @@ func Test_incrvacuum2(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	if tclBool("wal_is_capable") {
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "4.1"
 			_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 SELECT * FROM t1;            --    2\n    INSERT INTO t1 SELECT * FROM t1;            --    4\n    INSERT INTO t1 SELECT * FROM t1;            --    8\n    INSERT INTO t1 SELECT * FROM t1;            --   16\n    INSERT INTO t1 SELECT * FROM t1;            --   32\n    INSERT INTO t1 SELECT * FROM t1;            --  128\n    INSERT INTO t1 SELECT * FROM t1;            --  256\n    INSERT INTO t1 SELECT * FROM t1;            --  512\n    INSERT INTO t1 SELECT * FROM t1;            -- 1024\n    INSERT INTO t1 SELECT * FROM t1;            -- 2048\n    INSERT INTO t1 SELECT * FROM t1;            -- 4096\n    INSERT INTO t1 SELECT * FROM t1;            -- 8192\n    DELETE FROM t1 WHERE oid>512;\n    DELETE FROM t1;\n  ")
@@ -176,8 +175,8 @@ func Test_incrvacuum2(t *testing.T) {
 			// file size test.db-wal
 		}
 		{ // do_test "4.3"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			maxsz = "0"
 			_ = maxsz // suppress unused warning

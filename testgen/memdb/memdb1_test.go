@@ -182,8 +182,7 @@ func Test_memdb1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	os.Remove("test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "200"
 		r = db.Query("\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")
@@ -215,7 +214,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		r = db.Query("\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")

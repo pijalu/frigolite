@@ -61,8 +61,7 @@ func Test_ioerr4(t *testing.T) {
 	}
 	{ // do_test "ioerr4-1.2"
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

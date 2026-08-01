@@ -6,7 +6,6 @@ package mutex
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -153,8 +152,8 @@ func Test_mutex1(t *testing.T) {
 			{ // do_test "mutex1.2." + mode + ".2"
 				// sqlite3_initialize (unsupported command, not transpiled)
 				// clear_mutex_counters (unsupported command, not transpiled)
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" CREATE TABLE abc(a, b, c) ")
 				_ = _res // catchsql
@@ -184,13 +183,13 @@ func Test_mutex1(t *testing.T) {
 				res = "list"
 				_ = res // suppress unused warning
 				// foreach {key value} "array get counters"
-				_items1 := tclSplitList("array get counters")
-				for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-					key := _items1[_idx1+0]
+				_items2 := tclSplitList("array get counters")
+				for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+					key := _items2[_idx2+0]
 					_ = key // suppress unused warning
-					value := _items1[_idx1+1]
+					value := _items2[_idx2+1]
 					_ = value // suppress unused warning
-					_ = _idx1
+					_ = _idx2
 						if tclBool(key + " != \"total\" && " + value + " > 0") {
 							res = tclListAppend(res, key)
 						}
@@ -204,8 +203,8 @@ func Test_mutex1(t *testing.T) {
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
 				}
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp3, err := frigolite.Open("test.db")
+				_ = _dbtmp3 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				// enter_db_mutex db (unsupported command, not transpiled)
 				_res = db.Exec("SELECT 1, 2, 3")
@@ -225,8 +224,8 @@ func Test_mutex1(t *testing.T) {
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
 				}
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				// enter_db_mutex db (unsupported command, not transpiled)
 				_res = db.Exec("SELECT 1, 2, 3")

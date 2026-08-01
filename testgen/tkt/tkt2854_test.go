@@ -68,8 +68,8 @@ func Test_tkt2854(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "tkt2854-1.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

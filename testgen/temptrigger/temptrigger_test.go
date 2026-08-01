@@ -68,8 +68,8 @@ func Test_temptrigger(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -143,8 +143,8 @@ func Test_temptrigger(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "temptrigger-2.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    DELETE FROM t1;\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;\n  ")
 		if _res.Error != nil {
@@ -195,8 +195,8 @@ func Test_temptrigger(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db")
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }

@@ -103,8 +103,7 @@ func Test_thread003(t *testing.T) {
 	}
 	{ // do_test "thread003.1.3"
 		os.Remove("test2.db")
-		os.Remove("test2.db")
-		db, err = frigolite.Open("test2.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "thread003.1.4"

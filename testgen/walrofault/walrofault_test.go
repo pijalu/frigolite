@@ -6,7 +6,6 @@ package walrofault
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -55,8 +54,8 @@ func Test_walrofault(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(b);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES('hello');\n  INSERT INTO t1 VALUES('world');\n  INSERT INTO t1 VALUES('!');\n  INSERT INTO t1 VALUES('world');\n  INSERT INTO t1 VALUES('hello');\n  PRAGMA cache_size = 10;\n  BEGIN;\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<30 ) \n    INSERT INTO t1(b) SELECT randomblob(800) FROM s;\n")

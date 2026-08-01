@@ -6,7 +6,6 @@ package where
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -281,8 +280,8 @@ func Test_where8(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		{ // do_test "where8-5.1"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 			_res = db.Exec("\n    CREATE TABLE tA(\n      a, b, c, d, e, f, g, h, \n      i, j, k, l, m, n, o, p\n    );\n  ")

@@ -6,7 +6,6 @@ package snapshot_
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -230,8 +229,8 @@ func Test_snapshot_up(t *testing.T) {
 		}
 	}
 	db2.Close()
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.15"
 		r = db.Query("\n  BEGIN;\n    SELECT * FROM t1\n")
@@ -263,8 +262,8 @@ func Test_snapshot_up(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

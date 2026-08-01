@@ -6,7 +6,6 @@ package securedel
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -146,8 +145,8 @@ func Test_securedel2(t *testing.T) {
 		// detect_blob test.db 1 (unsupported command, not transpiled)
 	}
 	tclFileCopy("test.db.bak", "test.db")
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.4.1"
 		r = db.Query(" PRAGMA secure_delete = 1 ")
@@ -199,8 +198,8 @@ func Test_securedel2(t *testing.T) {
 			}
 		}
 	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.6.1"
 		r = db.Query("\n    PRAGMA cache_size = 200;\n    PRAGMA secure_delete = 1;\n    CREATE TABLE t2(x);\n    SELECT * FROM t1;\n  ")

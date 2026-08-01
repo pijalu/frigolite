@@ -134,8 +134,7 @@ func Test_fts3snippet(t *testing.T) {
 		_ = enc // suppress unused warning
 		_ = _idx0
 			os.Remove("test.db")
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 			_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")

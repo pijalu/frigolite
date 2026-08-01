@@ -6,7 +6,6 @@ package journal
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -72,8 +71,8 @@ func Test_journal1(t *testing.T) {
 		}
 		// delete_file test.db (unsupported command, not transpiled)
 		// copy_file test.db-journal-bu test.db-journal (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM sqlite_master\n  ")
 		_ = _res // catchsql

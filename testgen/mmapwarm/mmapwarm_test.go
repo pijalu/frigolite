@@ -6,7 +6,6 @@ package mmapwarm
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -57,8 +56,8 @@ func Test_mmapwarm(t *testing.T) {
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		// test_sqlite3_log msg (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	testprefix = "mmapwarm"
@@ -76,8 +75,8 @@ func Test_mmapwarm(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA mmap_size = 1000000")
 		if _res.Error != nil {
@@ -86,8 +85,8 @@ func Test_mmapwarm(t *testing.T) {
 		// sqlite3_mmap_warm db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA mmap_size = 1000000")
 		if _res.Error != nil {
@@ -96,20 +95,20 @@ func Test_mmapwarm(t *testing.T) {
 		// sqlite3_mmap_warm db main (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// sqlite3_mmap_warm db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// sqlite3_mmap_warm db main (unsupported command, not transpiled)
 	}
 	{ // do_test "2.0"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {

@@ -6,7 +6,6 @@ package whereA
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -68,8 +67,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.3"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
@@ -77,8 +76,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.4"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
 		if _res.Error != nil {
@@ -98,8 +97,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.7"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    VACUUM;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {

@@ -186,7 +186,7 @@ func Test_btree01(t *testing.T) {
 			}
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "btree01-2.1"
 		r = db.Query("\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INT PRIMARY KEY, b BLOB, c INT) WITHOUT ROWID;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x*2, zeroblob(100), x FROM c;\n  UPDATE t1 SET b=zeroblob(1000) WHERE a=198;\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INT);\n  INSERT INTO t2(y) VALUES(198),(187),(100);\n  SELECT y, c FROM t2 LEFT JOIN t1 ON y=a ORDER BY x;\n")

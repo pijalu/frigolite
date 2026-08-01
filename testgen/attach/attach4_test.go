@@ -100,17 +100,17 @@ func Test_attach4(t *testing.T) {
 			_ = _idx0
 				os.Remove(f)
 			}
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// foreach {name f} files
-			_items1 := tclSplitList(files)
-			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-				name := _items1[_idx1+0]
+			_items2 := tclSplitList(files)
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				name := _items2[_idx2+0]
 				_ = name // suppress unused warning
-				f := _items1[_idx1+1]
+				f := _items2[_idx2+1]
 				_ = f // suppress unused warning
-				_ = _idx1
+				_ = _idx2
 					if name == "main" {
 					}
 					_res = db.Exec("ATTACH '" + f + "' AS " + name)
@@ -135,13 +135,13 @@ func Test_attach4(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
 				// foreach {name f} files
-				_items2 := tclSplitList(files)
-				for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-					name := _items2[_idx2+0]
+				_items3 := tclSplitList(files)
+				for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+					name := _items3[_idx3+0]
 					_ = name // suppress unused warning
-					f := _items2[_idx2+1]
+					f := _items3[_idx3+1]
 					_ = f // suppress unused warning
-					_ = _idx2
+					_ = _idx3
 						_res = db.Exec("CREATE TABLE " + name + ".tbl(x)")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE " + name + ".tbl(x)")
@@ -160,13 +160,13 @@ func Test_attach4(t *testing.T) {
 					L = "list"
 					_ = L // suppress unused warning
 					// foreach {name f} files
-					_items3 := tclSplitList(files)
-					for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-						name := _items3[_idx3+0]
+					_items4 := tclSplitList(files)
+					for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+						name := _items4[_idx4+0]
 						_ = name // suppress unused warning
-						f := _items3[_idx3+1]
+						f := _items4[_idx4+1]
 						_ = f // suppress unused warning
-						_ = _idx3
+						_ = _idx4
 							L = tclListAppend(L, name, tclExecSQL(db, "\"SELECT x FROM $name.tbl\""))
 						}
 					}
@@ -175,13 +175,13 @@ func Test_attach4(t *testing.T) {
 					S = ""
 					_ = S // suppress unused warning
 					// foreach {name f} files
-					_items4 := tclSplitList(files)
-					for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
-						name := _items4[_idx4+0]
+					_items5 := tclSplitList(files)
+					for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+						name := _items5[_idx5+0]
 						_ = name // suppress unused warning
-						f := _items4[_idx4+1]
+						f := _items5[_idx5+1]
 						_ = f // suppress unused warning
-						_ = _idx4
+						_ = _idx5
 							if tclBool("permutation" + " == \"journaltest\"") {
 								mode = "delete"
 								_ = mode // suppress unused warning
@@ -202,13 +202,13 @@ func Test_attach4(t *testing.T) {
 							L = "list"
 							_ = L // suppress unused warning
 							// foreach {name f} files
-							_items5 := tclSplitList(files)
-							for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
-								name := _items5[_idx5+0]
+							_items6 := tclSplitList(files)
+							for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
+								name := _items6[_idx6+0]
 								_ = name // suppress unused warning
-								f := _items5[_idx5+1]
+								f := _items6[_idx6+1]
 								_ = f // suppress unused warning
-								_ = _idx5
+								_ = _idx6
 									L = tclListAppend(L, tclExecSQL(db, "\"SELECT x FROM $name.tbl\""), f)
 								}
 							}
@@ -218,13 +218,13 @@ func Test_attach4(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 								}
 								// foreach {name f} files
-								_items6 := tclSplitList(files)
-								for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
-									name := _items6[_idx6+0]
+								_items7 := tclSplitList(files)
+								for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
+									name := _items7[_idx7+0]
 									_ = name // suppress unused warning
-									f := _items6[_idx6+1]
+									f := _items7[_idx7+1]
 									_ = f // suppress unused warning
-									_ = _idx6
+									_ = _idx7
 										_res = db.Exec("UPDATE " + name + ".tbl SET x = '" + f + "'")
 										if _res.Error != nil {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + name + ".tbl SET x = '" + f + "'")
@@ -239,17 +239,6 @@ func Test_attach4(t *testing.T) {
 									L = "list"
 									_ = L // suppress unused warning
 									// foreach {name f} files
-									_items7 := tclSplitList(files)
-									for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
-										name := _items7[_idx7+0]
-										_ = name // suppress unused warning
-										f := _items7[_idx7+1]
-										_ = f // suppress unused warning
-										_ = _idx7
-											L = tclListAppend(L, name, tclExecSQL(db, "\"SELECT x FROM $name.tbl\""))
-										}
-									}
-									// foreach {name f} files
 									_items8 := tclSplitList(files)
 									for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
 										name := _items8[_idx8+0]
@@ -257,6 +246,17 @@ func Test_attach4(t *testing.T) {
 										f := _items8[_idx8+1]
 										_ = f // suppress unused warning
 										_ = _idx8
+											L = tclListAppend(L, name, tclExecSQL(db, "\"SELECT x FROM $name.tbl\""))
+										}
+									}
+									// foreach {name f} files
+									_items9 := tclSplitList(files)
+									for _idx9 := 0; _idx9+2 <= len(_items9); _idx9 += 2 {
+										name := _items9[_idx9+0]
+										_ = name // suppress unused warning
+										f := _items9[_idx9+1]
+										_ = f // suppress unused warning
+										_ = _idx9
 											os.Remove(f)
 										}
 										db.Close()

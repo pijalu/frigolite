@@ -6,7 +6,6 @@ package bigfile
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -77,15 +76,15 @@ func Test_bigfile2(t *testing.T) {
 	str = "k 30000"
 	_ = str // suppress unused warning
 	{ // do_test "1.3"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, " + str + ") ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, " + str + ") ")
 		}
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	// delete_file test.db (unsupported command, not transpiled)

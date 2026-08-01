@@ -343,8 +343,8 @@ func Test_pagerfault(t *testing.T) {
 		}
 		// hexio_write test.db 20 10 (unsupported command, not transpiled)
 		// hexio_write test.db 105 03F0 (unsupported command, not transpiled)
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n    INSERT INTO t0 VALUES(a_string(224), a_string(335));\n    INSERT INTO t0 VALUES(a_string(225), a_string(336));\n  ")
 		if _res.Error != nil {
@@ -360,8 +360,8 @@ func Test_pagerfault(t *testing.T) {
 	}
 	// hexio_write test.db 20 10 (unsupported command, not transpiled)
 	// hexio_write test.db 105 03F0 (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n  ")
 	if _res.Error != nil {
@@ -375,8 +375,8 @@ func Test_pagerfault(t *testing.T) {
 			// crashsql -delay 1 -file test.db -seed $iTest {\n        BEGIN;\n          CREATE TABLE t1... (unsupported command, not transpiled)
 		}
 		{ // do_test "pagerfault-22." + iTest + ".2"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {
@@ -456,13 +456,13 @@ func Test_pagerfault(t *testing.T) {
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// foreach {tn tt} "\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n"
-	_items0 := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items3 := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
+	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+		tn := _items3[_idx3+0]
 		_ = tn // suppress unused warning
-		tt := _items0[_idx0+1]
+		tt := _items3[_idx3+1]
 		_ = tt // suppress unused warning
-		_ = _idx0
+		_ = _idx3
 			// do_faultsim_test pagerfault-$tn -faults custom -prep {\n    faultsim_restore_and_reopen\n      db... (unsupported command, not transpiled)
 		}
 		{ // do_test "pagerfault-31-pre"

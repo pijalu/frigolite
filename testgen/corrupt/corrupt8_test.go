@@ -6,7 +6,6 @@ package corrupt
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "testing"
 )
@@ -82,8 +81,8 @@ func Test_corrupt8(t *testing.T) {
 		}
 		// hexio_write test.db $i 00 (unsupported command, not transpiled)
 		{ // do_test "corrupt8-2." + i + ".0"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			x = "db eval {PRAGMA integrity_check}"
 			_ = x // suppress unused warning
@@ -96,8 +95,8 @@ func Test_corrupt8(t *testing.T) {
 			}
 			// hexio_write test.db $i 0$k (unsupported command, not transpiled)
 			{ // do_test "corrupt8-2." + i + "." + k
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				x = "db eval {PRAGMA integrity_check}"
 				_ = x // suppress unused warning
@@ -113,8 +112,8 @@ func Test_corrupt8(t *testing.T) {
 		}
 		// hexio_write test.db $i 06 (unsupported command, not transpiled)
 		{ // do_test "corrupt8-2." + i + ".6"
-			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			x = "db eval {PRAGMA integrity_check}"
 			_ = x // suppress unused warning
@@ -128,8 +127,8 @@ func Test_corrupt8(t *testing.T) {
 			_ = oldval // suppress unused warning
 			// hexio_write test.db $i2 [format %02x [expr {($oldval+1)&0xff}]] (unsupported command, not transpiled)
 			{ // do_test "corrupt8-2." + i + ".7"
-				os.Remove("test.db")
-				db, err = frigolite.Open("test.db")
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				x = "db eval {PRAGMA integrity_check}"
 				_ = x // suppress unused warning

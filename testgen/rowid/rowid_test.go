@@ -6,7 +6,6 @@ package rowid
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "strconv"
 "strings"
 "testing"
@@ -1032,8 +1031,8 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-12.2"
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// save_prng_state (unsupported command, not transpiled)
 		r = db.Query("\n    INSERT INTO t7 VALUES(NULL,'b');\n    SELECT x, y FROM t7 ORDER BY x;\n  ")

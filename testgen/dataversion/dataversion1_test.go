@@ -6,7 +6,6 @@ package dataversion
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -53,8 +52,8 @@ func Test_dataversion1(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "dataversion1-100"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;\n  ")

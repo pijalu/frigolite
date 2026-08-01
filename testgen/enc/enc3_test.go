@@ -111,8 +111,8 @@ func Test_enc3(t *testing.T) {
 	dbaux, err := frigolite.Open("test8.db")
 	defer dbaux.Close()
 	if err != nil { t.Fatal(err) }
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("SELECT 1 FROM sqlite_master LIMIT 1")
 	if _res.Error != nil {

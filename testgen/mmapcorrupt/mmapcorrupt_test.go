@@ -6,7 +6,6 @@ package mmapcorrupt
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -71,8 +70,8 @@ func Test_mmapcorrupt(t *testing.T) {
 	sz = "file size test.db"
 	_ = sz // suppress unused warning
 	// hexio_write test.db [expr $sz-3] 800380 (unsupported command, not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA mmap_size = 1000000;\n  SELECT sql FROM sqlite_schema LIMIT 1;\n  SELECT * FROM t0;\n")

@@ -74,8 +74,8 @@ func Test_walprotocol(t *testing.T) {
 		// T script lock_callback (unsupported command, not transpiled)
 		locks = "list" // TCL namespace variable
 		_ = locks // suppress unused warning
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM x ")
 		if r.Error != nil {
@@ -86,8 +86,8 @@ func Test_walprotocol(t *testing.T) {
 	{ // do_test "1.2"
 		locks = "list" // TCL namespace variable
 		_ = locks // suppress unused warning
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM x ")
 		if r.Error != nil {
@@ -105,8 +105,8 @@ func Test_walprotocol(t *testing.T) {
 	{ // do_test "1.3"
 		locks = "list" // TCL namespace variable
 		_ = locks // suppress unused warning
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM x ")
 		_ = _res // catchsql
@@ -117,8 +117,8 @@ func Test_walprotocol(t *testing.T) {
 	{ // do_test "1.4"
 		locks = "list" // TCL namespace variable
 		_ = locks // suppress unused warning
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM x ")
 		_ = _res // catchsql
@@ -129,8 +129,8 @@ func Test_walprotocol(t *testing.T) {
 	{ // do_test "1.5"
 		locks = "list" // TCL namespace variable
 		_ = locks // suppress unused warning
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM x ")
 		_ = _res // catchsql
@@ -138,8 +138,7 @@ func Test_walprotocol(t *testing.T) {
 	// T delete (unsupported command, not transpiled)
 	{ // do_test "2.1"
 		os.Remove("test.db")
-		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -173,8 +172,8 @@ func Test_walprotocol(t *testing.T) {
 	// T filter xShmLock (unsupported command, not transpiled)
 	// T script lock_callback (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp5, err := frigolite.Open("test.db")
+	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
