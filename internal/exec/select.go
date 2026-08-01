@@ -1307,18 +1307,35 @@ func (e *Engine) processJoinRowTrackingRight(
 		leftName = s.From.As
 	}
 	matched := false
-
 	// For RIGHT/FULL JOIN tracking, we must iterate right rows by index.
 	// Skip autoIndex optimization when tracking.
 	if autoIndex != nil && !trackMatchedRight {
 		leftColName, _ := extractEquiJoinCols(join.On, leftName, tableName)
-		if leftColVal, ok := leftMap[leftColName]; ok {
+		leftColVal, leftOK := leftMap[leftColName]
+		// If the extracted left column isn't present (e.g., unqualified
+		// columns guessed the wrong side), fall back to the nested-loop.
+		if leftOK {
 			if rightRows, ok := autoIndex[util.UnwrapColumnValue(leftColVal)]; ok {
 				for _, rightMap := range rightRows {
 					combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName)
 					if e.evalOnCondition(join.On, combinedMap) {
 						matched = true
 						*combinedMaps = append(*combinedMaps, combinedMap)
+					}
+				}
+			}
+		}
+		if !matched {
+			// Fall through to the nested-loop when the hash lookup produced no
+			// matches (wrong-side extraction, or NULL keys not in the index).
+			for ri, rightMap := range rightMaps {
+				combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, leftName)
+				onPass := e.evalOnCondition(join.On, combinedMap)
+				if onPass {
+					matched = true
+					*combinedMaps = append(*combinedMaps, combinedMap)
+					if trackMatchedRight {
+						matchedRight[ri] = true
 					}
 				}
 			}
@@ -3724,8 +3741,20 @@ func (e *Engine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, row
 // lessRows returns true if row i should come before row j according to ORDER BY.
 func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]interface{}, i, j int) bool {
 	for _, ob := range orderBy {
-		// Handle positional ORDER BY (e.g., ORDER BY 1 means order by first column)
-		if nl, ok := ob.Expr.(*sql.NumericLit); ok {
+		// Handle positional ORDER BY (e.g., ORDER BY 1 means order by first
+		// column). SQLite treats a unary plus as the literal, so ORDER BY +1
+		// is also positional.
+		obExpr := ob.Expr
+		if uo, ok := obExpr.(*sql.UnaryOp); ok && (uo.Operator == "+" || uo.Operator == "-") {
+			if num, ok := uo.Operand.(*sql.NumericLit); ok {
+				if uo.Operator == "-" {
+					obExpr = &sql.NumericLit{Value: "-" + num.Value}
+				} else {
+					obExpr = num
+				}
+			}
+		}
+		if nl, ok := obExpr.(*sql.NumericLit); ok {
 			if pos, err := strconv.ParseInt(nl.Value, 10, 64); err == nil && pos >= 1 && pos <= int64(len(rows[i])) {
 				left := rows[i][pos-1]
 				right := rows[j][pos-1]

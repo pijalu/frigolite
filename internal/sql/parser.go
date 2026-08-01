@@ -475,7 +475,14 @@ func (p *Parser) parseSelectJoins(s *SelectStmt) {
 			// Creates an implicit CROSS JOIN
 			p.next()
 			table := p.parseTableRef()
-			s.Joins = append(s.Joins, JoinClause{Table: table, JoinType: "CROSS", CommaJoin: true})
+			j := JoinClause{Table: table, JoinType: "CROSS", CommaJoin: true}
+			if p.cur.Type == TokenKeyword && p.cur.Value == "ON" {
+				p.next()
+				j.On = p.parseExpr()
+			} else if p.cur.Type == TokenKeyword && p.cur.Value == "USING" {
+				j.On = p.parseUsingClause()
+			}
+			s.Joins = append(s.Joins, j)
 		} else {
 			break
 		}
