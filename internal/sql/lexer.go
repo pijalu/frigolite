@@ -552,7 +552,9 @@ func (t *Tokenizer) readIdent() Token {
 }
 
 func isIdentStart(ch byte) bool {
-	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_'
+	// Multi-byte UTF-8 (ch >= 0x80) is allowed in identifiers (SQLite treats
+	// any byte >= 0x80 as an identifier character).
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_' || ch >= 0x80
 }
 
 func (t *Tokenizer) readDollarParam(pos int) Token {

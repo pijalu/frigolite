@@ -25,6 +25,7 @@ func Test_rowvalue(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -641,6 +642,7 @@ func Test_rowvalue(t *testing.T) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
+									tcl_nullvalue = "-"
 									{ // "12.2"
 										r = db.Query("\n  SELECT t1.*, t2.* FROM t2 RIGHT JOIN t1 ON (a,b)=(x,y);\n")
 										if r.Error != nil {
@@ -665,6 +667,7 @@ func Test_rowvalue(t *testing.T) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
+									tcl_nullvalue = ""
 									// foreach {tn sql} "0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\""
 									_items8 := tclSplitList("0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\"")
 									for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
@@ -1734,6 +1737,7 @@ func Test_rowvalue(t *testing.T) {
 													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
+											tcl_nullvalue = "NULL"
 											{ // "34.2"
 												r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE INDEX idx ON t1(b,a);\n  INSERT INTO t1(a,b) VALUES (1, 22);\n  SELECT * FROM t1 INDEXED BY idx WHERE (b,a) IN (SELECT b,a FROM t1);\n")
 												if r.Error != nil {

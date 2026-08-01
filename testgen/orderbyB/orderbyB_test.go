@@ -22,6 +22,7 @@ func Test_orderbyB(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -52,6 +53,7 @@ func Test_orderbyB(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "orderbyb" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	tcl_nullvalue = "NULL"
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, b TEXT, c INT);\n  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<7)\n    INSERT INTO t1(a,b,c) SELECT char(p,p), char(q,q), n FROM\n            (SELECT ((n-1)%4)+0x61 AS p, abs(n*2-9+(n>=5))+0x60 AS q, n FROM c);\n  UPDATE t1 SET b=upper(b) WHERE c=1;\n  CREATE TABLE t2(k TEXT PRIMARY KEY, v INT) WITHOUT ROWID;\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<7)\n    INSERT INTO t2(k,v) SELECT char(0x60+n,0x60+n), n FROM c;\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<7)\n    INSERT INTO t2(k,v) SELECT char(0x40+n,0x40+n), n FROM c;\n  SELECT a,b,c,tx.v AS 'v-a', ty.v AS 'v-b'\n    FROM t1 LEFT JOIN t2 AS tx ON tx.k=a\n            LEFT JOIN t2 AS ty ON ty.k=b\n   ORDER BY c;\n")
 		if r.Error != nil {

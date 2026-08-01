@@ -254,7 +254,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		name := getString(getRHS(p, ruleNo, 5))
 		schema := getString(getRHS(p, ruleNo, 6)) // dbnm - optional schema
 		if schema != "" {
-			name = schema + "." + name
+			name = name + "." + schema
 		}
 		return &sql.CreateTableStmt{
 			Name:        name,
@@ -336,6 +336,10 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 82: cmd ::= createkw temp VIEW ifnotexists nm dbnm eidlist_opt AS select
 	case 82:
 		name := getString(getRHS(p, ruleNo, 5))
+		schema := getString(getRHS(p, ruleNo, 6)) // dbnm - optional schema
+		if schema != "" {
+			name = name + "." + schema
+		}
 		sel := getSelectStmt(getRHS(p, ruleNo, 9))
 		cols := getStringList(getRHS(p, ruleNo, 7))
 		return &sql.CreateViewStmt{
@@ -585,7 +589,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		alias := getString(getRHS(p, ruleNo, 7))
 		on, using := getOnUsing(getRHS(p, ruleNo, 8))
 		if schema != "" {
-			tbl = schema + "." + tbl
+			tbl = tbl + "." + schema
 		}
 		return acc.appendTableWithOn(sql.TableRef{Name: tbl, As: alias, Args: args}, on, using)
 
@@ -2154,7 +2158,7 @@ func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias, posO
 	alias := getString(getRHS(p, ruleNo, posAlias))
 	on, using := getOnUsing(getRHS(p, ruleNo, posOn))
 	if schema != "" {
-		tbl = schema + "." + tbl
+		tbl = tbl + "." + schema
 	}
 	return acc.appendTableWithOn(sql.TableRef{Name: tbl, As: alias}, on, using)
 }

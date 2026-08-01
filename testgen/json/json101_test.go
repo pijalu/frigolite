@@ -23,6 +23,7 @@ func Test_json101(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -2450,6 +2451,7 @@ func Test_json101(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		tcl_nullvalue = "NULL"
 		if tclBool("db exists {SELECT * FROM pragma_compile_options WHERE compile_options LIKE '%legacy_json_valid%'}") {
 			{ // "json101-21.1-legacy"
 				r = db.Query("\n    SELECT json_valid(NULL);\n  ")

@@ -24,6 +24,7 @@ func Test_rowvalueA(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -280,6 +281,7 @@ func Test_rowvalueA(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b TEXT);\n  CREATE INDEX t1_ab ON t1(a COLLATE NOCASE, b COLLATE NOCASE);\n  INSERT INTO t1 VALUES('a',null),('b', 'ABCD');\n")
 		}
 	}
+	tcl_nullvalue = "NULL"
 	{ // "5.2"
 		r = db.Query("\n  SELECT * FROM t1\n   WHERE ('B' COLLATE nocase,'abc')>(a,b)\n   ORDER BY +a;\n")
 		if r.Error != nil {

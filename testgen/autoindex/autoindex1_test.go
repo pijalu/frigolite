@@ -25,6 +25,7 @@ func Test_autoindex1(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -344,6 +345,7 @@ func Test_autoindex1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT, x INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,90),(1,3,91),(1,4,92);\n  CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n  CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n  CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n  INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n  INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual(dummy) VALUES('x');\n")
 		}
 	}
+	tcl_nullvalue = "NULL"
 	{ // "autoindex-1210"
 		r = db.Query("\n  SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;\n")
 		if r.Error != nil {

@@ -23,6 +23,7 @@ func Test_json102(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -2431,6 +2432,7 @@ func Test_json102(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		tcl_nullvalue = "NULL"
 		{ // "json102-1801"
 			r = db.Query("\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->>2;\n")
 			if r.Error != nil {

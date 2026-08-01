@@ -22,6 +22,7 @@ func Test_pushdown(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -207,6 +208,7 @@ func Test_pushdown(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "-"
 	{ // "4.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c INT);\n  INSERT INTO t3(c) VALUES(3);\n  CREATE TABLE t4(d INT);\n  CREATE TABLE t5(e INT);\n  INSERT INTO t5(e) VALUES(5);\n  CREATE VIEW v6(f,g) AS SELECT d, e FROM t4 RIGHT JOIN t5 ON true;\n  SELECT * FROM  t1 JOIN t2 ON false RIGHT JOIN t3 ON true CROSS JOIN v6;\n")
 		if r.Error != nil {
@@ -246,6 +248,7 @@ func Test_pushdown(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "-"
 	{ // "5.0"
 		r = db.Query("\n  CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);  INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT);  INSERT INTO t3 VALUES(3);\n  CREATE TABLE t4(d INT);  INSERT INTO t4 VALUES(4);\n  CREATE TABLE t5(e INT);  INSERT INTO t5 VALUES(5);\n  SELECT *\n    FROM t1 JOIN t2 ON null RIGHT JOIN t3 ON true\n          LEFT JOIN (t4 JOIN t5 ON d+1=e) ON d=4\n   WHERE e>0;\n")
 		if r.Error != nil {

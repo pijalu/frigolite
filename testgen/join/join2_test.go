@@ -23,6 +23,7 @@ func Test_join2(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -458,6 +459,7 @@ func Test_join2(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "NULL"
 	{ // "10.1"
 		_res = db.Exec("\n  CREATE TABLE t1 (x INTEGER);\n  INSERT INTO t1 VALUES(1);   -- Some true value\n  CREATE TABLE t2 (z TEXT);\n  INSERT INTO t2 VALUES('some value');\n  CREATE TABLE t3(w TEXT);\n  INSERT INTO t3 VALUES('some other value');\n")
 		if _res.Error != nil {

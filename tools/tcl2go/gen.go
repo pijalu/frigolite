@@ -70,7 +70,8 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	body.WriteString("\tvar msg string\n")
 	body.WriteString("\t_ = msg // suppress unused warning\n")
 	body.WriteString("\t_ = _res // suppress unused warning\n")
-	body.WriteString("\t_ = r    // suppress unused warning\n\n")
+	body.WriteString("\t_ = r    // suppress unused warning\n")
+	body.WriteString("\ttcl_nullvalue = \"{}\" // default NULL rendering\n\n")
 	// Pre-declare secondary DB connection variables (TCL scope is function-wide)
 	for i := 1; i <= 9; i++ {
 		body.WriteString(fmt.Sprintf("\tvar db%d *frigolite.DB\n", i))
@@ -1635,6 +1636,11 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 	rest := args[1:]
 
 	switch subCmd {
+	case "null":
+		// TCL "db null <value>" sets how SQL NULL renders in query results.
+		if len(rest) >= 1 {
+			tp.emitLine("tcl_nullvalue = %s", tp.goStringLiteral(rest[0]))
+		}
 	case "eval":
 		sqlExpr := tp.collectSQLExpression(rest)
 		if sqlExpr != `""` {
@@ -3529,7 +3535,7 @@ const flattenHelper = `func flatten(res *frigolite.Result) string {
 		}
 		for _, val := range row {
 			if val == nil {
-				parts = append(parts, "{}")
+				parts = append(parts, "NULL")
 			} else {
 				switch x := val.(type) {
 				case int64:

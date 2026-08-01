@@ -24,6 +24,7 @@ func Test_update(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -1121,6 +1122,7 @@ func Test_update(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (vkey INTEGER, c5 INTEGER);\n  INSERT INTO t1 VALUES(3,NULL),(6,-54);\n")
 		}
 	}
+	tcl_nullvalue = "NULL"
 	{ // "update-21.2"
 		_res = db.Exec("\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null;\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
 		if _res.Error != nil {

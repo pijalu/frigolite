@@ -113,13 +113,16 @@ var _ = upperBound
 var _ = prefix
 var _ = dirname
 
+// tcl_nullvalue controls how SQL NULL renders in query results (TCL "db null").
+var tcl_nullvalue = "{}"
+
 // flatten converts a query result to a space-separated string.
 func flatten(res *frigolite.Result) string {
 	var parts []string
 	for _, row := range res.Rows {
 		for _, val := range row {
 			if val == nil {
-				parts = append(parts, "{}")
+				parts = append(parts, tcl_nullvalue)
 			} else {
 				switch x := val.(type) {
 				case int64:

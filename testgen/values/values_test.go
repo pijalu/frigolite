@@ -23,6 +23,7 @@ func Test_values(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -753,6 +754,7 @@ func Test_values(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "NULL"
 			{ // "19.1"
 				r = db.Query("\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1 VALUES(11,22);\n  SELECT * FROM t1 LEFT JOIN (VALUES(33,44),(55,66)) AS t2 ON a=b;\n")
 				if r.Error != nil {
@@ -801,6 +803,7 @@ func Test_values(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
+			tcl_nullvalue = "N"
 			{ // "19.5"
 				_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t1(a,b);              INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(column1,column2);  INSERT INTO t2 VALUES(11,22),(33,44);\n  CREATE TABLE t3(d,e);              INSERT INTO t3 VALUES(3,4);\n")
 				if _res.Error != nil {

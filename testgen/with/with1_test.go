@@ -23,6 +23,7 @@ func Test_with1(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -1082,6 +1083,7 @@ func Test_with1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		tcl_nullvalue = "NULL"
 		{ // "28.1"
 			r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(1),(4),(999);\n  SELECT (\n    WITH RECURSIVE t2(y) AS (\n      SELECT 4\n      UNION\n      SELECT NULL\n      UNION\n      SELECT y+1 FROM t2 WHERE y=4 ORDER BY 1\n    )\n    SELECT 1 FROM t2 WHERE y=x\n  ) FROM t1;\n")
 			if r.Error != nil {

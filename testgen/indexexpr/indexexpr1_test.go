@@ -24,6 +24,7 @@ func Test_indexexpr1(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -1024,6 +1025,7 @@ func Test_indexexpr1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	tcl_nullvalue = "NULL"
 	{ // "indexexpr1-2211"
 		r = db.Query("\n  CREATE INDEX t1j ON t1(coalesce(null,json(y)));\n  SELECT json_insert('{}', '$.a', coalesce(null,json(y)))->>'$.a.b' FROM t1;\n")
 		if r.Error != nil {

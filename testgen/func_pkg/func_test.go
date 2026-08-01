@@ -24,6 +24,7 @@ func Test_func(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -203,6 +204,7 @@ func Test_func(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	tcl_nullvalue = "NULL"
 	{ // "func-1.6"
 		r = db.Query("\n  SELECT octet_length(NULL);\n")
 		if r.Error != nil {
@@ -251,6 +253,7 @@ func Test_func(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	tcl_nullvalue = ""
 	{ // do_test "func-2.0"
 		r = db.Query("SELECT substr(t1,1,2) FROM tbl1 ORDER BY t1")
 		if r.Error != nil {

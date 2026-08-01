@@ -23,6 +23,7 @@ func Test_returning1(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -738,6 +739,7 @@ func Test_returning1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "N"
 		{ // "20.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 8 4.6 2 3 8 5.25 4 3 8 5.67 6 3 8 5.5 8 3 3 3.0") {

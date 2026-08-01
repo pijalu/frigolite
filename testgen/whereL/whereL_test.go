@@ -22,6 +22,7 @@ func Test_whereL(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -221,6 +222,7 @@ func Test_whereL(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "NULL"
 	{ // "800"
 		r = db.Query("\n  CREATE TABLE t0(c0, c1);\n  CREATE TABLE t1(c2);\n  CREATE INDEX i0 ON t1(NULL);\n  INSERT INTO t1(c2) VALUES (0.2);\n  CREATE VIEW v0(c3) AS SELECT DISTINCT c2 FROM t1;\n  SELECT * FROM v0 LEFT JOIN t0 ON c3<NULL LEFT JOIN t1 ON 1;\n")
 		if r.Error != nil {

@@ -22,6 +22,7 @@ func Test_auth2(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -169,6 +170,7 @@ func Test_auth2(t *testing.T) {
 		_ = authargs // TCL namespace variable (query)
 	}
 	// proc definition (not transpiled)
+	tcl_nullvalue = "NULL"
 	authargs = ""
 	_ = authargs // suppress unused warning
 	{ // "auth2-3.2"

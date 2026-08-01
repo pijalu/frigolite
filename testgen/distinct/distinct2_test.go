@@ -22,6 +22,7 @@ func Test_distinct2(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -490,6 +491,7 @@ func Test_distinct2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	tcl_nullvalue = "NULL"
 	{ // "5050"
 		r = db.Query("\n  CREATE TABLE t0(a TEXT); INSERT INTO t0 VALUES('abcd');\n  CREATE TABLE t1(b TEXT);\n  CREATE TABLE t2(c TEXT);\n  CREATE TABLE t3(d TEXT); INSERT INTO t3 VALUES('wxyz');\n  CREATE VIEW  v4(e) AS SELECT (SELECT t2.c FROM t0, t1 GROUP BY 1) FROM t2;\n  SELECT v4.e FROM t3 LEFT JOIN v4 ON true GROUP BY 1;\n")
 		if r.Error != nil {

@@ -23,6 +23,7 @@ func Test_joinH(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -260,6 +261,7 @@ func Test_joinH(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "NULL"
 	{ // "6.0"
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t1 VALUES(3);\n  SELECT CASE WHEN t2.b THEN 0 ELSE 1 END FROM t1 LEFT JOIN t2 ON true;\n")
 		if r.Error != nil {
@@ -548,6 +550,7 @@ func Test_joinH(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	tcl_nullvalue = "NULL"
 	{ // "13.3"
 		r = db.Query("\n  CREATE TABLE t3(a INT, b INT);\n  CREATE UNIQUE INDEX t3x ON t3(a, a+b);\n  INSERT INTO t3(a,b) VALUES(1,2),(4,8),(16,32),(4,80),(1,-300);\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t4(x,y) SELECT a, b FROM t3;\n  INSERT INTO t4(x,y) VALUES(99,99);\n  SELECT a1.a, sum( a1.a+a1.b ) FROM t3 AS a1 RIGHT JOIN t4 ON a=x\n   GROUP BY a1.a ORDER BY 1;\n")
 		if r.Error != nil {

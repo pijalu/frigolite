@@ -23,6 +23,7 @@ func Test_json502(t *testing.T) {
 	_ = msg // suppress unused warning
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
+	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
 	_ = db1
@@ -115,6 +116,7 @@ func Test_json502(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	tcl_nullvalue = "null"
 	{ // "3.3"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(json_insert('{}','$.a\\',111,'$.\"b\\\\\"',222));\n  INSERT INTO t1 VALUES(jsonb_insert('{}','$.a\\',111,'$.\"b\\\\\"',222));\n  SELECT x->'$.a\\', x->'$.a\\\\', x->'$.\"a\\\\\"', x->'$.\"b\\\\\"' FROM t1;\n")
 		if r.Error != nil {

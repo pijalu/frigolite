@@ -1068,6 +1068,13 @@ func (e *Engine) filterSubqueryRows(allRows [][]interface{}, allRowMaps []RowMap
 }
 
 func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.ColumnDef) ([]RowMap, []sql.ColumnDef, error) {
+	if err := validateJoinOnClauses(s); err != nil {
+		return nil, nil, err
+	}
+	plainNames := map[string]bool{}
+	for _, d := range baseDefs {
+		plainNames[d.Name] = true
+	}
 	currentMaps := baseMaps
 	currentDefs := baseDefs
 
@@ -1203,6 +1210,17 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		// USING(col1, col2): generate ON left.col = right.col for each column.
 		if len(join.Using) > 0 && effectiveOn == nil {
 			effectiveOn = e.generateUsingJoinOn(join.Using, leftName, tableName)
+		}
+
+		// SQLite forbids an ON clause from referencing tables to its right;
+		// unqualified column references must resolve among the joined tables.
+		for _, d := range rightDefs {
+			plainNames[d.Name] = true
+		}
+		if (join.JoinType == "LEFT" || join.JoinType == "RIGHT") {
+			if err := validateOnColumnRefs(effectiveOn, plainNames); err != nil {
+				return nil, nil, err
+			}
 		}
 
 		// Build ephemeral hash index for equi-join optimization.
@@ -3737,3 +3755,99 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 	}
 	return false
 }
+
+// validateJoinOnClauses checks that each join's ON clause only references
+// tables that have already been joined (to its left). SQLite raises
+// "ON clause references tables to its right" otherwise.
+func validateJoinOnClauses(s *sql.SelectStmt) error {
+	available := map[string]bool{}
+	if s.From.Name != "" || s.From.As != "" {
+		tn := s.From.Name
+		if s.From.As != "" {
+			tn = s.From.As
+		}
+		if tn != "" {
+			available[tn] = true
+		}
+	}
+	for _, join := range s.Joins {
+		tn := join.Table.Name
+		if join.Table.As != "" {
+			tn = join.Table.As
+		}
+		if tn != "" {
+			available[tn] = true
+		}
+		// Only OUTER joins restrict ON-clause references to their left.
+		if join.On == nil || (join.JoinType != "LEFT" && join.JoinType != "RIGHT") {
+			continue
+		}
+		var bad string
+		walkJoinOnExpr(join.On, func(e2 sql.Expr) {
+			if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table != "" && !available[cr.Table] {
+				bad = cr.Table
+			}
+		})
+		if bad != "" {
+			return fmt.Errorf("ON clause references tables to its right")
+		}
+	}
+	return nil
+}
+
+// validateOnColumnRefs checks that unqualified column references in a join
+// ON clause resolve among the tables joined so far.
+func validateOnColumnRefs(on sql.Expr, names map[string]bool) error {
+	if on == nil {
+		return nil
+	}
+	var bad bool
+	walkJoinOnExpr(on, func(e2 sql.Expr) {
+		if cr, ok := e2.(*sql.ColumnRef); ok && cr.Table == "" {
+			n := cr.Name
+			if n == "*" || n == "rowid" || n == "oid" || n == "_rowid_" {
+				return
+			}
+			if !names[n] {
+				bad = true
+			}
+		}
+	})
+	if bad {
+		return fmt.Errorf("ON clause references tables to its right")
+	}
+	return nil
+}
+
+// walkJoinOnExpr visits the direct references of a join ON expression,
+// descending into function arguments but not into subqueries (which have
+// their own table scope).
+func walkJoinOnExpr(expr sql.Expr, fn func(sql.Expr)) {
+	if expr == nil {
+		return
+	}
+	fn(expr)
+	switch e := expr.(type) {
+	case *sql.ParenExpr:
+		walkJoinOnExpr(e.Expr, fn)
+	case *sql.BinaryOp:
+		walkJoinOnExpr(e.Left, fn)
+		walkJoinOnExpr(e.Right, fn)
+	case *sql.UnaryOp:
+		walkJoinOnExpr(e.Operand, fn)
+	case *sql.Between:
+		walkJoinOnExpr(e.Operand, fn)
+		walkJoinOnExpr(e.Low, fn)
+		walkJoinOnExpr(e.High, fn)
+	case *sql.InList:
+		walkJoinOnExpr(e.Operand, fn)
+		for _, item := range e.List {
+			walkJoinOnExpr(item, fn)
+		}
+	case *sql.FuncCall:
+		for _, a := range e.Args {
+			walkJoinOnExpr(a, fn)
+		}
+	}
+}
+
