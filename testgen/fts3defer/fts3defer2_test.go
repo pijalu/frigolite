@@ -184,8 +184,8 @@ func Test_fts3defer2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2 VALUES('a b c d e f g z');\n  INSERT INTO t2 VALUES('a b c d e f g');\n")
 		}
 	}
-	// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO t2(t2) VALUES('optimize') }\n  3 { UPDATE t2_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n"
-	_items0 := tclSplitList("\n  1 {}\n  2 { INSERT INTO t2(t2) VALUES('optimize') }\n  3 { UPDATE t2_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n")
+	// foreach {tn sql} "1 {}\n  2 { INSERT INTO t2(t2) VALUES('optimize') }\n  3 { UPDATE t2_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }"
+	_items0 := tclSplitList("1 {}\n  2 { INSERT INTO t2(t2) VALUES('optimize') }\n  3 { UPDATE t2_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -262,8 +262,8 @@ func Test_fts3defer2(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3 VALUES('f e d c b " + "{a } 10000" + "')\n")
 			}
 		}
-		// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n"
-		_items1 := tclSplitList("\n  1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n")
+		// foreach {tn sql} "1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }"
+		_items1 := tclSplitList("1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning

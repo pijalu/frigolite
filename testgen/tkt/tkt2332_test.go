@@ -69,7 +69,7 @@ func Test_tkt2332(t *testing.T) {
 	}
 	iKey = "1" // TCL namespace variable
 	_ = iKey // suppress unused warning
-	for _, Len := range tclSplitList("list 10000 100000 1000000") {
+	for _, Len := range tclSplitList("10000 100000 1000000") {
 	_ = Len // suppress unused warning
 		{ // do_test "tkt2332." + Len + ".1"
 			val = "6.099e-320"

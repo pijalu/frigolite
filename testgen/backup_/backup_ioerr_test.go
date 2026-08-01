@@ -112,7 +112,7 @@ func Test_backup_ioerr(t *testing.T) {
 	_ = bPersist // suppress unused warning
 		for _, iDestPagesize := range tclSplitList("512 1024 4096") {
 		_ = iDestPagesize // suppress unused warning
-			for _, zSetupBak := range tclSplitList("list \"\" {populate_database ddb 1}") {
+			for _, zSetupBak := range tclSplitList("\"\" {populate_database ddb 1}") {
 			_ = zSetupBak // suppress unused warning
 				// incr iTest 1
 				{

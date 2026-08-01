@@ -79,8 +79,8 @@ func Test_nulls1(t *testing.T) {
 	a = "0"
 	_ = a // suppress unused warning
 	for func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n < 3 }() {
-		// foreach {tn limit} "\n    1 \"\"\n    2 \"LIMIT 10\"\n  "
-		_items0 := tclSplitList("\n    1 \"\"\n    2 \"LIMIT 10\"\n  ")
+		// foreach {tn limit} "1 \"\"\n    2 \"LIMIT 10\""
+		_items0 := tclSplitList("1 \"\"\n    2 \"LIMIT 10\"")
 		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
@@ -187,8 +187,8 @@ func Test_nulls1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d, UNIQUE (b));\n")
 			}
 		}
-		// foreach {tn sql err} "\n  1 { CREATE INDEX i1 ON t1(a ASC NULLS LAST) }           LAST\n  2 { CREATE INDEX i1 ON t1(a ASC NULLS FIRST) }          FIRST\n  3 { CREATE INDEX i1 ON t1(a, b ASC NULLS LAST) }        LAST\n  4 { CREATE INDEX i1 ON t1(a, b ASC NULLS FIRST) }       FIRST\n  5 { CREATE INDEX i1 ON t1(a DESC NULLS LAST) }          LAST\n  6 { CREATE INDEX i1 ON t1(a DESC NULLS FIRST) }         FIRST\n  7 { CREATE INDEX i1 ON t1(a, b DESC NULLS LAST) }       LAST\n  8 { CREATE INDEX i1 ON t1(a, b DESC NULLS FIRST) }      FIRST\n  9  { CREATE TABLE t2(a, b, PRIMARY KEY(a DESC, b NULLS FIRST)) } FIRST\n  10 { CREATE TABLE t2(a, b, UNIQUE(a DESC NULLS FIRST, b)) }      FIRST\n  11 { INSERT INTO t1 VALUES(1, 2, 3, 4)\n          ON CONFLICT (b DESC NULLS LAST) DO UPDATE SET a = a+1 } LAST\n  12 {\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t1 VALUES(1, 2, 3, 4)\n      ON CONFLICT (b DESC NULLS FIRST) DO UPDATE SET a = a+1;\n    END\n  } FIRST\n"
-		_items1 := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(a ASC NULLS LAST) }           LAST\n  2 { CREATE INDEX i1 ON t1(a ASC NULLS FIRST) }          FIRST\n  3 { CREATE INDEX i1 ON t1(a, b ASC NULLS LAST) }        LAST\n  4 { CREATE INDEX i1 ON t1(a, b ASC NULLS FIRST) }       FIRST\n  5 { CREATE INDEX i1 ON t1(a DESC NULLS LAST) }          LAST\n  6 { CREATE INDEX i1 ON t1(a DESC NULLS FIRST) }         FIRST\n  7 { CREATE INDEX i1 ON t1(a, b DESC NULLS LAST) }       LAST\n  8 { CREATE INDEX i1 ON t1(a, b DESC NULLS FIRST) }      FIRST\n  9  { CREATE TABLE t2(a, b, PRIMARY KEY(a DESC, b NULLS FIRST)) } FIRST\n  10 { CREATE TABLE t2(a, b, UNIQUE(a DESC NULLS FIRST, b)) }      FIRST\n  11 { INSERT INTO t1 VALUES(1, 2, 3, 4)\n          ON CONFLICT (b DESC NULLS LAST) DO UPDATE SET a = a+1 } LAST\n  12 {\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t1 VALUES(1, 2, 3, 4)\n      ON CONFLICT (b DESC NULLS FIRST) DO UPDATE SET a = a+1;\n    END\n  } FIRST\n")
+		// foreach {tn sql err} "1 { CREATE INDEX i1 ON t1(a ASC NULLS LAST) }           LAST\n  2 { CREATE INDEX i1 ON t1(a ASC NULLS FIRST) }          FIRST\n  3 { CREATE INDEX i1 ON t1(a, b ASC NULLS LAST) }        LAST\n  4 { CREATE INDEX i1 ON t1(a, b ASC NULLS FIRST) }       FIRST\n  5 { CREATE INDEX i1 ON t1(a DESC NULLS LAST) }          LAST\n  6 { CREATE INDEX i1 ON t1(a DESC NULLS FIRST) }         FIRST\n  7 { CREATE INDEX i1 ON t1(a, b DESC NULLS LAST) }       LAST\n  8 { CREATE INDEX i1 ON t1(a, b DESC NULLS FIRST) }      FIRST\n  9  { CREATE TABLE t2(a, b, PRIMARY KEY(a DESC, b NULLS FIRST)) } FIRST\n  10 { CREATE TABLE t2(a, b, UNIQUE(a DESC NULLS FIRST, b)) }      FIRST\n  11 { INSERT INTO t1 VALUES(1, 2, 3, 4)\n          ON CONFLICT (b DESC NULLS LAST) DO UPDATE SET a = a+1 } LAST\n  12 {\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t1 VALUES(1, 2, 3, 4)\n      ON CONFLICT (b DESC NULLS FIRST) DO UPDATE SET a = a+1;\n    END\n  } FIRST"
+		_items1 := tclSplitList("1 { CREATE INDEX i1 ON t1(a ASC NULLS LAST) }           LAST\n  2 { CREATE INDEX i1 ON t1(a ASC NULLS FIRST) }          FIRST\n  3 { CREATE INDEX i1 ON t1(a, b ASC NULLS LAST) }        LAST\n  4 { CREATE INDEX i1 ON t1(a, b ASC NULLS FIRST) }       FIRST\n  5 { CREATE INDEX i1 ON t1(a DESC NULLS LAST) }          LAST\n  6 { CREATE INDEX i1 ON t1(a DESC NULLS FIRST) }         FIRST\n  7 { CREATE INDEX i1 ON t1(a, b DESC NULLS LAST) }       LAST\n  8 { CREATE INDEX i1 ON t1(a, b DESC NULLS FIRST) }      FIRST\n  9  { CREATE TABLE t2(a, b, PRIMARY KEY(a DESC, b NULLS FIRST)) } FIRST\n  10 { CREATE TABLE t2(a, b, UNIQUE(a DESC NULLS FIRST, b)) }      FIRST\n  11 { INSERT INTO t1 VALUES(1, 2, 3, 4)\n          ON CONFLICT (b DESC NULLS LAST) DO UPDATE SET a = a+1 } LAST\n  12 {\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t1 VALUES(1, 2, 3, 4)\n      ON CONFLICT (b DESC NULLS FIRST) DO UPDATE SET a = a+1;\n    END\n  } FIRST")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -521,8 +521,8 @@ func Test_nulls1(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			// foreach {tn idx} "\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b) }\n  3 { CREATE INDEX i1 ON t1(b, a) }\n"
-			_items2 := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b) }\n  3 { CREATE INDEX i1 ON t1(b, a) }\n")
+			// foreach {tn idx} "1 {}\n  2 { CREATE INDEX i1 ON t1(a, b) }\n  3 { CREATE INDEX i1 ON t1(b, a) }"
+			_items2 := tclSplitList("1 {}\n  2 { CREATE INDEX i1 ON t1(a, b) }\n  3 { CREATE INDEX i1 ON t1(b, a) }")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
@@ -544,8 +544,8 @@ func Test_nulls1(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 						}
 					}
-					// foreach {tn sql res} "\n    0 \"SELECT null\" NULL\n  \n    1 \"SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    2 \"SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n  \n    3 \"SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    4 \"SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)\"  NULL\n    5 \"SELECT ('hello', 'world') IN (SELECT a, b FROM t1)\" 1\n  \n    6 \"SELECT ('hi', NULL) IN (SELECT a, b FROM t1)\" 0\n     \n    7 \"SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  0\n    8 \"SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1\"  NULL\n  \n    9 \"SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  NULL\n  "
-					_items3 := tclSplitList("\n    0 \"SELECT null\" NULL\n  \n    1 \"SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    2 \"SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n  \n    3 \"SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    4 \"SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)\"  NULL\n    5 \"SELECT ('hello', 'world') IN (SELECT a, b FROM t1)\" 1\n  \n    6 \"SELECT ('hi', NULL) IN (SELECT a, b FROM t1)\" 0\n     \n    7 \"SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  0\n    8 \"SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1\"  NULL\n  \n    9 \"SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  NULL\n  ")
+					// foreach {tn sql res} "0 \"SELECT null\" NULL\n  \n    1 \"SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    2 \"SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n  \n    3 \"SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    4 \"SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)\"  NULL\n    5 \"SELECT ('hello', 'world') IN (SELECT a, b FROM t1)\" 1\n  \n    6 \"SELECT ('hi', NULL) IN (SELECT a, b FROM t1)\" 0\n     \n    7 \"SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  0\n    8 \"SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1\"  NULL\n  \n    9 \"SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  NULL"
+					_items3 := tclSplitList("0 \"SELECT null\" NULL\n  \n    1 \"SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    2 \"SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n  \n    3 \"SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    4 \"SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)\"  NULL\n    5 \"SELECT ('hello', 'world') IN (SELECT a, b FROM t1)\" 1\n  \n    6 \"SELECT ('hi', NULL) IN (SELECT a, b FROM t1)\" 0\n     \n    7 \"SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  0\n    8 \"SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1\"  NULL\n  \n    9 \"SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  NULL")
 					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 						tn := _items3[_idx3+0]
 						_ = tn // suppress unused warning

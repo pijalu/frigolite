@@ -246,8 +246,8 @@ func Test_window9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d, e);\n")
 		}
 	}
-	// foreach {tn sql} "\n  1 {\n    SELECT \n      sum(e) OVER (),\n      sum(e) OVER (ORDER BY a),\n      sum(e) OVER (PARTITION BY a ORDER BY b),\n      sum(e) OVER (PARTITION BY a, b ORDER BY c),\n      sum(e) OVER (PARTITION BY a, b, c ORDER BY d)\n    FROM t1;\n  }\n  2 {\n    SELECT sum(e) OVER (PARTITION BY a ORDER BY b) FROM t1 ORDER BY a;\n  }\n"
-	_items0 := tclSplitList("\n  1 {\n    SELECT \n      sum(e) OVER (),\n      sum(e) OVER (ORDER BY a),\n      sum(e) OVER (PARTITION BY a ORDER BY b),\n      sum(e) OVER (PARTITION BY a, b ORDER BY c),\n      sum(e) OVER (PARTITION BY a, b, c ORDER BY d)\n    FROM t1;\n  }\n  2 {\n    SELECT sum(e) OVER (PARTITION BY a ORDER BY b) FROM t1 ORDER BY a;\n  }\n")
+	// foreach {tn sql} "1 {\n    SELECT \n      sum(e) OVER (),\n      sum(e) OVER (ORDER BY a),\n      sum(e) OVER (PARTITION BY a ORDER BY b),\n      sum(e) OVER (PARTITION BY a, b ORDER BY c),\n      sum(e) OVER (PARTITION BY a, b, c ORDER BY d)\n    FROM t1;\n  }\n  2 {\n    SELECT sum(e) OVER (PARTITION BY a ORDER BY b) FROM t1 ORDER BY a;\n  }"
+	_items0 := tclSplitList("1 {\n    SELECT \n      sum(e) OVER (),\n      sum(e) OVER (ORDER BY a),\n      sum(e) OVER (PARTITION BY a ORDER BY b),\n      sum(e) OVER (PARTITION BY a, b ORDER BY c),\n      sum(e) OVER (PARTITION BY a, b, c ORDER BY d)\n    FROM t1;\n  }\n  2 {\n    SELECT sum(e) OVER (PARTITION BY a ORDER BY b) FROM t1 ORDER BY a;\n  }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

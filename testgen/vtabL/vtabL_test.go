@@ -63,8 +63,8 @@ func Test_vtabL(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	// foreach {tn cts} "\n  1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}\n"
-	_items0 := tclSplitList("\n  1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}\n")
+	// foreach {tn cts} "1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}"
+	_items0 := tclSplitList("1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -80,8 +80,8 @@ func Test_vtabL(t *testing.T) {
 				}
 			}
 		}
-		// foreach {tn cts} "\n  9 {CREATE TABLE xyz AS SELECT * FROM sqlite_schema}\n  10 {CREATE TABLE xyz AS SELECT 1 AS 'col'}\n"
-		_items1 := tclSplitList("\n  9 {CREATE TABLE xyz AS SELECT * FROM sqlite_schema}\n  10 {CREATE TABLE xyz AS SELECT 1 AS 'col'}\n")
+		// foreach {tn cts} "9 {CREATE TABLE xyz AS SELECT * FROM sqlite_schema}\n  10 {CREATE TABLE xyz AS SELECT 1 AS 'col'}"
+		_items1 := tclSplitList("9 {CREATE TABLE xyz AS SELECT * FROM sqlite_schema}\n  10 {CREATE TABLE xyz AS SELECT 1 AS 'col'}")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -97,8 +97,8 @@ func Test_vtabL(t *testing.T) {
 					}
 				}
 			}
-			// foreach {tn cts} "\n  1 {CREATE TABLE IF NOT EXISTS t1(a, b)}\n  2 {CREATE TABLE \"\"(a, b PRIMARY KEY) WITHOUT ROWID}\n"
-			_items2 := tclSplitList("\n  1 {CREATE TABLE IF NOT EXISTS t1(a, b)}\n  2 {CREATE TABLE \"\"(a, b PRIMARY KEY) WITHOUT ROWID}\n")
+			// foreach {tn cts} "1 {CREATE TABLE IF NOT EXISTS t1(a, b)}\n  2 {CREATE TABLE \"\"(a, b PRIMARY KEY) WITHOUT ROWID}"
+			_items2 := tclSplitList("1 {CREATE TABLE IF NOT EXISTS t1(a, b)}\n  2 {CREATE TABLE \"\"(a, b PRIMARY KEY) WITHOUT ROWID}")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning

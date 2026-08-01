@@ -58,8 +58,8 @@ func Test_tkt_f973c7ac31(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t(c1 INTEGER, c2 INTEGER);\n    INSERT INTO t VALUES(5, 5);\n    INSERT INTO t VALUES(5, 4);\n  ")
 		}
 	}
-	// foreach {tn sql} "\n  1 \"\"\n  2 \"CREATE INDEX i1 ON t(c1, c2)\"\n"
-	_items0 := tclSplitList("\n  1 \"\"\n  2 \"CREATE INDEX i1 ON t(c1, c2)\"\n")
+	// foreach {tn sql} "1 \"\"\n  2 \"CREATE INDEX i1 ON t(c1, c2)\""
+	_items0 := tclSplitList("1 \"\"\n  2 \"CREATE INDEX i1 ON t(c1, c2)\"")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

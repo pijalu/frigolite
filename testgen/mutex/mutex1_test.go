@@ -122,8 +122,8 @@ func Test_mutex1(t *testing.T) {
 	}
 	enable_shared_cache = "sqlite3_enable_shared_cache 1"
 	_ = enable_shared_cache // suppress unused warning
-	// foreach {mode mutexes} "\n    singlethread {}\n    multithread  {\n      fast static_app1 static_app2 static_app3\n      static_lru static_main static_mem static_open\n      static_prng static_pmem static_vfs1 static_vfs2\n      static_vfs3\n    }\n    serialized  {\n      fast recursive static_app1 static_app2\n      static_app3 static_lru static_main static_mem\n      static_open static_prng static_pmem static_vfs1\n      static_vfs2 static_vfs3\n    }\n  "
-	_items0 := tclSplitList("\n    singlethread {}\n    multithread  {\n      fast static_app1 static_app2 static_app3\n      static_lru static_main static_mem static_open\n      static_prng static_pmem static_vfs1 static_vfs2\n      static_vfs3\n    }\n    serialized  {\n      fast recursive static_app1 static_app2\n      static_app3 static_lru static_main static_mem\n      static_open static_prng static_pmem static_vfs1\n      static_vfs2 static_vfs3\n    }\n  ")
+	// foreach {mode mutexes} "singlethread {}\n    multithread  {\n      fast static_app1 static_app2 static_app3\n      static_lru static_main static_mem static_open\n      static_prng static_pmem static_vfs1 static_vfs2\n      static_vfs3\n    }\n    serialized  {\n      fast recursive static_app1 static_app2\n      static_app3 static_lru static_main static_mem\n      static_open static_prng static_pmem static_vfs1\n      static_vfs2 static_vfs3\n    }"
+	_items0 := tclSplitList("singlethread {}\n    multithread  {\n      fast static_app1 static_app2 static_app3\n      static_lru static_main static_mem static_open\n      static_prng static_pmem static_vfs1 static_vfs2\n      static_vfs3\n    }\n    serialized  {\n      fast recursive static_app1 static_app2\n      static_app3 static_lru static_main static_mem\n      static_open static_prng static_pmem static_vfs1\n      static_vfs2 static_vfs3\n    }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		mode := _items0[_idx0+0]
 		_ = mode // suppress unused warning

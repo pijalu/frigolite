@@ -59,8 +59,8 @@ func Test_pager3(t *testing.T) {
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}
-	// foreach {tn sql res j} "\n  1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0\n"
-	_items0 := tclSplitList("\n  1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0\n")
+	// foreach {tn sql res j} "1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0"
+	_items0 := tclSplitList("1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

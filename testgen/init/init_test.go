@@ -65,8 +65,8 @@ func Test_init(t *testing.T) {
 	if tclBool("db eval {SELECT sqlite_compileoption_used('THREADSAFE=0')}") {
 		return
 	}
-	// foreach {t failed rc started} "\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n"
-	_items0 := tclSplitList("\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n")
+	// foreach {t failed rc started} "1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}"
+	_items0 := tclSplitList("1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
 		_t := _items0[_idx0+0]
 		_ = _t // suppress unused warning

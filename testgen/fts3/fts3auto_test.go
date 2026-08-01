@@ -279,8 +279,8 @@ func Test_fts3auto(t *testing.T) {
 	_ = A // suppress unused warning
 	// test_fts3_near_match 1.3.1 $A {"c d" 5 "i j" 1 "e f"} {0 0 0} (unsupported command, not transpiled)
 	// test_fts3_near_match 1.3.2 $A {"c d" 5 "i j" 2 "e f"} {1 1 1} (unsupported command, not transpiled)
-	// foreach {tn create} "\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n"
-	_items0 := tclSplitList("\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n")
+	// foreach {tn create} "1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\""
+	_items0 := tclSplitList("1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -327,8 +327,8 @@ func Test_fts3auto(t *testing.T) {
 					}
 				}
 			}
-			// foreach {tn2 expr} "\n    1     {one}\n    2     {one NEAR/1 five}\n    3     {t*}\n    4     {t* NEAR/0 five}\n    5     {o* NEAR/1 f*}\n    6     {one NEAR five NEAR two NEAR four NEAR three}\n    7     {one NEAR xyz}\n    8     {one OR two}\n    9     {one AND two}\n    10    {one NOT two}\n    11    {one AND two OR three}\n    12    {three OR one AND two}\n    13    {(three OR one) AND two}\n    14    {(three OR one) AND two NOT (five NOT four)}\n    15    {\"one two\"}\n    16    {\"one two\" NOT \"three four\"}\n  "
-			_items1 := tclSplitList("\n    1     {one}\n    2     {one NEAR/1 five}\n    3     {t*}\n    4     {t* NEAR/0 five}\n    5     {o* NEAR/1 f*}\n    6     {one NEAR five NEAR two NEAR four NEAR three}\n    7     {one NEAR xyz}\n    8     {one OR two}\n    9     {one AND two}\n    10    {one NOT two}\n    11    {one AND two OR three}\n    12    {three OR one AND two}\n    13    {(three OR one) AND two}\n    14    {(three OR one) AND two NOT (five NOT four)}\n    15    {\"one two\"}\n    16    {\"one two\" NOT \"three four\"}\n  ")
+			// foreach {tn2 expr} "1     {one}\n    2     {one NEAR/1 five}\n    3     {t*}\n    4     {t* NEAR/0 five}\n    5     {o* NEAR/1 f*}\n    6     {one NEAR five NEAR two NEAR four NEAR three}\n    7     {one NEAR xyz}\n    8     {one OR two}\n    9     {one AND two}\n    10    {one NOT two}\n    11    {one AND two OR three}\n    12    {three OR one AND two}\n    13    {(three OR one) AND two}\n    14    {(three OR one) AND two NOT (five NOT four)}\n    15    {\"one two\"}\n    16    {\"one two\" NOT \"three four\"}"
+			_items1 := tclSplitList("1     {one}\n    2     {one NEAR/1 five}\n    3     {t*}\n    4     {t* NEAR/0 five}\n    5     {o* NEAR/1 f*}\n    6     {one NEAR five NEAR two NEAR four NEAR three}\n    7     {one NEAR xyz}\n    8     {one OR two}\n    9     {one AND two}\n    10    {one NOT two}\n    11    {one AND two OR three}\n    12    {three OR one AND two}\n    13    {(three OR one) AND two}\n    14    {(three OR one) AND two NOT (five NOT four)}\n    15    {\"one two\"}\n    16    {\"one two\" NOT \"three four\"}")
 			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 				tn2 := _items1[_idx1+0]
 				_ = tn2 // suppress unused warning
@@ -338,8 +338,8 @@ func Test_fts3auto(t *testing.T) {
 					// do_fts3query_test 2.$tn.2.$tn2 t1 $expr (unsupported command, not transpiled)
 				}
 			}
-			// foreach {tn create} "\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"
-			_items2 := tclSplitList("\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n")
+			// foreach {tn create} "1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\""
+			_items2 := tclSplitList("1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
@@ -364,8 +364,8 @@ func Test_fts3auto(t *testing.T) {
 					{ // do_test "3." + tn + ".3"
 						// fts3_zero_long_segments t1 $limit (unsupported command, not transpiled)
 					}
-					// foreach {tn2 expr def} "\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  "
-					_items3 := tclSplitList("\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  ")
+					// foreach {tn2 expr def} "1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}"
+					_items3 := tclSplitList("1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}")
 					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 						tn2 := _items3[_idx3+0]
 						_ = tn2 // suppress unused warning
@@ -377,8 +377,8 @@ func Test_fts3auto(t *testing.T) {
 							// do_fts3query_test 3.$tn.4.$tn2 -deferred $def t1 $expr (unsupported command, not transpiled)
 						}
 					}
-					// foreach {tn create} "\n  1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"\n"
-					_items4 := tclSplitList("\n  1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"\n")
+					// foreach {tn create} "1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\""
+					_items4 := tclSplitList("1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"")
 					for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
 						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
@@ -426,8 +426,8 @@ func Test_fts3auto(t *testing.T) {
 						}
 						chunkconfig = "fts3_configure_incr_load 1 1"
 						_ = chunkconfig // suppress unused warning
-						// foreach {tn create pending} "\n  1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n"
-						_items5 := tclSplitList("\n  1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n")
+						// foreach {tn create pending} "1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0"
+						_items5 := tclSplitList("1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0")
 						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
 							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
@@ -446,8 +446,8 @@ func Test_fts3auto(t *testing.T) {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 									}
 								}
-								// foreach {a b} "\n    \"the song of songs which is solomons\"\n    \"let him kiss me with the kisses of his mouth for thy love is better than wine\"\n    \"because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee\"\n    \"draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee\"\n    \"i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon\"\n    \"look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept\"\n    \"tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?\"\n    \"if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents\"\n    \"i have compared thee o my love to a company of horses in pharaohs chariots\"\n    \"thy cheeks are comely with rows of jewels thy neck with chains of gold\"\n    \"we will make thee borders of gold with studs of silver\"\n    \"while the king sitteth at his table my spikenard sendeth forth the smell thereof\"\n    \"a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts\"\n    \"my beloved is unto me as a cluster of camphire in the vineyards of en gedi\"\n    \"behold thou art fair my love behold thou art fair thou hast doves eyes\"\n    \"behold thou art fair my beloved yea pleasant also our bed is green\"\n    \"the beams of our house are cedar and our rafters of fir\"\n  "
-								_items6 := tclSplitList("\n    \"the song of songs which is solomons\"\n    \"let him kiss me with the kisses of his mouth for thy love is better than wine\"\n    \"because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee\"\n    \"draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee\"\n    \"i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon\"\n    \"look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept\"\n    \"tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?\"\n    \"if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents\"\n    \"i have compared thee o my love to a company of horses in pharaohs chariots\"\n    \"thy cheeks are comely with rows of jewels thy neck with chains of gold\"\n    \"we will make thee borders of gold with studs of silver\"\n    \"while the king sitteth at his table my spikenard sendeth forth the smell thereof\"\n    \"a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts\"\n    \"my beloved is unto me as a cluster of camphire in the vineyards of en gedi\"\n    \"behold thou art fair my love behold thou art fair thou hast doves eyes\"\n    \"behold thou art fair my beloved yea pleasant also our bed is green\"\n    \"the beams of our house are cedar and our rafters of fir\"\n  ")
+								// foreach {a b} "\"the song of songs which is solomons\"\n    \"let him kiss me with the kisses of his mouth for thy love is better than wine\"\n    \"because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee\"\n    \"draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee\"\n    \"i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon\"\n    \"look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept\"\n    \"tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?\"\n    \"if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents\"\n    \"i have compared thee o my love to a company of horses in pharaohs chariots\"\n    \"thy cheeks are comely with rows of jewels thy neck with chains of gold\"\n    \"we will make thee borders of gold with studs of silver\"\n    \"while the king sitteth at his table my spikenard sendeth forth the smell thereof\"\n    \"a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts\"\n    \"my beloved is unto me as a cluster of camphire in the vineyards of en gedi\"\n    \"behold thou art fair my love behold thou art fair thou hast doves eyes\"\n    \"behold thou art fair my beloved yea pleasant also our bed is green\"\n    \"the beams of our house are cedar and our rafters of fir\""
+								_items6 := tclSplitList("\"the song of songs which is solomons\"\n    \"let him kiss me with the kisses of his mouth for thy love is better than wine\"\n    \"because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee\"\n    \"draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee\"\n    \"i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon\"\n    \"look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept\"\n    \"tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?\"\n    \"if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents\"\n    \"i have compared thee o my love to a company of horses in pharaohs chariots\"\n    \"thy cheeks are comely with rows of jewels thy neck with chains of gold\"\n    \"we will make thee borders of gold with studs of silver\"\n    \"while the king sitteth at his table my spikenard sendeth forth the smell thereof\"\n    \"a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts\"\n    \"my beloved is unto me as a cluster of camphire in the vineyards of en gedi\"\n    \"behold thou art fair my love behold thou art fair thou hast doves eyes\"\n    \"behold thou art fair my beloved yea pleasant also our bed is green\"\n    \"the beams of our house are cedar and our rafters of fir\"")
 								for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
 									a := _items6[_idx6+0]
 									_ = a // suppress unused warning
@@ -474,8 +474,8 @@ func Test_fts3auto(t *testing.T) {
 									}
 								}
 								// eval (dynamic, not transpiled)
-								// foreach {tn pending create} "\n  1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"\n"
-								_items7 := tclSplitList("\n  1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"\n")
+								// foreach {tn pending create} "1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\""
+								_items7 := tclSplitList("1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"")
 								for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
 									tn := _items7[_idx7+0]
 									_ = tn // suppress unused warning
@@ -494,8 +494,8 @@ func Test_fts3auto(t *testing.T) {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 											}
 										}
-										// foreach {a b c d} "\n    \"A B C\" \"D E F\" \"G H I\" \"J K L\"\n    \"B C D\" \"E F G\" \"H I J\" \"K L A\"\n    \"C D E\" \"F G H\" \"I J K\" \"L A B\"\n    \"D E F\" \"G H I\" \"J K L\" \"A B C\"\n    \"E F G\" \"H I J\" \"K L A\" \"B C D\"\n    \"F G H\" \"I J K\" \"L A B\" \"C D E\"\n  "
-										_items8 := tclSplitList("\n    \"A B C\" \"D E F\" \"G H I\" \"J K L\"\n    \"B C D\" \"E F G\" \"H I J\" \"K L A\"\n    \"C D E\" \"F G H\" \"I J K\" \"L A B\"\n    \"D E F\" \"G H I\" \"J K L\" \"A B C\"\n    \"E F G\" \"H I J\" \"K L A\" \"B C D\"\n    \"F G H\" \"I J K\" \"L A B\" \"C D E\"\n  ")
+										// foreach {a b c d} "\"A B C\" \"D E F\" \"G H I\" \"J K L\"\n    \"B C D\" \"E F G\" \"H I J\" \"K L A\"\n    \"C D E\" \"F G H\" \"I J K\" \"L A B\"\n    \"D E F\" \"G H I\" \"J K L\" \"A B C\"\n    \"E F G\" \"H I J\" \"K L A\" \"B C D\"\n    \"F G H\" \"I J K\" \"L A B\" \"C D E\""
+										_items8 := tclSplitList("\"A B C\" \"D E F\" \"G H I\" \"J K L\"\n    \"B C D\" \"E F G\" \"H I J\" \"K L A\"\n    \"C D E\" \"F G H\" \"I J K\" \"L A B\"\n    \"D E F\" \"G H I\" \"J K L\" \"A B C\"\n    \"E F G\" \"H I J\" \"K L A\" \"B C D\"\n    \"F G H\" \"I J K\" \"L A B\" \"C D E\"")
 										for _idx8 := 0; _idx8+4 <= len(_items8); _idx8 += 4 {
 											a := _items8[_idx8+0]
 											_ = a // suppress unused warning
@@ -519,8 +519,8 @@ func Test_fts3auto(t *testing.T) {
 											_res = db.Exec(" COMMIT ")
 											_ = _res // catchsql
 										}
-										// foreach {tn create} "\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"
-										_items9 := tclSplitList("\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n")
+										// foreach {tn create} "1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\""
+										_items9 := tclSplitList("1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"")
 										for _idx9 := 0; _idx9+2 <= len(_items9); _idx9 += 2 {
 											tn := _items9[_idx9+0]
 											_ = tn // suppress unused warning
@@ -531,7 +531,7 @@ func Test_fts3auto(t *testing.T) {
 												if _res.Error != nil {
 													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
 												}
-												for _, x := range tclSplitList("\n    \"F E N O T K X V A X I E X A P G Q V H U\"\n    \"R V A E T C V Q N I E L O N U G J K L U\"\n    \"U Y I G W M V F J L X I D C H F P J Q B\"\n    \"S G D Z X R P G S S Y B K A S G A I L L\"\n    \"L S I C H T Z S R Q P R N K J X L F M J\"\n    \"C C C D P X B Z C M A D A C X S B T X V\"\n    \"W Y J M D R G V R K B X S A W R I T N C\"\n    \"P K L W T M S P O Y Y V V O E H Q A I R\"\n    \"C D Y I C Z F H J C O Y A Q F L S B D K\"\n    \"P G S C Y C Y V I M B D S Z D D Y W I E\"\n    \"Z K Z U E E S F Y X T U A L W O U J C Q\"\n    \"P A T Z S W L P L Q V Y Y I P W U X S S\"\n    \"I U I H U O F Z F R H R F T N D X A G M\"\n    \"N A B M S H K X S O Y D T X S B R Y H Z\"\n    \"L U D A S K I L S V Z J P U B E B Y H M\"\n  ") {
+												for _, x := range tclSplitList("\"F E N O T K X V A X I E X A P G Q V H U\"\n    \"R V A E T C V Q N I E L O N U G J K L U\"\n    \"U Y I G W M V F J L X I D C H F P J Q B\"\n    \"S G D Z X R P G S S Y B K A S G A I L L\"\n    \"L S I C H T Z S R Q P R N K J X L F M J\"\n    \"C C C D P X B Z C M A D A C X S B T X V\"\n    \"W Y J M D R G V R K B X S A W R I T N C\"\n    \"P K L W T M S P O Y Y V V O E H Q A I R\"\n    \"C D Y I C Z F H J C O Y A Q F L S B D K\"\n    \"P G S C Y C Y V I M B D S Z D D Y W I E\"\n    \"Z K Z U E E S F Y X T U A L W O U J C Q\"\n    \"P A T Z S W L P L Q V Y Y I P W U X S S\"\n    \"I U I H U O F Z F R H R F T N D X A G M\"\n    \"N A B M S H K X S O Y D T X S B R Y H Z\"\n    \"L U D A S K I L S V Z J P U B E B Y H M\"") {
 												_ = x // suppress unused warning
 													_res = db.Exec(" INSERT INTO t1 VALUES(" + x + ") ")
 													if _res.Error != nil {

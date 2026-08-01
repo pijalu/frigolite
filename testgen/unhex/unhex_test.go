@@ -61,8 +61,8 @@ func Test_unhex(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "unhex"
 	_ = testprefix // suppress unused warning
-	// foreach {tn hex} "\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n"
-	_items0 := tclSplitList("\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n")
+	// foreach {tn hex} "1  0000\n  2  FFFF\n  3  0123456789ABCDEF"
+	_items0 := tclSplitList("1  0000\n  2  FFFF\n  3  0123456789ABCDEF")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -106,8 +106,8 @@ func Test_unhex(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// foreach {tn hex} "\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n"
-		_items1 := tclSplitList("\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n")
+		// foreach {tn hex} "1  ABC\n  2  hello\n  3  123456x7\n  4  0xff"
+		_items1 := tclSplitList("1  ABC\n  2  hello\n  3  123456x7\n  4  0xff")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -141,8 +141,8 @@ func Test_unhex(t *testing.T) {
 			}
 			if tclBool("array exists x") {
 			}
-			// foreach {tn hex} "\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n"
-			_items2 := tclSplitList("\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n")
+			// foreach {tn hex} "1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\""
+			_items2 := tclSplitList("1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning

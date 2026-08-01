@@ -72,8 +72,8 @@ func Test_e_changes(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t2(y);\n")
 		}
 	}
-	// foreach {tn schema} "\n  1 { \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(b);\n  }\n  2 { \n      CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n      CREATE INDEX i1 ON t1(b);\n  }\n"
-	_items0 := tclSplitList("\n  1 { \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(b);\n  }\n  2 { \n      CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n      CREATE INDEX i1 ON t1(b);\n  }\n")
+	// foreach {tn schema} "1 { \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(b);\n  }\n  2 { \n      CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n      CREATE INDEX i1 ON t1(b);\n  }"
+	_items0 := tclSplitList("1 { \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(b);\n  }\n  2 { \n      CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n      CREATE INDEX i1 ON t1(b);\n  }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

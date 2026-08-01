@@ -75,7 +75,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		for _, L := range tclSplitList("\n    {\"See here, young man,\" said Mulga Bill, \"from Walgett to the sea,}\n    {From Conroy's Gap to Castlereagh, there's none can ride like me.}\n    {I'm good all round at everything as everybody knows,}\n    {Although I'm not the one to talk -- I hate a man that blows.}\n  ") {
+		for _, L := range tclSplitList("{\"See here, young man,\" said Mulga Bill, \"from Walgett to the sea,}\n    {From Conroy's Gap to Castlereagh, there's none can ride like me.}\n    {I'm good all round at everything as everybody knows,}\n    {Although I'm not the one to talk -- I hate a man that blows.}") {
 		_ = L // suppress unused warning
 			_res = db.Exec(" INSERT INTO x1 VALUES(" + L + ") ")
 			if _res.Error != nil {
@@ -100,7 +100,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4"
-		for _, L := range tclSplitList("\n    {But riding is my special gift, my chiefest, sole delight;}\n    {Just ask a wild duck can it swim, a wildcat can it fight.}\n    {There's nothing clothed in hair or hide, or built of flesh or steel,}\n    {There's nothing walks or jumps, or runs, on axle, hoof, or wheel,}\n    {But what I'll sit, while hide will hold and girths and straps are tight:}\n    {I'll ride this here two-wheeled concern right straight away at sight.\"}\n  ") {
+		for _, L := range tclSplitList("{But riding is my special gift, my chiefest, sole delight;}\n    {Just ask a wild duck can it swim, a wildcat can it fight.}\n    {There's nothing clothed in hair or hide, or built of flesh or steel,}\n    {There's nothing walks or jumps, or runs, on axle, hoof, or wheel,}\n    {But what I'll sit, while hide will hold and girths and straps are tight:}\n    {I'll ride this here two-wheeled concern right straight away at sight.\"}") {
 		_ = L // suppress unused warning
 			_res = db.Exec(" INSERT INTO x1 VALUES(" + L + ") ")
 			if _res.Error != nil {
@@ -125,7 +125,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 	}
 	{ // do_test "1.6"
-		for _, L := range tclSplitList("\n    {'Twas Mulga Bill, from Eaglehawk, that sought his own abode,}\n    {That perched above Dead Man's Creek, beside the mountain road.}\n    {He turned the cycle down the hill and mounted for the fray,}\n    {But 'ere he'd gone a dozen yards it bolted clean away.}\n\n    {It left the track, and through the trees, just like a silver steak,}\n    {It whistled down the awful slope towards the Dead Man's Creek.}\n    {It shaved a stump by half an inch, it dodged a big white-box:}\n    {The very wallaroos in fright went scrambling up the rocks,}\n\n    {The wombats hiding in their caves dug deeper underground,}\n    {As Mulga Bill, as white as chalk, sat tight to every bound.}\n    {It struck a stone and gave a spring that cleared a fallen tree,}\n    {It raced beside a precipice as close as close could be;}\n\n    {And then as Mulga Bill let out one last despairing shriek}\n    {It made a leap of twenty feet into the Dead Man's Creek.}\n    {It shaved a stump by half an inch, it dodged a big white-box:}\n    {The very wallaroos in fright went scrambling up the rocks,}\n    {The wombats hiding in their caves dug deeper underground,}\n  ") {
+		for _, L := range tclSplitList("{'Twas Mulga Bill, from Eaglehawk, that sought his own abode,}\n    {That perched above Dead Man's Creek, beside the mountain road.}\n    {He turned the cycle down the hill and mounted for the fray,}\n    {But 'ere he'd gone a dozen yards it bolted clean away.}\n\n    {It left the track, and through the trees, just like a silver steak,}\n    {It whistled down the awful slope towards the Dead Man's Creek.}\n    {It shaved a stump by half an inch, it dodged a big white-box:}\n    {The very wallaroos in fright went scrambling up the rocks,}\n\n    {The wombats hiding in their caves dug deeper underground,}\n    {As Mulga Bill, as white as chalk, sat tight to every bound.}\n    {It struck a stone and gave a spring that cleared a fallen tree,}\n    {It raced beside a precipice as close as close could be;}\n\n    {And then as Mulga Bill let out one last despairing shriek}\n    {It made a leap of twenty feet into the Dead Man's Creek.}\n    {It shaved a stump by half an inch, it dodged a big white-box:}\n    {The very wallaroos in fright went scrambling up the rocks,}\n    {The wombats hiding in their caves dug deeper underground,}") {
 		_ = L // suppress unused warning
 			_res = db.Exec(" INSERT INTO x1 VALUES(" + L + ") ")
 			if _res.Error != nil {

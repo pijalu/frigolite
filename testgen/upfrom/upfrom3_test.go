@@ -57,8 +57,8 @@ func Test_upfrom3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "upfrom3"
 	_ = testprefix // suppress unused warning
-	// foreach {tn wo} "\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n"
-	_items0 := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
+	// foreach {tn wo} "1 \"\"\n  2 \"WITHOUT ROWID\""
+	_items0 := tclSplitList("1 \"\"\n  2 \"WITHOUT ROWID\"")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -112,8 +112,8 @@ func Test_upfrom3(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// foreach {tn wo} "\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n"
-		_items1 := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
+		// foreach {tn wo} "1 \"\"\n  2 \"WITHOUT ROWID\""
+		_items1 := tclSplitList("1 \"\"\n  2 \"WITHOUT ROWID\"")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -129,8 +129,8 @@ func Test_upfrom3(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			// foreach {tn wo} "\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n"
-			_items2 := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
+			// foreach {tn wo} "1 \"\"\n  2 \"WITHOUT ROWID\""
+			_items2 := tclSplitList("1 \"\"\n  2 \"WITHOUT ROWID\"")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning

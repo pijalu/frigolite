@@ -133,8 +133,8 @@ func Test_walhook(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_autocheckpoint ")
 		}
 	}
-	// foreach {tn sql dbpages logpages} "\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n"
-	_items1 := tclSplitList("\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n")
+	// foreach {tn sql dbpages logpages} "4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11"
+	_items1 := tclSplitList("4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11")
 	for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
 		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning

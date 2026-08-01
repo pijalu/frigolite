@@ -64,7 +64,7 @@ func Test_count(t *testing.T) {
 	}
 	iTest = "0"
 	_ = iTest // suppress unused warning
-	for _, zIndex := range tclSplitList("list {\n  /* no-op */\n} {\n  CREATE INDEX i1 ON t1(a);\n}") {
+	for _, zIndex := range tclSplitList("{\n  /* no-op */\n} {\n  CREATE INDEX i1 ON t1(a);\n}") {
 	_ = zIndex // suppress unused warning
 		// incr iTest 1
 		{

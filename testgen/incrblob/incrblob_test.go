@@ -155,7 +155,7 @@ func Test_incrblob(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
-	for _, AutoVacuumMode := range tclSplitList("list 0 1") {
+	for _, AutoVacuumMode := range tclSplitList("0 1") {
 	_ = AutoVacuumMode // suppress unused warning
 		if func() bool { AutoVacuumMode_n, _AutoVacuumMode_e := strconv.Atoi(AutoVacuumMode); if _AutoVacuumMode_e != nil { return false }; return AutoVacuumMode_n > 0 }() {
 		}

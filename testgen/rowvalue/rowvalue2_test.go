@@ -238,8 +238,8 @@ func Test_rowvalue2(t *testing.T) {
 			}
 		}
 	}
-	// foreach {tn idx} "\n  IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }\n"
-	_items4 := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }\n")
+	// foreach {tn idx} "IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }"
+	_items4 := tclSplitList("IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }")
 	for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
 		tn := _items4[_idx4+0]
 		_ = tn // suppress unused warning
@@ -262,7 +262,7 @@ func Test_rowvalue2(t *testing.T) {
 				_ = b // suppress unused warning
 				c = "$w 6 end"
 				_ = c // suppress unused warning
-				for _, op := range tclSplitList("list > >= < <= == IS") {
+				for _, op := range tclSplitList("> >= < <= == IS") {
 				_ = op // suppress unused warning
 					{ // "3.1." + tn + "." + w + "." + op
 						_res = db.Exec("-novar {\n        SELECT rowid FROM t3 WHERE (a, b, c) " + "set op" + " (" + a + ", " + b + ", " + c + ") \n        ORDER BY +rowid\n      }")
@@ -288,8 +288,8 @@ func Test_rowvalue2(t *testing.T) {
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
-		// foreach {tn idx} "\n  IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }\n"
-		_items5 := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }\n")
+		// foreach {tn idx} "IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }"
+		_items5 := tclSplitList("IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }")
 		for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
 			tn := _items5[_idx5+0]
 			_ = tn // suppress unused warning
@@ -304,15 +304,15 @@ func Test_rowvalue2(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 				}
-				// foreach {tn2 vector} "\n    1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}\n  "
-				_items6 := tclSplitList("\n    1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}\n  ")
+				// foreach {tn2 vector} "1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}"
+				_items6 := tclSplitList("1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}")
 				for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
 					tn2 := _items6[_idx6+0]
 					_ = tn2 // suppress unused warning
 					vector := _items6[_idx6+1]
 					_ = vector // suppress unused warning
 					_ = _idx6
-						for _, op := range tclSplitList(" IS == < <= > >= ") {
+						for _, op := range tclSplitList("IS == < <= > >=") {
 						_ = op // suppress unused warning
 							e1 = "make_expr1 {a b c} $vector $op"
 							_ = e1 // suppress unused warning
@@ -339,8 +339,8 @@ func Test_rowvalue2(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE r1(a TEXT, iB TEXT);\n  CREATE TABLE r2(x TEXT, zY INTEGER);\n  CREATE INDEX r1ab ON r1(a, iB);\n\n  INSERT INTO r1 VALUES(35, 35);\n  INSERT INTO r2 VALUES(35, 36);\n  INSERT INTO r2 VALUES(35, 4);\n  INSERT INTO r2 VALUES(35, 35);\n")
 					}
 				}
-				// foreach {tn lhs rhs} "\n  1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}\n"
-				_items7 := tclSplitList("\n  1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}\n")
+				// foreach {tn lhs rhs} "1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}"
+				_items7 := tclSplitList("1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}")
 				for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
 					tn := _items7[_idx7+0]
 					_ = tn // suppress unused warning
@@ -349,7 +349,7 @@ func Test_rowvalue2(t *testing.T) {
 					rhs := _items7[_idx7+2]
 					_ = rhs // suppress unused warning
 					_ = _idx7
-						for _, op := range tclSplitList(" IS == < <= > >= ") {
+						for _, op := range tclSplitList("IS == < <= > >=") {
 						_ = op // suppress unused warning
 							e1 = "make_expr1 $lhs $rhs $op"
 							_ = e1 // suppress unused warning

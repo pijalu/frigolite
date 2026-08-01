@@ -67,8 +67,8 @@ func Test_journal3(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE tx(y, z) ")
 			}
 		}
-		// foreach {tn permissions} "\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  "
-		_items0 := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
+		// foreach {tn permissions} "1 00644\n   2 00666\n   3 00600\n   4 00755"
+		_items0 := tclSplitList("1 00644\n   2 00666\n   3 00600\n   4 00755")
 		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning

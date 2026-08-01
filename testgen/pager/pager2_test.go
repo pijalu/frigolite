@@ -71,7 +71,7 @@ func Test_pager2(t *testing.T) {
 	otn = "0"
 	_ = otn // suppress unused warning
 	// testvfs tv -default 1 (unsupported command, not transpiled)
-	for _, code := range tclSplitList("list {\n  set s 512\n} {\n  set s 1024\n  set sql { PRAGMA journal_mode = memory }\n} {\n  set s 1024\n  set sql { \n    PRAGMA journal_mode = memory;\n    PRAGMA locking_mode = exclusive;\n  }\n} {\n  set s 2048\n  tv devchar safe_append\n} {\n  set s 4096\n} {\n  set s 4096\n  set sql { PRAGMA journal_mode = WAL }\n} {\n  set s 4096\n  set sql { PRAGMA auto_vacuum = 1 }\n} {\n  set s 8192\n  set sql { PRAGMA synchronous = off }\n}") {
+	for _, code := range tclSplitList("{\n  set s 512\n} {\n  set s 1024\n  set sql { PRAGMA journal_mode = memory }\n} {\n  set s 1024\n  set sql { \n    PRAGMA journal_mode = memory;\n    PRAGMA locking_mode = exclusive;\n  }\n} {\n  set s 2048\n  tv devchar safe_append\n} {\n  set s 4096\n} {\n  set s 4096\n  set sql { PRAGMA journal_mode = WAL }\n} {\n  set s 4096\n  set sql { PRAGMA auto_vacuum = 1 }\n} {\n  set s 8192\n  set sql { PRAGMA synchronous = off }\n}") {
 	_ = code // suppress unused warning
 		// incr otn 1
 		{
@@ -100,7 +100,7 @@ func Test_pager2(t *testing.T) {
 		_ = tn // suppress unused warning
 		lowpoint = "0"
 		_ = lowpoint // suppress unused warning
-		for _, x := range tclSplitList("\n    100 x 0 100\n  x\n    70 22 96 59 96 50 22 56 21 16 37 64 43 40  0 38 22 38 55  0  6   \n    43 62 32 93 54 18 13 29 45 66 29 25 61 31 53 82 75 25 96 86 10 69   \n     2 29  6 60 80 95 42 82 85 50 68 96 90 39 78 69 87 97 48 74 65 43   \n  x\n    86 34 26 50 41 85 58 44 89 22  6 51 45 46 58 32 97  6  1 12 32  2   \n    69 39 48 71 33 31  5 58 90 43 24 54 12  9 18 57  4 38 91 42 27 45   \n    50 38 56 29 10  0 26 37 83  1 78 15 47 30 75 62 46 29 68  5 30  4   \n    27 96 33 95 79 75 56 10 29 70 32 75 52 88  5 36 50 57 46 63 88 65   \n  x\n    44 95 64 20 24 35 69 61 61  2 35 92 42 46 23 98 78  1 38 72 79 35   \n    94 37 13 59  5 93 27 58 80 75 58  7 67 13 10 76 84  4  8 70 81 45   \n     8 41 98  5 60 26 92 29 91 90  2 62 40  4  5 22 80 15 83 76 52 88   \n    29  5 68 73 72  7 54 17 89 32 81 94 51 28 53 71  8 42 54 59 70 79   \n  x\n  ") {
+		for _, x := range tclSplitList("100 x 0 100\n  x\n    70 22 96 59 96 50 22 56 21 16 37 64 43 40  0 38 22 38 55  0  6   \n    43 62 32 93 54 18 13 29 45 66 29 25 61 31 53 82 75 25 96 86 10 69   \n     2 29  6 60 80 95 42 82 85 50 68 96 90 39 78 69 87 97 48 74 65 43   \n  x\n    86 34 26 50 41 85 58 44 89 22  6 51 45 46 58 32 97  6  1 12 32  2   \n    69 39 48 71 33 31  5 58 90 43 24 54 12  9 18 57  4 38 91 42 27 45   \n    50 38 56 29 10  0 26 37 83  1 78 15 47 30 75 62 46 29 68  5 30  4   \n    27 96 33 95 79 75 56 10 29 70 32 75 52 88  5 36 50 57 46 63 88 65   \n  x\n    44 95 64 20 24 35 69 61 61  2 35 92 42 46 23 98 78  1 38 72 79 35   \n    94 37 13 59  5 93 27 58 80 75 58  7 67 13 10 76 84  4  8 70 81 45   \n     8 41 98  5 60 26 92 29 91 90  2 62 40  4  5 22 80 15 83 76 52 88   \n    29  5 68 73 72  7 54 17 89 32 81 94 51 28 53 71  8 42 54 59 70 79   \n  x") {
 		_ = x // suppress unused warning
 			// incr tn 1
 			{

@@ -160,8 +160,8 @@ func Test_between(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x TEXT, y TEXT COLLATE nocase);\n  INSERT INTO t1 VALUES('0', 'abc');\n")
 		}
 	}
-	// foreach {tn expr res} "\n  1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0\n"
-	_items0 := tclSplitList("\n  1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0\n")
+	// foreach {tn expr res} "1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0"
+	_items0 := tclSplitList("1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

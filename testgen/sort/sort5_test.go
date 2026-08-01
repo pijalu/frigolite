@@ -141,8 +141,8 @@ func Test_sort5(t *testing.T) {
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA temp_store = 1 ")
 	}
-	// foreach {tn pgsz cachesz bTemp} "\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n"
-	_items0 := tclSplitList("\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n")
+	// foreach {tn pgsz cachesz bTemp} "1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0"
+	_items0 := tclSplitList("1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

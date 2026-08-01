@@ -82,8 +82,8 @@ func Test_vacuum3(t *testing.T) {
 	}
 	I = "4"
 	_ = I // suppress unused warning
-	// foreach {request actual database} "list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\"
-	_items0 := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\")
+	// foreach {request actual database} "\\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\\n"
+	_items0 := tclSplitList("\\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\\n")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		request := _items0[_idx0+0]
 		_ = request // suppress unused warning
@@ -149,8 +149,8 @@ func Test_vacuum3(t *testing.T) {
 		}
 		I = "4"
 		_ = I // suppress unused warning
-		// foreach {request actual database} "list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\"
-		_items1 := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\")
+		// foreach {request actual database} "\\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\\n"
+		_items1 := tclSplitList("\\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\\n")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			request := _items1[_idx1+0]
 			_ = request // suppress unused warning
@@ -205,8 +205,8 @@ func Test_vacuum3(t *testing.T) {
 			_ = sig // suppress unused warning
 			I = "3"
 			_ = I // suppress unused warning
-			// foreach {request actual} "list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\"
-			_items2 := tclSplitList("list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\")
+			// foreach {request actual} "\\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\\n"
+			_items2 := tclSplitList("\\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\\n")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				request := _items2[_idx2+0]
 				_ = request // suppress unused warning

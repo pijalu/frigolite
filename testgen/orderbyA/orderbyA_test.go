@@ -80,8 +80,8 @@ func Test_orderbyA(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('one',   1, 11);\n  INSERT INTO t1 VALUES('three', 7, 11);\n  INSERT INTO t1 VALUES('one',   2, 11);\n  INSERT INTO t1 VALUES('one',   3, 11);\n  INSERT INTO t1 VALUES('two',   4, 11);\n  INSERT INTO t1 VALUES('two',   6, 11);\n  INSERT INTO t1 VALUES('three', 8, 11);\n  INSERT INTO t1 VALUES('two',   5, 11);\n  INSERT INTO t1 VALUES('three', 9, 11);\n")
 		}
 	}
-	// foreach {tn idx} "\n  1 {}\n  2 {CREATE INDEX i1 ON t1(a)}\n  3 {CREATE INDEX i1 ON t1(a DESC)}\n"
-	_items0 := tclSplitList("\n  1 {}\n  2 {CREATE INDEX i1 ON t1(a)}\n  3 {CREATE INDEX i1 ON t1(a DESC)}\n")
+	// foreach {tn idx} "1 {}\n  2 {CREATE INDEX i1 ON t1(a)}\n  3 {CREATE INDEX i1 ON t1(a DESC)}"
+	_items0 := tclSplitList("1 {}\n  2 {CREATE INDEX i1 ON t1(a)}\n  3 {CREATE INDEX i1 ON t1(a DESC)}")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -119,8 +119,8 @@ func Test_orderbyA(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 'one', 1);\n  INSERT INTO t2 VALUES(1, 'two', 2);\n  INSERT INTO t2 VALUES(1, 'one', 3);\n  INSERT INTO t2 VALUES(1, 'two', 4);\n  INSERT INTO t2 VALUES(1, 'one', 5);\n  INSERT INTO t2 VALUES(1, 'two', 6);\n\n  INSERT INTO t2 VALUES(2, 'one', 7);\n  INSERT INTO t2 VALUES(2, 'two', 8);\n  INSERT INTO t2 VALUES(2, 'one', 9);\n  INSERT INTO t2 VALUES(2, 'two', 10);\n  INSERT INTO t2 VALUES(2, 'one', 11);\n  INSERT INTO t2 VALUES(2, 'two', 12);\n\n  INSERT INTO t2 VALUES(NULL, 'one', 13);\n  INSERT INTO t2 VALUES(NULL, 'two', 14);\n  INSERT INTO t2 VALUES(NULL, 'one', 15);\n  INSERT INTO t2 VALUES(NULL, 'two', 16);\n  INSERT INTO t2 VALUES(NULL, 'one', 17);\n  INSERT INTO t2 VALUES(NULL, 'two', 18);\n")
 			}
 		}
-		// foreach {tn idx} "\n  1 {}\n\n  2 { CREATE INDEX i2 ON t2(a, b)           }\n  3 { CREATE INDEX i2 ON t2(a DESC, b DESC) }\n\n  4 { CREATE INDEX i2 ON t2(a, b DESC)      }\n  5 { CREATE INDEX i2 ON t2(a DESC, b)      }\n"
-		_items1 := tclSplitList("\n  1 {}\n\n  2 { CREATE INDEX i2 ON t2(a, b)           }\n  3 { CREATE INDEX i2 ON t2(a DESC, b DESC) }\n\n  4 { CREATE INDEX i2 ON t2(a, b DESC)      }\n  5 { CREATE INDEX i2 ON t2(a DESC, b)      }\n")
+		// foreach {tn idx} "1 {}\n\n  2 { CREATE INDEX i2 ON t2(a, b)           }\n  3 { CREATE INDEX i2 ON t2(a DESC, b DESC) }\n\n  4 { CREATE INDEX i2 ON t2(a, b DESC)      }\n  5 { CREATE INDEX i2 ON t2(a DESC, b)      }"
+		_items1 := tclSplitList("1 {}\n\n  2 { CREATE INDEX i2 ON t2(a, b)           }\n  3 { CREATE INDEX i2 ON t2(a DESC, b DESC) }\n\n  4 { CREATE INDEX i2 ON t2(a, b DESC)      }\n  5 { CREATE INDEX i2 ON t2(a DESC, b)      }")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning

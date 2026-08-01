@@ -89,8 +89,8 @@ func Test_window6(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	setup = "\n  CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');\n"
 	_ = setup // suppress unused warning
-	// foreach {tn vars} "\n  1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }\n"
-	_items0 := tclSplitList("\n  1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }\n")
+	// foreach {tn vars} "1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }"
+	_items0 := tclSplitList("1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -358,8 +358,8 @@ func Test_window6(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \"PRECEDING\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
 			}
 		}
-		// foreach {tn frame} "\n  1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"\n"
-		_items1 := tclSplitList("\n  1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"\n")
+		// foreach {tn frame} "1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\""
+		_items1 := tclSplitList("1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -397,8 +397,8 @@ func Test_window6(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			// foreach {tn stmt} "\n  1 \"SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1\"\n  2 \"SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1\"\n  3 \"SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1\"\n  4 \"SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1\"\n  5 \"SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1\"\n"
-			_items2 := tclSplitList("\n  1 \"SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1\"\n  2 \"SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1\"\n  3 \"SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1\"\n  4 \"SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1\"\n  5 \"SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1\"\n")
+			// foreach {tn stmt} "1 \"SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1\"\n  2 \"SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1\"\n  3 \"SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1\"\n  4 \"SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1\"\n  5 \"SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1\""
+			_items2 := tclSplitList("1 \"SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1\"\n  2 \"SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1\"\n  3 \"SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1\"\n  4 \"SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1\"\n  5 \"SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1\"")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
@@ -412,8 +412,8 @@ func Test_window6(t *testing.T) {
 						}
 					}
 				}
-				// foreach {tn stmt res} "\n  1 \"SELECT nth_value(b, 1) OVER (ORDER BY a) FROM t1\"         {2 2 2}\n  2 \"SELECT nth_value(b, 2) OVER (ORDER BY a) FROM t1\"         {{} 3 3}\n  3 \"SELECT nth_value(b, '2') OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  4 \"SELECT nth_value(b, 2.0) OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  5 \"SELECT nth_value(b, '2.0') OVER (ORDER BY a) FROM t1\"     {{} 3 3}\n  6 \"SELECT nth_value(b, 10000000) OVER (ORDER BY a) FROM t1\"  {{} {} {}}\n"
-				_items3 := tclSplitList("\n  1 \"SELECT nth_value(b, 1) OVER (ORDER BY a) FROM t1\"         {2 2 2}\n  2 \"SELECT nth_value(b, 2) OVER (ORDER BY a) FROM t1\"         {{} 3 3}\n  3 \"SELECT nth_value(b, '2') OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  4 \"SELECT nth_value(b, 2.0) OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  5 \"SELECT nth_value(b, '2.0') OVER (ORDER BY a) FROM t1\"     {{} 3 3}\n  6 \"SELECT nth_value(b, 10000000) OVER (ORDER BY a) FROM t1\"  {{} {} {}}\n")
+				// foreach {tn stmt res} "1 \"SELECT nth_value(b, 1) OVER (ORDER BY a) FROM t1\"         {2 2 2}\n  2 \"SELECT nth_value(b, 2) OVER (ORDER BY a) FROM t1\"         {{} 3 3}\n  3 \"SELECT nth_value(b, '2') OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  4 \"SELECT nth_value(b, 2.0) OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  5 \"SELECT nth_value(b, '2.0') OVER (ORDER BY a) FROM t1\"     {{} 3 3}\n  6 \"SELECT nth_value(b, 10000000) OVER (ORDER BY a) FROM t1\"  {{} {} {}}"
+				_items3 := tclSplitList("1 \"SELECT nth_value(b, 1) OVER (ORDER BY a) FROM t1\"         {2 2 2}\n  2 \"SELECT nth_value(b, 2) OVER (ORDER BY a) FROM t1\"         {{} 3 3}\n  3 \"SELECT nth_value(b, '2') OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  4 \"SELECT nth_value(b, 2.0) OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  5 \"SELECT nth_value(b, '2.0') OVER (ORDER BY a) FROM t1\"     {{} 3 3}\n  6 \"SELECT nth_value(b, 10000000) OVER (ORDER BY a) FROM t1\"  {{} {} {}}")
 				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning

@@ -291,8 +291,8 @@ func Test_fts3ao(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n"
-	_items0 := tclSplitList("\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n")
+	// foreach {tn sql} "1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }"
+	_items0 := tclSplitList("1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

@@ -111,7 +111,7 @@ func Test_syscall(t *testing.T) {
 	{ // do_test "2.1.2"
 		// test_syscall exists nosuchcall (unsupported command, not transpiled)
 	}
-	for _, s := range tclSplitList("\n    open close access getcwd stat fstat ftruncate\n    fcntl read pread write pwrite fchmod fallocate\n    pread64 pwrite64 unlink openDirectory mkdir rmdir \n    statvfs fchown geteuid umask mmap munmap mremap\n    getpagesize readlink lstat ioctl\n") {
+	for _, s := range tclSplitList("open close access getcwd stat fstat ftruncate\n    fcntl read pread write pwrite fchmod fallocate\n    pread64 pwrite64 unlink openDirectory mkdir rmdir \n    statvfs fchown geteuid umask mmap munmap mremap\n    getpagesize readlink lstat ioctl") {
 	_ = s // suppress unused warning
 		if tclBool("test_syscall exists $s") {
 			syscall_list = tclListAppend(syscall_list, s)
@@ -130,7 +130,7 @@ func Test_syscall(t *testing.T) {
 	}
 	// db_save_and_close (unsupported command, not transpiled)
 	// test_syscall install open (unsupported command, not transpiled)
-	for _, jrnl := range tclSplitList("list wal delete") {
+	for _, jrnl := range tclSplitList("wal delete") {
 	_ = jrnl // suppress unused warning
 		i = "1"
 		_ = i // suppress unused warning
@@ -219,8 +219,8 @@ func Test_syscall(t *testing.T) {
 	}
 	os.Remove("test.db")
 	// proc definition (not transpiled)
-	// foreach {nByte res} "\n  1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}\n"
-	_items3 := tclSplitList("\n  1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}\n")
+	// foreach {nByte res} "1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}"
+	_items3 := tclSplitList("1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}")
 	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
 		nByte := _items3[_idx3+0]
 		_ = nByte // suppress unused warning
@@ -249,8 +249,8 @@ func Test_syscall(t *testing.T) {
 			// file_control_chunksize_test db main 4096 (unsupported command, not transpiled)
 			// file size test.db
 		}
-		// foreach {tn hint size} "\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n"
-		_items5 := tclSplitList("\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n")
+		// foreach {tn hint size} "1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192"
+		_items5 := tclSplitList("1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192")
 		for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
 			tn := _items5[_idx5+0]
 			_ = tn // suppress unused warning
@@ -271,8 +271,8 @@ func Test_syscall(t *testing.T) {
 				// file_control_chunksize_test db main 16 (unsupported command, not transpiled)
 				// file size test.db
 			}
-			// foreach {tn hint size} "\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n"
-			_items6 := tclSplitList("\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n")
+			// foreach {tn hint size} "1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64"
+			_items6 := tclSplitList("1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64")
 			for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
 				tn := _items6[_idx6+0]
 				_ = tn // suppress unused warning

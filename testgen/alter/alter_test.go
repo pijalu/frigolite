@@ -567,8 +567,8 @@ func Test_alter(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SQLITE_RENAME_COLUMN(0,0,0,0,0,0,0,0,0)")
 		}
 	}
-	// foreach {tn sql} "\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n"
-	_items2 := tclSplitList("\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n")
+	// foreach {tn sql} "1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }"
+	_items2 := tclSplitList("1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }")
 	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning

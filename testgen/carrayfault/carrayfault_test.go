@@ -71,8 +71,8 @@ func Test_carrayfault(t *testing.T) {
 	}
 	STMT = ""
 	_ = STMT // suppress unused warning
-	// foreach {tn mem} "\n  1 -static\n  2 -transient\n  3 -malloc\n"
-	_items1 := tclSplitList("\n  1 -static\n  2 -transient\n  3 -malloc\n")
+	// foreach {tn mem} "1 -static\n  2 -transient\n  3 -malloc"
+	_items1 := tclSplitList("1 -static\n  2 -transient\n  3 -malloc")
 	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning

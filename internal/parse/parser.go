@@ -19,6 +19,14 @@ import (
 // ParseSQL parses a SQL string using the go-lemon generated LALR(1) parser.
 // Returns a list of statements compatible with Frigolite's AST types.
 func ParseSQL(input string) ([]sql.Stmt, error) {
+	// If input is only whitespace or comments, return no statements without error.
+	trimmed := strings.TrimSpace(input)
+	if trimmed == "" {
+		return nil, nil
+	}
+	if strings.TrimSpace(stripSQLComments(trimmed)) == "" {
+		return nil, nil
+	}
 	// Append trailing semicolon if missing — the LALR grammar requires
 	// SEMI as a statement terminator (ecmd ::= cmdx SEMI).
 	// Use "\n;" not ";": if the statement ends with a -- line comment,
@@ -2406,3 +2414,49 @@ func getCreateTable(v interface{}) *sql.CreateTableStmt {
 func getCreateTableArgs(v interface{}) interface{} {
 	return v
 }
+
+// stripSQLComments removes SQL block and line comments, preserving strings.
+func stripSQLComments(s string) string {
+	var b strings.Builder
+	i := 0
+	n := len(s)
+	for i < n {
+		if s[i] == '\'' || s[i] == '"' {
+			q := s[i]
+			b.WriteByte(s[i])
+			i++
+			for i < n && s[i] != q {
+				if s[i] == '\\' && i+1 < n {
+					b.WriteByte(s[i])
+					i++
+				}
+				b.WriteByte(s[i])
+				i++
+			}
+			if i < n {
+				b.WriteByte(s[i])
+				i++
+			}
+			continue
+		}
+		if i+1 < n && s[i] == '-' && s[i+1] == '-' {
+			i += 2
+			for i < n && s[i] != '\n' {
+				i++
+			}
+			continue
+		}
+		if i+1 < n && s[i] == '/' && s[i+1] == '*' {
+			i += 2
+			for i+1 < n && !(s[i] == '*' && s[i+1] == '/') {
+				i++
+			}
+			i += 2
+			continue
+		}
+		b.WriteByte(s[i])
+		i++
+	}
+	return b.String()
+}
+

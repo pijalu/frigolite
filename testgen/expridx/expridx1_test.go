@@ -191,8 +191,8 @@ func Test_expridx1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idxcheck)
 		}
 	}
-	// foreach {tn a} "\n  1 15   2 30   3 20   4 10   5 25\n"
-	_items0 := tclSplitList("\n  1 15   2 30   3 20   4 10   5 25\n")
+	// foreach {tn a} "1 15   2 30   3 20   4 10   5 25"
+	_items0 := tclSplitList("1 15   2 30   3 20   4 10   5 25")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

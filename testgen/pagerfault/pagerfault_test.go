@@ -455,8 +455,8 @@ func Test_pagerfault(t *testing.T) {
 		// expr [file size test.db] >= 50*1024 (not evaluated)
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// foreach {tn tt} "\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n"
-	_items3 := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
+	// foreach {tn tt} "29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }"
+	_items3 := tclSplitList("29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }")
 	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
 		tn := _items3[_idx3+0]
 		_ = tn // suppress unused warning

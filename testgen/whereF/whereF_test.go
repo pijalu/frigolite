@@ -63,8 +63,8 @@ func Test_whereF(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t2(d);\n")
 		}
 	}
-	// foreach {tn sql} "\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n"
-	_items0 := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n")
+	// foreach {tn sql} "1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\""
+	_items0 := tclSplitList("1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -84,8 +84,8 @@ func Test_whereF(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t1(b);\n  CREATE UNIQUE INDEX i3 ON t2(d);\n")
 			}
 		}
-		// foreach {tn sql} "\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n"
-		_items1 := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n")
+		// foreach {tn sql} "1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\""
+		_items1 := tclSplitList("1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -105,8 +105,8 @@ func Test_whereF(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t2(d);\n")
 				}
 			}
-			// foreach {tn sql} "\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n"
-			_items2 := tclSplitList("\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n")
+			// foreach {tn sql} "1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}"
+			_items2 := tclSplitList("1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning

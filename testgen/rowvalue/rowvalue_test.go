@@ -109,8 +109,8 @@ func Test_rowvalue(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE one(o);\n  INSERT INTO one VALUES(1);\n")
 		}
 	}
-	// foreach {tn v1 v2 eq ne is isnot} "\n  1 \"1, 2, 3\"    \"1, 2, 3\"                   1  0     1 0\n  2 \"1, 0, 3\"    \"1, 2, 3\"                   0  1     0 1\n  3 \"1, 2, NULL\" \"1, 2, 3\"                   {} {}    0 1\n  4 \"1, 2, NULL\" \"1, 2, NULL\"                {} {}    1 0\n  5 \"NULL, NULL, NULL\" \"NULL, NULL, NULL\"    {} {}    1 0\n\n  6 \"1, NULL, 1\" \"1, 1, 1\"                   {} {}    0 1\n  7 \"1, NULL, 1\" \"1, 1, 2\"                   0  1     0 1\n"
-	_items0 := tclSplitList("\n  1 \"1, 2, 3\"    \"1, 2, 3\"                   1  0     1 0\n  2 \"1, 0, 3\"    \"1, 2, 3\"                   0  1     0 1\n  3 \"1, 2, NULL\" \"1, 2, 3\"                   {} {}    0 1\n  4 \"1, 2, NULL\" \"1, 2, NULL\"                {} {}    1 0\n  5 \"NULL, NULL, NULL\" \"NULL, NULL, NULL\"    {} {}    1 0\n\n  6 \"1, NULL, 1\" \"1, 1, 1\"                   {} {}    0 1\n  7 \"1, NULL, 1\" \"1, 1, 2\"                   0  1     0 1\n")
+	// foreach {tn v1 v2 eq ne is isnot} "1 \"1, 2, 3\"    \"1, 2, 3\"                   1  0     1 0\n  2 \"1, 0, 3\"    \"1, 2, 3\"                   0  1     0 1\n  3 \"1, 2, NULL\" \"1, 2, 3\"                   {} {}    0 1\n  4 \"1, 2, NULL\" \"1, 2, NULL\"                {} {}    1 0\n  5 \"NULL, NULL, NULL\" \"NULL, NULL, NULL\"    {} {}    1 0\n\n  6 \"1, NULL, 1\" \"1, 1, 1\"                   {} {}    0 1\n  7 \"1, NULL, 1\" \"1, 1, 2\"                   0  1     0 1"
+	_items0 := tclSplitList("1 \"1, 2, 3\"    \"1, 2, 3\"                   1  0     1 0\n  2 \"1, 0, 3\"    \"1, 2, 3\"                   0  1     0 1\n  3 \"1, 2, NULL\" \"1, 2, 3\"                   {} {}    0 1\n  4 \"1, 2, NULL\" \"1, 2, NULL\"                {} {}    1 0\n  5 \"NULL, NULL, NULL\" \"NULL, NULL, NULL\"    {} {}    1 0\n\n  6 \"1, NULL, 1\" \"1, 1, 1\"                   {} {}    0 1\n  7 \"1, NULL, 1\" \"1, 1, 2\"                   0  1     0 1")
 	for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -200,8 +200,8 @@ func Test_rowvalue(t *testing.T) {
 				}
 			}
 		}
-		// foreach {tn v1 v2 lt gt le ge} "\n  1 \"(1, 1, 3)\"    \"(1, 2, 3)\"                   1 0      1 0\n  2 \"(1, 2, 3)\"    \"(1, 2, 3)\"                   0 0      1 1\n  3 \"(1, 3, 3)\"    \"(1, 2, 3)\"                   0 1      0 1\n\n  4 \"(1, NULL, 3)\"    \"(1, 2, 3)\"                {} {}      {} {}\n  5 \"(1, 3, 3)\"    \"(1, NULL, 3)\"                {} {}      {} {}\n  6 \"(1, NULL, 3)\"    \"(1, NULL, 3)\"             {} {}      {} {}\n"
-		_items1 := tclSplitList("\n  1 \"(1, 1, 3)\"    \"(1, 2, 3)\"                   1 0      1 0\n  2 \"(1, 2, 3)\"    \"(1, 2, 3)\"                   0 0      1 1\n  3 \"(1, 3, 3)\"    \"(1, 2, 3)\"                   0 1      0 1\n\n  4 \"(1, NULL, 3)\"    \"(1, 2, 3)\"                {} {}      {} {}\n  5 \"(1, 3, 3)\"    \"(1, NULL, 3)\"                {} {}      {} {}\n  6 \"(1, NULL, 3)\"    \"(1, NULL, 3)\"             {} {}      {} {}\n")
+		// foreach {tn v1 v2 lt gt le ge} "1 \"(1, 1, 3)\"    \"(1, 2, 3)\"                   1 0      1 0\n  2 \"(1, 2, 3)\"    \"(1, 2, 3)\"                   0 0      1 1\n  3 \"(1, 3, 3)\"    \"(1, 2, 3)\"                   0 1      0 1\n\n  4 \"(1, NULL, 3)\"    \"(1, 2, 3)\"                {} {}      {} {}\n  5 \"(1, 3, 3)\"    \"(1, NULL, 3)\"                {} {}      {} {}\n  6 \"(1, NULL, 3)\"    \"(1, NULL, 3)\"             {} {}      {} {}"
+		_items1 := tclSplitList("1 \"(1, 1, 3)\"    \"(1, 2, 3)\"                   1 0      1 0\n  2 \"(1, 2, 3)\"    \"(1, 2, 3)\"                   0 0      1 1\n  3 \"(1, 3, 3)\"    \"(1, 2, 3)\"                   0 1      0 1\n\n  4 \"(1, NULL, 3)\"    \"(1, 2, 3)\"                {} {}      {} {}\n  5 \"(1, 3, 3)\"    \"(1, NULL, 3)\"                {} {}      {} {}\n  6 \"(1, NULL, 3)\"    \"(1, NULL, 3)\"             {} {}      {} {}")
 		for _idx1 := 0; _idx1+7 <= len(_items1); _idx1 += 7 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -218,8 +218,8 @@ func Test_rowvalue(t *testing.T) {
 			ge := _items1[_idx1+6]
 			_ = ge // suppress unused warning
 			_ = _idx1
-				// foreach {tn2 expr res} "list \\\n    2.$tn.lt \"$v1 < $v2\" $lt   \\\n    2.$tn.gt \"$v1 > $v2\" $gt   \\\n    2.$tn.le \"$v1 <= $v2\" $le   \\\n    2.$tn.ge \"$v1 >= $v2\" $ge   \\"
-				_items2 := tclSplitList("list \\\n    2.$tn.lt \"$v1 < $v2\" $lt   \\\n    2.$tn.gt \"$v1 > $v2\" $gt   \\\n    2.$tn.le \"$v1 <= $v2\" $le   \\\n    2.$tn.ge \"$v1 >= $v2\" $ge   \\")
+				// foreach {tn2 expr res} "\\\n    2." + tn + ".lt \"" + v1 + " < " + v2 + "\" " + lt + "   \\\n    2." + tn + ".gt \"" + v1 + " > " + v2 + "\" " + gt + "   \\\n    2." + tn + ".le \"" + v1 + " <= " + v2 + "\" " + le + "   \\\n    2." + tn + ".ge \"" + v1 + " >= " + v2 + "\" " + ge + "   \\\n  "
+				_items2 := tclSplitList("\\\n    2." + tn + ".lt \"" + v1 + " < " + v2 + "\" " + lt + "   \\\n    2." + tn + ".gt \"" + v1 + " > " + v2 + "\" " + gt + "   \\\n    2." + tn + ".le \"" + v1 + " <= " + v2 + "\" " + le + "   \\\n    2." + tn + ".ge \"" + v1 + " >= " + v2 + "\" " + ge + "   \\\n  ")
 				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 					tn2 := _items2[_idx2+0]
 					_ = tn2 // suppress unused warning
@@ -284,8 +284,8 @@ func Test_rowvalue(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(3, 5);\n  INSERT INTO t1 VALUES(3, 6);\n")
 					}
 				}
-				// foreach {tn r order} "\n  1 \"(1, 1)\"           \"ORDER BY y\"\n  2 \"(1, 1)\"           \"ORDER BY x, y\"\n  3 \"(1, 2)\"           \"ORDER BY x, y DESC\"\n  4 \"(3, 6)\"           \"ORDER BY x DESC, y DESC\"\n  5 \"((3, 5))\"         \"ORDER BY x DESC, y\"\n  6 \"(SELECT 3, 5)\"    \"ORDER BY x DESC, y\"\n"
-				_items3 := tclSplitList("\n  1 \"(1, 1)\"           \"ORDER BY y\"\n  2 \"(1, 1)\"           \"ORDER BY x, y\"\n  3 \"(1, 2)\"           \"ORDER BY x, y DESC\"\n  4 \"(3, 6)\"           \"ORDER BY x DESC, y DESC\"\n  5 \"((3, 5))\"         \"ORDER BY x DESC, y\"\n  6 \"(SELECT 3, 5)\"    \"ORDER BY x DESC, y\"\n")
+				// foreach {tn r order} "1 \"(1, 1)\"           \"ORDER BY y\"\n  2 \"(1, 1)\"           \"ORDER BY x, y\"\n  3 \"(1, 2)\"           \"ORDER BY x, y DESC\"\n  4 \"(3, 6)\"           \"ORDER BY x DESC, y DESC\"\n  5 \"((3, 5))\"         \"ORDER BY x DESC, y\"\n  6 \"(SELECT 3, 5)\"    \"ORDER BY x DESC, y\""
+				_items3 := tclSplitList("1 \"(1, 1)\"           \"ORDER BY y\"\n  2 \"(1, 1)\"           \"ORDER BY x, y\"\n  3 \"(1, 2)\"           \"ORDER BY x, y DESC\"\n  4 \"(3, 6)\"           \"ORDER BY x DESC, y DESC\"\n  5 \"((3, 5))\"         \"ORDER BY x DESC, y\"\n  6 \"(SELECT 3, 5)\"    \"ORDER BY x DESC, y\"")
 				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
@@ -343,8 +343,8 @@ func Test_rowvalue(t *testing.T) {
 							}
 						}
 					}
-					// foreach {tn expr res} "\n  1 {(2, 2) BETWEEN (2, 2) AND (3, 3)} 1\n  2 {(2, 2) BETWEEN (2, NULL) AND (3, 3)} {}\n  3 {(2, 2) BETWEEN (3, NULL) AND (3, 3)} 0\n"
-					_items4 := tclSplitList("\n  1 {(2, 2) BETWEEN (2, 2) AND (3, 3)} 1\n  2 {(2, 2) BETWEEN (2, NULL) AND (3, 3)} {}\n  3 {(2, 2) BETWEEN (3, NULL) AND (3, 3)} 0\n")
+					// foreach {tn expr res} "1 {(2, 2) BETWEEN (2, 2) AND (3, 3)} 1\n  2 {(2, 2) BETWEEN (2, NULL) AND (3, 3)} {}\n  3 {(2, 2) BETWEEN (3, NULL) AND (3, 3)} 0"
+					_items4 := tclSplitList("1 {(2, 2) BETWEEN (2, 2) AND (3, 3)} 1\n  2 {(2, 2) BETWEEN (2, NULL) AND (3, 3)} {}\n  3 {(2, 2) BETWEEN (3, NULL) AND (3, 3)} 0")
 					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
 						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
@@ -366,8 +366,8 @@ func Test_rowvalue(t *testing.T) {
 								}
 							}
 						}
-						// foreach {tn expr res} "\n  1 {(2, 4) IN (SELECT * FROM t1)} 1\n  2 {(3, 4) IN (SELECT * FROM t1)} 0\n\n  3 {(NULL, 4) IN (SELECT * FROM t1)} {}\n  4 {(NULL, 0) IN (SELECT * FROM t1)} 0\n\n  5 {(NULL, 4) NOT IN (SELECT * FROM t1)} {}\n  6 {(NULL, 0) NOT IN (SELECT * FROM t1)} 1\n"
-						_items5 := tclSplitList("\n  1 {(2, 4) IN (SELECT * FROM t1)} 1\n  2 {(3, 4) IN (SELECT * FROM t1)} 0\n\n  3 {(NULL, 4) IN (SELECT * FROM t1)} {}\n  4 {(NULL, 0) IN (SELECT * FROM t1)} 0\n\n  5 {(NULL, 4) NOT IN (SELECT * FROM t1)} {}\n  6 {(NULL, 0) NOT IN (SELECT * FROM t1)} 1\n")
+						// foreach {tn expr res} "1 {(2, 4) IN (SELECT * FROM t1)} 1\n  2 {(3, 4) IN (SELECT * FROM t1)} 0\n\n  3 {(NULL, 4) IN (SELECT * FROM t1)} {}\n  4 {(NULL, 0) IN (SELECT * FROM t1)} 0\n\n  5 {(NULL, 4) NOT IN (SELECT * FROM t1)} {}\n  6 {(NULL, 0) NOT IN (SELECT * FROM t1)} 1"
+						_items5 := tclSplitList("1 {(2, 4) IN (SELECT * FROM t1)} 1\n  2 {(3, 4) IN (SELECT * FROM t1)} 0\n\n  3 {(NULL, 4) IN (SELECT * FROM t1)} {}\n  4 {(NULL, 0) IN (SELECT * FROM t1)} 0\n\n  5 {(NULL, 4) NOT IN (SELECT * FROM t1)} {}\n  6 {(NULL, 0) NOT IN (SELECT * FROM t1)} 1")
 						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
 							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
@@ -509,8 +509,8 @@ func Test_rowvalue(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE xy(i INTEGER PRIMARY KEY, j, k);\n  INSERT INTO xy VALUES(1, 1, 1);\n  INSERT INTO xy VALUES(2, 2, 2);\n  INSERT INTO xy VALUES(3, 3, 3);\n  INSERT INTO xy VALUES(4, 4, 4);\n")
 								}
 							}
-							// foreach {tn sql res eqp} "\n  1 \"SELECT * FROM xy WHERE (i, j) IS (2, 2)\" {2 2 2} \n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid=?)\"\n\n  2 \"SELECT * FROM xy WHERE (k, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SCAN xy\"\n\n  3 \"SELECT * FROM xy WHERE (i, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid<?)\"\n\n  4 \"SELECT * FROM xy WHERE (i, j) > (2, 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n  5 \"SELECT * FROM xy WHERE (i, j) > ('2', 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n"
-							_items6 := tclSplitList("\n  1 \"SELECT * FROM xy WHERE (i, j) IS (2, 2)\" {2 2 2} \n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid=?)\"\n\n  2 \"SELECT * FROM xy WHERE (k, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SCAN xy\"\n\n  3 \"SELECT * FROM xy WHERE (i, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid<?)\"\n\n  4 \"SELECT * FROM xy WHERE (i, j) > (2, 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n  5 \"SELECT * FROM xy WHERE (i, j) > ('2', 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n")
+							// foreach {tn sql res eqp} "1 \"SELECT * FROM xy WHERE (i, j) IS (2, 2)\" {2 2 2} \n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid=?)\"\n\n  2 \"SELECT * FROM xy WHERE (k, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SCAN xy\"\n\n  3 \"SELECT * FROM xy WHERE (i, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid<?)\"\n\n  4 \"SELECT * FROM xy WHERE (i, j) > (2, 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n  5 \"SELECT * FROM xy WHERE (i, j) > ('2', 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\""
+							_items6 := tclSplitList("1 \"SELECT * FROM xy WHERE (i, j) IS (2, 2)\" {2 2 2} \n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid=?)\"\n\n  2 \"SELECT * FROM xy WHERE (k, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SCAN xy\"\n\n  3 \"SELECT * FROM xy WHERE (i, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid<?)\"\n\n  4 \"SELECT * FROM xy WHERE (i, j) > (2, 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n  5 \"SELECT * FROM xy WHERE (i, j) > ('2', 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"")
 							for _idx6 := 0; _idx6+4 <= len(_items6); _idx6 += 4 {
 								tn := _items6[_idx6+0]
 								_ = tn // suppress unused warning
@@ -552,8 +552,8 @@ func Test_rowvalue(t *testing.T) {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n  INSERT INTO t2 VALUES(4, 4, 4);\n  INSERT INTO t2 VALUES(5, 5, 5);\n")
 									}
 								}
-								// foreach {tn q res} "\n  1 \"(a, b) > (2, 1)\" {2 3 4 5}\n  2 \"(a, b) > (2, 2)\" {3 4 5}\n  3 \"(a, b) < (4, 5)\" {1 2 3 4}\n  4 \"(a, b) < (4, 3)\" {1 2 3}\n"
-								_items7 := tclSplitList("\n  1 \"(a, b) > (2, 1)\" {2 3 4 5}\n  2 \"(a, b) > (2, 2)\" {3 4 5}\n  3 \"(a, b) < (4, 5)\" {1 2 3 4}\n  4 \"(a, b) < (4, 3)\" {1 2 3}\n")
+								// foreach {tn q res} "1 \"(a, b) > (2, 1)\" {2 3 4 5}\n  2 \"(a, b) > (2, 2)\" {3 4 5}\n  3 \"(a, b) < (4, 5)\" {1 2 3 4}\n  4 \"(a, b) < (4, 3)\" {1 2 3}"
+								_items7 := tclSplitList("1 \"(a, b) > (2, 1)\" {2 3 4 5}\n  2 \"(a, b) > (2, 2)\" {3 4 5}\n  3 \"(a, b) < (4, 5)\" {1 2 3 4}\n  4 \"(a, b) < (4, 3)\" {1 2 3}")
 								for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
 									tn := _items7[_idx7+0]
 									_ = tn // suppress unused warning
@@ -665,8 +665,8 @@ func Test_rowvalue(t *testing.T) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
-									// foreach {tn sql} "\n  0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\"\n"
-									_items8 := tclSplitList("\n  0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\"\n")
+									// foreach {tn sql} "0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\""
+									_items8 := tclSplitList("0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\"")
 									for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
 										tn := _items8[_idx8+0]
 										_ = tn // suppress unused warning
@@ -764,8 +764,8 @@ func Test_rowvalue(t *testing.T) {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a PRIMARY KEY, b);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b);\n")
 											}
 										}
-										// foreach {tn n sql} "\n  1 0 \"SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1\"\n  2 2 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y<1\"\n  3 3 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y<1\"\n  4 0 \"SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a\"\n  5 0 \"SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a\"\n  6 0 \"SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1\"\n"
-										_items9 := tclSplitList("\n  1 0 \"SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1\"\n  2 2 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y<1\"\n  3 3 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y<1\"\n  4 0 \"SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a\"\n  5 0 \"SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a\"\n  6 0 \"SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1\"\n")
+										// foreach {tn n sql} "1 0 \"SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1\"\n  2 2 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y<1\"\n  3 3 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y<1\"\n  4 0 \"SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a\"\n  5 0 \"SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a\"\n  6 0 \"SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1\""
+										_items9 := tclSplitList("1 0 \"SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1\"\n  2 2 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y<1\"\n  3 3 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y<1\"\n  4 0 \"SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a\"\n  5 0 \"SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a\"\n  6 0 \"SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1\"")
 										for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
 											tn := _items9[_idx9+0]
 											_ = tn // suppress unused warning

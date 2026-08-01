@@ -84,8 +84,8 @@ func Test_thread001(t *testing.T) {
 	_ = enable_shared_cache // suppress unused warning
 	NTHREAD = "10" // TCL namespace variable
 	_ = NTHREAD // suppress unused warning
-	// foreach {tn same_db shared_cache} "list \\\n         1  1       0                   \\\n         2  0       0                   \\\n         3  0       1                   \\"
-	_items0 := tclSplitList("list \\\n         1  1       0                   \\\n         2  0       0                   \\\n         3  0       1                   \\")
+	// foreach {tn same_db shared_cache} "\\\n         1  1       0                   \\\n         2  0       0                   \\\n         3  0       1                   \\\n"
+	_items0 := tclSplitList("\\\n         1  1       0                   \\\n         2  0       0                   \\\n         3  0       1                   \\\n")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

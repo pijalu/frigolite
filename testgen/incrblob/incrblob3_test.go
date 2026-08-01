@@ -120,8 +120,8 @@ func Test_incrblob3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO blobs VALUES(3, 42);\n  INSERT INTO blobs VALUES(4, 54.4);\n  INSERT INTO blobs VALUES(5, NULL);\n")
 		}
 	}
-	// foreach {tn rowid type} "\n  1 3 integer\n  2 4 real\n  3 5 null\n"
-	_items1 := tclSplitList("\n  1 3 integer\n  2 4 real\n  3 5 null\n")
+	// foreach {tn rowid type} "1 3 integer\n  2 4 real\n  3 5 null"
+	_items1 := tclSplitList("1 3 integer\n  2 4 real\n  3 5 null")
 	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning

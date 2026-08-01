@@ -158,8 +158,8 @@ func Test_e_blobopen(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	// foreach {tn iRow flags} "\n  1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648\n"
-	_items0 := tclSplitList("\n  1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648\n")
+	// foreach {tn iRow flags} "1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648"
+	_items0 := tclSplitList("1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

@@ -498,8 +498,8 @@ func Test_zipfile(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE temp.x1 USING zipfile('test.zip');\n  INSERT INTO x1(name, data) VALUES('dir1/', NULL);\n  INSERT INTO x1(name, data) VALUES('file1', '1234');\n  INSERT INTO x1(name, data) VALUES('dir1/file2', '5678');\n")
 		}
 	}
-	// foreach {tn fname} "\n  1 dir1\n  2 file1\n  3 dir1/file2\n"
-	_items0 := tclSplitList("\n  1 dir1\n  2 file1\n  3 dir1/file2\n")
+	// foreach {tn fname} "1 dir1\n  2 file1\n  3 dir1/file2"
+	_items0 := tclSplitList("1 dir1\n  2 file1\n  3 dir1/file2")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -555,8 +555,8 @@ func Test_zipfile(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot open file: /path/that/does/not/exist", _res.Error, "\n  SELECT * FROM zipfile('/path/that/does/not/exist')\n")
 			}
 		}
-		// foreach {tn mode} "\n  1 abcd\n  2 brwxrwxrwx\n  3 lrwxrrxrwx\n"
-		_items1 := tclSplitList("\n  1 abcd\n  2 brwxrwxrwx\n  3 lrwxrrxrwx\n")
+		// foreach {tn mode} "1 abcd\n  2 brwxrwxrwx\n  3 lrwxrrxrwx"
+		_items1 := tclSplitList("1 abcd\n  2 brwxrwxrwx\n  3 lrwxrrxrwx")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -944,8 +944,8 @@ func Test_zipfile(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 						os.Remove("-force")
 					}
-					// foreach {path sz} "\n      subdir/x1.txt     143\n      subdir/x2.txt     153\n    "
-					_items0 := tclSplitList("\n      subdir/x1.txt     143\n      subdir/x2.txt     153\n    ")
+					// foreach {path sz} "subdir/x1.txt     143\n      subdir/x2.txt     153"
+					_items0 := tclSplitList("subdir/x1.txt     143\n      subdir/x2.txt     153")
 					for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 						path := _items0[_idx0+0]
 						_ = path // suppress unused warning

@@ -206,8 +206,8 @@ func Test_wal3(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	// foreach {tn syncmode synccount} "\n  1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}\n"
-	_items0 := tclSplitList("\n  1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}\n")
+	// foreach {tn syncmode synccount} "1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}"
+	_items0 := tclSplitList("1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

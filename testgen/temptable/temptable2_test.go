@@ -357,8 +357,8 @@ func Test_temptable2(t *testing.T) {
 		// B finish (unsupported command, not transpiled)
 	}
 	// tmp close (unsupported command, not transpiled)
-	// foreach {tn mode} "\n  1 delete\n  2 wal\n"
-	_items0 := tclSplitList("\n  1 delete\n  2 wal\n")
+	// foreach {tn mode} "1 delete\n  2 wal"
+	_items0 := tclSplitList("1 delete\n  2 wal")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

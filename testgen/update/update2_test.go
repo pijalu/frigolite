@@ -158,8 +158,8 @@ func Test_update2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// foreach {tn sql} "\n  1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }\n"
-	_items2 := tclSplitList("\n  1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }\n")
+	// foreach {tn sql} "1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }"
+	_items2 := tclSplitList("1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }")
 	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning

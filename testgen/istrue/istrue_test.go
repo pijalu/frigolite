@@ -293,8 +293,8 @@ func Test_istrue(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: e IS NOT FALSE", _res.Error, "\n  INSERT INTO t2 VALUES(2,true,false,null,false);\n")
 		}
 	}
-	// foreach {tn val} "list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf"
-	_items0 := tclSplitList("list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf")
+	// foreach {tn val} "1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf"
+	_items0 := tclSplitList("1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

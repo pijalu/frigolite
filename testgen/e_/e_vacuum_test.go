@@ -84,8 +84,8 @@ func Test_e_vacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 		}
 	}
-	// foreach {tn avmode sz} "\n  1 none        7 \n  2 full        8 \n  3 incremental 8\n"
-	_items0 := tclSplitList("\n  1 none        7 \n  2 full        8 \n  3 incremental 8\n")
+	// foreach {tn avmode sz} "1 none        7 \n  2 full        8 \n  3 incremental 8"
+	_items0 := tclSplitList("1 none        7 \n  2 full        8 \n  3 incremental 8")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

@@ -66,8 +66,8 @@ func Test_fts4umlaut(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(x, tokenize=unicode61);\n  CREATE VIRTUAL TABLE t2 USING fts4(\n      x, \n      tokenize=unicode61 \"remove_diacritics=2\"\n  );\n")
 		}
 	}
-	// foreach {tn q res1 res2} "\n  1 \"Hà Nội\"                  0 1\n  2 \"Hà Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1\n"
-	_items0 := tclSplitList("\n  1 \"Hà Nội\"                  0 1\n  2 \"Hà Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1\n")
+	// foreach {tn q res1 res2} "1 \"HÃ\u00a0 Ná»\u0099i\"                  0 1\n  2 \"HÃ\u00a0 Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1"
+	_items0 := tclSplitList("1 \"HÃ\u00a0 Ná»\u0099i\"                  0 1\n  2 \"HÃ\u00a0 Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

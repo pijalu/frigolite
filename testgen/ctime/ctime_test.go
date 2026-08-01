@@ -93,8 +93,8 @@ func Test_ctime(t *testing.T) {
 		_list := tclList([]string{tclLIndex(ans, "0"), tclExprWith(" [lsort [lindex $ans 1]]==[lindex $ans 1] ", map[string]string{"ans": ans})})
 		_ = _list
 	}
-	// foreach {tn opt res} "\n    1 SQLITE_THREADSAFE     1\n    2 THREADSAFE            1\n    3 THREADSAFE=0          0\n    4 THREADSAFE=1          0\n    5 THREADSAFE=2          1\n    6 THREADSAFE=           0\n  "
-	_items0 := tclSplitList("\n    1 SQLITE_THREADSAFE     1\n    2 THREADSAFE            1\n    3 THREADSAFE=0          0\n    4 THREADSAFE=1          0\n    5 THREADSAFE=2          1\n    6 THREADSAFE=           0\n  ")
+	// foreach {tn opt res} "1 SQLITE_THREADSAFE     1\n    2 THREADSAFE            1\n    3 THREADSAFE=0          0\n    4 THREADSAFE=1          0\n    5 THREADSAFE=2          1\n    6 THREADSAFE=           0"
+	_items0 := tclSplitList("1 SQLITE_THREADSAFE     1\n    2 THREADSAFE            1\n    3 THREADSAFE=0          0\n    4 THREADSAFE=1          0\n    5 THREADSAFE=2          1\n    6 THREADSAFE=           0")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

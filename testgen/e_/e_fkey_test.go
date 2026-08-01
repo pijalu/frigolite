@@ -442,8 +442,8 @@ func Test_e_fkey(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE c1(c REFERENCES nosuchtable, d);\n\n    CREATE TABLE p2(a, b, UNIQUE(a, b));\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p2(a, x));\n\n    CREATE TABLE p3(a PRIMARY KEY, b);\n    CREATE TABLE c3(c REFERENCES p3(b), d);\n\n    CREATE TABLE p4(a PRIMARY KEY, b);\n    CREATE UNIQUE INDEX p4i ON p4(b COLLATE nocase);\n    CREATE TABLE c4(c REFERENCES p4(b), d);\n\n    CREATE TABLE p5(a PRIMARY KEY, b COLLATE nocase);\n    CREATE UNIQUE INDEX p5i ON p5(b COLLATE binary);\n    CREATE TABLE c5(c REFERENCES p5(b), d);\n\n    CREATE TABLE p6(a PRIMARY KEY, b);\n    CREATE TABLE c6(c, d, FOREIGN KEY(c, d) REFERENCES p6);\n\n    CREATE TABLE p7(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE c7(c, d REFERENCES p7);\n  ")
 		}
 	}
-	// foreach {tn tbl ptbl err} "\n  2 c1 {} \"no such table: main.nosuchtable\"\n  3 c2 p2 \"foreign key mismatch - \\\"c2\\\" referencing \\\"p2\\\"\"\n  4 c3 p3 \"foreign key mismatch - \\\"c3\\\" referencing \\\"p3\\\"\"\n  5 c4 p4 \"foreign key mismatch - \\\"c4\\\" referencing \\\"p4\\\"\"\n  6 c5 p5 \"foreign key mismatch - \\\"c5\\\" referencing \\\"p5\\\"\"\n  7 c6 p6 \"foreign key mismatch - \\\"c6\\\" referencing \\\"p6\\\"\"\n  8 c7 p7 \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\"\n"
-	_items0 := tclSplitList("\n  2 c1 {} \"no such table: main.nosuchtable\"\n  3 c2 p2 \"foreign key mismatch - \\\"c2\\\" referencing \\\"p2\\\"\"\n  4 c3 p3 \"foreign key mismatch - \\\"c3\\\" referencing \\\"p3\\\"\"\n  5 c4 p4 \"foreign key mismatch - \\\"c4\\\" referencing \\\"p4\\\"\"\n  6 c5 p5 \"foreign key mismatch - \\\"c5\\\" referencing \\\"p5\\\"\"\n  7 c6 p6 \"foreign key mismatch - \\\"c6\\\" referencing \\\"p6\\\"\"\n  8 c7 p7 \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\"\n")
+	// foreach {tn tbl ptbl err} "2 c1 {} \"no such table: main.nosuchtable\"\n  3 c2 p2 \"foreign key mismatch - \\\"c2\\\" referencing \\\"p2\\\"\"\n  4 c3 p3 \"foreign key mismatch - \\\"c3\\\" referencing \\\"p3\\\"\"\n  5 c4 p4 \"foreign key mismatch - \\\"c4\\\" referencing \\\"p4\\\"\"\n  6 c5 p5 \"foreign key mismatch - \\\"c5\\\" referencing \\\"p5\\\"\"\n  7 c6 p6 \"foreign key mismatch - \\\"c6\\\" referencing \\\"p6\\\"\"\n  8 c7 p7 \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\""
+	_items0 := tclSplitList("2 c1 {} \"no such table: main.nosuchtable\"\n  3 c2 p2 \"foreign key mismatch - \\\"c2\\\" referencing \\\"p2\\\"\"\n  4 c3 p3 \"foreign key mismatch - \\\"c3\\\" referencing \\\"p3\\\"\"\n  5 c4 p4 \"foreign key mismatch - \\\"c4\\\" referencing \\\"p4\\\"\"\n  6 c5 p5 \"foreign key mismatch - \\\"c5\\\" referencing \\\"p5\\\"\"\n  7 c6 p6 \"foreign key mismatch - \\\"c6\\\" referencing \\\"p6\\\"\"\n  8 c7 p7 \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\"")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -519,7 +519,7 @@ func Test_e_fkey(t *testing.T) {
 			_ = _res // catchsql
 		}
 		// drop_all_tables (unsupported command, not transpiled)
-		for _, fk := range tclSplitList("list OFF ON") {
+		for _, fk := range tclSplitList("OFF ON") {
 		_ = fk // suppress unused warning
 			r = db.Query("PRAGMA foreign_keys = " + fk)
 			if r.Error != nil {
@@ -527,8 +527,8 @@ func Test_e_fkey(t *testing.T) {
 			}
 			i = "0"
 			_ = i // suppress unused warning
-			// foreach {sql error} "\n    \"CREATE TABLE child1(a, b, FOREIGN KEY(a, b) REFERENCES p(c))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, b) REFERENCES p(c, d, e))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, c) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(c, b) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n  "
-			_items1 := tclSplitList("\n    \"CREATE TABLE child1(a, b, FOREIGN KEY(a, b) REFERENCES p(c))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, b) REFERENCES p(c, d, e))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, c) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(c, b) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n  ")
+			// foreach {sql error} "\"CREATE TABLE child1(a, b, FOREIGN KEY(a, b) REFERENCES p(c))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, b) REFERENCES p(c, d, e))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, c) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(c, b) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}"
+			_items1 := tclSplitList("\"CREATE TABLE child1(a, b, FOREIGN KEY(a, b) REFERENCES p(c))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, b) REFERENCES p(c, d, e))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, c) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(c, b) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}")
 			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 				sql := _items1[_idx1+0]
 				_ = sql // suppress unused warning
@@ -562,8 +562,8 @@ func Test_e_fkey(t *testing.T) {
 				}
 			}
 			// proc definition (not transpiled)
-			// foreach {tn c} "list 2 c1 3 c2 4 c3"
-			_items2 := tclSplitList("list 2 c1 3 c2 4 c3")
+			// foreach {tn c} "2 c1 3 c2 4 c3"
+			_items2 := tclSplitList("2 c1 3 c2 4 c3")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
@@ -620,8 +620,8 @@ func Test_e_fkey(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE parent(x, y, UNIQUE(y, x)) ")
 					}
 				}
-				// foreach {tn sql} "\n  2 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y))\n  }\n  3 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX childi ON child(a, b);\n  }\n  4 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE UNIQUE INDEX childi ON child(b, a);\n  }\n"
-				_items3 := tclSplitList("\n  2 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y))\n  }\n  3 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX childi ON child(a, b);\n  }\n  4 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE UNIQUE INDEX childi ON child(b, a);\n  }\n")
+				// foreach {tn sql} "2 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y))\n  }\n  3 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX childi ON child(a, b);\n  }\n  4 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE UNIQUE INDEX childi ON child(b, a);\n  }"
+				_items3 := tclSplitList("2 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y))\n  }\n  3 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX childi ON child(a, b);\n  }\n  4 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE UNIQUE INDEX childi ON child(b, a);\n  }")
 				for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
@@ -667,8 +667,8 @@ func Test_e_fkey(t *testing.T) {
 					}
 					// do_detail_test e_fkey-27.3 {\n  EXPLAIN QUERY PLAN UPDATE artist SET artistid ...} {\n  {SCAN a... (unsupported command, not transpiled)
 					// do_detail_test e_fkey-27.4 {\n  EXPLAIN QUERY PLAN DELETE FROM artist\n} {\n  {SCAN artist} \n ... (unsupported command, not transpiled)
-					// foreach {tn sql err} "\n  1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n"
-					_items4 := tclSplitList("\n  1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n")
+					// foreach {tn sql err} "1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}"
+					_items4 := tclSplitList("1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}")
 					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
 						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
@@ -984,8 +984,8 @@ func Test_e_fkey(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY, y);\n    CREATE TABLE child1(a, \n      b REFERENCES parent ON UPDATE NO ACTION ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(a, \n      b REFERENCES parent ON UPDATE RESTRICT ON DELETE SET NULL\n    );\n    CREATE TABLE child3(a, \n      b REFERENCES parent ON UPDATE SET NULL ON DELETE SET DEFAULT\n    );\n    CREATE TABLE child4(a, \n      b REFERENCES parent ON UPDATE SET DEFAULT ON DELETE CASCADE\n    );\n\n    -- Create some foreign keys that use the default action - \"NO ACTION\"\n    CREATE TABLE child5(a, b REFERENCES parent ON UPDATE CASCADE);\n    CREATE TABLE child6(a, b REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child7(a, b REFERENCES parent ON DELETE NO ACTION);\n    CREATE TABLE child8(a, b REFERENCES parent ON UPDATE NO ACTION);\n  ")
 							}
 						}
-						// foreach {tn zTab lRes} "\n  2 child1 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  3 child2 {0 0 parent b {} RESTRICT {SET NULL} NONE}\n  4 child3 {0 0 parent b {} {SET NULL} {SET DEFAULT} NONE}\n  5 child4 {0 0 parent b {} {SET DEFAULT} CASCADE NONE}\n  6 child5 {0 0 parent b {} CASCADE {NO ACTION} NONE}\n  7 child6 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  8 child7 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n  9 child8 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n"
-						_items5 := tclSplitList("\n  2 child1 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  3 child2 {0 0 parent b {} RESTRICT {SET NULL} NONE}\n  4 child3 {0 0 parent b {} {SET NULL} {SET DEFAULT} NONE}\n  5 child4 {0 0 parent b {} {SET DEFAULT} CASCADE NONE}\n  6 child5 {0 0 parent b {} CASCADE {NO ACTION} NONE}\n  7 child6 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  8 child7 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n  9 child8 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n")
+						// foreach {tn zTab lRes} "2 child1 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  3 child2 {0 0 parent b {} RESTRICT {SET NULL} NONE}\n  4 child3 {0 0 parent b {} {SET NULL} {SET DEFAULT} NONE}\n  5 child4 {0 0 parent b {} {SET DEFAULT} CASCADE NONE}\n  6 child5 {0 0 parent b {} CASCADE {NO ACTION} NONE}\n  7 child6 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  8 child7 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n  9 child8 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}"
+						_items5 := tclSplitList("2 child1 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  3 child2 {0 0 parent b {} RESTRICT {SET NULL} NONE}\n  4 child3 {0 0 parent b {} {SET NULL} {SET DEFAULT} NONE}\n  5 child4 {0 0 parent b {} {SET DEFAULT} CASCADE NONE}\n  6 child5 {0 0 parent b {} CASCADE {NO ACTION} NONE}\n  7 child6 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  8 child7 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n  9 child8 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}")
 						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
 							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
@@ -1425,8 +1425,8 @@ func Test_e_fkey(t *testing.T) {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 'key2';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
 								}
 							}
-							// foreach {tn zCreateTbl lRes} "\n  1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}\n"
-							_items6 := tclSplitList("\n  1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}\n")
+							// foreach {tn zCreateTbl lRes} "1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}"
+							_items6 := tclSplitList("1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}")
 							for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
 								tn := _items6[_idx6+0]
 								_ = tn // suppress unused warning
@@ -1710,7 +1710,7 @@ func Test_e_fkey(t *testing.T) {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = ON ")
 									}
 								}
-								for _, zMatch := range tclSplitList("list SIMPLE PARTIAL FULL Simple parTIAL FuLL") {
+								for _, zMatch := range tclSplitList("SIMPLE PARTIAL FULL Simple parTIAL FuLL ") {
 								_ = zMatch // suppress unused warning
 									// drop_all_tables (unsupported command, not transpiled)
 									{ // do_test "e_fkey-62." + zMatch + ".1"
@@ -1813,7 +1813,7 @@ func Test_e_fkey(t *testing.T) {
 										// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1000000 (unsupported command, not transpiled)
 									}
 								}
-								for _, recursive_triggers_setting := range tclSplitList("list 0 1 ON OFF") {
+								for _, recursive_triggers_setting := range tclSplitList("0 1 ON OFF") {
 								_ = recursive_triggers_setting // suppress unused warning
 									// drop_all_tables (unsupported command, not transpiled)
 									r = db.Query("PRAGMA recursive_triggers = " + recursive_triggers_setting)

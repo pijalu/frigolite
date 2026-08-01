@@ -666,8 +666,8 @@ func Test_returning1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// foreach {tn temp} "\n  1 \"\"\n  2 TEMP\n"
-	_items0 := tclSplitList("\n  1 \"\"\n  2 TEMP\n")
+	// foreach {tn temp} "1 \"\"\n  2 TEMP"
+	_items0 := tclSplitList("1 \"\"\n  2 TEMP")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

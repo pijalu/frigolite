@@ -109,8 +109,8 @@ func Test_bestindex4(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIRTUAL TABLE t1 USING tcl('vtab_cmd " + param1 + "');\n      CREATE VIRTUAL TABLE t2 USING tcl('vtab_cmd " + param2 + "');\n    ")
 				}
 			}
-			// foreach {tn sql} "\n      2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }\n    "
-			_items0 := tclSplitList("\n      2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }\n    ")
+			// foreach {tn sql} "2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }"
+			_items0 := tclSplitList("2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }")
 			for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 				tn := _items0[_idx0+0]
 				_ = tn // suppress unused warning

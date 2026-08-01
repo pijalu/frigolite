@@ -59,8 +59,8 @@ func Test_memdb2(t *testing.T) {
 	testprefix = "memdb2"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
-	// foreach {tn fname} "\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n"
-	_items0 := tclSplitList("\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n")
+	// foreach {tn fname} "1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb"
+	_items0 := tclSplitList("1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

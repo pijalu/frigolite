@@ -1759,7 +1759,16 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		return
 	}
 	varNames := tp.parseVarList(args[0])
-	listExpr := tp.goStringLiteral(args[1])
+	rawList := strings.TrimSpace(args[1].Text)
+	// A literal "[list ...]" or "list ..." carries the TCL list command as the
+	// first word; strip it so tclSplitList returns only the list elements.
+	if strings.HasPrefix(rawList, "[list ") {
+		rawList = rawList[len("[list "):]
+		rawList = strings.TrimSuffix(rawList, "]")
+	} else if strings.HasPrefix(rawList, "list ") {
+		rawList = rawList[len("list "):]
+	}
+	listExpr := tp.goStringLiteral(tcl.RawWord{Text: rawList})
 
 	// foreach over [db eval ...]: the transpiler can't execute TCL at
 	// generation time, but the common cleanup pattern

@@ -133,7 +133,7 @@ func Test_select9(t *testing.T) {
 	}
 	iOuterLoop = "1"
 	_ = iOuterLoop // suppress unused warning
-	for _, indexes := range tclSplitList("list {\n  /* Do not create any indexes. */\n} {\n  CREATE INDEX i1 ON t1(a)\n} {\n  CREATE INDEX i2 ON t1(b)\n} {\n  CREATE INDEX i3 ON t2(d)\n} {\n  CREATE INDEX i4 ON t2(e)\n}") {
+	for _, indexes := range tclSplitList("{\n  /* Do not create any indexes. */\n} {\n  CREATE INDEX i1 ON t1(a)\n} {\n  CREATE INDEX i2 ON t1(b)\n} {\n  CREATE INDEX i3 ON t2(d)\n} {\n  CREATE INDEX i4 ON t2(e)\n}") {
 	_ = indexes // suppress unused warning
 		{ // do_test "select9-1." + iOuterLoop + ".1"
 			_res = db.Exec(indexes)
@@ -178,7 +178,7 @@ func Test_select9(t *testing.T) {
 	// proc definition (not transpiled)
 	iOuterLoop = "1"
 	_ = iOuterLoop // suppress unused warning
-	for _, indexes := range tclSplitList("list {\n  /* Do not create any indexes. */\n} {\n  CREATE INDEX i1 ON t1(a)\n} {\n  DROP INDEX i1;\n  CREATE INDEX i1 ON t1(b, a)\n} {\n  CREATE INDEX i2 ON t2(d DESC, e COLLATE REVERSE ASC);\n} {\n  CREATE INDEX i3 ON t1(a DESC);\n}") {
+	for _, indexes := range tclSplitList("{\n  /* Do not create any indexes. */\n} {\n  CREATE INDEX i1 ON t1(a)\n} {\n  DROP INDEX i1;\n  CREATE INDEX i1 ON t1(b, a)\n} {\n  CREATE INDEX i2 ON t2(d DESC, e COLLATE REVERSE ASC);\n} {\n  CREATE INDEX i3 ON t1(a DESC);\n}") {
 	_ = indexes // suppress unused warning
 		{ // do_test "select9-2." + iOuterLoop + ".1"
 			_res = db.Exec(indexes)

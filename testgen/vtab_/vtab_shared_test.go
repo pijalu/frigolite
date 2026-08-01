@@ -138,8 +138,8 @@ func Test_vtab_shared(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT *  FROM t1 ")
 		}
 	}
-	// foreach {iTest dbSelect dbClose} "\n  1 db  db2\n  2 db  db2\n  3 db2 db\n"
-	_items1 := tclSplitList("\n  1 db  db2\n  2 db  db2\n  3 db2 db\n")
+	// foreach {iTest dbSelect dbClose} "1 db  db2\n  2 db  db2\n  3 db2 db"
+	_items1 := tclSplitList("1 db  db2\n  2 db  db2\n  3 db2 db")
 	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 		iTest := _items1[_idx1+0]
 		_ = iTest // suppress unused warning

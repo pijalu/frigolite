@@ -307,8 +307,8 @@ func Test_zipfile2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// foreach {tn sub} "\n  1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}\n"
-	_items0 := tclSplitList("\n  1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}\n")
+	// foreach {tn sub} "1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}"
+	_items0 := tclSplitList("1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

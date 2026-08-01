@@ -235,8 +235,8 @@ func Test_vacuum_into(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
-	// foreach {tn pragma res} "\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n"
-	_items1 := tclSplitList("\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n")
+	// foreach {tn pragma res} "710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}"
+	_items1 := tclSplitList("710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}")
 	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning

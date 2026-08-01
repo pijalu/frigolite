@@ -74,8 +74,8 @@ func Test_percentile(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x,0) FROM t1")
 		}
 	}
-	// foreach {in out disc} "\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n"
-	_items0 := tclSplitList("\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n")
+	// foreach {in out disc} "100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0"
+	_items0 := tclSplitList("100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		in := _items0[_idx0+0]
 		_ = in // suppress unused warning
@@ -185,8 +185,8 @@ func Test_percentile(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(NULL),(NULL);")
 			}
 		}
-		// foreach {in out disc} "\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n"
-		_items1 := tclSplitList("\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n")
+		// foreach {in out disc} "100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0"
+		_items1 := tclSplitList("100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			in := _items1[_idx1+0]
 			_ = in // suppress unused warning
@@ -278,8 +278,8 @@ func Test_percentile(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x);\n    INSERT INTO t2 SELECT x+0.0 FROM t1 ORDER BY random();\n  ")
 				}
 			}
-			// foreach {in out disc} "\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n"
-			_items2 := tclSplitList("\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n")
+			// foreach {in out disc} "100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0"
+			_items2 := tclSplitList("100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0")
 			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 				in := _items2[_idx2+0]
 				_ = in // suppress unused warning
@@ -508,8 +508,8 @@ func Test_percentile(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIRTUAL TABLE nums USING wholenumber;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT value-1 FROM nums WHERE value BETWEEN 1 AND 500000;\n      INSERT INTO t3 SELECT value*10 FROM nums\n                      WHERE value BETWEEN 500000 AND 999999;\n      SELECT count(*) FROM t3;\n    ")
 					}
 				}
-				// foreach {in out} "\n      0          0.0\n    100    9999990.0\n     50    2749999.5\n     10      99999.9\n  "
-				_items3 := tclSplitList("\n      0          0.0\n    100    9999990.0\n     50    2749999.5\n     10      99999.9\n  ")
+				// foreach {in out} "0          0.0\n    100    9999990.0\n     50    2749999.5\n     10      99999.9"
+				_items3 := tclSplitList("0          0.0\n    100    9999990.0\n     50    2749999.5\n     10      99999.9")
 				for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
 					in := _items3[_idx3+0]
 					_ = in // suppress unused warning
@@ -529,8 +529,8 @@ func Test_percentile(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);\n")
 						}
 					}
-					// foreach {id oba expr} "\n  1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"\n"
-					_items4 := tclSplitList("\n  1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"\n")
+					// foreach {id oba expr} "1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\""
+					_items4 := tclSplitList("1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"")
 					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
 						id := _items4[_idx4+0]
 						_ = id // suppress unused warning

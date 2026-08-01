@@ -93,8 +93,8 @@ func Test_fts3corrupt5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// foreach {tn val q bCorrupt} "\n  1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0\n"
-	_items0 := tclSplitList("\n  1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0\n")
+	// foreach {tn val q bCorrupt} "1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0"
+	_items0 := tclSplitList("1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

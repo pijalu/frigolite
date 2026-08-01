@@ -146,7 +146,7 @@ func Test_backup(t *testing.T) {
 	_ = zSrcFile // suppress unused warning
 		for _, zDestFile := range tclSplitList("test2.db :memory:") {
 		_ = zDestFile // suppress unused warning
-			for _, zOpenScript := range tclSplitList("list {\n  sqlite3 db $zSrcFile\n  sqlite3 db2 $zSrcFile\n  db2 eval \"ATTACH '$zDestFile' AS bak\"\n  set db_dest db2\n  set file_dest bak\n} {\n  sqlite3 db $zSrcFile\n  sqlite3 db2 $zDestFile\n  set db_dest db2\n  set file_dest main\n} {\n  sqlite3 db $zSrcFile\n  sqlite3 db2 $zDestFile\n  set db_dest db2\n  set file_dest temp\n}") {
+			for _, zOpenScript := range tclSplitList("{\n  sqlite3 db " + zSrcFile + "\n  sqlite3 db2 " + zSrcFile + "\n  db2 eval \"ATTACH '" + zDestFile + "' AS bak\"\n  set db_dest db2\n  set file_dest bak\n} {\n  sqlite3 db " + zSrcFile + "\n  sqlite3 db2 " + zDestFile + "\n  set db_dest db2\n  set file_dest main\n} {\n  sqlite3 db " + zSrcFile + "\n  sqlite3 db2 " + zDestFile + "\n  set db_dest db2\n  set file_dest temp\n}") {
 			_ = zOpenScript // suppress unused warning
 				for _, rows_dest := range tclSplitList("0 3 10") {
 				_ = rows_dest // suppress unused warning
@@ -996,8 +996,8 @@ func Test_backup(t *testing.T) {
 		db2.Close()
 		db3.Close()
 		os.Remove("test.db")
-		// foreach {tn file rc} "\n  1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK\n"
-		_items9 := tclSplitList("\n  1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK\n")
+		// foreach {tn file rc} "1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK"
+		_items9 := tclSplitList("1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK")
 		for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
 			tn := _items9[_idx9+0]
 			_ = tn // suppress unused warning

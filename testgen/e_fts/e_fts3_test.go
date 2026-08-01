@@ -123,8 +123,8 @@ func Test_e_fts3(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// foreach {DO_MALLOC_TEST enc} "\n  0 utf-8\n  1 utf-8\n  2 utf-8\n  1 utf-16\n"
-	_items0 := tclSplitList("\n  0 utf-8\n  1 utf-8\n  2 utf-8\n  1 utf-16\n")
+	// foreach {DO_MALLOC_TEST enc} "0 utf-8\n  1 utf-8\n  2 utf-8\n  1 utf-16"
+	_items0 := tclSplitList("0 utf-8\n  1 utf-8\n  2 utf-8\n  1 utf-16")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		DO_MALLOC_TEST := _items0[_idx0+0]
 		_ = DO_MALLOC_TEST // suppress unused warning
@@ -204,8 +204,8 @@ func Test_e_fts3(t *testing.T) {
 			// do_error_test e_fts3-1.3.3.5 { \n  SELECT * FROM docs WHERE main.docs MATCH 'sql...} {no such ... (unsupported command, not transpiled)
 			// ddl_test 1.3.2.8 { DROP TABLE docs } (unsupported command, not transpiled)
 			// ddl_test 1.4.1.1 { CREATE VIRTUAL TABLE docs USING fts3(title, body)...} (unsupported command, not transpiled)
-			// foreach {tn title body} "\n  2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"\n"
-			_items1 := tclSplitList("\n  2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"\n")
+			// foreach {tn title body} "2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\""
+			_items1 := tclSplitList("2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"")
 			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 				tn := _items1[_idx1+0]
 				_ = tn // suppress unused warning
@@ -227,8 +227,8 @@ func Test_e_fts3(t *testing.T) {
 				// ddl_test 1.4.1.17 { DROP TABLE docs } (unsupported command, not transpiled)
 				// ddl_test 1.4.2.1 { CREATE VIRTUAL TABLE docs USING fts3() } (unsupported command, not transpiled)
 				// write_test 1.4.2.2 docs_content { \n  INSERT INTO docs VALUES(\n  'SQLite is an ACI...} (unsupported command, not transpiled)
-				// foreach {tn query hit} "\n3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0\n"
-				_items2 := tclSplitList("\n3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0\n")
+				// foreach {tn query hit} "3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0"
+				_items2 := tclSplitList("3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0")
 				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 					tn := _items2[_idx2+0]
 					_ = tn // suppress unused warning
@@ -245,8 +245,8 @@ func Test_e_fts3(t *testing.T) {
 					sqlite_fts3_enable_parentheses = "1"
 					_ = sqlite_fts3_enable_parentheses // suppress unused warning
 					// ddl_test 1.5.1.1 { CREATE VIRTUAL TABLE docs USING fts3() } (unsupported command, not transpiled)
-					// foreach {tn docid content} "\n  2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"\n"
-					_items3 := tclSplitList("\n  2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"\n")
+					// foreach {tn docid content} "2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\""
+					_items3 := tclSplitList("2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"")
 					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 						tn := _items3[_idx3+0]
 						_ = tn // suppress unused warning

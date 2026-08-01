@@ -62,16 +62,16 @@ func Test_tkt_fc7bd6358f(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t(textid TEXT);\n    INSERT INTO t VALUES('12');\n    INSERT INTO t VALUES('34');\n    CREATE TABLE i(intid INTEGER PRIMARY KEY);\n    INSERT INTO i VALUES(12);\n    INSERT INTO i VALUES(34);\n  ")
 		}
 	}
-	// foreach {a from} "\n  1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}\n"
-	_items0 := tclSplitList("\n  1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}\n")
+	// foreach {a from} "1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}"
+	_items0 := tclSplitList("1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		a := _items0[_idx0+0]
 		_ = a // suppress unused warning
 		from := _items0[_idx0+1]
 		_ = from // suppress unused warning
 		_ = _idx0
-			// foreach {b where} "\n    1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}\n  "
-			_items1 := tclSplitList("\n    1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}\n  ")
+			// foreach {b where} "1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}"
+			_items1 := tclSplitList("1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}")
 			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 				b := _items1[_idx1+0]
 				_ = b // suppress unused warning

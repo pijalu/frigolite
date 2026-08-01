@@ -247,8 +247,8 @@ func Test_e_expr(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// foreach {op opn} "\n      ||   cat     *   mul       /  div       %     mod       +      add\n      -    sub     <<  lshift    >> rshift    &     bitand    |      bitor\n      <    less    <=  lesseq    >  more      >=    moreeq    =      eq1\n      ==   eq2     <>  ne1       != ne2       IS    is        LIKE   like\n      GLOB glob    AND and       OR or        MATCH match     REGEXP regexp\n      {IS NOT} isnt\n"
-	_items0 := tclSplitList("\n      ||   cat     *   mul       /  div       %     mod       +      add\n      -    sub     <<  lshift    >> rshift    &     bitand    |      bitor\n      <    less    <=  lesseq    >  more      >=    moreeq    =      eq1\n      ==   eq2     <>  ne1       != ne2       IS    is        LIKE   like\n      GLOB glob    AND and       OR or        MATCH match     REGEXP regexp\n      {IS NOT} isnt\n")
+	// foreach {op opn} "||   cat     *   mul       /  div       %     mod       +      add\n      -    sub     <<  lshift    >> rshift    &     bitand    |      bitor\n      <    less    <=  lesseq    >  more      >=    moreeq    =      eq1\n      ==   eq2     <>  ne1       != ne2       IS    is        LIKE   like\n      GLOB glob    AND and       OR or        MATCH match     REGEXP regexp\n      {IS NOT} isnt"
+	_items0 := tclSplitList("||   cat     *   mul       /  div       %     mod       +      add\n      -    sub     <<  lshift    >> rshift    &     bitand    |      bitor\n      <    less    <=  lesseq    >  more      >=    moreeq    =      eq1\n      ==   eq2     <>  ne1       != ne2       IS    is        LIKE   like\n      GLOB glob    AND and       OR or        MATCH match     REGEXP regexp\n      {IS NOT} isnt")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		op := _items0[_idx0+0]
 		_ = op // suppress unused warning
@@ -260,8 +260,8 @@ func Test_e_expr(t *testing.T) {
 		}
 		oplist = "list"
 		_ = oplist // suppress unused warning
-		// foreach {prec opl} "\n  1   ||\n  2   {* / %}\n  3   {+ -}\n  4   {<< >> & |}\n  5   {< <= > >=}\n  6   {= == != <> IS {IS NOT} LIKE GLOB MATCH REGEXP}\n  7   AND\n  8   OR\n"
-		_items1 := tclSplitList("\n  1   ||\n  2   {* / %}\n  3   {+ -}\n  4   {<< >> & |}\n  5   {< <= > >=}\n  6   {= == != <> IS {IS NOT} LIKE GLOB MATCH REGEXP}\n  7   AND\n  8   OR\n")
+		// foreach {prec opl} "1   ||\n  2   {* / %}\n  3   {+ -}\n  4   {<< >> & |}\n  5   {< <= > >=}\n  6   {= == != <> IS {IS NOT} LIKE GLOB MATCH REGEXP}\n  7   AND\n  8   OR"
+		_items1 := tclSplitList("1   ||\n  2   {* / %}\n  3   {+ -}\n  4   {<< >> & |}\n  5   {< <= > >=}\n  6   {= == != <> IS {IS NOT} LIKE GLOB MATCH REGEXP}\n  7   AND\n  8   OR")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			prec := _items1[_idx1+0]
 			_ = prec // suppress unused warning
@@ -283,8 +283,8 @@ func Test_e_expr(t *testing.T) {
 				_ = op2 // suppress unused warning
 					untested_op1_op2 = "1"
 					_ = untested_op1_op2 // suppress unused warning
-					// foreach {tn A B C} "\n       1     22   45    66\n       2      0    0     0\n       3      0    0     1\n       4      0    1     0\n       5      0    1     1\n       6      1    0     0\n       7      1    0     1\n       8      1    1     0\n       9      1    1     1\n      10      5    6     1\n      11      1    5     6\n      12      1    5     5\n      13      5    5     1\n\n      14      5    2     1\n      15      1    4     1\n      16     -1    0     1\n      17      0    1    -1\n\n    "
-					_items2 := tclSplitList("\n       1     22   45    66\n       2      0    0     0\n       3      0    0     1\n       4      0    1     0\n       5      0    1     1\n       6      1    0     0\n       7      1    0     1\n       8      1    1     0\n       9      1    1     1\n      10      5    6     1\n      11      1    5     6\n      12      1    5     5\n      13      5    5     1\n\n      14      5    2     1\n      15      1    4     1\n      16     -1    0     1\n      17      0    1    -1\n\n    ")
+					// foreach {tn A B C} "1     22   45    66\n       2      0    0     0\n       3      0    0     1\n       4      0    1     0\n       5      0    1     1\n       6      1    0     0\n       7      1    0     1\n       8      1    1     0\n       9      1    1     1\n      10      5    6     1\n      11      1    5     6\n      12      1    5     5\n      13      5    5     1\n\n      14      5    2     1\n      15      1    4     1\n      16     -1    0     1\n      17      0    1    -1"
+					_items2 := tclSplitList("1     22   45    66\n       2      0    0     0\n       3      0    0     1\n       4      0    1     0\n       5      0    1     1\n       6      1    0     0\n       7      1    0     1\n       8      1    1     0\n       9      1    1     1\n      10      5    6     1\n      11      1    5     6\n      12      1    5     5\n      13      5    5     1\n\n      14      5    2     1\n      15      1    4     1\n      16     -1    0     1\n      17      0    1    -1")
 					for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
 						tn := _items2[_idx2+0]
 						_ = tn // suppress unused warning
@@ -443,8 +443,8 @@ func Test_e_expr(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				// foreach {tn literal type} "\n  1     'helloworld'   text\n  2     45             integer\n  3     45.2           real\n  4     45.0           real\n  5     X'ABCDEF'      blob\n  6     NULL           null\n"
-				_items3 := tclSplitList("\n  1     'helloworld'   text\n  2     45             integer\n  3     45.2           real\n  4     45.0           real\n  5     X'ABCDEF'      blob\n  6     NULL           null\n")
+				// foreach {tn literal type} "1     'helloworld'   text\n  2     45             integer\n  3     45.2           real\n  4     45.0           real\n  5     X'ABCDEF'      blob\n  6     NULL           null"
+				_items3 := tclSplitList("1     'helloworld'   text\n  2     45             integer\n  3     45.2           real\n  4     45.0           real\n  5     X'ABCDEF'      blob\n  6     NULL           null")
 				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
@@ -462,8 +462,8 @@ func Test_e_expr(t *testing.T) {
 							}
 						}
 					}
-					// foreach {tn literal different} "\n  1   'helloworld'  '12345'\n  2   22            23\n  3   'xyz'         X'78797A'\n  4   X'78797A00'   'xyz'\n"
-					_items4 := tclSplitList("\n  1   'helloworld'  '12345'\n  2   22            23\n  3   'xyz'         X'78797A'\n  4   X'78797A00'   'xyz'\n")
+					// foreach {tn literal different} "1   'helloworld'  '12345'\n  2   22            23\n  3   'xyz'         X'78797A'\n  4   X'78797A00'   'xyz'"
+					_items4 := tclSplitList("1   'helloworld'  '12345'\n  2   22            23\n  3   'xyz'         X'78797A'\n  4   X'78797A00'   'xyz'")
 					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
 						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
@@ -485,8 +485,8 @@ func Test_e_expr(t *testing.T) {
 								}
 							}
 						}
-						// foreach {tn a b} "\n  1   'helloworld'  '12345'\n  2   22            23\n"
-						_items5 := tclSplitList("\n  1   'helloworld'  '12345'\n  2   22            23\n")
+						// foreach {tn a b} "1   'helloworld'  '12345'\n  2   22            23"
+						_items5 := tclSplitList("1   'helloworld'  '12345'\n  2   22            23")
 						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
 							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
@@ -1412,8 +1412,8 @@ func Test_e_expr(t *testing.T) {
 											// parameter_test e_expr-11.1 \n  SELECT ?1, ?123, ?$SQLITE_MAX_VARIABLE_NUMBER,... 1 ?1  123 ?123... (unsupported command, not transpiled)
 											errmsg = "variable number must be between ?1 and ?" + SQLITE_MAX_VARIABLE_NUMBER
 											_ = errmsg // suppress unused warning
-											// foreach {tn param_number} "list \\\n  2  0                                    \\\n  3  [expr $SQLITE_MAX_VARIABLE_NUMBER+1] \\\n  4  [expr $SQLITE_MAX_VARIABLE_NUMBER+2] \\\n  5  12345678903456789034567890234567890  \\\n  6  2147483648                           \\\n  7  2147483649                           \\\n  8  4294967296                           \\\n  9  4294967297                           \\\n  10 9223372036854775808                  \\\n  11 9223372036854775809                  \\\n  12 18446744073709551616                 \\\n  13 18446744073709551617                 \\"
-											_items10 := tclSplitList("list \\\n  2  0                                    \\\n  3  [expr $SQLITE_MAX_VARIABLE_NUMBER+1] \\\n  4  [expr $SQLITE_MAX_VARIABLE_NUMBER+2] \\\n  5  12345678903456789034567890234567890  \\\n  6  2147483648                           \\\n  7  2147483649                           \\\n  8  4294967296                           \\\n  9  4294967297                           \\\n  10 9223372036854775808                  \\\n  11 9223372036854775809                  \\\n  12 18446744073709551616                 \\\n  13 18446744073709551617                 \\")
+											// foreach {tn param_number} "\\\n  2  0                                    \\\n  3  " + tclExprWith("$SQLITE_MAX_VARIABLE_NUMBER+1", map[string]string{"SQLITE_MAX_VARIABLE_NUMBER": SQLITE_MAX_VARIABLE_NUMBER}) + " \\\n  4  " + tclExprWith("$SQLITE_MAX_VARIABLE_NUMBER+2", map[string]string{"SQLITE_MAX_VARIABLE_NUMBER": SQLITE_MAX_VARIABLE_NUMBER}) + " \\\n  5  12345678903456789034567890234567890  \\\n  6  2147483648                           \\\n  7  2147483649                           \\\n  8  4294967296                           \\\n  9  4294967297                           \\\n  10 9223372036854775808                  \\\n  11 9223372036854775809                  \\\n  12 18446744073709551616                 \\\n  13 18446744073709551617                 \\\n"
+											_items10 := tclSplitList("\\\n  2  0                                    \\\n  3  " + tclExprWith("$SQLITE_MAX_VARIABLE_NUMBER+1", map[string]string{"SQLITE_MAX_VARIABLE_NUMBER": SQLITE_MAX_VARIABLE_NUMBER}) + " \\\n  4  " + tclExprWith("$SQLITE_MAX_VARIABLE_NUMBER+2", map[string]string{"SQLITE_MAX_VARIABLE_NUMBER": SQLITE_MAX_VARIABLE_NUMBER}) + " \\\n  5  12345678903456789034567890234567890  \\\n  6  2147483648                           \\\n  7  2147483649                           \\\n  8  4294967296                           \\\n  9  4294967297                           \\\n  10 9223372036854775808                  \\\n  11 9223372036854775809                  \\\n  12 18446744073709551616                 \\\n  13 18446744073709551617                 \\\n")
 											for _idx10 := 0; _idx10+2 <= len(_items10); _idx10 += 2 {
 												tn := _items10[_idx10+0]
 												_ = tn // suppress unused warning
@@ -1433,8 +1433,8 @@ func Test_e_expr(t *testing.T) {
 												// parameter_test e_expr-11.2.4 SELECT ?, ?5 {1 {} 5 ?5} {-1 -5} (unsupported command, not transpiled)
 												// parameter_test e_expr-11.2.5 SELECT ?, ?456, ? {\n  1 {} 456 ?456 457 {}\n} {-1 -456 -457} (unsupported command, not transpiled)
 												// parameter_test e_expr-11.2.5 SELECT ?, ?456, ?4, ? {\n  1 {} 456 ?456 4 ?4 457 {}\n} {-1 -456 -... (unsupported command, not transpiled)
-												// foreach {tn sql} "list                           \\\n  1  \"SELECT ?$mvn, ?\"                           \\\n  2  \"SELECT ?[expr $mvn-5], ?, ?, ?, ?, ?, ?\"   \\\n  3  \"SELECT ?[expr $mvn], ?5, ?6, ?\"            \\"
-												_items11 := tclSplitList("list                           \\\n  1  \"SELECT ?$mvn, ?\"                           \\\n  2  \"SELECT ?[expr $mvn-5], ?, ?, ?, ?, ?, ?\"   \\\n  3  \"SELECT ?[expr $mvn], ?5, ?6, ?\"            \\")
+												// foreach {tn sql} "                          \\\n  1  \"SELECT ?" + mvn + ", ?\"                           \\\n  2  \"SELECT ?" + tclExprWith("$mvn-5", map[string]string{"mvn": mvn}) + ", ?, ?, ?, ?, ?, ?\"   \\\n  3  \"SELECT ?" + tclExprWith("$mvn", map[string]string{"mvn": mvn}) + ", ?5, ?6, ?\"            \\\n"
+												_items11 := tclSplitList("                          \\\n  1  \"SELECT ?" + mvn + ", ?\"                           \\\n  2  \"SELECT ?" + tclExprWith("$mvn-5", map[string]string{"mvn": mvn}) + ", ?, ?, ?, ?, ?, ?\"   \\\n  3  \"SELECT ?" + tclExprWith("$mvn", map[string]string{"mvn": mvn}) + ", ?5, ?6, ?\"            \\\n")
 												for _idx11 := 0; _idx11+2 <= len(_items11); _idx11 += 2 {
 													tn := _items11[_idx11+0]
 													_ = tn // suppress unused warning
@@ -1472,8 +1472,8 @@ func Test_e_expr(t *testing.T) {
 													// parameter_test e_expr-11.6.1 SELECT ?, @abc {1 {} 2 @abc} {-1 -2} (unsupported command, not transpiled)
 													// parameter_test e_expr-11.6.2 SELECT ?123, :a1 {123 ?123 124 :a1} {-123 -124} (unsupported command, not transpiled)
 													// parameter_test e_expr-11.6.3 {SELECT $a, ?8, ?, $b, ?2, $c} {\n  1 $a 8 ?8 9 {} 10 $b 2 ?2 11 $... (unsupported command, not transpiled)
-													// foreach {tn sql} "list                           \\\n  1  \"SELECT ?$mvn, \\$::a\"                       \\\n  2  \"SELECT ?$mvn, ?4, @a1\"                     \\\n  3  \"SELECT ?[expr $mvn-2], :bag, @123, \\$x\"    \\"
-													_items12 := tclSplitList("list                           \\\n  1  \"SELECT ?$mvn, \\$::a\"                       \\\n  2  \"SELECT ?$mvn, ?4, @a1\"                     \\\n  3  \"SELECT ?[expr $mvn-2], :bag, @123, \\$x\"    \\")
+													// foreach {tn sql} "                          \\\n  1  \"SELECT ?" + mvn + ", \\$::a\"                       \\\n  2  \"SELECT ?" + mvn + ", ?4, @a1\"                     \\\n  3  \"SELECT ?" + tclExprWith("$mvn-2", map[string]string{"mvn": mvn}) + ", :bag, @123, \\$x\"    \\\n"
+													_items12 := tclSplitList("                          \\\n  1  \"SELECT ?" + mvn + ", \\$::a\"                       \\\n  2  \"SELECT ?" + mvn + ", ?4, @a1\"                     \\\n  3  \"SELECT ?" + tclExprWith("$mvn-2", map[string]string{"mvn": mvn}) + ", :bag, @123, \\$x\"    \\\n")
 													for _idx12 := 0; _idx12+2 <= len(_items12); _idx12 += 2 {
 														tn := _items12[_idx12+0]
 														_ = tn // suppress unused warning
@@ -1675,8 +1675,8 @@ func Test_e_expr(t *testing.T) {
 															t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS dbname;\n  CREATE TABLE dbname.tblname(cname);\n")
 														}
 														// proc definition (not transpiled)
-														// foreach {tn expr} "\n  1 123\n  2 123.4e05\n  3 'abcde'\n  4 X'414243'\n  5 NULL\n  6 CURRENT_TIME\n  7 CURRENT_DATE\n  8 CURRENT_TIMESTAMP\n\n  9 ?\n 10 ?123\n 11 @hello\n 12 :world\n 13 $tcl\n 14 $tcl(array)\n  \n  15 cname\n  16 tblname.cname\n  17 dbname.tblname.cname\n\n  18 \"+ EXPR\"\n  19 \"- EXPR\"\n  20 \"NOT EXPR\"\n  21 \"~ EXPR\"\n\n  22 \"EXPR1 || EXPR2\"\n  23 \"EXPR1 * EXPR2\"\n  24 \"EXPR1 / EXPR2\"\n  25 \"EXPR1 % EXPR2\"\n  26 \"EXPR1 + EXPR2\"\n  27 \"EXPR1 - EXPR2\"\n  28 \"EXPR1 << EXPR2\"\n  29 \"EXPR1 >> EXPR2\"\n  30 \"EXPR1 & EXPR2\"\n  31 \"EXPR1 | EXPR2\"\n  32 \"EXPR1 < EXPR2\"\n  33 \"EXPR1 <= EXPR2\"\n  34 \"EXPR1 > EXPR2\"\n  35 \"EXPR1 >= EXPR2\"\n  36 \"EXPR1 = EXPR2\"\n  37 \"EXPR1 == EXPR2\"\n  38 \"EXPR1 != EXPR2\"\n  39 \"EXPR1 <> EXPR2\"\n  40 \"EXPR1 IS EXPR2\"\n  41 \"EXPR1 IS NOT EXPR2\"\n  42 \"EXPR1 AND EXPR2\"\n  43 \"EXPR1 OR EXPR2\"\n \n  44 \"count(*)\"\n  45 \"count(DISTINCT EXPR)\"\n  46 \"substr(EXPR, 10, 20)\"\n  47 \"changes()\"\n \n  48 \"( EXPR )\"\n \n  49 \"CAST ( EXPR AS integer )\"\n  50 \"CAST ( EXPR AS 'abcd' )\"\n  51 \"CAST ( EXPR AS 'ab$ $cd' )\"\n \n  52 \"EXPR COLLATE nocase\"\n  53 \"EXPR COLLATE binary\"\n \n  54 \"EXPR1 LIKE EXPR2\"\n  55 \"EXPR1 LIKE EXPR2 ESCAPE EXPR\"\n  56 \"EXPR1 GLOB EXPR2\"\n  57 \"EXPR1 GLOB EXPR2 ESCAPE EXPR\"\n  58 \"EXPR1 REGEXP EXPR2\"\n  59 \"EXPR1 REGEXP EXPR2 ESCAPE EXPR\"\n  60 \"EXPR1 MATCH EXPR2\"\n  61 \"EXPR1 MATCH EXPR2 ESCAPE EXPR\"\n  62 \"EXPR1 NOT LIKE EXPR2\"\n  63 \"EXPR1 NOT LIKE EXPR2 ESCAPE EXPR\"\n  64 \"EXPR1 NOT GLOB EXPR2\"\n  65 \"EXPR1 NOT GLOB EXPR2 ESCAPE EXPR\"\n  66 \"EXPR1 NOT REGEXP EXPR2\"\n  67 \"EXPR1 NOT REGEXP EXPR2 ESCAPE EXPR\"\n  68 \"EXPR1 NOT MATCH EXPR2\"\n  69 \"EXPR1 NOT MATCH EXPR2 ESCAPE EXPR\"\n \n  70 \"EXPR ISNULL\"\n  71 \"EXPR NOTNULL\"\n  72 \"EXPR NOT NULL\"\n \n  73 \"EXPR1 IS EXPR2\"\n  74 \"EXPR1 IS NOT EXPR2\"\n\n  75 \"EXPR NOT BETWEEN EXPR1 AND EXPR2\"\n  76 \"EXPR BETWEEN EXPR1 AND EXPR2\"\n\n  77 \"EXPR NOT IN (SELECT cname FROM tblname)\"\n  78 \"EXPR NOT IN (1)\"\n  79 \"EXPR NOT IN (1, 2, 3)\"\n  80 \"EXPR NOT IN tblname\"\n  81 \"EXPR NOT IN dbname.tblname\"\n  82 \"EXPR IN (SELECT cname FROM tblname)\"\n  83 \"EXPR IN (1)\"\n  84 \"EXPR IN (1, 2, 3)\"\n  85 \"EXPR IN tblname\"\n  86 \"EXPR IN dbname.tblname\"\n\n  87 \"EXISTS (SELECT cname FROM tblname)\"\n  88 \"NOT EXISTS (SELECT cname FROM tblname)\"\n\n  89 \"CASE EXPR WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  90 \"CASE EXPR WHEN EXPR1 THEN EXPR2 END\"\n  91 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  92 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"\n  93 \"CASE WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  94 \"CASE WHEN EXPR1 THEN EXPR2 END\"\n  95 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  96 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"\n"
-														_items13 := tclSplitList("\n  1 123\n  2 123.4e05\n  3 'abcde'\n  4 X'414243'\n  5 NULL\n  6 CURRENT_TIME\n  7 CURRENT_DATE\n  8 CURRENT_TIMESTAMP\n\n  9 ?\n 10 ?123\n 11 @hello\n 12 :world\n 13 $tcl\n 14 $tcl(array)\n  \n  15 cname\n  16 tblname.cname\n  17 dbname.tblname.cname\n\n  18 \"+ EXPR\"\n  19 \"- EXPR\"\n  20 \"NOT EXPR\"\n  21 \"~ EXPR\"\n\n  22 \"EXPR1 || EXPR2\"\n  23 \"EXPR1 * EXPR2\"\n  24 \"EXPR1 / EXPR2\"\n  25 \"EXPR1 % EXPR2\"\n  26 \"EXPR1 + EXPR2\"\n  27 \"EXPR1 - EXPR2\"\n  28 \"EXPR1 << EXPR2\"\n  29 \"EXPR1 >> EXPR2\"\n  30 \"EXPR1 & EXPR2\"\n  31 \"EXPR1 | EXPR2\"\n  32 \"EXPR1 < EXPR2\"\n  33 \"EXPR1 <= EXPR2\"\n  34 \"EXPR1 > EXPR2\"\n  35 \"EXPR1 >= EXPR2\"\n  36 \"EXPR1 = EXPR2\"\n  37 \"EXPR1 == EXPR2\"\n  38 \"EXPR1 != EXPR2\"\n  39 \"EXPR1 <> EXPR2\"\n  40 \"EXPR1 IS EXPR2\"\n  41 \"EXPR1 IS NOT EXPR2\"\n  42 \"EXPR1 AND EXPR2\"\n  43 \"EXPR1 OR EXPR2\"\n \n  44 \"count(*)\"\n  45 \"count(DISTINCT EXPR)\"\n  46 \"substr(EXPR, 10, 20)\"\n  47 \"changes()\"\n \n  48 \"( EXPR )\"\n \n  49 \"CAST ( EXPR AS integer )\"\n  50 \"CAST ( EXPR AS 'abcd' )\"\n  51 \"CAST ( EXPR AS 'ab$ $cd' )\"\n \n  52 \"EXPR COLLATE nocase\"\n  53 \"EXPR COLLATE binary\"\n \n  54 \"EXPR1 LIKE EXPR2\"\n  55 \"EXPR1 LIKE EXPR2 ESCAPE EXPR\"\n  56 \"EXPR1 GLOB EXPR2\"\n  57 \"EXPR1 GLOB EXPR2 ESCAPE EXPR\"\n  58 \"EXPR1 REGEXP EXPR2\"\n  59 \"EXPR1 REGEXP EXPR2 ESCAPE EXPR\"\n  60 \"EXPR1 MATCH EXPR2\"\n  61 \"EXPR1 MATCH EXPR2 ESCAPE EXPR\"\n  62 \"EXPR1 NOT LIKE EXPR2\"\n  63 \"EXPR1 NOT LIKE EXPR2 ESCAPE EXPR\"\n  64 \"EXPR1 NOT GLOB EXPR2\"\n  65 \"EXPR1 NOT GLOB EXPR2 ESCAPE EXPR\"\n  66 \"EXPR1 NOT REGEXP EXPR2\"\n  67 \"EXPR1 NOT REGEXP EXPR2 ESCAPE EXPR\"\n  68 \"EXPR1 NOT MATCH EXPR2\"\n  69 \"EXPR1 NOT MATCH EXPR2 ESCAPE EXPR\"\n \n  70 \"EXPR ISNULL\"\n  71 \"EXPR NOTNULL\"\n  72 \"EXPR NOT NULL\"\n \n  73 \"EXPR1 IS EXPR2\"\n  74 \"EXPR1 IS NOT EXPR2\"\n\n  75 \"EXPR NOT BETWEEN EXPR1 AND EXPR2\"\n  76 \"EXPR BETWEEN EXPR1 AND EXPR2\"\n\n  77 \"EXPR NOT IN (SELECT cname FROM tblname)\"\n  78 \"EXPR NOT IN (1)\"\n  79 \"EXPR NOT IN (1, 2, 3)\"\n  80 \"EXPR NOT IN tblname\"\n  81 \"EXPR NOT IN dbname.tblname\"\n  82 \"EXPR IN (SELECT cname FROM tblname)\"\n  83 \"EXPR IN (1)\"\n  84 \"EXPR IN (1, 2, 3)\"\n  85 \"EXPR IN tblname\"\n  86 \"EXPR IN dbname.tblname\"\n\n  87 \"EXISTS (SELECT cname FROM tblname)\"\n  88 \"NOT EXISTS (SELECT cname FROM tblname)\"\n\n  89 \"CASE EXPR WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  90 \"CASE EXPR WHEN EXPR1 THEN EXPR2 END\"\n  91 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  92 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"\n  93 \"CASE WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  94 \"CASE WHEN EXPR1 THEN EXPR2 END\"\n  95 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  96 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"\n")
+														// foreach {tn expr} "1 123\n  2 123.4e05\n  3 'abcde'\n  4 X'414243'\n  5 NULL\n  6 CURRENT_TIME\n  7 CURRENT_DATE\n  8 CURRENT_TIMESTAMP\n\n  9 ?\n 10 ?123\n 11 @hello\n 12 :world\n 13 " + tcl + "\n 14 " + tcl_array + "\n  \n  15 cname\n  16 tblname.cname\n  17 dbname.tblname.cname\n\n  18 \"+ EXPR\"\n  19 \"- EXPR\"\n  20 \"NOT EXPR\"\n  21 \"~ EXPR\"\n\n  22 \"EXPR1 || EXPR2\"\n  23 \"EXPR1 * EXPR2\"\n  24 \"EXPR1 / EXPR2\"\n  25 \"EXPR1 % EXPR2\"\n  26 \"EXPR1 + EXPR2\"\n  27 \"EXPR1 - EXPR2\"\n  28 \"EXPR1 << EXPR2\"\n  29 \"EXPR1 >> EXPR2\"\n  30 \"EXPR1 & EXPR2\"\n  31 \"EXPR1 | EXPR2\"\n  32 \"EXPR1 < EXPR2\"\n  33 \"EXPR1 <= EXPR2\"\n  34 \"EXPR1 > EXPR2\"\n  35 \"EXPR1 >= EXPR2\"\n  36 \"EXPR1 = EXPR2\"\n  37 \"EXPR1 == EXPR2\"\n  38 \"EXPR1 != EXPR2\"\n  39 \"EXPR1 <> EXPR2\"\n  40 \"EXPR1 IS EXPR2\"\n  41 \"EXPR1 IS NOT EXPR2\"\n  42 \"EXPR1 AND EXPR2\"\n  43 \"EXPR1 OR EXPR2\"\n \n  44 \"count(*)\"\n  45 \"count(DISTINCT EXPR)\"\n  46 \"substr(EXPR, 10, 20)\"\n  47 \"changes()\"\n \n  48 \"( EXPR )\"\n \n  49 \"CAST ( EXPR AS integer )\"\n  50 \"CAST ( EXPR AS 'abcd' )\"\n  51 \"CAST ( EXPR AS 'ab$ " + cd + "' )\"\n \n  52 \"EXPR COLLATE nocase\"\n  53 \"EXPR COLLATE binary\"\n \n  54 \"EXPR1 LIKE EXPR2\"\n  55 \"EXPR1 LIKE EXPR2 ESCAPE EXPR\"\n  56 \"EXPR1 GLOB EXPR2\"\n  57 \"EXPR1 GLOB EXPR2 ESCAPE EXPR\"\n  58 \"EXPR1 REGEXP EXPR2\"\n  59 \"EXPR1 REGEXP EXPR2 ESCAPE EXPR\"\n  60 \"EXPR1 MATCH EXPR2\"\n  61 \"EXPR1 MATCH EXPR2 ESCAPE EXPR\"\n  62 \"EXPR1 NOT LIKE EXPR2\"\n  63 \"EXPR1 NOT LIKE EXPR2 ESCAPE EXPR\"\n  64 \"EXPR1 NOT GLOB EXPR2\"\n  65 \"EXPR1 NOT GLOB EXPR2 ESCAPE EXPR\"\n  66 \"EXPR1 NOT REGEXP EXPR2\"\n  67 \"EXPR1 NOT REGEXP EXPR2 ESCAPE EXPR\"\n  68 \"EXPR1 NOT MATCH EXPR2\"\n  69 \"EXPR1 NOT MATCH EXPR2 ESCAPE EXPR\"\n \n  70 \"EXPR ISNULL\"\n  71 \"EXPR NOTNULL\"\n  72 \"EXPR NOT NULL\"\n \n  73 \"EXPR1 IS EXPR2\"\n  74 \"EXPR1 IS NOT EXPR2\"\n\n  75 \"EXPR NOT BETWEEN EXPR1 AND EXPR2\"\n  76 \"EXPR BETWEEN EXPR1 AND EXPR2\"\n\n  77 \"EXPR NOT IN (SELECT cname FROM tblname)\"\n  78 \"EXPR NOT IN (1)\"\n  79 \"EXPR NOT IN (1, 2, 3)\"\n  80 \"EXPR NOT IN tblname\"\n  81 \"EXPR NOT IN dbname.tblname\"\n  82 \"EXPR IN (SELECT cname FROM tblname)\"\n  83 \"EXPR IN (1)\"\n  84 \"EXPR IN (1, 2, 3)\"\n  85 \"EXPR IN tblname\"\n  86 \"EXPR IN dbname.tblname\"\n\n  87 \"EXISTS (SELECT cname FROM tblname)\"\n  88 \"NOT EXISTS (SELECT cname FROM tblname)\"\n\n  89 \"CASE EXPR WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  90 \"CASE EXPR WHEN EXPR1 THEN EXPR2 END\"\n  91 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  92 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"\n  93 \"CASE WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  94 \"CASE WHEN EXPR1 THEN EXPR2 END\"\n  95 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  96 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\""
+														_items13 := tclSplitList("1 123\n  2 123.4e05\n  3 'abcde'\n  4 X'414243'\n  5 NULL\n  6 CURRENT_TIME\n  7 CURRENT_DATE\n  8 CURRENT_TIMESTAMP\n\n  9 ?\n 10 ?123\n 11 @hello\n 12 :world\n 13 " + tcl + "\n 14 " + tcl_array + "\n  \n  15 cname\n  16 tblname.cname\n  17 dbname.tblname.cname\n\n  18 \"+ EXPR\"\n  19 \"- EXPR\"\n  20 \"NOT EXPR\"\n  21 \"~ EXPR\"\n\n  22 \"EXPR1 || EXPR2\"\n  23 \"EXPR1 * EXPR2\"\n  24 \"EXPR1 / EXPR2\"\n  25 \"EXPR1 % EXPR2\"\n  26 \"EXPR1 + EXPR2\"\n  27 \"EXPR1 - EXPR2\"\n  28 \"EXPR1 << EXPR2\"\n  29 \"EXPR1 >> EXPR2\"\n  30 \"EXPR1 & EXPR2\"\n  31 \"EXPR1 | EXPR2\"\n  32 \"EXPR1 < EXPR2\"\n  33 \"EXPR1 <= EXPR2\"\n  34 \"EXPR1 > EXPR2\"\n  35 \"EXPR1 >= EXPR2\"\n  36 \"EXPR1 = EXPR2\"\n  37 \"EXPR1 == EXPR2\"\n  38 \"EXPR1 != EXPR2\"\n  39 \"EXPR1 <> EXPR2\"\n  40 \"EXPR1 IS EXPR2\"\n  41 \"EXPR1 IS NOT EXPR2\"\n  42 \"EXPR1 AND EXPR2\"\n  43 \"EXPR1 OR EXPR2\"\n \n  44 \"count(*)\"\n  45 \"count(DISTINCT EXPR)\"\n  46 \"substr(EXPR, 10, 20)\"\n  47 \"changes()\"\n \n  48 \"( EXPR )\"\n \n  49 \"CAST ( EXPR AS integer )\"\n  50 \"CAST ( EXPR AS 'abcd' )\"\n  51 \"CAST ( EXPR AS 'ab$ " + cd + "' )\"\n \n  52 \"EXPR COLLATE nocase\"\n  53 \"EXPR COLLATE binary\"\n \n  54 \"EXPR1 LIKE EXPR2\"\n  55 \"EXPR1 LIKE EXPR2 ESCAPE EXPR\"\n  56 \"EXPR1 GLOB EXPR2\"\n  57 \"EXPR1 GLOB EXPR2 ESCAPE EXPR\"\n  58 \"EXPR1 REGEXP EXPR2\"\n  59 \"EXPR1 REGEXP EXPR2 ESCAPE EXPR\"\n  60 \"EXPR1 MATCH EXPR2\"\n  61 \"EXPR1 MATCH EXPR2 ESCAPE EXPR\"\n  62 \"EXPR1 NOT LIKE EXPR2\"\n  63 \"EXPR1 NOT LIKE EXPR2 ESCAPE EXPR\"\n  64 \"EXPR1 NOT GLOB EXPR2\"\n  65 \"EXPR1 NOT GLOB EXPR2 ESCAPE EXPR\"\n  66 \"EXPR1 NOT REGEXP EXPR2\"\n  67 \"EXPR1 NOT REGEXP EXPR2 ESCAPE EXPR\"\n  68 \"EXPR1 NOT MATCH EXPR2\"\n  69 \"EXPR1 NOT MATCH EXPR2 ESCAPE EXPR\"\n \n  70 \"EXPR ISNULL\"\n  71 \"EXPR NOTNULL\"\n  72 \"EXPR NOT NULL\"\n \n  73 \"EXPR1 IS EXPR2\"\n  74 \"EXPR1 IS NOT EXPR2\"\n\n  75 \"EXPR NOT BETWEEN EXPR1 AND EXPR2\"\n  76 \"EXPR BETWEEN EXPR1 AND EXPR2\"\n\n  77 \"EXPR NOT IN (SELECT cname FROM tblname)\"\n  78 \"EXPR NOT IN (1)\"\n  79 \"EXPR NOT IN (1, 2, 3)\"\n  80 \"EXPR NOT IN tblname\"\n  81 \"EXPR NOT IN dbname.tblname\"\n  82 \"EXPR IN (SELECT cname FROM tblname)\"\n  83 \"EXPR IN (1)\"\n  84 \"EXPR IN (1, 2, 3)\"\n  85 \"EXPR IN tblname\"\n  86 \"EXPR IN dbname.tblname\"\n\n  87 \"EXISTS (SELECT cname FROM tblname)\"\n  88 \"NOT EXISTS (SELECT cname FROM tblname)\"\n\n  89 \"CASE EXPR WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  90 \"CASE EXPR WHEN EXPR1 THEN EXPR2 END\"\n  91 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  92 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"\n  93 \"CASE WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  94 \"CASE WHEN EXPR1 THEN EXPR2 END\"\n  95 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  96 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"")
 														for _idx13 := 0; _idx13+2 <= len(_items13); _idx13 += 2 {
 															tn := _items13[_idx13+0]
 															_ = tn // suppress unused warning
@@ -1688,8 +1688,8 @@ func Test_e_expr(t *testing.T) {
 																if tclBool("*EXPR2* $expr") {
 																	elist = "list"
 																	_ = elist // suppress unused warning
-																	// foreach {e1 e2} " cname \"34+22\" "
-																	_items0 := tclSplitList(" cname \"34+22\" ")
+																	// foreach {e1 e2} "cname \"34+22\""
+																	_items0 := tclSplitList("cname \"34+22\"")
 																	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 																		e1 := _items0[_idx0+0]
 																		_ = e1 // suppress unused warning
@@ -1704,7 +1704,7 @@ func Test_e_expr(t *testing.T) {
 																		_ = elist2 // suppress unused warning
 																		for _, el := range tclSplitList(elist) {
 																		_ = el // suppress unused warning
-																			for _, e := range tclSplitList(" cname \"34+22\" ") {
+																			for _, e := range tclSplitList("cname \"34+22\"") {
 																			_ = e // suppress unused warning
 																				elist2 = tclListAppend(elist2, "")
 																			}
@@ -1741,8 +1741,8 @@ func Test_e_expr(t *testing.T) {
 																		}
 																	}
 																}
-																// foreach {tn raiseexpr} "\n  1 \"RAISE(IGNORE)\"\n  2 \"RAISE(ROLLBACK, 'error message')\"\n  3 \"RAISE(ABORT, 'error message')\"\n  4 \"RAISE(FAIL, 'error message')\"\n"
-																_items14 := tclSplitList("\n  1 \"RAISE(IGNORE)\"\n  2 \"RAISE(ROLLBACK, 'error message')\"\n  3 \"RAISE(ABORT, 'error message')\"\n  4 \"RAISE(FAIL, 'error message')\"\n")
+																// foreach {tn raiseexpr} "1 \"RAISE(IGNORE)\"\n  2 \"RAISE(ROLLBACK, 'error message')\"\n  3 \"RAISE(ABORT, 'error message')\"\n  4 \"RAISE(FAIL, 'error message')\""
+																_items14 := tclSplitList("1 \"RAISE(IGNORE)\"\n  2 \"RAISE(ROLLBACK, 'error message')\"\n  3 \"RAISE(ABORT, 'error message')\"\n  4 \"RAISE(FAIL, 'error message')\"")
 																for _idx14 := 0; _idx14+2 <= len(_items14); _idx14 += 2 {
 																	tn := _items14[_idx14+0]
 																	_ = tn // suppress unused warning
@@ -1757,8 +1757,8 @@ func Test_e_expr(t *testing.T) {
 																		}
 																	}
 																	// proc definition (not transpiled)
-																	// foreach {tn x expr res nEval} "\n  1  10  \"x() >= 5 AND x() <= 15\"  1  2\n  2  10  \"x() BETWEEN 5 AND 15\"    1  1\n\n  3   5  \"x() >= 5 AND x() <= 5\"   1  2\n  4   5  \"x() BETWEEN 5 AND 5\"     1  1\n\n  5   9  \"(x(),8) >= (9,7) AND (x(),8)<=(9,10)\"  1 2\n  6   9  \"(x(),8) BETWEEN (9,7) AND (9,10)\"      1 1\n"
-																	_items15 := tclSplitList("\n  1  10  \"x() >= 5 AND x() <= 15\"  1  2\n  2  10  \"x() BETWEEN 5 AND 15\"    1  1\n\n  3   5  \"x() >= 5 AND x() <= 5\"   1  2\n  4   5  \"x() BETWEEN 5 AND 5\"     1  1\n\n  5   9  \"(x(),8) >= (9,7) AND (x(),8)<=(9,10)\"  1 2\n  6   9  \"(x(),8) BETWEEN (9,7) AND (9,10)\"      1 1\n")
+																	// foreach {tn x expr res nEval} "1  10  \"x() >= 5 AND x() <= 15\"  1  2\n  2  10  \"x() BETWEEN 5 AND 15\"    1  1\n\n  3   5  \"x() >= 5 AND x() <= 5\"   1  2\n  4   5  \"x() BETWEEN 5 AND 5\"     1  1\n\n  5   9  \"(x(),8) >= (9,7) AND (x(),8)<=(9,10)\"  1 2\n  6   9  \"(x(),8) BETWEEN (9,7) AND (9,10)\"      1 1"
+																	_items15 := tclSplitList("1  10  \"x() >= 5 AND x() <= 15\"  1  2\n  2  10  \"x() BETWEEN 5 AND 15\"    1  1\n\n  3   5  \"x() >= 5 AND x() <= 5\"   1  2\n  4   5  \"x() BETWEEN 5 AND 5\"     1  1\n\n  5   9  \"(x(),8) >= (9,7) AND (x(),8)<=(9,10)\"  1 2\n  6   9  \"(x(),8) BETWEEN (9,7) AND (9,10)\"      1 1")
 																	for _idx15 := 0; _idx15+5 <= len(_items15); _idx15 += 5 {
 																		tn := _items15[_idx15+0]
 																		_ = tn // suppress unused warning
@@ -3126,7 +3126,7 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
-																		// foreach a,b,c "list [expr 3] [expr 4] [expr 5]" (no body)
+																		// foreach a,b,c "3" + " " + "4" + " " + "5" (no body)
 																		varlist = "list" // TCL namespace variable
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-22.1.1"
@@ -3624,8 +3624,8 @@ func Test_e_expr(t *testing.T) {
 																		if err != nil { t.Fatal(err) }
 																		db3.Exec(" PRAGMA encoding = 'utf-16be' ")
 																		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-																		// foreach {tn castexpr differs} "\n  1 { CAST(123 AS BLOB)    } 1\n  2 { CAST('' AS BLOB)     } 0\n  3 { CAST('abcd' AS BLOB) } 1\n\n  4 { CAST(X'abcd' AS TEXT) } 1\n  5 { CAST(X'' AS TEXT)     } 0\n"
-																		_items20 := tclSplitList("\n  1 { CAST(123 AS BLOB)    } 1\n  2 { CAST('' AS BLOB)     } 0\n  3 { CAST('abcd' AS BLOB) } 1\n\n  4 { CAST(X'abcd' AS TEXT) } 1\n  5 { CAST(X'' AS TEXT)     } 0\n")
+																		// foreach {tn castexpr differs} "1 { CAST(123 AS BLOB)    } 1\n  2 { CAST('' AS BLOB)     } 0\n  3 { CAST('abcd' AS BLOB) } 1\n\n  4 { CAST(X'abcd' AS TEXT) } 1\n  5 { CAST(X'' AS TEXT)     } 0"
+																		_items20 := tclSplitList("1 { CAST(123 AS BLOB)    } 1\n  2 { CAST('' AS BLOB)     } 0\n  3 { CAST('abcd' AS BLOB) } 1\n\n  4 { CAST(X'abcd' AS TEXT) } 1\n  5 { CAST(X'' AS TEXT)     } 0")
 																		for _idx20 := 0; _idx20+3 <= len(_items20); _idx20 += 3 {
 																			tn := _items20[_idx20+0]
 																			_ = tn // suppress unused warning
@@ -3666,8 +3666,8 @@ func Test_e_expr(t *testing.T) {
 																					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(NULL, 2);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(NULL, NULL);\n")
 																				}
 																			}
-																			// foreach {tn expr} "\n    1 { EXISTS ( SELECT a FROM t1 ) }\n    2 { EXISTS ( SELECT b FROM t1 ) }\n    3 { EXISTS ( SELECT 24 ) }\n    4 { EXISTS ( SELECT NULL ) }\n    5 { EXISTS ( SELECT a FROM t1 WHERE a IS NULL ) }\n"
-																			_items21 := tclSplitList("\n    1 { EXISTS ( SELECT a FROM t1 ) }\n    2 { EXISTS ( SELECT b FROM t1 ) }\n    3 { EXISTS ( SELECT 24 ) }\n    4 { EXISTS ( SELECT NULL ) }\n    5 { EXISTS ( SELECT a FROM t1 WHERE a IS NULL ) }\n")
+																			// foreach {tn expr} "1 { EXISTS ( SELECT a FROM t1 ) }\n    2 { EXISTS ( SELECT b FROM t1 ) }\n    3 { EXISTS ( SELECT 24 ) }\n    4 { EXISTS ( SELECT NULL ) }\n    5 { EXISTS ( SELECT a FROM t1 WHERE a IS NULL ) }"
+																			_items21 := tclSplitList("1 { EXISTS ( SELECT a FROM t1 ) }\n    2 { EXISTS ( SELECT b FROM t1 ) }\n    3 { EXISTS ( SELECT 24 ) }\n    4 { EXISTS ( SELECT NULL ) }\n    5 { EXISTS ( SELECT a FROM t1 WHERE a IS NULL ) }")
 																			for _idx21 := 0; _idx21+2 <= len(_items21); _idx21 += 2 {
 																				tn := _items21[_idx21+0]
 																				_ = tn // suppress unused warning
@@ -3676,8 +3676,8 @@ func Test_e_expr(t *testing.T) {
 																				_ = _idx21
 																					// do_expr_test e_expr-34.2.$tn $expr integer 1 (unsupported command, not transpiled)
 																				}
-																				// foreach {tn expr} "\n    1 { EXISTS ( SELECT a FROM t1 WHERE 0) }\n    2 { EXISTS ( SELECT b FROM t1 WHERE a = 5) }\n    3 { EXISTS ( SELECT 24 WHERE 0) }\n    4 { EXISTS ( SELECT NULL WHERE 1=2) }\n"
-																				_items22 := tclSplitList("\n    1 { EXISTS ( SELECT a FROM t1 WHERE 0) }\n    2 { EXISTS ( SELECT b FROM t1 WHERE a = 5) }\n    3 { EXISTS ( SELECT 24 WHERE 0) }\n    4 { EXISTS ( SELECT NULL WHERE 1=2) }\n")
+																				// foreach {tn expr} "1 { EXISTS ( SELECT a FROM t1 WHERE 0) }\n    2 { EXISTS ( SELECT b FROM t1 WHERE a = 5) }\n    3 { EXISTS ( SELECT 24 WHERE 0) }\n    4 { EXISTS ( SELECT NULL WHERE 1=2) }"
+																				_items22 := tclSplitList("1 { EXISTS ( SELECT a FROM t1 WHERE 0) }\n    2 { EXISTS ( SELECT b FROM t1 WHERE a = 5) }\n    3 { EXISTS ( SELECT 24 WHERE 0) }\n    4 { EXISTS ( SELECT NULL WHERE 1=2) }")
 																				for _idx22 := 0; _idx22+2 <= len(_items22); _idx22 += 2 {
 																					tn := _items22[_idx22+0]
 																					_ = tn // suppress unused warning
@@ -3686,8 +3686,8 @@ func Test_e_expr(t *testing.T) {
 																					_ = _idx22
 																						// do_expr_test e_expr-34.3.$tn $expr integer 0 (unsupported command, not transpiled)
 																					}
-																					// foreach {tn expr res} "\n    1 { EXISTS ( SELECT * FROM t1 ) }                          1\n    2 { EXISTS ( SELECT *, *, * FROM t1 ) }                    1\n    3 { EXISTS ( SELECT 24, 25 ) }                             1\n    4 { EXISTS ( SELECT NULL, NULL, NULL ) }                   1\n    5 { EXISTS ( SELECT a,b,a||b FROM t1 WHERE a IS NULL ) }   1\n\n    6 { EXISTS ( SELECT a, a FROM t1 WHERE 0) }                0\n    7 { EXISTS ( SELECT b, b, a FROM t1 WHERE a = 5) }         0\n    8 { EXISTS ( SELECT 24, 46, 89 WHERE 0) }                  0\n    9 { EXISTS ( SELECT NULL, NULL WHERE 1=2) }                0\n"
-																					_items23 := tclSplitList("\n    1 { EXISTS ( SELECT * FROM t1 ) }                          1\n    2 { EXISTS ( SELECT *, *, * FROM t1 ) }                    1\n    3 { EXISTS ( SELECT 24, 25 ) }                             1\n    4 { EXISTS ( SELECT NULL, NULL, NULL ) }                   1\n    5 { EXISTS ( SELECT a,b,a||b FROM t1 WHERE a IS NULL ) }   1\n\n    6 { EXISTS ( SELECT a, a FROM t1 WHERE 0) }                0\n    7 { EXISTS ( SELECT b, b, a FROM t1 WHERE a = 5) }         0\n    8 { EXISTS ( SELECT 24, 46, 89 WHERE 0) }                  0\n    9 { EXISTS ( SELECT NULL, NULL WHERE 1=2) }                0\n")
+																					// foreach {tn expr res} "1 { EXISTS ( SELECT * FROM t1 ) }                          1\n    2 { EXISTS ( SELECT *, *, * FROM t1 ) }                    1\n    3 { EXISTS ( SELECT 24, 25 ) }                             1\n    4 { EXISTS ( SELECT NULL, NULL, NULL ) }                   1\n    5 { EXISTS ( SELECT a,b,a||b FROM t1 WHERE a IS NULL ) }   1\n\n    6 { EXISTS ( SELECT a, a FROM t1 WHERE 0) }                0\n    7 { EXISTS ( SELECT b, b, a FROM t1 WHERE a = 5) }         0\n    8 { EXISTS ( SELECT 24, 46, 89 WHERE 0) }                  0\n    9 { EXISTS ( SELECT NULL, NULL WHERE 1=2) }                0"
+																					_items23 := tclSplitList("1 { EXISTS ( SELECT * FROM t1 ) }                          1\n    2 { EXISTS ( SELECT *, *, * FROM t1 ) }                    1\n    3 { EXISTS ( SELECT 24, 25 ) }                             1\n    4 { EXISTS ( SELECT NULL, NULL, NULL ) }                   1\n    5 { EXISTS ( SELECT a,b,a||b FROM t1 WHERE a IS NULL ) }   1\n\n    6 { EXISTS ( SELECT a, a FROM t1 WHERE 0) }                0\n    7 { EXISTS ( SELECT b, b, a FROM t1 WHERE a = 5) }         0\n    8 { EXISTS ( SELECT 24, 46, 89 WHERE 0) }                  0\n    9 { EXISTS ( SELECT NULL, NULL WHERE 1=2) }                0")
 																					for _idx23 := 0; _idx23+3 <= len(_items23); _idx23 += 3 {
 																						tn := _items23[_idx23+0]
 																						_ = tn // suppress unused warning
@@ -3698,8 +3698,8 @@ func Test_e_expr(t *testing.T) {
 																						_ = _idx23
 																							// do_expr_test e_expr-34.4.$tn $expr integer $res (unsupported command, not transpiled)
 																						}
-																						// foreach {tn e1 e2} "\n  1 { EXISTS (SELECT 'not null') }    { EXISTS (SELECT NULL) }\n  2 { EXISTS (SELECT NULL FROM t1) }  { EXISTS (SELECT 'bread' FROM t1) }\n"
-																						_items24 := tclSplitList("\n  1 { EXISTS (SELECT 'not null') }    { EXISTS (SELECT NULL) }\n  2 { EXISTS (SELECT NULL FROM t1) }  { EXISTS (SELECT 'bread' FROM t1) }\n")
+																						// foreach {tn e1 e2} "1 { EXISTS (SELECT 'not null') }    { EXISTS (SELECT NULL) }\n  2 { EXISTS (SELECT NULL FROM t1) }  { EXISTS (SELECT 'bread' FROM t1) }"
+																						_items24 := tclSplitList("1 { EXISTS (SELECT 'not null') }    { EXISTS (SELECT NULL) }\n  2 { EXISTS (SELECT NULL FROM t1) }  { EXISTS (SELECT 'bread' FROM t1) }")
 																						for _idx24 := 0; _idx24+3 <= len(_items24); _idx24 += 3 {
 																							tn := _items24[_idx24+0]
 																							_ = tn // suppress unused warning
@@ -3734,8 +3734,8 @@ func Test_e_expr(t *testing.T) {
 																							// do_expr_test e_expr-35.1.6 { \n  (SELECT a FROM t2 UNION SELECT COALESCE(b, 55...} integer 4 (unsupported command, not transpiled)
 																							M = "/1 {sub-select returns [23] columns - expected 1}/"
 																							_ = M // suppress unused warning
-																							// foreach {tn sql} "\n  1     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2) }\n  2     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2 ORDER BY 1) }\n  3     { SELECT (SELECT 1, 2) }\n  4     { SELECT (SELECT NULL, NULL, NULL) }\n  5     { SELECT (SELECT * FROM t2) }\n  6     { SELECT (SELECT * FROM (SELECT 1, 2, 3)) }\n"
-																							_items25 := tclSplitList("\n  1     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2) }\n  2     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2 ORDER BY 1) }\n  3     { SELECT (SELECT 1, 2) }\n  4     { SELECT (SELECT NULL, NULL, NULL) }\n  5     { SELECT (SELECT * FROM t2) }\n  6     { SELECT (SELECT * FROM (SELECT 1, 2, 3)) }\n")
+																							// foreach {tn sql} "1     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2) }\n  2     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2 ORDER BY 1) }\n  3     { SELECT (SELECT 1, 2) }\n  4     { SELECT (SELECT NULL, NULL, NULL) }\n  5     { SELECT (SELECT * FROM t2) }\n  6     { SELECT (SELECT * FROM (SELECT 1, 2, 3)) }"
+																							_items25 := tclSplitList("1     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2) }\n  2     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2 ORDER BY 1) }\n  3     { SELECT (SELECT 1, 2) }\n  4     { SELECT (SELECT NULL, NULL, NULL) }\n  5     { SELECT (SELECT * FROM t2) }\n  6     { SELECT (SELECT * FROM (SELECT 1, 2, 3)) }")
 																							for _idx25 := 0; _idx25+2 <= len(_items25); _idx25 += 2 {
 																								tn := _items25[_idx25+0]
 																								_ = tn // suppress unused warning
@@ -3755,8 +3755,8 @@ func Test_e_expr(t *testing.T) {
 																										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x, y);\n  INSERT INTO t4 VALUES(1, 'one');\n  INSERT INTO t4 VALUES(2, 'two');\n  INSERT INTO t4 VALUES(3, 'three');\n")
 																									}
 																								}
-																								// foreach {tn expr restype resval} "\n    2  { ( SELECT x FROM t4 ORDER BY x )      }        integer 1\n    3  { ( SELECT x FROM t4 ORDER BY y )      }        integer 1\n    4  { ( SELECT x FROM t4 ORDER BY x DESC ) }        integer 3\n    5  { ( SELECT x FROM t4 ORDER BY y DESC ) }        integer 2\n    6  { ( SELECT y FROM t4 ORDER BY y DESC ) }        text    two\n\n    7  { ( SELECT sum(x) FROM t4 )           }         integer 6\n    8  { ( SELECT string_agg(y,'') FROM t4 ) }       text    onetwothree\n    9  { ( SELECT max(x) FROM t4 WHERE y LIKE '___') } integer 2 \n\n"
-																								_items26 := tclSplitList("\n    2  { ( SELECT x FROM t4 ORDER BY x )      }        integer 1\n    3  { ( SELECT x FROM t4 ORDER BY y )      }        integer 1\n    4  { ( SELECT x FROM t4 ORDER BY x DESC ) }        integer 3\n    5  { ( SELECT x FROM t4 ORDER BY y DESC ) }        integer 2\n    6  { ( SELECT y FROM t4 ORDER BY y DESC ) }        text    two\n\n    7  { ( SELECT sum(x) FROM t4 )           }         integer 6\n    8  { ( SELECT string_agg(y,'') FROM t4 ) }       text    onetwothree\n    9  { ( SELECT max(x) FROM t4 WHERE y LIKE '___') } integer 2 \n\n")
+																								// foreach {tn expr restype resval} "2  { ( SELECT x FROM t4 ORDER BY x )      }        integer 1\n    3  { ( SELECT x FROM t4 ORDER BY y )      }        integer 1\n    4  { ( SELECT x FROM t4 ORDER BY x DESC ) }        integer 3\n    5  { ( SELECT x FROM t4 ORDER BY y DESC ) }        integer 2\n    6  { ( SELECT y FROM t4 ORDER BY y DESC ) }        text    two\n\n    7  { ( SELECT sum(x) FROM t4 )           }         integer 6\n    8  { ( SELECT string_agg(y,'') FROM t4 ) }       text    onetwothree\n    9  { ( SELECT max(x) FROM t4 WHERE y LIKE '___') } integer 2"
+																								_items26 := tclSplitList("2  { ( SELECT x FROM t4 ORDER BY x )      }        integer 1\n    3  { ( SELECT x FROM t4 ORDER BY y )      }        integer 1\n    4  { ( SELECT x FROM t4 ORDER BY x DESC ) }        integer 3\n    5  { ( SELECT x FROM t4 ORDER BY y DESC ) }        integer 2\n    6  { ( SELECT y FROM t4 ORDER BY y DESC ) }        text    two\n\n    7  { ( SELECT sum(x) FROM t4 )           }         integer 6\n    8  { ( SELECT string_agg(y,'') FROM t4 ) }       text    onetwothree\n    9  { ( SELECT max(x) FROM t4 WHERE y LIKE '___') } integer 2")
 																								for _idx26 := 0; _idx26+4 <= len(_items26); _idx26 += 4 {
 																									tn := _items26[_idx26+0]
 																									_ = tn // suppress unused warning
@@ -3769,8 +3769,8 @@ func Test_e_expr(t *testing.T) {
 																									_ = _idx26
 																										// do_expr_test e_expr-36.3.$tn $expr $restype $resval (unsupported command, not transpiled)
 																									}
-																									// foreach {tn expr} "\n    1  { ( SELECT x FROM t4 WHERE x>3 ORDER BY x )      }\n    2  { ( SELECT x FROM t4 WHERE y<'one' ORDER BY y )  }\n"
-																									_items27 := tclSplitList("\n    1  { ( SELECT x FROM t4 WHERE x>3 ORDER BY x )      }\n    2  { ( SELECT x FROM t4 WHERE y<'one' ORDER BY y )  }\n")
+																									// foreach {tn expr} "1  { ( SELECT x FROM t4 WHERE x>3 ORDER BY x )      }\n    2  { ( SELECT x FROM t4 WHERE y<'one' ORDER BY y )  }"
+																									_items27 := tclSplitList("1  { ( SELECT x FROM t4 WHERE x>3 ORDER BY x )      }\n    2  { ( SELECT x FROM t4 WHERE y<'one' ORDER BY y )  }")
 																									for _idx27 := 0; _idx27+2 <= len(_items27); _idx27 += 2 {
 																										tn := _items27[_idx27+0]
 																										_ = tn // suppress unused warning

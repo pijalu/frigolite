@@ -162,8 +162,8 @@ func Test_vacuum6(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// foreach {tn pgsz av} "\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n"
-		_items1 := tclSplitList("\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n")
+		// foreach {tn pgsz av} "1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1"
+		_items1 := tclSplitList("1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning

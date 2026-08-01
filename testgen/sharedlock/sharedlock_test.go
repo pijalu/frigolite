@@ -87,8 +87,8 @@ func Test_sharedlock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ORDER BY rowid ")
 		}
 	}
-	// foreach {tn delete_sql} "\n  1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }\n"
-	_items1 := tclSplitList("\n  1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }\n")
+	// foreach {tn delete_sql} "1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }"
+	_items1 := tclSplitList("1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }")
 	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning

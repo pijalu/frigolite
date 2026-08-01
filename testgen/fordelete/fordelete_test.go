@@ -98,8 +98,8 @@ func Test_fordelete(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b);\n")
 		}
 	}
-	// foreach {tn sql res} "\n  1 { DELETE FROM t1 WHERE a=?}          { sqlite_autoindex_t1_1  t1*+ }\n  2 { DELETE FROM t1 WHERE a=? AND b=? } { sqlite_autoindex_t1_1  t1+  }\n  3 { DELETE FROM t1 WHERE a>? }         { sqlite_autoindex_t1_1  t1*+ }\n  4 { DELETE FROM t1 WHERE rowid=? }     { sqlite_autoindex_t1_1*  t1  }\n"
-	_items0 := tclSplitList("\n  1 { DELETE FROM t1 WHERE a=?}          { sqlite_autoindex_t1_1  t1*+ }\n  2 { DELETE FROM t1 WHERE a=? AND b=? } { sqlite_autoindex_t1_1  t1+  }\n  3 { DELETE FROM t1 WHERE a>? }         { sqlite_autoindex_t1_1  t1*+ }\n  4 { DELETE FROM t1 WHERE rowid=? }     { sqlite_autoindex_t1_1*  t1  }\n")
+	// foreach {tn sql res} "1 { DELETE FROM t1 WHERE a=?}          { sqlite_autoindex_t1_1  t1*+ }\n  2 { DELETE FROM t1 WHERE a=? AND b=? } { sqlite_autoindex_t1_1  t1+  }\n  3 { DELETE FROM t1 WHERE a>? }         { sqlite_autoindex_t1_1  t1*+ }\n  4 { DELETE FROM t1 WHERE rowid=? }     { sqlite_autoindex_t1_1*  t1  }"
+	_items0 := tclSplitList("1 { DELETE FROM t1 WHERE a=?}          { sqlite_autoindex_t1_1  t1*+ }\n  2 { DELETE FROM t1 WHERE a=? AND b=? } { sqlite_autoindex_t1_1  t1+  }\n  3 { DELETE FROM t1 WHERE a>? }         { sqlite_autoindex_t1_1  t1*+ }\n  4 { DELETE FROM t1 WHERE rowid=? }     { sqlite_autoindex_t1_1*  t1  }")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -116,8 +116,8 @@ func Test_fordelete(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2a ON t2(a);\n  CREATE INDEX t2b ON t2(b);\n  CREATE INDEX t2c ON t2(c);\n")
 			}
 		}
-		// foreach {tn sql res} "\n  1 { DELETE FROM t2 WHERE a=?}          { t2*+ t2a t2b* t2c* }\n  2 { DELETE FROM t2 WHERE a=? AND +b=?} { t2+ t2a t2b* t2c* }\n  3 { DELETE FROM t2 WHERE a=? OR b=?}   { t2 t2a* t2b* t2c* }\n  4 { DELETE FROM t2 WHERE +a=? }        { t2 t2a* t2b* t2c* }\n  5 { DELETE FROM t2 WHERE rowid=? }     { t2 t2a* t2b* t2c* }\n"
-		_items1 := tclSplitList("\n  1 { DELETE FROM t2 WHERE a=?}          { t2*+ t2a t2b* t2c* }\n  2 { DELETE FROM t2 WHERE a=? AND +b=?} { t2+ t2a t2b* t2c* }\n  3 { DELETE FROM t2 WHERE a=? OR b=?}   { t2 t2a* t2b* t2c* }\n  4 { DELETE FROM t2 WHERE +a=? }        { t2 t2a* t2b* t2c* }\n  5 { DELETE FROM t2 WHERE rowid=? }     { t2 t2a* t2b* t2c* }\n")
+		// foreach {tn sql res} "1 { DELETE FROM t2 WHERE a=?}          { t2*+ t2a t2b* t2c* }\n  2 { DELETE FROM t2 WHERE a=? AND +b=?} { t2+ t2a t2b* t2c* }\n  3 { DELETE FROM t2 WHERE a=? OR b=?}   { t2 t2a* t2b* t2c* }\n  4 { DELETE FROM t2 WHERE +a=? }        { t2 t2a* t2b* t2c* }\n  5 { DELETE FROM t2 WHERE rowid=? }     { t2 t2a* t2b* t2c* }"
+		_items1 := tclSplitList("1 { DELETE FROM t2 WHERE a=?}          { t2*+ t2a t2b* t2c* }\n  2 { DELETE FROM t2 WHERE a=? AND +b=?} { t2+ t2a t2b* t2c* }\n  3 { DELETE FROM t2 WHERE a=? OR b=?}   { t2 t2a* t2b* t2c* }\n  4 { DELETE FROM t2 WHERE +a=? }        { t2 t2a* t2b* t2c* }\n  5 { DELETE FROM t2 WHERE rowid=? }     { t2 t2a* t2b* t2c* }")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning

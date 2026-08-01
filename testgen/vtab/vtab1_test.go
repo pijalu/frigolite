@@ -659,7 +659,7 @@ func Test_vtab1(t *testing.T) {
 	// proc definition (not transpiled)
 	tn = "0"
 	_ = tn // suppress unused warning
-	for _, stmt := range tclSplitList("list \\\n  {INSERT INTO techo VALUES('abc', 'def', 'ghi')}                        \\\n  {INSERT INTO techo SELECT a||'.'||rowid, b, c FROM techo}              \\\n  {INSERT INTO techo SELECT a||'x'||rowid, b, c FROM techo}              \\\n  {INSERT INTO techo SELECT a||'y'||rowid, b, c FROM techo}              \\\n  {DELETE FROM techo WHERE (oid % 3) = 0}                                \\\n  {UPDATE techo set rowid = 100 WHERE rowid = 1}                         \\\n  {INSERT INTO techo(a, b) VALUES('hello', 'world')}                     \\\n  {DELETE FROM techo}                                                    \\") {
+	for _, stmt := range tclSplitList("\\\n  {INSERT INTO techo VALUES('abc', 'def', 'ghi')}                        \\\n  {INSERT INTO techo SELECT a||'.'||rowid, b, c FROM techo}              \\\n  {INSERT INTO techo SELECT a||'x'||rowid, b, c FROM techo}              \\\n  {INSERT INTO techo SELECT a||'y'||rowid, b, c FROM techo}              \\\n  {DELETE FROM techo WHERE (oid % 3) = 0}                                \\\n  {UPDATE techo set rowid = 100 WHERE rowid = 1}                         \\\n  {INSERT INTO techo(a, b) VALUES('hello', 'world')}                     \\\n  {DELETE FROM techo}                                                    \\\n") {
 	_ = stmt // suppress unused warning
 		_res = db.Exec(stmt)
 		if _res.Error != nil {
@@ -1099,7 +1099,7 @@ func Test_vtab1(t *testing.T) {
 	}
 	tn = "2"
 	_ = tn // suppress unused warning
-	for _, method := range tclSplitList("list \\\n    xBestIndex       \\\n    xOpen            \\\n    xFilter          \\\n    xNext            \\\n    xColumn          \\\n    xRowid           \\") {
+	for _, method := range tclSplitList("\\\n    xBestIndex       \\\n    xOpen            \\\n    xFilter          \\\n    xNext            \\\n    xColumn          \\\n    xRowid           \\\n") {
 	_ = method // suppress unused warning
 		{ // do_test "vtab1-16." + tn
 			echo_module_fail_method_t2 = "the " + method + " method has failed"
@@ -1115,7 +1115,7 @@ func Test_vtab1(t *testing.T) {
 			}
 		}
 	}
-	for _, method := range tclSplitList("list \\\n  xUpdate            \\\n  xBegin             \\\n  xSync              \\") {
+	for _, method := range tclSplitList("\\\n  xUpdate            \\\n  xBegin             \\\n  xSync              \\\n") {
 	_ = method // suppress unused warning
 		{ // do_test "vtab1-16." + tn
 			echo_module_fail_method_t2 = "the " + method + " method has failed"
@@ -1177,8 +1177,8 @@ func Test_vtab1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "  PRAGMA case_sensitive_like = ON ")
 		}
 	}
-	// foreach {tn sql res filter} "\n  2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}\n"
-	_items4 := tclSplitList("\n  2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}\n")
+	// foreach {tn sql res filter} "2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}"
+	_items4 := tclSplitList("2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}")
 	for _idx4 := 0; _idx4+4 <= len(_items4); _idx4 += 4 {
 		tn := _items4[_idx4+0]
 		_ = tn // suppress unused warning

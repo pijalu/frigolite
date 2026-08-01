@@ -87,8 +87,8 @@ func Test_spellfix(t *testing.T) {
 			}
 		}
 	}
-	// foreach {tn word res} "\n  1   raxpi*     {rasping 5 rasped 5 ragweed 5 raspberry 6 rasp 4}\n  2   ril*       {rail 4 railed 4 railer 4 railers 4 railing 4}\n  3   rilis*     {realism 6 realist 6 realistic 6 realistically 6 realists 6}\n  4   reail*     {real 3 realest 3 realign 3 realigned 3 realigning 3}\n  5   ras*       {rascal 3 rascally 3 rascals 3 rash 3 rasher 3}\n  6   realistss* {realists 8 realigns 8 realistic 9 realistically 9 realest 7}\n  7   realistss  {realists 8 realist 7 realigns 8 realistic 9 realest 7}\n  8   rllation*  {realities 9 reality 7 rallied 7 railed 4}\n  9   renstom*   {rainstorm 8 ransom 6 ransomer 6 ransoming 6 ransoms 6}\n"
-	_items0 := tclSplitList("\n  1   raxpi*     {rasping 5 rasped 5 ragweed 5 raspberry 6 rasp 4}\n  2   ril*       {rail 4 railed 4 railer 4 railers 4 railing 4}\n  3   rilis*     {realism 6 realist 6 realistic 6 realistically 6 realists 6}\n  4   reail*     {real 3 realest 3 realign 3 realigned 3 realigning 3}\n  5   ras*       {rascal 3 rascally 3 rascals 3 rash 3 rasher 3}\n  6   realistss* {realists 8 realigns 8 realistic 9 realistically 9 realest 7}\n  7   realistss  {realists 8 realist 7 realigns 8 realistic 9 realest 7}\n  8   rllation*  {realities 9 reality 7 rallied 7 railed 4}\n  9   renstom*   {rainstorm 8 ransom 6 ransomer 6 ransoming 6 ransoms 6}\n")
+	// foreach {tn word res} "1   raxpi*     {rasping 5 rasped 5 ragweed 5 raspberry 6 rasp 4}\n  2   ril*       {rail 4 railed 4 railer 4 railers 4 railing 4}\n  3   rilis*     {realism 6 realist 6 realistic 6 realistically 6 realists 6}\n  4   reail*     {real 3 realest 3 realign 3 realigned 3 realigning 3}\n  5   ras*       {rascal 3 rascally 3 rascals 3 rash 3 rasher 3}\n  6   realistss* {realists 8 realigns 8 realistic 9 realistically 9 realest 7}\n  7   realistss  {realists 8 realist 7 realigns 8 realistic 9 realest 7}\n  8   rllation*  {realities 9 reality 7 rallied 7 railed 4}\n  9   renstom*   {rainstorm 8 ransom 6 ransomer 6 ransoming 6 ransoms 6}"
+	_items0 := tclSplitList("1   raxpi*     {rasping 5 rasped 5 ragweed 5 raspberry 6 rasp 4}\n  2   ril*       {rail 4 railed 4 railer 4 railers 4 railing 4}\n  3   rilis*     {realism 6 realist 6 realistic 6 realistically 6 realists 6}\n  4   reail*     {real 3 realest 3 realign 3 realigned 3 realigning 3}\n  5   ras*       {rascal 3 rascally 3 rascals 3 rash 3 rasher 3}\n  6   realistss* {realists 8 realigns 8 realistic 9 realistically 9 realest 7}\n  7   realistss  {realists 8 realist 7 realigns 8 realistic 9 realest 7}\n  8   rllation*  {realities 9 reality 7 rallied 7 railed 4}\n  9   renstom*   {rainstorm 8 ransom 6 ransomer 6 ransoming 6 ransoms 6}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -297,8 +297,8 @@ func Test_spellfix(t *testing.T) {
 				}
 			}
 		}
-		// foreach {tn word res} "\n  1   kos*     {kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3}\n  2   kellj*   {killjoy 5 kill 4 killed 4 killer 4 killers 4}\n  3   kellj    {kill 4 kills 5 killjoy 7 keel 4 killed 6}\n"
-		_items1 := tclSplitList("\n  1   kos*     {kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3}\n  2   kellj*   {killjoy 5 kill 4 killed 4 killer 4 killers 4}\n  3   kellj    {kill 4 kills 5 killjoy 7 keel 4 killed 6}\n")
+		// foreach {tn word res} "1   kos*     {kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3}\n  2   kellj*   {killjoy 5 kill 4 killed 4 killer 4 killers 4}\n  3   kellj    {kill 4 kills 5 killjoy 7 keel 4 killed 6}"
+		_items1 := tclSplitList("1   kos*     {kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3}\n  2   kellj*   {killjoy 5 kill 4 killed 4 killer 4 killers 4}\n  3   kellj    {kill 4 kills 5 killjoy 7 keel 4 killed 6}")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -326,8 +326,8 @@ func Test_spellfix(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(command) VALUES('edit_cost_table=NULL');\n")
 				}
 			}
-			// foreach {tn word res} "\n  1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}\n"
-			_items2 := tclSplitList("\n  1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}\n")
+			// foreach {tn word res} "1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}"
+			_items2 := tclSplitList("1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}")
 			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
@@ -355,8 +355,8 @@ func Test_spellfix(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');\n")
 					}
 				}
-				// foreach {tn word res} "\n  1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}\n"
-				_items3 := tclSplitList("\n  1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}\n")
+				// foreach {tn word res} "1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}"
+				_items3 := tclSplitList("1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}")
 				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
@@ -522,8 +522,8 @@ func Test_spellfix(t *testing.T) {
 						}
 					}
 					// db_save_and_close (unsupported command, not transpiled)
-					// foreach {tn conflict err bRollback res} "\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}\n"
-					_items4 := tclSplitList("\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}\n")
+					// foreach {tn conflict err bRollback res} "0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}"
+					_items4 := tclSplitList("0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}")
 					for _idx4 := 0; _idx4+5 <= len(_items4); _idx4 += 5 {
 						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
@@ -568,8 +568,8 @@ func Test_spellfix(t *testing.T) {
 							_res = db.Exec("ROLLBACK")
 							_ = _res // catchsql
 						}
-						// foreach {tn conflict err bRollback res} "\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {15 Agamemnon 45 Chryses}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {15 Agamemnon 20 Patroclus 45 Chryses}\n"
-						_items5 := tclSplitList("\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {15 Agamemnon 45 Chryses}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {15 Agamemnon 20 Patroclus 45 Chryses}\n")
+						// foreach {tn conflict err bRollback res} "0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {15 Agamemnon 45 Chryses}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {15 Agamemnon 20 Patroclus 45 Chryses}"
+						_items5 := tclSplitList("0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {15 Agamemnon 45 Chryses}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {15 Agamemnon 20 Patroclus 45 Chryses}")
 						for _idx5 := 0; _idx5+5 <= len(_items5); _idx5 += 5 {
 							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning

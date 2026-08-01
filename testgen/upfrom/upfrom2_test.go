@@ -62,8 +62,8 @@ func Test_upfrom2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "upfrom2"
 	_ = testprefix // suppress unused warning
-	// foreach {tn wo} "\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n"
-	_items0 := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
+	// foreach {tn wo} "1 \"\"\n  2 \"WITHOUT ROWID\""
+	_items0 := tclSplitList("1 \"\"\n  2 \"WITHOUT ROWID\"")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -75,8 +75,8 @@ func Test_upfrom2(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			// eval (dynamic, not transpiled)
 		}
-		// foreach {tn wo} "\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n"
-		_items1 := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
+		// foreach {tn wo} "1 \"\"\n  2 \"WITHOUT ROWID\""
+		_items1 := tclSplitList("1 \"\"\n  2 \"WITHOUT ROWID\"")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -103,8 +103,8 @@ func Test_upfrom2(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH input(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n  )\n  UPDATE t1 SET z=v FROM input WHERE x=k;\n")
 				}
 			}
-			// foreach {tn sql} "\n  2 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n  }\n  1 { \n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  }\n  3 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c);\n  }\n"
-			_items2 := tclSplitList("\n  2 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n  }\n  1 { \n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  }\n  3 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c);\n  }\n")
+			// foreach {tn sql} "2 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n  }\n  1 { \n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  }\n  3 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c);\n  }"
+			_items2 := tclSplitList("2 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n  }\n  1 { \n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  }\n  3 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c);\n  }")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
@@ -146,8 +146,8 @@ func Test_upfrom2(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n  CREATE TABLE x2(a, b, c);\n")
 					}
 				}
-				// foreach {tn update nm} "\n  1 \"UPDATE x1 SET a=5 FROM x1\" x1\n  2 \"UPDATE x1 AS grapes SET a=5 FROM x1 AS grapes\" grapes\n  3 \"UPDATE x1 SET a=5 FROM x2, x1\" x1\n  4 \"UPDATE x1 AS grapes SET a=5 FROM x2, x1 AS grapes\" grapes\n"
-				_items3 := tclSplitList("\n  1 \"UPDATE x1 SET a=5 FROM x1\" x1\n  2 \"UPDATE x1 AS grapes SET a=5 FROM x1 AS grapes\" grapes\n  3 \"UPDATE x1 SET a=5 FROM x2, x1\" x1\n  4 \"UPDATE x1 AS grapes SET a=5 FROM x2, x1 AS grapes\" grapes\n")
+				// foreach {tn update nm} "1 \"UPDATE x1 SET a=5 FROM x1\" x1\n  2 \"UPDATE x1 AS grapes SET a=5 FROM x1 AS grapes\" grapes\n  3 \"UPDATE x1 SET a=5 FROM x2, x1\" x1\n  4 \"UPDATE x1 AS grapes SET a=5 FROM x2, x1 AS grapes\" grapes"
+				_items3 := tclSplitList("1 \"UPDATE x1 SET a=5 FROM x1\" x1\n  2 \"UPDATE x1 AS grapes SET a=5 FROM x1 AS grapes\" grapes\n  3 \"UPDATE x1 SET a=5 FROM x2, x1\" x1\n  4 \"UPDATE x1 AS grapes SET a=5 FROM x2, x1 AS grapes\" grapes")
 				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning

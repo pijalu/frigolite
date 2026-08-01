@@ -86,8 +86,8 @@ func Test_hidden(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// foreach {tn view} "\n  1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }\n"
-	_items0 := tclSplitList("\n  1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }\n")
+	// foreach {tn view} "1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }"
+	_items0 := tclSplitList("1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

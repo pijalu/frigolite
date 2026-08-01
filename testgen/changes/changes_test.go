@@ -60,8 +60,8 @@ func Test_changes(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "changes"
 	_ = testprefix // suppress unused warning
-	// foreach {tn nRow wor} "\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n"
-	_items0 := tclSplitList("\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n")
+	// foreach {tn nRow wor} "1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\""
+	_items0 := tclSplitList("1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

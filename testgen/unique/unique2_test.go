@@ -53,8 +53,8 @@ func Test_unique2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// foreach {id sql} "\n   1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}\n"
-	_items0 := tclSplitList("\n   1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}\n")
+	// foreach {id sql} "1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}"
+	_items0 := tclSplitList("1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		id := _items0[_idx0+0]
 		_ = id // suppress unused warning
@@ -80,8 +80,8 @@ func Test_unique2(t *testing.T) {
 				_ = _res // catchsql
 			}
 		}
-		// foreach {id sql} "\n   5 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   6 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x))}\n   7 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   8 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x))}\n   9 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  10 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x))}\n  11 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  12 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x))}\n"
-		_items1 := tclSplitList("\n   5 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   6 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x))}\n   7 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   8 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x))}\n   9 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  10 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x))}\n  11 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  12 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x))}\n")
+		// foreach {id sql} "5 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   6 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x))}\n   7 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   8 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x))}\n   9 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  10 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x))}\n  11 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  12 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x))}"
+		_items1 := tclSplitList("5 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   6 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x))}\n   7 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   8 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x))}\n   9 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  10 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x))}\n  11 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  12 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x))}")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			id := _items1[_idx1+0]
 			_ = id // suppress unused warning

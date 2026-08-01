@@ -167,8 +167,8 @@ func Test_alterdropcol(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index t3rs after drop column: no such column: s", _res.Error, "\n  ALTER TABLE t3 DROP COLUMN s\n")
 		}
 	}
-	// foreach {tn wo} "\n  1 {}\n  2 {WITHOUT ROWID}\n"
-	_items0 := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
+	// foreach {tn wo} "1 {}\n  2 {WITHOUT ROWID}"
+	_items0 := tclSplitList("1 {}\n  2 {WITHOUT ROWID}")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -198,8 +198,8 @@ func Test_alterdropcol(t *testing.T) {
 				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t13 DROP COLUMN c;\n")
 			}
 		}
-		// foreach {tn wo vs} "\n  1 \"\"              \"\"\n  2 \"\"              VIRTUAL\n  3 \"\"              STORED\n  4 \"WITHOUT ROWID\" STORED\n  5 \"WITHOUT ROWID\" VIRTUAL\n"
-		_items1 := tclSplitList("\n  1 \"\"              \"\"\n  2 \"\"              VIRTUAL\n  3 \"\"              STORED\n  4 \"WITHOUT ROWID\" STORED\n  5 \"WITHOUT ROWID\" VIRTUAL\n")
+		// foreach {tn wo vs} "1 \"\"              \"\"\n  2 \"\"              VIRTUAL\n  3 \"\"              STORED\n  4 \"WITHOUT ROWID\" STORED\n  5 \"WITHOUT ROWID\" VIRTUAL"
+		_items1 := tclSplitList("1 \"\"              \"\"\n  2 \"\"              VIRTUAL\n  3 \"\"              STORED\n  4 \"WITHOUT ROWID\" STORED\n  5 \"WITHOUT ROWID\" VIRTUAL")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -458,8 +458,8 @@ func Test_alterdropcol(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			// foreach {tn wo} "\n  1 {}\n  2 {WITHOUT ROWID}\n"
-			_items3 := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
+			// foreach {tn wo} "1 {}\n  2 {WITHOUT ROWID}"
+			_items3 := tclSplitList("1 {}\n  2 {WITHOUT ROWID}")
 			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
 				tn := _items3[_idx3+0]
 				_ = tn // suppress unused warning

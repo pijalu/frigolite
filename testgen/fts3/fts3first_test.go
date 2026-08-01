@@ -86,8 +86,8 @@ func Test_fts3first(t *testing.T) {
 	}
 	for _, x := range tclSplitList("1 2") {
 	_ = x // suppress unused warning
-		// foreach {tn match res} "\n    1  \"^K\"              {0 1 14}\n    2  \"^S\"              {0 1 14}\n    3  \"^W\"              {9 15 17}\n    4  \"^J\"              {}\n    5  \"^E\"              {12}\n    6  \"V ^-E\"           {0 3 4 6 7 9 17 19}\n    7  \"V -^E\"           {0 3 4 6 7 9 17 19}\n    8  \"^-E V\"           {0 3 4 6 7 9 17 19}\n    9  \"-^E V\"           {0 3 4 6 7 9 17 19}\n    10 \"V\"               {0 3 4 6 7 9 12 17 19}\n\n    11 {\"^K H\"}          {0 14}\n    12 {\"K H\"}           {0 10 14}\n    13 {\"K ^H\"}          {}\n  "
-		_items0 := tclSplitList("\n    1  \"^K\"              {0 1 14}\n    2  \"^S\"              {0 1 14}\n    3  \"^W\"              {9 15 17}\n    4  \"^J\"              {}\n    5  \"^E\"              {12}\n    6  \"V ^-E\"           {0 3 4 6 7 9 17 19}\n    7  \"V -^E\"           {0 3 4 6 7 9 17 19}\n    8  \"^-E V\"           {0 3 4 6 7 9 17 19}\n    9  \"-^E V\"           {0 3 4 6 7 9 17 19}\n    10 \"V\"               {0 3 4 6 7 9 12 17 19}\n\n    11 {\"^K H\"}          {0 14}\n    12 {\"K H\"}           {0 10 14}\n    13 {\"K ^H\"}          {}\n  ")
+		// foreach {tn match res} "1  \"^K\"              {0 1 14}\n    2  \"^S\"              {0 1 14}\n    3  \"^W\"              {9 15 17}\n    4  \"^J\"              {}\n    5  \"^E\"              {12}\n    6  \"V ^-E\"           {0 3 4 6 7 9 17 19}\n    7  \"V -^E\"           {0 3 4 6 7 9 17 19}\n    8  \"^-E V\"           {0 3 4 6 7 9 17 19}\n    9  \"-^E V\"           {0 3 4 6 7 9 17 19}\n    10 \"V\"               {0 3 4 6 7 9 12 17 19}\n\n    11 {\"^K H\"}          {0 14}\n    12 {\"K H\"}           {0 10 14}\n    13 {\"K ^H\"}          {}"
+		_items0 := tclSplitList("1  \"^K\"              {0 1 14}\n    2  \"^S\"              {0 1 14}\n    3  \"^W\"              {9 15 17}\n    4  \"^J\"              {}\n    5  \"^E\"              {12}\n    6  \"V ^-E\"           {0 3 4 6 7 9 17 19}\n    7  \"V -^E\"           {0 3 4 6 7 9 17 19}\n    8  \"^-E V\"           {0 3 4 6 7 9 17 19}\n    9  \"-^E V\"           {0 3 4 6 7 9 17 19}\n    10 \"V\"               {0 3 4 6 7 9 12 17 19}\n\n    11 {\"^K H\"}          {0 14}\n    12 {\"K H\"}           {0 10 14}\n    13 {\"K ^H\"}          {}")
 		for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
@@ -130,8 +130,8 @@ func Test_fts3first(t *testing.T) {
 				}
 			}
 		}
-		// foreach {tn match res} "\n  1  {^K}    {{[K] H D S T} {[K] N J L W} {[K] H A B L}}\n  2  {^X}    {{[X] Y D L S} {[X] J P K R} {[X] S B X Y}}\n  3  {^X Y}  {{[X] [Y] D L S} {D [Y] P O I...[X] J P K R} {[X] S B X [Y]}}\n"
-		_items1 := tclSplitList("\n  1  {^K}    {{[K] H D S T} {[K] N J L W} {[K] H A B L}}\n  2  {^X}    {{[X] Y D L S} {[X] J P K R} {[X] S B X Y}}\n  3  {^X Y}  {{[X] [Y] D L S} {D [Y] P O I...[X] J P K R} {[X] S B X [Y]}}\n")
+		// foreach {tn match res} "1  {^K}    {{" + "K" + " H D S T} {" + "K" + " N J L W} {" + "K" + " H A B L}}\n  2  {^X}    {{" + "X" + " Y D L S} {" + "X" + " J P K R} {" + "X" + " S B X Y}}\n  3  {^X Y}  {{" + "X" + " " + "Y" + " D L S} {D " + "Y" + " P O I..." + "X" + " J P K R} {" + "X" + " S B X " + "Y" + "}}"
+		_items1 := tclSplitList("1  {^K}    {{" + "K" + " H D S T} {" + "K" + " N J L W} {" + "K" + " H A B L}}\n  2  {^X}    {{" + "X" + " Y D L S} {" + "X" + " J P K R} {" + "X" + " S B X Y}}\n  3  {^X Y}  {{" + "X" + " " + "Y" + " D L S} {D " + "Y" + " P O I..." + "X" + " J P K R} {" + "X" + " S B X " + "Y" + "}}")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -167,8 +167,8 @@ func Test_fts3first(t *testing.T) {
 					}
 				}
 			}
-			// foreach {tn match res} "\n  1  {^K}    {\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n             }\n  2  {^X}    {\n                {0 1 1 0 1 1 1 2 2}\n                {0 1 1 1 1 1 0 2 2}\n                {1 1 1 0 1 1 1 2 2}\n             }\n  3  {^X Y}  {\n                {0 1 1 0 1 1 1 2 2 0 6 5 0 5 4 1 4 4} \n                {0 1 1 1 1 1 0 2 2 1 6 5 0 5 4 0 4 4} \n                {1 1 1 0 1 1 1 2 2 1 6 5 0 5 4 1 4 4}\n             }\n"
-			_items2 := tclSplitList("\n  1  {^K}    {\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n             }\n  2  {^X}    {\n                {0 1 1 0 1 1 1 2 2}\n                {0 1 1 1 1 1 0 2 2}\n                {1 1 1 0 1 1 1 2 2}\n             }\n  3  {^X Y}  {\n                {0 1 1 0 1 1 1 2 2 0 6 5 0 5 4 1 4 4} \n                {0 1 1 1 1 1 0 2 2 1 6 5 0 5 4 0 4 4} \n                {1 1 1 0 1 1 1 2 2 1 6 5 0 5 4 1 4 4}\n             }\n")
+			// foreach {tn match res} "1  {^K}    {\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n             }\n  2  {^X}    {\n                {0 1 1 0 1 1 1 2 2}\n                {0 1 1 1 1 1 0 2 2}\n                {1 1 1 0 1 1 1 2 2}\n             }\n  3  {^X Y}  {\n                {0 1 1 0 1 1 1 2 2 0 6 5 0 5 4 1 4 4} \n                {0 1 1 1 1 1 0 2 2 1 6 5 0 5 4 0 4 4} \n                {1 1 1 0 1 1 1 2 2 1 6 5 0 5 4 1 4 4}\n             }"
+			_items2 := tclSplitList("1  {^K}    {\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n             }\n  2  {^X}    {\n                {0 1 1 0 1 1 1 2 2}\n                {0 1 1 1 1 1 0 2 2}\n                {1 1 1 0 1 1 1 2 2}\n             }\n  3  {^X Y}  {\n                {0 1 1 0 1 1 1 2 2 0 6 5 0 5 4 1 4 4} \n                {0 1 1 1 1 1 0 2 2 1 6 5 0 5 4 0 4 4} \n                {1 1 1 0 1 1 1 2 2 1 6 5 0 5 4 1 4 4}\n             }")
 			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning

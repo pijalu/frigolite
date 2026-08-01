@@ -271,8 +271,8 @@ func Test_unionvtab(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a BLOB, b);\n  CREATE TABLE x2(a BLOB, b);\n  CREATE TEMP TABLE x3(a BLOB, b);\n\n  CREATE TABLE aux.y1(one, two, three INTEGER PRIMARY KEY);\n  CREATE TEMP TABLE y2(one, two, three INTEGER PRIMARY KEY);\n  CREATE TABLE y3(one, two, three INTEGER PRIMARY KEY);\n")
 		}
 	}
-	// foreach {tn dbs res} "\n  1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}\n"
-	_items0 := tclSplitList("\n  1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}\n")
+	// foreach {tn dbs res} "1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}"
+	_items0 := tclSplitList("1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -317,8 +317,8 @@ func Test_unionvtab(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no source tables configured", _res.Error, "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
 			}
 		}
-		// foreach {tn sql} "\n  1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }\n"
-		_items1 := tclSplitList("\n  1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }\n")
+		// foreach {tn sql} "1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }"
+		_items1 := tclSplitList("1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -1102,8 +1102,8 @@ func Test_unionvtab(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			// foreach {k v} "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
-			_items2 := tclSplitList("\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n")
+			// foreach {k v} "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
+			_items2 := tclSplitList("-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				k := _items2[_idx2+0]
 				_ = k // suppress unused warning

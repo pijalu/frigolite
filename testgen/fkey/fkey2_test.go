@@ -753,7 +753,7 @@ func Test_fkey2(t *testing.T) {
 					}
 					tn = "0"
 					_ = tn // suppress unused warning
-					for _, zSql := range tclSplitList("list {\n  CREATE TABLE p(a PRIMARY KEY, b);\n  CREATE TABLE c(x REFERENCES p(c));\n} {\n  CREATE TABLE c(x REFERENCES v(y));\n  CREATE VIEW v AS SELECT x AS y FROM c;\n} {\n  CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n  CREATE TABLE c(x REFERENCES p);\n} {\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n}") {
+					for _, zSql := range tclSplitList("{\n  CREATE TABLE p(a PRIMARY KEY, b);\n  CREATE TABLE c(x REFERENCES p(c));\n} {\n  CREATE TABLE c(x REFERENCES v(y));\n  CREATE VIEW v AS SELECT x AS y FROM c;\n} {\n  CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n  CREATE TABLE c(x REFERENCES p);\n} {\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n}") {
 					_ = zSql // suppress unused warning
 						// drop_all_tables (unsupported command, not transpiled)
 						{ // do_test "fkey2-10.1." + "incr tn"
@@ -904,8 +904,8 @@ func Test_fkey2(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c));\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);\n  ")
 						}
 					}
-					// foreach {tn stmt} "\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\"\n"
-					_items4 := tclSplitList("\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\"\n")
+					// foreach {tn stmt} "1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\""
+					_items4 := tclSplitList("1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\"")
 					for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
 						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
@@ -1371,8 +1371,8 @@ func Test_fkey2(t *testing.T) {
 							}
 							// execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLB...} (unsupported command, not transpiled)
 						}
-						// foreach {tn zSchema} "\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }\n"
-						_items5 := tclSplitList("\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }\n")
+						// foreach {tn zSchema} "1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }"
+						_items5 := tclSplitList("1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }")
 						for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
 							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
@@ -1672,8 +1672,8 @@ func Test_fkey2(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a PRIMARY KEY, b);\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp);\n  ")
 								}
 							}
-							// foreach {tn insert} "\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n"
-							_items6 := tclSplitList("\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n")
+							// foreach {tn insert} "1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\""
+							_items6 := tclSplitList("1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"")
 							for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
 								tn := _items6[_idx6+0]
 								_ = tn // suppress unused warning
@@ -1711,8 +1711,8 @@ func Test_fkey2(t *testing.T) {
 										}
 									}
 								}
-								// foreach {tn update} "\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n"
-								_items7 := tclSplitList("\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n")
+								// foreach {tn update} "1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\""
+								_items7 := tclSplitList("1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"")
 								for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
 									tn := _items7[_idx7+0]
 									_ = tn // suppress unused warning

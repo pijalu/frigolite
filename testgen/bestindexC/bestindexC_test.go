@@ -149,16 +149,16 @@ func Test_bestindexC(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE t_unionall AS \n    SELECT * FROM x1 UNION ALL SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_intersect AS \n    SELECT * FROM x1 INTERSECT SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_union AS \n    SELECT * FROM x1 UNION SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_except AS \n    SELECT * FROM x1 EXCEPT SELECT * FROM x2;\n")
 		}
 	}
-	// foreach {tn limit} "\n  1 \"LIMIT 8\" \n  2 \"LIMIT 4\" \n  3 \"LIMIT 4 OFFSET 2\" \n  4 \"LIMIT 8 OFFSET 4\" \n"
-	_items0 := tclSplitList("\n  1 \"LIMIT 8\" \n  2 \"LIMIT 4\" \n  3 \"LIMIT 4 OFFSET 2\" \n  4 \"LIMIT 8 OFFSET 4\" \n")
+	// foreach {tn limit} "1 \"LIMIT 8\" \n  2 \"LIMIT 4\" \n  3 \"LIMIT 4 OFFSET 2\" \n  4 \"LIMIT 8 OFFSET 4\""
+	_items0 := tclSplitList("1 \"LIMIT 8\" \n  2 \"LIMIT 4\" \n  3 \"LIMIT 4 OFFSET 2\" \n  4 \"LIMIT 8 OFFSET 4\"")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
 		limit := _items0[_idx0+1]
 		_ = limit // suppress unused warning
 		_ = _idx0
-			// foreach {op tbl} "\n    \"UNION ALL\" t_unionall\n    \"UNION\"     t_union\n    \"INTERSECT\" t_intersect\n    \"EXCEPT\"    t_except\n  "
-			_items1 := tclSplitList("\n    \"UNION ALL\" t_unionall\n    \"UNION\"     t_union\n    \"INTERSECT\" t_intersect\n    \"EXCEPT\"    t_except\n  ")
+			// foreach {op tbl} "\"UNION ALL\" t_unionall\n    \"UNION\"     t_union\n    \"INTERSECT\" t_intersect\n    \"EXCEPT\"    t_except"
+			_items1 := tclSplitList("\"UNION ALL\" t_unionall\n    \"UNION\"     t_union\n    \"INTERSECT\" t_intersect\n    \"EXCEPT\"    t_except")
 			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 				op := _items1[_idx1+0]
 				_ = op // suppress unused warning
@@ -335,8 +335,8 @@ func Test_bestindexC(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command t1);\n  CREATE TABLE t1(a, b, c, d);\n")
 				}
 			}
-			// foreach {tn where ok} "\n  0    \"WHERE a=? AND b=? AND c=? AND c=?\"              1\n  1    \"WHERE a=? AND b=? AND c=?\"                      1\n  2    \"WHERE a=? AND b=? AND (c=? OR c=?)\"             1\n  3    \"WHERE a=? AND b=? AND (c=? OR c=? OR c=?)\"      1\n  4    \"WHERE a=? AND b=? AND (c IS ? OR c IS ?)\"       1\n  5    \"WHERE a=? AND ((b=? AND c=?) OR (c=? AND b=?))\" 1\n  6    \"WHERE a=? AND ((b=? AND c=?) OR (c=?))\"         0\n"
-			_items2 := tclSplitList("\n  0    \"WHERE a=? AND b=? AND c=? AND c=?\"              1\n  1    \"WHERE a=? AND b=? AND c=?\"                      1\n  2    \"WHERE a=? AND b=? AND (c=? OR c=?)\"             1\n  3    \"WHERE a=? AND b=? AND (c=? OR c=? OR c=?)\"      1\n  4    \"WHERE a=? AND b=? AND (c IS ? OR c IS ?)\"       1\n  5    \"WHERE a=? AND ((b=? AND c=?) OR (c=? AND b=?))\" 1\n  6    \"WHERE a=? AND ((b=? AND c=?) OR (c=?))\"         0\n")
+			// foreach {tn where ok} "0    \"WHERE a=? AND b=? AND c=? AND c=?\"              1\n  1    \"WHERE a=? AND b=? AND c=?\"                      1\n  2    \"WHERE a=? AND b=? AND (c=? OR c=?)\"             1\n  3    \"WHERE a=? AND b=? AND (c=? OR c=? OR c=?)\"      1\n  4    \"WHERE a=? AND b=? AND (c IS ? OR c IS ?)\"       1\n  5    \"WHERE a=? AND ((b=? AND c=?) OR (c=? AND b=?))\" 1\n  6    \"WHERE a=? AND ((b=? AND c=?) OR (c=?))\"         0"
+			_items2 := tclSplitList("0    \"WHERE a=? AND b=? AND c=? AND c=?\"              1\n  1    \"WHERE a=? AND b=? AND c=?\"                      1\n  2    \"WHERE a=? AND b=? AND (c=? OR c=?)\"             1\n  3    \"WHERE a=? AND b=? AND (c=? OR c=? OR c=?)\"      1\n  4    \"WHERE a=? AND b=? AND (c IS ? OR c IS ?)\"       1\n  5    \"WHERE a=? AND ((b=? AND c=?) OR (c=? AND b=?))\" 1\n  6    \"WHERE a=? AND ((b=? AND c=?) OR (c=?))\"         0")
 			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning

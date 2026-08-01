@@ -131,7 +131,7 @@ func Test_shared(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
-	for _, av := range tclSplitList("list 0 1") {
+	for _, av := range tclSplitList("0 1") {
 	_ = av // suppress unused warning
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
@@ -458,7 +458,7 @@ func Test_shared(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
-			for _, db_iter := range tclSplitList("list test.db test1.db test2.db test3.db") {
+			for _, db_iter := range tclSplitList("test.db test1.db test2.db test3.db") {
 			_ = db_iter // suppress unused warning
 				os.Remove("")
 			}
@@ -574,7 +574,7 @@ func Test_shared(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				db2.Close()
 			}
-			for _, f := range tclSplitList("list test.db test2.db") {
+			for _, f := range tclSplitList("test.db test2.db") {
 			_ = f // suppress unused warning
 				os.Remove(f)
 			}

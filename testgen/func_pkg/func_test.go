@@ -341,7 +341,7 @@ func Test_func(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl1")
 			}
-			for _, word := range tclSplitList("contains UTF-8 characters hiu1234ho") {
+			for _, word := range tclSplitList("contains UTF-8 characters hi\\u1234ho") {
 			_ = word // suppress unused warning
 				_res = db.Exec("INSERT INTO tbl1 VALUES('" + word + "')")
 				if _res.Error != nil {
@@ -1319,8 +1319,8 @@ func Test_func(t *testing.T) {
 	if tclBool("!" + "0") {
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach {name sdx} "\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  "
-		_items0 := tclSplitList("\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  ")
+		// foreach {name sdx} "euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000"
+		_items0 := tclSplitList("euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000")
 		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 			name := _items0[_idx0+0]
 			_ = name // suppress unused warning

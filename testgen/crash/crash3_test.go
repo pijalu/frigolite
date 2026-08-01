@@ -79,8 +79,8 @@ func Test_crash3(t *testing.T) {
 	// proc definition (not transpiled)
 	tn = "1"
 	_ = tn // suppress unused warning
-	// foreach {sql res2} "list \\\n  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6} \\\n  {DELETE FROM abc}                                    {}    \\\n  {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3} \\\n  {UPDATE abc SET a = 2}                               {2 2 3}       \\\n  {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a} \\\n  {CREATE TABLE def(d, e, f)}                          {n/a} \\"
-	_items0 := tclSplitList("list \\\n  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6} \\\n  {DELETE FROM abc}                                    {}    \\\n  {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3} \\\n  {UPDATE abc SET a = 2}                               {2 2 3}       \\\n  {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a} \\\n  {CREATE TABLE def(d, e, f)}                          {n/a} \\")
+	// foreach {sql res2} "\\\n  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6} \\\n  {DELETE FROM abc}                                    {}    \\\n  {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3} \\\n  {UPDATE abc SET a = 2}                               {2 2 3}       \\\n  {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a} \\\n  {CREATE TABLE def(d, e, f)}                          {n/a} \\\n"
+	_items0 := tclSplitList("\\\n  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6} \\\n  {DELETE FROM abc}                                    {}    \\\n  {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3} \\\n  {UPDATE abc SET a = 2}                               {2 2 3}       \\\n  {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a} \\\n  {CREATE TABLE def(d, e, f)}                          {n/a} \\\n")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		sql := _items0[_idx0+0]
 		_ = sql // suppress unused warning
@@ -140,8 +140,8 @@ func Test_crash3(t *testing.T) {
 		}
 		tn = "1"
 		_ = tn // suppress unused warning
-		// foreach {::crashfile ::delay ::char} "\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n"
-		_items1 := tclSplitList("\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n")
+		// foreach {::crashfile ::delay ::char} "test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append"
+		_items1 := tclSplitList("test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			crashfile := _items1[_idx1+0]
 			_ = crashfile // suppress unused warning

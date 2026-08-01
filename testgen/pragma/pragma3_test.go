@@ -254,8 +254,8 @@ func Test_pragma3(t *testing.T) {
 			db2.Close()
 		}
 	}
-	// foreach {tn sql} "\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n"
-	_items1 := tclSplitList("\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n")
+	// foreach {tn sql} "A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }"
+	_items1 := tclSplitList("A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }")
 	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning

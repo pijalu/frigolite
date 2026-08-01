@@ -685,8 +685,8 @@ func Test_analyze9(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t3 WHERE x = 'xyz' AND a IS NOT NULL AND b = 2\n")
 		}
 	}
-	// foreach {tn schema} "\n  1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }\n"
-	_items0 := tclSplitList("\n  1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }\n")
+	// foreach {tn schema} "1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }"
+	_items0 := tclSplitList("1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -764,8 +764,8 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 		}
-		// foreach {tn schema} "\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n"
-		_items1 := tclSplitList("\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n")
+		// foreach {tn schema} "1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }"
+		_items1 := tclSplitList("1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -1477,8 +1477,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
 				}
 			}
-			// foreach {tn where res} "\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n"
-			_items8 := tclSplitList("\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n")
+			// foreach {tn where res} "1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}"
+			_items8 := tclSplitList("1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}")
 			for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
 				tn := _items8[_idx8+0]
 				_ = tn // suppress unused warning
@@ -1519,8 +1519,8 @@ func Test_analyze9(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
 					}
 				}
-				// foreach {tn where eqp} "\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n"
-				_items9 := tclSplitList("\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n")
+				// foreach {tn where eqp} "1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}"
+				_items9 := tclSplitList("1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}")
 				for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
 					tn := _items9[_idx9+0]
 					_ = tn // suppress unused warning

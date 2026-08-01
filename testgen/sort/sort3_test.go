@@ -81,8 +81,8 @@ func Test_sort3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA cache_size = 5;\n  CREATE TABLE t11(a, b);\n  INSERT INTO t11 VALUES(randomblob(5000), NULL);\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --2\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --3\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --4\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --5\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --6\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --7\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --8\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --9\n  UPDATE t11 SET b = cksum(a);\n")
 		}
 	}
-	// foreach {tn mmap_limit} "\n  1 0\n  2 1000000\n"
-	_items0 := tclSplitList("\n  1 0\n  2 1000000\n")
+	// foreach {tn mmap_limit} "1 0\n  2 1000000"
+	_items0 := tclSplitList("1 0\n  2 1000000")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -100,8 +100,8 @@ func Test_sort3(t *testing.T) {
 				// set  (invalid identifier, skipped)
 			}
 		}
-		// foreach {itest limit} "\n  1 5000000\n  2 0x7FFFFFFF\n"
-		_items1 := tclSplitList("\n  1 5000000\n  2 0x7FFFFFFF\n")
+		// foreach {itest limit} "1 5000000\n  2 0x7FFFFFFF"
+		_items1 := tclSplitList("1 5000000\n  2 0x7FFFFFFF")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			itest := _items1[_idx1+0]
 			_ = itest // suppress unused warning

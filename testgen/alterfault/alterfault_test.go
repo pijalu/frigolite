@@ -74,8 +74,8 @@ func Test_alterfault(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	// foreach {tn sql} "\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n"
-	_items0 := tclSplitList("\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n")
+	// foreach {tn sql} "1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }"
+	_items0 := tclSplitList("1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

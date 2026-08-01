@@ -101,8 +101,8 @@ func Test_sortfault(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 5;\n")
 		}
 	}
-	// foreach {tn mmap_limit nWorker tmpstore threadsmode fakeheap lookaside} "\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n"
-	_items1 := tclSplitList("\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n")
+	// foreach {tn mmap_limit nWorker tmpstore threadsmode fakeheap lookaside} "1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true"
+	_items1 := tclSplitList("1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true")
 	for _idx1 := 0; _idx1+7 <= len(_items1); _idx1 += 7 {
 		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning

@@ -74,8 +74,8 @@ func Test_windowC(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(i INTEGER PRIMARY KEY, x);\n")
 		}
 	}
-	// foreach {tn bBlob seps} "\n  1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}\n"
-	_items0 := tclSplitList("\n  1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}\n")
+	// foreach {tn bBlob seps} "1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}"
+	_items0 := tclSplitList("1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -106,8 +106,8 @@ func Test_windowC(t *testing.T) {
 						}
 					}
 				}
-				// foreach {tn2 win} "\n      1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"\n    "
-				_items1 := tclSplitList("\n      1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"\n    ")
+				// foreach {tn2 win} "1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\""
+				_items1 := tclSplitList("1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"")
 				for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 					tn2 := _items1[_idx1+0]
 					_ = tn2 // suppress unused warning

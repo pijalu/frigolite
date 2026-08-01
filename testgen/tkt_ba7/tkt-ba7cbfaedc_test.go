@@ -74,8 +74,8 @@ func Test_tkt_ba7cbfaedc(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(x, y);\n")
 		}
 	}
-	// foreach {n idx} "\n  1 { CREATE INDEX i1 ON t1(x, y) }\n  2 { CREATE INDEX i1 ON t1(x DESC, y) }\n  3 { CREATE INDEX i1 ON t1(x, y DESC) }\n  4 { CREATE INDEX i1 ON t1(x DESC, y DESC) }\n"
-	_items0 := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(x, y) }\n  2 { CREATE INDEX i1 ON t1(x DESC, y) }\n  3 { CREATE INDEX i1 ON t1(x, y DESC) }\n  4 { CREATE INDEX i1 ON t1(x DESC, y DESC) }\n")
+	// foreach {n idx} "1 { CREATE INDEX i1 ON t1(x, y) }\n  2 { CREATE INDEX i1 ON t1(x DESC, y) }\n  3 { CREATE INDEX i1 ON t1(x, y DESC) }\n  4 { CREATE INDEX i1 ON t1(x DESC, y DESC) }"
+	_items0 := tclSplitList("1 { CREATE INDEX i1 ON t1(x, y) }\n  2 { CREATE INDEX i1 ON t1(x DESC, y) }\n  3 { CREATE INDEX i1 ON t1(x, y DESC) }\n  4 { CREATE INDEX i1 ON t1(x DESC, y DESC) }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		n := _items0[_idx0+0]
 		_ = n // suppress unused warning
@@ -88,8 +88,8 @@ func Test_tkt_ba7cbfaedc(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 			}
-			// foreach {tn q res} "\n    1 \"GROUP BY x, y ORDER BY x, y\"            {1 a 1 b   2 a 2 b   3 a 3 b}\n    2 \"GROUP BY x, y ORDER BY x DESC, y\"       {3 a 3 b   2 a 2 b   1 a 1 b}\n    3 \"GROUP BY x, y ORDER BY x, y DESC\"       {1 b 1 a   2 b 2 a   3 b 3 a}\n    4 \"GROUP BY x, y ORDER BY x DESC, y DESC\"  {3 b 3 a   2 b 2 a   1 b 1 a}\n  "
-			_items1 := tclSplitList("\n    1 \"GROUP BY x, y ORDER BY x, y\"            {1 a 1 b   2 a 2 b   3 a 3 b}\n    2 \"GROUP BY x, y ORDER BY x DESC, y\"       {3 a 3 b   2 a 2 b   1 a 1 b}\n    3 \"GROUP BY x, y ORDER BY x, y DESC\"       {1 b 1 a   2 b 2 a   3 b 3 a}\n    4 \"GROUP BY x, y ORDER BY x DESC, y DESC\"  {3 b 3 a   2 b 2 a   1 b 1 a}\n  ")
+			// foreach {tn q res} "1 \"GROUP BY x, y ORDER BY x, y\"            {1 a 1 b   2 a 2 b   3 a 3 b}\n    2 \"GROUP BY x, y ORDER BY x DESC, y\"       {3 a 3 b   2 a 2 b   1 a 1 b}\n    3 \"GROUP BY x, y ORDER BY x, y DESC\"       {1 b 1 a   2 b 2 a   3 b 3 a}\n    4 \"GROUP BY x, y ORDER BY x DESC, y DESC\"  {3 b 3 a   2 b 2 a   1 b 1 a}"
+			_items1 := tclSplitList("1 \"GROUP BY x, y ORDER BY x, y\"            {1 a 1 b   2 a 2 b   3 a 3 b}\n    2 \"GROUP BY x, y ORDER BY x DESC, y\"       {3 a 3 b   2 a 2 b   1 a 1 b}\n    3 \"GROUP BY x, y ORDER BY x, y DESC\"       {1 b 1 a   2 b 2 a   3 b 3 a}\n    4 \"GROUP BY x, y ORDER BY x DESC, y DESC\"  {3 b 3 a   2 b 2 a   1 b 1 a}")
 			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 				tn := _items1[_idx1+0]
 				_ = tn // suppress unused warning

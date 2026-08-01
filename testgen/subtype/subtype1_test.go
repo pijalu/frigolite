@@ -216,8 +216,8 @@ func Test_subtype1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(id, j);\n  INSERT INTO t1 VALUES (1,'{a:{x:1,y:2},b:{x:3,y:4}}'), (2,'not json');\n")
 		}
 	}
-	// foreach {tn expr st} "\n  510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74\n"
-	_items0 := tclSplitList("\n  510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74\n")
+	// foreach {tn expr st} "510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74"
+	_items0 := tclSplitList("510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

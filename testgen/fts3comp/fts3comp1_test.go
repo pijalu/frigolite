@@ -76,8 +76,8 @@ func Test_fts3comp1(t *testing.T) {
 	_ = next_x // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	// foreach {tn zip unzip} "\n  1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}\n"
-	_items0 := tclSplitList("\n  1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}\n")
+	// foreach {tn zip unzip} "1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}"
+	_items0 := tclSplitList("1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

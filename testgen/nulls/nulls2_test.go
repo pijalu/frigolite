@@ -56,8 +56,8 @@ func Test_nulls2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "nulls2"
 	_ = testprefix // suppress unused warning
-	// foreach {tn idx} "\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n"
-	_items0 := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n")
+	// foreach {tn idx} "1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }"
+	_items0 := tclSplitList("1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -84,8 +84,8 @@ func Test_nulls2(t *testing.T) {
 				}
 			}
 		}
-		// foreach {tn idx} "\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n"
-		_items1 := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n")
+		// foreach {tn idx} "1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }"
+		_items1 := tclSplitList("1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning

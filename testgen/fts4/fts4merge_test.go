@@ -198,8 +198,8 @@ func Test_fts4merge(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t2 USING " + mod)
 			}
 		}
-		// foreach {tn arg} "\n    1   {merge=abc}\n    2   {merge=%%%}\n    3   {merge=,}\n    4   {merge=5,}\n    5   {merge=6,%}\n    6   {merge=6,six}\n    7   {merge=6,1}\n  "
-		_items0 := tclSplitList("\n    1   {merge=abc}\n    2   {merge=%%%}\n    3   {merge=,}\n    4   {merge=5,}\n    5   {merge=6,%}\n    6   {merge=6,six}\n    7   {merge=6,1}\n  ")
+		// foreach {tn arg} "1   {merge=abc}\n    2   {merge=%%%}\n    3   {merge=,}\n    4   {merge=5,}\n    5   {merge=6,%}\n    6   {merge=6,six}\n    7   {merge=6,1}"
+		_items0 := tclSplitList("1   {merge=abc}\n    2   {merge=%%%}\n    3   {merge=,}\n    4   {merge=5,}\n    5   {merge=6,%}\n    6   {merge=6,six}\n    7   {merge=6,1}")
 		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
@@ -278,8 +278,8 @@ func Test_fts4merge(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level")
 				}
 			}
-			// foreach {tn expect} "\n    1  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 1 0\"\n    2  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12}    1 0\"\n    3  \"0 {0 1 2 3 4 5 6 7 8 9 10 11}       1 0\"\n    4  \"0 {0 1 2 3 4 5 6 7 8 9 10}          1 0\"\n    5  \"0 {0 1 2 3 4 5 6 7 8 9}             1 0\"\n    6  \"0 {0 1 2 3 4 5 6 7 8}               1 0\"\n    7  \"0 {0 1 2 3 4 5 6 7}                 1 0\"\n    8  \"0 {0 1 2 3 4 5 6}                   1 0\"\n    9  \"0 {0 1 2 3 4 5}                     1 0\"\n  "
-			_items1 := tclSplitList("\n    1  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 1 0\"\n    2  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12}    1 0\"\n    3  \"0 {0 1 2 3 4 5 6 7 8 9 10 11}       1 0\"\n    4  \"0 {0 1 2 3 4 5 6 7 8 9 10}          1 0\"\n    5  \"0 {0 1 2 3 4 5 6 7 8 9}             1 0\"\n    6  \"0 {0 1 2 3 4 5 6 7 8}               1 0\"\n    7  \"0 {0 1 2 3 4 5 6 7}                 1 0\"\n    8  \"0 {0 1 2 3 4 5 6}                   1 0\"\n    9  \"0 {0 1 2 3 4 5}                     1 0\"\n  ")
+			// foreach {tn expect} "1  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 1 0\"\n    2  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12}    1 0\"\n    3  \"0 {0 1 2 3 4 5 6 7 8 9 10 11}       1 0\"\n    4  \"0 {0 1 2 3 4 5 6 7 8 9 10}          1 0\"\n    5  \"0 {0 1 2 3 4 5 6 7 8 9}             1 0\"\n    6  \"0 {0 1 2 3 4 5 6 7 8}               1 0\"\n    7  \"0 {0 1 2 3 4 5 6 7}                 1 0\"\n    8  \"0 {0 1 2 3 4 5 6}                   1 0\"\n    9  \"0 {0 1 2 3 4 5}                     1 0\""
+			_items1 := tclSplitList("1  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 1 0\"\n    2  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12}    1 0\"\n    3  \"0 {0 1 2 3 4 5 6 7 8 9 10 11}       1 0\"\n    4  \"0 {0 1 2 3 4 5 6 7 8 9 10}          1 0\"\n    5  \"0 {0 1 2 3 4 5 6 7 8 9}             1 0\"\n    6  \"0 {0 1 2 3 4 5 6 7 8}               1 0\"\n    7  \"0 {0 1 2 3 4 5 6 7}                 1 0\"\n    8  \"0 {0 1 2 3 4 5 6}                   1 0\"\n    9  \"0 {0 1 2 3 4 5}                     1 0\"")
 			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 				tn := _items1[_idx1+0]
 				_ = tn // suppress unused warning

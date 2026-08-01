@@ -97,8 +97,8 @@ func Test_badutf2(t *testing.T) {
 		_ = S // suppress unused warning
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	// foreach {i len uval xstr ustr u2u} "\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n"
-	_items0 := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
+	// foreach {i len uval xstr ustr u2u} "1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}"
+	_items0 := tclSplitList("1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}")
 	for _idx0 := 0; _idx0+6 <= len(_items0); _idx0 += 6 {
 		i := _items0[_idx0+0]
 		_ = i // suppress unused warning

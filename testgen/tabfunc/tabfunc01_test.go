@@ -955,8 +955,8 @@ func Test_tabfunc01(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// foreach {tn where res} "\n  1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}\n"
-	_items0 := tclSplitList("\n  1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}\n")
+	// foreach {tn where res} "1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}"
+	_items0 := tclSplitList("1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -1352,10 +1352,10 @@ func Test_tabfunc01(t *testing.T) {
 		}
 		subtest = "1"
 		_ = subtest // suppress unused warning
-		for _, bound := range tclSplitList("\n  9007199254740991.0\n  9007199254740991.1\n  9007199254740991.5\n  9007199254740991.9\n  9007199254740992.0\n  9007199254740992.1\n  9007199254740992.5\n  9007199254740992.9\n  9007199254740993.0\n  9007199254740993.1\n  9007199254740993.5\n") {
+		for _, bound := range tclSplitList("9007199254740991.0\n  9007199254740991.1\n  9007199254740991.5\n  9007199254740991.9\n  9007199254740992.0\n  9007199254740992.1\n  9007199254740992.5\n  9007199254740992.9\n  9007199254740993.0\n  9007199254740993.1\n  9007199254740993.5") {
 		_ = bound // suppress unused warning
-			// foreach {range boundsign} "\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  "
-			_items1 := tclSplitList("\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  ")
+			// foreach {range boundsign} "(+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -"
+			_items1 := tclSplitList("(+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -")
 			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 				_range := _items1[_idx1+0]
 				_ = _range // suppress unused warning

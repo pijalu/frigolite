@@ -596,8 +596,8 @@ func Test_fts3aux1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// foreach {tn sort orderby} "\n  1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\"\n"
-	_items0 := tclSplitList("\n  1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\"\n")
+	// foreach {tn sort orderby} "1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\""
+	_items0 := tclSplitList("1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\"")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -745,8 +745,8 @@ func Test_fts3aux1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// foreach {tn q res1 res2} "\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n"
-		_items1 := tclSplitList("\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n")
+		// foreach {tn q res1 res2} "1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}"
+		_items1 := tclSplitList("1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}")
 		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning

@@ -68,8 +68,8 @@ func Test_fts4check(t *testing.T) {
 	{ // do_test "1.1"
 		// fts_integrity db t1 (unsupported command, not transpiled)
 	}
-	// foreach {tn disruption} "\n  1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }\n"
-	_items0 := tclSplitList("\n  1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }\n")
+	// foreach {tn disruption} "1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }"
+	_items0 := tclSplitList("1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -117,8 +117,8 @@ func Test_fts4check(t *testing.T) {
 		{ // do_test "2.1"
 			// fts_integrity db t2 (unsupported command, not transpiled)
 		}
-		// foreach {tn disruption} "\n  1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }\n"
-		_items1 := tclSplitList("\n  1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }\n")
+		// foreach {tn disruption} "1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }"
+		_items1 := tclSplitList("1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -171,8 +171,8 @@ func Test_fts4check(t *testing.T) {
 			{ // do_test "3.1"
 				// fts_integrity db t3 (unsupported command, not transpiled)
 			}
-			// foreach {tn disruption} "\n  1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }\n"
-			_items2 := tclSplitList("\n  1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }\n")
+			// foreach {tn disruption} "1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }"
+			_items2 := tclSplitList("1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning

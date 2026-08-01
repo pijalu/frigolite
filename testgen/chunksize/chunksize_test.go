@@ -59,8 +59,8 @@ func Test_chunksize(t *testing.T) {
 	if tcl_platform_platform != "unix" {
 		return
 	}
-	// foreach {tn jrnlmode} "\n  1 delete\n  2 wal\n"
-	_items0 := tclSplitList("\n  1 delete\n  2 wal\n")
+	// foreach {tn jrnlmode} "1 delete\n  2 wal"
+	_items0 := tclSplitList("1 delete\n  2 wal")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

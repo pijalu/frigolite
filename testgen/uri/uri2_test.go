@@ -62,8 +62,8 @@ func Test_uri2(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
-	// foreach {tn uri} "\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n"
-	_items0 := tclSplitList("\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n")
+	// foreach {tn uri} "1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def"
+	_items0 := tclSplitList("1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

@@ -135,7 +135,7 @@ func Test_fuzz3(t *testing.T) {
 		_ = iOld // suppress unused warning
 		iTest = "0"
 		_ = iTest // suppress unused warning
-		for _, sql := range tclSplitList("\n    {SELECT * FROM t2 ORDER BY d}      \n    {SELECT * FROM t1}                 \n    {SELECT * FROM t2}                 \n    {SELECT * FROM t1 ORDER BY a}      \n    {SELECT * FROM t1 WHERE a = (SELECT a FROM t1 WHERE rowid=25)} \n    {SELECT * FROM t2 WHERE d = (SELECT d FROM t2 WHERE rowid=1)}  \n    {SELECT * FROM t2 WHERE d = (SELECT d FROM t2 WHERE rowid=50)} \n    {PRAGMA integrity_check}           \n  ") {
+		for _, sql := range tclSplitList("{SELECT * FROM t2 ORDER BY d}      \n    {SELECT * FROM t1}                 \n    {SELECT * FROM t2}                 \n    {SELECT * FROM t1 ORDER BY a}      \n    {SELECT * FROM t1 WHERE a = (SELECT a FROM t1 WHERE rowid=25)} \n    {SELECT * FROM t2 WHERE d = (SELECT d FROM t2 WHERE rowid=1)}  \n    {SELECT * FROM t2 WHERE d = (SELECT d FROM t2 WHERE rowid=50)} \n    {PRAGMA integrity_check}") {
 		_ = sql // suppress unused warning
 			{ // do_test "fuzz3-" + ii + "." + iNew + "." + "incr iTest"
 				// foreach rc,msg "catchsql $sql" (no body)

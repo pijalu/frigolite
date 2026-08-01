@@ -482,13 +482,13 @@ func Test_like3(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	for _, enc := range tclSplitList("\n  UTF-8\n  UTF-16le \n  UTF-16be\n") {
+	for _, enc := range tclSplitList("UTF-8\n  UTF-16le \n  UTF-16be") {
 	_ = enc // suppress unused warning
 		if enc == "UTF-8" {
 			continue
 		}
-		// foreach {tn expr} "\n    1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\"\n  "
-		_items0 := tclSplitList("\n    1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\"\n  ")
+		// foreach {tn expr} "1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\""
+		_items0 := tclSplitList("1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\"")
 		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning

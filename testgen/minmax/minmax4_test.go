@@ -182,8 +182,8 @@ func Test_minmax4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, min(b), b, min(c), c FROM t2 GROUP BY a ORDER BY a;\n  ")
 		}
 	}
-	// foreach {tn sql} "\n  1 { CREATE INDEX i1 ON t1(a) }\n  2 { CREATE INDEX i1 ON t1(a DESC) }\n  3 { }\n"
-	_items0 := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(a) }\n  2 { CREATE INDEX i1 ON t1(a DESC) }\n  3 { }\n")
+	// foreach {tn sql} "1 { CREATE INDEX i1 ON t1(a) }\n  2 { CREATE INDEX i1 ON t1(a DESC) }\n  3 { }"
+	_items0 := tclSplitList("1 { CREATE INDEX i1 ON t1(a) }\n  2 { CREATE INDEX i1 ON t1(a DESC) }\n  3 { }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

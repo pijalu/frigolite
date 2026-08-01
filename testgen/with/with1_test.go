@@ -994,8 +994,8 @@ func Test_with1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// foreach {id dual} "\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n"
-	_items0 := tclSplitList("\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n")
+	// foreach {id dual} "1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}"
+	_items0 := tclSplitList("1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		id := _items0[_idx0+0]
 		_ = id // suppress unused warning

@@ -201,8 +201,8 @@ func Test_fts4merge4(t *testing.T) {
 	}
 	doc = "$doc 10"
 	_ = doc // suppress unused warning
-	// foreach {tn am expected} "\n  1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}\n"
-	_items0 := tclSplitList("\n  1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}\n")
+	// foreach {tn am expected} "1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}"
+	_items0 := tclSplitList("1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

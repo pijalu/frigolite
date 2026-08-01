@@ -63,8 +63,8 @@ func Test_joinI(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c INT);\n")
 		}
 	}
-	// foreach {tn sql} "\n  1 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=t3.c CROSS JOIN t3\"\n  2 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=(SELECT t3.c) CROSS JOIN t3\"\n  3 \"SELECT * FROM t1 RIGHT JOIN t2 ON CASE WHEN t2.b THEN t3.c ELSE 1 END CROSS JOIN t3\"\n"
-	_items0 := tclSplitList("\n  1 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=t3.c CROSS JOIN t3\"\n  2 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=(SELECT t3.c) CROSS JOIN t3\"\n  3 \"SELECT * FROM t1 RIGHT JOIN t2 ON CASE WHEN t2.b THEN t3.c ELSE 1 END CROSS JOIN t3\"\n")
+	// foreach {tn sql} "1 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=t3.c CROSS JOIN t3\"\n  2 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=(SELECT t3.c) CROSS JOIN t3\"\n  3 \"SELECT * FROM t1 RIGHT JOIN t2 ON CASE WHEN t2.b THEN t3.c ELSE 1 END CROSS JOIN t3\""
+	_items0 := tclSplitList("1 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=t3.c CROSS JOIN t3\"\n  2 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=(SELECT t3.c) CROSS JOIN t3\"\n  3 \"SELECT * FROM t1 RIGHT JOIN t2 ON CASE WHEN t2.b THEN t3.c ELSE 1 END CROSS JOIN t3\"")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

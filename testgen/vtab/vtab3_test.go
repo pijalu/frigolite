@@ -136,7 +136,7 @@ func Test_vtab3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master WHERE type = 'table';\n  ")
 		}
 	}
-	for _, i := range tclSplitList("list 1 2 3 4") {
+	for _, i := range tclSplitList("1 2 3 4") {
 	_ = i // suppress unused warning
 		auth_fail = i // TCL namespace variable
 		_ = auth_fail // suppress unused warning

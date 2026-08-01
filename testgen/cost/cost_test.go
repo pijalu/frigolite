@@ -235,8 +235,8 @@ func Test_cost(t *testing.T) {
 	}
 	L = "list a=? b=? c=? d=? e=? f=? g=? h=? i=? j=?"
 	_ = L // suppress unused warning
-	// foreach {tn nTerm nRow} "\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n"
-	_items0 := tclSplitList("\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n")
+	// foreach {tn nTerm nRow} "1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5"
+	_items0 := tclSplitList("1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

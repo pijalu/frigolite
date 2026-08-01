@@ -1677,8 +1677,8 @@ func Test_pragma(t *testing.T) {
 			_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
 			sqlite_hostid_num = "0"
 			_ = sqlite_hostid_num // suppress unused warning
-			// foreach {autovac_setting val} "\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0\n"
-			_items18 := tclSplitList("\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0\n")
+			// foreach {autovac_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0"
+			_items18 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0")
 			for _idx18 := 0; _idx18+2 <= len(_items18); _idx18 += 2 {
 				autovac_setting := _items18[_idx18+0]
 				_ = autovac_setting // suppress unused warning
@@ -1698,8 +1698,8 @@ func Test_pragma(t *testing.T) {
 						}
 					}
 				}
-				// foreach {temp_setting val} "\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2\n"
-				_items19 := tclSplitList("\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2\n")
+				// foreach {temp_setting val} "0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2"
+				_items19 := tclSplitList("0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2")
 				for _idx19 := 0; _idx19+2 <= len(_items19); _idx19 += 2 {
 					temp_setting := _items19[_idx19+0]
 					_ = temp_setting // suppress unused warning

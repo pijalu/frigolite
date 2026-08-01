@@ -384,8 +384,8 @@ func Test_fuzzer1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE [x2 \"rules] (a, b, c, d);\n  INSERT INTO [x2 \"rules] VALUES(0, 'a', 'b', 5);\n")
 		}
 	}
-	// foreach {tn sql} "\n  1 { CREATE VIRTUAL TABLE x2 USING fuzzer( [x2 \"rules] ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }\n"
-	_items0 := tclSplitList("\n  1 { CREATE VIRTUAL TABLE x2 USING fuzzer( [x2 \"rules] ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }\n")
+	// foreach {tn sql} "1 { CREATE VIRTUAL TABLE x2 USING fuzzer( " + "x2 \"rules" + " ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }"
+	_items0 := tclSplitList("1 { CREATE VIRTUAL TABLE x2 USING fuzzer( " + "x2 \"rules" + " ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

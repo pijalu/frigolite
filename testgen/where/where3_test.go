@@ -248,7 +248,7 @@ func Test_where3(t *testing.T) {
 	}
 	cnt = "0"
 	_ = cnt // suppress unused warning
-	for _, predicate := range tclSplitList("\n   {}\n   {ORDER BY a}\n   {ORDER BY t6w.a}\n   {WHERE a>0}\n   {WHERE t6y.a>0}\n   {WHERE a>0 ORDER BY a}\n") {
+	for _, predicate := range tclSplitList("{}\n   {ORDER BY a}\n   {ORDER BY t6w.a}\n   {WHERE a>0}\n   {WHERE t6y.a>0}\n   {WHERE a>0 ORDER BY a}") {
 	_ = predicate // suppress unused warning
 		// incr cnt 1
 		{

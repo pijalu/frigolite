@@ -153,8 +153,8 @@ func Test_bestindex1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1x(i INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1x VALUES(1, 'one', 1);\n  INSERT INTO t1x VALUES(2, 'two', 2);\n  INSERT INTO t1x VALUES(3, 'three', 3);\n  INSERT INTO t1x VALUES(4, 'four', 4);\n")
 		}
 	}
-	// foreach {tn mode} "\n  1 use 2 omit 3 use2\n"
-	_items0 := tclSplitList("\n  1 use 2 omit 3 use2\n")
+	// foreach {tn mode} "1 use 2 omit 3 use2"
+	_items0 := tclSplitList("1 use 2 omit 3 use2")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning

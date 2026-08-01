@@ -177,8 +177,8 @@ func Test_fts4content(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft2 USING fts4(content=t2);\n  INSERT INTO ft2(ft2) VALUES('rebuild');\n\n  -- Modify the backing table a bit: Row 17 is missing and the contents \n  -- of row 20 do not match the FTS index contents. \n  DELETE FROM t2 WHERE rowid = 17;\n  UPDATE t2 SET x = 'a b c d e f g h i j' WHERE rowid = 20;\n")
 		}
 	}
-	// foreach {tn match rowidlist} "\n  1   {S}        {1 3 6 7 9 10 13 15 16 17 19}\n  2   {\"S R\"}    {7 19}\n  3   {\"N K N\"}  {6}\n  4   {\"Q Q\"}    {20}\n  5   {\"B Y D\"}  {17}\n"
-	_items0 := tclSplitList("\n  1   {S}        {1 3 6 7 9 10 13 15 16 17 19}\n  2   {\"S R\"}    {7 19}\n  3   {\"N K N\"}  {6}\n  4   {\"Q Q\"}    {20}\n  5   {\"B Y D\"}  {17}\n")
+	// foreach {tn match rowidlist} "1   {S}        {1 3 6 7 9 10 13 15 16 17 19}\n  2   {\"S R\"}    {7 19}\n  3   {\"N K N\"}  {6}\n  4   {\"Q Q\"}    {20}\n  5   {\"B Y D\"}  {17}"
+	_items0 := tclSplitList("1   {S}        {1 3 6 7 9 10 13 15 16 17 19}\n  2   {\"S R\"}    {7 19}\n  3   {\"N K N\"}  {6}\n  4   {\"Q Q\"}    {20}\n  5   {\"B Y D\"}  {17}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -212,8 +212,8 @@ func Test_fts4content(t *testing.T) {
 				}
 			}
 		}
-		// foreach {tn match result} "\n  1   {\"N K N\"}  {{J O B N K N E C H Z R K J O U G M K L S}}\n  2   {\"Q Q\"}    {{a b c d e f g h i j}}\n  3   {\"B Y D\"}  {{}}\n"
-		_items1 := tclSplitList("\n  1   {\"N K N\"}  {{J O B N K N E C H Z R K J O U G M K L S}}\n  2   {\"Q Q\"}    {{a b c d e f g h i j}}\n  3   {\"B Y D\"}  {{}}\n")
+		// foreach {tn match result} "1   {\"N K N\"}  {{J O B N K N E C H Z R K J O U G M K L S}}\n  2   {\"Q Q\"}    {{a b c d e f g h i j}}\n  3   {\"B Y D\"}  {{}}"
+		_items1 := tclSplitList("1   {\"N K N\"}  {{J O B N K N E C H Z R K J O U G M K L S}}\n  2   {\"Q Q\"}    {{a b c d e f g h i j}}\n  3   {\"B Y D\"}  {{}}")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -235,8 +235,8 @@ func Test_fts4content(t *testing.T) {
 					}
 				}
 			}
-			// foreach {tn match result} "\n  1   {\"N K N\"}  {{..O B [N] [K] [N] E..}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{a [b] [c] [d] e f..}}\n"
-			_items2 := tclSplitList("\n  1   {\"N K N\"}  {{..O B [N] [K] [N] E..}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{a [b] [c] [d] e f..}}\n")
+			// foreach {tn match result} "1   {\"N K N\"}  {{..O B " + "N" + " " + "K" + " " + "N" + " E..}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{a " + "b" + " " + "c" + " " + "d" + " e f..}}"
+			_items2 := tclSplitList("1   {\"N K N\"}  {{..O B " + "N" + " " + "K" + " " + "N" + " E..}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{a " + "b" + " " + "c" + " " + "d" + " e f..}}")
 			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
@@ -258,8 +258,8 @@ func Test_fts4content(t *testing.T) {
 						}
 					}
 				}
-				// foreach {tn match result} "\n  1   {\"N K N\"}  {{0 0 6 1 0 1 8 1 0 2 10 1}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}}\n  4   {\"Q D L\"}  {{}}\n"
-				_items3 := tclSplitList("\n  1   {\"N K N\"}  {{0 0 6 1 0 1 8 1 0 2 10 1}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}}\n  4   {\"Q D L\"}  {{}}\n")
+				// foreach {tn match result} "1   {\"N K N\"}  {{0 0 6 1 0 1 8 1 0 2 10 1}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}}\n  4   {\"Q D L\"}  {{}}"
+				_items3 := tclSplitList("1   {\"N K N\"}  {{0 0 6 1 0 1 8 1 0 2 10 1}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}}\n  4   {\"Q D L\"}  {{}}")
 				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
@@ -347,8 +347,8 @@ func Test_fts4content(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  INSERT INTO ft3(rowid, x, y) VALUES(6, 'I Q I S P', 'D R O Q B');\n  INSERT INTO ft3(rowid, x, y) VALUES(7, 'T K T Z J', 'B W D G O');\n  INSERT INTO ft3(rowid, x, y) VALUES(8, 'Y K F X T', 'D F G V G');\n  INSERT INTO ft3(rowid, x, y) VALUES(9, 'E L E T L', 'P W N F Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(10, 'O G J G X', 'G J F E P');\n  INSERT INTO ft3(rowid, x, y) VALUES(11, 'O L N N Z', 'K E Z F D');\n  INSERT INTO ft3(rowid, x, y) VALUES(12, 'R Z M R J', 'X G I M Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(13, 'L X N N X', 'R R N S T');\n  INSERT INTO ft3(rowid, x, y) VALUES(14, 'F L B J H', 'K W F L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO ft3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO ft3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO ft3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO ft3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n")
 						}
 					}
-					// foreach {tn match rowidlist} "\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}\n"
-					_items4 := tclSplitList("\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}\n")
+					// foreach {tn match rowidlist} "1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}"
+					_items4 := tclSplitList("1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}")
 					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
 						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
@@ -394,8 +394,8 @@ func Test_fts4content(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO t3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO t3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO t3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO t3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO t3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  UPDATE ft3 SET x = y, y = x;\n  DELETE FROM t3;\n")
 							}
 						}
-						// foreach {tn match rowidlist} "\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}\n"
-						_items5 := tclSplitList("\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}\n")
+						// foreach {tn match rowidlist} "1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}"
+						_items5 := tclSplitList("1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}")
 						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
 							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
@@ -441,8 +441,8 @@ func Test_fts4content(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO t3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO t3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO t3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO t3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n  DELETE FROM ft3;\n")
 								}
 							}
-							// foreach {tn match rowidlist} "\n  1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}\n"
-							_items6 := tclSplitList("\n  1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}\n")
+							// foreach {tn match rowidlist} "1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}"
+							_items6 := tclSplitList("1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}")
 							for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
 								tn := _items6[_idx6+0]
 								_ = tn // suppress unused warning

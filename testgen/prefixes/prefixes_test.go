@@ -63,8 +63,8 @@ func Test_prefixes(t *testing.T) {
 	testprefix = "prefixes"
 	_ = testprefix // suppress unused warning
 	// load_static_extension db prefixes (unsupported command, not transpiled)
-	// foreach {tn zLeft zRight expected} "\n  1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3\n"
-	_items0 := tclSplitList("\n  1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3\n")
+	// foreach {tn zLeft zRight expected} "1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3"
+	_items0 := tclSplitList("1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -94,8 +94,8 @@ func Test_prefixes(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(k TEXT UNIQUE, v INTEGER);\n  INSERT INTO t1 VALUES\n    ('aback', 1),\n    ('abaft', 2),\n    ('abandon', 3),\n    ('abandoned', 4),\n    ('abandoning', 5),\n    ('abandonment', 6),\n    ('abandons', 7),\n    ('abase', 8),\n    ('abased', 9),\n    ('abasement', 10),\n    ('abasements', 11),\n    ('abases', 12),\n    ('abash', 13),\n    ('abashed', 14),\n    ('abashes', 15),\n    ('abashing', 16),\n    ('abasing', 17),\n    ('abate', 18),\n    ('abated', 19),\n    ('abatement', 20),\n    ('abatements', 21);\n")
 			}
 		}
-		// foreach {tn INPUT expected} "\n  1 abatementt   abatement\n  2 abashet      abash\n  3 abandonio    abandon\n  4 abasemenu    abase\n"
-		_items1 := tclSplitList("\n  1 abatementt   abatement\n  2 abashet      abash\n  3 abandonio    abandon\n  4 abasemenu    abase\n")
+		// foreach {tn INPUT expected} "1 abatementt   abatement\n  2 abashet      abash\n  3 abandonio    abandon\n  4 abasemenu    abase"
+		_items1 := tclSplitList("1 abatementt   abatement\n  2 abashet      abash\n  3 abandonio    abandon\n  4 abasemenu    abase")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning

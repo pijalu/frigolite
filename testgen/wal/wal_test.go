@@ -857,8 +857,8 @@ func Test_wal(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	// foreach {tn sectorsize logsize} "\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n"
-	_items4 := tclSplitList("\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n")
+	// foreach {tn sectorsize logsize} "1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512"
+	_items4 := tclSplitList("1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512")
 	for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
 		tn := _items4[_idx4+0]
 		_ = tn // suppress unused warning
@@ -923,8 +923,8 @@ func Test_wal(t *testing.T) {
 			_list := tclList([]string{"file size testX.db", "file size testX.db-wal"})
 			_ = _list
 		}
-		// foreach {nFrame result} "\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n"
-		_items6 := tclSplitList("\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n")
+		// foreach {nFrame result} "0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}"
+		_items6 := tclSplitList("0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}")
 		for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
 			nFrame := _items6[_idx6+0]
 			_ = nFrame // suppress unused warning
@@ -947,8 +947,8 @@ func Test_wal(t *testing.T) {
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
 			tclFileCopy("test.db", "testX.db")
-			// foreach {tn pgsz works} " \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n"
-			_items8 := tclSplitList(" \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n")
+			// foreach {tn pgsz works} "1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0"
+			_items8 := tclSplitList("1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0")
 			for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
 				tn := _items8[_idx8+0]
 				_ = tn // suppress unused warning

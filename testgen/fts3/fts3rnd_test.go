@@ -267,8 +267,8 @@ func Test_fts3rnd(t *testing.T) {
 	// proc definition (not transpiled)
 	NUM_TRIALS = "100"
 	_ = NUM_TRIALS // suppress unused warning
-	// foreach {nodesize order} "\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n"
-	_items0 := tclSplitList("\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n")
+	// foreach {nodesize order} "50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC"
+	_items0 := tclSplitList("50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		nodesize := _items0[_idx0+0]
 		_ = nodesize // suppress unused warning
@@ -468,8 +468,8 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 				}
-				// foreach {tn op proc} "\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    "
-				_items1 := tclSplitList("\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    ")
+				// foreach {tn op proc} "8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and"
+				_items1 := tclSplitList("8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and")
 				for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 					tn := _items1[_idx1+0]
 					_ = tn // suppress unused warning
@@ -497,8 +497,8 @@ func Test_fts3rnd(t *testing.T) {
 							}
 						}
 					}
-					// foreach {tn op proc} "\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    "
-					_items2 := tclSplitList("\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    ")
+					// foreach {tn op proc} "11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and"
+					_items2 := tclSplitList("11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and")
 					for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 						tn := _items2[_idx2+0]
 						_ = tn // suppress unused warning

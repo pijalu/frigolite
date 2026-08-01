@@ -166,8 +166,8 @@ func Test_vtabH(t *testing.T) {
 	// proc definition (not transpiled)
 	for _, tclvar_set_omit := range tclSplitList("0 1") {
 	_ = tclvar_set_omit // suppress unused warning
-		// foreach {tn expr res cnt} "\n    1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000\n  "
-		_items0 := tclSplitList("\n    1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000\n  ")
+		// foreach {tn expr res cnt} "1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000"
+		_items0 := tclSplitList("1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000")
 		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
 			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
@@ -263,8 +263,8 @@ func Test_vtabH(t *testing.T) {
 					_ = _catchErr // suppress unused warning
 					os.Remove("-force")
 				}
-				// foreach {path sz} "\n      subdir/x1.txt     143\n      subdir/x2.txt     153\n    "
-				_items0 := tclSplitList("\n      subdir/x1.txt     143\n      subdir/x2.txt     153\n    ")
+				// foreach {path sz} "subdir/x1.txt     143\n      subdir/x2.txt     153"
+				_items0 := tclSplitList("subdir/x1.txt     143\n      subdir/x2.txt     153")
 				for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 					path := _items0[_idx0+0]
 					_ = path // suppress unused warning

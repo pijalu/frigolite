@@ -71,8 +71,8 @@ func Test_upsert4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "upsert4"
 	_ = testprefix // suppress unused warning
-	// foreach {tn sql} "\n  1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID}\n"
-	_items0 := tclSplitList("\n  1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID}\n")
+	// foreach {tn sql} "1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID}"
+	_items0 := tclSplitList("1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID}")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -189,8 +189,8 @@ func Test_upsert4(t *testing.T) {
 		_ = rtbl_1 // suppress unused warning
 		rtbl_2 = "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
 		_ = rtbl_2 // suppress unused warning
-		// foreach {tn sql} "\n  1 { \n      CREATE TABLE xyz(a INTEGER PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  2 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  3 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n"
-		_items1 := tclSplitList("\n  1 { \n      CREATE TABLE xyz(a INTEGER PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  2 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  3 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n")
+		// foreach {tn sql} "1 { \n      CREATE TABLE xyz(a INTEGER PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  2 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  3 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }"
+		_items1 := tclSplitList("1 { \n      CREATE TABLE xyz(a INTEGER PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  2 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  3 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
@@ -210,8 +210,8 @@ func Test_upsert4(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO xyz VALUES(10, 1, 1, 'one');\n  ")
 					}
 				}
-				// foreach {tn2 oc res} "\n    1 \"ON CONFLICT (b COLLATE nocase, c, d) DO NOTHING\"   0\n    2 \"ON CONFLICT (b, c, d) DO NOTHING\"                  0\n    3 \"ON CONFLICT (b, c COLLATE nocase, d) DO NOTHING\"   2\n    4 \"ON CONFLICT (a) DO NOTHING\"                        1\n    5 \"ON CONFLICT DO NOTHING\"                            0\n    6 \"ON CONFLICT (b, c, d) WHERE a!=0 DO NOTHING\"       0\n    7 \"ON CONFLICT (d, c, c) WHERE a!=0 DO NOTHING\"       2\n    8 \"ON CONFLICT (b COLLATE nocase, c COLLATE nocase, d) DO NOTHING\"   2\n    9 \"ON CONFLICT (b, c, d) WHERE b==45 DO NOTHING\"      0\n  "
-				_items2 := tclSplitList("\n    1 \"ON CONFLICT (b COLLATE nocase, c, d) DO NOTHING\"   0\n    2 \"ON CONFLICT (b, c, d) DO NOTHING\"                  0\n    3 \"ON CONFLICT (b, c COLLATE nocase, d) DO NOTHING\"   2\n    4 \"ON CONFLICT (a) DO NOTHING\"                        1\n    5 \"ON CONFLICT DO NOTHING\"                            0\n    6 \"ON CONFLICT (b, c, d) WHERE a!=0 DO NOTHING\"       0\n    7 \"ON CONFLICT (d, c, c) WHERE a!=0 DO NOTHING\"       2\n    8 \"ON CONFLICT (b COLLATE nocase, c COLLATE nocase, d) DO NOTHING\"   2\n    9 \"ON CONFLICT (b, c, d) WHERE b==45 DO NOTHING\"      0\n  ")
+				// foreach {tn2 oc res} "1 \"ON CONFLICT (b COLLATE nocase, c, d) DO NOTHING\"   0\n    2 \"ON CONFLICT (b, c, d) DO NOTHING\"                  0\n    3 \"ON CONFLICT (b, c COLLATE nocase, d) DO NOTHING\"   2\n    4 \"ON CONFLICT (a) DO NOTHING\"                        1\n    5 \"ON CONFLICT DO NOTHING\"                            0\n    6 \"ON CONFLICT (b, c, d) WHERE a!=0 DO NOTHING\"       0\n    7 \"ON CONFLICT (d, c, c) WHERE a!=0 DO NOTHING\"       2\n    8 \"ON CONFLICT (b COLLATE nocase, c COLLATE nocase, d) DO NOTHING\"   2\n    9 \"ON CONFLICT (b, c, d) WHERE b==45 DO NOTHING\"      0"
+				_items2 := tclSplitList("1 \"ON CONFLICT (b COLLATE nocase, c, d) DO NOTHING\"   0\n    2 \"ON CONFLICT (b, c, d) DO NOTHING\"                  0\n    3 \"ON CONFLICT (b, c COLLATE nocase, d) DO NOTHING\"   2\n    4 \"ON CONFLICT (a) DO NOTHING\"                        1\n    5 \"ON CONFLICT DO NOTHING\"                            0\n    6 \"ON CONFLICT (b, c, d) WHERE a!=0 DO NOTHING\"       0\n    7 \"ON CONFLICT (d, c, c) WHERE a!=0 DO NOTHING\"       2\n    8 \"ON CONFLICT (b COLLATE nocase, c COLLATE nocase, d) DO NOTHING\"   2\n    9 \"ON CONFLICT (b, c, d) WHERE b==45 DO NOTHING\"      0")
 				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
 					tn2 := _items2[_idx2+0]
 					_ = tn2 // suppress unused warning
@@ -240,8 +240,8 @@ func Test_upsert4(t *testing.T) {
 						}
 					}
 				}
-				// foreach {tn sql} "\n  1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  2 {\n    CREATE TABLE abc(a INT PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  3 { \n    CREATE TABLE abc(a INT PRIMARY KEY, x, y) WITHOUT ROWID;\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n"
-				_items3 := tclSplitList("\n  1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  2 {\n    CREATE TABLE abc(a INT PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  3 { \n    CREATE TABLE abc(a INT PRIMARY KEY, x, y) WITHOUT ROWID;\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n")
+				// foreach {tn sql} "1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  2 {\n    CREATE TABLE abc(a INT PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  3 { \n    CREATE TABLE abc(a INT PRIMARY KEY, x, y) WITHOUT ROWID;\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }"
+				_items3 := tclSplitList("1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  2 {\n    CREATE TABLE abc(a INT PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  3 { \n    CREATE TABLE abc(a INT PRIMARY KEY, x, y) WITHOUT ROWID;\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }")
 				for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
@@ -261,8 +261,8 @@ func Test_upsert4(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 'one', 'two');\n  ")
 							}
 						}
-						// foreach {tn2 oc res} "\n    1 \"ON CONFLICT DO NOTHING\"                             0\n    2 \"ON CONFLICT ('x' || x) DO NOTHING\"                  0\n    3 \"ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING\" 0\n    4 \"ON CONFLICT (('x' || x) COLLATE binary) DO NOTHING\" 2\n    5 \"ON CONFLICT (x || 'x') DO NOTHING\"                  2\n    6 \"ON CONFLICT ((('x' || x))) DO NOTHING\"              0\n  "
-						_items4 := tclSplitList("\n    1 \"ON CONFLICT DO NOTHING\"                             0\n    2 \"ON CONFLICT ('x' || x) DO NOTHING\"                  0\n    3 \"ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING\" 0\n    4 \"ON CONFLICT (('x' || x) COLLATE binary) DO NOTHING\" 2\n    5 \"ON CONFLICT (x || 'x') DO NOTHING\"                  2\n    6 \"ON CONFLICT ((('x' || x))) DO NOTHING\"              0\n  ")
+						// foreach {tn2 oc res} "1 \"ON CONFLICT DO NOTHING\"                             0\n    2 \"ON CONFLICT ('x' || x) DO NOTHING\"                  0\n    3 \"ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING\" 0\n    4 \"ON CONFLICT (('x' || x) COLLATE binary) DO NOTHING\" 2\n    5 \"ON CONFLICT (x || 'x') DO NOTHING\"                  2\n    6 \"ON CONFLICT ((('x' || x))) DO NOTHING\"              0"
+						_items4 := tclSplitList("1 \"ON CONFLICT DO NOTHING\"                             0\n    2 \"ON CONFLICT ('x' || x) DO NOTHING\"                  0\n    3 \"ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING\" 0\n    4 \"ON CONFLICT (('x' || x) COLLATE binary) DO NOTHING\" 2\n    5 \"ON CONFLICT (x || 'x') DO NOTHING\"                  2\n    6 \"ON CONFLICT ((('x' || x))) DO NOTHING\"              0")
 						for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
 							tn2 := _items4[_idx4+0]
 							_ = tn2 // suppress unused warning
@@ -291,8 +291,8 @@ func Test_upsert4(t *testing.T) {
 								}
 							}
 						}
-						// foreach {tn sql} "\n  1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(x) WHERE y>0;\n    CREATE UNIQUE INDEX abc2 ON abc(y) WHERE x='xyz' COLLATE nocase;\n  }\n"
-						_items5 := tclSplitList("\n  1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(x) WHERE y>0;\n    CREATE UNIQUE INDEX abc2 ON abc(y) WHERE x='xyz' COLLATE nocase;\n  }\n")
+						// foreach {tn sql} "1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(x) WHERE y>0;\n    CREATE UNIQUE INDEX abc2 ON abc(y) WHERE x='xyz' COLLATE nocase;\n  }"
+						_items5 := tclSplitList("1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(x) WHERE y>0;\n    CREATE UNIQUE INDEX abc2 ON abc(y) WHERE x='xyz' COLLATE nocase;\n  }")
 						for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
 							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
@@ -312,8 +312,8 @@ func Test_upsert4(t *testing.T) {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 'one', 1);\n    INSERT INTO abc VALUES(2, 'two', 2);\n    INSERT INTO abc VALUES(3, 'xyz', 3);\n    INSERT INTO abc VALUES(4, 'XYZ', 4);\n  ")
 									}
 								}
-								// foreach {tn2 oc res} "\n    1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    0\n    3 \"ON CONFLICT(x) DO NOTHING\"                              2\n    4 \"ON CONFLICT(x) WHERE y>=0 DO NOTHING\"                   2\n    5 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 1\n  "
-								_items6 := tclSplitList("\n    1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    0\n    3 \"ON CONFLICT(x) DO NOTHING\"                              2\n    4 \"ON CONFLICT(x) WHERE y>=0 DO NOTHING\"                   2\n    5 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 1\n  ")
+								// foreach {tn2 oc res} "1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    0\n    3 \"ON CONFLICT(x) DO NOTHING\"                              2\n    4 \"ON CONFLICT(x) WHERE y>=0 DO NOTHING\"                   2\n    5 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 1"
+								_items6 := tclSplitList("1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    0\n    3 \"ON CONFLICT(x) DO NOTHING\"                              2\n    4 \"ON CONFLICT(x) WHERE y>=0 DO NOTHING\"                   2\n    5 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 1")
 								for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
 									tn2 := _items6[_idx6+0]
 									_ = tn2 // suppress unused warning
@@ -341,8 +341,8 @@ func Test_upsert4(t *testing.T) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
-									// foreach {tn2 oc res} "\n    1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 0\n    3 \"ON CONFLICT(y) WHERE x='xyz' COLLATE binary DO NOTHING\" 2\n    4 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    1\n  "
-									_items7 := tclSplitList("\n    1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 0\n    3 \"ON CONFLICT(y) WHERE x='xyz' COLLATE binary DO NOTHING\" 2\n    4 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    1\n  ")
+									// foreach {tn2 oc res} "1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 0\n    3 \"ON CONFLICT(y) WHERE x='xyz' COLLATE binary DO NOTHING\" 2\n    4 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    1"
+									_items7 := tclSplitList("1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 0\n    3 \"ON CONFLICT(y) WHERE x='xyz' COLLATE binary DO NOTHING\" 2\n    4 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    1")
 									for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
 										tn2 := _items7[_idx7+0]
 										_ = tn2 // suppress unused warning
@@ -365,8 +365,8 @@ func Test_upsert4(t *testing.T) {
 											t.Errorf("expected error containing %q, got: %v\n  sql: %s", "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint", _res.Error, "\n  CREATE TABLE w1(a INT PRIMARY KEY, x, y);\n  CREATE UNIQUE INDEX w1expr ON w1(('x' || x));\n  INSERT INTO w1 VALUES(2, 'one', NULL)\n    ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;\n")
 										}
 									}
-									// foreach {tn sql} "\n  1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n  }\n  2 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c);\n  }\n  3 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c) WITHOUT ROWID;\n  }\n"
-									_items8 := tclSplitList("\n  1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n  }\n  2 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c);\n  }\n  3 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c) WITHOUT ROWID;\n  }\n")
+									// foreach {tn sql} "1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n  }\n  2 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c);\n  }\n  3 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c) WITHOUT ROWID;\n  }"
+									_items8 := tclSplitList("1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n  }\n  2 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c);\n  }\n  3 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c) WITHOUT ROWID;\n  }")
 									for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
 										tn := _items8[_idx8+0]
 										_ = tn // suppress unused warning
@@ -393,8 +393,8 @@ func Test_upsert4(t *testing.T) {
 												}
 											}
 										}
-										// foreach {tn sql} "\n  1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n  }\n"
-										_items9 := tclSplitList("\n  1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n  }\n")
+										// foreach {tn sql} "1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n  }"
+										_items9 := tclSplitList("1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n  }")
 										for _idx9 := 0; _idx9+2 <= len(_items9); _idx9 += 2 {
 											tn := _items9[_idx9+0]
 											_ = tn // suppress unused warning
@@ -463,8 +463,8 @@ func Test_upsert4(t *testing.T) {
 													}
 												}
 											}
-											// foreach {tn sql} "\n  1 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y));\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }\n  2 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }\n"
-											_items10 := tclSplitList("\n  1 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y));\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }\n  2 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }\n")
+											// foreach {tn sql} "1 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y));\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }\n  2 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }"
+											_items10 := tclSplitList("1 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y));\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }\n  2 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }")
 											for _idx10 := 0; _idx10+2 <= len(_items10); _idx10 += 2 {
 												tn := _items10[_idx10+0]
 												_ = tn // suppress unused warning
@@ -533,8 +533,8 @@ func Test_upsert4(t *testing.T) {
 														}
 													}
 												}
-												// foreach {tn sql} "\n  1 {\n    CREATE TABLE excluded(w, x INTEGER, 'a b', z, PRIMARY KEY(x, 'a b'));\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }\n  2 {\n    CREATE TABLE excluded(w, x, 'a b', z, PRIMARY KEY(x, 'a b')) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }\n"
-												_items11 := tclSplitList("\n  1 {\n    CREATE TABLE excluded(w, x INTEGER, 'a b', z, PRIMARY KEY(x, 'a b'));\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }\n  2 {\n    CREATE TABLE excluded(w, x, 'a b', z, PRIMARY KEY(x, 'a b')) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }\n")
+												// foreach {tn sql} "1 {\n    CREATE TABLE excluded(w, x INTEGER, 'a b', z, PRIMARY KEY(x, 'a b'));\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }\n  2 {\n    CREATE TABLE excluded(w, x, 'a b', z, PRIMARY KEY(x, 'a b')) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }"
+												_items11 := tclSplitList("1 {\n    CREATE TABLE excluded(w, x INTEGER, 'a b', z, PRIMARY KEY(x, 'a b'));\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }\n  2 {\n    CREATE TABLE excluded(w, x, 'a b', z, PRIMARY KEY(x, 'a b')) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }")
 												for _idx11 := 0; _idx11+2 <= len(_items11); _idx11 += 2 {
 													tn := _items11[_idx11+0]
 													_ = tn // suppress unused warning

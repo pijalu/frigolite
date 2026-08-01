@@ -69,7 +69,7 @@ func Test_crash7(t *testing.T) {
 	testprefix = "crash7"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	for _, f := range tclSplitList("list test.db test.db-journal") {
+	for _, f := range tclSplitList("test.db test.db-journal") {
 	_ = f // suppress unused warning
 		ii = "1"
 		_ = ii // suppress unused warning

@@ -124,8 +124,8 @@ func Test_e_walckpt(t *testing.T) {
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	// foreach {tn mode res} "\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n"
-	_items1 := tclSplitList("\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n")
+	// foreach {tn mode res} "0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}"
+	_items1 := tclSplitList("0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}")
 	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning

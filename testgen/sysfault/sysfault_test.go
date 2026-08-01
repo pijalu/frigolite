@@ -94,8 +94,8 @@ func Test_sysfault(t *testing.T) {
 	_ = open_and_write_body // suppress unused warning
 	// proc definition (not transpiled)
 	// do_faultsim_test 1 -faults vfsfault-* -prep {\n  faultsim_restore\n} -body $open_and_write_body -... (unsupported command, not transpiled)
-	// foreach {tn errno errlist} "\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n"
-	_items0 := tclSplitList("\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n")
+	// foreach {tn errno errlist} "1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}"
+	_items0 := tclSplitList("1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -115,8 +115,8 @@ func Test_sysfault(t *testing.T) {
 		}
 		for _, vfs := range tclSplitList("unix unix-excl") {
 		_ = vfs // suppress unused warning
-			// foreach {tn errno errlist} "\n    1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}\n  "
-			_items1 := tclSplitList("\n    1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}\n  ")
+			// foreach {tn errno errlist} "1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}"
+			_items1 := tclSplitList("1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}")
 			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 				tn := _items1[_idx1+0]
 				_ = tn // suppress unused warning
