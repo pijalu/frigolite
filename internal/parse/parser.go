@@ -1492,7 +1492,9 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 283: cmd ::= DROP TRIGGER ifexists fullname
 	case 283:
-		return nil
+		ifExists := getBool(getRHS(p, ruleNo, 3))
+		name := getString(getRHS(p, ruleNo, 4))
+		return &sql.DropTriggerStmt{Name: name, IfExists: ifExists}
 
 	// Rule 288: cmd ::= REINDEX
 	case 288:
