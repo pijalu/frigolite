@@ -6,6 +6,7 @@ package e_
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -76,36 +77,36 @@ func Test_e_totalchanges(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  DELETE FROM t2;\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_tc_test 1.2.2 {\n  CREATE TABLE log(detail);\n  CREATE TRIGGER t1...} {9} (unsupported command, not transpiled)
 	// do_tc_test 2.1 {\n    INSERT INTO t1 VALUES(1, 2), (3, 4);\n    IN...} {15} (unsupported command, not transpiled)
 	// do_tc_test 2.2 {\n    SELECT count(*) FROM t1;\n  } {2 15} (unsupported command, not transpiled)
 	// do_tc_test 2.3 {\n    CREATE TABLE t4(a, b);\n    ALTER TABLE t4 A...} {15} (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_tc_test 3.1.1 {\n  CREATE TABLE p1(c PRIMARY KEY, d);\n  CREATE T...} {7} (unsupported command, not transpiled)
 	// do_tc_test 3.1.2 { DELETE FROM p1 WHERE c=1; } {9} (unsupported command, not transpiled)
 	// do_tc_test 3.1.3 { DELETE FROM p1 WHERE c=2; } {11} (unsupported command, not transpiled)
 	// do_tc_test 3.1.4 { DELETE FROM p1 WHERE c=3; } {13} (unsupported command, not transpiled)
 	// do_tc_test 3.1.5 { DELETE FROM p1 WHERE c=4; } {14} (unsupported command, not transpiled)
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_tc_test 3.1.6 {\n  DROP TABLE c1;\n  DROP TABLE c2;\n  DROP TABLE...} {7} (unsupported command, not transpiled)
 	// do_tc_test 3.1.7 { UPDATE p1 SET c=c+4 WHERE c=1; } {9} (unsupported command, not transpiled)
 	// do_tc_test 3.1.8 { UPDATE p1 SET c=c+4 WHERE c=2; } {11} (unsupported command, not transpiled)
 	// do_tc_test 3.1.9 { UPDATE p1 SET c=c+4 WHERE c=3; } {13} (unsupported command, not transpiled)
 	// do_tc_test 3.1.10 { UPDATE p1 SET c=c+4 WHERE c=4; } {14} (unsupported command, not transpiled)
-	_dbtmp3, err := frigolite.Open("test.db")
-	_ = _dbtmp3 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_tc_test 3.2.1 {\n  CREATE TABLE t3(a UNIQUE, b UNIQUE);\n  INSERT...} {3} (unsupported command, not transpiled)
 	// do_tc_test 3.2.2 {\n  INSERT INTO t3 VALUES('three', 'one');\n  UPDA...} {three two 5} (unsupported command, not transpiled)
-	_dbtmp4, err := frigolite.Open("test.db")
-	_ = _dbtmp4 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_tc_test 4.1 {\n  CREATE TABLE t6(x);\n  CREATE VIEW v1 AS SELEC...} {0} (unsupported command, not transpiled)
 	// do_tc_test 4.2 {\n  CREATE TRIGGER v1_tr2 INSTEAD OF INSERT ON v1 ...} {2} (unsupported command, not transpiled)

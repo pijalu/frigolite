@@ -93,8 +93,8 @@ func Test_fts3comp1(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
@@ -291,8 +291,8 @@ func Test_fts3comp1(t *testing.T) {
 				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.2"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")

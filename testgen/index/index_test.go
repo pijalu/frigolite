@@ -6,6 +6,7 @@ package index
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -84,8 +85,8 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-1.1c"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'")
 		if r.Error != nil {
@@ -93,8 +94,8 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-1.1d"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		if r.Error != nil {

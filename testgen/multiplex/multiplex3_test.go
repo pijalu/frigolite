@@ -6,6 +6,7 @@ package multiplex
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -85,8 +86,8 @@ func Test_multiplex3(t *testing.T) {
 	{ // do_test "2.0"
 		// setup_and_save_db (unsupported command, not transpiled)
 		// multiplex_restore_db (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("file:test.db?8_3_names=1")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("file:test.db?8_3_names=1")
+		db, err = frigolite.Open("file:test.db?8_3_names=1")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA cache_size = 10 ")
 		if r.Error != nil {

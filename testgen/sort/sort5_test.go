@@ -131,8 +131,8 @@ func Test_sort5(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(" CREATE TABLE t1(x) ")
 	if _res.Error != nil {
@@ -143,17 +143,17 @@ func Test_sort5(t *testing.T) {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA temp_store = 1 ")
 	}
 	// foreach {tn pgsz cachesz bTemp} "\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n"
-	_items1 := tclSplitList("\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n")
-	for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		pgsz := _items1[_idx1+1]
+		pgsz := _items0[_idx0+1]
 		_ = pgsz // suppress unused warning
-		cachesz := _items1[_idx1+2]
+		cachesz := _items0[_idx0+2]
 		_ = cachesz // suppress unused warning
-		bTemp := _items1[_idx1+3]
+		bTemp := _items0[_idx0+3]
 		_ = bTemp // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			if func() bool { TEMP_STORE_n, _TEMP_STORE_e := strconv.Atoi(TEMP_STORE); if _TEMP_STORE_e != nil { return false }; return TEMP_STORE_n > 2 }() {
 				bTemp = "0"
 				_ = bTemp // suppress unused warning

@@ -6,6 +6,7 @@ package sortfault
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -92,8 +93,8 @@ func Test_sortfault(t *testing.T) {
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA cache_size = 5;\n")
@@ -102,23 +103,23 @@ func Test_sortfault(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore threadsmode fakeheap lookaside} "\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n"
-	_items1 := tclSplitList("\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n")
-	for _idx1 := 0; _idx1+7 <= len(_items1); _idx1 += 7 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n")
+	for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mmap_limit := _items1[_idx1+1]
+		mmap_limit := _items0[_idx0+1]
 		_ = mmap_limit // suppress unused warning
-		nWorker := _items1[_idx1+2]
+		nWorker := _items0[_idx0+2]
 		_ = nWorker // suppress unused warning
-		tmpstore := _items1[_idx1+3]
+		tmpstore := _items0[_idx0+3]
 		_ = tmpstore // suppress unused warning
-		threadsmode := _items1[_idx1+4]
+		threadsmode := _items0[_idx0+4]
 		_ = threadsmode // suppress unused warning
-		fakeheap := _items1[_idx1+5]
+		fakeheap := _items0[_idx0+5]
 		_ = fakeheap // suppress unused warning
-		lookaside := _items1[_idx1+6]
+		lookaside := _items0[_idx0+6]
 		_ = lookaside // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			if tclBool(sqlite_options_threadsafe) {
 				threadsmode = "singlethread"
 				_ = threadsmode // suppress unused warning
@@ -145,8 +146,8 @@ func Test_sortfault(t *testing.T) {
 				str2 = "$str 10"
 				_ = str2 // suppress unused warning
 				// sqlite3_memdebug_vfs_oom_test 0 (unsupported command, not transpiled)
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $::mmap_limit (unsupported command, not transpiled)
 				r = db.Query(" PRAGMA cache_size = 5 ")

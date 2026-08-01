@@ -683,8 +683,8 @@ func Test_fts3aux1(t *testing.T) {
 			}
 		}
 		os.Remove("test.db")
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(x);\n  CREATE VIRTUAL TABLE terms USING fts4aux(x1);\n  CREATE TABLE x2(y);\n  CREATE TABLE x3(y);\n  CREATE INDEX i1 ON x3(y);\n\n  INSERT INTO x1 VALUES('a b c d e');\n  INSERT INTO x1 VALUES('f g h i j');\n  INSERT INTO x1 VALUES('k k l l a');\n\n  INSERT INTO x2 SELECT term FROM terms WHERE col = '*';\n  INSERT INTO x3 SELECT term FROM terms WHERE col = '*';\n")
@@ -747,17 +747,17 @@ func Test_fts3aux1(t *testing.T) {
 			}
 		}
 		// foreach {tn q res1 res2} "\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n"
-		_items2 := tclSplitList("\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n")
-		for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
-			tn := _items2[_idx2+0]
+		_items1 := tclSplitList("\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			q := _items2[_idx2+1]
+			q := _items1[_idx1+1]
 			_ = q // suppress unused warning
-			res1 := _items2[_idx2+2]
+			res1 := _items1[_idx1+2]
 			_ = res1 // suppress unused warning
-			res2 := _items2[_idx2+3]
+			res2 := _items1[_idx1+3]
 			_ = res2 // suppress unused warning
-			_ = _idx2
+			_ = _idx1
 				sql1 = strings.ReplaceAll(q, "%%%", "aux1")
 				_ = sql1 // suppress unused warning
 				sql2 = strings.ReplaceAll(q, "%%%", "aux2")

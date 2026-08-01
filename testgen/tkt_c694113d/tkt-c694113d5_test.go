@@ -53,8 +53,7 @@ func Test_tkt_c694113d5(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-c694113d5.100"
-		_dbtmp0, err := frigolite.Open(":memory:")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    CREATE TABLE t2(d INTEGER PRIMARY KEY,e,f);\n    INSERT INTO t1(a) VALUES(1),(2),(3),(4);\n  ")
 		if _res.Error != nil {

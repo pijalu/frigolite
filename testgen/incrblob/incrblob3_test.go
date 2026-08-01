@@ -65,8 +65,8 @@ func Test_incrblob3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "incrblob3"
 	_ = testprefix // suppress unused warning
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	{ // "incrblob3-1.1"
@@ -121,15 +121,15 @@ func Test_incrblob3(t *testing.T) {
 		}
 	}
 	// foreach {tn rowid type} "\n  1 3 integer\n  2 4 real\n  3 5 null\n"
-	_items1 := tclSplitList("\n  1 3 integer\n  2 4 real\n  3 5 null\n")
-	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("\n  1 3 integer\n  2 4 real\n  3 5 null\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		rowid := _items1[_idx1+1]
+		rowid := _items0[_idx0+1]
 		_ = rowid // suppress unused warning
-		_type := _items1[_idx1+2]
+		_type := _items0[_idx0+2]
 		_ = _type // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			{ // do_test "incrblob3-2.2." + tn + ".1"
 				blob = "db incrblob blobs v 1" // TCL namespace variable
 				_ = blob // suppress unused warning
@@ -305,8 +305,8 @@ func Test_incrblob3(t *testing.T) {
 		// tvfs script access_method (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		{ // do_test "incrblob3-7.2"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 			_list := tclList([]string{"0", msg})

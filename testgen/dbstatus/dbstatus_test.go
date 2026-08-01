@@ -112,12 +112,11 @@ func Test_dbstatus(t *testing.T) {
 	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "dbstatus-1.1"
-		_dbtmp1, err := frigolite.Open(":memory:")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
 		if _res.Error != nil {
@@ -152,18 +151,18 @@ func Test_dbstatus(t *testing.T) {
 		if tclBool("presql" + " != \"\"") {
 		}
 		// foreach {tn schema} " \n    1 { CREATE TABLE t1(a, b) }\n    2 { CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1, c UNIQUE) }\n    3 {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n    }\n    4 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        SELECT * FROM t1, t2 WHERE a=c AND b=d GROUP BY b HAVING a>5 ORDER BY a;\n      END;\n    }\n    5 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS SELECT * FROM t1 UNION SELECT * FROM t2;\n    }\n    6k {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a);\n      CREATE INDEX i2 ON t1(a,b);\n      CREATE INDEX i3 ON t1(b,b);\n      INSERT INTO t1 VALUES(randomblob(20), randomblob(25));\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      ANALYZE;\n    }\n    7 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS \n        SELECT * FROM t1 \n        UNION \n        SELECT * FROM t2\n        UNION ALL\n        SELECT c||b, d||a FROM t2 LEFT OUTER JOIN t1 GROUP BY c, d\n        ORDER BY 1, 2\n      ;\n      CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n        SELECT * FROM v1;\n        UPDATE t1 SET a=5, b=(SELECT c FROM t2);\n      END;\n      SELECT * FROM v1;\n    }\n    8x {\n      CREATE TABLE t1(a, b, UNIQUE(a, b));\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    }\n  "
-		_items2 := tclSplitList(" \n    1 { CREATE TABLE t1(a, b) }\n    2 { CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1, c UNIQUE) }\n    3 {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n    }\n    4 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        SELECT * FROM t1, t2 WHERE a=c AND b=d GROUP BY b HAVING a>5 ORDER BY a;\n      END;\n    }\n    5 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS SELECT * FROM t1 UNION SELECT * FROM t2;\n    }\n    6k {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a);\n      CREATE INDEX i2 ON t1(a,b);\n      CREATE INDEX i3 ON t1(b,b);\n      INSERT INTO t1 VALUES(randomblob(20), randomblob(25));\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      ANALYZE;\n    }\n    7 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS \n        SELECT * FROM t1 \n        UNION \n        SELECT * FROM t2\n        UNION ALL\n        SELECT c||b, d||a FROM t2 LEFT OUTER JOIN t1 GROUP BY c, d\n        ORDER BY 1, 2\n      ;\n      CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n        SELECT * FROM v1;\n        UPDATE t1 SET a=5, b=(SELECT c FROM t2);\n      END;\n      SELECT * FROM v1;\n    }\n    8x {\n      CREATE TABLE t1(a, b, UNIQUE(a, b));\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    }\n  ")
-		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-			tn := _items2[_idx2+0]
+		_items0 := tclSplitList(" \n    1 { CREATE TABLE t1(a, b) }\n    2 { CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1, c UNIQUE) }\n    3 {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n    }\n    4 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        SELECT * FROM t1, t2 WHERE a=c AND b=d GROUP BY b HAVING a>5 ORDER BY a;\n      END;\n    }\n    5 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS SELECT * FROM t1 UNION SELECT * FROM t2;\n    }\n    6k {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a);\n      CREATE INDEX i2 ON t1(a,b);\n      CREATE INDEX i3 ON t1(b,b);\n      INSERT INTO t1 VALUES(randomblob(20), randomblob(25));\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      ANALYZE;\n    }\n    7 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS \n        SELECT * FROM t1 \n        UNION \n        SELECT * FROM t2\n        UNION ALL\n        SELECT c||b, d||a FROM t2 LEFT OUTER JOIN t1 GROUP BY c, d\n        ORDER BY 1, 2\n      ;\n      CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n        SELECT * FROM v1;\n        UPDATE t1 SET a=5, b=(SELECT c FROM t2);\n      END;\n      SELECT * FROM v1;\n    }\n    8x {\n      CREATE TABLE t1(a, b, UNIQUE(a, b));\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    }\n  ")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
-			schema := _items2[_idx2+1]
+			schema := _items0[_idx0+1]
 			_ = schema // suppress unused warning
-			_ = _idx2
+			_ = _idx0
 				tn = lookaside_buffer_size + "-" + tn
 				_ = tn // suppress unused warning
 				os.Remove("test.db")
-				_dbtmp3, err := frigolite.Open("test.db")
-				_ = _dbtmp3 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500 (unsupported command, not transpiled)
 				{
@@ -246,20 +245,20 @@ func Test_dbstatus(t *testing.T) {
 				}
 			}
 			// foreach {tn schema statements} " \n    1 { CREATE TABLE t1(a, b) } {\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t1;\n      UPDATE t1 SET a=5;\n      DELETE FROM t1;\n    }\n    2 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(5, 'x');\n    } \n    3 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t2 VALUES(new.a-1, new.b);\n      END;\n      CREATE TRIGGER tr2 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(10, 'x');\n    } \n    4 {\n      CREATE TABLE t1(a, b);\n    } {\n      SELECT count(*) FROM t1 WHERE upper(a)='ABC';\n    }\n    5x {\n      CREATE TABLE t1(a, b UNIQUE);\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    } {\n      SELECT count(*) FROM t2;\n      SELECT * FROM t2 WHERE b>5;\n      SELECT * FROM t2 WHERE b='abcdefg';\n    }\n  "
-			_items4 := tclSplitList(" \n    1 { CREATE TABLE t1(a, b) } {\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t1;\n      UPDATE t1 SET a=5;\n      DELETE FROM t1;\n    }\n    2 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(5, 'x');\n    } \n    3 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t2 VALUES(new.a-1, new.b);\n      END;\n      CREATE TRIGGER tr2 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(10, 'x');\n    } \n    4 {\n      CREATE TABLE t1(a, b);\n    } {\n      SELECT count(*) FROM t1 WHERE upper(a)='ABC';\n    }\n    5x {\n      CREATE TABLE t1(a, b UNIQUE);\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    } {\n      SELECT count(*) FROM t2;\n      SELECT * FROM t2 WHERE b>5;\n      SELECT * FROM t2 WHERE b='abcdefg';\n    }\n  ")
-			for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-				tn := _items4[_idx4+0]
+			_items1 := tclSplitList(" \n    1 { CREATE TABLE t1(a, b) } {\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t1;\n      UPDATE t1 SET a=5;\n      DELETE FROM t1;\n    }\n    2 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(5, 'x');\n    } \n    3 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t2 VALUES(new.a-1, new.b);\n      END;\n      CREATE TRIGGER tr2 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(10, 'x');\n    } \n    4 {\n      CREATE TABLE t1(a, b);\n    } {\n      SELECT count(*) FROM t1 WHERE upper(a)='ABC';\n    }\n    5x {\n      CREATE TABLE t1(a, b UNIQUE);\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    } {\n      SELECT count(*) FROM t2;\n      SELECT * FROM t2 WHERE b>5;\n      SELECT * FROM t2 WHERE b='abcdefg';\n    }\n  ")
+			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+				tn := _items1[_idx1+0]
 				_ = tn // suppress unused warning
-				schema := _items4[_idx4+1]
+				schema := _items1[_idx1+1]
 				_ = schema // suppress unused warning
-				statements := _items4[_idx4+2]
+				statements := _items1[_idx1+2]
 				_ = statements // suppress unused warning
-				_ = _idx4
+				_ = _idx1
 					tn = lookaside_buffer_size + "-" + tn
 					_ = tn // suppress unused warning
 					os.Remove("test.db")
-					_dbtmp5, err := frigolite.Open("test.db")
-					_ = _dbtmp5 // sqlite3 db connection
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					// sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500 (unsupported command, not transpiled)
 					{
@@ -360,8 +359,8 @@ func Test_dbstatus(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				_dbtmp0, err := frigolite.Open("file:test.db?cache=shared")
-				_ = _dbtmp0 // sqlite3 db connection
+				os.Remove("file:test.db?cache=shared")
+				db, err = frigolite.Open("file:test.db?cache=shared")
 				if err != nil { t.Fatal(err) }
 				{ // "4.0"
 					_res = db.Exec("\n      PRAGMA auto_vacuum=NONE;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES(1, 2, 3);\n    ")
@@ -382,8 +381,8 @@ func Test_dbstatus(t *testing.T) {
 				// do_cacheused_test 4.2.1 db2 { 4568 2284 } (unsupported command, not transpiled)
 				// do_cacheused_test 4.2.2 db { 9000 6716 } (unsupported command, not transpiled)
 				// do_cacheused_test 4.2.3 db2 { 4568 4568 } (unsupported command, not transpiled)
-				_dbtmp1, err := frigolite.Open("file:test.db?cache=shared")
-				_ = _dbtmp1 // sqlite3 db connection
+				os.Remove("file:test.db?cache=shared")
+				db, err = frigolite.Open("file:test.db?cache=shared")
 				if err != nil { t.Fatal(err) }
 				// do_cacheused_test 4.2.4 db2 { 4568 2284 } (unsupported command, not transpiled)
 				db2.Close()
@@ -415,15 +414,15 @@ func Test_dbstatus(t *testing.T) {
 				// expr [sqlite3_stmt_status $::stmt 99 0]>0 (not evaluated)
 			}
 			// foreach {tn id res} "\n  1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1\n"
-			_items6 := tclSplitList("\n  1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1\n")
-			for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
-				tn := _items6[_idx6+0]
+			_items2 := tclSplitList("\n  1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1\n")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				id := _items6[_idx6+1]
+				id := _items2[_idx2+1]
 				_ = id // suppress unused warning
-				res := _items6[_idx6+2]
+				res := _items2[_idx2+2]
 				_ = res // suppress unused warning
-				_ = _idx6
+				_ = _idx2
 					if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
 					}
 					{ // do_test "5.5." + tn

@@ -57,8 +57,8 @@ func Test_selectD(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 2 }() {
 		os.Remove("test" + i + ".db")
-		_dbtmp0, err := frigolite.Open("test" + i + ".db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test" + i + ".db")
+		db, err = frigolite.Open("test" + i + ".db")
 		if err != nil { t.Fatal(err) }
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 2 }() {
 			// optimization_control db query-flattener off (unsupported command, not transpiled)

@@ -6,6 +6,7 @@ package tkt35
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -69,8 +70,8 @@ func Test_tkt35xx(t *testing.T) {
 		}
 	}
 	// delete_file test.db (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	big = "abcdefghij 22"
 	_ = big // suppress unused warning

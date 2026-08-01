@@ -295,8 +295,8 @@ func Test_transitive1(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "transitive1-500"
 		r = db.Query("\n  CREATE TABLE x(i INTEGER PRIMARY KEY, y TEXT);\n  INSERT INTO x VALUES(10, '10');\n  SELECT * FROM x WHERE x.y>='1' AND x.y<'2' AND x.i=x.y;\n")

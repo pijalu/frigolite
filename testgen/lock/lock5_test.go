@@ -82,8 +82,8 @@ func Test_lock5(t *testing.T) {
 		env_SQLITE_FORCE_PROXY_LOCKING = "0"
 		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
 		{ // do_test "lock5-dotfile.1"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
 			if _res.Error != nil {
@@ -145,8 +145,8 @@ func Test_lock5(t *testing.T) {
 		os.Remove("test.db")
 		if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 			{ // do_test "lock5-flock.1"
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 				if _res.Error != nil {
@@ -198,8 +198,8 @@ func Test_lock5(t *testing.T) {
 				db2.Close()
 			}
 			{ // do_test "lock5-flock.9"
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    SELECT * FROM t1\n  ")
 				if r.Error != nil {
@@ -242,8 +242,8 @@ func Test_lock5(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "lock5-none.1"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
@@ -303,8 +303,8 @@ func Test_lock5(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		if tclBool("permutation" + "!=\"inmemory_journal\"") {
 			{ // do_test "2.dotfile.1"
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;\n    ")
 				if r.Error != nil {

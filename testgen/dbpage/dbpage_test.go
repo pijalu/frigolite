@@ -214,8 +214,7 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA aux1.integrity_check;\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open(":memory:")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		r = db.Query("\n  SELECT * FROM sqlite_temp_schema, sqlite_dbpage;\n")
@@ -266,8 +265,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "520"
 		r = db.Query("\n  PRAGMA page_count;\n  SELECT * FROM t1;\n")
@@ -312,8 +311,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;\n")
 		}
 	}
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "640"
 		r = db.Query("\n  SELECT * FROM t2;\n")
@@ -371,8 +370,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT abc;\n        INSERT INTO sqlite_dbpage VALUES(2, NULL);\n      ROLLBACK TO abc;\n    COMMIT;\n  ")
 		}
 	}
-	_dbtmp3, err := frigolite.Open("test.db")
-	_ = _dbtmp3 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "720"
 		r = db.Query("\n  PRAGMA integrity_check\n")

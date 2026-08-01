@@ -150,8 +150,7 @@ func Test_misc2(t *testing.T) {
 		}
 	}
 	{ // do_test "misc2-6.1"
-		_dbtmp0, err := frigolite.Open("")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -160,8 +159,8 @@ func Test_misc2(t *testing.T) {
 	}
 	{ // do_test "misc2-7.1"
 		os.Remove("test.db")
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;\n    ")
 		if r.Error != nil {
@@ -263,8 +262,8 @@ func Test_misc2(t *testing.T) {
 	}
 	{ // do_test "misc2-7.11"
 		os.Remove("test.db")
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;\n    ")
 		if r.Error != nil {
@@ -365,8 +364,8 @@ func Test_misc2(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp3, err := frigolite.Open("test.db")
-	_ = _dbtmp3 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql

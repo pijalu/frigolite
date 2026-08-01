@@ -954,8 +954,7 @@ func Test_with1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many FROM clause terms, max: 200", _res.Error, "\n  WITH RECURSIVE c AS NOT MATERIALIZED (\n     WITH RECURSIVE c AS NOT MATERIALIZED (\n        WITH RECURSIVE c AS NOT MATERIALIZED (\n           WITH RECURSIVE c AS NOT MATERIALIZED (\n               WITH  c AS (VALUES(0))\n               SELECT 1 FROM c LEFT JOIN c ON ltrim(1)\n           )\n           SELECT 1 FROM c,c,c,c,c,c,c,c,c\n        )\n        SELECT  2 FROM c,c,c,c,c,c,c,c,c\n     )\n     SELECT 3 FROM c,c,c,c,c,c,c,c,c\n  )\n  SELECT 4 FROM c,c,c,c,c,c,c,c,c;\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open(":memory:")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "23.1"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER NULL PRIMARY KEY, name Text);\n  INSERT INTO t1 VALUES (1, 'john');\n  INSERT INTO t1 VALUES (2, 'james');\n  INSERT INTO t1 VALUES (3, 'jingle');\n  INSERT INTO t1 VALUES (4, 'himer');\n  INSERT INTO t1 VALUES (5, 'smith');\n  CREATE VIEW v2 AS\n    WITH t4(Name) AS (VALUES ('A'), ('B'))\n    SELECT Name Name FROM t4;\n  CREATE VIEW v3 AS\n    WITH t4(Att, Val, Act) AS (VALUES\n      ('C', 'D', 'E'),\n      ('F', 'G', 'H')\n    )\n    SELECT D.Id Id, P.Name Protocol, T.Att Att, T.Val Val, T.Act Act\n    FROM t1 D\n    CROSS JOIN v2 P\n    CROSS JOIN t4 T;\n  SELECT * FROM v3;\n")
@@ -996,13 +995,13 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// foreach {id dual} "\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n"
-	_items1 := tclSplitList("\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		id := _items1[_idx1+0]
+	_items0 := tclSplitList("\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		id := _items0[_idx0+0]
 		_ = id // suppress unused warning
-		dual := _items1[_idx1+1]
+		dual := _items0[_idx0+1]
 		_ = dual // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

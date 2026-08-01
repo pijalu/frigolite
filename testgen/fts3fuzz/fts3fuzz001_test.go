@@ -54,8 +54,7 @@ func Test_fts3fuzz001(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "fts3fuzz001-100"
-		_dbtmp0, err := frigolite.Open("")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA writable_schema=on; -- disable schema corruption detection\n    INSERT INTO t1(t1) SELECT x FROM t2;\n  ")
 		_ = _res // catchsql

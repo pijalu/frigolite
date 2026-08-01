@@ -241,8 +241,7 @@ func Test_distinct(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			_dbtmp2, err := frigolite.Open(":memory:")
-			_ = _dbtmp2 // sqlite3 db connection
+			db, err = frigolite.Open(":memory:")
 			if err != nil { t.Fatal(err) }
 			{ // "6.1"
 				r = db.Query("\n  CREATE TABLE jjj(x);\n  SELECT (SELECT 'mmm' UNION SELECT DISTINCT max(name) ORDER BY 1) \n    FROM sqlite_master;\n")
@@ -314,13 +313,13 @@ func Test_distinct(t *testing.T) {
 				}
 			}
 			// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX i1 ON t1(a, b); }\n  3 { CREATE INDEX i1 ON t1(b, a); }\n  4 { CREATE INDEX i1 ON t1(a COLLATE nocase, b COLLATE nocase); }\n  5 { CREATE INDEX i1 ON t1(b COLLATE nocase, a COLLATE nocase); }\n"
-			_items3 := tclSplitList("\n  1 { }\n  2 { CREATE INDEX i1 ON t1(a, b); }\n  3 { CREATE INDEX i1 ON t1(b, a); }\n  4 { CREATE INDEX i1 ON t1(a COLLATE nocase, b COLLATE nocase); }\n  5 { CREATE INDEX i1 ON t1(b COLLATE nocase, a COLLATE nocase); }\n")
-			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-				tn := _items3[_idx3+0]
+			_items2 := tclSplitList("\n  1 { }\n  2 { CREATE INDEX i1 ON t1(a, b); }\n  3 { CREATE INDEX i1 ON t1(b, a); }\n  4 { CREATE INDEX i1 ON t1(a COLLATE nocase, b COLLATE nocase); }\n  5 { CREATE INDEX i1 ON t1(b COLLATE nocase, a COLLATE nocase); }\n")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				idx := _items3[_idx3+1]
+				idx := _items2[_idx2+1]
 				_ = idx // suppress unused warning
-				_ = _idx3
+				_ = _idx2
 					_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i1 ")

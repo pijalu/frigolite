@@ -53,8 +53,8 @@ func Test_wal7(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "wal7-1.0"
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 SELECT x FROM t1;\n  ")
 		if _res.Error != nil {
@@ -78,8 +78,8 @@ func Test_wal7(t *testing.T) {
 	}
 	{ // do_test "wal7-2.0"
 		os.Remove("test.db")
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    PRAGMA journal_size_limit=25000;\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);\n  ")
 		if _res.Error != nil {
@@ -89,8 +89,8 @@ func Test_wal7(t *testing.T) {
 	}
 	{ // do_test "wal7-3.0"
 		os.Remove("test.db")
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    PRAGMA journal_size_limit=0;\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);\n  ")
 		if _res.Error != nil {
@@ -102,8 +102,8 @@ func Test_wal7(t *testing.T) {
 	}
 	{ // do_test "wal7-4.0"
 		os.Remove("test.db")
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_size_limit=25000;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);\n  ")
 		if _res.Error != nil {

@@ -207,8 +207,7 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "3.0"
-		_dbtmp0, err := frigolite.Open(":memory:")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t2(y PRIMARY KEY);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n  ")
 		if _res.Error != nil {

@@ -1468,8 +1468,7 @@ func Test_rowvalue(t *testing.T) {
 													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
-											_dbtmp10, err := frigolite.Open(":memory:")
-											_ = _dbtmp10 // sqlite3 db connection
+											db, err = frigolite.Open(":memory:")
 											if err != nil { t.Fatal(err) }
 											{ // "26.10"
 												r = db.Query("\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c1);\n  INSERT INTO t1(c1) VALUES (0);\n  SELECT (c0, x'') != (NULL, 0) FROM t1 LEFT JOIN t0;\n")

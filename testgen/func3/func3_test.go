@@ -6,6 +6,7 @@ package func3
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -84,8 +85,8 @@ func Test_func3(t *testing.T) {
 	}
 	{ // do_test "func3-3.2"
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "func3-4.1"
 		destroyed = "0"

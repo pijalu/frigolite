@@ -106,8 +106,8 @@ func Test_win32longpath(t *testing.T) {
 	_ = rawPath // suppress unused warning
 	path = "file nativename $rawPath"
 	_ = path // suppress unused warning
-	_dbtmp0, err := frigolite.Open("file join $path test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("file join $path test.db")
+	db, err = frigolite.Open("file join $path test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.1"
 		// file_control_vfsname db (unsupported command, not transpiled)

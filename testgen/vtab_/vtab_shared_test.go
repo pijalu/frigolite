@@ -6,6 +6,7 @@ package vtab_
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -67,8 +68,8 @@ func Test_vtab_shared(t *testing.T) {
 	testprefix = "vtab_shared"
 	_ = testprefix // suppress unused warning
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -139,15 +140,15 @@ func Test_vtab_shared(t *testing.T) {
 		}
 	}
 	// foreach {iTest dbSelect dbClose} "\n  1 db  db2\n  2 db  db2\n  3 db2 db\n"
-	_items1 := tclSplitList("\n  1 db  db2\n  2 db  db2\n  3 db2 db\n")
-	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-		iTest := _items1[_idx1+0]
+	_items0 := tclSplitList("\n  1 db  db2\n  2 db  db2\n  3 db2 db\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		iTest := _items0[_idx0+0]
 		_ = iTest // suppress unused warning
-		dbSelect := _items1[_idx1+1]
+		dbSelect := _items0[_idx0+1]
 		_ = dbSelect // suppress unused warning
-		dbClose := _items1[_idx1+2]
+		dbClose := _items0[_idx0+2]
 		_ = dbClose // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			{ // do_test "vtab_shared-1.9." + iTest
 				res = "list"
 				_ = res // suppress unused warning
@@ -181,8 +182,8 @@ func Test_vtab_shared(t *testing.T) {
 			}
 		}
 		{ // do_test "vtab_shared-1.12.2"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 			r = db.Query(" \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
@@ -299,8 +300,8 @@ func Test_vtab_shared(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "2.1.1"
-			_dbtmp3, err := frigolite.Open("test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
@@ -318,8 +319,8 @@ func Test_vtab_shared(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "2.2.1"
-			_dbtmp4, err := frigolite.Open("test.db")
-			_ = _dbtmp4 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }

@@ -82,8 +82,8 @@ func Test_collate7(t *testing.T) {
 	}
 	{ // do_test "collate7-2.1"
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del} (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")

@@ -65,8 +65,8 @@ func Test_createtab(t *testing.T) {
 	_ = av // suppress unused warning
 	for func() bool { av_n, _av_e := strconv.Atoi(av); if _av_e != nil { return false }; upperBound_n, _upperBound_e := strconv.Atoi(upperBound); if _upperBound_e != nil { return false }; return av_n <= upperBound_n }() {
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "createtab-" + av + ".1"
 			r = db.Query("PRAGMA auto_vacuum=" + av)

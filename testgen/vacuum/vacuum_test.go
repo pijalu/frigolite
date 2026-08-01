@@ -207,8 +207,8 @@ func Test_vacuum(t *testing.T) {
 	{ // do_test "vacuum-3.1"
 		db2.Close()
 		// delete_file test.db (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA empty_result_callbacks=on;\n    VACUUM;\n  ")
 		if _res.Error != nil {
@@ -216,8 +216,8 @@ func Test_vacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum-4.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
@@ -230,8 +230,8 @@ func Test_vacuum(t *testing.T) {
 	}
 	{ // do_test "vacuum-5.1"
 		os.Remove("test.db")
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE Test (TestID int primary key);\n    INSERT INTO Test VALUES (NULL);\n    CREATE VIEW viewTest AS SELECT * FROM Test;\n\n    BEGIN;\n    CREATE TABLE tempTest (TestID int primary key, Test2 int NULL);\n    INSERT INTO tempTest SELECT TestID, 1 FROM Test;\n    DROP TABLE Test;\n    CREATE TABLE Test(TestID int primary key, Test2 int NULL);\n    INSERT INTO Test SELECT * FROM tempTest;\n    DROP TABLE tempTest;\n    COMMIT;\n    VACUUM;\n  ")
 		_ = _res // catchsql
@@ -368,8 +368,8 @@ func Test_vacuum(t *testing.T) {
 	os.Remove("a'z.db")
 	{ // do_test "vacuum-10.1"
 		os.Remove("test.db")
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('a', 'b');\n    INSERT INTO t8 VALUES('c', 'd');\n    PRAGMA count_changes = 1;\n  ")
 		if r.Error != nil {

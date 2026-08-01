@@ -299,8 +299,7 @@ func Test_temptable2(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	_dbtmp0, err := frigolite.Open("")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "7.1"
 		r = db.Query("\n  PRAGMA auto_vacuum=INCREMENTAL;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(900));\n  INSERT INTO t1 VALUES(zeroblob(900));\n  INSERT INTO t1 SELECT x FROM t1;\n  INSERT INTO t1 SELECT x FROM t1;\n  INSERT INTO t1 SELECT x FROM t1;\n  INSERT INTO t1 SELECT x FROM t1;\n  BEGIN;\n  DELETE FROM t1 WHERE rowid%2;\n  PRAGMA incremental_vacuum(4);\n  ROLLBACK;\n  PRAGMA integrity_check;\n")
@@ -359,18 +358,17 @@ func Test_temptable2(t *testing.T) {
 	}
 	// tmp close (unsupported command, not transpiled)
 	// foreach {tn mode} "\n  1 delete\n  2 wal\n"
-	_items1 := tclSplitList("\n  1 delete\n  2 wal\n")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("\n  1 delete\n  2 wal\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mode := _items1[_idx1+1]
+		mode := _items0[_idx0+1]
 		_ = mode // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			_dbtmp2, err := frigolite.Open("")
-			_ = _dbtmp2 // sqlite3 db connection
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "9." + tn + ".1.1"
 				r = db.Query("\n    PRAGMA cache_size = 15;\n    PRAGMA auto_vacuum = 1;\n  ")
@@ -454,8 +452,7 @@ func Test_temptable2(t *testing.T) {
 				}
 			}
 		}
-		_dbtmp3, err := frigolite.Open("")
-		_ = _dbtmp3 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "10.0"
 			_res = db.Exec("\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")

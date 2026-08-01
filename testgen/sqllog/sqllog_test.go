@@ -74,8 +74,8 @@ func Test_sqllog(t *testing.T) {
 	env_SQLITE_SQLLOG_DIR = "pwd" // TCL namespace variable
 	_ = env_SQLITE_SQLLOG_DIR // suppress unused warning
 	// delete_all_sqllog_files (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	a = "a"
 	_ = a // suppress unused warning
@@ -108,8 +108,8 @@ func Test_sqllog(t *testing.T) {
 	os.Remove("test.db-sqllog")
 	env_SQLITE_SQLLOG_CONDITIONAL = "1" // TCL namespace variable
 	_ = env_SQLITE_SQLLOG_CONDITIONAL // suppress unused warning
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  INSERT INTO t1 VALUES(4, 5);\n  SELECT * FROM t1;\n")
@@ -127,8 +127,8 @@ func Test_sqllog(t *testing.T) {
 		tclGlob("-nocomplain")
 	}
 	// touch test.db-sqllog (unsupported command, not transpiled)
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.3"
 		r = db.Query("\n  INSERT INTO t1 VALUES(6, 7);\n  SELECT * FROM t1;\n")

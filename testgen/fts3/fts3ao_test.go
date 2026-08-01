@@ -162,8 +162,8 @@ func Test_fts3ao(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "fts3ao-3.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n    INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one two');\n    SELECT a, b, c FROM t1 WHERE c MATCH 'two';\n  ")
@@ -293,13 +293,13 @@ func Test_fts3ao(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n"
-	_items1 := tclSplitList("\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items1[_idx1+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -309,8 +309,8 @@ func Test_fts3ao(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n    " + sql + "\n  ")
 				}
 			}
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6." + tn + ".2"
 				r = db.Query(" SELECT * FROM t1 ")

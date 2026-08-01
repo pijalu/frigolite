@@ -132,8 +132,8 @@ func Test_e_fts3(t *testing.T) {
 		_ = enc // suppress unused warning
 		_ = _idx0
 			os.Remove("test.db")
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			if tclBool(DO_MALLOC_TEST) {
 				// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
@@ -206,15 +206,15 @@ func Test_e_fts3(t *testing.T) {
 			// ddl_test 1.3.2.8 { DROP TABLE docs } (unsupported command, not transpiled)
 			// ddl_test 1.4.1.1 { CREATE VIRTUAL TABLE docs USING fts3(title, body)...} (unsupported command, not transpiled)
 			// foreach {tn title body} "\n  2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"\n"
-			_items2 := tclSplitList("\n  2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"\n")
-			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-				tn := _items2[_idx2+0]
+			_items1 := tclSplitList("\n  2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"\n")
+			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+				tn := _items1[_idx1+0]
 				_ = tn // suppress unused warning
-				title := _items2[_idx2+1]
+				title := _items1[_idx1+1]
 				_ = title // suppress unused warning
-				body := _items2[_idx2+2]
+				body := _items1[_idx1+2]
 				_ = body // suppress unused warning
-				_ = _idx2
+				_ = _idx1
 					// write_test 1.4.1.$tn docs_content { INSERT INTO docs VALUES($title,$body) } (unsupported command, not transpiled)
 					R_tn = "list $title $body"
 					_ = R_tn // suppress unused warning
@@ -229,15 +229,15 @@ func Test_e_fts3(t *testing.T) {
 				// ddl_test 1.4.2.1 { CREATE VIRTUAL TABLE docs USING fts3() } (unsupported command, not transpiled)
 				// write_test 1.4.2.2 docs_content { \n  INSERT INTO docs VALUES(\n  'SQLite is an ACI...} (unsupported command, not transpiled)
 				// foreach {tn query hit} "\n3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0\n"
-				_items3 := tclSplitList("\n3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0\n")
-				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-					tn := _items3[_idx3+0]
+				_items2 := tclSplitList("\n3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0\n")
+				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+					tn := _items2[_idx2+0]
 					_ = tn // suppress unused warning
-					query := _items3[_idx3+1]
+					query := _items2[_idx2+1]
 					_ = query // suppress unused warning
-					hit := _items3[_idx3+2]
+					hit := _items2[_idx2+2]
 					_ = hit // suppress unused warning
-					_ = _idx3
+					_ = _idx2
 						res = "db eval {SELECT * FROM docs WHERE $hit}"
 						_ = res // suppress unused warning
 						// read_test 1.4.2.$tn $query $res (unsupported command, not transpiled)
@@ -247,15 +247,15 @@ func Test_e_fts3(t *testing.T) {
 					_ = sqlite_fts3_enable_parentheses // suppress unused warning
 					// ddl_test 1.5.1.1 { CREATE VIRTUAL TABLE docs USING fts3() } (unsupported command, not transpiled)
 					// foreach {tn docid content} "\n  2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"\n"
-					_items4 := tclSplitList("\n  2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"\n")
-					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-						tn := _items4[_idx4+0]
+					_items3 := tclSplitList("\n  2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"\n")
+					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+						tn := _items3[_idx3+0]
 						_ = tn // suppress unused warning
-						docid := _items4[_idx4+1]
+						docid := _items3[_idx3+1]
 						_ = docid // suppress unused warning
-						content := _items4[_idx4+2]
+						content := _items3[_idx3+2]
 						_ = content // suppress unused warning
-						_ = _idx4
+						_ = _idx3
 							R_docid = content
 							_ = R_docid // suppress unused warning
 							// write_test 1.5.1.$tn docs_content { \n    INSERT INTO docs(docid, content) VALUES($do...} (unsupported command, not transpiled)
@@ -380,8 +380,8 @@ func Test_e_fts3(t *testing.T) {
 					for _, DO_MALLOC_TEST := range tclSplitList("0 1 2") {
 					_ = DO_MALLOC_TEST // suppress unused warning
 						os.Remove("test.db")
-						_dbtmp5, err := frigolite.Open("test.db")
-						_ = _dbtmp5 // sqlite3 db connection
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						if tclBool(DO_MALLOC_TEST) {
 							// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)

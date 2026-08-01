@@ -68,8 +68,8 @@ func Test_swarmvtab2(t *testing.T) {
 	_ = name // suppress unused warning
 		os.Remove(name)
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	// proc definition (not transpiled)

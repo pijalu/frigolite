@@ -223,8 +223,8 @@ func Test_attach2(t *testing.T) {
 	sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
 	{ // do_test "attach2-4.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -357,8 +357,8 @@ func Test_attach2(t *testing.T) {
 		os.Remove(f)
 	}
 	{ // do_test "attach2-5.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n  ")
 		if _res.Error != nil {
@@ -457,8 +457,8 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp2, err := frigolite.Open("test.db2")
-	_ = _dbtmp2 // sqlite3 db connection
+	os.Remove("test.db2")
+	db, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // "2.3"
 		r = db.Query("\n    ATTACH 'test.db3' AS aux;\n    SELECT * FROM t3;\n    SELECT * FROM t2;\n  ")
@@ -472,8 +472,8 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp3, err := frigolite.Open("test.db2")
-	_ = _dbtmp3 // sqlite3 db connection
+	os.Remove("test.db2")
+	db, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // "2.4"
 		_res = db.Exec("\n    ATTACH 'test.db4' AS aux;\n  ")

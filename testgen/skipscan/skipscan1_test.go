@@ -447,8 +447,8 @@ func Test_skipscan1(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "skipscan1-6.1"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d,e,f,g,h varchar(300));\n  CREATE INDEX t1ab ON t1(a,b);\n  ANALYZE sqlite_master;\n  -- Only two distinct values for the skip-scan column.  Skip-scan is not used.\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','500000 250000 125000');\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;\n")
@@ -626,8 +626,7 @@ func Test_skipscan1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a,b,c,d,'|' FROM t6 WHERE d<>99 AND b=345 ORDER BY a DESC;\n")
 		}
 	}
-	_dbtmp1, err := frigolite.Open(":memory:")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "skipscan1-3.1"
 		r = db.Query("\n  CREATE TABLE t1 (c1, c2, c3, c4, PRIMARY KEY(c4, c3));\n  INSERT INTO t1 VALUES(3,0,1,NULL);\n  INSERT INTO t1 VALUES(0,4,1,NULL);\n  INSERT INTO t1 VALUES(5,6,1,NULL);\n  INSERT INTO t1 VALUES(0,4,1,NULL);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t1','sqlite_autoindex_t1_1','18 18 6');\n  ANALYZE sqlite_master;\n  SELECT DISTINCT quote(c1), quote(c2), quote(c3), quote(c4), '|'\n    FROM t1 WHERE t1.c3 = 1;\n")

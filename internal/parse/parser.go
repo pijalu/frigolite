@@ -304,6 +304,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 26:
 		return ""
 
+	// Rule 76: orconf ::= OR resolvetype
+	// (resolvetype: IGNORE, REPLACE, ABORT, FAIL, ROLLBACK)
+	case 76:
+		return getString(getRHS(p, ruleNo, 2))
+
 	// Rule 79: cmd ::= DROP TABLE ifexists fullname
 	case 79:
 		ifExists := getBool(getRHS(p, ruleNo, 3))
@@ -764,6 +769,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		where := getExpr(getRHS(p, ruleNo, 9))
 		return &sql.UpdateStmt{
 			Table:       tbl,
+			OnConflict:  getString(getRHS(p, ruleNo, 3)),
 			Assignments: setlist,
 			Where:       where,
 		}
@@ -847,7 +853,8 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 173: insert_cmd ::= INSERT orconf
 	case 173:
-		return "INSERT"
+		// Return the orconf resolution type ("", "IGNORE", "REPLACE", ...).
+		return getString(getRHS(p, ruleNo, 2))
 
 	// Rule 174: insert_cmd ::= REPLACE
 	case 174:

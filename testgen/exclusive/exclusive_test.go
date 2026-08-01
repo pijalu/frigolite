@@ -371,19 +371,19 @@ func Test_exclusive(t *testing.T) {
 		}
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items1 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			name := _items1[_idx1+0]
+		_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			name := _items0[_idx0+0]
 			_ = name // suppress unused warning
-			value := _items1[_idx1+1]
+			value := _items0[_idx0+1]
 			_ = value // suppress unused warning
-			_ = _idx1
+			_ = _idx0
 				using_proxy = value
 				_ = using_proxy // suppress unused warning
 			}
@@ -449,8 +449,8 @@ func Test_exclusive(t *testing.T) {
 				os.Remove("test2.db")
 				// copy_file test.db test2.db (unsupported command, not transpiled)
 				// copy_file test.db-journal test2.db-journal (unsupported command, not transpiled)
-				_dbtmp2, err := frigolite.Open("test2.db")
-				_ = _dbtmp2 // sqlite3 db connection
+				os.Remove("test2.db")
+				db, err = frigolite.Open("test2.db")
 				if err != nil { t.Fatal(err) }
 			}
 			{ // "exclusive-6.3"
@@ -472,8 +472,8 @@ func Test_exclusive(t *testing.T) {
 				_putsMsg := fd
 				_ = _putsMsg
 				// close $fd
-				_dbtmp3, err := frigolite.Open("test.db")
-				_ = _dbtmp3 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 			}
 			{ // "exclusive-6.5"
@@ -491,8 +491,8 @@ func Test_exclusive(t *testing.T) {
 			if tclBool("permutation" + "!=\"journaltest\"") {
 				{ // do_test "exclusive-7.1"
 					os.Remove("test.db")
-					_dbtmp0, err := frigolite.Open("test.db")
-					_ = _dbtmp0 // sqlite3 db connection
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n      PRAGMA locking_mode = EXCLUSIVE;\n      PRAGMA journal_mode = WAL;\n      PRAGMA locking_mode = NORMAL;\n      PRAGMA user_version;\n      PRAGMA journal_mode = DELETE;\n    ")
 					if _res.Error != nil {

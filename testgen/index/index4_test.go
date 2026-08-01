@@ -6,6 +6,7 @@ package index
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
@@ -81,8 +82,8 @@ func Test_index4(t *testing.T) {
 	}
 	soft_limit = "sqlite3_soft_heap_limit 50000"
 	_ = soft_limit // suppress unused warning
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.4"
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    CREATE INDEX i2 ON t1(x);\n  ")

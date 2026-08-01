@@ -6,6 +6,7 @@ package windowfault
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -99,8 +100,8 @@ func Test_windowfault(t *testing.T) {
 	// testvfs tvfs -default 1 (unsupported command, not transpiled)
 	// tvfs script vfs_callback (unsupported command, not transpiled)
 	// tvfs filter xRead (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	FAULTSIM_tmpread = "list                \\\n  -injectstart   tmpread_injectstart       \\\n  -injectstop    tmpread_injectstop        \\\n  -injecterrlist {{1 {disk I/O error}}}    \\"

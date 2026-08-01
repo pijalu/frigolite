@@ -58,8 +58,7 @@ func Test_altercorrupt(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.0"
-		_dbtmp0, err := frigolite.Open("")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "1.1"
@@ -72,8 +71,7 @@ func Test_altercorrupt(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.0"
-		_dbtmp1, err := frigolite.Open("")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "2.1"

@@ -63,7 +63,7 @@ type Engine struct {
 	triggerNewRow     Row                              // new row values for trigger execution (keyed as "new.colname")
 	triggerOldRow     Row                              // old row values for trigger execution (keyed as "old.colname")
 	hasTriggersCache  map[string]bool                  // cached trigger existence per table name
-	uniqueIdxCache    map[string][][]string            // cached unique-index column lists per table name
+	uniqueIdxCache    map[string][]uniqueIndexDef      // cached unique-index definitions per table name
 	inTransaction     bool                             // tracks if we're inside a BEGIN/COMMIT block
 	ddlBuffer         []func()                         // DDL undo operations for transaction rollback
 	outerRow          Row                              // outer query row for correlated subquery resolution
@@ -173,7 +173,7 @@ func (e *Engine) updateRootPage(tableName string, newRoot uint32) {
 func (e *Engine) invalidateTableCaches() {
 	e.colCache = make(map[string][]sql.ColumnDef)
 	e.tcCache = make(map[string][]sql.TableConstraint)
-	e.uniqueIdxCache = make(map[string][][]string)
+	e.uniqueIdxCache = make(map[string][]uniqueIndexDef)
 	e.nextRowIDCache = make(map[uint32]int64)
 }
 

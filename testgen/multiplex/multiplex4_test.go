@@ -65,8 +65,8 @@ func Test_multiplex4(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "multiplex4-1.0"
 		// multiplex_delete_db mx4test (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("file:mx4test.db?chunksize=10&truncate=1")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("file:mx4test.db?chunksize=10&truncate=1")
+		db, err = frigolite.Open("file:mx4test.db?chunksize=10&truncate=1")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(randomblob(250000));\n  ")
 		if _res.Error != nil {

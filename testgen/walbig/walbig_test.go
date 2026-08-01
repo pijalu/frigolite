@@ -6,6 +6,7 @@ package walbig
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -68,8 +69,8 @@ func Test_walbig(t *testing.T) {
 		return
 	}
 	// hexio_write test.db 28 00000000 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbig-1.1"
 		_res = db.Exec(" INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1 ")
@@ -77,8 +78,8 @@ func Test_walbig(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1 ")
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbig-1.2"
 		r = db.Query(" SELECT a FROM t1 ORDER BY a ")

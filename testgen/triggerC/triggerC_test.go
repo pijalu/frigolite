@@ -592,8 +592,8 @@ func Test_triggerC(t *testing.T) {
 							}
 							{ // do_test "triggerC-12.1"
 								os.Remove("test.db")
-								_dbtmp6, err := frigolite.Open("test.db")
-								_ = _dbtmp6 // sqlite3 db connection
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1 ; END ;\n    SELECT count(*) FROM sqlite_master;\n  ")
 								if r.Error != nil {

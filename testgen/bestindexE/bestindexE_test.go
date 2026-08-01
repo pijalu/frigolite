@@ -6,6 +6,7 @@ package bestindexE
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -164,8 +165,8 @@ func Test_bestindexE(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(x);\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// register_tcl_module db eponymous_cmd (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db")

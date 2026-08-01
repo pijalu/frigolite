@@ -124,8 +124,8 @@ func Test_nolock(t *testing.T) {
 	}
 	{ // do_test "nolock-2.0"
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(a,b);\n     INSERT INTO t1 VALUES('hello','world');\n     CREATE TABLE t2(x,y);\n     INSERT INTO t2 VALUES(12345,67890);\n     SELECT * FROM t1, t2;\n  ")
 		if _res.Error != nil {
@@ -209,8 +209,8 @@ func Test_nolock(t *testing.T) {
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
 		{ // do_test "nolock-4.1"
 			os.Remove("test.db")
-			_dbtmp0, err := frigolite.Open("file:test.db?nolock=1")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("file:test.db?nolock=1")
+			db, err = frigolite.Open("file:test.db?nolock=1")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n       PRAGMA journal_mode=WAL;\n       CREATE TABLE t1(x);\n       INSERT INTO t1 VALUES('youngling');\n       SELECT * FROM t1;\n    ")
 			if _res.Error != nil {
@@ -219,8 +219,8 @@ func Test_nolock(t *testing.T) {
 		}
 		{ // do_test "nolock-4.2"
 			os.Remove("test.db")
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('catbird');\n      SELECT * FROM t1;\n    ")
 			if _res.Error != nil {
@@ -228,8 +228,8 @@ func Test_nolock(t *testing.T) {
 			}
 		}
 		{ // do_test "nolock-4.3"
-			_dbtmp2, err := frigolite.Open("file:test.db?nolock=1")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("file:test.db?nolock=1")
+			db, err = frigolite.Open("file:test.db?nolock=1")
 			if err != nil { t.Fatal(err) }
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning

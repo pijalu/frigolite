@@ -6,6 +6,7 @@ package where
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "regexp"
 "strconv"
 "strings"
@@ -1138,8 +1139,7 @@ func Test_where(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp0, err := frigolite.Open(":memory:")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "where-22.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  CREATE INDEX t1a ON t1(a);\n  INSERT INTO t1(a) VALUES(NULL),(NULL),(42),(NULL),(NULL);\n  CREATE TABLE t2(dummy INT);\n  SELECT count(*) FROM t1 LEFT JOIN t2 ON a IS NOT NULL;\n")
@@ -1175,15 +1175,15 @@ func Test_where(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res} "\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n"
-	_items1 := tclSplitList("\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n")
-	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items1[_idx1+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		res := _items1[_idx1+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			rev = "list"
 			_ = rev // suppress unused warning
 			for _, _r := range tclSplitList(res) {
@@ -1225,8 +1225,8 @@ func Test_where(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.1"
 			_res = db.Exec("\n  DELETE FROM t1 WHERE c='iii'\n")
@@ -1249,8 +1249,8 @@ func Test_where(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.4"
 			_res = db.Exec("\n  SELECT * FROM t1 WHERE c='iii'\n")
@@ -1264,8 +1264,7 @@ func Test_where(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "corrupt database", _res.Error, "\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
 			}
 		}
-		_dbtmp4, err := frigolite.Open(":memory:")
-		_ = _dbtmp4 // sqlite3 db connection
+		db, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		{ // "where-26.1"
 			r = db.Query("\n  CREATE TABLE t0(c0 INTEGER PRIMARY KEY, c1 TEXT);\n  INSERT INTO t0(c0, c1) VALUES (1, 'a');\n  CREATE TABLE t1(c0 INT PRIMARY KEY, c1 TEXT);\n  INSERT INTO t1(c0, c1) VALUES (1, 'a');\n  SELECT * FROM t0 WHERE '-1' BETWEEN 0 AND t0.c0;\n")

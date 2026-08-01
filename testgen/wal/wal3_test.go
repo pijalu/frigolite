@@ -222,8 +222,8 @@ func Test_wal3(t *testing.T) {
 				// testvfs T (unsupported command, not transpiled)
 				// T filter {} (unsupported command, not transpiled)
 				// T script sync_counter (unsupported command, not transpiled)
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("PRAGMA synchronous = " + syncmode)
 				if r.Error != nil {
@@ -312,8 +312,8 @@ func Test_wal3(t *testing.T) {
 		// testvfs T -default 1 (unsupported command, not transpiled)
 		{ // do_test "wal3-6.1.1"
 			os.Remove("test.db")
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA auto_vacuum = off ")
 			if r.Error != nil {
@@ -395,8 +395,8 @@ func Test_wal3(t *testing.T) {
 		db2.Close()
 		{ // do_test "wal3-6.2.1"
 			os.Remove("test.db")
-			_dbtmp3, err := frigolite.Open("test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
@@ -462,8 +462,8 @@ func Test_wal3(t *testing.T) {
 		// testvfs T -default 1 (unsupported command, not transpiled)
 		{ // do_test "wal3-7.1.1"
 			os.Remove("test.db")
-			_dbtmp4, err := frigolite.Open("test.db")
-			_ = _dbtmp4 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
 			if _res.Error != nil {
@@ -516,8 +516,8 @@ func Test_wal3(t *testing.T) {
 		}
 		{ // do_test "wal3-9.0"
 			os.Remove("test.db")
-			_dbtmp5, err := frigolite.Open("test.db")
-			_ = _dbtmp5 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
 			if _res.Error != nil {
@@ -530,8 +530,8 @@ func Test_wal3(t *testing.T) {
 			var c = "db" + i
 			_ = c // suppress unused warning
 			{ // do_test "wal3-9.1." + i
-				_dbtmp6, err := frigolite.Open("test.db")
-				_ = _dbtmp6 // sqlite3 db connection
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" UPDATE whoami SET x = " + c + " ")
 				if _res.Error != nil {

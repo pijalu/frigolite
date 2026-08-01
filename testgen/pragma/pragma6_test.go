@@ -54,8 +54,7 @@ func Test_pragma6(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "1.0"
-		_dbtmp0, err := frigolite.Open("")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "1.1"

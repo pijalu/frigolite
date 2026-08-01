@@ -75,8 +75,8 @@ func Test_notify1(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "notify1-1.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -295,16 +295,16 @@ func Test_notify1(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	// foreach {tn nConn} "3 20 4 76"
-	_items1 := tclSplitList("3 20 4 76")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("3 20 4 76")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		nConn := _items1[_idx1+1]
+		nConn := _items0[_idx0+1]
 		_ = nConn // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			{ // do_test "notify1-" + tn + ".1"
-				_dbtmp2, err := frigolite.Open("test.db")
-				_ = _dbtmp2 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n    ")
 				if _res.Error != nil {
@@ -321,8 +321,8 @@ func Test_notify1(t *testing.T) {
 				{ // do_test "notify1-" + tn + ".2." + ii + ".1"
 					var cmd = "db" + ii
 					_ = cmd // suppress unused warning
-					_dbtmp3, err := frigolite.Open("test.db")
-					_ = _dbtmp3 // sqlite3 db connection
+					_dbtmp1, err := frigolite.Open("test.db")
+					_ = _dbtmp1 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" SELECT * FROM t1 ")
 					_ = _res // catchsql

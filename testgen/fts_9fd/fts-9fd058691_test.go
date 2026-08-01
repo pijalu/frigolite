@@ -66,8 +66,8 @@ func Test_fts_9fd058691(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    UPDATE fts SET tags = 'tag1' WHERE rowid = 1;\n    SELECT * FROM fts WHERE tags MATCH 'tag1';\n  ")
 		if r.Error != nil {
@@ -75,8 +75,8 @@ func Test_fts_9fd058691(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts3(tags TEXT);\n  INSERT INTO fts (docid, tags) VALUES (1, 'tag1');\n  INSERT INTO fts (docid, tags) VALUES (2, NULL);\n  INSERT INTO fts (docid, tags) VALUES (3, 'three');\n")

@@ -127,8 +127,7 @@ func Test_triggerupfrom(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp0, err := frigolite.Open("")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.4"
 		_res = db.Exec("\n  ATTACH 'test.db' AS yyy;\n  SELECT * FROM t1;\n")

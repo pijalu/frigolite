@@ -6,6 +6,7 @@ package corrupt
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -79,8 +80,8 @@ func Test_corrupt9(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	tclFileCopy("test.db", "test.db-template")
 	// corrupt_freelist test.db 1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-2.1"
 		x = "db eval {PRAGMA integrity_check}"
@@ -93,8 +94,8 @@ func Test_corrupt9(t *testing.T) {
 	}
 	tclFileCopy("test.db-template", "test.db")
 	// corrupt_freelist test.db 2 (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-3.1"
 		x = "db eval {PRAGMA integrity_check}"
@@ -107,8 +108,8 @@ func Test_corrupt9(t *testing.T) {
 	}
 	tclFileCopy("test.db-template", "test.db")
 	// corrupt_freelist test.db 3 (unsupported command, not transpiled)
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-4.1"
 		x = "db eval {PRAGMA integrity_check}"

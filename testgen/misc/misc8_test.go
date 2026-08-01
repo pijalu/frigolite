@@ -153,8 +153,8 @@ func Test_misc8(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "misc8-4.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  ATTACH 'test2.db' AS aux2;\n  CREATE TABLE aux2.t2(c,d,e);\n  INSERT INTO t2 VALUES(4,5,6);\n  SELECT * FROM t1, t2;\n")

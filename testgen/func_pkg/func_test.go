@@ -6,6 +6,7 @@ package func_pkg
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "strings"
 "testing"
@@ -1750,8 +1751,8 @@ func Test_func(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
 			}
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
@@ -1768,8 +1769,8 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // do_test "func-29.3"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT typeof(+x) FROM t29 ORDER BY id")
@@ -1780,8 +1781,8 @@ func Test_func(t *testing.T) {
 		if tclBool("permutation" + " != \"mmap\"") {
 		}
 		{ // do_test "func-29.5"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT sum(length(x)) FROM t29")

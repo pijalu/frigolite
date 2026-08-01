@@ -360,8 +360,8 @@ func Test_sqllimits1(t *testing.T) {
 		// sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER 0x7fffffff (unsupported command, not transpiled)
 		// sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1 (unsupported command, not transpiled)
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	LARGESIZE = "99999"
 	_ = LARGESIZE // suppress unused warning
@@ -696,8 +696,8 @@ func Test_sqllimits1(t *testing.T) {
 		// expr [file size test.db] (not evaluated)
 	}
 	{ // do_test "sqllimits1-7.7.2"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA max_page_count = 1000;\n  ")
 		if r.Error != nil {
@@ -1156,13 +1156,13 @@ func Test_sqllimits1(t *testing.T) {
 		}
 	}
 	// foreach {key value} "array get saved"
-	_items2 := tclSplitList("array get saved")
-	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-		key := _items2[_idx2+0]
+	_items0 := tclSplitList("array get saved")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		key := _items0[_idx0+0]
 		_ = key // suppress unused warning
-		value := _items2[_idx2+1]
+		value := _items0[_idx0+1]
 		_ = value // suppress unused warning
-		_ = _idx2
+		_ = _idx0
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning

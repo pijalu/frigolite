@@ -6,6 +6,7 @@ package eqp
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -343,8 +344,8 @@ func Test_eqp(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1(a,b) VALUES(1, 2);\n  INSERT INTO t1(a,b) VALUES(3, 4);\n\n  INSERT INTO t2(a,b) VALUES(1, 2);\n  INSERT INTO t2(a,b) VALUES(3, 4);\n  INSERT INTO t2(a,b) VALUES(5, 6);\n \n  ANALYZE;\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// det 7.4 SELECT count(*) FROM t1 {\n  QUERY PLAN\n  `--SCAN t1\n} (unsupported command, not transpiled)
 	// det 7.5 SELECT count(*) FROM t2 {\n  QUERY PLAN\n  `--SCAN t2 USING COVERING INDEX .... (unsupported command, not transpiled)

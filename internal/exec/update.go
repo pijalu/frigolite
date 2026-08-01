@@ -3,9 +3,11 @@ package exec
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
@@ -33,6 +35,14 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	changes, err := e.collectUpdateChanges(tableEntry.RootPage, colIndex, colDefs, s)
 	if err != nil {
 		return &Result{Error: err}
+	}
+
+	// UPDATE OR REPLACE: delete rows that conflict with the new values before
+	// applying the update (fires BEFORE/AFTER DELETE triggers for each).
+	if strings.EqualFold(s.OnConflict, "REPLACE") {
+		if res := e.resolveUpdateConflicts(tableEntry, colDefs, changes); res.Error != nil {
+			return res
+		}
 	}
 
 	// Handle RETURNING clause — evaluate against updated rows before applying
@@ -195,3 +205,109 @@ func (e *Engine) applyUpdateChanges(rootPage uint32, changes []updateChange) *Re
 	return &Result{Changes: int64(len(changes))}
 }
 
+// resolveUpdateConflicts implements UPDATE OR REPLACE: for each row being
+// updated, delete other rows whose values conflict with the new values on a
+// UNIQUE/PRIMARY KEY column or UNIQUE index, firing BEFORE/AFTER DELETE
+// triggers with the deleted row's OLD values.
+func (e *Engine) resolveUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
+	colIndex := buildColumnIndex(colDefs)
+	var uniqueCols []int
+	for i, cd := range colDefs {
+		if cd.Unique || cd.PrimaryKey {
+			uniqueCols = append(uniqueCols, i)
+		}
+	}
+	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+
+	// Scan the table, collecting rows that conflict with any change.
+	type conflictInfo struct {
+		values []interface{}
+	}
+	conflicts := make(map[int64]conflictInfo)
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return &Result{Error: err}
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil {
+			break
+		}
+		for _, c := range changes {
+			if cell.RowID == c.rowID {
+				continue // the row being updated is not a conflict
+			}
+			conflict := false
+			for _, idx := range uniqueCols {
+				if idx < len(rec.Values) && idx < len(c.values) {
+					if rec.Values[idx] == nil || c.values[idx] == nil {
+						continue
+					}
+					if util.CompareValues(rec.Values[idx], c.values[idx]) == 0 {
+						conflict = true
+						break
+					}
+				}
+			}
+			if !conflict {
+				for _, def := range idxColsList {
+					match := true
+					// The new row must satisfy the partial predicate too.
+					nrow := buildRowMapFromValues(c.values, colDefs, c.rowID)
+					if inIndex, _ := e.evalIndexWhere(def.Where, nrow); !inIndex {
+						continue
+					}
+					orow := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
+					if inIndex, _ := e.evalIndexWhere(def.Where, orow); !inIndex {
+						continue
+					}
+					for _, cn := range def.Cols {
+						idx, ok := colIndex[cn]
+						if !ok || idx >= len(rec.Values) || idx >= len(c.values) || rec.Values[idx] == nil || c.values[idx] == nil || util.CompareValues(rec.Values[idx], c.values[idx]) != 0 {
+							match = false
+							break
+						}
+					}
+					if match {
+						conflict = true
+						break
+					}
+				}
+			}
+			if conflict {
+				conflicts[cell.RowID] = conflictInfo{values: rec.Values}
+				break
+			}
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
+
+	hasTriggers := e.hasTriggersForTable(tableEntry.Name)
+	for rowID, ci := range conflicts {
+		oldRow := buildRowMapFromValues(ci.values, colDefs, rowID)
+		if hasTriggers {
+			if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+				return trigResult
+			}
+		}
+		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			return cell.RowID == rowID
+		}); err != nil {
+			return &Result{Error: err}
+		}
+		if hasTriggers {
+			if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+				return trigResult
+			}
+		}
+	}
+	return &Result{}
+}

@@ -6,6 +6,7 @@ package schema
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -84,8 +85,8 @@ func Test_schema4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "schema4-1.5"
 		r = db.Query("\n  DELETE FROM log;\n  INSERT INTO tbl VALUES(1, 2);\n  UPDATE tbl SET b=a+b, a=a+1;\n  DELETE FROM tbl;\n  SELECT x, a, b FROM log;\n")
@@ -154,8 +155,8 @@ func Test_schema4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "schema4-2.5"
 		r = db.Query(" \n    DELETE FROM log;\n    INSERT INTO tbl VALUES('c', 'd');\n    DELETE FROM tbl;\n    SELECT * FROM log;\n  ")

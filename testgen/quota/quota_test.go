@@ -108,8 +108,8 @@ func Test_quota(t *testing.T) {
 		// sqlite3_quota_set *test.db 4096 quota_check (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-2.1.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA journal_mode=DELETE;\n  ")
 		if r.Error != nil {
@@ -182,8 +182,8 @@ func Test_quota(t *testing.T) {
 		// sqlite3_quota_set *test.db 4096 quota_check (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-3.1.2"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
 		if _res.Error != nil {
@@ -345,8 +345,8 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-4.1.6"
 		os.Remove("test2.db")
-		_dbtmp2, err := frigolite.Open("test2.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t2(x); INSERT INTO t2 VALUES('tab-t2');")
 		if _res.Error != nil {
@@ -416,8 +416,8 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-4.3.1"
 		// sqlite3_quota_set A 1000 quota_callback (unsupported command, not transpiled)
-		_dbtmp3, err := frigolite.Open("A")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("A")
+		db, err = frigolite.Open("A")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_quota_set A 0 quota_callback (unsupported command, not transpiled)
 		// quota_list (unsupported command, not transpiled)
@@ -438,8 +438,8 @@ func Test_quota(t *testing.T) {
 		_ = quota // suppress unused warning
 		// sqlite3_quota_set $::quotagroup 10000 quota_callback (unsupported command, not transpiled)
 		os.Remove("./quota-test-A1.db")
-		_dbtmp4, err := frigolite.Open("./quota-test-A1.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("./quota-test-A1.db")
+		db, err = frigolite.Open("./quota-test-A1.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		if _res.Error != nil {
@@ -451,8 +451,8 @@ func Test_quota(t *testing.T) {
 		// expr $::quota=="" (not evaluated)
 	}
 	{ // do_test "quota-4.4.3"
-		_dbtmp5, err := frigolite.Open("./quota-test-A2.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		os.Remove("./quota-test-A2.db")
+		db, err = frigolite.Open("./quota-test-A2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		if _res.Error != nil {
@@ -469,8 +469,8 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-4.4.6"
 		// sqlite3_quota_set $quotagroup 10000 quota_callback (unsupported command, not transpiled)
-		_dbtmp6, err := frigolite.Open("quota-test-A1.db")
-		_ = _dbtmp6 // sqlite3 db connection
+		os.Remove("quota-test-A1.db")
+		db, err = frigolite.Open("quota-test-A1.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT count(*) FROM sqlite_master")
 		if _res.Error != nil {
@@ -553,8 +553,8 @@ func Test_quota(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "quota-5.3.prep"
-		_dbtmp7, err := frigolite.Open("test.db")
-		_ = _dbtmp7 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
 		if _res.Error != nil {

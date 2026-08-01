@@ -2058,8 +2058,7 @@ func Test_without_rowid3(t *testing.T) {
 										_res = db.Exec("\n    UPDATE tce73 set a = 101 where a = 100;\n  ")
 										_ = _res // catchsql
 									}
-									_dbtmp8, err := frigolite.Open(":memory:")
-									_ = _dbtmp8 // sqlite3 db connection
+									db, err = frigolite.Open(":memory:")
 									if err != nil { t.Fatal(err) }
 									{ // "without_rowid3-30.1"
 										r = db.Query("\n  CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE TABLE t2(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT changes();\n")

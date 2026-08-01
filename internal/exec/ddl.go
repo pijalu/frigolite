@@ -188,9 +188,12 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 
 	existing, err := ctx.Schema.FindTable(tableName)
 	if err == nil && existing != nil {
-		// Table already exists. Skip creation as a best-effort
-		// (equivalent to IF NOT EXISTS for the compat test suite).
-		return &Result{}
+		// Table already exists. Only IF NOT EXISTS silently succeeds;
+		// otherwise SQLite raises "table t already exists".
+		if s.IfNotExists {
+			return &Result{}
+		}
+		return &Result{Error: fmt.Errorf("table %s already exists", tableName)}
 	}
 
 	pg := ctx.Pager.AllocatePage()

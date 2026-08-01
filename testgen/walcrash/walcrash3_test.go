@@ -70,8 +70,8 @@ func Test_walcrash3(t *testing.T) {
 	// tvfs filter {xTruncate xWrite} (unsupported command, not transpiled)
 	// tvfs script tvfs_callback (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 128;\n  PRAGMA journal_size_limit = 16384;\n\n  CREATE TABLE t1(a BLOB, b BLOB, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(randomblob(10), randomblob(1000));\n")
@@ -127,8 +127,8 @@ func Test_walcrash3(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "2.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 128;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(25), randomblob(200));\n  ")
 		if _res.Error != nil {
@@ -165,8 +165,8 @@ func Test_walcrash3(t *testing.T) {
 			// crashsql -delay 2 -file test.db-wal -seed $i {\n      SELECT * FROM sqlite_master;\n     ... (unsupported command, not transpiled)
 		}
 		{ // do_test "2." + i + ".2"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {

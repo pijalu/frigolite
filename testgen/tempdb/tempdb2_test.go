@@ -57,8 +57,7 @@ func Test_tempdb2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "tempdb2"
 	_ = testprefix // suppress unused warning
-	_dbtmp0, err := frigolite.Open("")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	unlocked = "unlocked"
 	_ = unlocked // suppress unused warning
@@ -109,8 +108,7 @@ func Test_tempdb2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp1, err := frigolite.Open("")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  PRAGMA cache_size = -100;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100 ) \n    INSERT INTO t1 SELECT x, int2str(x) FROM c;\n")

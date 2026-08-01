@@ -6,6 +6,7 @@ package corrupt
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -81,8 +82,8 @@ func Test_corrupt3(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "corrupt3-1.7"
 		// hexio_write test.db 2048 [hexio_render_int32 3] (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT x FROM t1\n  ")
 		_ = _res // catchsql
@@ -93,8 +94,8 @@ func Test_corrupt3(t *testing.T) {
 	}
 	{ // do_test "corrupt3-1.9"
 		// hexio_write test.db 2044 [hexio_render_int32 4] (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,10) FROM t1\n  ")
 		_ = _res // catchsql
@@ -105,8 +106,8 @@ func Test_corrupt3(t *testing.T) {
 	}
 	{ // do_test "corrupt3-1.11"
 		// hexio_write test.db 2044 [hexio_render_int32 0] (unsupported command, not transpiled)
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,10) FROM t1\n  ")
 		_ = _res // catchsql

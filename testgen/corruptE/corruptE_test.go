@@ -6,6 +6,7 @@ package corruptE
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -72,16 +73,16 @@ func Test_corruptE(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	tclFileCopy("test.db", "test.bu")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	fsize = "file size test.db"
 	_ = fsize // suppress unused warning
 	{ // do_test "corruptE-2.1"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 2041 [format %02x 0x2e] (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -89,8 +90,8 @@ func Test_corruptE(t *testing.T) {
 	{ // do_test "corruptE-2.2"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 2047 [format %02x 0x84] (unsupported command, not transpiled)
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -99,8 +100,8 @@ func Test_corruptE(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 7420 [format %02x 0xa8] (unsupported command, not transpiled)
 		// hexio_write test.db 10459 [format %02x 0x8d] (unsupported command, not transpiled)
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -108,8 +109,8 @@ func Test_corruptE(t *testing.T) {
 	{ // do_test "corruptE-2.4"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 10233 [format %02x 0xd0] (unsupported command, not transpiled)
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -123,8 +124,8 @@ func Test_corruptE(t *testing.T) {
 		{ // do_test "corruptE-3." + tc
 			tclFileCopy("test.bu", "test.db")
 			// hexio_write test.db [lindex $test 0] [format %02x [lindex $test 1]] (unsupported command, not transpiled)
-			_dbtmp5, err := frigolite.Open("test.db")
-			_ = _dbtmp5 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA integrity_check")
 			_ = _res // catchsql

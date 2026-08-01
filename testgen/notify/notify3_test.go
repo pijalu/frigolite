@@ -77,8 +77,8 @@ func Test_notify3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	esc = "sqlite3_enable_shared_cache 1"
 	_ = esc // suppress unused warning
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")

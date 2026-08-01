@@ -6,6 +6,7 @@ package whereJ
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "regexp"
 "strconv"
 "testing"
@@ -196,8 +197,8 @@ func Test_whereJ(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE \n    a = 5 AND b BETWEEN 20 AND 80           -- Matches 1 row\n      AND\n    c BETWEEN 150 AND 160                   -- Matches 10 rows\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE le(\n    le_id largeint,\n    xid char(31),\n    type smallint,\n    name char(255) DEFAULT '',\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE TABLE cx(\n    cx_id largeint,\n    code char(31),\n    type smallint,\n    name char(31),\n    description varchar,\n    role smallint,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0,\n    le_id largeint DEFAULT 0,\n    imco smallint DEFAULT 0\n  );\n  CREATE TABLE px(\n    px_id largeint,\n    cx_id largeint,\n    px_tid largeint,\n    name char(31),\n    description varchar DEFAULT '',\n    ia smallint,\n    sl smallint,\n    le_id largeint DEFAULT 0,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE INDEX le_id on le (le_id);\n  CREATE INDEX c_id on cx (cx_id);\n  CREATE INDEX c_leid on cx (le_id);\n  CREATE INDEX p_id on px (px_id);\n  CREATE INDEX p_cid0 on px (cx_id);\n  CREATE INDEX p_pt on px (px_tid);\n  CREATE INDEX p_leid on px (le_id);\n")

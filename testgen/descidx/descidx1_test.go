@@ -254,8 +254,8 @@ func Test_descidx1(t *testing.T) {
 	}
 	{ // do_test "descidx1-6.1"
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config db LEGACY_FILE_FORMAT (unsupported command, not transpiled)
 	}
@@ -279,8 +279,8 @@ func Test_descidx1(t *testing.T) {
 	}
 	{ // do_test "descidx1-6.4"
 		os.Remove("test.db")
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
 		// sqlite3_db_config db LEGACY_FILE_FORMAT (unsupported command, not transpiled)

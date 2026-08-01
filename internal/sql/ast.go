@@ -201,6 +201,7 @@ const (
 // UpdateStmt represents an UPDATE statement.
 type UpdateStmt struct {
 	Table          string
+	OnConflict     string       // "REPLACE", "IGNORE", etc. from UPDATE OR <action>
 	Assignments    []Assignment
 	SetParenColumns []string // when set, indicates SET (col1,col2)=(val1,val2) format
 	Where          Expr

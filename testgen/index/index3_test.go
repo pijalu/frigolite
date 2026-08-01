@@ -6,6 +6,7 @@ package index
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "regexp"
 "testing"
 )
@@ -134,8 +135,8 @@ func Test_index3(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 		}
 		_res = db.Exec(" DROP INDEX t1c ")

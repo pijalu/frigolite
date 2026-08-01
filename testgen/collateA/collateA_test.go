@@ -6,6 +6,7 @@ package collateA
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -327,8 +328,8 @@ func Test_collateA(t *testing.T) {
 		}
 	}
 	{ // do_test "collateA-3.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    REINDEX;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {

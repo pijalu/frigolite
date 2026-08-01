@@ -68,26 +68,25 @@ func Test_filectrl(t *testing.T) {
 		// file_control_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.3"
-		_dbtmp0, err := frigolite.Open(":memory:")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		// file_control_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.4"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// file_control_lasterrno_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.5"
-		_dbtmp2, err := frigolite.Open("test_control_lockproxy.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test_control_lockproxy.db")
+		db, err = frigolite.Open("test_control_lockproxy.db")
 		if err != nil { t.Fatal(err) }
 		// file_control_lockproxy_test db [get_pwd] (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.6"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		fn = "file_control_tempfilename db"
 		_ = fn // suppress unused warning
@@ -96,8 +95,8 @@ func Test_filectrl(t *testing.T) {
 	os.Remove("test.db")
 	if tcl_platform_platform == "windows" {
 		{ // do_test "filectrl-2.1"
-			_dbtmp0, err := frigolite.Open("test2.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test2.db")
+			db, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			size = "file size test2.db"
 			_ = size // suppress unused warning
@@ -108,8 +107,8 @@ func Test_filectrl(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "filectrl-2.2"
-			_dbtmp1, err := frigolite.Open("test2.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test2.db")
+			db, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));\n    ")
 			if _res.Error != nil {

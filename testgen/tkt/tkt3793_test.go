@@ -6,6 +6,7 @@ package tkt
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -57,8 +58,8 @@ func Test_tkt3793(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "tkt3793-1.1"
-		_dbtmp0, err := frigolite.Open("file:test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("file:test.db")
+		db, err = frigolite.Open("file:test.db")
 		if err != nil { t.Fatal(err) }
 		db1, err = frigolite.Open("file:test.db?cache=private")
 		if err != nil { t.Fatal(err) }

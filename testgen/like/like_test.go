@@ -6,6 +6,7 @@ package like
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "regexp"
 "strings"
 "testing"
@@ -550,8 +551,8 @@ func Test_like(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // do_test "like-9.1"
@@ -594,8 +595,8 @@ func Test_like(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "like-10.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      CREATE TABLE t10(\n        a INTEGER PRIMARY KEY,\n        b INTEGER COLLATE nocase UNIQUE,\n        c NUMBER COLLATE nocase UNIQUE,\n        d BLOB COLLATE nocase UNIQUE,\n        e COLLATE nocase UNIQUE,\n        f TEXT COLLATE nocase UNIQUE\n      );\n      INSERT INTO t10 VALUES(1,1,1,1,1,1);\n      INSERT INTO t10 VALUES(12,12,12,12,12,12);\n      INSERT INTO t10 VALUES(123,123,123,123,123,123);\n      INSERT INTO t10 VALUES(234,234,234,234,234,234);\n      INSERT INTO t10 VALUES(345,345,345,345,345,345);\n      INSERT INTO t10 VALUES(45,45,45,45,45,45);\n    ")
 		if _res.Error != nil {

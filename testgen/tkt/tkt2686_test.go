@@ -111,8 +111,8 @@ func Test_tkt2686(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA max_page_count=50;\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE filler (fill);\n")
 	if _res.Error != nil {

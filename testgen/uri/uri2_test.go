@@ -6,6 +6,7 @@ package uri
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -75,8 +76,8 @@ func Test_uri2(t *testing.T) {
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					_dbtmp0, err := frigolite.Open(uri)
-					_ = _dbtmp0 // sqlite3 db connection
+					os.Remove(uri)
+					db, err = frigolite.Open(uri)
 					if err != nil { t.Fatal(err) }
 					if _catchErr != nil {
 						rc = "1"
@@ -100,8 +101,7 @@ func Test_uri2(t *testing.T) {
 				// sqlite3_close $DB2 (unsupported command, not transpiled)
 			}
 			{ // do_test "1." + tn + ".2"
-				_dbtmp1, err := frigolite.Open("")
-				_ = _dbtmp1 // sqlite3 db connection
+				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" ATTACH " + uri + " AS aux ")
 				_ = _res // catchsql

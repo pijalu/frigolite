@@ -76,8 +76,8 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-3.1"
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -99,8 +99,8 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-3.2"
 		os.Remove("test.db")
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// dbcksum db main (unsupported command, not transpiled)
 	}

@@ -6,6 +6,7 @@ package fkey
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
@@ -320,8 +321,8 @@ func Test_fkey6(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');\n  ")
 			}
 		}
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.1"
 			r = db.Query("\n    PRAGMA foreign_keys = 1;\n    PRAGMA writable_schema = 1;\n  ")

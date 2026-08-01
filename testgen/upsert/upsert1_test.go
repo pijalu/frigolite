@@ -329,8 +329,7 @@ func Test_upsert1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 REAL UNIQUE, c1);\n  CREATE UNIQUE INDEX test800i0 ON t0(0 || c1);\n  INSERT INTO t0(c0, c1) VALUES (1, 2),  (2, 1);\n  INSERT INTO t0(c0) VALUES (1) ON CONFLICT(c0) DO UPDATE SET c1=excluded.c0;\n  PRAGMA integrity_check;\n  REINDEX;\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open(":memory:")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "upsert1-900"
 		_res = db.Exec("\n  CREATE VIEW t1(a) AS SELECT 1;\n  CREATE TRIGGER t1r1 INSTEAD OF INSERT ON t1 BEGIN\n     SELECT 2;\n  END;\n")

@@ -6,6 +6,7 @@ package walsetlk_
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -73,16 +74,16 @@ func Test_walsetlk_recover(t *testing.T) {
 	// db_restore (unsupported command, not transpiled)
 	// testfixture_nb myvar {\n\n  testvfs tvfs -fullshm 1\n  sqlite3 db test.d...} (unsupported command, not transpiled)
 	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// tvfs script sleep_callback (unsupported command, not transpiled)
 	// tvfs filter xSleep (unsupported command, not transpiled)
 	sleep_count = "0" // TCL namespace variable
 	_ = sleep_count // suppress unused warning
 	// proc definition (not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{
 		var msg string // catch result ("0"=ok, "1"=error)

@@ -6,6 +6,7 @@ package walsetlk
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
@@ -67,8 +68,8 @@ func Test_walsetlk3(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// sql_block_on_close {\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1...} (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_setlk_timeout db 2000 (unsupported command, not transpiled)
 	{ // "1.1"
@@ -78,8 +79,8 @@ func Test_walsetlk3(t *testing.T) {
 		}
 	}
 	// sql_block_on_close {\n  INSERT INTO t1 VALUES(9, 10);\n  INSERT INTO t...} (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_setlk_timeout -block db 2000 (unsupported command, not transpiled)
 	{ // "1.2"
@@ -99,8 +100,8 @@ func Test_walsetlk3(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// sql_block_on_write {\n  INSERT INTO x1 VALUES(4);\n} (unsupported command, not transpiled)
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_setlk_timeout -block db 2000 (unsupported command, not transpiled)
 	{ // "2.2"

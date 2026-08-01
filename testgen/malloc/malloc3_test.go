@@ -257,8 +257,8 @@ func Test_malloc3(t *testing.T) {
 	// sqlite3_extended_result_codes db 1 (unsupported command, not transpiled)
 	// run_test $::run_test_script 1 (unsupported command, not transpiled)
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_extended_result_codes db 1 (unsupported command, not transpiled)
 	DB = "sqlite3_connection_pointer db" // TCL namespace variable

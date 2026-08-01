@@ -6,6 +6,7 @@ package readonly
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "strings"
 "testing"
@@ -66,8 +67,8 @@ func Test_readonly(t *testing.T) {
 		}
 	}
 	// file attributes test.db -permissions r--r--r--
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8);\n")

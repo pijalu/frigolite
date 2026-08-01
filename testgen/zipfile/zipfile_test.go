@@ -771,8 +771,7 @@ func Test_zipfile(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.zip")
-			_dbtmp2, err := frigolite.Open(":memory:")
-			_ = _dbtmp2 // sqlite3 db connection
+			db, err = frigolite.Open(":memory:")
 			if err != nil { t.Fatal(err) }
 			// load_static_extension db zipfile (unsupported command, not transpiled)
 			// load_static_extension db fileio (unsupported command, not transpiled)
@@ -1077,8 +1076,7 @@ func Test_zipfile(t *testing.T) {
 					}
 				}
 				{ // do_test "19.1"
-					_dbtmp3, err := frigolite.Open(":memory:")
-					_ = _dbtmp3 // sqlite3 db connection
+					db, err = frigolite.Open(":memory:")
 					if err != nil { t.Fatal(err) }
 					// load_static_extension db zipfile (unsupported command, not transpiled)
 					os.Remove("zipfile19.zip")
@@ -1086,8 +1084,7 @@ func Test_zipfile(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING zipfile('zipfile19.zip');\n    INSERT INTO t1 DEFAULT VALUES;\n  ")
 					}
-					_dbtmp4, err := frigolite.Open(":memory:")
-					_ = _dbtmp4 // sqlite3 db connection
+					db, err = frigolite.Open(":memory:")
 					if err != nil { t.Fatal(err) }
 					// load_static_extension db zipfile (unsupported command, not transpiled)
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE v0 USING zipfile('zipfile19.zip');\n    SAVEPOINT y;\n    DELETE FROM v0 WHERE 9;\n    INSERT INTO v0 DEFAULT VALUES;\n  ")
@@ -1096,8 +1093,7 @@ func Test_zipfile(t *testing.T) {
 					}
 				}
 				os.Remove("zipfile19.zip")
-				_dbtmp5, err := frigolite.Open(":memory:")
-				_ = _dbtmp5 // sqlite3 db connection
+				db, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				// load_static_extension db zipfile (unsupported command, not transpiled)
 				{ // "20.0"

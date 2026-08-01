@@ -557,8 +557,8 @@ func Test_altercol(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a, b, c);\n    CREATE VIRTUAL TABLE e1 USING echo(x1);\n  ")
 					}
 				}
-				_dbtmp3, err := frigolite.Open("test.db")
-				_ = _dbtmp3 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "11.1"
 					r = db.Query("\n    ALTER TABLE x1 RENAME b TO bbb;\n    SELECT sql FROM sqlite_master;\n  ")
@@ -724,15 +724,15 @@ func Test_altercol(t *testing.T) {
 					}
 				}
 				// foreach {tn trigger error} "\n  1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}\n"
-				_items4 := tclSplitList("\n  1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}\n")
-				for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-					tn := _items4[_idx4+0]
+				_items3 := tclSplitList("\n  1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}\n")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					trigger := _items4[_idx4+1]
+					trigger := _items3[_idx3+1]
 					_ = trigger // suppress unused warning
-					_error := _items4[_idx4+2]
+					_error := _items3[_idx3+2]
 					_ = _error // suppress unused warning
-					_ = _idx4
+					_ = _idx3
 						{ // "13.2." + tn + ".1"
 							_res = db.Exec("\n    DROP TRIGGER IF EXISTS tr1;\n    " + trigger + "\n  ")
 							if _res.Error != nil {
@@ -968,8 +968,7 @@ func Test_altercol(t *testing.T) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
-					_dbtmp5, err := frigolite.Open(":memory:")
-					_ = _dbtmp5 // sqlite3 db connection
+					db, err = frigolite.Open(":memory:")
 					if err != nil { t.Fatal(err) }
 					{ // "20.100"
 						r = db.Query("\n  CREATE TABLE t1(aaa,b,c,UNIQUE(aaA),PRIMARY KEY(aAa),UNIQUE(aAA));\n  ALTER TABLE t1 RENAME aaa TO bbb;\n  SELECT sql FROM sqlite_master WHERE name='t1';\n")

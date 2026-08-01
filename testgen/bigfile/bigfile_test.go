@@ -6,6 +6,7 @@ package bigfile
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -83,8 +84,8 @@ func Test_bigfile(t *testing.T) {
 	}
 	// hexio_write test.db 28 00000000 (unsupported command, not transpiled)
 	{ // do_test "bigfile-1.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
@@ -103,8 +104,8 @@ func Test_bigfile(t *testing.T) {
 		}
 	}
 	{ // do_test "bigfile-1.4"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
@@ -118,8 +119,8 @@ func Test_bigfile(t *testing.T) {
 	}
 	// hexio_write test.db 28 00000000 (unsupported command, not transpiled)
 	{ // do_test "bigfile-1.5"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
@@ -127,8 +128,8 @@ func Test_bigfile(t *testing.T) {
 		}
 	}
 	{ // do_test "bigfile-1.6"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
 		if r.Error != nil {
@@ -142,8 +143,8 @@ func Test_bigfile(t *testing.T) {
 		}
 	}
 	{ // do_test "bigfile-1.8"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
@@ -163,8 +164,8 @@ func Test_bigfile(t *testing.T) {
 	}
 	// hexio_write test.db 28 00000000 (unsupported command, not transpiled)
 	{ // do_test "bigfile-1.10"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
@@ -172,8 +173,8 @@ func Test_bigfile(t *testing.T) {
 		}
 	}
 	{ // do_test "bigfile-1.11"
-		_dbtmp6, err := frigolite.Open("test.db")
-		_ = _dbtmp6 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
 		if r.Error != nil {
@@ -181,8 +182,8 @@ func Test_bigfile(t *testing.T) {
 		}
 	}
 	{ // do_test "bigfile-1.12"
-		_dbtmp7, err := frigolite.Open("test.db")
-		_ = _dbtmp7 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t3;\n  ")
 		if r.Error != nil {
@@ -196,8 +197,8 @@ func Test_bigfile(t *testing.T) {
 		}
 	}
 	{ // do_test "bigfile-1.14"
-		_dbtmp8, err := frigolite.Open("test.db")
-		_ = _dbtmp8 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {

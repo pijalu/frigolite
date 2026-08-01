@@ -156,8 +156,8 @@ func Test_altertab(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.2"
 		_res = db.Exec("\n    ALTER TABLE fff RENAME TO ggg;\n  ")
@@ -969,8 +969,8 @@ func Test_altertab(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE gigo(a text);\n  CREATE TABLE idx(x text COLLATE compare64);\n  CREATE VIEW v1 AS SELECT * FROM idx WHERE x='abc';\n")
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "23.2"
 		_res = db.Exec("\n  alter table gigo rename to ggiiggoo;\n  alter table idx rename to idx2;\n")

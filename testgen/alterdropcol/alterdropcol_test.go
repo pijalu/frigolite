@@ -6,6 +6,7 @@ package alterdropcol
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
@@ -437,8 +438,8 @@ func Test_alterdropcol(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'\n")
 				}
 			}
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "8.1"
 				_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN b;                \n")
@@ -459,13 +460,13 @@ func Test_alterdropcol(t *testing.T) {
 				}
 			}
 			// foreach {tn wo} "\n  1 {}\n  2 {WITHOUT ROWID}\n"
-			_items3 := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
-			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-				tn := _items3[_idx3+0]
+			_items2 := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				wo := _items3[_idx3+1]
+				wo := _items2[_idx2+1]
 				_ = wo // suppress unused warning
-				_ = _idx3
+				_ = _idx2
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }

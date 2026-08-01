@@ -94,8 +94,8 @@ func Test_malloc5(t *testing.T) {
 	_ = mrange // suppress unused warning
 	// test_set_config_pagecache 0 100 (unsupported command, not transpiled)
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "malloc5-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n  ")
@@ -282,8 +282,7 @@ func Test_malloc5(t *testing.T) {
 	}
 	// sqlite3_soft_heap_limit $::soft_limit (unsupported command, not transpiled)
 	{ // do_test "malloc5-5.1"
-		_dbtmp1, err := frigolite.Open(":memory:")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES('abcdefghi', 1234567890, NULL);\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
 		if _res.Error != nil {
@@ -303,8 +302,8 @@ func Test_malloc5(t *testing.T) {
 	// proc definition (not transpiled)
 	os.Remove("test.db")
 	{ // do_test "malloc5-6.1.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA default_cache_size=2;\n  ")
 		if r.Error != nil {

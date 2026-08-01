@@ -58,8 +58,8 @@ func Test_sqldiff1(t *testing.T) {
 	PROG = "test_find_sqldiff"
 	_ = PROG // suppress unused warning
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sqldiff-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b) SELECT x, printf('abc-%d-xyz',x) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;\n  ")
@@ -92,16 +92,16 @@ func Test_sqldiff1(t *testing.T) {
 		_ = MSG // TCL namespace variable (query)
 	}
 	os.Remove("test.db")
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sqldiff-2.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  ")
 		}
-		_dbtmp2, err := frigolite.Open("test2.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
 		if _res.Error != nil {

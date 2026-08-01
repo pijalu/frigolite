@@ -93,8 +93,8 @@ func Test_indexfault(t *testing.T) {
 	_ = soft_limit // suppress unused warning
 	// do_faultsim_test 2.1 -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql { CREATE ... (unsupported command, not transpiled)
 	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(t,u,v,w,x,y,z);\n    INSERT INTO t1 VALUES(\n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30)\n    );\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 2\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 4\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 8\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 16\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 32\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 64\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 128\n  COMMIT;\n")
@@ -109,8 +109,8 @@ func Test_indexfault(t *testing.T) {
 	// do_faultsim_test 2.2 -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql { CREATE ... (unsupported command, not transpiled)
 	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
 	// install_custom_faultsim (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(11000));\n    INSERT INTO t1 SELECT randomblob(11001) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(11002) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(11003) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(11004) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(11006) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(11007) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(11008) FROM t1;     --   256\n    INSERT INTO t1 SELECT randomblob(11009) FROM t1;     --   512\n  COMMIT;\n")
@@ -142,8 +142,8 @@ func Test_indexfault(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(11000));\n    INSERT INTO t1 SELECT randomblob(11001) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(11002) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(11003) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(11004) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    64\n  COMMIT;\n")
@@ -159,8 +159,8 @@ func Test_indexfault(t *testing.T) {
 	_ = nRead // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "4.1"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE INDEX i1 ON t1(x) ")
 		if _res.Error != nil {

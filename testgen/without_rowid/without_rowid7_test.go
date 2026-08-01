@@ -6,6 +6,7 @@ package without_rowid
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
@@ -136,8 +137,8 @@ func Test_without_rowid7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n      a PRIMARY KEY COLLATE mysort, b COLLATE mysort2\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1.1"
 		_res = db.Exec("\n  SELECT * FROM t1 WHERE a=1;\n")
@@ -157,8 +158,8 @@ func Test_without_rowid7(t *testing.T) {
 	{ // do_test "3.2.2"
 		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.3.1"
 		_res = db.Exec("\n  CREATE UNIQUE INDEX i1 ON t1(1);\n")

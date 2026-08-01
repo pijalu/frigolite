@@ -533,8 +533,7 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
 		}
 	}
-	_dbtmp0, err := frigolite.Open(":memory:")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "wherelimit-4.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a int);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(a int);\n    INSERT INTO t2 SELECT a+100 FROM t1;\n    CREATE VIEW tv(r,a) AS\n       SELECT rowid, a FROM t2 UNION ALL SELECT rowid, a FROM t1;\n    CREATE TRIGGER tv_del INSTEAD OF DELETE ON tv\n    BEGIN\n      DELETE FROM t1 WHERE rowid=old.r;\n      DELETE FROM t2 WHERE rowid=old.r;\n    END;\n  ")

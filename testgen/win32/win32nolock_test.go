@@ -6,6 +6,7 @@ package win32
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -55,8 +56,8 @@ func Test_win32nolock(t *testing.T) {
 	testprefix = "win32nolock"
 	_ = testprefix // suppress unused warning
 	{ // do_test "win32nolock-1.0"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
@@ -72,8 +73,8 @@ func Test_win32nolock(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "win32nolock-1.2"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -125,8 +126,8 @@ func Test_win32nolock(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.9.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -137,8 +138,8 @@ func Test_win32nolock(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.10.1"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -149,8 +150,8 @@ func Test_win32nolock(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.11.1"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -161,8 +162,8 @@ func Test_win32nolock(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.12.1"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

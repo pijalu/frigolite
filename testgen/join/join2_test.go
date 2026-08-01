@@ -332,8 +332,7 @@ func Test_join2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT u2.* FROM u2 LEFT JOIN u1 ON( u1.a=u2.a AND u1.b=u2.b AND u1.c=u2.c );\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open(":memory:")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b);  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  CREATE TABLE t2(c,d);  INSERT INTO t2 VALUES(2,4),(3,6);\n  CREATE TABLE t3(x);    INSERT INTO t3 VALUES(9);\n  CREATE VIEW test AS\n    SELECT *, 'x'\n      FROM t1 LEFT JOIN (SELECT * FROM t2, t3) ON (c=b AND x=9)\n      WHERE c IS NULL;\n  SELECT * FROM test;\n")

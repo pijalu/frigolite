@@ -6,6 +6,7 @@ package walckptnoop
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
@@ -145,8 +146,8 @@ func Test_walckptnoop(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n  PRAGMA auto_vacuum=NONE;\n  PRAGMA secure_delete=OFF;\n")
 	if _res.Error != nil {

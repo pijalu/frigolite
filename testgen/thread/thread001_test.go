@@ -6,6 +6,7 @@ package thread
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -100,8 +101,8 @@ func Test_thread001(t *testing.T) {
 				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
 				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
 			}
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			dbconfig = ""
 			_ = dbconfig // suppress unused warning

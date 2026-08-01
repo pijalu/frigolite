@@ -107,8 +107,8 @@ func Test_walcksum(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA synchronous = NORMAL;\n\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,  'one');\n      INSERT INTO t1 VALUES(2,  'two');\n      INSERT INTO t1 VALUES(3,  'three');\n      INSERT INTO t1 VALUES(5,  'five');\n\n      PRAGMA journal_mode = WAL;\n      INSERT INTO t1 VALUES(8,  'eight');\n      INSERT INTO t1 VALUES(13, 'thirteen');\n      INSERT INTO t1 VALUES(21, 'twentyone');\n    ")
 			if _res.Error != nil {
@@ -152,8 +152,8 @@ func Test_walcksum(t *testing.T) {
 		{ // do_test "walcksum-1." + endian + ".4.1"
 			tclFileCopy("test2.db", "test.db")
 			tclFileCopy("test2.db-wal", "test.db-wal")
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT a FROM t1 ")
 			if r.Error != nil {
@@ -254,8 +254,8 @@ func Test_walcksum(t *testing.T) {
 	}
 	{ // do_test "walcksum-2.1"
 		os.Remove("test.db")
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x PRIMARY KEY);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(800));\n    BEGIN;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   2 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   4 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   8 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  16 */\n      SAVEPOINT one;\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n      ROLLBACK TO one;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n    COMMIT;\n  ")
 		if _res.Error != nil {

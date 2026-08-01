@@ -6,6 +6,7 @@ package walshared
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -52,8 +53,8 @@ func Test_walshared(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

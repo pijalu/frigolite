@@ -6,6 +6,7 @@ package trigger
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -113,8 +114,8 @@ func Test_trigger7(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 		}
 		_res = db.Exec(" DROP TRIGGER t2r5 ")

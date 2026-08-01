@@ -243,8 +243,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // do_test "5.3.1"
 		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
-	_dbtmp0, err := frigolite.Open(":memory:")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "6.10"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f using fts3(a,b);\n  CREATE TABLE f_stat(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_segdir VALUES (2000, 0,0,0, '16', '');\n  INSERT INTO f_segdir VALUES (1999, 0,0,0, '0 18',\n                               x'000131030102000103323334050101010200');\n  INSERT INTO f_segments (blockid) values (16);\n  INSERT INTO f_segments values (0, x'');\n  INSERT INTO f_stat VALUES (1,x'cf0f01');\n  INSERT INTO f(f) VALUES ('merge=1');\n")

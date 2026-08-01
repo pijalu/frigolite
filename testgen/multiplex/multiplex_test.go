@@ -127,8 +127,8 @@ func Test_multiplex(t *testing.T) {
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
 	}
 	{ // do_test "multiplex-1.9.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "multiplex-1.9.3"
@@ -155,8 +155,8 @@ func Test_multiplex(t *testing.T) {
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
 	}
 	{ // do_test "multiplex-1.10.2"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "multiplex-1.10.3"
@@ -183,8 +183,8 @@ func Test_multiplex(t *testing.T) {
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
 	}
 	{ // do_test "multiplex-1.11.2"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "multiplex-1.11.3"
@@ -205,8 +205,8 @@ func Test_multiplex(t *testing.T) {
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
 	}
 	{ // do_test "multiplex-1.12.2"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "multiplex-1.12.3"
@@ -227,8 +227,8 @@ func Test_multiplex(t *testing.T) {
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
 	}
 	{ // do_test "multiplex-1.13.2"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "multiplex-1.13.3"
@@ -250,8 +250,8 @@ func Test_multiplex(t *testing.T) {
 		os.Remove(f)
 	}
 	{ // do_test "multiplex-2.1.2"
-		_dbtmp5, err := frigolite.Open("test.x")
-		_ = _dbtmp5 // sqlite3 db connection
+		os.Remove("test.x")
+		db, err = frigolite.Open("test.x")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA journal_mode=DELETE;\n  ")
 		if r.Error != nil {
@@ -307,8 +307,8 @@ func Test_multiplex(t *testing.T) {
 		// file size [multiplex_name test.x 0]
 	}
 	{ // do_test "multiplex-2.4.5"
-		_dbtmp6, err := frigolite.Open("test.x")
-		_ = _dbtmp6 // sqlite3 db connection
+		os.Remove("test.x")
+		db, err = frigolite.Open("test.x")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("vacuum")
 		if _res.Error != nil {
@@ -322,8 +322,8 @@ func Test_multiplex(t *testing.T) {
 	{ // do_test "multiplex-2.5.1"
 		// multiplex_delete test.x (unsupported command, not transpiled)
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
-		_dbtmp7, err := frigolite.Open("test.x")
-		_ = _dbtmp7 // sqlite3 db connection
+		os.Remove("test.x")
+		db, err = frigolite.Open("test.x")
 		if err != nil { t.Fatal(err) }
 		// multiplex_set db main 4096 16 (unsupported command, not transpiled)
 	}
@@ -387,8 +387,8 @@ func Test_multiplex(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp8, err := frigolite.Open("test.x")
-	_ = _dbtmp8 // sqlite3 db connection
+	os.Remove("test.x")
+	db, err = frigolite.Open("test.x")
 	if err != nil { t.Fatal(err) }
 	{ // "multiplex-2.5.12"
 		r = db.Query("\n  PRAGMA multiplex_filecount;\n  PRAGMA multiplex_chunksize;\n")
@@ -415,8 +415,8 @@ func Test_multiplex(t *testing.T) {
 			{ // do_test "multiplex-2.6.1." + sz + "." + jmode
 				// multiplex_delete test.db (unsupported command, not transpiled)
 				// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
-				_dbtmp9, err := frigolite.Open("test.db")
-				_ = _dbtmp9 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// multiplex_set db main $sz 32 (unsupported command, not transpiled)
 			}
@@ -465,8 +465,8 @@ func Test_multiplex(t *testing.T) {
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
 	}
 	{ // do_test "multiplex-2.7.3"
-		_dbtmp10, err := frigolite.Open("test.db")
-		_ = _dbtmp10 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "multiplex-2.7.4"
@@ -507,8 +507,8 @@ func Test_multiplex(t *testing.T) {
 	{ // do_test "multiplex-3.1.1"
 		// multiplex_delete test.db (unsupported command, not transpiled)
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
-		_dbtmp11, err := frigolite.Open("test.db")
-		_ = _dbtmp11 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// multiplex_set db main 32768 16 (unsupported command, not transpiled)
 	}
@@ -648,8 +648,8 @@ func Test_multiplex(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "multiplex-4.1.6"
 		// multiplex_delete test2.db (unsupported command, not transpiled)
-		_dbtmp12, err := frigolite.Open("test2.db")
-		_ = _dbtmp12 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t2(x); INSERT INTO t2 VALUES('tab-t2');")
 		if _res.Error != nil {
@@ -721,8 +721,8 @@ func Test_multiplex(t *testing.T) {
 	// multiplex_delete test.db (unsupported command, not transpiled)
 	// multiplex_delete test2.db (unsupported command, not transpiled)
 	{ // do_test "multiplex-5.3.prep"
-		_dbtmp13, err := frigolite.Open("test.db")
-		_ = _dbtmp13 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
 		if _res.Error != nil {
@@ -752,8 +752,8 @@ func Test_multiplex(t *testing.T) {
 		// multiplex_delete test.db (unsupported command, not transpiled)
 		// multiplex_delete test.x (unsupported command, not transpiled)
 		// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
-		_dbtmp14, err := frigolite.Open("test.x")
-		_ = _dbtmp14 // sqlite3 db connection
+		os.Remove("test.x")
+		db, err = frigolite.Open("test.x")
 		if err != nil { t.Fatal(err) }
 		// multiplex_set db main 4096 16 (unsupported command, not transpiled)
 	}

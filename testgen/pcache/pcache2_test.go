@@ -64,8 +64,8 @@ func Test_pcache2(t *testing.T) {
 	}
 	{ // do_test "pcache2-1.2"
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA cache_size=10; SELECT 1 FROM sqlite_master;")
 		if _res.Error != nil {

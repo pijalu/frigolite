@@ -81,8 +81,8 @@ func Test_io(t *testing.T) {
 	testprefix = "io" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// sqlite3_simulate_device (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	nWrite = "0" // TCL namespace variable
 	_ = nWrite // suppress unused warning
@@ -313,8 +313,8 @@ func Test_io(t *testing.T) {
 		}
 	}
 	{ // do_test "io-2.9.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_simulate_device -char atomic -sectorsize 2048 (unsupported command, not transpiled)
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(9, 10);\n  ")
@@ -329,8 +329,8 @@ func Test_io(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK; ")
 		}
 		os.Remove("test.db")
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 2048;\n    CREATE TABLE abc(a, b);\n  ")
 		if _res.Error != nil {
@@ -397,8 +397,8 @@ func Test_io(t *testing.T) {
 	// sqlite3_simulate_device -char sequential -sectorsize 0 (unsupported command, not transpiled)
 	{ // do_test "io-3.1"
 		os.Remove("test.db")
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      PRAGMA auto_vacuum=OFF;\n    ")
 		if _res.Error != nil {
@@ -503,15 +503,15 @@ func Test_io(t *testing.T) {
 	tn = "0"
 	_ = tn // suppress unused warning
 	// foreach {char sectorsize pgsize} "\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n"
-	_items4 := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
-	for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-		char := _items4[_idx4+0]
+	_items0 := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		char := _items0[_idx0+0]
 		_ = char // suppress unused warning
-		sectorsize := _items4[_idx4+1]
+		sectorsize := _items0[_idx0+1]
 		_ = sectorsize // suppress unused warning
-		pgsize := _items4[_idx4+2]
+		pgsize := _items0[_idx0+2]
 		_ = pgsize // suppress unused warning
-		_ = _idx4
+		_ = _idx0
 			// incr tn 1
 			{
 				_n, _err := strconv.Atoi(tn)
@@ -523,8 +523,8 @@ func Test_io(t *testing.T) {
 			}
 			os.Remove("test.db")
 			// sqlite3_simulate_device -char $char -sectorsize $sectorsize (unsupported command, not transpiled)
-			_dbtmp5, err := frigolite.Open("test.db")
-			_ = _dbtmp5 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n  ")
 			if _res.Error != nil {
@@ -541,8 +541,8 @@ func Test_io(t *testing.T) {
 		{ // do_test "io-6.1"
 			// sqlite3_simulate_device -char atomic (unsupported command, not transpiled)
 			os.Remove("test.db")
-			_dbtmp6, err := frigolite.Open("test.db")
-			_ = _dbtmp6 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n  ")
 			if _res.Error != nil {
@@ -551,18 +551,18 @@ func Test_io(t *testing.T) {
 			// db_save_and_close (unsupported command, not transpiled)
 		}
 		// foreach {tn sql} "\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n"
-		_items7 := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
-		for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
-			tn := _items7[_idx7+0]
+		_items1 := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items7[_idx7+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_ = _idx7
+			_ = _idx1
 				if tclBool("permutation" + " == \"memsubsys1\"") {
 				}
 				// db_restore (unsupported command, not transpiled)
-				_dbtmp8, err := frigolite.Open("test.db")
-				_ = _dbtmp8 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    PRAGMA cache_size = 2000;\n    PRAGMA mmap_size = 0;\n    SELECT x FROM t3 ORDER BY rowid;\n    SELECT x FROM t3 ORDER BY x;\n  ")
 				if r.Error != nil {

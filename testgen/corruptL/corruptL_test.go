@@ -6,6 +6,7 @@ package corruptL
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "regexp"
 "strings"
 "testing"
@@ -79,8 +80,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.0"
-		_dbtmp0, err := frigolite.Open("")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "1.1"
@@ -111,8 +111,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.0"
-		_dbtmp1, err := frigolite.Open("")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "2.1"
@@ -136,8 +135,8 @@ func Test_corruptL(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d INTEGER PRIMARY KEY);\n  CREATE TABLE t2(a, b, c, d INTEGER PRIMARY KEY);\n\n  INSERT INTO t1(a, b, c, d) VALUES (1, 2, 3, 100), (4, 5, 6, 101);\n  INSERT INTO t2(a, b, c, d) VALUES (1, 100, 3, 1000), (4, 101, 6, 1001);\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t2a ON t2(a, b, c);\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET sql = 'CREATE INDEX t2a ON t2(a)' WHERE name='t2a';\n")
 		}
 	}
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		_res = db.Exec("\n  INSERT INTO t1 SELECT * FROM t2;\n")
@@ -149,8 +148,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.0"
-		_dbtmp3, err := frigolite.Open("")
-		_ = _dbtmp3 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	res = "1 {database disk image is malformed}"
@@ -167,8 +165,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "5.0"
-		_dbtmp4, err := frigolite.Open("")
-		_ = _dbtmp4 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "5.1"
@@ -193,8 +190,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "6.0"
-		_dbtmp5, err := frigolite.Open("")
-		_ = _dbtmp5 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "6.1"
@@ -207,8 +203,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "7.0"
-		_dbtmp6, err := frigolite.Open("")
-		_ = _dbtmp6 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "7.1"
@@ -221,8 +216,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "8.0"
-		_dbtmp7, err := frigolite.Open("")
-		_ = _dbtmp7 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// | 112: 45 41 54 45 20 54 41 42 4c 45 20 74 34 28 87 29 EATE TABLE t4(.) (unsupported command, not transpiled)
 		// | 128: 2a 06 06 13 13 01 00 00 00 4f 64 6e 78 74 33 44 *........Odnxt3D (unsupported command, not transpiled)
@@ -247,8 +241,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "9.0"
-		_dbtmp8, err := frigolite.Open("")
-		_ = _dbtmp8 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "9.1"
@@ -273,8 +266,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "10.0"
-		_dbtmp9, err := frigolite.Open("")
-		_ = _dbtmp9 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "10.1"
@@ -287,8 +279,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "11.0"
-		_dbtmp10, err := frigolite.Open("")
-		_ = _dbtmp10 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "11.1"
@@ -301,8 +292,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "12.0"
-		_dbtmp11, err := frigolite.Open("")
-		_ = _dbtmp11 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "12.1"
@@ -315,8 +305,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "13.0"
-		_dbtmp12, err := frigolite.Open("")
-		_ = _dbtmp12 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "13.1"
@@ -329,8 +318,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "14.0"
-		_dbtmp13, err := frigolite.Open("")
-		_ = _dbtmp13 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	// extra_schema_checks 0 (unsupported command, not transpiled)
@@ -351,8 +339,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "15.0"
-		_dbtmp14, err := frigolite.Open("")
-		_ = _dbtmp14 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	// extra_schema_checks 0 (unsupported command, not transpiled)
@@ -386,8 +373,8 @@ func Test_corruptL(t *testing.T) {
 		}
 	}
 	// extra_schema_checks 0 (unsupported command, not transpiled)
-	_dbtmp15, err := frigolite.Open("test.db")
-	_ = _dbtmp15 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// extra_schema_checks 1 (unsupported command, not transpiled)
 	{ // "16.1"
@@ -426,8 +413,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "18.0"
-		_dbtmp16, err := frigolite.Open("")
-		_ = _dbtmp16 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "18.1"
@@ -440,8 +426,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "19.0"
-		_dbtmp17, err := frigolite.Open("")
-		_ = _dbtmp17 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "19.1"
@@ -465,8 +450,8 @@ func Test_corruptL(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c INTEGER, d TEXT);\n  CREATE INDEX i1 ON t1((NULL));\n  INSERT INTO t1 VALUES(1, NULL, 1, 'text value');\n  PRAGMA writable_schema = on;\n  UPDATE sqlite_schema SET \n      sql = 'CREATE INDEX i1 ON t1(b, c, d)', \n      tbl_name = 't1', \n      type='index' \n  WHERE name='i1';\n")
 		}
 	}
-	_dbtmp18, err := frigolite.Open("test.db")
-	_ = _dbtmp18 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "19.4"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
@@ -478,8 +463,7 @@ func Test_corruptL(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "18.0"
-		_dbtmp19, err := frigolite.Open("")
-		_ = _dbtmp19 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "18.1"

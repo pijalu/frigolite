@@ -95,8 +95,7 @@ func Test_memdb1(t *testing.T) {
 	_putsMsg := "-nonewline"
 	_ = _putsMsg
 	// close $fd
-	_dbtmp0, err := frigolite.Open("")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "110"
 		r = db.Query("\n  SELECT * FROM t1;\n")
@@ -183,8 +182,8 @@ func Test_memdb1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	os.Remove("test.db")
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "200"
 		r = db.Query("\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")
@@ -216,8 +215,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
 		}
 	}
-	_dbtmp2, err := frigolite.Open(":memory:")
-	_ = _dbtmp2 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		r = db.Query("\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")
@@ -241,8 +239,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
 		}
 	}
-	_dbtmp3, err := frigolite.Open("")
-	_ = _dbtmp3 // sqlite3 db connection
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "400"
 		r = db.Query("\n  PRAGMA integrity_check;\n")
@@ -280,8 +277,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp4, err := frigolite.Open("")
-	_ = _dbtmp4 // sqlite3 db connection
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "500"
 	_ = rc // suppress unused warning
@@ -384,8 +380,7 @@ func Test_memdb1(t *testing.T) {
 	{ // do_test "710"
 		ser = "db serialize main"
 		_ = ser // suppress unused warning
-		_dbtmp5, err := frigolite.Open("")
-		_ = _dbtmp5 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      CREATE VIRTUAL TABLE t1 USING rtree(id, a, b, c, d);\n    ")
 		_ = _res // catchsql
@@ -406,8 +401,7 @@ func Test_memdb1(t *testing.T) {
 		data = "read $fd [expr 20*1024]"
 		_ = data // suppress unused warning
 		// close $fd
-		_dbtmp0, err := frigolite.Open("")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "810"
 			r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    SELECT * FROM t1\n  ")

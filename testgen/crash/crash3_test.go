@@ -91,8 +91,8 @@ func Test_crash3(t *testing.T) {
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 				os.Remove("test.db")
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "crash3-1." + tn + ".1"
 					_res = db.Exec("\n        PRAGMA page_size = 1024;\n        BEGIN;\n        CREATE TABLE abc(a, b, c);\n        INSERT INTO abc VALUES(1, 2, 3);\n        COMMIT;\n      ")
@@ -131,8 +131,8 @@ func Test_crash3(t *testing.T) {
 			}
 		}
 		os.Remove("test.db")
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "crash3-2.0"
 			_res = db.Exec("\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    CREATE TABLE def(d PRIMARY KEY, e, f);\n    PRAGMA default_cache_size = 10;\n    INSERT INTO abc VALUES(randstr(10,1000),randstr(10,1000),randstr(10,1000));\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    COMMIT;\n  ")
@@ -143,15 +143,15 @@ func Test_crash3(t *testing.T) {
 		tn = "1"
 		_ = tn // suppress unused warning
 		// foreach {::crashfile ::delay ::char} "\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n"
-		_items3 := tclSplitList("\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n")
-		for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-			crashfile := _items3[_idx3+0]
+		_items1 := tclSplitList("\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			crashfile := _items1[_idx1+0]
 			_ = crashfile // suppress unused warning
-			delay := _items3[_idx3+1]
+			delay := _items1[_idx1+1]
 			_ = delay // suppress unused warning
-			char := _items3[_idx3+2]
+			char := _items1[_idx1+2]
 			_ = char // suppress unused warning
-			_ = _idx3
+			_ = _idx1
 				ii = "0"
 				_ = ii // suppress unused warning
 				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 100 }() {
@@ -159,8 +159,8 @@ func Test_crash3(t *testing.T) {
 					_ = SQL // suppress unused warning
 					{ // do_test "crash3-2." + tn + "." + ii
 						// crashsql -file $::crashfile -delay $::delay -char $::char $::SQL (unsupported command, not transpiled)
-						_dbtmp4, err := frigolite.Open("test.db")
-						_ = _dbtmp4 // sqlite3 db connection
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						r = db.Query("PRAGMA integrity_check")
 						if r.Error != nil {
@@ -188,8 +188,8 @@ func Test_crash3(t *testing.T) {
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 				os.Remove("test.db")
 				// crashsql -file test.db -char {sequential atomic} {\n    CREATE TABLE abc(a, b, c);\n  } (unsupported command, not transpiled)
-				_dbtmp5, err := frigolite.Open("test.db")
-				_ = _dbtmp5 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "crash3-3." + ii
 					r = db.Query("PRAGMA integrity_check")

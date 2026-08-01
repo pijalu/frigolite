@@ -82,8 +82,7 @@ func Test_utf16align(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	_dbtmp0, err := frigolite.Open(":memory:")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "utf16align-2.1"
 		_res = db.Exec("\n    PRAGMA encoding=UTF16be;\n    SELECT hex(ltrim(x'6efcda'));\n  ")

@@ -6,6 +6,7 @@ package descidx
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -84,8 +85,8 @@ func Test_descidx2(t *testing.T) {
 	}
 	{ // do_test "descidx2-2.0"
 		// set_file_format 3 (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// get_file_format (unsupported command, not transpiled)
 	}

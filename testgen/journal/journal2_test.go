@@ -6,6 +6,7 @@ package journal
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -80,8 +81,8 @@ func Test_journal2(t *testing.T) {
 	{ // do_test "journal2-1.1"
 		oplog = "list" // TCL namespace variable
 		_ = oplog // suppress unused warning
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil {

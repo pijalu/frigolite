@@ -6,6 +6,7 @@ package fts3
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "strings"
 "testing"
@@ -326,8 +327,8 @@ func Test_fts3defer(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ",\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + "\n      );\n    COMMIT;\n  ")
 				}
 			}
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6.3"
 				r = db.Query("\n  SELECT count(*) FROM ft WHERE ft MATCH '\"common rare\"';\n")

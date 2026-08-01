@@ -165,8 +165,8 @@ func Test_symlink(t *testing.T) {
 			db2.Close()
 		}
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(x) ")
 		if _res.Error != nil {
@@ -177,13 +177,13 @@ func Test_symlink(t *testing.T) {
 		// set  (invalid identifier, skipped)
 	}
 	// foreach {tn f} "1 test.db2 2 test.db3"
-	_items1 := tclSplitList("1 test.db2 2 test.db3")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("1 test.db2 2 test.db3")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		f := _items1[_idx1+1]
+		f := _items0[_idx0+1]
 		_ = f // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			{ // do_test "2." + tn + ".1"
 				db2, err = frigolite.Open(f)
 				if err != nil { t.Fatal(err) }
@@ -244,8 +244,8 @@ func Test_symlink(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
-				_dbtmp0, err := frigolite.Open("[string repeat x 100]/ 6")
-				_ = _dbtmp0 // sqlite3 db connection
+				os.Remove("[string repeat x 100]/ 6")
+				db, err = frigolite.Open("[string repeat x 100]/ 6")
 				if err != nil { t.Fatal(err) }
 				if _catchErr != nil {
 					res = "1"
@@ -261,8 +261,8 @@ func Test_symlink(t *testing.T) {
 			// file mkdir x
 			// file mkdir y
 			// file mkdir z
-			_dbtmp2, err := frigolite.Open("x/test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("x/test.db")
+			db, err = frigolite.Open("x/test.db")
 			if err != nil { t.Fatal(err) }
 			// file link y/test.db ../x/test.db
 			// file link z/test.db ../y/test.db
@@ -272,8 +272,8 @@ func Test_symlink(t *testing.T) {
 			}
 		}
 		{ // do_test "4.2.1"
-			_dbtmp3, err := frigolite.Open("y/test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			os.Remove("y/test.db")
+			db, err = frigolite.Open("y/test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -285,8 +285,8 @@ func Test_symlink(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "4.3.1"
-			_dbtmp4, err := frigolite.Open("z/test.db")
-			_ = _dbtmp4 // sqlite3 db connection
+			os.Remove("z/test.db")
+			db, err = frigolite.Open("z/test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -304,8 +304,8 @@ func Test_symlink(t *testing.T) {
 			// set  (invalid identifier, skipped)
 		}
 		{ // do_test "4.4.1"
-			_dbtmp5, err := frigolite.Open("w/test.db")
-			_ = _dbtmp5 // sqlite3 db connection
+			os.Remove("w/test.db")
+			db, err = frigolite.Open("w/test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {

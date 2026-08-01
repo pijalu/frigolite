@@ -134,8 +134,8 @@ func Test_shared(t *testing.T) {
 	for _, av := range tclSplitList("list 0 1") {
 	_ = av // suppress unused warning
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "shared-" + tclExprWith("$av+1", map[string]string{"av": av}) + ".1.0"
 			r = db.Query("pragma auto_vacuum=" + av)
@@ -150,13 +150,13 @@ func Test_shared(t *testing.T) {
 		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items1 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			name := _items1[_idx1+0]
+		_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			name := _items0[_idx0+0]
 			_ = name // suppress unused warning
-			value := _items1[_idx1+1]
+			value := _items0[_idx0+1]
 			_ = value // suppress unused warning
-			_ = _idx1
+			_ = _idx0
 				using_proxy = value
 				_ = using_proxy // suppress unused warning
 			}
@@ -329,8 +329,8 @@ func Test_shared(t *testing.T) {
 			os.Remove("test.db")
 			os.Remove("test2.db")
 			os.Remove("test2.db-journal")
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
@@ -581,8 +581,8 @@ func Test_shared(t *testing.T) {
 				os.Remove(f)
 			}
 			{ // do_test "shared-" + av + ".7.1"
-				_dbtmp3, err := frigolite.Open("test.db")
-				_ = _dbtmp3 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -643,8 +643,8 @@ func Test_shared(t *testing.T) {
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".8.1.1"
-				_dbtmp4, err := frigolite.Open("test.db")
-				_ = _dbtmp4 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n      PRAGMA encoding = 'UTF-16';\n      SELECT * FROM sqlite_master;\n    ")
 				if r.Error != nil {
@@ -702,8 +702,8 @@ func Test_shared(t *testing.T) {
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".8.3.2"
-				_dbtmp5, err := frigolite.Open("test.db")
-				_ = _dbtmp5 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" CREATE TABLE def(d, e, f) ")
 				if _res.Error != nil {
@@ -752,8 +752,8 @@ func Test_shared(t *testing.T) {
 			}
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".9.1"
-				_dbtmp6, err := frigolite.Open("test.db")
-				_ = _dbtmp6 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -773,8 +773,8 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".10.1"
 				os.Remove("test.db")
-				_dbtmp7, err := frigolite.Open("test.db")
-				_ = _dbtmp7 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -846,8 +846,8 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".11.1"
 				os.Remove("test.db")
-				_dbtmp8, err := frigolite.Open("test.db")
-				_ = _dbtmp8 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -905,8 +905,8 @@ func Test_shared(t *testing.T) {
 				db2.Close()
 			}
 			os.Remove("test.db")
-			_dbtmp9, err := frigolite.Open("test.db")
-			_ = _dbtmp9 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "shared-" + av + ".12.1"
 				r = db.Query("\n      PRAGMA cache_size = 10;\n      PRAGMA cache_size;\n    ")
@@ -956,8 +956,7 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".13.1"
 				os.Remove("test2.db")
-				_dbtmp10, err := frigolite.Open(":memory:")
-				_ = _dbtmp10 // sqlite3 db connection
+				db, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n    ATTACH 'test5.db' AS aux5;\n    DETACH aux2;\n    DETACH aux3;\n    DETACH aux4;\n    ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n  ")
 				if _res.Error != nil {
@@ -973,8 +972,8 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + ".13.3"
 			}
 			{ // do_test "shared-" + av + ".14.1"
-				_dbtmp11, err := frigolite.Open("test.db")
-				_ = _dbtmp11 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -995,8 +994,8 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + "-15.1"
 				os.Remove("test.db")
-				_dbtmp12, err := frigolite.Open("test.db")
-				_ = _dbtmp12 // sqlite3 db connection
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -1082,8 +1081,8 @@ func Test_shared(t *testing.T) {
 				{ // do_test "shared-" + av + "-16.8.1"
 					db1.Close()
 					db2.Close()
-					_dbtmp0, err := frigolite.Open("test1.db")
-					_ = _dbtmp0 // sqlite3 db connection
+					os.Remove("test1.db")
+					db, err = frigolite.Open("test1.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" \n      CREATE TABLE yy(a, b);\n      INSERT INTO yy VALUES(77, 88);\n    ")
 					if _res.Error != nil {

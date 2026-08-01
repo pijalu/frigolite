@@ -381,8 +381,7 @@ func Test_alter4(t *testing.T) {
 		}
 	}
 	{ // do_test "alter4-10.1"
-		_dbtmp0, err := frigolite.Open(":memory:")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;\n  ")

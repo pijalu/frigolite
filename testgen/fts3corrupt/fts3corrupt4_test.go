@@ -288,8 +288,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "5.0"
-		_dbtmp0, err := frigolite.Open("")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "5.1"
@@ -324,8 +323,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "7.0"
-		_dbtmp1, err := frigolite.Open("")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// | 3856: 20 75 74 20 61 6c 69 71 75 69 70 20 65 78 20 65 ut aliquip ex e (unsupported command, not transpiled)
 		// | 3872: 61 20 63 6f 6d 6d 6f 64 6f 20 63 6f 6e 73 65 71 a commodo conseq (unsupported command, not transpiled)
@@ -548,8 +546,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "8.0"
-		_dbtmp2, err := frigolite.Open("")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// | 3856: 20 75 74 20 61 7c 69 71 75 69 70 20 65 78 20 65 ut a|iquip ex e (unsupported command, not transpiled)
 		// | 3872: 61 20 63 6f 6d 6d 6f 64 6f 20 63 6f 6e 73 65 71 a commodo conseq (unsupported command, not transpiled)
@@ -682,8 +679,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "9.0"
-		_dbtmp3, err := frigolite.Open("")
-		_ = _dbtmp3 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "9.1"
@@ -702,8 +698,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "10.0"
-		_dbtmp4, err := frigolite.Open("")
-		_ = _dbtmp4 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "10.1"
@@ -722,8 +717,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "11.0"
-		_dbtmp5, err := frigolite.Open("")
-		_ = _dbtmp5 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "11.1"
@@ -736,8 +730,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "12.0"
-		_dbtmp6, err := frigolite.Open("")
-		_ = _dbtmp6 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "12.1"
@@ -750,8 +743,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "13.0"
-		_dbtmp7, err := frigolite.Open("")
-		_ = _dbtmp7 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "13.1"
@@ -764,8 +756,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "14.0"
-		_dbtmp8, err := frigolite.Open("")
-		_ = _dbtmp8 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "14.1"
@@ -805,8 +796,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "16.0"
-		_dbtmp9, err := frigolite.Open("")
-		_ = _dbtmp9 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "16.1"
@@ -819,8 +809,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "17.0"
-		_dbtmp10, err := frigolite.Open("")
-		_ = _dbtmp10 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "17.1"
@@ -845,8 +834,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "18.0"
-		_dbtmp11, err := frigolite.Open("")
-		_ = _dbtmp11 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "18.1"
@@ -859,8 +847,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "19.0"
-		_dbtmp12, err := frigolite.Open("")
-		_ = _dbtmp12 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "19.1"
@@ -873,8 +860,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "20.0"
-		_dbtmp13, err := frigolite.Open("")
-		_ = _dbtmp13 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "20.1"
@@ -893,8 +879,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "21.0"
-		_dbtmp14, err := frigolite.Open("")
-		_ = _dbtmp14 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "21.1"
@@ -907,8 +892,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "22.0"
-		_dbtmp15, err := frigolite.Open("")
-		_ = _dbtmp15 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "22.1"
@@ -921,8 +905,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "23.0"
-		_dbtmp16, err := frigolite.Open("")
-		_ = _dbtmp16 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "23.1"
@@ -935,8 +918,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "24.0"
-		_dbtmp17, err := frigolite.Open("")
-		_ = _dbtmp17 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "24.1"
@@ -979,8 +961,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "25.0"
-		_dbtmp18, err := frigolite.Open("")
-		_ = _dbtmp18 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	// reset_prng_state (unsupported command, not transpiled)
@@ -1045,8 +1026,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "26.0"
-		_dbtmp19, err := frigolite.Open("")
-		_ = _dbtmp19 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "26.1"
@@ -1065,8 +1045,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "27.0"
-		_dbtmp20, err := frigolite.Open("")
-		_ = _dbtmp20 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// | 3264: 4d 41 58 20 4d 45 4d 4f 52 59 3d 35 30 30 30 30 MAX MEMORY=50000 (unsupported command, not transpiled)
 		// | 3280: 30 30 30 58 42 49 4e 41 52 59 1f 1d 05 00 33 0f 000XBINARY....3. (unsupported command, not transpiled)
@@ -1246,8 +1225,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "28.0"
-		_dbtmp21, err := frigolite.Open("")
-		_ = _dbtmp21 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "28.1"
@@ -1302,8 +1280,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "29.0"
-		_dbtmp22, err := frigolite.Open("")
-		_ = _dbtmp22 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "29.1"
@@ -1316,8 +1293,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "30.0"
-		_dbtmp23, err := frigolite.Open("")
-		_ = _dbtmp23 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "30.1"
@@ -1351,8 +1327,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "32.0"
-		_dbtmp24, err := frigolite.Open("")
-		_ = _dbtmp24 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "32.1"
@@ -1455,8 +1430,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "38.0"
-		_dbtmp25, err := frigolite.Open("")
-		_ = _dbtmp25 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// | 3056: 06 64 62 73 74 61 74 03 25 0a 00 01 04 65 62 75 .dbstat.%....ebu (unsupported command, not transpiled)
 		// | 3072: 67 03 25 08 00 00 06 65 6e 61 62 6c 65 09 25 09 g.%....enable.%. (unsupported command, not transpiled)
@@ -1684,8 +1658,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "45.0"
-		_dbtmp26, err := frigolite.Open("")
-		_ = _dbtmp26 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "45.2"
@@ -1741,8 +1714,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "48.0"
-		_dbtmp27, err := frigolite.Open("")
-		_ = _dbtmp27 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// | 3984: 61 69 6e 63 68 69 6c 64 20 62 72 61 69 6e 65 64 ainchild brained (unsupported command, not transpiled)
 		// | 4000: 20 62 72 61 69 6e 69 6e 67 20 62 72 61 69 6e 73 braining brains (unsupported command, not transpiled)
@@ -1786,8 +1758,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "49.0"
-		_dbtmp28, err := frigolite.Open("")
-		_ = _dbtmp28 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "49.1"
@@ -1800,8 +1771,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "50.0"
-		_dbtmp29, err := frigolite.Open("")
-		_ = _dbtmp29 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "50.1"
@@ -1820,8 +1790,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "51.0"
-		_dbtmp30, err := frigolite.Open("")
-		_ = _dbtmp30 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	saved = sqlite_fts3_enable_parentheses
@@ -1844,8 +1813,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "52.0"
-		_dbtmp31, err := frigolite.Open("")
-		_ = _dbtmp31 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "52.1"
@@ -1858,8 +1826,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "53.0"
-		_dbtmp32, err := frigolite.Open("")
-		_ = _dbtmp32 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "53.1"
@@ -1880,8 +1847,7 @@ func Test_fts3corrupt4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "54.0"
-		_dbtmp33, err := frigolite.Open("")
-		_ = _dbtmp33 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "54.1"

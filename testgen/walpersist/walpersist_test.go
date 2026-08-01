@@ -71,8 +71,8 @@ func Test_walpersist(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "walpersist-1.3"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT length(a) FROM t1")
 		if _res.Error != nil {
@@ -107,8 +107,8 @@ func Test_walpersist(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "walpersist-2.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=OFF;\n    PRAGMA journal_size_limit=12000;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(50000));\n    UPDATE t1 SET x=randomblob(50000);\n  ")
 		if _res.Error != nil {
@@ -125,8 +125,8 @@ func Test_walpersist(t *testing.T) {
 		_ = _r_tcl
 	}
 	{ // do_test "walpersist-2.3"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
@@ -139,8 +139,8 @@ func Test_walpersist(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint=128;\n    PRAGMA journal_size_limit=16384;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n  ")
 		if _res.Error != nil {
@@ -169,8 +169,8 @@ func Test_walpersist(t *testing.T) {
 		// file size test.db-wal
 	}
 	{ // do_test "walpersist-3.4"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {

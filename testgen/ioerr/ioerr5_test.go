@@ -6,6 +6,7 @@ package ioerr
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -190,8 +191,8 @@ func Test_ioerr5(t *testing.T) {
 		}
 	}
 	{ // do_test "ioerr5-2.0"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE INDEX i1 ON a(id, name); ")
 		if _res.Error != nil {

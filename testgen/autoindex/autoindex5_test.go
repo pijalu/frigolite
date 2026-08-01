@@ -82,8 +82,7 @@ func Test_autoindex5(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(aaa);\n  INSERT INTO t1(aaa) VALUES(9);\n  SELECT (\n    SELECT aaa FROM t1 GROUP BY (\n      SELECT bbb FROM (\n        SELECT ccc AS bbb FROM (\n           SELECT 1 ccc\n        ) WHERE rowid IS NOT 1\n      ) WHERE bbb = 1\n    )\n  );\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open(":memory:")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		r = db.Query("\n  -- This is the original test case reported on the mailing list\n  CREATE TABLE artists (\n    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,\n    name varchar(255)\n  );\n  CREATE TABLE albums (\n    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,\n    name varchar(255),\n    artist_id integer REFERENCES artists\n  );\n  INSERT INTO artists (name) VALUES ('Ar');\n  INSERT INTO albums (name, artist_id) VALUES ('Al', 1);\n  SELECT artists.*\n  FROM artists\n  INNER JOIN artists AS 'b' ON (b.id = artists.id)\n  WHERE (artists.id IN (\n    SELECT albums.artist_id\n    FROM albums\n    WHERE ((name = 'Al')\n      AND (albums.artist_id IS NOT NULL)\n      AND (albums.id IN (\n        SELECT id\n        FROM (\n          SELECT albums.id,\n                 row_number() OVER (\n                   PARTITION BY albums.artist_id\n                   ORDER BY name\n                 ) AS 'x'\n          FROM albums\n          WHERE (name = 'Al')\n        ) AS 't1'\n        WHERE (x = 1)\n      ))\n      AND (albums.id IN (1, 2)))\n  ));\n")
@@ -97,8 +96,7 @@ func Test_autoindex5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp1, err := frigolite.Open(":memory:")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  CREATE TABLE t1 (a); INSERT INTO t1 (a) VALUES (104);\n  CREATE TABLE t2 (b); INSERT INTO t2 (b) VALUES (104);\n  CREATE TABLE t3 (c); INSERT INTO t3 (c) VALUES (104);\n  CREATE TABLE t4 (d); INSERT INTO t4 (d) VALUES (104);\n  SELECT *\n  FROM t1 CROSS JOIN t2 ON (t1.a = t2.b) WHERE t2.b IN (\n    SELECT t3.c\n    FROM t3\n    WHERE t3.c IN (\n      SELECT d FROM (SELECT DISTINCT d FROM t4) AS x WHERE x.d=104\n    )\n  );\n")
@@ -112,8 +110,7 @@ func Test_autoindex5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp2, err := frigolite.Open(":memory:")
-	_ = _dbtmp2 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "3.2"
 		r = db.Query("\n  CREATE TABLE t5(a, b, c, d);\n  CREATE INDEX t5a ON t5(a);\n  CREATE INDEX t5b ON t5(b);\n  CREATE TABLE t6(e);\n  INSERT INTO t6 VALUES(1);\n  INSERT INTO t5 VALUES(1,1,1,1), (2,2,2,2);\n  SELECT * FROM t5 WHERE (a=1 OR b=2) AND c IN (\n    SELECT e FROM (SELECT DISTINCT e FROM t6) WHERE e=1\n  );\n")
@@ -127,8 +124,7 @@ func Test_autoindex5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp3, err := frigolite.Open(":memory:")
-	_ = _dbtmp3 // sqlite3 db connection
+	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
 	{ // "3.3"
 		r = db.Query("\n  CREATE TABLE t1(a1, a2, a3);\n  CREATE INDEX t1a2 ON t1(a2, a1);\n  CREATE INDEX t1a3 ON t1(a3, a1);\n  CREATE TABLE t2(d);\n  INSERT INTO t1 VALUES(3, 1, 1), (3, 2, 2);\n  INSERT INTO t2 VALUES(3);\n  SELECT *, 'x' FROM t1 WHERE (a2=1 OR a3=2) AND a1 = (\n    SELECT d FROM (SELECT DISTINCT d FROM t2) WHERE d=3\n  );\n")

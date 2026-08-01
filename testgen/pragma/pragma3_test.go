@@ -187,8 +187,8 @@ func Test_pragma3(t *testing.T) {
 	db2.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -222,8 +222,8 @@ func Test_pragma3(t *testing.T) {
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	if tclBool("wal_is_capable") {
 		if tclBool("permutation" + "!=\"inmemory_journal\"") {
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA journal_mode=WAL")
 			if _res.Error != nil {
@@ -255,13 +255,13 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n"
-	_items1 := tclSplitList("\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items1[_idx1+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

@@ -63,8 +63,7 @@ func Test_numcast(t *testing.T) {
 	for _, enc := range tclSplitList("utf8 utf16le utf16be") {
 	_ = enc // suppress unused warning
 		{ // do_test "numcast-" + enc + ".0"
-			_dbtmp0, err := frigolite.Open(":memory:")
-			_ = _dbtmp0 // sqlite3 db connection
+			db, err = frigolite.Open(":memory:")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA encoding='" + enc + "'")
 			if _res.Error != nil {
@@ -75,17 +74,17 @@ func Test_numcast(t *testing.T) {
 			// string map {- {}} [string tolower $x]
 		}
 		// foreach {idx str rval ival} "\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  "
-		_items1 := tclSplitList("\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  ")
-		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
-			idx := _items1[_idx1+0]
+		_items0 := tclSplitList("\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  ")
+		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+			idx := _items0[_idx0+0]
 			_ = idx // suppress unused warning
-			str := _items1[_idx1+1]
+			str := _items0[_idx0+1]
 			_ = str // suppress unused warning
-			rval := _items1[_idx1+2]
+			rval := _items0[_idx0+2]
 			_ = rval // suppress unused warning
-			ival := _items1[_idx1+3]
+			ival := _items0[_idx0+3]
 			_ = ival // suppress unused warning
-			_ = _idx1
+			_ = _idx0
 				{ // do_test "numcast-" + enc + "." + idx + ".1"
 					_res = db.Exec("SELECT CAST(" + str + " AS real)")
 					if _res.Error != nil {

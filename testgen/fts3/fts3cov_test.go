@@ -6,6 +6,7 @@ package fts3
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "strings"
 "testing"
@@ -194,8 +195,8 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t5_segdir ")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_write_test fts3cov-6.2 t5_content {\n  INSERT INTO t5 VALUES('segment number 16!');\n} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-6.3"

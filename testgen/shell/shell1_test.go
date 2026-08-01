@@ -84,8 +84,8 @@ func Test_shell1(t *testing.T) {
 	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	os.Remove("test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell1-1.1.1"
 		res = "catchcmd \"-bad test.db\" \"\""
@@ -633,8 +633,8 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-4.1"
 		os.Remove("test.db")
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,null), (2,''), (3,1),\n                         (4,2.25), (5,'hello'), (6,x'807f');\n  ")
 		if _res.Error != nil {
@@ -647,8 +647,8 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-4.1.2"
 		os.Remove("test2.db")
-		_dbtmp2, err := frigolite.Open("test2.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(1,null), (2,''), (3,1),\n                         (4,2.25), (5,'hello'), (6,x'807f');\n  ")
 		if _res.Error != nil {
@@ -658,8 +658,8 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-4.1.3"
 		os.Remove("test2.db")
-		_dbtmp3, err := frigolite.Open("test2.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE " + "table" + "(x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO " + "table" + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		if _res.Error != nil {
@@ -669,8 +669,8 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-4.1.4"
 		os.Remove("test2.db")
-		_dbtmp4, err := frigolite.Open("test2.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE " + "ta<>ble" + "(x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO " + "ta<>ble" + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		if _res.Error != nil {
@@ -680,8 +680,8 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-4.1.5"
 		os.Remove("test2.db")
-		_dbtmp5, err := frigolite.Open("test2.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(_ROWID_,rowid,oid);\n    INSERT INTO t1 VALUES(1,null,'alpha'), (12,'',99), (23,1,x'b0b1b2');\n  ")
 		if _res.Error != nil {
@@ -691,8 +691,8 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-4.1.7"
 		os.Remove("test2.db")
-		_dbtmp6, err := frigolite.Open("test2.db")
-		_ = _dbtmp6 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n  ")
 		if _res.Error != nil {
@@ -702,8 +702,8 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-4.1.8"
 		os.Remove("test2.db")
-		_dbtmp7, err := frigolite.Open("test2.db")
-		_ = _dbtmp7 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
@@ -713,8 +713,8 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-4.1.9"
 		os.Remove("test2.db")
-		_dbtmp8, err := frigolite.Open("test2.db")
-		_ = _dbtmp8 // sqlite3 db connection
+		os.Remove("test2.db")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    INSERT INTO sqlite_sequence VALUES('extra',999);\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
@@ -736,8 +736,8 @@ func Test_shell1(t *testing.T) {
 	}
 	{ // do_test "shell1-4.3"
 		os.Remove("test.db")
-		_dbtmp9, err := frigolite.Open("test.db")
-		_ = _dbtmp9 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n  ")
 		if _res.Error != nil {
@@ -889,8 +889,8 @@ func Test_shell1(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp10, err := frigolite.Open("test.db")
-	_ = _dbtmp10 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell1-7.1.1"
 		_res = db.Exec("\n    CREATE TABLE Z (x TEXT PRIMARY KEY);\n    CREATE TABLE _ (x TEXT PRIMARY KEY);\n    CREATE TABLE YY (x TEXT PRIMARY KEY);\n    CREATE TABLE __ (x TEXT PRIMARY KEY);\n    CREATE TABLE WWW (x TEXT PRIMARY KEY);\n    CREATE TABLE ___ (x TEXT PRIMARY KEY);\n  ")

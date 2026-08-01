@@ -6,6 +6,7 @@ package corruptH
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -85,8 +86,8 @@ func Test_corruptH(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
 		// hexio_write test.db [expr {($r(t2)-1)*1024 + 11}] [format %.2X $r(t1)] (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "1.3"
@@ -117,8 +118,8 @@ func Test_corruptH(t *testing.T) {
 		// hexio_write test.db [expr {($fl-1) * 1024 + 4}] 00000001 (unsupported command, not transpiled)
 		// hexio_write test.db [expr {($fl-1) * 1024 + 8}] [format %.8X $r(t1)] (unsupported command, not transpiled)
 		// hexio_write test.db 36 00000002 (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	res23 = "1 {database disk image is malformed}"
@@ -142,8 +143,8 @@ func Test_corruptH(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
 		// hexio_write test.db [expr {($r(t2)-1) * 1024 + 1020}] 00000002 (unsupported command, not transpiled)
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "3.3"

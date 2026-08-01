@@ -6,6 +6,7 @@ package date
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "strings"
 "testing"
@@ -614,8 +615,8 @@ func Test_date(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);\n    ")
 			}
 			// hexio_write test.db 2040 4142ba32bffffff9 (unsupported command, not transpiled)
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT * FROM t1")
 			if _res.Error != nil {
@@ -626,8 +627,8 @@ func Test_date(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 255 }() {
 			// hexio_write test.db 2047 [format %02x $i] (unsupported command, not transpiled)
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "date-14.2." + i
 				date = "db one {SELECT datetime(x) FROM t1}"

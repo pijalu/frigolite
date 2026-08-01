@@ -62,8 +62,8 @@ func Test_filefmt(t *testing.T) {
 	// do_not_use_codec (unsupported command, not transpiled)
 	os.Remove("test.db")
 	{ // do_test "filefmt-1.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t1(x)")
 		if _res.Error != nil {
@@ -78,8 +78,8 @@ func Test_filefmt(t *testing.T) {
 	_ = _err_tcl // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				x = "1"
@@ -97,8 +97,8 @@ func Test_filefmt(t *testing.T) {
 	}
 	{ // do_test "filefmt-1.4"
 		// hexio_write test.db 0 53 (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT count(*) FROM sqlite_master\n  ")
 		_ = _res // catchsql
@@ -109,8 +109,8 @@ func Test_filefmt(t *testing.T) {
 		}
 		{ // do_test "filefmt-1.5." + pagesize + ".1"
 			os.Remove("test.db")
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA auto_vacuum=OFF")
 			if _res.Error != nil {
@@ -132,32 +132,32 @@ func Test_filefmt(t *testing.T) {
 	}
 	{ // do_test "filefmt-1.6"
 		// hexio_write test.db 16 [hexio_render_int16 1025] (unsupported command, not transpiled)
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     SELECT count(*) FROM sqlite_master\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "filefmt-1.7"
 		// hexio_write test.db 16 [hexio_render_int16 256] (unsupported command, not transpiled)
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     SELECT count(*) FROM sqlite_master\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "filefmt-1.8"
 		os.Remove("test.db")
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA page_size=512; CREATE TABLE t1(x)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA page_size=512; CREATE TABLE t1(x)")
 		}
 		// hexio_write test.db 20 21 (unsupported command, not transpiled)
-		_dbtmp6, err := frigolite.Open("test.db")
-		_ = _dbtmp6 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n       SELECT count(*) FROM sqlite_master\n    ")
 		_ = _res // catchsql
@@ -166,8 +166,8 @@ func Test_filefmt(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
-	_dbtmp7, err := frigolite.Open("test.db")
-	_ = _dbtmp7 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "filefmt-2.1.1"
 		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
@@ -195,8 +195,8 @@ func Test_filefmt(t *testing.T) {
 		// hexio_read test.db 28 4 (unsupported command, not transpiled)
 	}
 	os.Remove("test.db")
-	_dbtmp8, err := frigolite.Open("test.db")
-	_ = _dbtmp8 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "filefmt-2.2.1"
 		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
@@ -226,14 +226,14 @@ func Test_filefmt(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
-	_dbtmp9, err := frigolite.Open("test.db")
-	_ = _dbtmp9 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	os.Remove("test.db")
-	_dbtmp10, err := frigolite.Open("test.db")
-	_ = _dbtmp10 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "filefmt-3.1"
 		_res = db.Exec("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a, b);\n")

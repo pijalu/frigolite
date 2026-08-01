@@ -92,8 +92,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-1.4"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name, tbl_name, type from sqlite_master WHERE type!='meta'")
 		if r.Error != nil {
@@ -111,8 +111,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-1.6"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta'")
 		if r.Error != nil {
@@ -189,8 +189,8 @@ func Test_table(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "table-2.1c"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
@@ -235,8 +235,8 @@ func Test_table(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "table-2.2b"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
@@ -361,8 +361,8 @@ func Test_table(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "table-3.5"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
@@ -441,8 +441,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-4.1b"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		if r.Error != nil {
@@ -529,8 +529,8 @@ func Test_table(t *testing.T) {
 	}
 	{ // do_test "table-5.2.2"
 		os.Remove("test.db")
-		_dbtmp6, err := frigolite.Open("test.db")
-		_ = _dbtmp6 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t0(a,b);\n    CREATE INDEX t ON t0(a);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE TABLE a.b(a UNIQUE';\n    BEGIN;\n    CREATE TABLE t1(x);\n    ROLLBACK;\n    DROP TABLE IF EXISTS t99;\n  ")
@@ -539,8 +539,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp7, err := frigolite.Open("test.db")
-	_ = _dbtmp7 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "table-5.3"
 		r = db.Query("EXPLAIN CREATE TABLE test1(f1 int)")
@@ -638,8 +638,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-8.5"
-		_dbtmp8, err := frigolite.Open("test.db")
-		_ = _dbtmp8 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM " + "t4\"abc" + ";\n  ")
 		if r.Error != nil {
@@ -773,15 +773,15 @@ func Test_table(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	// foreach {date time seconds} "\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n"
-	_items9 := tclSplitList("\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n")
-	for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
-		date := _items9[_idx9+0]
+	_items0 := tclSplitList("\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		date := _items0[_idx0+0]
 		_ = date // suppress unused warning
-		time := _items9[_idx9+1]
+		time := _items0[_idx0+1]
 		_ = time // suppress unused warning
-		seconds := _items9[_idx9+2]
+		seconds := _items0[_idx0+2]
 		_ = seconds // suppress unused warning
-		_ = _idx9
+		_ = _idx0
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

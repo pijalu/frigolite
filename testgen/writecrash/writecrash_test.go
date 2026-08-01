@@ -6,6 +6,7 @@ package writecrash
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
@@ -74,8 +75,8 @@ func Test_writecrash(t *testing.T) {
 	tn = "1"
 	_ = tn // suppress unused warning
 	for tclBool(bGo) {
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "1." + tn + ".1"
 			res = "crash_on_write $tn {\n      UPDATE t1 SET b = randomblob(899) WHERE (a%3)==0\n    }"
@@ -101,8 +102,8 @@ func Test_writecrash(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "1." + tn + ".3"
 			r = db.Query(" PRAGMA integrity_check ")

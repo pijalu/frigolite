@@ -102,8 +102,8 @@ func Test_corruptC(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// proc definition (not transpiled)
 	tclFileCopy("test.db", "test.bu")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	fsize = "file size test.db"
 	_ = fsize // suppress unused warning
@@ -118,8 +118,8 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.1"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 2053 [format %02x 0x04] (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
@@ -136,8 +136,8 @@ func Test_corruptC(t *testing.T) {
 		// hexio_write test.db 3688 [format %02x 0xc1] (unsupported command, not transpiled)
 		// hexio_write test.db 3714 [format %02x 0x58] (unsupported command, not transpiled)
 		// hexio_write test.db 3746 [format %02x 0x9a] (unsupported command, not transpiled)
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("UPDATE t1 SET y=1")
 		if _res.Error != nil {
@@ -151,8 +151,8 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.3"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 1094 [format %02x 0x76] (unsupported command, not transpiled)
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("UPDATE t1 SET y=1")
 		_ = _res // catchsql
@@ -160,8 +160,8 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.4"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 3119 [format %02x 0xdf] (unsupported command, not transpiled)
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("UPDATE t2 SET y='abcdef-uvwxyz'")
 		_ = _res // catchsql
@@ -170,8 +170,8 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 3119 [format %02x 0xdf] (unsupported command, not transpiled)
 		// hexio_write test.db 4073 [format %02x 0xbf] (unsupported command, not transpiled)
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
 		_ = _res // catchsql
@@ -182,8 +182,8 @@ func Test_corruptC(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 619 [format %02x 0xe2] (unsupported command, not transpiled)
 		// hexio_write test.db 3150 [format %02x 0xa8] (unsupported command, not transpiled)
-		_dbtmp6, err := frigolite.Open("test.db")
-		_ = _dbtmp6 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
 		_ = _res // catchsql
@@ -191,8 +191,8 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.7"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 3074 [format %02x 0xa0] (unsupported command, not transpiled)
-		_dbtmp7, err := frigolite.Open("test.db")
-		_ = _dbtmp7 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
 		_ = _res // catchsql
@@ -205,8 +205,8 @@ func Test_corruptC(t *testing.T) {
 			// hexio_write test.db 3287 [format %02x 0x3b] (unsupported command, not transpiled)
 			// hexio_write test.db 2564 [format %02x 0xed] (unsupported command, not transpiled)
 			// hexio_write test.db 2139 [format %02x 0x55] (unsupported command, not transpiled)
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("BEGIN; DELETE FROM t1 WHERE x>13; ROLLBACK;")
 			_ = _res // catchsql
@@ -215,8 +215,8 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.9"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 2095 [format %02x 0xd6] (unsupported command, not transpiled)
-		_dbtmp8, err := frigolite.Open("test.db")
-		_ = _dbtmp8 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; DELETE FROM t1 WHERE x>13; ROLLBACK;")
 		_ = _res // catchsql
@@ -224,8 +224,8 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.10"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 3130 [format %02x 0x02] (unsupported command, not transpiled)
-		_dbtmp9, err := frigolite.Open("test.db")
-		_ = _dbtmp9 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; UPDATE t2 SET y='abcdef-uvwxyz'; ROLLBACK;")
 		_ = _res // catchsql
@@ -233,8 +233,8 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.11"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 55 [format %02x 0xa7] (unsupported command, not transpiled)
-		_dbtmp10, err := frigolite.Open("test.db")
-		_ = _dbtmp10 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; CREATE TABLE t3 AS SELECT x,3 as y FROM t2 WHERE rowid%5!=0; ROLLBACK;")
 		_ = _res // catchsql
@@ -242,8 +242,8 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.12"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 974 [format %02x 0x2e] (unsupported command, not transpiled)
-		_dbtmp11, err := frigolite.Open("test.db")
-		_ = _dbtmp11 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT count(*) FROM sqlite_master;")
 		_ = _res // catchsql
@@ -251,16 +251,16 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.13"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 102 [format %02x 0x12] (unsupported command, not transpiled)
-		_dbtmp12, err := frigolite.Open("test.db")
-		_ = _dbtmp12 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN; CREATE TABLE t3 AS SELECT x,3 as y FROM t2 WHERE rowid%5!=0; ROLLBACK;")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptC-2.14"
 		tclFileCopy("test.bu", "test.db")
-		_dbtmp13, err := frigolite.Open("test.db")
-		_ = _dbtmp13 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		blob = "abcdefghij 10000"
 		_ = blob // suppress unused warning
@@ -268,8 +268,8 @@ func Test_corruptC(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES (1, " + blob + ") ")
 		}
-		_dbtmp14, err := frigolite.Open("test.db")
-		_ = _dbtmp14 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		filesize = "file size test.db"
 		_ = filesize // suppress unused warning
@@ -280,8 +280,8 @@ func Test_corruptC(t *testing.T) {
 	{ // do_test "corruptC-2.15"
 		tclFileCopy("test.bu", "test.db")
 		// hexio_write test.db 986 b9 (unsupported command, not transpiled)
-		_dbtmp15, err := frigolite.Open("test.db")
-		_ = _dbtmp15 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT count(*) FROM sqlite_master;")
 		_ = _res // catchsql
@@ -290,8 +290,8 @@ func Test_corruptC(t *testing.T) {
 	_ = tn // suppress unused warning
 	for func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; fsize_n, _fsize_e := strconv.Atoi(fsize); if _fsize_e != nil { return false }; return tn_n < fsize_n }() {
 		tclFileCopy("test.bu", "test.db")
-		_dbtmp16, err := frigolite.Open("test.db")
-		_ = _dbtmp16 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		last = "0"
 		_ = last // suppress unused warning
@@ -308,8 +308,8 @@ func Test_corruptC(t *testing.T) {
 			rbyte = "format %02x [random 255]"
 			_ = rbyte // suppress unused warning
 			// hexio_write test.db $roffset $rbyte (unsupported command, not transpiled)
-			_dbtmp17, err := frigolite.Open("test.db")
-			_ = _dbtmp17 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".1"
 				_res = db.Exec("SELECT count(*) FROM sqlite_master")

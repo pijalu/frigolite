@@ -65,8 +65,8 @@ func Test_autoindex1(t *testing.T) {
 	// test_sqlite3_log [list lappend ::log] (unsupported command, not transpiled)
 	log = "list" // TCL namespace variable
 	_ = log // suppress unused warning
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "autoindex1-100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 SELECT a+2, b+22 FROM t1;\n    INSERT INTO t1 SELECT a+4, b+44 FROM t1;\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 SELECT a, 900+b FROM t1;\n  ")
@@ -98,8 +98,8 @@ func Test_autoindex1(t *testing.T) {
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "autoindex1-200"
 		_res = db.Exec("\n    PRAGMA automatic_index=OFF;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
@@ -246,8 +246,8 @@ func Test_autoindex1(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "autoindex1-900"
 		r = db.Query("\n  CREATE TABLE messages (ROWID INTEGER PRIMARY KEY AUTOINCREMENT, message_id, document_id BLOB, in_reply_to, remote_id INTEGER, sender INTEGER, subject_prefix, subject INTEGER, date_sent INTEGER, date_received INTEGER, date_created INTEGER, date_last_viewed INTEGER, mailbox INTEGER, remote_mailbox INTEGER, original_mailbox INTEGER, flags INTEGER, read, flagged, size INTEGER, color, encoding, type INTEGER, pad, conversation_id INTEGER DEFAULT -1, snippet TEXT DEFAULT NULL, fuzzy_ancestor INTEGER DEFAULT NULL, automated_conversation INTEGER DEFAULT 0, root_status INTEGER DEFAULT -1, conversation_position INTEGER DEFAULT -1);\n  CREATE INDEX date_index ON messages(date_received);\n  CREATE INDEX date_last_viewed_index ON messages(date_last_viewed);\n  CREATE INDEX date_created_index ON messages(date_created);\n  CREATE INDEX message_message_id_mailbox_index ON messages(message_id, mailbox);\n  CREATE INDEX message_document_id_index ON messages(document_id);\n  CREATE INDEX message_read_index ON messages(read);\n  CREATE INDEX message_flagged_index ON messages(flagged);\n  CREATE INDEX message_mailbox_index ON messages(mailbox, date_received);\n  CREATE INDEX message_remote_mailbox_index ON messages(remote_mailbox, remote_id);\n  CREATE INDEX message_type_index ON messages(type);\n  CREATE INDEX message_conversation_id_conversation_position_index ON messages(conversation_id, conversation_position);\n  CREATE INDEX message_fuzzy_ancestor_index ON messages(fuzzy_ancestor);\n  CREATE INDEX message_subject_fuzzy_ancestor_index ON messages(subject, fuzzy_ancestor);\n  CREATE INDEX message_sender_subject_automated_conversation_index ON messages(sender, subject, automated_conversation);\n  CREATE INDEX message_sender_index ON messages(sender);\n  CREATE INDEX message_root_status ON messages(root_status);\n  CREATE TABLE subjects (ROWID INTEGER PRIMARY KEY, subject COLLATE RTRIM, normalized_subject COLLATE RTRIM);\n  CREATE INDEX subject_subject_index ON subjects(subject);\n  CREATE INDEX subject_normalized_subject_index ON subjects(normalized_subject);\n  CREATE TABLE addresses (ROWID INTEGER PRIMARY KEY, address COLLATE NOCASE, comment, UNIQUE(address, comment));\n  CREATE INDEX addresses_address_index ON addresses(address);\n  CREATE TABLE mailboxes (ROWID INTEGER PRIMARY KEY, url UNIQUE, total_count INTEGER DEFAULT 0, unread_count INTEGER DEFAULT 0, unseen_count INTEGER DEFAULT 0, deleted_count INTEGER DEFAULT 0, unread_count_adjusted_for_duplicates INTEGER DEFAULT 0, change_identifier, source INTEGER, alleged_change_identifier);\n  CREATE INDEX mailboxes_source_index ON mailboxes(source);\n  CREATE TABLE labels (ROWID INTEGER PRIMARY KEY, message_id INTEGER NOT NULL, mailbox_id INTEGER NOT NULL, UNIQUE(message_id, mailbox_id));\n  CREATE INDEX labels_message_id_mailbox_id_index ON labels(message_id, mailbox_id);\n  CREATE INDEX labels_mailbox_id_index ON labels(mailbox_id);\n  \n  explain query plan\n  SELECT messages.ROWID,\n         messages.message_id,\n         messages.remote_id,\n         messages.date_received,\n         messages.date_sent,\n         messages.flags,\n         messages.size,\n         messages.color,\n         messages.date_last_viewed,\n         messages.subject_prefix,\n         subjects.subject,\n         sender.comment,\n         sender.address,\n         NULL,\n         messages.mailbox,\n         messages.original_mailbox,\n         NULL,\n         NULL,\n         messages.type,\n         messages.document_id,\n         sender,\n         NULL,\n         messages.conversation_id,\n         messages.conversation_position,\n         agglabels.labels\n   FROM mailboxes AS mailbox\n        JOIN messages ON mailbox.ROWID = messages.mailbox\n        LEFT OUTER JOIN subjects ON messages.subject = subjects.ROWID\n        LEFT OUTER JOIN addresses AS sender ON messages.sender = sender.ROWID\n        LEFT OUTER JOIN (\n               SELECT message_id, group_concat(mailbox_id) as labels\n               FROM labels GROUP BY message_id\n             ) AS agglabels ON messages.ROWID = agglabels.message_id\n  WHERE (mailbox.url = 'imap://email.app@imap.gmail.com/%5BGmail%5D/All%20Mail')\n    AND (messages.ROWID IN (\n            SELECT labels.message_id\n              FROM labels JOIN mailboxes ON labels.mailbox_id = mailboxes.ROWID\n             WHERE mailboxes.url = 'imap://email.app@imap.gmail.com/INBOX'))\n    AND messages.mailbox in (6,12,18,24,30,36,42,1,7,13,19,25,31,37,43,2,8,\n                             14,20,26,32,38,3,9,15,21,27,33,39,4,10,16,22,28,\n                             34,40,5,11,17,23,35,41)\n   ORDER BY date_received DESC;\n")

@@ -6,6 +6,7 @@ package tempdb
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -59,8 +60,7 @@ func Test_tempdb(t *testing.T) {
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}
-	_dbtmp0, err := frigolite.Open("")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tempdb-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('hello');\n    INSERT INTO t2 VALUES(NULL);\n  ")
@@ -81,8 +81,8 @@ func Test_tempdb(t *testing.T) {
 		_ = jrnl_in_memory // suppress unused warning
 		subj_in_memory = tclExprWith("$jrnl_in_memory || $TEMP_STORE>=2", map[string]string{"jrnl_in_memory": jrnl_in_memory, "TEMP_STORE": TEMP_STORE})
 		_ = subj_in_memory // suppress unused warning
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "tempdb-2.2"

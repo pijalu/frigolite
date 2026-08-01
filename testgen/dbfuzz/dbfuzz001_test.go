@@ -51,8 +51,7 @@ func Test_dbfuzz001(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "dbfuzz001-100"
-		_dbtmp0, err := frigolite.Open("")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "dbfuzz001-110"
@@ -66,8 +65,7 @@ func Test_dbfuzz001(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "dbfuzz001-310"
-		_dbtmp1, err := frigolite.Open("")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	// extra_schema_checks 0 (unsupported command, not transpiled)

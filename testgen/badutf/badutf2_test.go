@@ -85,8 +85,8 @@ func Test_badutf2(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "badutf2-1.0"
 		os.Remove("test.db")
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = 'UTF-8'")
 		if _res.Error != nil {
@@ -99,21 +99,21 @@ func Test_badutf2(t *testing.T) {
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	// foreach {i len uval xstr ustr u2u} "\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n"
-	_items1 := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
-	for _idx1 := 0; _idx1+6 <= len(_items1); _idx1 += 6 {
-		i := _items1[_idx1+0]
+	_items0 := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
+	for _idx0 := 0; _idx0+6 <= len(_items0); _idx0 += 6 {
+		i := _items0[_idx0+0]
 		_ = i // suppress unused warning
-		_len := _items1[_idx1+1]
+		_len := _items0[_idx0+1]
 		_ = _len // suppress unused warning
-		uval := _items1[_idx1+2]
+		uval := _items0[_idx0+2]
 		_ = uval // suppress unused warning
-		xstr := _items1[_idx1+3]
+		xstr := _items0[_idx0+3]
 		_ = xstr // suppress unused warning
-		ustr := _items1[_idx1+4]
+		ustr := _items0[_idx0+4]
 		_ = ustr // suppress unused warning
-		u2u := _items1[_idx1+5]
+		u2u := _items0[_idx0+5]
 		_ = u2u // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			hstr = "utf8_to_hstr $uval"
 			_ = hstr // suppress unused warning
 			if hstr != "%00" {

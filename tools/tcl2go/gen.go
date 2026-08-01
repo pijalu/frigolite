@@ -3219,6 +3219,16 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	// db1-db9 are pre-declared at function level; always use = for them
 	if isPreDeclaredDB(goName) {
 		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)
+	} else if goName == "db" {
+		// The main test connection: SQLite's "db close; sqlite3 db ..."
+		// reopens a FRESH database (dropping all prior tables). Reopen it.
+		// (The preceding "db close" command already emitted db.Close().)
+		// Remove a stale FILE database so leftover tables don't survive
+		// across test runs (detectImports adds the "os" import for this).
+		if filename != `""` && filename != `":memory:"` && filename != `"'""` && filename != `"'':memory:''"` {
+			tp.emitLine("os.Remove(%s)", filename)
+		}
+		tp.emitLine("db, err = frigolite.Open(%s)", filename)
 	} else if !tp.isVarDeclared(goName) {
 		// New DB connection variable
 		tp.emitLine("%s, err := frigolite.Open(%s)", goName, filename)

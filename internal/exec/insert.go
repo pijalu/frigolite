@@ -358,27 +358,37 @@ func (e *Engine) checkUniqueConstraints(tableEntry *schema.Entry, colDefs []sql.
 	}
 
 	// Check UNIQUE indexes (CREATE UNIQUE INDEX ... ON t(c1, c2)).
-	for _, idxCols := range e.uniqueIndexColumns(tableEntry.Name) {
-		if err := e.checkUniqueIndex(tableEntry, colDefs, values, idxCols); err != nil {
+	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
+		if err := e.checkUniqueIndex(tableEntry, colDefs, values, def); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
+// uniqueIndexDef describes a UNIQUE index on a table: the indexed columns and
+// the optional partial-index WHERE clause (empty for a full index).
+type uniqueIndexDef struct {
+	Cols  []string
+	Where string // partial index predicate ("" for full indexes)
+}
+
 // uniqueIndexColsRe matches "CREATE UNIQUE INDEX name ON tbl(col1, col2 ...)".
 var uniqueIndexColsRe = regexp.MustCompile(`(?is)^\s*CREATE\s+UNIQUE\s+INDEX\b.*?\bON\b\s+[^\s(]+\((.*?)\)`)
 
-// uniqueIndexColumns returns the column lists of every UNIQUE index defined
-// on the given table (cached per table name).
-func (e *Engine) uniqueIndexColumns(tableName string) [][]string {
+// indexWhereRe captures the partial-index predicate after the column list.
+var indexWhereRe = regexp.MustCompile(`(?is)\)\s*WHERE\s+(.+)$`)
+
+// uniqueIndexColumns returns the UNIQUE indexes defined on the given table
+// (cached per table name).
+func (e *Engine) uniqueIndexColumns(tableName string) []uniqueIndexDef {
 	if e.uniqueIdxCache == nil {
-		e.uniqueIdxCache = make(map[string][][]string)
+		e.uniqueIdxCache = make(map[string][]uniqueIndexDef)
 	}
-	if cols, ok := e.uniqueIdxCache[tableName]; ok {
-		return cols
+	if defs, ok := e.uniqueIdxCache[tableName]; ok {
+		return defs
 	}
-	var result [][]string
+	var result []uniqueIndexDef
 	for _, ctx := range e.databases {
 		entries, err := ctx.Schema.GetEntries(schema.TypeIndex)
 		if err != nil {
@@ -407,20 +417,57 @@ func (e *Engine) uniqueIndexColumns(tableName string) [][]string {
 					cols = append(cols, name)
 				}
 			}
-			if len(cols) > 0 {
-				result = append(result, cols)
+			if len(cols) == 0 {
+				continue
 			}
+			def := uniqueIndexDef{Cols: cols}
+			if wm := indexWhereRe.FindStringSubmatch(ent.SQL); wm != nil {
+				def.Where = strings.TrimSpace(wm[1])
+			}
+			result = append(result, def)
 		}
 	}
 	e.uniqueIdxCache[tableName] = result
 	return result
 }
 
+// evalIndexWhere evaluates a partial-index predicate against a row.
+// A nil/empty predicate always matches.
+func (e *Engine) evalIndexWhere(whereSQL string, row RowMap) (bool, error) {
+	if strings.TrimSpace(whereSQL) == "" {
+		return true, nil
+	}
+	p := sql.NewParser("SELECT " + whereSQL)
+	stmts := p.Parse()
+	if len(stmts) == 0 {
+		return true, nil
+	}
+	sel, ok := stmts[0].(*sql.SelectStmt)
+	if !ok || len(sel.Columns) == 0 {
+		return true, nil
+	}
+	v, err := e.evalExpr(sel.Columns[0].Expr, row)
+	if err != nil {
+		return true, nil
+	}
+	if v == nil {
+		return false, nil
+	}
+	return toBool(v), nil
+}
+
 // checkUniqueIndex scans the table for a row whose values match the new row
 // on all columns of a UNIQUE index. Returns a SQLite-style error on conflict.
 // NULL values never conflict (SQL UNIQUE allows multiple NULLs).
-func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, idxCols []string) error {
+func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, def uniqueIndexDef) error {
 	colIndex := buildColumnIndex(colDefs)
+	// The new row must itself satisfy the partial-index predicate to be in
+	// the index; otherwise it cannot conflict via this index.
+	row := buildRowMapFromValues(values, colDefs, 0)
+	if inIndex, _ := e.evalIndexWhere(def.Where, row); !inIndex {
+		return nil
+	}
+	idxCols := def.Cols
 	key := make([]interface{}, len(idxCols))
 	for i, cn := range idxCols {
 		idx, ok := colIndex[cn]
@@ -443,20 +490,24 @@ func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.Column
 		if err != nil || rec == nil {
 			break
 		}
-		match := true
-		for i, cn := range idxCols {
-			idx, ok := colIndex[cn]
-			if !ok || idx >= len(rec.Values) || util.CompareValues(rec.Values[idx], key[i]) != 0 {
-				match = false
-				break
-			}
-		}
-		if match {
-			parts := make([]string, len(idxCols))
+		// Only rows that satisfy the partial predicate are in the index.
+		erow := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
+		if inIndex, _ := e.evalIndexWhere(def.Where, erow); inIndex {
+			match := true
 			for i, cn := range idxCols {
-				parts[i] = tableEntry.Name + "." + cn
+				idx, ok := colIndex[cn]
+				if !ok || idx >= len(rec.Values) || util.CompareValues(rec.Values[idx], key[i]) != 0 {
+					match = false
+					break
+				}
 			}
-			return fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(parts, ", "))
+			if match {
+				parts := make([]string, len(idxCols))
+				for i, cn := range idxCols {
+					parts[i] = tableEntry.Name + "." + cn
+				}
+				return fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(parts, ", "))
+			}
 		}
 		ok, err := cursor.Next()
 		if err != nil || !ok {
@@ -468,8 +519,14 @@ func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.Column
 
 // findRowByIndexCols finds a row that matches the given values on every column
 // of the named UNIQUE index. Returns its rowid, values, and true if found.
-func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, idxCols []string) (int64, []interface{}, bool) {
+func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, def uniqueIndexDef) (int64, []interface{}, bool) {
 	colIndex := buildColumnIndex(colDefs)
+	// The new row must itself satisfy the partial-index predicate.
+	row := buildRowMapFromValues(values, colDefs, 0)
+	if inIndex, _ := e.evalIndexWhere(def.Where, row); !inIndex {
+		return 0, nil, false
+	}
+	idxCols := def.Cols
 	key := make([]interface{}, len(idxCols))
 	for i, cn := range idxCols {
 		idx, ok := colIndex[cn]
@@ -492,16 +549,20 @@ func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.Colu
 		if err != nil || rec == nil {
 			break
 		}
-		match := true
-		for i, cn := range idxCols {
-			idx, ok := colIndex[cn]
-			if !ok || idx >= len(rec.Values) || util.CompareValues(rec.Values[idx], key[i]) != 0 {
-				match = false
-				break
+		// Only rows satisfying the partial predicate are in the index.
+		erow := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
+		if inIndex, _ := e.evalIndexWhere(def.Where, erow); inIndex {
+			match := true
+			for i, cn := range idxCols {
+				idx, ok := colIndex[cn]
+				if !ok || idx >= len(rec.Values) || util.CompareValues(rec.Values[idx], key[i]) != 0 {
+					match = false
+					break
+				}
 			}
-		}
-		if match {
-			return cell.RowID, rec.Values, true
+			if match {
+				return cell.RowID, rec.Values, true
+			}
 		}
 		ok, err := cursor.Next()
 		if err != nil || !ok {
@@ -565,8 +626,8 @@ func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entr
 			foundID, foundVals, found = rid, rv, true
 		}
 		if !found {
-			for _, idxCols := range e.uniqueIndexColumns(tableEntry.Name) {
-				if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, idxCols); ok && !seen[rid] {
+			for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
+				if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok && !seen[rid] {
 					foundID, foundVals, found = rid, rv, true
 					break
 				}

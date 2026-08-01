@@ -6,6 +6,7 @@ package nan
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
@@ -179,8 +180,8 @@ func Test_nan(t *testing.T) {
 		}
 		{ // do_test "nan-3.3"
 			// hexio_write test.db 2040 FFF8000000000000 (unsupported command, not transpiled)
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 			if _res.Error != nil {
@@ -189,8 +190,8 @@ func Test_nan(t *testing.T) {
 		}
 		{ // do_test "nan-3.4"
 			// hexio_write test.db 2040 7FF8000000000000 (unsupported command, not transpiled)
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 			if _res.Error != nil {
@@ -199,8 +200,8 @@ func Test_nan(t *testing.T) {
 		}
 		{ // do_test "nan-3.5"
 			// hexio_write test.db 2040 FFFFFFFFFFFFFFFF (unsupported command, not transpiled)
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 			if _res.Error != nil {
@@ -209,8 +210,8 @@ func Test_nan(t *testing.T) {
 		}
 		{ // do_test "nan-3.6"
 			// hexio_write test.db 2040 7FFFFFFFFFFFFFFF (unsupported command, not transpiled)
-			_dbtmp3, err := frigolite.Open("test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT x, typeof(x) FROM t1")
 			if _res.Error != nil {
