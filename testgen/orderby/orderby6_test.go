@@ -97,7 +97,12 @@ func Test_orderby6(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "db eval {SELECT b,a,c FROM t1 ORDER BY +b,+a,+c}"
+				_want1 := db.Query("SELECT b,a,c FROM t1 ORDER BY +b,+a,+c")
+				if _want1.Error != nil {
+					t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT b,a,c FROM t1 ORDER BY +b,+a,+c")
+					return
+				}
+				want := flatten(_want1)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -109,7 +114,12 @@ func Test_orderby6(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "db eval {SELECT b,a,c FROM t1 ORDER BY +b,+c DESC,+a}"
+				_want2 := db.Query("SELECT b,a,c FROM t1 ORDER BY +b,+c DESC,+a")
+				if _want2.Error != nil {
+					t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "SELECT b,a,c FROM t1 ORDER BY +b,+c DESC,+a")
+					return
+				}
+				want := flatten(_want2)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -121,7 +131,12 @@ func Test_orderby6(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "db eval {SELECT b,a,c FROM t1 ORDER BY +b DESC,+c,+a}"
+				_want3 := db.Query("SELECT b,a,c FROM t1 ORDER BY +b DESC,+c,+a")
+				if _want3.Error != nil {
+					t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, "SELECT b,a,c FROM t1 ORDER BY +b DESC,+c,+a")
+					return
+				}
+				want := flatten(_want3)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -133,7 +148,12 @@ func Test_orderby6(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "db eval {SELECT b,a,c FROM t1 ORDER BY +b DESC,+a,+c}"
+				_want4 := db.Query("SELECT b,a,c FROM t1 ORDER BY +b DESC,+a,+c")
+				if _want4.Error != nil {
+					t.Errorf("expected query error: %v\n  sql: %s", _want4.Error, "SELECT b,a,c FROM t1 ORDER BY +b DESC,+a,+c")
+					return
+				}
+				want := flatten(_want4)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -235,17 +255,17 @@ func Test_orderby6(t *testing.T) {
 				}
 			}
 			// foreach {tx limit offset orderby} "\n     1  10 24 {+b,+a}\n     2  10 25 {+b,+a}\n     3  10 26 {+b,+a}\n     4  10 39 {+b,+a}\n     5  10 40 {+b,+a}\n     6  10 41 {+b,+a}\n     7  27 24 {+b,+a}\n     8  27 49 {+b,+a}\n     11 10 24 {+b DESC,+a}\n     12 10 25 {+b DESC,+a}\n     13 10 26 {+b DESC,+a}\n     14 10 39 {+b DESC,+a}\n     15 10 40 {+b DESC,+a}\n     16 10 41 {+b DESC,+a}\n     17 27 24 {+b DESC,+a}\n     18 27 49 {+b DESC,+a}\n     21 10 24 {+b,+a DESC}\n     22 10 25 {+b,+a DESC}\n     23 10 26 {+b,+a DESC}\n     24 10 39 {+b,+a DESC}\n     25 10 40 {+b,+a DESC}\n     26 10 41 {+b,+a DESC}\n     27 27 24 {+b,+a DESC}\n     28 27 49 {+b,+a DESC}\n     31 10 24 {+b DESC,+a DESC}\n     32 10 25 {+b DESC,+a DESC}\n     33 10 26 {+b DESC,+a DESC}\n     34 10 39 {+b DESC,+a DESC}\n     35 10 40 {+b DESC,+a DESC}\n     36 10 41 {+b DESC,+a DESC}\n     37 27 24 {+b DESC,+a DESC}\n     38 27 49 {+b DESC,+a DESC}\n  "
-			_items1 := tclSplitList("\n     1  10 24 {+b,+a}\n     2  10 25 {+b,+a}\n     3  10 26 {+b,+a}\n     4  10 39 {+b,+a}\n     5  10 40 {+b,+a}\n     6  10 41 {+b,+a}\n     7  27 24 {+b,+a}\n     8  27 49 {+b,+a}\n     11 10 24 {+b DESC,+a}\n     12 10 25 {+b DESC,+a}\n     13 10 26 {+b DESC,+a}\n     14 10 39 {+b DESC,+a}\n     15 10 40 {+b DESC,+a}\n     16 10 41 {+b DESC,+a}\n     17 27 24 {+b DESC,+a}\n     18 27 49 {+b DESC,+a}\n     21 10 24 {+b,+a DESC}\n     22 10 25 {+b,+a DESC}\n     23 10 26 {+b,+a DESC}\n     24 10 39 {+b,+a DESC}\n     25 10 40 {+b,+a DESC}\n     26 10 41 {+b,+a DESC}\n     27 27 24 {+b,+a DESC}\n     28 27 49 {+b,+a DESC}\n     31 10 24 {+b DESC,+a DESC}\n     32 10 25 {+b DESC,+a DESC}\n     33 10 26 {+b DESC,+a DESC}\n     34 10 39 {+b DESC,+a DESC}\n     35 10 40 {+b DESC,+a DESC}\n     36 10 41 {+b DESC,+a DESC}\n     37 27 24 {+b DESC,+a DESC}\n     38 27 49 {+b DESC,+a DESC}\n  ")
-			for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
-				tx := _items1[_idx1+0]
+			_items5 := tclSplitList("\n     1  10 24 {+b,+a}\n     2  10 25 {+b,+a}\n     3  10 26 {+b,+a}\n     4  10 39 {+b,+a}\n     5  10 40 {+b,+a}\n     6  10 41 {+b,+a}\n     7  27 24 {+b,+a}\n     8  27 49 {+b,+a}\n     11 10 24 {+b DESC,+a}\n     12 10 25 {+b DESC,+a}\n     13 10 26 {+b DESC,+a}\n     14 10 39 {+b DESC,+a}\n     15 10 40 {+b DESC,+a}\n     16 10 41 {+b DESC,+a}\n     17 27 24 {+b DESC,+a}\n     18 27 49 {+b DESC,+a}\n     21 10 24 {+b,+a DESC}\n     22 10 25 {+b,+a DESC}\n     23 10 26 {+b,+a DESC}\n     24 10 39 {+b,+a DESC}\n     25 10 40 {+b,+a DESC}\n     26 10 41 {+b,+a DESC}\n     27 27 24 {+b,+a DESC}\n     28 27 49 {+b,+a DESC}\n     31 10 24 {+b DESC,+a DESC}\n     32 10 25 {+b DESC,+a DESC}\n     33 10 26 {+b DESC,+a DESC}\n     34 10 39 {+b DESC,+a DESC}\n     35 10 40 {+b DESC,+a DESC}\n     36 10 41 {+b DESC,+a DESC}\n     37 27 24 {+b DESC,+a DESC}\n     38 27 49 {+b DESC,+a DESC}\n  ")
+			for _idx5 := 0; _idx5+4 <= len(_items5); _idx5 += 4 {
+				tx := _items5[_idx5+0]
 				_ = tx // suppress unused warning
-				limit := _items1[_idx1+1]
+				limit := _items5[_idx5+1]
 				_ = limit // suppress unused warning
-				offset := _items1[_idx1+2]
+				offset := _items5[_idx5+2]
 				_ = offset // suppress unused warning
-				orderby := _items1[_idx1+3]
+				orderby := _items5[_idx5+3]
 				_ = orderby // suppress unused warning
-				_ = _idx1
+				_ = _idx5
 					sql1 = "SELECT a FROM t1 ORDER BY " + orderby + " LIMIT " + limit + " OFFSET " + offset + ";"
 					_ = sql1 // suppress unused warning
 					sql2 = strings.ReplaceAll(sql1, "+", "{}")
@@ -274,7 +294,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;}"
+					_want6 := db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+					if _want6.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want6.Error, "SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+						return
+					}
+					want := flatten(_want6)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -286,7 +311,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;}"
+					_want7 := db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+					if _want7.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want7.Error, "SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+						return
+					}
+					want := flatten(_want7)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -298,7 +328,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;}"
+					_want8 := db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+					if _want8.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want8.Error, "SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+						return
+					}
+					want := flatten(_want8)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -310,7 +345,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;}"
+					_want9 := db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+					if _want9.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want9.Error, "SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+						return
+					}
+					want := flatten(_want9)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -322,7 +362,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;}"
+					_want10 := db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+					if _want10.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want10.Error, "SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
+						return
+					}
+					want := flatten(_want10)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -334,7 +379,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f DESC;}"
+					_want11 := db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f DESC;")
+					if _want11.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want11.Error, "SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f DESC;")
+						return
+					}
+					want := flatten(_want11)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -346,7 +396,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c,+d,+e DESC,+f;}"
+					_want12 := db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e DESC,+f;")
+					if _want12.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want12.Error, "SELECT a FROM t2 ORDER BY +b,+c,+d,+e DESC,+f;")
+						return
+					}
+					want := flatten(_want12)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -358,7 +413,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c,+d DESC,+e,+f;}"
+					_want13 := db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d DESC,+e,+f;")
+					if _want13.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want13.Error, "SELECT a FROM t2 ORDER BY +b,+c,+d DESC,+e,+f;")
+						return
+					}
+					want := flatten(_want13)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -370,7 +430,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c DESC,+d,+e,+f;}"
+					_want14 := db.Query("SELECT a FROM t2 ORDER BY +b,+c DESC,+d,+e,+f;")
+					if _want14.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want14.Error, "SELECT a FROM t2 ORDER BY +b,+c DESC,+d,+e,+f;")
+						return
+					}
+					want := flatten(_want14)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -382,7 +447,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b DESC,+c,+d,+e,+f;}"
+					_want15 := db.Query("SELECT a FROM t2 ORDER BY +b DESC,+c,+d,+e,+f;")
+					if _want15.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want15.Error, "SELECT a FROM t2 ORDER BY +b DESC,+c,+d,+e,+f;")
+						return
+					}
+					want := flatten(_want15)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -394,7 +464,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b DESC,+c DESC,+d,+e,+f LIMIT 31}"
+					_want16 := db.Query("SELECT a FROM t2 ORDER BY +b DESC,+c DESC,+d,+e,+f LIMIT 31")
+					if _want16.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want16.Error, "SELECT a FROM t2 ORDER BY +b DESC,+c DESC,+d,+e,+f LIMIT 31")
+						return
+					}
+					want := flatten(_want16)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -406,7 +481,12 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "db eval {SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f DESC LIMIT 8 OFFSET 7}"
+					_want17 := db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f DESC LIMIT 8 OFFSET 7")
+					if _want17.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want17.Error, "SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f DESC LIMIT 8 OFFSET 7")
+						return
+					}
+					want := flatten(_want17)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

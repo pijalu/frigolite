@@ -522,6 +522,9 @@ func (e *Engine) resolveDB(name string) (ctx *DatabaseContext, object string) {
 // If the name has a schema prefix (e.g. "aux.t3"), it searches only that database.
 // If no schema prefix, it searches main first, then attached databases.
 func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error) {
+	if strings.Contains(name, "{") {
+		fmt.Printf("DBG findTable called with %q\n", name)
+	}
 	// Check table cache first
 	if cached, ok := e.tableCache[name]; ok {
 		return cached.entry, cached.ctx, nil

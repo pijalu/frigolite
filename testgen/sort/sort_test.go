@@ -513,7 +513,12 @@ func Test_sort(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval {SELECT a, b FROM t10 ORDER BY a, b}"
+		_want1 := db.Query("SELECT a, b FROM t10 ORDER BY a, b")
+		if _want1.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT a, b FROM t10 ORDER BY a, b")
+			return
+		}
+		want := flatten(_want1)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -525,29 +530,34 @@ func Test_sort(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval {SELECT a, b FROM t10 ORDER BY a, b}"
+		_want2 := db.Query("SELECT a, b FROM t10 ORDER BY a, b")
+		if _want2.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "SELECT a, b FROM t10 ORDER BY a, b")
+			return
+		}
+		want := flatten(_want2)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore coremutex fakeheap softheaplimit} "\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n"
-	_items1 := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
-	for _idx1 := 0; _idx1+7 <= len(_items1); _idx1 += 7 {
-		tn := _items1[_idx1+0]
+	_items3 := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
+	for _idx3 := 0; _idx3+7 <= len(_items3); _idx3 += 7 {
+		tn := _items3[_idx3+0]
 		_ = tn // suppress unused warning
-		mmap_limit := _items1[_idx1+1]
+		mmap_limit := _items3[_idx3+1]
 		_ = mmap_limit // suppress unused warning
-		nWorker := _items1[_idx1+2]
+		nWorker := _items3[_idx3+2]
 		_ = nWorker // suppress unused warning
-		tmpstore := _items1[_idx1+3]
+		tmpstore := _items3[_idx3+3]
 		_ = tmpstore // suppress unused warning
-		coremutex := _items1[_idx1+4]
+		coremutex := _items3[_idx3+4]
 		_ = coremutex // suppress unused warning
-		fakeheap := _items1[_idx1+5]
+		fakeheap := _items3[_idx3+5]
 		_ = fakeheap // suppress unused warning
-		softheaplimit := _items1[_idx1+6]
+		softheaplimit := _items3[_idx3+6]
 		_ = softheaplimit // suppress unused warning
-		_ = _idx1
+		_ = _idx3
 			// sqlite3_shutdown (unsupported command, not transpiled)
 			if tclBool(coremutex) {
 				// sqlite3_config multithread (unsupported command, not transpiled)

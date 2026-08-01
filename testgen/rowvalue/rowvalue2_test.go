@@ -156,7 +156,12 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval { SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2) }"
+		_want0 := db.Query("SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2)")
+		if _want0.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, "SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2)")
+			return
+		}
+		want := flatten(_want0)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -168,7 +173,12 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval { SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2) }"
+		_want1 := db.Query("SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2)")
+		if _want1.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2)")
+			return
+		}
+		want := flatten(_want1)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -180,7 +190,12 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval { SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2)) }"
+		_want2 := db.Query("SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2))")
+		if _want2.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2))")
+			return
+		}
+		want := flatten(_want2)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -192,7 +207,12 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval { SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2)) }"
+		_want3 := db.Query("SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2))")
+		if _want3.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, "SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2))")
+			return
+		}
+		want := flatten(_want3)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -219,13 +239,13 @@ func Test_rowvalue2(t *testing.T) {
 		}
 	}
 	// foreach {tn idx} "\n  IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }\n"
-	_items0 := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items4 := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }\n")
+	for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+		tn := _items4[_idx4+0]
 		_ = tn // suppress unused warning
-		idx := _items0[_idx0+1]
+		idx := _items4[_idx4+1]
 		_ = idx // suppress unused warning
-		_ = _idx0
+		_ = _idx4
 			_res = db.Exec(" DROP INDEX IF EXISTS i3 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i3 ")
@@ -269,13 +289,13 @@ func Test_rowvalue2(t *testing.T) {
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
 		// foreach {tn idx} "\n  IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }\n"
-		_items1 := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }\n")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn := _items1[_idx1+0]
+		_items5 := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }\n")
+		for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+			tn := _items5[_idx5+0]
 			_ = tn // suppress unused warning
-			idx := _items1[_idx1+1]
+			idx := _items5[_idx5+1]
 			_ = idx // suppress unused warning
-			_ = _idx1
+			_ = _idx5
 				_res = db.Exec(" DROP INDEX IF EXISTS i4 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i4 ")
@@ -285,13 +305,13 @@ func Test_rowvalue2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 				}
 				// foreach {tn2 vector} "\n    1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}\n  "
-				_items2 := tclSplitList("\n    1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}\n  ")
-				for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-					tn2 := _items2[_idx2+0]
+				_items6 := tclSplitList("\n    1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}\n  ")
+				for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
+					tn2 := _items6[_idx6+0]
 					_ = tn2 // suppress unused warning
-					vector := _items2[_idx2+1]
+					vector := _items6[_idx6+1]
 					_ = vector // suppress unused warning
-					_ = _idx2
+					_ = _idx6
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
 						_ = op // suppress unused warning
 							e1 = "make_expr1 {a b c} $vector $op"
@@ -320,15 +340,15 @@ func Test_rowvalue2(t *testing.T) {
 					}
 				}
 				// foreach {tn lhs rhs} "\n  1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}\n"
-				_items3 := tclSplitList("\n  1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}\n")
-				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-					tn := _items3[_idx3+0]
+				_items7 := tclSplitList("\n  1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}\n")
+				for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
+					tn := _items7[_idx7+0]
 					_ = tn // suppress unused warning
-					lhs := _items3[_idx3+1]
+					lhs := _items7[_idx7+1]
 					_ = lhs // suppress unused warning
-					rhs := _items3[_idx3+2]
+					rhs := _items7[_idx7+2]
 					_ = rhs // suppress unused warning
-					_ = _idx3
+					_ = _idx7
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
 						_ = op // suppress unused warning
 							e1 = "make_expr1 $lhs $rhs $op"
@@ -342,7 +362,12 @@ func Test_rowvalue2(t *testing.T) {
 									return
 								}
 								got := flatten(r)
-								want := "db eval \\\n      \"SELECT * FROM r1, r2 WHERE $e1 ORDER BY iB\""
+								_want8 := db.Query("\\\n      \"SELECT * FROM r1, r2 WHERE $e1 ORDER BY iB\"")
+								if _want8.Error != nil {
+									t.Errorf("expected query error: %v\n  sql: %s", _want8.Error, "\\\n      \"SELECT * FROM r1, r2 WHERE $e1 ORDER BY iB\"")
+									return
+								}
+								want := flatten(_want8)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}

@@ -2893,6 +2893,7 @@ func (p *Parser) parseAlterAdd(s *AlterTableStmt) {
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
 		start, end := p.computeTokenBounds()
 		s.Column = p.cur.Value
+		s.ColDef.Name = p.cur.Value
 		s.ColumnTok = TokenInfo{Start: start, End: end}
 		p.next()
 	}
@@ -4122,8 +4123,9 @@ func (p *Parser) parseWindowClause() (over *WindowDef, filter Expr) {
 
 // skipWindowClause skips window function clauses (OVER, FILTER, WITHIN GROUP)
 // after a function call. This is a stub: the window clause is parsed but not
-//lint:ignore U1000 Parser utility for future use
 // semantically analyzed.
+//
+//lint:ignore U1000 Parser utility for future use
 func (p *Parser) skipWindowClause() {
 	if p.cur.Type == TokenKeyword && p.cur.Value == "OVER" {
 		p.next() // skip OVER

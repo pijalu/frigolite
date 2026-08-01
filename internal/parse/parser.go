@@ -631,9 +631,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		return joinOp{Kind: "INNER"}
 
-	// Rule 122: joinop ::= JOIN_KW JOIN
+	// Rule 122: fullname ::= nm AS nm — table alias. The value is the
+	// TABLE NAME (the alias is consumed); the join-op productions are
+	// separate (rules 124+).
 	case 122:
-		return joinOp{Kind: joinKind(getRHS(p, ruleNo, 1))}
+		return getString(getRHS(p, ruleNo, 1))
 
 	// Rule 123: joinop ::= JOIN_KW nm JOIN
 	case 123:

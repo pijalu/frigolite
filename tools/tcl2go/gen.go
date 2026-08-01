@@ -757,6 +757,23 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 	return tcl.RawWord{Text: strings.Join(fields, " "), Braced: true}
 }
 
+// dbEvalExpected detects the TCL "[db eval { SQL }]" pattern used as a
+// do_test expected value and returns the SQL to run (the query result,
+// flattened, is the expected value).
+func dbEvalExpected(w tcl.RawWord) (string, bool) {
+	text := strings.TrimSpace(w.Text)
+	if strings.HasPrefix(text, "[db eval ") && strings.HasSuffix(text, "]") {
+		inner := strings.TrimSpace(text[len("[db eval ") : len(text)-1])
+		if strings.HasPrefix(inner, "{") && strings.HasSuffix(inner, "}") {
+			inner = strings.TrimSpace(inner[1 : len(inner)-1])
+		}
+		if inner != "" {
+			return inner, true
+		}
+	}
+	return "", false
+}
+
 func (tp *transpiler) buildStringExpr(s string) string {
 	// Quick scan: if no $ or [ or \, just quote it
 	simple := true
@@ -1406,6 +1423,19 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 			tp.emitLine("wantPattern := %s", patternExpr)
 			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
 			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
+			tp.emitLine("}")
+		} else if dbEvalSQL, ok := dbEvalExpected(args[2]); ok {
+			// [db eval { SQL }] — run the query at runtime for the expected value.
+			wantVar := fmt.Sprintf("_want%d", tp.varCount)
+			tp.varCount++
+			tp.emitLine("%s := db.Query(%s)", wantVar, fmt.Sprintf("%q", dbEvalSQL))
+			tp.emitLine("if %s.Error != nil {", wantVar)
+			tp.emitLine("\tt.Errorf(\"expected query error: %%v\\n  sql: %%s\", %s.Error, %s)", wantVar, fmt.Sprintf("%q", dbEvalSQL))
+			tp.emitLine("\treturn")
+			tp.emitLine("}")
+			tp.emitLine("want := flatten(%s)", wantVar)
+			tp.emitLine("if got != want {")
+			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 			tp.emitLine("}")
 		} else {
 			tp.emitLine("want := %s", expectedExpr)

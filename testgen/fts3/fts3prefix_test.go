@@ -295,7 +295,12 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval {SELECT md5sum(quote(root)) FROM t2_segdir}"
+		_want0 := db.Query("SELECT md5sum(quote(root)) FROM t2_segdir")
+		if _want0.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, "SELECT md5sum(quote(root)) FROM t2_segdir")
+			return
+		}
+		want := flatten(_want0)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -316,7 +321,12 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval {SELECT md5sum(quote(root)) FROM t2_segdir}"
+		_want1 := db.Query("SELECT md5sum(quote(root)) FROM t2_segdir")
+		if _want1.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT md5sum(quote(root)) FROM t2_segdir")
+			return
+		}
+		want := flatten(_want1)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -353,7 +363,12 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval {SELECT md5sum(quote(root)) FROM t2_segdir}"
+		_want2 := db.Query("SELECT md5sum(quote(root)) FROM t2_segdir")
+		if _want2.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "SELECT md5sum(quote(root)) FROM t2_segdir")
+			return
+		}
+		want := flatten(_want2)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -374,7 +389,12 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval {SELECT md5sum(quote(root)) FROM t2_segdir}"
+		_want3 := db.Query("SELECT md5sum(quote(root)) FROM t2_segdir")
+		if _want3.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, "SELECT md5sum(quote(root)) FROM t2_segdir")
+			return
+		}
+		want := flatten(_want3)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

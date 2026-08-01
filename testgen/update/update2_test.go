@@ -83,7 +83,12 @@ func Test_update2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval { SELECT a, repeat(b, 100) FROM t2 }"
+		_want0 := db.Query("SELECT a, repeat(b, 100) FROM t2")
+		if _want0.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, "SELECT a, repeat(b, 100) FROM t2")
+			return
+		}
+		want := flatten(_want0)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -107,7 +112,12 @@ func Test_update2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "db eval { SELECT a, repeat(b, 100) FROM t2 }"
+		_want1 := db.Query("SELECT a, repeat(b, 100) FROM t2")
+		if _want1.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT a, repeat(b, 100) FROM t2")
+			return
+		}
+		want := flatten(_want1)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -149,13 +159,13 @@ func Test_update2(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }\n"
-	_items0 := tclSplitList("\n  1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items2 := tclSplitList("\n  1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }\n")
+	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items2[_idx2+1]
 		_ = sql // suppress unused warning
-		_ = _idx0
+		_ = _idx2
 			_res = db.Exec(" DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1; ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1; ")

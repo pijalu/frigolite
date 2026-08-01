@@ -37,14 +37,6 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	// UPDATE OR REPLACE: delete rows that conflict with the new values before
-	// applying the update (fires BEFORE/AFTER DELETE triggers for each).
-	if strings.EqualFold(s.OnConflict, "REPLACE") {
-		if res := e.resolveUpdateConflicts(tableEntry, colDefs, changes); res.Error != nil {
-			return res
-		}
-	}
-
 	// Handle RETURNING clause — evaluate against updated rows before applying
 	var returningRows [][]interface{}
 	if s.HasReturning {
@@ -58,7 +50,19 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 		}
 	}
 
-	result := e.applyUpdateChanges(tableEntry.RootPage, changes)
+	var result *Result
+	if strings.EqualFold(s.OnConflict, "REPLACE") {
+		// UPDATE OR REPLACE: apply each change incrementally, deleting
+		// conflicting rows (with DELETE triggers) as we go.
+		result = e.applyUpdateReplace(tableEntry, colDefs, changes)
+	} else {
+		// Plain UPDATE: check UNIQUE/PK constraints on the new values
+		// (SQLite errors on conflicts; there is no REPLACE resolution).
+		if res := e.checkUpdateConflicts(tableEntry, colDefs, changes); res.Error != nil {
+			return res
+		}
+		result = e.applyUpdateChanges(tableEntry.RootPage, changes)
+	}
 	if result.Error != nil {
 		return result
 	}
@@ -310,4 +314,249 @@ func (e *Engine) resolveUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.
 		}
 	}
 	return &Result{}
+}
+
+// applyUpdateReplace implements UPDATE OR REPLACE by processing each change
+// incrementally (matching SQLite's row-by-row semantics): for each row, delete
+// other rows whose values conflict with the row's NEW values on a UNIQUE/
+// PRIMARY KEY column or UNIQUE index (firing BEFORE/AFTER DELETE triggers),
+// then delete the row itself and insert its new version. Processing in order
+// lets later changes see earlier applied rows, so conflicts between updated
+// rows are resolved too (e.g. UPDATE OR REPLACE SET x=1 on two NULL rows).
+func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
+	colIndex := buildColumnIndex(colDefs)
+	var uniqueCols []int
+	for i, cd := range colDefs {
+		if cd.Unique || cd.PrimaryKey {
+			uniqueCols = append(uniqueCols, i)
+		}
+	}
+	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	hasTriggers := e.hasTriggersForTable(tableEntry.Name)
+	changesMade := int64(0)
+
+	for _, c := range changes {
+		type conflictInfo struct {
+			rowID  int64
+			values []interface{}
+		}
+		var conflicts []conflictInfo
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return &Result{Error: err}
+		}
+		for {
+			cell, err := cursor.ReadCell()
+			if err != nil || cell == nil {
+				break
+			}
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil || rec == nil {
+				break
+			}
+			if cell.RowID == c.rowID {
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+				continue
+			}
+			conflict := false
+			for _, idx := range uniqueCols {
+				if idx < len(rec.Values) && idx < len(c.values) {
+					if rec.Values[idx] == nil || c.values[idx] == nil {
+						continue
+					}
+					if util.CompareValues(rec.Values[idx], c.values[idx]) == 0 {
+						conflict = true
+						break
+					}
+				}
+			}
+			if !conflict {
+				for _, def := range idxColsList {
+					nrow := buildRowMapFromValues(c.values, colDefs, c.rowID)
+					if inIndex, _ := e.evalIndexWhere(def.Where, nrow); !inIndex {
+						continue
+					}
+					orow := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
+					if inIndex, _ := e.evalIndexWhere(def.Where, orow); !inIndex {
+						continue
+					}
+					match := true
+					for _, cn := range def.Cols {
+						idx, ok := colIndex[cn]
+						if !ok || idx >= len(rec.Values) || idx >= len(c.values) || rec.Values[idx] == nil || c.values[idx] == nil || util.CompareValues(rec.Values[idx], c.values[idx]) != 0 {
+							match = false
+							break
+						}
+					}
+					if match {
+						conflict = true
+						break
+					}
+				}
+			}
+			if conflict {
+				conflicts = append(conflicts, conflictInfo{cell.RowID, rec.Values})
+			}
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
+		}
+
+		for _, cf := range conflicts {
+			oldRow := buildRowMapFromValues(cf.values, colDefs, cf.rowID)
+			if hasTriggers {
+				if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+					return trigResult
+				}
+			}
+			if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+				return cell.RowID == cf.rowID
+			}); err != nil {
+				return &Result{Error: err}
+			}
+			if hasTriggers {
+				if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+					return trigResult
+				}
+			}
+		}
+
+		// Delete the row being updated (no DELETE trigger: this is the UPDATE
+		// itself, not a conflict-replacement) and insert its new version.
+		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			return cell.RowID == c.rowID
+		}); err != nil {
+			return &Result{Error: err}
+		}
+		newRecord, err := storage.EncodeRecord(c.values)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		newCell := &storage.Cell{
+			Type:    storage.CellTableLeaf,
+			RowID:   c.rowID,
+			Payload: newRecord,
+		}
+		if err := tree.InsertCell(newCell); err != nil {
+			return &Result{Error: err}
+		}
+		changesMade++
+	}
+	return &Result{Changes: changesMade}
+}
+
+// valuesConflict reports whether two value sets conflict on any UNIQUE/PRIMARY
+// KEY column or UNIQUE index (partial-index predicates evaluated).
+func (e *Engine) valuesConflict(a, b []interface{}, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) bool {
+	for _, idx := range uniqueCols {
+		if idx < len(a) && idx < len(b) {
+			if a[idx] == nil || b[idx] == nil {
+				continue
+			}
+			if util.CompareValues(a[idx], b[idx]) == 0 {
+				return true
+			}
+		}
+	}
+	for _, def := range idxColsList {
+		arow := buildRowMapFromValues(a, colDefs, 0)
+		if inIndex, _ := e.evalIndexWhere(def.Where, arow); !inIndex {
+			continue
+		}
+		brow := buildRowMapFromValues(b, colDefs, 0)
+		if inIndex, _ := e.evalIndexWhere(def.Where, brow); !inIndex {
+			continue
+		}
+		match := true
+		for _, cn := range def.Cols {
+			idx, ok := colIndex[cn]
+			if !ok || idx >= len(a) || idx >= len(b) || a[idx] == nil || b[idx] == nil || util.CompareValues(a[idx], b[idx]) != 0 {
+				match = false
+				break
+			}
+		}
+		if match {
+			return true
+		}
+	}
+	return false
+}
+
+// checkUpdateConflicts validates that an UPDATE's new values do not violate
+// UNIQUE/PRIMARY KEY constraints against non-updated rows or other updated
+// rows. SQLite checks constraints per-row during UPDATE (a plain UPDATE has no
+// OR REPLACE resolution, so a conflict is an error).
+func (e *Engine) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
+	colIndex := buildColumnIndex(colDefs)
+	var uniqueCols []int
+	for i, cd := range colDefs {
+		if cd.Unique || cd.PrimaryKey {
+			uniqueCols = append(uniqueCols, i)
+		}
+	}
+	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	if len(uniqueCols) == 0 && len(idxColsList) == 0 {
+		return &Result{}
+	}
+	changed := make(map[int64]bool, len(changes))
+	for _, c := range changes {
+		changed[c.rowID] = true
+	}
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	for _, c := range changes {
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return &Result{Error: err}
+		}
+		for {
+			cell, err := cursor.ReadCell()
+			if err != nil || cell == nil {
+				break
+			}
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil || rec == nil {
+				break
+			}
+			if !changed[cell.RowID] && e.valuesConflict(rec.Values, c.values, colDefs, colIndex, uniqueCols, idxColsList) {
+				return &Result{Error: e.uniqueConflictError(tableEntry.Name, colDefs, colIndex, rec.Values, c.values, uniqueCols, idxColsList)}
+			}
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
+		}
+	}
+	for i := 0; i < len(changes); i++ {
+		for j := i + 1; j < len(changes); j++ {
+			if e.valuesConflict(changes[i].values, changes[j].values, colDefs, colIndex, uniqueCols, idxColsList) {
+				return &Result{Error: e.uniqueConflictError(tableEntry.Name, colDefs, colIndex, changes[i].values, changes[j].values, uniqueCols, idxColsList)}
+			}
+		}
+	}
+	return &Result{}
+}
+
+// uniqueConflictError builds a SQLite-style UNIQUE constraint error for the
+// first conflicting column.
+func (e *Engine) uniqueConflictError(tableName string, colDefs []sql.ColumnDef, colIndex map[string]int, a, b []interface{}, uniqueCols []int, idxColsList []uniqueIndexDef) error {
+	for _, idx := range uniqueCols {
+		if idx < len(a) && idx < len(b) && a[idx] != nil && b[idx] != nil && util.CompareValues(a[idx], b[idx]) == 0 {
+			return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableName, colDefs[idx].Name)
+		}
+	}
+	for _, def := range idxColsList {
+		if e.valuesConflict(a, b, colDefs, colIndex, nil, []uniqueIndexDef{def}) {
+			parts := make([]string, len(def.Cols))
+			for i, cn := range def.Cols {
+				parts[i] = tableName + "." + cn
+			}
+			return fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(parts, ", "))
+		}
+	}
+	return fmt.Errorf("UNIQUE constraint failed: %s", tableName)
 }
