@@ -398,3 +398,64 @@ go test -tags testgen ./testgen/{insert,delete_,update,null,types,coalesce,liter
 go test -run TestSOLID_ ./... -count=1
 bash scripts/verify_tier.sh 1   # full tier
 ```
+
+---
+
+## 5. How databases are created / deleted (TCL vs generated Go)
+
+Companion clarification (2026-08-01): the TCL test framework creates and
+destroys SQLite connections and database files in well-defined ways; the
+tcl2go transpiler maps each to a frigolite call. The testgen tree accumulates
+`*.db` files at runtime — they are **gitignored artifacts** (`.gitignore`
+has `*.db`; `git ls-files | grep '\.db$'` = 0 tracked), safe to delete, and
+regenerated on the next test run. This section documents the full lifecycle.
+
+### TCL side (tester.tcl)
+
+| TCL | What it does |
+|---|---|
+| `sqlite3 db :memory:` | Open a new in-memory connection named `db` (wraps `sqlite_orig` via `proc sqlite3`, tester.tcl:116). |
+| `sqlite3 db ./test.db` / `sqlite3 db test.db` | Open an on-disk connection (creates the file if absent). |
+| `sqlite3 db2 <file>` (and db3, db4, ...) | Open secondary connections (multi-db tests). |
+| `db close` | Close the `db` connection. |
+| `forcedelete test.db` (and `-journal`/`-wal`) | Delete the file from disk; `proc forcedelete` → `do_delete_file true`, tester.tcl:272. |
+| `reset_db` | `catch {db close}` + `forcedelete test.db test.db-journal test.db-wal` + `sqlite3 db ./test.db` (+ optional `$::SETUP_SQL`), tester.tcl:551. Called once at the top of every test. |
+| `drop_all_tables {db}` | Drop every user table (disables foreign_keys during the drop), tester.tcl:2254. |
+| `finish_test` | Closes the db and reports the pass/fail summary. |
+| `ifcapable` / `sqlite3_db_config` / `sqlite3_limit` | Conditional/infrastructure commands (mostly no-op'd by tcl2go). |
+
+### Generated Go side (tools/tcl2go/gen.go)
+
+| TCL | Generated Go |
+|---|---|
+| `sqlite3 db :memory:` (or `""`) | `db, err = frigolite.Open("")` — main connection, always **in-memory** (gen.go `processSqlite3`). |
+| `sqlite3 db ./test.db` (file) | `db, err = frigolite.Open("")` — **in-memory, not a file**; the compat suite deliberately keeps tests in-memory (gen.go comment: "Reopening a FILE database is a no-op"). |
+| `forcedelete test.db; sqlite3 db test.db` | `os.Remove(...)` then the next `Open` uses `Open("")` (gen.go `pendingFileReset`). |
+| `sqlite3 db2 <file>` (secondary) | `db2, err := frigolite.Open(<file>)` + `defer db2.Close()` — the ONLY path that keeps a filename, which is what creates stray `.db` files (e.g. `_dbtmp0, err := frigolite.Open("test.db")` in like_test.go:554). |
+| `db close` | `db.Close()` (gen.go `processClose`). |
+| `reset_db` | `db.Close()` + `db, err = frigolite.Open("")` (gen.go case `reset_db`). |
+| `drop_all_tables` | `for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows { db.Exec("DROP TABLE " + fmt.Sprint(_t[0])) }` (gen.go case `drop_all_tables`). |
+| `finish_test` | No-op (deferred `db.Close()` from the initial open handles cleanup). |
+
+### Consequences / notes for Tier 1 work
+
+1. **Stray `*.db` files are runtime artifacts.** They appear because secondary
+ connections keep the filename (like_test.go:554 `_dbtmp0,
+ frigolite.Open("test.db")`). They are gitignored; delete freely, e.g.
+ `find testgen -name '*.db' -delete` (214 files removed 2026-08-01).
+ Verified: `go test -tags testgen ./testgen/like/` fails identically with
+ and without `testgen/like/test.db` — pre-existing engine issues, not the
+ cleanup.
+2. **Main-connection semantics are already correct**: `sqlite3 db :memory:`
+ and `sqlite3 db ./test.db` both map to `frigolite.Open("")`, so Tier 1
+ tests exercise in-memory storage — matching the TCL intent for the compat
+ suite.
+3. **If a real on-disk test ever needs a file**, the harness currently has no
+ reliable file-backed path for the MAIN connection (only secondary dbN vars
+ keep filenames). Do not rely on file persistence in Tier 1 fixes.
+4. `drop_all_tables` (the 2026-08-01 transpiler addition) drops user tables
+ but not views/triggers/indexes; the TCL version drops all object types.
+ If a future package needs full object cleanup, extend the generated loop
+ to cover `sqlite_schema.type IN ('table','view','trigger','index')` with
+ `DROP VIEW/TRIGGER/INDEX` as appropriate (or a single `DROP <type>` using
+ the recorded type).
