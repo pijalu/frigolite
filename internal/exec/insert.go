@@ -804,6 +804,38 @@ func (e *Engine) findRowByUniqueCols(tableName string, rootPage uint32, colDefs 
 		return 0, nil, -1, false
 	}
 
+	// Fast path: when the only unique column is an INTEGER PRIMARY KEY, the
+	// column value IS the rowid, so a conflict can be detected with a direct
+	// rowid seek instead of a full-table scan. This matters for large tables
+	// (e.g. delete3.test doubles a table via INSERT...SELECT 20 times) where
+	// scanning per-row would be O(n²).
+	if len(uniqueCols) == 1 {
+		idx := uniqueCols[0]
+		cd := colDefs[idx]
+		if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
+			if v, ok := values[idx].(int64); ok {
+				tree := e.tableBTree(tableName, rootPage, true)
+				cursor, err := tree.OpenCursor()
+				if err != nil {
+					return 0, nil, -1, false
+				}
+				found, err := cursor.SeekToRowID(v)
+				if err != nil || !found {
+					return 0, nil, -1, false
+				}
+				cell, err := cursor.ReadCell()
+				if err != nil || cell == nil {
+					return 0, nil, -1, false
+				}
+				rec, err := storage.DecodeRecord(cell.Payload)
+				if err != nil || rec == nil {
+					return 0, nil, -1, false
+				}
+				return cell.RowID, rec.Values, idx, true
+			}
+		}
+	}
+
 	tree := e.tableBTree(tableName, rootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {

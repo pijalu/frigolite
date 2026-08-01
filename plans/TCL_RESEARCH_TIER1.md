@@ -4,6 +4,7 @@
 **Package list**: `plans/PACKAGES_TIER1.txt` (58 packages)
 **Measured this session** (`go test -tags testgen -count=1 -timeout 90s` per package, parallel sweep):
 **27 PASS / 31 FAIL** — identical FAIL set to `plans/HANDOVER_TIER1.md`.
+**Progress**: T1.1 DONE (delete3 green 2.9s) — remaining 28 FAIL pending (delete3 fixed).
 
 - **PASS (27)**: insert, delete_, update, null, types, coalesce, literal, select2,
   select3, select4, select5, select6, select8, select9, selectB, selectE, selectF,
@@ -54,7 +55,7 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 | T1.29 | selectH counter() helper + view-over-compound | selectH | engine+harness | `go test -tags testgen ./testgen/selectH/ -count=1` |
 
 ### Status
-- [ ] T1.1
+- [x] T1.1 — delete3 hang: INTEGER PK direct-seek + single-pass delete (commit pending)
 - [ ] T1.2
 - [ ] T1.3
 - [ ] T1.4

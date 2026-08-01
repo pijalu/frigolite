@@ -60,18 +60,25 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		}
 	}
 
-	// Delete the matching cells.
+	// Delete the matching cells in a single pass. Calling DeleteCellsWhere
+	// per-row is O(n²): each call scans the entire tree for one rowid
+	// (delete3.test deletes 262144 rows this way and hangs).
 	deleted := int64(0)
-	for _, row := range deletedRows {
-		rowID := row["rowid"]
-		rid, _ := rowID.(int64)
+	if len(deletedRows) > 0 {
+		rowIDs := make(map[int64]struct{}, len(deletedRows))
+		for _, row := range deletedRows {
+			if rid, ok := row["rowid"].(int64); ok {
+				rowIDs[rid] = struct{}{}
+			}
+		}
 		n, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-			return cell.RowID == rid
+			_, ok := rowIDs[cell.RowID]
+			return ok
 		})
 		if err != nil {
 			return &Result{Error: err}
 		}
-		deleted += n
+		deleted = n
 	}
 
 	// Fire AFTER DELETE triggers for each deleted row.
