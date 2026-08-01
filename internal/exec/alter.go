@@ -914,20 +914,29 @@ func hasViewCircularRef(viewSQL, viewName string) bool {
 	if !ok {
 		return false
 	}
-	// Check if the view's own name appears as a table reference in FROM or JOINs
-	if strings.EqualFold(sel.From.Name, viewName) {
-		return true
-	}
-	for _, j := range sel.Joins {
-		if strings.EqualFold(j.Table.Name, viewName) {
-			return true
-		}
-	}
-	// Check CTE definitions for circular references
+	// Check if the view's own name appears as a table reference in FROM or JOINs.
+	// A CTE declared in the view body shadows the view name, so FROM v0 when
+	// "WITH v0 AS (...)" exists refers to the CTE, not the view.
+	hasCTE := false
 	for _, cte := range sel.CTEs {
 		if strings.EqualFold(cte.Name, viewName) {
-			return true
+			hasCTE = true
 		}
+	}
+	if !hasCTE && strings.EqualFold(sel.From.Name, viewName) {
+		return true
+	}
+	if !hasCTE {
+		for _, j := range sel.Joins {
+			if strings.EqualFold(j.Table.Name, viewName) {
+				return true
+			}
+		}
+	}
+	// Check CTE definitions for circular references. A CTE that shares the
+	// view's own name shadows it inside the body (not circular). Only a CTE
+	// whose body references the view is circular.
+	for _, cte := range sel.CTEs {
 		if cte.Select != nil && strings.EqualFold(cte.Select.From.Name, viewName) {
 			// The CTE references the view in its FROM clause.
 			// Only flag as circular if the CTE is actually used in the main statement.

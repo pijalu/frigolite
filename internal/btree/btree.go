@@ -22,10 +22,10 @@ func contentOffset(pageNum uint32) int {
 
 // Cursor provides sequential access to b-tree entries.
 type Cursor struct {
-	tx          *BTree
-	pageNum     uint32 // current leaf page
-	cellIdx     int
-	endOfBTree  bool
+	tx         *BTree
+	pageNum    uint32 // current leaf page
+	cellIdx    int
+	endOfBTree bool
 
 	// Path stack for multi-level tree traversal. Each entry records an
 	// interior page and the child index within it that we descended through.
@@ -33,8 +33,8 @@ type Cursor struct {
 	path []cursorPathEntry
 
 	// Cache for current page to avoid repeated ParsePage calls
-	currentPg    *pager.Page
-	currentPage  *storage.BTreePage
+	currentPg   *pager.Page
+	currentPage *storage.BTreePage
 }
 
 // cursorPathEntry records one level of the traversal path.
@@ -70,10 +70,10 @@ func (c *Cursor) clearPageCache() {
 
 // BTree represents a single b-tree (table or index).
 type BTree struct {
-	pager      *pager.Pager
-	rootPage   uint32
-	pageSize   uint32
-	isTable    bool // true for table b-trees, false for index b-trees
+	pager    *pager.Pager
+	rootPage uint32
+	pageSize uint32
+	isTable  bool // true for table b-trees, false for index b-trees
 }
 
 // NewBTree creates a new BTree instance.
@@ -810,7 +810,6 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 		cellStart = cellContentEnd - len(cellData)
 	}
 
-
 	if cellStart < cellPtrEnd {
 		return fmt.Errorf("btree: page is full")
 	}
@@ -1197,9 +1196,22 @@ func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChi
 		return fmt.Errorf("btree: interior page full, cannot add child pointer")
 	}
 
-	// Insert at the end (keys are monotonically increasing)
-	insertIdx := int(page.CellCount)
+	// Find the insert position by key so interior cells stay sorted.
+	// The new cell is the separator "leftChild ... key ... rightChild"; it
+	// belongs after every existing cell whose key is < key.
 	ptrBase := coff + ptroff
+	insertIdx := int(page.CellCount)
+	for i := int(page.CellCount) - 1; i >= 0; i-- {
+		cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
+		ekey, _ := util.GetVarint(pg.Data[cellOff+4:])
+		if ekey <= key {
+			insertIdx = i + 1
+			break
+		}
+		insertIdx = i
+	}
+
+	// Shift cells at [insertIdx..CellCount) right by one slot.
 	for i := int(page.CellCount); i > insertIdx; i-- {
 		src := ptrBase + (i-1)*2
 		dst := ptrBase + i*2
@@ -1216,8 +1228,11 @@ func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChi
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(cellStart))
 	}
 
-	// Update rightmost pointer to point to the new child
-	binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], rightChild)
+	// If the new key is the largest, the new child becomes the rightmost;
+	// otherwise the rightmost pointer is unchanged.
+	if insertIdx == int(page.CellCount)-1 {
+		binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], rightChild)
+	}
 
 	return t.pager.WritePage(pg)
 }
@@ -1270,7 +1285,7 @@ func (t *BTree) DeleteCell(cellIdx int) error {
 	// makes leafHasRoom think the empty page is full).
 	if page.CellCount == 0 {
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], 0) // cell content
-		pg.Data[coff+7] = 0                                     // frag free
+		pg.Data[coff+7] = 0                                   // frag free
 	}
 
 	// For simplicity, we don't reclaim the cell data space immediately.
@@ -1284,45 +1299,106 @@ func (t *BTree) DeleteCell(cellIdx int) error {
 // fn returns true for cells that should be deleted.
 func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error) {
 	var deleted int64
-	for {
-		pg, page, err := t.readPageForDelete()
-		if err != nil {
-			return deleted, err
-		}
-		_ = pg
-
-		found := false
-		for i := 0; i < int(page.CellCount); i++ {
-			if t.cellMatches(pg, page, i, fn) {
-				if err := t.DeleteCell(i); err != nil {
-					return deleted, err
+	// Collect all leaf pages — the tree may have multiple levels.
+	var leaves []uint32
+	if err := t.collectLeafPages(t.rootPage, &leaves); err != nil {
+		return 0, err
+	}
+	for _, leafNum := range leaves {
+		for {
+			pg, err := t.pager.ReadPage(leafNum)
+			if err != nil {
+				return deleted, err
+			}
+			coff := contentOffset(pg.PageNum)
+			page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+			if err != nil {
+				return deleted, err
+			}
+			if page.PageType != storage.PageTypeLeafTable && page.PageType != storage.PageTypeLeafIndex {
+				return deleted, fmt.Errorf("btree: delete only supported on leaf pages")
+			}
+			found := false
+			for i := 0; i < int(page.CellCount); i++ {
+				if t.cellMatches(pg, page, i, fn) {
+					if err := t.deleteCellOnPage(pg, page, i); err != nil {
+						return deleted, err
+					}
+					deleted++
+					found = true
+					break
 				}
-				deleted++
-				found = true
+			}
+			if !found {
 				break
 			}
-		}
-		if !found {
-			break
 		}
 	}
 	return deleted, nil
 }
 
-func (t *BTree) readPageForDelete() (*pager.Page, *storage.BTreePage, error) {
-	pg, err := t.pager.ReadPage(t.rootPage)
+// deleteCellOnPage removes the cell at cellIdx from the given leaf page,
+// shifting the pointer array down and updating the cell count.
+func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellIdx int) error {
+	coff := contentOffset(pg.PageNum)
+	if cellIdx < 0 || cellIdx >= int(page.CellCount) {
+		return fmt.Errorf("btree: cell index %d out of range (count %d)", cellIdx, page.CellCount)
+	}
+	ptrBase := coff + storage.CellPointerOffset
+	for i := cellIdx; i < int(page.CellCount)-1; i++ {
+		src := ptrBase + (i+1)*2
+		dst := ptrBase + i*2
+		pg.Data[dst] = pg.Data[src]
+		pg.Data[dst+1] = pg.Data[src+1]
+	}
+	lastPtr := ptrBase + (int(page.CellCount)-1)*2
+	pg.Data[lastPtr] = 0
+	pg.Data[lastPtr+1] = 0
+	page.CellCount--
+	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
+	// If the page became empty, reset the content pointer so the next
+	// insert treats it as fresh.
+	if page.CellCount == 0 {
+		page.CellContent = 0
+		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], 0)
+		pg.Data[coff+7] = 0 // fragmented free bytes
+	}
+	return nil
+}
+
+// collectLeafPages appends the page numbers of all leaf pages reachable
+// from pageNum (following interior child pointers) to out.
+func (t *BTree) collectLeafPages(pageNum uint32, out *[]uint32) error {
+	pg, err := t.pager.ReadPage(pageNum)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 	coff := contentOffset(pg.PageNum)
 	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
-	if page.PageType != storage.PageTypeLeafTable && page.PageType != storage.PageTypeLeafIndex {
-		return nil, nil, fmt.Errorf("btree: delete only supported on leaf pages")
+	if page.PageType == storage.PageTypeLeafTable || page.PageType == storage.PageTypeLeafIndex {
+		*out = append(*out, pageNum)
+		return nil
 	}
-	return pg, page, nil
+	// Interior page: recurse into each child. Interior pages have a 4-byte
+	// rightmost pointer, so the cell pointer array starts at coff+12.
+	for i := 0; i < int(page.CellCount); i++ {
+		cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, i))
+		child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		if child != 0 {
+			if err := t.collectLeafPages(child, out); err != nil {
+				return err
+			}
+		}
+	}
+	if page.RightmostPtr != 0 {
+		if err := t.collectLeafPages(page.RightmostPtr, out); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (t *BTree) cellMatches(pg *pager.Page, page *storage.BTreePage, idx int, fn func(cell *storage.Cell) bool) bool {

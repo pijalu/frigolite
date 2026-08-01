@@ -1122,6 +1122,10 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		if err := tree.InsertCell(cell); err != nil {
 			return &Result{Error: err}
 		}
+		// Track root page changes (after splits).
+		if tree.RootPage() != e.rootPage(tableEntry.Name, tableEntry.RootPage) {
+			e.updateRootPage(tableEntry.Name, tree.RootPage())
+		}
 		changes++
 		e.lastRowID = rowID
 	}

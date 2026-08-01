@@ -347,6 +347,7 @@ type CreateViewStmt struct {
 	NameTok TokenInfo // byte position of the view name in original SQL
 	Columns []string  // optional declared column list: CREATE VIEW v(c0, c1) AS ...
 	Select  *SelectStmt
+	RawSQL  string // verbatim CREATE VIEW text (preserves CTEs)
 }
 
 func (s *CreateViewStmt) stmt() {}

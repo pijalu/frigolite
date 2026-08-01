@@ -196,6 +196,7 @@ func (p *Parser) Parse() StmtList {
 			p.next()
 			continue
 		}
+		stmtStart := p.cur.Pos
 		stmt := p.parseStatement()
 		if stmt == nil {
 			break
@@ -203,6 +204,14 @@ func (p *Parser) Parse() StmtList {
 		stmts = append(stmts, stmt)
 		if p.cur.Type == TokenSemicolon {
 			p.next()
+		}
+		// Capture verbatim SQL for statements whose AST serializer cannot
+		// reproduce the full body (e.g., CREATE VIEW with a CTE/OVER body).
+		if vw, ok := stmt.(*CreateViewStmt); ok {
+			end := p.tokens.pos
+			if end > stmtStart && end <= len(p.tokens.input) {
+				vw.RawSQL = strings.TrimSpace(p.tokens.input[stmtStart:end])
+			}
 		}
 	}
 	return stmts

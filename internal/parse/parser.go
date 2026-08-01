@@ -75,6 +75,8 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 							ct.RawSQL = strings.TrimSpace(input[stmtStart:end])
 						} else if tr, trOK := s.(*sql.CreateTriggerStmt); trOK {
 							tr.RawSQL = strings.TrimSpace(input[stmtStart:end])
+						} else if vw, vwOK := s.(*sql.CreateViewStmt); vwOK {
+							vw.RawSQL = strings.TrimSpace(input[stmtStart:end])
 						}
 						stmtStart = end + 1
 					}

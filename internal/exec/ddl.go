@@ -2,6 +2,7 @@
 package exec
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strings"
 
@@ -197,7 +198,19 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	}
 
 	pg := ctx.Pager.AllocatePage()
+	// Initialize a fresh empty leaf: zero the page and set a valid header so
+	// a reused page (from a dropped table) does not retain stale cells.
+	for i := range pg.Data {
+		pg.Data[i] = 0
+	}
 	pg.Data[0] = storage.PageTypeLeafTable
+	coff := 0
+	if pg.PageNum == 1 {
+		coff = 100
+	}
+	// Header: type(1) freeblock(2) cellCount(2)=0 contentOffset(2)=pageSize-4
+	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], 0)
+	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(int(ctx.Pager.PageSize())-4))
 	if err := ctx.Pager.WritePage(pg); err != nil {
 		return &Result{Error: err}
 	}
@@ -657,7 +670,13 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 	if len(s.Columns) > 0 {
 		colsClause = "(" + strings.Join(s.Columns, ", ") + ")"
 	}
-	sqlStr := fmt.Sprintf("CREATE VIEW %s%s AS %s", viewName, colsClause, selectStmtToString(s.Select))
+	sqlStr := ""
+	if s.RawSQL != "" {
+		// Preserve the verbatim definition (keeps CTEs in the view body).
+		sqlStr = s.RawSQL
+	} else {
+		sqlStr = fmt.Sprintf("CREATE VIEW %s%s AS %s", viewName, colsClause, selectStmtToString(s.Select))
+	}
 
 	// Check for duplicate view name
 	if existing, _ := ctx.Schema.FindView(viewName); existing != nil {

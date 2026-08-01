@@ -79,7 +79,7 @@ func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []RowMap, colDefs 
 	}
 
 	columns := e.buildColumnNames(s.Columns, colDefs)
-	return &Result{Columns: columns, Rows: outRows}
+	return e.finalizeSelectResult(&Result{Columns: columns, Rows: outRows}, s, nil)
 }
 
 // buildIndexSQL builds the SQL string for creating an index.
@@ -411,7 +411,6 @@ func (e *Engine) execValuesGroup(head *sql.SelectStmt) *Result {
 		res.Rows = append(res.Rows, nres.Rows...)
 		cur = next
 	}
-	fmt.Printf("DBG execValuesGroup rows=%v\n", res.Rows)
 	return res
 }
 
@@ -545,11 +544,11 @@ func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 	sqlStr := entry.SQL
 	// Find " AS " after "CREATE VIEW name"
 	upper := strings.ToUpper(sqlStr)
-	idx := strings.Index(upper, " AS ")
+	idx := strings.Index(upper, " AS")
 	if idx < 0 {
 		return &Result{Error: fmt.Errorf("exec: invalid view SQL: %s", sqlStr)}
 	}
-	selectSQL := sqlStr[idx+4:]
+	selectSQL := strings.TrimSpace(sqlStr[idx+3:])
 	trimmedUpper := strings.ToUpper(strings.TrimSpace(selectSQL))
 	// Allow SELECT or WITH (CTE) as the start of the view body
 	if !strings.HasPrefix(trimmedUpper, "SELECT") && !strings.HasPrefix(trimmedUpper, "WITH") {
@@ -848,8 +847,12 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 		allRowMaps[i] = rowMap
 	}
 
-	// 	// Apply WHERE filter
-	_, allRowMaps = e.filterSubqueryRows(allRows, allRowMaps, s.Where)
+	// Apply WHERE filter. When the query has JOINs, the WHERE may reference
+	// joined tables (e.g. t2.a=t3.a), so it cannot be applied before the
+	// join — the post-join filter below handles it.
+	if len(s.Joins) == 0 {
+		_, allRowMaps = e.filterSubqueryRows(allRows, allRowMaps, s.Where)
+	}
 
 	// Handle outer JOINs: the outer query may join the subquery against other
 	// tables/views (e.g. FROM (SELECT ...) v RIGHT JOIN t ON v.x=t.x).
@@ -969,7 +972,7 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	// Iterate the recursive part until no more rows
 	currentRows := anchorResult.Rows
 	recursiveSelect := cte.Select.Union
-	maxIter := 100 // safety limit to prevent infinite loops
+	maxIter := 1000 // SQLite's default recursion limit
 	for iter := 0; iter < maxIter; iter++ {
 		var newRows [][]interface{}
 		for _, row := range currentRows {
@@ -2026,7 +2029,7 @@ func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap) *Result {
 		// ColumnValue wrapper; unwrap so the output shows the value.
 		outRow = append(outRow, util.UnwrapColumnValue(v))
 	}
-	return &Result{Columns: columns, Rows: [][]interface{}{outRow}}
+	return e.finalizeSelectResult(&Result{Columns: columns, Rows: [][]interface{}{outRow}}, s, nil)
 }
 
 func (e *Engine) evalAggregatesEmpty(s *sql.SelectStmt) *Result {
@@ -2105,9 +2108,9 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 	}
 
 	if len(outRows) == 0 {
-		return &Result{Columns: columns, Rows: [][]interface{}{}}
+		return e.finalizeSelectResult(&Result{Columns: columns, Rows: [][]interface{}{}}, s, nil)
 	}
-	return &Result{Columns: columns, Rows: outRows}
+	return e.finalizeSelectResult(&Result{Columns: columns, Rows: outRows}, s, nil)
 }
 
 // computeGroupByKey serializes the GROUP BY expression values for a row into a
@@ -2625,12 +2628,23 @@ func (e *Engine) validateExprSubqueries(expr sql.Expr) error {
 // SELECT * FROM (SELECT 1 UNION ALL SELECT sum(x) FROM t) -- invalid
 func validateUnionSubqueryNoAggs(s *sql.SelectStmt) error {
 	if s.Union != nil {
-		// Check both branches of the UNION/UNION ALL for aggregates
-		if nested := findAggregateInSelect(s); nested != "" {
-			return fmt.Errorf("misuse of aggregate: %s()", nested)
+		// SQLite rejects an aggregate in a UNION member only when the member
+		// is not an aggregate query itself (no GROUP BY and no aggregate
+		// context). A grouped SELECT (SELECT a, sum(b) FROM t GROUP BY a)
+		// legitimately uses aggregates inside a UNION.
+		checkMember := func(m *sql.SelectStmt) error {
+			if len(m.GroupBy) == 0 && !hasAggregateInColumns(m.Columns) {
+				if nested := findAggregateInSelect(m); nested != "" {
+					return fmt.Errorf("misuse of aggregate: %s()", nested)
+				}
+			}
+			return nil
 		}
-		if nested := findAggregateInSelect(s.Union); nested != "" {
-			return fmt.Errorf("misuse of aggregate: %s()", nested)
+		if err := checkMember(s); err != nil {
+			return err
+		}
+		if err := checkMember(s.Union); err != nil {
+			return err
 		}
 	}
 	// Recurse into nested FROM subqueries
@@ -2638,6 +2652,17 @@ func validateUnionSubqueryNoAggs(s *sql.SelectStmt) error {
 		return validateUnionSubqueryNoAggs(s.From.Subquery)
 	}
 	return nil
+}
+
+// hasAggregateInColumns reports whether any column expression is an aggregate
+// function call (used to recognize aggregate queries without GROUP BY).
+func hasAggregateInColumns(cols []sql.SelectColumn) bool {
+	for _, c := range cols {
+		if findAggregateInExpr(c.Expr) != "" {
+			return true
+		}
+	}
+	return false
 }
 
 // findAggregateInSelect checks if a SELECT statement directly contains an aggregate function.
