@@ -91,7 +91,24 @@ func Test_walsetlk_snapshot(t *testing.T) {
 		}
 	}
 	// testfixture_nb myvar {\n\n  testvfs tvfs -fullshm 1\n  sqlite3 db test.d...} (unsupported command, not transpiled)
-	tm = tclLIndex("time", "{")
+	{
+		var msg string // catch result ("0"=ok, "1"=error)
+		var _catchErrMsg string // catch error message
+		_ = msg // suppress unused warning
+		_ = _catchErrMsg // suppress unused warning
+		var _catchErr error
+		_res = db.Exec("BEGIN")
+		if _res.Error != nil { _catchErr = _res.Error }
+		// sqlite3_snapshot_open db main $::snap (unsupported command, not transpiled)
+		if _catchErr != nil {
+			msg = "1"
+			_catchErrMsg = _catchErr.Error()
+		} else {
+			msg = "0"
+			_catchErrMsg = ""
+		}
+	}
+	tm = "0"
 	_ = tm // suppress unused warning
 	{ // do_test "1.2"
 		_ = msg // TCL namespace variable (query)

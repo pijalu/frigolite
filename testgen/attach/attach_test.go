@@ -627,7 +627,7 @@ func Test_attach(t *testing.T) {
 			// dbx close (unsupported command, not transpiled)
 			// file attributes cannot-read -permission 0000
 			if tclBool("file writable cannot-read") {
-				_putsMsg := "\\n**** Tests do not work when run as root ****"
+				_putsMsg := "\n**** Tests do not work when run as root ****"
 				_ = _putsMsg
 				os.Remove("cannot-read")
 			}

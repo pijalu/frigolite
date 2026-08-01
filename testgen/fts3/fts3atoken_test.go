@@ -199,12 +199,12 @@ func Test_fts3atoken(t *testing.T) {
 	// proc definition (not transpiled)
 	// do_icu_test fts3atoken-4.1 en_US {} {} (unsupported command, not transpiled)
 	// do_icu_test fts3atoken-4.2 en_US {Test cases fts3} [list \\n    0 test Test 1 cases cases 2 ... (unsupported command, not transpiled)
-	input = "\\u0e2d\\u0e30\\u0e44\\u0e23\\u0e19\\u0e30\\u0e04\\u0e23\\u0e31\\u0e1a"
+	input = "u0e2du0e30u0e44u0e23u0e19u0e30u0e04u0e23u0e31u0e1a"
 	_ = input // suppress unused warning
-	output = "0 \\u0e2d\\u0e30\\u0e44\\u0e23 \\u0e2d\\u0e30\\u0e44\\u0e23 "
+	output = "0 u0e2du0e30u0e44u0e23 u0e2du0e30u0e44u0e23 "
 	_ = output // suppress unused warning
-	output += "1 \\u0e19\\u0e30 \\u0e19\\u0e30 "
-	output += "2 \\u0e04\\u0e23\\u0e31\\u0e1a \\u0e04\\u0e23\\u0e31\\u0e1a"
+	output += "1 u0e19u0e30 u0e19u0e30 "
+	output += "2 u0e04u0e23u0e31u0e1a u0e04u0e23u0e31u0e1a"
 	// do_icu_test fts3atoken-4.3 th_TH $input $output (unsupported command, not transpiled)
 	// do_icu_test fts3atoken-4.4 en_US $input $output (unsupported command, not transpiled)
 	// do_icu_test fts3atoken-4.5 MiddleOfTheOcean $input $output (unsupported command, not transpiled)

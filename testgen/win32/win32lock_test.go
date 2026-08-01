@@ -143,7 +143,7 @@ func Test_win32lock(t *testing.T) {
 			}
 		}
 		if func() bool { delay1_n, _delay1_e := strconv.Atoi(delay1); if _delay1_e != nil { return false }; return delay1_n > 12500 }() {
-			_putsMsg := "Timed out waiting for \\\"ok\\\" and \\\"error\\\" results."
+			_putsMsg := "Timed out waiting for \"ok\" and \"error\" results."
 			_ = _putsMsg
 			break
 		}
@@ -208,7 +208,7 @@ func Test_win32lock(t *testing.T) {
 			}
 		}
 		if func() bool { delay1_n, _delay1_e := strconv.Atoi(delay1); if _delay1_e != nil { return false }; return delay1_n > 500 }() {
-			_putsMsg := "Timed out waiting for \\\"ok\\\" and \\\"error\\\" results."
+			_putsMsg := "Timed out waiting for \"ok\" and \"error\" results."
 			_ = _putsMsg
 			break
 		}

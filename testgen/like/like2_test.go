@@ -105,21 +105,21 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-2.34.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\\\"%'")
+		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\"%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\\\"%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\"%'")
 		}
 	}
 	{ // do_test "like-2.34.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\\\"%'")
+		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\"%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\\\"%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\"%'")
 		}
 	}
 	{ // do_test "like-2.34.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\\\"%'")
+		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\"%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\\"%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\"%'")
 		}
 	}
 	{ // do_test "like-2.35.1"
@@ -141,21 +141,21 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-2.36.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\\$%'")
+		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '$%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\\$%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '$%'")
 		}
 	}
 	{ // do_test "like-2.36.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\\$%'")
+		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '$%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\\$%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '$%'")
 		}
 	}
 	{ // do_test "like-2.36.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\\$%'")
+		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc$%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\$%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc$%'")
 		}
 	}
 	{ // do_test "like-2.38.1"
@@ -1113,57 +1113,57 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-2.91.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\\[%'")
+		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '" + "%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\\[%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '" + "%'")
 		}
 	}
 	{ // do_test "like-2.91.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\\[%'")
+		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '" + "%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\\[%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '" + "%'")
 		}
 	}
 	{ // do_test "like-2.91.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\\[%'")
+		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc" + "%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\[%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc" + "%'")
 		}
 	}
 	{ // do_test "like-2.92.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\\\\%'")
+		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\\%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\\\\%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\\%'")
 		}
 	}
 	{ // do_test "like-2.92.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\\\\%'")
+		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\\%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\\\\%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\\%'")
 		}
 	}
 	{ // do_test "like-2.92.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\\\\%'")
+		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\\%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\\\%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\%'")
 		}
 	}
 	{ // do_test "like-2.93.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\\]%'")
+		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE ']%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\\]%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE ']%'")
 		}
 	}
 	{ // do_test "like-2.93.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\\]%'")
+		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE ']%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\\]%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE ']%'")
 		}
 	}
 	{ // do_test "like-2.93.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\\]%'")
+		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc]%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\]%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc]%'")
 		}
 	}
 	{ // do_test "like-2.94.1"
@@ -1671,21 +1671,21 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-2.123.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\\173%'")
+		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '173%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\\173%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '173%'")
 		}
 	}
 	{ // do_test "like-2.123.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\\173%'")
+		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '173%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\\173%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '173%'")
 		}
 	}
 	{ // do_test "like-2.123.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\\173%'")
+		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc173%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\173%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc173%'")
 		}
 	}
 	{ // do_test "like-2.124.1"
@@ -1707,21 +1707,21 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-2.125.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\\175%'")
+		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '175%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\\175%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '175%'")
 		}
 	}
 	{ // do_test "like-2.125.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\\175%'")
+		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '175%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\\175%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '175%'")
 		}
 	}
 	{ // do_test "like-2.125.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\\175%'")
+		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc175%'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\175%'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc175%'")
 		}
 	}
 	{ // do_test "like-2.126.1"
@@ -1743,15 +1743,15 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-3.1"
-		_res = db.Exec("SELECT '\\u01C0' LIKE '%\\x80'")
+		_res = db.Exec("SELECT 'u01C0' LIKE '%x80'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT '\\u01C0' LIKE '%\\x80'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 'u01C0' LIKE '%x80'")
 		}
 	}
 	{ // do_test "like-3.2"
-		_res = db.Exec("SELECT '\\u0080' LIKE '%\\x80'")
+		_res = db.Exec("SELECT 'u0080' LIKE '%x80'")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT '\\u0080' LIKE '%\\x80'")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 'u0080' LIKE '%x80'")
 		}
 	}
 }

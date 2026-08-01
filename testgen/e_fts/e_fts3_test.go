@@ -410,7 +410,7 @@ func Test_e_fts3(t *testing.T) {
 					blob = "db one {SELECT root FROM ta_segdir WHERE rowid = 2}"
 					_ = blob // suppress unused warning
 					// binary scan $blob a6 a3 a* start middle end (test infra, not transpiled)
-					middle = "\\x0E\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\x06\\x06"
+					middle = "x0ExFFxFFxFFxFFxFFxFFxFFxFFxFFxFFxFFx06x06"
 					_ = middle // suppress unused warning
 					blob = "binary format \"a6 a* a*\" $start $middle $end"
 					_ = blob // suppress unused warning

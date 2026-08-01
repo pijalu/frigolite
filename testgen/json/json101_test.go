@@ -710,9 +710,9 @@ func Test_json101(t *testing.T) {
 		_ = ws // suppress unused warning
 		_ = _idx0
 			{ // "json101-" + tn + ".1"
-				r = db.Query("SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
+				r = db.Query("SELECT json_valid(printf('%s{%s\"x\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_valid(printf('%s{%s\"x\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
 					return
 				}
 				got := flatten(r)

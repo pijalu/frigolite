@@ -193,7 +193,7 @@ func Test_win32longpath(t *testing.T) {
 	_ = _putsMsg
 	// close $fd
 	if false {
-		_putsMsg = "Command \\[cleanup.bat\\] returns " + msg
+		_putsMsg = "Command " + "cleanup.bat" + " returns " + msg
 		_ = _putsMsg
 	}
 	os.Remove("-force")

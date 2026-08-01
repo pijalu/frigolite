@@ -71,7 +71,7 @@ func Test_qrf02(t *testing.T) {
 	{ // do_test "1.11"
 	}
 	{ // do_test "1.20"
-		result = "\\n" + "db format {EXPLAIN QUERY PLAN SELECT * FROM t1}"
+		result = "\n" + "db format {EXPLAIN QUERY PLAN SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 }

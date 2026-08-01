@@ -302,12 +302,12 @@ func Test_unionvtab(t *testing.T) {
 					}
 				}
 			}
-			sql = "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + strings.Join(tclSplitList(L), ",") + "\\\")"
+			sql = "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\")"
 			_ = sql // suppress unused warning
 			{ // "2.4." + tn
-				_res = db.Exec("\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + strings.Join(tclSplitList(L), ",") + "\\\");\n  ")
+				_res = db.Exec("\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\");\n  ")
 				if _res.Error == nil {
-					t.Errorf("expected error, got none\n  sql: %s", "\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + strings.Join(tclSplitList(L), ",") + "\\\");\n  ")
+					t.Errorf("expected error, got none\n  sql: %s", "\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\");\n  ")
 				}
 			}
 		}

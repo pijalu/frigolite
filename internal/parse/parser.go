@@ -321,13 +321,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		// multiselect_op = getRHS(p, ruleNo, 2) - returns (SetOp, bool for ALL)
 		op := getSetOp(getRHS(p, ruleNo, 2))
-		// Walk to the end of the chain
-		last := left
-		for last.Union != nil {
-			last = last.Union
-		}
-		last.Union = right
-		last.SetOp = op
+		left.AppendUnion(right, op, false)
 		return left
 
 	// Rule 89: multiselect_op ::= UNION
@@ -423,9 +417,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		second := &sql.SelectStmt{Columns: secondCols}
 		if first != nil {
-			first.Union = second
-			first.SetOp = sql.SetUnion
-			first.UnionAll = true
+			first.AppendUnion(second, sql.SetUnion, true)
 		}
 		return first
 
@@ -439,13 +431,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		last := &sql.SelectStmt{Columns: cols}
 		if acc != nil {
-			cur := acc
-			for cur.Union != nil {
-				cur = cur.Union
-			}
-			cur.Union = last
-			cur.SetOp = sql.SetUnion
-			cur.UnionAll = true
+			acc.AppendUnion(last, sql.SetUnion, true)
 		}
 		return acc
 

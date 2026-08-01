@@ -541,7 +541,7 @@ func Test_percentile(t *testing.T) {
 						_ = _idx4
 							if tclBool(oba) {
 							}
-							sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"
+							sql = "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  " + expr + " OVER w1 AS 'median' \n            FROM t1 \n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"
 							_ = sql // suppress unused warning
 							{ // "percentile-3." + id + ".1"
 								_res = db.Exec(sql)
@@ -549,7 +549,7 @@ func Test_percentile(t *testing.T) {
 									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "A one 8.4 A.D 9.7 4 D one 11.0 A.D.G 8.4 7 G one 2.7 D.G.C 5.9 3 C three 5.9 G.C.F 2.7 6 F three 0.0 C.F.B 5.9 2 B two 7.1 F.B.E 7.1 5 E two 12.5 B.E 9.8", _res.Error, sql)
 								}
 							}
-							sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
+							sql = "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  " + expr + " OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
 							_ = sql // suppress unused warning
 							{ // "percentile-3." + id + ".2"
 								_res = db.Exec(sql)
@@ -557,7 +557,7 @@ func Test_percentile(t *testing.T) {
 									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "A one 8.4 A.D 9.7 4 D one 11.0 A.D.G 8.4 7 G one 2.7 A.D.G.C 7.15 3 C three 5.9 A.D.G.C.F 5.9 6 F three 0.0 A.D.G.C.F.B 6.5 2 B two 7.1 A.D.G.C.F.B.E 7.1 5 E two 12.5 A.D.G.C.F.B.E 7.1", _res.Error, sql)
 								}
 							}
-							sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
+							sql = "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  " + expr + " OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
 							_ = sql // suppress unused warning
 							{ // "percentile-3." + id + ".3"
 								_res = db.Exec(sql)

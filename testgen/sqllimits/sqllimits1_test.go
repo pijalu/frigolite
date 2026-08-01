@@ -607,7 +607,7 @@ func Test_sqllimits1(t *testing.T) {
 		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000 (unsupported command, not transpiled)
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
-		tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
+		tail = " /* A comment to take up space in order to make the string\n                longer without increasing the expression depth */\n                AND   1  ==  1"
 		_ = tail // suppress unused warning
 		N = tclExprWith("(50000 / [string length $tail])+1", map[string]string{"tail": tail})
 		_ = N // suppress unused warning
@@ -619,7 +619,7 @@ func Test_sqllimits1(t *testing.T) {
 		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000 (unsupported command, not transpiled)
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
-		tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
+		tail = " /* A comment to take up space in order to make the string\n                longer without increasing the expression depth */\n                AND   1  ==  1"
 		_ = tail // suppress unused warning
 		N = tclExprWith("(50000 / [string length $tail])+1", map[string]string{"tail": tail})
 		_ = N // suppress unused warning

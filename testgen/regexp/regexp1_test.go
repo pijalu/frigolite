@@ -547,7 +547,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.9"
-		v1 = "abc\\ndef"
+		v1 = "abc\ndef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\ndef$'")
 		if _res.Error != nil {
@@ -555,7 +555,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.10"
-		v1 = "abc\\adef"
+		v1 = "abc\adef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\adef$'")
 		if _res.Error != nil {
@@ -563,7 +563,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.11"
-		v1 = "abc\\tdef"
+		v1 = "abc\tdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\tdef$'")
 		if _res.Error != nil {
@@ -571,7 +571,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.12"
-		v1 = "abc\\rdef"
+		v1 = "abc\rdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\rdef$'")
 		if _res.Error != nil {
@@ -579,7 +579,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.13"
-		v1 = "abc\\fdef"
+		v1 = "abc\fdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\fdef$'")
 		if _res.Error != nil {
@@ -587,7 +587,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.14"
-		v1 = "abc\\vdef"
+		v1 = "abc\vdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT " + v1 + " REGEXP '^abc\\vdef$'")
 		if _res.Error != nil {

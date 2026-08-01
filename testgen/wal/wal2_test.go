@@ -710,7 +710,7 @@ func Test_wal2(t *testing.T) {
 						sq = strings.TrimSpace(sq)
 						_ = sq // suppress unused warning
 						if func() bool { l_n, l_e := strconv.Atoi("{#*} $sq"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
-							S += sq + "\\n"
+							S += sq + "\n"
 						}
 					}
 					locks = "list" // TCL namespace variable

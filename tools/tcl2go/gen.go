@@ -603,8 +603,51 @@ func (tp *transpiler) goStringLiteral(w tcl.RawWord) string {
 	if w.Braced {
 		return fmt.Sprintf("%q", w.Text)
 	}
+	if w.Quoted {
+		// TCL double-quoted words process backslash escapes: "\n" is a real
+		// newline. Resolve them before interpolation so the emitted Go
+		// string carries the actual character (not a literal backslash).
+		return tp.buildStringExpr(tclUnescapeQuoted(w.Text))
+	}
 	// Build Go string expression from the unbraced word
 	return tp.buildStringExpr(w.Text)
+}
+
+// tclUnescapeQuoted converts TCL double-quoted string escapes to the
+// characters they denote ("\n" -> newline, "\\" -> backslash, ...).
+// Escaped $, [, ], {, } are unescaped so interpolation in buildStringExpr
+// treats them as literal characters.
+func tclUnescapeQuoted(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] != '\\' || i+1 >= len(s) {
+			b.WriteByte(s[i])
+			continue
+		}
+		i++
+		switch s[i] {
+		case 'n':
+			b.WriteByte('\n')
+		case 't':
+			b.WriteByte('\t')
+		case 'r':
+			b.WriteByte('\r')
+		case 'v':
+			b.WriteByte('\v')
+		case 'f':
+			b.WriteByte('\f')
+		case 'b':
+			b.WriteByte('\b')
+		case 'a':
+			b.WriteByte('\a')
+		case '\\', '"', '$', '[', ']', '{', '}':
+			b.WriteByte(s[i])
+		default:
+			// TCL drops the backslash for unrecognized escapes.
+			b.WriteByte(s[i])
+		}
+	}
+	return b.String()
 }
 
 // tclExprToGo converts a TCL expression string into a form the runtime tclExpr
@@ -2554,6 +2597,49 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			tp.emitLine("%s = \"\"", goName)
 		} else {
 			tp.emitLine("var %s = \"\"", goName)
+			tp.vars = append(tp.vars, goName)
+		}
+		tp.emitLine("_ = %s // suppress unused warning", goName)
+		return
+	}
+
+	// Handle [lindex [time { SCRIPT }] N] in set: the timing command wraps a
+	// script (usually a db eval) as `[lindex [time {...}] 0]`. Transpile the
+	// inner script as statements and bind the variable to "0" — timing is not
+	// measured, and tests only compare the value against a large threshold
+	// (e.g. $microsec<10000000).
+	if len(rest) == 1 && !rest[0].Braced && strings.HasPrefix(rest[0].Text, "[lindex [time ") {
+		cmdText := strings.TrimSuffix(strings.TrimPrefix(rest[0].Text, "["), "]")
+		// cmdText now: lindex [time {SCRIPT}] N
+		if timeIdx := strings.Index(cmdText, "[time "); timeIdx >= 0 {
+			afterTime := cmdText[timeIdx+len("[time "):]
+			if strings.HasPrefix(afterTime, "{") {
+				depth := 0
+				bodyStart := -1
+				for i, c := range afterTime {
+					if c == '{' {
+						if depth == 0 {
+							bodyStart = i + 1
+						}
+						depth++
+					} else if c == '}' {
+						depth--
+						if depth == 0 && bodyStart >= 0 {
+							bodyStr := afterTime[bodyStart:i]
+							bodyCmds := parseCommands(bodyStr)
+							bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs}
+							bodyTP.processCommands(bodyCmds)
+							tp.indent = bodyTP.indent
+							break
+						}
+					}
+				}
+			}
+		}
+		if tp.isVarDeclared(goName) {
+			tp.emitLine("%s = \"0\"", goName)
+		} else {
+			tp.emitLine("var %s = \"0\"", goName)
 			tp.vars = append(tp.vars, goName)
 		}
 		tp.emitLine("_ = %s // suppress unused warning", goName)

@@ -518,7 +518,7 @@ func Test_avfs(t *testing.T) {
 		os.Remove(fake)
 		ofd = "open $fake wb"
 		_ = ofd // suppress unused warning
-		fakeAppendee = "Dog ate my homework.\\n"
+		fakeAppendee = "Dog ate my homework.\n"
 		_ = fakeAppendee // suppress unused warning
 		_putsMsg := "-nonewline"
 		_ = _putsMsg

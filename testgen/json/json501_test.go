@@ -785,7 +785,7 @@ func Test_json501(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{{\\\"label\\\":\\\"abc" + e + "xyz\\\"}}"
+			want := "{{\"label\":\"abc" + e + "xyz\"}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -797,7 +797,7 @@ func Test_json501(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{{\\\"label\\\":\\\"abc" + e + "xyz\\\"}}"
+			want := "{{\"label\":\"abc" + e + "xyz\"}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

@@ -863,7 +863,7 @@ func Test_shell1(t *testing.T) {
 				t.Errorf("TCL error: %s", "failed with mismatch: " + res)
 			}
 			if tclBool("!" + "file exists $fileName") {
-				t.Errorf("TCL error: %s", "file \\\"" + fileName + "\\\" (Unicode) does not exist")
+				t.Errorf("TCL error: %s", "file \"" + fileName + "\" (Unicode) does not exist")
 			}
 			os.Remove(fileName)
 		}

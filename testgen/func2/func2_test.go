@@ -421,9 +421,9 @@ func Test_func2(t *testing.T) {
 	}
 	if "\u1234" != "u1234" {
 		{ // do_test "func2-2.1.1"
-			r = db.Query("SELECT 'hi\\u1234ho'")
+			r = db.Query("SELECT 'hiu1234ho'")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'hi\\u1234ho'")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'hiu1234ho'")
 			}
 		}
 		{ // do_test "func2-2.1.2"
@@ -431,203 +431,203 @@ func Test_func2(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "func2-2.1.3"
-			_res = db.Exec("SELECT SUBSTR('hi\\u1234ho')")
+			_res = db.Exec("SELECT SUBSTR('hiu1234ho')")
 			_ = _res // catchsql
 		}
 		{ // do_test "func2-2.1.4"
-			_res = db.Exec("SELECT SUBSTR('hi\\u1234ho', 1,1,1)")
+			_res = db.Exec("SELECT SUBSTR('hiu1234ho', 1,1,1)")
 			_ = _res // catchsql
 		}
 		{ // do_test "func2-2.2.0"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 0, 0)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 0, 0)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 0, 0)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 0, 0)")
 			}
 		}
 		{ // do_test "func2-2.2.1"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 0, 1)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 0, 1)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 0, 1)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 0, 1)")
 			}
 		}
 		{ // do_test "func2-2.2.2"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 0, 2)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 0, 2)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 0, 2)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 0, 2)")
 			}
 		}
 		{ // do_test "func2-2.2.3"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 0, 3)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 0, 3)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 0, 3)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 0, 3)")
 			}
 		}
 		{ // do_test "func2-2.2.4"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 0, 4)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 0, 4)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 0, 4)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 0, 4)")
 			}
 		}
 		{ // do_test "func2-2.2.5"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 0, 5)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 0, 5)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 0, 5)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 0, 5)")
 			}
 		}
 		{ // do_test "func2-2.2.6"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 0, 6)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 0, 6)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 0, 6)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 0, 6)")
 			}
 		}
 		{ // do_test "func2-2.3.0"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 1, 0)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 1, 0)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 1, 0)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 1, 0)")
 			}
 		}
 		{ // do_test "func2-2.3.1"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 1, 1)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 1, 1)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 1, 1)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 1, 1)")
 			}
 		}
 		{ // do_test "func2-2.3.2"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 1, 2)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 1, 2)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 1, 2)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 1, 2)")
 			}
 		}
 		{ // do_test "func2-2.3.3"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 1, 3)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 1, 3)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 1, 3)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 1, 3)")
 			}
 		}
 		{ // do_test "func2-2.3.4"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 1, 4)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 1, 4)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 1, 4)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 1, 4)")
 			}
 		}
 		{ // do_test "func2-2.3.5"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 1, 5)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 1, 5)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 1, 5)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 1, 5)")
 			}
 		}
 		{ // do_test "func2-2.3.6"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 1, 6)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 1, 6)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 1, 6)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 1, 6)")
 			}
 		}
 		{ // do_test "func2-2.4.0"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 3, 0)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 3, 0)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 3, 0)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 3, 0)")
 			}
 		}
 		{ // do_test "func2-2.4.1"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 3, 1)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 3, 1)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 3, 1)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 3, 1)")
 			}
 		}
 		{ // do_test "func2-2.4.2"
-			r = db.Query("SELECT SUBSTR('hi\\u1234ho', 3, 2)")
+			r = db.Query("SELECT SUBSTR('hiu1234ho', 3, 2)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hi\\u1234ho', 3, 2)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('hiu1234ho', 3, 2)")
 			}
 		}
 		{ // do_test "func2-2.5.0"
-			r = db.Query("SELECT SUBSTR('\\u1234', 0, 0)")
+			r = db.Query("SELECT SUBSTR('u1234', 0, 0)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 0, 0)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 0, 0)")
 			}
 		}
 		{ // do_test "func2-2.5.1"
-			r = db.Query("SELECT SUBSTR('\\u1234', 0, 1)")
+			r = db.Query("SELECT SUBSTR('u1234', 0, 1)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 0, 1)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 0, 1)")
 			}
 		}
 		{ // do_test "func2-2.5.2"
-			r = db.Query("SELECT SUBSTR('\\u1234', 0, 2)")
+			r = db.Query("SELECT SUBSTR('u1234', 0, 2)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 0, 2)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 0, 2)")
 			}
 		}
 		{ // do_test "func2-2.5.3"
-			r = db.Query("SELECT SUBSTR('\\u1234', 0, 3)")
+			r = db.Query("SELECT SUBSTR('u1234', 0, 3)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 0, 3)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 0, 3)")
 			}
 		}
 		{ // do_test "func2-2.6.0"
-			r = db.Query("SELECT SUBSTR('\\u1234', 1, 0)")
+			r = db.Query("SELECT SUBSTR('u1234', 1, 0)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 1, 0)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 1, 0)")
 			}
 		}
 		{ // do_test "func2-2.6.1"
-			r = db.Query("SELECT SUBSTR('\\u1234', 1, 1)")
+			r = db.Query("SELECT SUBSTR('u1234', 1, 1)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 1, 1)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 1, 1)")
 			}
 		}
 		{ // do_test "func2-2.6.2"
-			r = db.Query("SELECT SUBSTR('\\u1234', 1, 2)")
+			r = db.Query("SELECT SUBSTR('u1234', 1, 2)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 1, 2)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 1, 2)")
 			}
 		}
 		{ // do_test "func2-2.6.3"
-			r = db.Query("SELECT SUBSTR('\\u1234', 1, 3)")
+			r = db.Query("SELECT SUBSTR('u1234', 1, 3)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 1, 3)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 1, 3)")
 			}
 		}
 		{ // do_test "func2-2.7.0"
-			r = db.Query("SELECT SUBSTR('\\u1234', 2, 0)")
+			r = db.Query("SELECT SUBSTR('u1234', 2, 0)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 2, 0)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 2, 0)")
 			}
 		}
 		{ // do_test "func2-2.7.1"
-			r = db.Query("SELECT SUBSTR('\\u1234', 2, 1)")
+			r = db.Query("SELECT SUBSTR('u1234', 2, 1)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 2, 1)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 2, 1)")
 			}
 		}
 		{ // do_test "func2-2.7.2"
-			r = db.Query("SELECT SUBSTR('\\u1234', 2, 2)")
+			r = db.Query("SELECT SUBSTR('u1234', 2, 2)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', 2, 2)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', 2, 2)")
 			}
 		}
 		{ // do_test "func2-2.8.0"
-			r = db.Query("SELECT SUBSTR('\\u1234', -1, 0)")
+			r = db.Query("SELECT SUBSTR('u1234', -1, 0)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', -1, 0)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', -1, 0)")
 			}
 		}
 		{ // do_test "func2-2.8.1"
-			r = db.Query("SELECT SUBSTR('\\u1234', -1, 1)")
+			r = db.Query("SELECT SUBSTR('u1234', -1, 1)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', -1, 1)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', -1, 1)")
 			}
 		}
 		{ // do_test "func2-2.8.2"
-			r = db.Query("SELECT SUBSTR('\\u1234', -1, 2)")
+			r = db.Query("SELECT SUBSTR('u1234', -1, 2)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', -1, 2)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', -1, 2)")
 			}
 		}
 		{ // do_test "func2-2.8.3"
-			r = db.Query("SELECT SUBSTR('\\u1234', -1, 3)")
+			r = db.Query("SELECT SUBSTR('u1234', -1, 3)")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('\\u1234', -1, 3)")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT SUBSTR('u1234', -1, 3)")
 			}
 		}
 	}

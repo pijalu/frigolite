@@ -255,13 +255,13 @@ func Test_fts4unicode(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "4.1"
-			a = "abc\\uFFFEdef"
+			a = "abcuFFFEdef"
 			_ = a // suppress unused warning
-			b = "abc\\uD800def"
+			b = "abcuD800def"
 			_ = b // suppress unused warning
-			c = "\\uFFFEdef"
+			c = "uFFFEdef"
 			_ = c // suppress unused warning
-			d = "\\uD800def"
+			d = "uD800def"
 			_ = d // suppress unused warning
 			_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x);\n    INSERT INTO t1 VALUES(" + a + ");\n    INSERT INTO t1 VALUES(" + b + ");\n    INSERT INTO t1 VALUES(" + c + ");\n    INSERT INTO t1 VALUES(" + d + ");\n  ")
 			if _res.Error != nil {
@@ -374,9 +374,9 @@ func Test_fts4unicode(t *testing.T) {
 					}
 				}
 				{ // "8.1.1"
-					_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('\\xD6');\n  INSERT INTO t3 VALUES('\\xC4');\n  INSERT INTO t3 VALUES('\\xF6');\n  INSERT INTO t3 VALUES('\\xE4');\n")
+					_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('xD6');\n  INSERT INTO t3 VALUES('xC4');\n  INSERT INTO t3 VALUES('xF6');\n  INSERT INTO t3 VALUES('xE4');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('\\xD6');\n  INSERT INTO t3 VALUES('\\xC4');\n  INSERT INTO t3 VALUES('\\xF6');\n  INSERT INTO t3 VALUES('\\xE4');\n")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('xD6');\n  INSERT INTO t3 VALUES('xC4');\n  INSERT INTO t3 VALUES('xF6');\n  INSERT INTO t3 VALUES('xE4');\n")
 					}
 				}
 				{ // "8.1.2"

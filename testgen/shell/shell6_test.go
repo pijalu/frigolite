@@ -100,7 +100,7 @@ func Test_shell6(t *testing.T) {
 				line = strings.TrimSpace(line)
 				_ = line // suppress unused warning
 				if line != "" {
-					expected += line + "\\n"
+					expected += line + "\n"
 				}
 			}
 			{ // do_test "1." + tn + ".1"

@@ -126,7 +126,7 @@ func Test_enc(t *testing.T) {
 		}
 	}
 	{ // do_test "enc-11.2"
-		cp200 = "\\u00C8"
+		cp200 = "u00C8"
 		_ = cp200 // suppress unused warning
 		r = db.Query("\n    SELECT count(*) FROM ab WHERE a = " + cp200 + ";\n  ")
 		if r.Error != nil {

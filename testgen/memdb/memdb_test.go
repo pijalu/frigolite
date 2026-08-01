@@ -414,9 +414,9 @@ func Test_memdb(t *testing.T) {
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 256 }() {
 				{ // do_test "memdb-7.2." + i
-					_res = db.Exec("DELETE FROM t6 WHERE x=\\\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)")
+					_res = db.Exec("DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t6 WHERE x=\\\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)")
 					}
 					r = db.Query("SELECT count(*) FROM t6")
 					if r.Error != nil {

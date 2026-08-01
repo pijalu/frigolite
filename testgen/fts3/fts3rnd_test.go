@@ -389,7 +389,7 @@ func Test_fts3rnd(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					term = "list [random_term] [random_term]"
 					_ = term // suppress unused warning
-					match = "\\\"" + term + "\\\""
+					match = "\"" + term + "\""
 					_ = match // suppress unused warning
 					// do_orderbydocid_test 3.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_phrase $ter... (unsupported command, not transpiled)
 					// incr i 1
@@ -405,7 +405,7 @@ func Test_fts3rnd(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					term = "list [random_term] [random_term] [random_term]"
 					_ = term // suppress unused warning
-					match = "\\\"" + term + "\\\""
+					match = "\"" + term + "\""
 					_ = match // suppress unused warning
 					// do_orderbydocid_test 4.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_phrase $ter... (unsupported command, not transpiled)
 					// incr i 1
@@ -423,7 +423,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = query // suppress unused warning
 					query += "[random_term] 0 end-1" + "* "
 					query += "[random_term] 0 end-1" + "*"
-					match = "\\\"" + query + "\\\""
+					match = "\"" + query + "\""
 					_ = match // suppress unused warning
 					// do_orderbydocid_test 5.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_phrase $que... (unsupported command, not transpiled)
 					// incr i 1

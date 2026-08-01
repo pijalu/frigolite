@@ -164,7 +164,7 @@ func Test_malloc(t *testing.T) {
 	// do_malloc_test 16 -tclbody {\n  db complete {SELECT "hello """||'world"' [micr...} (unsupported command, not transpiled)
 	// do_malloc_test 17 -tclbody {\n    set DB2 0\n    set STMT 0\n  \n    # open da...} -cleanup {\n... (unsupported command, not transpiled)
 	// do_malloc_test 18 -tclprep {\n    catch {\n      db eval "SELECT [string repea...} -tclbody {\n... (unsupported command, not transpiled)
-	static_string = "\\x00h\\x00e\\x00l\\x00l\\x00o"
+	static_string = "x00hx00ex00lx00lx00o"
 	_ = static_string // suppress unused warning
 	l = "0"
 	_ = l // suppress unused warning
@@ -178,7 +178,7 @@ func Test_malloc(t *testing.T) {
 			}
 		}
 	}
-	static_string += "\\x00\\x00"
+	static_string += "x00x00"
 	// do_malloc_test 19 -tclprep {\n  execsql {\n    PRAGMA encoding = "UTF16be";\n ...} -tclbody {\n... (unsupported command, not transpiled)
 	// do_malloc_test 20 -tclprep {\n    db close\n    forcedelete test2.db test2.db-...} -tclbody {\n... (unsupported command, not transpiled)
 	// do_malloc_test 21 -sqlbody {\n    CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REF...} (unsupported command, not transpiled)

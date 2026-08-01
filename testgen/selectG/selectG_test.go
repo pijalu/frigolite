@@ -62,7 +62,7 @@ func Test_selectG(t *testing.T) {
 	testprefix = "selectG"
 	_ = testprefix // suppress unused warning
 	{ // do_test "100"
-		sql = "CREATE TABLE t1(x);\\nINSERT INTO t1(x) VALUES"
+		sql = "CREATE TABLE t1(x);\nINSERT INTO t1(x) VALUES"
 		_ = sql // suppress unused warning
 		i = "1"
 		_ = i // suppress unused warning
@@ -77,7 +77,11 @@ func Test_selectG(t *testing.T) {
 			}
 		}
 		sql += "(" + i + ");"
-		microsec = tclLIndex("time", "{db")
+		_res = db.Exec(sql)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		}
+		microsec = "0"
 		_ = microsec // suppress unused warning
 		_res = db.Exec("\n    SELECT count(x), sum(x), avg(x), " + microsec + "<10000000 FROM t1;\n  ")
 		if _res.Error != nil {

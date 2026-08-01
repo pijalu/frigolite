@@ -34,6 +34,28 @@ type SelectStmt struct {
 	UnionAll bool           // UNION ALL vs UNION
 	CTEs     []CTEDef       // WITH clause CTE definitions
 	Windows  []WindowDef    // WINDOW clause definitions
+
+	// unionTail caches the last element of the Union chain so appending a new
+	// member is O(1). It is only maintained by AppendUnion; callers that build
+	// chains by assigning Union directly must not rely on it.
+	unionTail *SelectStmt
+}
+
+// AppendUnion appends next to the end of s's compound chain in O(1) amortized
+// time and records how the previous tail merges next (op/unionAll semantics).
+// Behavior is identical to walking the chain and setting tail.Union/tail.SetOp.
+func (s *SelectStmt) AppendUnion(next *SelectStmt, op SetOp, unionAll bool) {
+	tail := s.unionTail
+	if tail == nil {
+		tail = s
+		for tail.Union != nil {
+			tail = tail.Union
+		}
+	}
+	tail.Union = next
+	tail.SetOp = op
+	tail.UnionAll = unionAll
+	s.unionTail = next
 }
 
 // CTEDef represents a Common Table Expression definition.

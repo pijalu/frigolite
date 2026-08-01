@@ -84,7 +84,23 @@ func Test_walsetlk_recover(t *testing.T) {
 	_dbtmp1, err := frigolite.Open("test.db")
 	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	tm = tclLIndex("time", "{")
+	{
+		var msg string // catch result ("0"=ok, "1"=error)
+		var _catchErrMsg string // catch error message
+		_ = msg // suppress unused warning
+		_ = _catchErrMsg // suppress unused warning
+		var _catchErr error
+		_res = db.Exec("SELECT * FROM t1")
+		if _res.Error != nil { _catchErr = _res.Error }
+		if _catchErr != nil {
+			msg = "1"
+			_catchErrMsg = _catchErr.Error()
+		} else {
+			msg = "0"
+			_catchErrMsg = ""
+		}
+	}
+	tm = "0"
 	_ = tm // suppress unused warning
 	{ // do_test "1.2"
 		_ = msg // TCL namespace variable (query)

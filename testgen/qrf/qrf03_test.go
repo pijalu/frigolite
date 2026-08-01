@@ -61,35 +61,35 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.10"
-		x = "\\n" + "db format -style box -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\n" + "db format -style box -screenwidth 68 \n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.11"
-		x = "\\n" + "db format -style box -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\n" + "db format -style box -screenwidth 52 \n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.20"
-		x = "\\n" + "db format -style table -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\n" + "db format -style table -screenwidth 68 \n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.21"
-		x = "\\n" + "db format -style table -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\n" + "db format -style table -screenwidth 52 \n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.30"
-		x = "\\n" + "db format -style markdown -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\n" + "db format -style markdown -screenwidth 68 \n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.31"
-		x = "\\n" + "db format -style markdown -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\n" + "db format -style markdown -screenwidth 52 \n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.40"
-		x = "\\n" + "db format -style column -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\n" + "db format -style column -screenwidth 68 \n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.41"
-		x = "\\n" + "db format -style column -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\n" + "db format -style column -screenwidth 52 \n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 }

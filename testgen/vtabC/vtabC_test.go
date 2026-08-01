@@ -111,12 +111,12 @@ func Test_vtabC(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE m(a)")
 			}
-			sql = "CREATE TRIGGER rins AFTER INSERT ON m BEGIN\\n"
+			sql = "CREATE TRIGGER rins AFTER INSERT ON m BEGIN\n"
 			_ = sql // suppress unused warning
 			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n <= N_n }() {
-				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + ");\\n"
+				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + ");\n"
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -165,12 +165,12 @@ func Test_vtabC(t *testing.T) {
 			}
 		}
 		{ // do_test "vtabC-1." + N + ".7"
-			sql = "CREATE TRIGGER rins2 BEFORE INSERT ON m BEGIN\\n"
+			sql = "CREATE TRIGGER rins2 BEFORE INSERT ON m BEGIN\n"
 			_ = sql // suppress unused warning
 			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n <= N_n }() {
-				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + "*100);\\n"
+				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + "*100);\n"
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -182,7 +182,7 @@ func Test_vtabC(t *testing.T) {
 			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n <= N_n }() {
-				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + "*10000);\\n"
+				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + "*10000);\n"
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)

@@ -487,8 +487,8 @@ func Test_e_uri(t *testing.T) {
 											// sqlite3_enable_shared_cache $orig (unsupported command, not transpiled)
 											// do_filepath_test 12.1 {\n  parse_uri file://localhost/test.db?an=unknown&...} {/test.db {an unkno... (unsupported command, not transpiled)
 											// do_filepath_test 12.2 {\n  parse_uri file://localhost/test.db?an&unknown&...} {/test.db {an {} un... (unsupported command, not transpiled)
-											// foreach {tn uri parse} "\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n"
-											_items16 := tclSplitList("\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n")
+											// foreach {tn uri parse} "\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/xFF.db {}}\n"
+											_items16 := tclSplitList("\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/xFF.db {}}\n")
 											for _idx16 := 0; _idx16+3 <= len(_items16); _idx16 += 3 {
 												tn := _items16[_idx16+0]
 												_ = tn // suppress unused warning

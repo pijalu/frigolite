@@ -85,15 +85,15 @@ func Test_icu(t *testing.T) {
 	// test_expr icu-1.3 {i1='hello'} {i1 REGEXP '.ell'} 0 (expr test, not transpiled)
 	// test_expr icu-1.4 {i1='hello'} {i1 REGEXP '.ell.*'} 1 (expr test, not transpiled)
 	// test_expr icu-1.5 {i1=NULL} {i1 REGEXP '.ell.*'} {} (expr test, not transpiled)
-	EGRAVE = "\\xC8" // TCL namespace variable
+	EGRAVE = "xC8" // TCL namespace variable
 	_ = EGRAVE // suppress unused warning
-	egrave = "\\xE8" // TCL namespace variable
+	egrave = "xE8" // TCL namespace variable
 	_ = egrave // suppress unused warning
-	OGRAVE = "\\xD2" // TCL namespace variable
+	OGRAVE = "xD2" // TCL namespace variable
 	_ = OGRAVE // suppress unused warning
-	ograve = "\\xF2" // TCL namespace variable
+	ograve = "xF2" // TCL namespace variable
 	_ = ograve // suppress unused warning
-	szlig = "\\xDF" // TCL namespace variable
+	szlig = "xDF" // TCL namespace variable
 	_ = szlig // suppress unused warning
 	// test_expr icu-2.1 {i1='HellO WorlD'} {upper(i1)} {HELLO WORLD} (expr test, not transpiled)
 	// test_expr icu-2.2 {i1='HellO WorlD'} {lower(i1)} {hello world} (expr test, not transpiled)
@@ -119,7 +119,7 @@ func Test_icu(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	small_dotless_i = "\\u0131" // TCL namespace variable
+	small_dotless_i = "u0131" // TCL namespace variable
 	_ = small_dotless_i // suppress unused warning
 	// test_expr icu-3.1 {i1='I'} {lower(i1)} i (expr test, not transpiled)
 	// test_expr icu-3.2 {i1='I'} {lower(i1, 'tr_tr')} $::small_dotless_i (expr test, not transpiled)

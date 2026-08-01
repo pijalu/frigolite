@@ -234,7 +234,7 @@ func Test_without_rowid4(t *testing.T) {
 			}
 			query = "SELECT * FROM tbl; SELECT * FROM log;"
 			_ = query // suppress unused warning
-			prep = prep + "; INSERT INTO log VALUES(1, 2, 3);\\\n             INSERT INTO log VALUES(10, 20, 30);"
+			prep = prep + "; INSERT INTO log VALUES(1, 2, 3);\n             INSERT INTO log VALUES(10, 20, 30);"
 			_ = prep // suppress unused warning
 			before_data = tclExecSQL(db, "\"$prep $tr_program_cooked $statement $query\"")
 			_ = before_data // suppress unused warning
@@ -242,9 +242,9 @@ func Test_without_rowid4(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl; DELETE FROM log; " + prep)
 			}
-			_res = db.Exec("CREATE TRIGGER the_trigger BEFORE " + "$statement 0 6" + "\\\n             ON tbl BEGIN " + tr_program_fixed + " END;")
+			_res = db.Exec("CREATE TRIGGER the_trigger BEFORE " + "$statement 0 6" + "\n             ON tbl BEGIN " + tr_program_fixed + " END;")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger BEFORE " + "$statement 0 6" + "\\\n             ON tbl BEGIN " + tr_program_fixed + " END;")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger BEFORE " + "$statement 0 6" + "\n             ON tbl BEGIN " + tr_program_fixed + " END;")
 			}
 			{ // do_test "without_rowid4-2." + ii + "-before"
 				_res = db.Exec("execsql {" + statement + " " + query + "}")
@@ -266,9 +266,9 @@ func Test_without_rowid4(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl; DELETE FROM log; " + prep)
 			}
-			_res = db.Exec("CREATE TRIGGER the_trigger AFTER " + "$statement 0 6" + "\\\n             ON tbl BEGIN " + tr_program_fixed + " END;")
+			_res = db.Exec("CREATE TRIGGER the_trigger AFTER " + "$statement 0 6" + "\n             ON tbl BEGIN " + tr_program_fixed + " END;")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger AFTER " + "$statement 0 6" + "\\\n             ON tbl BEGIN " + tr_program_fixed + " END;")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger AFTER " + "$statement 0 6" + "\n             ON tbl BEGIN " + tr_program_fixed + " END;")
 			}
 			{ // do_test "without_rowid4-2." + ii + "-after"
 				_res = db.Exec("execsql {" + statement + " " + query + "}")

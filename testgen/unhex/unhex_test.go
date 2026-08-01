@@ -183,9 +183,9 @@ func Test_unhex(t *testing.T) {
 					}
 				}
 				{ // "6.1"
-					r = db.Query("\n  SELECT hex( unhex('\\u0E01ABCD\\u0E02', '\\uE01\\uE02') )\n")
+					r = db.Query("\n  SELECT hex( unhex('u0E01ABCDu0E02', 'uE01uE02') )\n")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('\\u0E01ABCD\\u0E02', '\\uE01\\uE02') )\n")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('u0E01ABCDu0E02', 'uE01uE02') )\n")
 						return
 					}
 					got := flatten(r)
@@ -195,9 +195,9 @@ func Test_unhex(t *testing.T) {
 					}
 				}
 				{ // "6.2"
-					r = db.Query("\n  SELECT typeof( unhex('\\u0E01ABCD\\u0E02', '\\uE03\\uE02') )\n")
+					r = db.Query("\n  SELECT typeof( unhex('u0E01ABCDu0E02', 'uE03uE02') )\n")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex('\\u0E01ABCD\\u0E02', '\\uE03\\uE02') )\n")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex('u0E01ABCDu0E02', 'uE03uE02') )\n")
 						return
 					}
 					got := flatten(r)
@@ -207,9 +207,9 @@ func Test_unhex(t *testing.T) {
 					}
 				}
 				{ // "6.3"
-					r = db.Query("\n  SELECT hex( unhex('\\u0E01AB CD\\uE02\\uE01', '\\uE01 \\uE02') )\n")
+					r = db.Query("\n  SELECT hex( unhex('u0E01AB CDuE02uE01', 'uE01 uE02') )\n")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('\\u0E01AB CD\\uE02\\uE01', '\\uE01 \\uE02') )\n")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('u0E01AB CDuE02uE01', 'uE01 uE02') )\n")
 						return
 					}
 					got := flatten(r)

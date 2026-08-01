@@ -114,7 +114,7 @@ func Test_speed1(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		_r = "0"
 		_ = _r // suppress unused warning
-		sql += "INSERT INTO t1 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\\n"
+		sql += "INSERT INTO t1 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\n"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -139,7 +139,7 @@ func Test_speed1(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		_r = "0"
 		_ = _r // suppress unused warning
-		sql += "INSERT INTO t2 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\\n"
+		sql += "INSERT INTO t2 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\n"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

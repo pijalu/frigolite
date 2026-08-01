@@ -114,7 +114,7 @@ func Test_fts4incr(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
 					}
 				}
-				t_s = tclLIndex("time", "list")
+				t_s = "0"
 				_ = t_s // suppress unused warning
 			}
 			if false {

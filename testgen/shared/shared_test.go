@@ -715,7 +715,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".8.3.3"
-				zDb16 = "encoding convertto unicode test.db" + "\\x00\\x00"
+				zDb16 = "encoding convertto unicode test.db" + "x00x00"
 				_ = zDb16 // suppress unused warning
 				db16 = ""
 				_ = db16 // suppress unused warning

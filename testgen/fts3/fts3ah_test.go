@@ -112,9 +112,9 @@ func Test_fts3ah(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3ah-1.5"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"" + aterm + " " + bterm + "\\\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"" + aterm + " " + bterm + "\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"" + aterm + " " + bterm + "\\\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"" + aterm + " " + bterm + "\"'")
 		}
 	}
 }

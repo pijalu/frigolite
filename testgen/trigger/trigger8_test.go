@@ -70,12 +70,12 @@ func Test_trigger8(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n  ")
 		}
-		sql = "CREATE TRIGGER r" + nStatement + " AFTER INSERT ON t1 BEGIN\\n"
+		sql = "CREATE TRIGGER r" + nStatement + " AFTER INSERT ON t1 BEGIN\n"
 		_ = sql // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nStatement_n, _nStatement_e := strconv.Atoi(nStatement); if _nStatement_e != nil { return false }; return i_n < nStatement_n }() {
-			sql += "  INSERT INTO t2 VALUES(" + i + ");\\n"
+			sql += "  INSERT INTO t2 VALUES(" + i + ");\n"
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
