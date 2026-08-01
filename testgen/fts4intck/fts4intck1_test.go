@@ -63,7 +63,7 @@ func Test_fts4intck1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{deh quick fox jumps ovehr deh lazy brown dog}"
+		want := "deh quick fox jumps ovehr deh lazy brown dog"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -102,7 +102,7 @@ func Test_fts4intck1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{unable to validate the inverted index for FTS4 table main.t2: SQL logic error}"
+		want := "unable to validate the inverted index for FTS4 table main.t2: SQL logic error"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -127,7 +127,7 @@ func Test_fts4intck1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{malformed inverted index for FTS4 table main.t2}"
+		want := "malformed inverted index for FTS4 table main.t2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

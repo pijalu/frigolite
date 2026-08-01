@@ -1168,7 +1168,7 @@ func Test_indexexpr1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{{\"a\":{\"b\":5}}}"
+		want := "{\"a\":{\"b\":5}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

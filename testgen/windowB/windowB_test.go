@@ -143,7 +143,7 @@ func Test_windowB(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "\n    {[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]}\n  "
+				want := "[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

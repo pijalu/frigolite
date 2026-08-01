@@ -1282,7 +1282,7 @@ func Test_e_expr(t *testing.T) {
 													return
 												}
 												got := flatten(r)
-												want := "{is not}"
+												want := "is not"
 												if got != want {
 													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
@@ -1663,7 +1663,7 @@ func Test_e_expr(t *testing.T) {
 																return
 															}
 															got := flatten(r)
-															want := "{1970-01-01 00:00:01}"
+															want := "1970-01-01 00:00:01"
 															if got != want {
 																t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 															}
@@ -3010,7 +3010,7 @@ func Test_e_expr(t *testing.T) {
 																				return
 																			}
 																			got := flatten(r)
-																			want := "{no result}"
+																			want := "no result"
 																			if got != want {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
@@ -3064,7 +3064,7 @@ func Test_e_expr(t *testing.T) {
 																				return
 																			}
 																			got := flatten(r)
-																			want := "{no result}"
+																			want := "no result"
 																			if got != want {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}

@@ -684,7 +684,7 @@ func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID 
 			row[colDefs[i].Name] = v
 		}
 	}
-	row["rowid"] = rowID
+	row["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
 	return row
 }
 
@@ -1233,7 +1233,7 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.Colum
 		for _, cd := range colDefs {
 			row[cd.Name] = nil
 		}
-		row["rowid"] = nextRowID
+		row["rowid"] = &util.ColumnValue{Value: nextRowID, Affinity: 'I'}
 		values, err := e.evalReturningExprs(s.Returning, row, colDefs)
 		if err != nil {
 			return &Result{Error: err}

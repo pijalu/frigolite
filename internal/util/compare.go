@@ -101,9 +101,25 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 	//   (no numeric conversion). This applies when the other operand
 	//   comes from an expression like unary + or a bare literal.
 	//
+	// Rule 4: neither operand carries affinity (bare literals, expression
+	//   results like function calls, or BLOB-affinity columns) → no
+	//   conversion, compare by type ordering. This is why `1 <= '0'` is TRUE
+	//   (INTEGER sorts before TEXT) while `rowid <= '0'` is FALSE (rowid's
+	//   INTEGER affinity converts '0' to 0).
+	//
 	// In modern SQLite (3.41+), expressions like +col have NO affinity,
 	// even though their value is numeric. This is the key difference
 	// from bare column references which preserve their column affinity.
+
+	// Rule 4: neither side has TEXT or numeric affinity. Compare as-is by
+	// SQLite type ordering (NULL < INTEGER/REAL < TEXT < BLOB); the numeric
+	// conversion below must not apply.
+	if (aAff == 0 || aAff == 'B') && (bAff == 0 || bAff == 'B') {
+		if ta != tb {
+			return int(ta) - int(tb)
+		}
+		// Same class: fall through to the value comparison below.
+	}
 
 	// Determine if we should skip numeric conversion.
 	// Skip when comparing TEXT with BLOB, or TEXT with NONE (no affinity).

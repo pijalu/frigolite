@@ -200,7 +200,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx}"
+		want := "CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -218,7 +218,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one}"
+		want := "CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -236,7 +236,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx}"
+		want := "CREATE VIEW ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -365,7 +365,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIRTUAL TABLE \"x2\" USING tcl(tcl_command)}"
+		want := "CREATE VIRTUAL TABLE \"x2\" USING tcl(tcl_command)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -399,7 +399,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE c1(x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))}"
+		want := "CREATE TABLE c1(x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -366,7 +366,7 @@ func Test_joinH(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{forty three}"
+		want := "forty three"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

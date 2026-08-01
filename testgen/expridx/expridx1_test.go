@@ -97,7 +97,7 @@ func Test_expridx1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{row 3 missing from index i1}"
+		want := "row 3 missing from index i1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -139,7 +139,7 @@ func Test_expridx1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{row 3 missing from index i1}"
+		want := "row 3 missing from index i1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

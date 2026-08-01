@@ -2089,7 +2089,7 @@ func Test_func(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN INSERT INTO t33b(x,y) VALUES(testdirectonly(new.aaa),new.b); END}"
+			want := "CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN INSERT INTO t33b(x,y) VALUES(testdirectonly(new.aaa),new.b); END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

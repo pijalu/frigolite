@@ -167,7 +167,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE t3(a, biglongname, c, d, e, f, g, h, i, j, k, l, m, FOREIGN KEY (biglongname, c, d, e, f, g, h, i, j, k, l, m) REFERENCES t4)}"
+			want := "CREATE TABLE t3(a, biglongname, c, d, e, f, g, h, i, j, k, l, m, FOREIGN KEY (biglongname, c, d, e, f, g, h, i, j, k, l, m) REFERENCES t4)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -191,7 +191,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE t4(x, abc, z)}"
+			want := "CREATE TABLE t4(x, abc, z)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -221,7 +221,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n{CREATE TRIGGER ttt AFTER INSERT ON t4 WHEN new.abc<0 BEGIN\n    SELECT x, abc, z FROM t4;\n    DELETE FROM t4 WHERE abc=32;\n    UPDATE t4 SET x=abc+1, abc=0 WHERE abc=32;\n    INSERT INTO t4(x, abc, z) SELECT 4, 5, 6 WHERE 0;\n  END}\n"
+			want := "CREATE TRIGGER ttt AFTER INSERT ON t4 WHEN new.abc<0 BEGIN\n    SELECT x, abc, z FROM t4;\n    DELETE FROM t4 WHERE abc=32;\n    UPDATE t4 SET x=abc+1, abc=0 WHERE abc=32;\n    INSERT INTO t4(x, abc, z) SELECT 4, 5, 6 WHERE 0;\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -372,7 +372,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE VIEW v1 AS SELECT x, yyy, z FROM a1}"
+			want := "CREATE VIEW v1 AS SELECT x, yyy, z FROM a1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -396,7 +396,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE VIEW v2 AS SELECT xxx, xxx+xxx, a, a+a FROM a1, a2}"
+			want := "CREATE VIEW v2 AS SELECT xxx, xxx+xxx, a, a+a FROM a1, a2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -420,7 +420,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE VIEW v2 AS SELECT x, x+x, a, a+a FROM a1, a2}"
+			want := "CREATE VIEW v2 AS SELECT x, x+x, a, a+a FROM a1, a2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -438,7 +438,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE VIEW vvv AS SELECT \"a;b\"+\"a;b\" || coalesce(\"a;b\", \"a;b\") FROM b1, b2 WHERE x=\"a;b\" GROUP BY \"a;b\" HAVING \"a;b\">0}"
+			want := "CREATE VIEW vvv AS SELECT \"a;b\"+\"a;b\" || coalesce(\"a;b\", \"a;b\") FROM b1, b2 WHERE x=\"a;b\" GROUP BY \"a;b\" HAVING \"a;b\">0"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -450,7 +450,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE VIEW www AS SELECT bbb FROM b1 UNION ALL SELECT y FROM b2}"
+			want := "CREATE VIEW www AS SELECT bbb FROM b1 UNION ALL SELECT y FROM b2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -468,7 +468,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE VIEW xxx AS SELECT a FROM b1 UNION SELECT hello FROM b2 ORDER BY 1 COLLATE nocase}"
+			want := "CREATE VIEW xxx AS SELECT a FROM b1 UNION SELECT hello FROM b2 ORDER BY 1 COLLATE nocase"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -498,7 +498,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE VIEW vt5(x) AS SELECT group_concat(a ORDER BY bbb) FROM t5}"
+			want := "CREATE VIEW vt5(x) AS SELECT group_concat(a ORDER BY bbb) FROM t5"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -607,7 +607,7 @@ func Test_altercol(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "{CREATE TABLE sqlite_stat1(tbl,idx,stat)}"
+					want := "CREATE TABLE sqlite_stat1(tbl,idx,stat)"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -682,7 +682,7 @@ func Test_altercol(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "{CREATE INDEX x1i ON x1(i)}"
+					want := "CREATE INDEX x1i ON x1(i)"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -795,7 +795,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE VIEW vvv AS SELECT xyz AS d FROM xxx WHERE d=0}"
+						want := "CREATE VIEW vvv AS SELECT xyz AS d FROM xxx WHERE d=0"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -964,7 +964,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "\n  {CREATE VIEW v2(e) AS SELECT coalesce(t2.c,t1.f) FROM t1, t2 WHERE t1.b=t2.d}\n"
+						want := "CREATE VIEW v2(e) AS SELECT coalesce(t2.c,t1.f) FROM t1, t2 WHERE t1.b=t2.d"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -978,7 +978,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(bbb,b,c,UNIQUE(bbb),PRIMARY KEY(bbb),UNIQUE(bbb))}"
+						want := "CREATE TABLE t1(bbb,b,c,UNIQUE(bbb),PRIMARY KEY(bbb),UNIQUE(bbb))"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -990,7 +990,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(bbb,b,c,UNIQUE(bbb),PRIMARY KEY(bbb),UNIQUE(bbb))WITHOUT ROWID}"
+						want := "CREATE TABLE t1(bbb,b,c,UNIQUE(bbb),PRIMARY KEY(bbb),UNIQUE(bbb))WITHOUT ROWID"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -1002,7 +1002,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(xx UNIQUE,yy UNIQUE,zz UNIQUE,UNIQUE(xx),PRIMARY KEY(yy),UNIQUE(zz))}"
+						want := "CREATE TABLE t1(xx UNIQUE,yy UNIQUE,zz UNIQUE,UNIQUE(xx),PRIMARY KEY(yy),UNIQUE(zz))"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -1029,7 +1029,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN SELECT d NOT NULL FROM t1; END}"
+						want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN SELECT d NOT NULL FROM t1; END"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

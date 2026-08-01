@@ -596,7 +596,7 @@ func Test_with2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE t1(b)}"
+		want := "CREATE TABLE t1(b)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -81,7 +81,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INT value in t1.a}"
+		want := "non-INT value in t1.a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -93,7 +93,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INT value in t1.a}"
+		want := "non-INT value in t1.a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -105,7 +105,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INT value in t1.a}"
+		want := "non-INT value in t1.a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -117,7 +117,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INT value in t1nn.a}"
+		want := "non-INT value in t1nn.a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -129,7 +129,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INT value in t1nn.a}"
+		want := "non-INT value in t1nn.a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -141,7 +141,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INT value in t1nn.a}"
+		want := "non-INT value in t1nn.a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -153,7 +153,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INTEGER value in t1.b}"
+		want := "non-INTEGER value in t1.b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -165,7 +165,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INTEGER value in t1.b}"
+		want := "non-INTEGER value in t1.b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -177,7 +177,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INTEGER value in t1.b}"
+		want := "non-INTEGER value in t1.b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -201,7 +201,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-INTEGER value in t1nn.b}"
+		want := "non-INTEGER value in t1nn.b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -213,7 +213,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{NULL value in t1nn.b}"
+		want := "NULL value in t1nn.b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -225,7 +225,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-TEXT value in t1.c}"
+		want := "non-TEXT value in t1.c"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -237,7 +237,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-TEXT value in t1.c}"
+		want := "non-TEXT value in t1.c"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -249,7 +249,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-TEXT value in t1.c}"
+		want := "non-TEXT value in t1.c"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -273,7 +273,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-REAL value in t1.d}"
+		want := "non-REAL value in t1.d"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -285,7 +285,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-REAL value in t1.d}"
+		want := "non-REAL value in t1.d"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -297,7 +297,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-BLOB value in t1.e}"
+		want := "non-BLOB value in t1.e"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -309,7 +309,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-BLOB value in t1.e}"
+		want := "non-BLOB value in t1.e"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -321,7 +321,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-BLOB value in t1.e}"
+		want := "non-BLOB value in t1.e"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -345,7 +345,7 @@ func Test_strict2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{NULL value in t1.id}"
+		want := "NULL value in t1.id"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

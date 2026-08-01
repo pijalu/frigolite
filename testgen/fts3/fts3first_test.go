@@ -230,7 +230,7 @@ func Test_fts3first(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "{A B C}"
+					want := "A B C"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

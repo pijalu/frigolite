@@ -14,6 +14,7 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
 
@@ -97,7 +98,10 @@ type structRow struct {
 
 func (r *structRow) Get(name string) (interface{}, bool) {
 	if name == "rowid" {
-		return r.rowID, true
+		// rowid is an implicit INTEGER-affinity column. Wrap it so
+		// comparisons apply SQLite affinity rules (e.g. rowid <= '0'
+		// converts '0' to 0), matching how buildRowMap wraps real columns.
+		return &util.ColumnValue{Value: r.rowID, Affinity: 'I'}, true
 	}
 	if idx, ok := r.index[name]; ok && idx < len(r.values) {
 		return r.values[idx], true

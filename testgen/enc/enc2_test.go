@@ -575,7 +575,7 @@ func Test_enc2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{this is a test}"
+		want := "this is a test"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

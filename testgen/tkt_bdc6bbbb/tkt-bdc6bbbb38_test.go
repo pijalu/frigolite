@@ -92,7 +92,7 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{0 0 0 1 0 2 2 1}"
+				want := "0 0 0 1 0 2 2 1"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -104,7 +104,7 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{[a] [b] c}"
+				want := "[a] [b] c"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -162,7 +162,7 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{0 0 0 1 0 1 4 1}"
+				want := "0 0 0 1 0 1 4 1"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -174,7 +174,7 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{[a] c [d]}"
+				want := "[a] c [d]"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

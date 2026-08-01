@@ -13,6 +13,7 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // --- ATTACH / DETACH ---
@@ -1035,8 +1036,8 @@ func (e *Engine) execFTSSelect(s *sql.SelectStmt, tableEntry *schema.Entry, ftsT
 			continue
 		}
 		rowMap := make(RowMap)
-		rowMap["rowid"] = docID
-		rowMap["docid"] = docID
+		rowMap["rowid"] = &util.ColumnValue{Value: docID, Affinity: 'I'}
+		rowMap["docid"] = &util.ColumnValue{Value: docID, Affinity: 'I'}
 		for i, col := range doc.Columns {
 			if i < len(colDefs) {
 				rowMap[colDefs[i].Name] = col
@@ -1085,7 +1086,7 @@ func (e *Engine) execFTSDelete(ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef,
 		shouldDelete := true
 		if s.Where != nil {
 			rowMap := make(RowMap)
-			rowMap["rowid"] = docID
+			rowMap["rowid"] = &util.ColumnValue{Value: docID, Affinity: 'I'}
 			for _, name := range colDefs {
 				rowMap[name.Name] = ""
 			}

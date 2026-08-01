@@ -108,7 +108,7 @@ func Test_fts3defer2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a b c d e f a x y}"
+		want := "a b c d e f a x y"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -120,7 +120,7 @@ func Test_fts3defer2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a b c d e f a x y}"
+		want := "a b c d e f a x y"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -140,7 +140,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c)}"
+			want := "CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -158,7 +158,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c)}"
+			want := "CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -200,7 +200,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c))}\n"
+			want := "CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c))"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -242,7 +242,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE abc(a, b COLLATE nocase CHECK (a!=b), c DEFAULT 'abc')}\n"
+			want := "CREATE TABLE abc(a, b COLLATE nocase CHECK (a!=b), c DEFAULT 'abc')"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -269,7 +269,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REFERENCES abc)}"
+			want := "CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REFERENCES abc)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -296,7 +296,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE abc(a, b, c)}"
+			want := "CREATE TABLE abc(a, b, c)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -317,7 +317,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE abc(a, b AS (a+1))}"
+			want := "CREATE TABLE abc(a, b AS (a+1))"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -389,7 +389,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE t1(a, b, c, CONSTRAINT c1 CHECK(a=b), CONSTRAINT c2 CHECK(a=b))}\n"
+			want := "CREATE TABLE t1(a, b, c, CONSTRAINT c1 CHECK(a=b), CONSTRAINT c2 CHECK(a=b))"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -413,7 +413,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE t2(a, b NOT NULL)}"
+			want := "CREATE TABLE t2(a, b NOT NULL)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -425,7 +425,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE t2(a, b)}"
+			want := "CREATE TABLE t2(a, b)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -458,7 +458,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)}"
+			want := "CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -482,7 +482,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)}"
+			want := "CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

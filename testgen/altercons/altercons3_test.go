@@ -72,7 +72,7 @@ func Test_altercons3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE c1(b)}"
+		want := "CREATE TABLE c1(b)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -93,7 +93,7 @@ func Test_altercons3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE c1(b)}"
+		want := "CREATE TABLE c1(b)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -114,7 +114,7 @@ func Test_altercons3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE c1(b)}"
+		want := "CREATE TABLE c1(b)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -185,7 +185,7 @@ func Test_altercons3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE x1(a, b }"
+			want := "CREATE TABLE x1(a, b"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

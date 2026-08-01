@@ -873,7 +873,7 @@ func Test_returning1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{hello world}"
+			want := "hello world"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

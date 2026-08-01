@@ -115,7 +115,7 @@ func Test_alterdropcol(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE t1(a, c)}"
+		want := "CREATE TABLE t1(a, c)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -133,7 +133,7 @@ func Test_alterdropcol(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE t1(a)}"
+		want := "CREATE TABLE t1(a)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -412,7 +412,7 @@ func Test_alterdropcol(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{CREATE TABLE t1(a, b, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID}"
+				want := "CREATE TABLE t1(a, b, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -454,7 +454,7 @@ func Test_alterdropcol(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT)}"
+				want := "CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT)"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

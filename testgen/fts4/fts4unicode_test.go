@@ -229,7 +229,7 @@ func Test_fts4unicode(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{a [b] c}"
+			want := "a [b] c"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

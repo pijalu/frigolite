@@ -472,7 +472,7 @@ func (e *Engine) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 	if rowidVal == 0 {
 		// Try to get rowid from row
 		if v, ok := row.Get("rowid"); ok {
-			if r, ok := v.(int64); ok {
+			if r, ok := util.UnwrapColumnValue(v).(int64); ok {
 				rowidVal = r
 			}
 		}
@@ -501,7 +501,7 @@ func getRowID(row Row) int64 {
 		return 0
 	}
 	if v, ok := row.Get("rowid"); ok {
-		if r, ok := v.(int64); ok {
+		if r, ok := util.UnwrapColumnValue(v).(int64); ok {
 			return r
 		}
 	}

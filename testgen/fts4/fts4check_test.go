@@ -97,7 +97,7 @@ func Test_fts4check(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{malformed inverted index for FTS4 table main.t1}"
+				want := "malformed inverted index for FTS4 table main.t1"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

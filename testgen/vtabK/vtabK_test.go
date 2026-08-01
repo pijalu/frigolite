@@ -85,7 +85,7 @@ func Test_vtabK(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{this is a test}"
+		want := "this is a test"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -97,7 +97,7 @@ func Test_vtabK(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{Four score and seven years ago}"
+		want := "Four score and seven years ago"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -109,7 +109,7 @@ func Test_vtabK(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{We hold these truths to be self-evident...}"
+		want := "We hold these truths to be self-evident..."
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

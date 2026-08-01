@@ -75,7 +75,7 @@ func Test_whereG(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{Mass in B Minor, BWV 232}"
+		want := "Mass in B Minor, BWV 232"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -93,7 +93,7 @@ func Test_whereG(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{Mass in B Minor, BWV 232}"
+		want := "Mass in B Minor, BWV 232"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -111,7 +111,7 @@ func Test_whereG(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{Mass in B Minor, BWV 232}"
+		want := "Mass in B Minor, BWV 232"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -129,7 +129,7 @@ func Test_whereG(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{Mass in B Minor, BWV 232}"
+		want := "Mass in B Minor, BWV 232"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

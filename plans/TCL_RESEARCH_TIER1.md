@@ -3,16 +3,17 @@
 **Source of truth for TCL semantics**: `/Users/muaddib/dev/sqlite/test/`
 **Package list**: `plans/PACKAGES_TIER1.txt` (58 packages)
 **Measured this session** (`go test -tags testgen -count=1 -timeout 90s` per package, parallel sweep):
-**27 PASS / 31 FAIL** — identical FAIL set to `plans/HANDOVER_TIER1.md`.
-**Progress**: T1.1 DONE (delete3 green 2.9s), T1.2 DONE (selectG 145s→5s via rowid cache), T1.3 DONE (cse green — comparison/IN/IS NULL/BETWEEN/logical never emit Go bool) — remaining 27 FAIL pending.
+**29 PASS / 29 FAIL** at T1.4 start; **30 PASS / 28 FAIL** after T1.4 (only whereG flipped).
+**Progress**: T1.1 DONE (delete3 green 2.9s), T1.2 DONE (selectG 145s→5s via rowid cache), T1.3 DONE (cse green — comparison/IN/IS NULL/BETWEEN/logical never emit Go bool), T1.4 DONE (whereG green — TCL list-brace unwrap in tcl2go + comparison affinity/rowid INTEGER affinity fixes) — remaining 26 FAIL pending.
 
-- **PASS (27)**: insert, delete_, update, null, types, coalesce, literal, select2,
+- **PASS (30)**: insert, delete_, update, null, types, coalesce, literal, select2,
   select3, select4, select5, select6, select8, select9, selectB, selectE, selectF,
-  selectG*, whereA, whereB, whereC, whereJ, whereK, whereN, delete2, delete4, valuesfault
+  selectG*, whereA, whereB, whereC, whereJ, whereK, whereN, delete2, delete4, valuesfault,
+  delete3, cse, whereG
   (*selectG passes alone in ~145s but times out under parallel load — O(n²) rowid scan, task T1.2)
-- **FAIL (31)**: affinity, between, cast, cse, delete3, delete_pkg, expr, intpkey,
+- **FAIL (28)**: affinity, between, cast, delete_pkg, expr, intpkey,
   intreal, istrue, nulls, numcast, returning, select1, select7, selectA, selectC,
-  selectD, selectH, strict, subtype, values, where, whereD, whereE, whereF, whereG,
+  selectD, selectH, strict, subtype, values, where, whereD, whereE, whereF,
   whereH, whereI, whereL, whereM
 
 ---
@@ -58,7 +59,7 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 - [x] T1.1 — delete3 hang: INTEGER PK direct-seek + single-pass delete (commit pending)
 - [x] T1.2 — selectG O(n²): rowid cache in findNextRowID, bump on insert, invalidate on delete (commit pending)
 - [x] T1.3 — cse bool→0/1: evalIsNull/evalIsNotNull/evalBetween/evalInList + HAVING IsNull/NOT/IsNotNull now emit int64(0/1)
-- [ ] T1.4
+- [x] T1.4 — whereG braces: tcl2go normalizeExpectedWord unwraps single {...} list-rendering groups; engine CompareValues rule-3 (no affinity → type ordering) + rowid wrapped with INTEGER affinity. Committed + pushed.
 - [ ] T1.5
 - [ ] T1.6
 - [ ] T1.7
@@ -105,14 +106,25 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
    tcl2go left `$a/$b/$c` as literal text (the `set` statements were skipped),
    engine parses `$a` as a NULL variable → third column of rows 4-6 is `{}`.
    **Fix (harness)**: same `$var`-in-SQL transpilation issue as numcast.
-
 3. **whereG** — `/Users/muaddib/dev/sqlite/test/whereG.test:76,91,106`
    `} {{Mass in B Minor, BWV 232}}` — TCL list rendering wraps the single
    element (contains comma/space) in braces. The Go want string kept the braces
    `{Mass in B Minor, BWV 232}` while `flatten` renders the actual value without
-   them. Engine output is CORRECT. **Fix (harness)**: strip TCL list-rendering
-   braces from expected values (brace-unwrapping step near
-   `normalizeExpectedWord`).
+   them. **FIXED (T1.4, 2026-08-01)**: `normalizeExpectedWord` unwraps a single
+   `{...}` group spanning the whole value (only when the inner content is
+   non-empty — `{}` is TCL's rendering of a one-element list containing
+   NULL/"" and flatten renders NULL as `{}`, so it stays as-is). Regenerated
+   all 61 affected testgen packages (all `want := "{X}"` → `"X"` unwraps).
+   **Engine fixes required for green** (whereG 8.x likelihood tests):
+   - `CompareValuesCollate`: when neither operand carries NUMERIC/TEXT
+     affinity (both literals/expression results/BLOB columns), compare by
+     type ordering — `1 <= '0'` is TRUE (INTEGER < TEXT), while
+     `rowid <= '0'` is FALSE (rowid INTEGER affinity coerces '0'→0).
+     Verified against `/usr/bin/sqlite3`.
+   - rowid values now wrapped in `ColumnValue{Affinity: 'I'}` at every row
+     build site (structRow.Get, buildRowMap, structRowToMap,
+     buildRowMapFromValues, insert RETURNING, FTS docID) — readers updated
+     (getRowID, delete.go) to unwrap.
 
 4. **between** — `/Users/muaddib/dev/sqlite/test/between.test:29-33`
    `set x [expr {int(log($i)/log(2))}]` then `execsql {INSERT INTO t1

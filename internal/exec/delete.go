@@ -5,6 +5,7 @@ import (
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // --- DELETE ---
@@ -67,7 +68,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 	if len(deletedRows) > 0 {
 		rowIDs := make(map[int64]struct{}, len(deletedRows))
 		for _, row := range deletedRows {
-			if rid, ok := row["rowid"].(int64); ok {
+			if rid, ok := util.UnwrapColumnValue(row["rowid"]).(int64); ok {
 				rowIDs[rid] = struct{}{}
 			}
 		}

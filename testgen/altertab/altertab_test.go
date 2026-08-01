@@ -206,7 +206,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW vvv AS SELECT main.\"t xx\".a, \"t xx\".b, c FROM \"t xx\"}"
+		want := "CREATE VIEW vvv AS SELECT main.\"t xx\".a, \"t xx\".b, c FROM \"t xx\""
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -230,7 +230,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM \"t xx\" AS one}"
+		want := "CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM \"t xx\" AS one"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -254,7 +254,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW ttt AS SELECT main.\"t xx\".a, \"t xx\".b, one.b, main.one.a FROM \"t xx\" AS one, \"t xx\"}"
+		want := "CREATE VIEW ttt AS SELECT main.\"t xx\".a, \"t xx\".b, one.b, main.one.a FROM \"t xx\" AS one, \"t xx\""
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -365,7 +365,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIRTUAL TABLE \"x2\" USING tcl(tcl_command)}"
+		want := "CREATE VIRTUAL TABLE \"x2\" USING tcl(tcl_command)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -413,7 +413,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE c1(x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))}"
+		want := "CREATE TABLE c1(x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -712,7 +712,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW y AS SELECT f2 AS f1 FROM x}"
+		want := "CREATE VIEW y AS SELECT f2 AS f1 FROM x"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -821,7 +821,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE t0 (c1 INTEGER, PRIMARY KEY(c1)) WITHOUT ROWID}"
+		want := "CREATE TABLE t0 (c1 INTEGER, PRIMARY KEY(c1)) WITHOUT ROWID"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -848,7 +848,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE t0 (c1 INTEGER, PRIMARY KEY(c1))}"
+		want := "CREATE TABLE t0 (c1 INTEGER, PRIMARY KEY(c1))"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1112,7 +1112,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW v0 AS WITH p AS ( SELECT 1 FROM \"t2\" ), g AS ( SELECT 1 FROM p, \"t2\" ) SELECT 1 FROM g}"
+		want := "CREATE VIEW v0 AS WITH p AS ( SELECT 1 FROM \"t2\" ), g AS ( SELECT 1 FROM p, \"t2\" ) SELECT 1 FROM g"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1148,7 +1148,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW v2 AS WITH p AS ( SELECT 1 FROM \"t3\" ), g AS ( SELECT 1 FROM ( WITH i AS (SELECT 1 FROM p, \"t3\") SELECT * FROM i ) ) SELECT 1 FROM g}"
+		want := "CREATE VIEW v2 AS WITH p AS ( SELECT 1 FROM \"t3\" ), g AS ( SELECT 1 FROM ( WITH i AS (SELECT 1 FROM p, \"t3\") SELECT * FROM i ) ) SELECT 1 FROM g"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1193,7 +1193,7 @@ func Test_altertab(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE VIEW v3 AS WITH RECURSIVE t3(x,y,z) AS ( SELECT b,c,NULL FROM t4 UNION SELECT x,y,NULL FROM t3, \"t5\" ) SELECT * FROM t3 AS xyz}"
+		want := "CREATE VIEW v3 AS WITH RECURSIVE t3(x,y,z) AS ( SELECT b,c,NULL FROM t4 UNION SELECT x,y,NULL FROM t3, \"t5\" ) SELECT * FROM t3 AS xyz"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

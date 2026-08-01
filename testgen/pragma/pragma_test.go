@@ -668,7 +668,7 @@ func Test_pragma(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{non-unique entry in index t1a}"
+		want := "non-unique entry in index t1a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -1018,7 +1018,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "{...c d [e] f g...}"
+									want := "...c d [e] f g..."
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}

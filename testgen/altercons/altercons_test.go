@@ -347,7 +347,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2))}"
+						want := "CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2))"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -455,7 +455,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(a INTEGER PRIMARY KEY NOT NULL, b NOT NULL, c CHECK (c!=555) NOT NULL, d NOT NULL)}"
+						want := "CREATE TABLE t1(a INTEGER PRIMARY KEY NOT NULL, b NOT NULL, c CHECK (c!=555) NOT NULL, d NOT NULL)"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -485,7 +485,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c CHECK (c!=555), d)}"
+						want := "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c CHECK (c!=555), d)"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -525,7 +525,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(x, y, z NOT NULL)}"
+						want := "CREATE TABLE t1(x, y, z NOT NULL)"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -537,7 +537,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(x, y, z)}"
+						want := "CREATE TABLE t1(x, y, z)"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -549,7 +549,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t2(x NOT NULL, y, z)}"
+						want := "CREATE TABLE t2(x NOT NULL, y, z)"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -561,7 +561,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t2(x, y, z)}"
+						want := "CREATE TABLE t2(x, y, z)"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -579,7 +579,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(x, y, z, CONSTRAINT bill CHECK (y!=2))}"
+						want := "CREATE TABLE t1(x, y, z, CONSTRAINT bill CHECK (y!=2))"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -591,7 +591,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(x, y, z)}"
+						want := "CREATE TABLE t1(x, y, z)"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -603,7 +603,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t2(x, y, z, CONSTRAINT william CHECK (z!=''))}"
+						want := "CREATE TABLE t2(x, y, z, CONSTRAINT william CHECK (z!=''))"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -615,7 +615,7 @@ func Test_altercons(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t2(x, y, z)}"
+						want := "CREATE TABLE t2(x, y, z)"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

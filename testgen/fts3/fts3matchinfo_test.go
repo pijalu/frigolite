@@ -185,7 +185,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{Beside the lake, beneath the trees}"
+		want := "Beside the lake, beneath the trees"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -313,7 +313,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{0 0 20 2 0 0 27 2}"
+		want := "0 0 20 2 0 0 27 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -450,7 +450,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{0 0 0 0 0 0 1 1 1}"
+		want := "0 0 0 0 0 0 1 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

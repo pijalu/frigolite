@@ -242,7 +242,7 @@ func Test_fts4growth(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{5588 127563}"
+		want := "5588 127563"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

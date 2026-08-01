@@ -186,7 +186,7 @@ func Test_schema4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE x1(x)}"
+		want := "CREATE TABLE x1(x)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -204,7 +204,7 @@ func Test_schema4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE x1(x)}"
+		want := "CREATE TABLE x1(x)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

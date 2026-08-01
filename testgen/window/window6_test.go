@@ -155,7 +155,7 @@ func Test_window6(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{window: {hello world}}"
+			want := "window: {hello world}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

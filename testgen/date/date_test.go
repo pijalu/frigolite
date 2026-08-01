@@ -350,7 +350,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:00:00}"
+		want := "2000-10-29 12:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -362,7 +362,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:00:00}"
+		want := "2000-10-29 12:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -374,7 +374,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:00:00}"
+		want := "2000-10-29 12:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -386,7 +386,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:00:00}"
+		want := "2000-10-29 12:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -398,7 +398,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:00:00}"
+		want := "2000-10-29 12:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -410,7 +410,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:00:00}"
+		want := "2000-10-29 12:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -422,7 +422,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:00:00}"
+		want := "2000-10-29 12:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -434,7 +434,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 07:00:00}"
+		want := "2000-10-29 07:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -446,7 +446,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 07:00:00}"
+		want := "2000-10-29 07:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -458,7 +458,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:30:00}"
+		want := "2000-10-29 12:30:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -470,7 +470,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:30:00}"
+		want := "2000-10-29 12:30:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -482,7 +482,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:00:00}"
+		want := "2000-10-29 12:00:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -494,7 +494,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:30:00}"
+		want := "2000-10-29 12:30:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -506,7 +506,7 @@ func Test_date(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2000-10-29 12:30:00}"
+		want := "2000-10-29 12:30:00"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

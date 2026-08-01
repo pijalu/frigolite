@@ -190,7 +190,7 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{Index optimized}"
+		want := "Index optimized"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -209,7 +209,7 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{four five six}"
+		want := "four five six"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -221,7 +221,7 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{four five six}"
+		want := "four five six"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -245,7 +245,7 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{seven eight nine}"
+		want := "seven eight nine"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -257,7 +257,7 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{one two three}"
+		want := "one two three"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

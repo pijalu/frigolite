@@ -150,7 +150,7 @@ func Test_skipscan2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{34 17 2}"
+		want := "34 17 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -186,7 +186,7 @@ func Test_skipscan2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{36 18 2}"
+		want := "36 18 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

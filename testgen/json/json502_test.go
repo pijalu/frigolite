@@ -184,7 +184,7 @@ func Test_json502(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{{\"\\\"Key\":1}}"
+		want := "{\"\\\"Key\":1}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

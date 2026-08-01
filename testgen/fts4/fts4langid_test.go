@@ -126,7 +126,7 @@ func Test_fts4langid(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TABLE 't1_content'(docid INTEGER PRIMARY KEY, 'c0a', 'c1b', langid)}"
+		want := "CREATE TABLE 't1_content'(docid INTEGER PRIMARY KEY, 'c0a', 'c1b', langid)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

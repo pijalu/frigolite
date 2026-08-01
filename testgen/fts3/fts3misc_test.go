@@ -206,7 +206,7 @@ func Test_fts3misc(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a b c}"
+		want := "a b c"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

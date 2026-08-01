@@ -218,7 +218,7 @@ func Test_whereF(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "{{\"foo\":\"meep\",\"other\":12345}}"
+					want := "{\"foo\":\"meep\",\"other\":12345}"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

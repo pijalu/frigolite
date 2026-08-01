@@ -76,7 +76,7 @@ func Test_misc8(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{'1 2 3 4 5 6'}"
+		want := "'1 2 3 4 5 6'"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

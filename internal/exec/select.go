@@ -3528,7 +3528,7 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 			row[fmt.Sprintf("c%d", i)] = v
 		}
 	}
-	row["rowid"] = rowID
+	row["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
 	for _, cd := range colDefs {
 		if cd.PrimaryKey && row[cd.Name] == nil {
 			row[cd.Name] = rowID
@@ -3589,7 +3589,7 @@ func (e *Engine) fillStructRowRemainingFromTypes(sr *structRow, payload []byte, 
 // reused structRow value slots that the next decoded row overwrites.
 func structRowToMap(sr *structRow) RowMap {
 	m := make(RowMap, len(sr.index)+1)
-	m["rowid"] = sr.rowID
+	m["rowid"] = &util.ColumnValue{Value: sr.rowID, Affinity: 'I'}
 	for name, idx := range sr.index {
 		if idx < len(sr.values) {
 			m[name] = cloneRowValue(sr.values[idx])

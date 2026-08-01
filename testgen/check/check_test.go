@@ -309,7 +309,7 @@ func Test_check(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CHECK constraint failed in t4}"
+		want := "CHECK constraint failed in t4"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

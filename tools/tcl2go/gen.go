@@ -731,10 +731,39 @@ func regexPatternExpr(goQuoted string) string {
 	return fmt.Sprintf("%q", s)
 }
 
+// isSingleBraceGroup reports whether text consists of exactly one top-level
+// {...} group spanning the whole string. TCL renders a one-element list whose
+// element contains list-special characters (space, comma, brace, ...) with a
+// single brace layer: 'Mass in B Minor, BWV 232' renders as
+// {Mass in B Minor, BWV 232}. A multi-element list keeps its braces as
+// separators ('{a b} c'), which must not be stripped.
+func isSingleBraceGroup(text string) bool {
+	if len(text) < 2 || text[0] != '{' || text[len(text)-1] != '}' {
+		return false
+	}
+	depth := 0
+	for i := 0; i < len(text); i++ {
+		switch text[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return i == len(text)-1
+			}
+		}
+	}
+	return false
+}
+
 // normalizeExpectedWord collapses whitespace in a braced do_test expected
 // value so it matches the space-joined query result (TCL lists normalize
-// whitespace). Values with structural separators ('|' for row separators,
-// '/' or '~' for regex patterns, '=' for key=value) are left as-is.
+// whitespace). It also unwraps one layer of TCL list-rendering braces: a
+// single {...} group spanning the whole value is how TCL renders a one-element
+// list (e.g. 'Mass in B Minor, BWV 232' → {Mass in B Minor, BWV 232}) and
+// flatten() produces the element without those rendering braces. Values with
+// structural separators ('|' for row separators, '/' or '~' for regex
+// patterns, '=' for key=value) are left as-is.
 func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 	if !w.Braced {
 		return w
@@ -745,16 +774,34 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 		// generated want should be the empty string, not the raw whitespace.
 		return tcl.RawWord{Text: "", Braced: true}
 	}
+	// Unwrap TCL list-rendering braces for a single-element list. A `{}` with
+	// empty inner content is NOT rendering braces: it is how TCL db eval
+	// renders a one-element list containing NULL/"" (and flatten() renders
+	// NULL as "{}"), so leave it as-is.
+	unwrapped := false
+	if isSingleBraceGroup(text) {
+		inner := text[1 : len(text)-1]
+		if strings.TrimSpace(inner) != "" {
+			text = strings.TrimSpace(inner)
+			unwrapped = true
+		}
+	}
 	// Preserve structural content.
 	if strings.Contains(text, "|") || strings.Contains(text, "~") ||
 		strings.HasPrefix(text, "/") || strings.HasSuffix(text, "/") ||
 		strings.Contains(text, "=") {
+		if unwrapped {
+			return tcl.RawWord{Text: text, Braced: true}
+		}
 		return w
 	}
 	// Collapse internal whitespace to single spaces (multi-row results in
 	// do_test expected values are space-joined by flatten()).
 	fields := strings.Fields(text)
 	if len(fields) < 2 {
+		if unwrapped {
+			return tcl.RawWord{Text: text, Braced: true}
+		}
 		return w
 	}
 	return tcl.RawWord{Text: strings.Join(fields, " "), Braced: true}

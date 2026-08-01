@@ -114,7 +114,7 @@ func Test_tkt_7bbfb7d442(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{TEST PASSED!}"
+		want := "TEST PASSED!"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

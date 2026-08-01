@@ -320,7 +320,7 @@ func Test_aggorderby(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{[[1,1],{\"x\":2},{\"a\":3},[4,4]]}"
+		want := "[[1,1],{\"x\":2},{\"a\":3},[4,4]]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -332,7 +332,7 @@ func Test_aggorderby(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{[[1,1],{\"x\":2},{\"a\":3},[4,4]]}"
+		want := "[[1,1],{\"x\":2},{\"a\":3},[4,4]]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -344,7 +344,7 @@ func Test_aggorderby(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{[[1,1],[4,4],{\"a\":3},{\"x\":2}]}"
+		want := "[[1,1],[4,4],{\"a\":3},{\"x\":2}]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -356,7 +356,7 @@ func Test_aggorderby(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{[[1,1],[4,4],{\"a\":3},{\"x\":2}]}"
+		want := "[[1,1],[4,4],{\"a\":3},{\"x\":2}]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

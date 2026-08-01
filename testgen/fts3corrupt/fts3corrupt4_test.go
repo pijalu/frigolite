@@ -1383,7 +1383,7 @@ func Test_fts3corrupt4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{malformed inverted index for FTS3 table main.f}"
+		want := "malformed inverted index for FTS3 table main.f"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
