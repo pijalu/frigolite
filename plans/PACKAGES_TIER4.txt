@@ -1,0 +1,2 @@
+# Tier 4 — Functions & Expressions (32 packages, master plan §6)
+func2 func3 func4 func5 func6 func7 func8 func9 date timediff printf instr substr like regexp hexlit blob zeroblob quote round decimal percentile spellfix closure hidden ieee nan atof fpconv unhex zeroblobfault instrfault

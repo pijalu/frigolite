@@ -1,9 +1,51 @@
 # HANDOVER — Frigolite Tier 1 / window OVER() minimal support / pragma table-valued
 
 **Date**: 2026-08-01 (session handover, stop requested)
-**Last commit**: `bf0c5ae9` (docs(plans): update Tier 1 handover — whereJ passes fully, EQP multi-node DONE)
-**Uncommitted work in tree**: window OVER() minimal support + pragma table-valued support + magic-number TODO (see §2, §3)
+**Last commit**: `28231f98` (feat(parse/exec): minimal window function support — OVER () parses and executes (cast-9.0))
 **Master plan**: `plans/TDD_MASTER_V2.md` (the complete 6-tier roadmap — summarized in §7 below)
+
+---
+
+## 0. FRESH MEASURED STATUS (2026-08-01, HEAD 28231f98, working tree clean)
+
+> Re-measured this session. The master plan §0/§6 status markers are **STALE** —
+> e.g. select1/insert/update are listed PASS there but FAIL now AND at the
+> baseline commit bf0c5ae9 (verified via worktree: pre-existing, not a
+> regression from the window fix).
+
+**Tier 1 = 58 packages: 20 PASS · 38 FAIL** (see plans/PACKAGES_TIER1.txt)
+
+PASS (20): delete_, null, affinity, types, cast, coalesce, literal, select2,
+select8, selectB, selectE, whereA, whereB, whereC, whereJ, whereK, whereN,
+delete2, delete3, valuesfault
+
+FAIL (38):
+- **1a CRUD**: select1, insert, update
+- **1b types/expr**: expr, between, istrue, numcast, subtype, strict, intpkey, intreal, nulls
+- **1c SELECT**: select3, select4, select5, select6, select7, select9, selectA, selectC, selectD, selectF, **selectG (PARSER PANIC — crash, not timeout)**, selectH
+- **1d WHERE**: where, whereD, whereE, whereF, whereG, whereH, whereI, whereL, whereM
+- **1e DML**: delete4, delete_pkg, returning, values, cse
+
+Known failure signatures:
+- selectG: panic inside `internal/parse.ParseSQL` (parser.go:47) on a large
+  statement — run `go test -tags testgen ./testgen/selectG/` to reproduce.
+- insert3/select1: `INSERT INTO t1 SELECT ...` with more columns than the table
+  is not rejected (column-count check missing on INSERT...SELECT); also
+  `LIMIT 1,#1` syntax error message mismatch; `ORDER BY 1` in compound INSERT.
+- values: RAISE(ABORT) inside trigger + VALUES multi-row, FULL JOIN missing,
+  NULL formatting (`{}` vs `NULL`) in CROSS JOIN FULL JOIN output.
+- cse: `false` vs `0` formatting (bool rendered as `false`, SQLite wants `0`).
+- whereD: ORDER BY / LIMIT mismatch on compound queries; `[{} 2 {} {}]` vs `[{} 2]`.
+- delete4: DELETE with triggers — `got [] want [ok]` (trigger-fired SELECT result
+  not observed); `got [1 3 5] want [1]` (DELETE LIMIT semantics).
+- whereI: `got [1.2 2.1 2.2] want [2.1 2.2 1.2]` — order mismatch (WITHOUT ROWID).
+
+Verification commands that PASS today:
+- `go test -tags testgen ./testgen/cast/ -count=1` → ok (window OVER() goal done, verify command green)
+- `go test -tags testgen ./testgen/{types,select2,whereA,affinity,whereK,selectE,analyzeC,eqp}/ -count=1` → 8 ok
+- `go test -tags testgen ./testgen/whereJ/ -count=1` → ok
+- `go test -run TestSOLID_ ./... -count=1` → 14 ok
+- `go build ./...` → ok
 
 ---
 

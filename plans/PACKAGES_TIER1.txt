@@ -1,0 +1,3 @@
+# Tier 1 — Core DML/DDL (58 packages, master plan §6)
+# Measured 2026-08-01: 20 PASS / 38 FAIL (failing listed in HANDOVER_TIER1.md)
+select1 insert delete_ update null affinity expr types cast between coalesce literal istrue numcast subtype strict intpkey intreal nulls select2 select3 select4 select5 select6 select7 select8 select9 selectA selectB selectC selectD selectE selectF selectG selectH where whereA whereB whereC whereD whereE whereF whereG whereH whereI whereJ whereK whereL whereM whereN delete2 delete3 delete4 delete_pkg returning values valuesfault cse

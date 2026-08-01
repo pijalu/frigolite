@@ -1,0 +1,2 @@
+# Tier 3 — Schema & Constraints (master plan §6)
+alter alterauth altercol altercons altercorrupt alterdropcol alterfault alterlegacy altermalloc alterqf altertab altertrig conflict collate collateA collateB fkey fkey_ index indexfault indexedby indexexpr notnull savepoint savepointfault schema tableopts temptrigger trans transitive trigger triggerA triggerB triggerC triggerD triggerE triggerF triggerG triggerupfrom upsert without_rowid check

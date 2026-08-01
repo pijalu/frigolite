@@ -1,0 +1,4 @@
+# Tier 6c — Applicable triage packages (master plan §6c).
+# TODO(Tier 6c goal): classify the remaining testgen packages into
+# 6a (document in plans/NOT_APPLICABLE.md) / 6b (deferred) / 6c (this list),
+# then append the applicable package names here, one per line.
