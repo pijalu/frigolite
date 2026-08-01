@@ -213,6 +213,7 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	if tree.RootPage() != e.rootPage(tableEntry.Name, tableEntry.RootPage) {
 		e.updateRootPage(tableEntry.Name, tree.RootPage())
 	}
+	e.bumpRowIDCache(tableEntry.RootPage, nextRowID)
 
 	// Fire AFTER INSERT triggers — but only if triggers exist for this table.
 	// The trigger check is cheap (cached schema lookup) but building the RowMap
@@ -660,6 +661,7 @@ func (e *Engine) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entr
 		}); err != nil {
 			return &Result{Error: err}
 		}
+		e.invalidateRowIDCache(tableEntry.RootPage)
 		if hasTriggers {
 			if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
 				return trigResult
@@ -747,6 +749,7 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 	if err != nil || deleted == 0 {
 		return &Result{Error: fmt.Errorf("upsert: row not found for update")}
 	}
+	e.invalidateRowIDCache(tableEntry.RootPage)
 
 	cell := &storage.Cell{
 		Type:    storage.CellTableLeaf,
@@ -756,6 +759,7 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}
+	e.bumpRowIDCache(tableEntry.RootPage, existingRowID)
 
 	if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name, nil, nil); trigResult.Error != nil {
 		return trigResult
@@ -1125,6 +1129,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 					}); derr != nil {
 						return &Result{Error: derr}
 					}
+					e.invalidateRowIDCache(tableEntry.RootPage)
 				} else {
 					return &Result{Error: err}
 				}
@@ -1158,6 +1163,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		if tree.RootPage() != e.rootPage(tableEntry.Name, tableEntry.RootPage) {
 			e.updateRootPage(tableEntry.Name, tree.RootPage())
 		}
+		e.bumpRowIDCache(tableEntry.RootPage, rowID)
 		changes++
 		e.lastRowID = rowID
 	}
@@ -1219,6 +1225,7 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.Colum
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}
+	e.bumpRowIDCache(tableEntry.RootPage, nextRowID)
 
 	// Handle RETURNING clause
 	if s.HasReturning {

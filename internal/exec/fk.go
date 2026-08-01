@@ -128,6 +128,7 @@ func (e *Engine) cascadeDelete(parentTable *schema.Entry, parentColDefs []sql.Co
 			}); err != nil {
 				return &Result{Error: err}
 			}
+			e.invalidateRowIDCache(childEntry.RootPage)
 			if hasTriggers {
 				if trigResult := e.fireAfterDeleteTriggers(childEntry.Name, oldRow); trigResult.Error != nil {
 					return trigResult

@@ -1051,10 +1051,13 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 }
 
 func (e *Engine) findNextRowID(tableName string, rootPage uint32) int64 {
-	// NOTE: no cache here — SQLite assigns rowids by scanning the table for
-	// max(rowid)+1. A monotonic cache breaks correctness when rows are
-	// deleted (e.g. a REPLACE conflict-delete followed by a trigger re-insert
-	// must re-compute the rowid against the actual table contents).
+	// Use the cached largest rowid when available (SQLite keeps the largest
+	// rowid seen so far and recomputes it only after a DELETE or when the
+	// cache is empty). This avoids a full-table scan per insert, which is
+	// O(n²) for bulk auto-rowid inserts (e.g. selectG inserts 100k rows).
+	if cached, ok := e.nextRowIDCache[rootPage]; ok {
+		return cached + 1
+	}
 	tree := btree.NewBTree(e.pager, e.rootPage(tableName, rootPage), true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
@@ -1074,7 +1077,24 @@ func (e *Engine) findNextRowID(tableName string, rootPage uint32) int64 {
 			break
 		}
 	}
+	e.nextRowIDCache[rootPage] = maxID
 	return maxID + 1
+}
+
+// bumpRowIDCache records a row with the given rowid as present in the table.
+// The cache always holds the largest rowid seen so far; explicit-rowid inserts
+// must bump it so later auto-rowid inserts do not collide.
+func (e *Engine) bumpRowIDCache(rootPage uint32, rowID int64) {
+	if cur, ok := e.nextRowIDCache[rootPage]; !ok || rowID > cur {
+		e.nextRowIDCache[rootPage] = rowID
+	}
+}
+
+// invalidateRowIDCache drops the cached largest rowid for a table. Called after
+// any DELETE (or rowid-changing UPDATE) because the largest rowid may have been
+// removed; the next findNextRowID recomputes it by scanning.
+func (e *Engine) invalidateRowIDCache(rootPage uint32) {
+	delete(e.nextRowIDCache, rootPage)
 }
 
 func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {

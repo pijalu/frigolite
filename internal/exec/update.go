@@ -193,6 +193,7 @@ func (e *Engine) applyUpdateChanges(rootPage uint32, changes []updateChange) *Re
 	if delErr != nil {
 		return &Result{Error: delErr}
 	}
+	e.invalidateRowIDCache(rootPage)
 
 	// Step 2: Insert all new rows
 	for _, c := range changes {
@@ -208,6 +209,7 @@ func (e *Engine) applyUpdateChanges(rootPage uint32, changes []updateChange) *Re
 		if err := tree.InsertCell(newCell); err != nil {
 			return &Result{Error: err}
 		}
+		e.bumpRowIDCache(rootPage, c.rowID)
 	}
 
 	return &Result{Changes: int64(len(changes))}
@@ -311,6 +313,7 @@ func (e *Engine) resolveUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.
 		}); err != nil {
 			return &Result{Error: err}
 		}
+		e.invalidateRowIDCache(tableEntry.RootPage)
 		if hasTriggers {
 			if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
 				return trigResult
@@ -423,6 +426,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 			}); err != nil {
 				return &Result{Error: err}
 			}
+			e.invalidateRowIDCache(tableEntry.RootPage)
 			if hasTriggers {
 				if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
 					return trigResult
@@ -437,6 +441,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 		}); err != nil {
 			return &Result{Error: err}
 		}
+		e.invalidateRowIDCache(tableEntry.RootPage)
 		newRecord, err := storage.EncodeRecord(c.values)
 		if err != nil {
 			return &Result{Error: err}
@@ -449,6 +454,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 		if err := tree.InsertCell(newCell); err != nil {
 			return &Result{Error: err}
 		}
+		e.bumpRowIDCache(tableEntry.RootPage, c.rowID)
 		changesMade++
 	}
 	return &Result{Changes: changesMade}

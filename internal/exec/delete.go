@@ -79,6 +79,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 			return &Result{Error: err}
 		}
 		deleted = n
+		e.invalidateRowIDCache(tableEntry.RootPage)
 	}
 
 	// Fire AFTER DELETE triggers for each deleted row.
