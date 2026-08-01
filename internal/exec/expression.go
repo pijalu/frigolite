@@ -410,6 +410,9 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		return likeValuesWithEscape(left, right, v.Escape), nil
 	}
 	if v.Operator == "IS" {
+		// Unwrap ColumnValue wrappers so IS NULL works on joined values.
+		left = util.UnwrapColumnValue(left)
+		right = util.UnwrapColumnValue(right)
 		if left == nil && right == nil {
 			return int64(1), nil
 		}
@@ -419,6 +422,8 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		return boolToInt(compareValuesWithCollate(left, right) == 0), nil
 	}
 	if v.Operator == "IS NOT" {
+		left = util.UnwrapColumnValue(left)
+		right = util.UnwrapColumnValue(right)
 		if left == nil && right == nil {
 			return int64(0), nil
 		}
