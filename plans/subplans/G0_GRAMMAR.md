@@ -106,22 +106,22 @@ Carried limits: verify command above; completion criterion above.
 - **Verify**: `go test ./internal/parse/ -run TestGrammarCoverage -count=1 -v`
   (expect NEW passthrough failures for window rules)
 - **Commit**: `G0.2.1: extend grammar corpus with window-function statements`
-- [ ] Done
+- [x] Done
 
 ### Step 2: Add CTE / WITH statements
 - **Action**: Add `WITH x AS (...)`, `WITH RECURSIVE`, `MATERIALIZED` to corpus.
 - **Commit**: `G0.2.2: extend grammar corpus with CTE/WITH statements`
-- [ ] Done
+- [x] Done
 
 ### Step 3: Add ALTER TABLE statements
 - **Action**: Add ADD/DROP/RENAME COLUMN, DROP CONSTRAINT to corpus.
 - **Commit**: `G0.2.3: extend grammar corpus with ALTER TABLE statements`
-- [ ] Done
+- [x] Done
 
 ### Step 4: Add constraint statements
 - **Action**: Add FK REFERENCES, CHECK, GENERATED ALWAYS AS to corpus.
 - **Commit**: `G0.2.4: extend grammar corpus with constraint statements`
-- [ ] Done
+- [x] Done
 
 ---
 

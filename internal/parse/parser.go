@@ -385,13 +385,55 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
   		}
   		return cd
   
-  	// Rule 44: ccons ::= COLLATE ids
-  	case 44:
-  		return sql.ColumnDef{Collate: getString(getRHS(p, ruleNo, 2))}
-  
-  	// Rule 48: autoinc ::= AUTOINCREMENT
-  	case 48:
-  		return true
+	// Rule 44: ccons ::= COLLATE ids
+	case 44:
+		return sql.ColumnDef{Collate: getString(getRHS(p, ruleNo, 2))}
+
+	// Rule 45: generated ::= LP expr RP
+	case 45:
+		return getExpr(getRHS(p, ruleNo, 2))
+
+	// Rule 46: generated ::= LP expr RP ID
+	case 46:
+		return getExpr(getRHS(p, ruleNo, 2))
+
+	// Rule 47: autoinc ::=
+	case 47:
+		return false
+
+	// Rules 51-59: refarg — FK reference actions (ON DELETE CASCADE, etc.)
+	// Accumulated as strings into refargs.
+	case 51:
+		return "MATCH " + getString(getRHS(p, ruleNo, 2))
+	case 52:
+		return "ON INSERT " + getString(getRHS(p, ruleNo, 3))
+	case 53:
+		return "ON DELETE " + getString(getRHS(p, ruleNo, 3))
+	case 54:
+		return "ON UPDATE " + getString(getRHS(p, ruleNo, 3))
+	case 55:
+		return "SET NULL"
+	case 56:
+		return "SET DEFAULT"
+	case 57:
+		return "CASCADE"
+	case 58:
+		return "RESTRICT"
+	case 59:
+		return "NO ACTION"
+
+	// Rule 48: autoinc ::= AUTOINCREMENT
+	case 48:
+		return true
+
+	// Rule 49: refargs ::= (empty)
+	case 49:
+		return ""
+
+	// Rule 50: refargs ::= refargs refarg
+	// Accumulates FK reference actions as a space-separated string.
+	case 50:
+		return getString(getRHS(p, ruleNo, 1)) + " " + getString(getRHS(p, ruleNo, 2))
 
 	// Rule 76: orconf ::= OR resolvetype
 	// (resolvetype: IGNORE, REPLACE, ABORT, FAIL, ROLLBACK)
@@ -1722,7 +1764,81 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 292: cmd ::= ALTER TABLE fullname RENAME TO nm
 	case 292:
-		return nil
+		return &sql.AlterTableStmt{
+			Table:   getString(getRHS(p, ruleNo, 3)),
+			Action:  "RENAME",
+			NewName: getString(getRHS(p, ruleNo, 5)),
+		}
+
+	// Rule 293: cmd ::= alter_add carglist
+	// ALTER TABLE ... ADD COLUMN: combine the column name/type from alter_add
+	// with the constraints from carglist into a full ColumnDef.
+	case 293:
+		ai := getAlterAddInfo(getRHS(p, ruleNo, 1))
+		cols := getColumnList(getRHS(p, ruleNo, 2))
+		cd := sql.ColumnDef{Name: ai.name, Type: ai.typ}
+		for _, c := range cols {
+			mergeColumnDef(&cd, c)
+		}
+		return &sql.AlterTableStmt{
+			Table:  ai.table,
+			Action: "ADD",
+			ColDef: cd,
+		}
+
+	// Rule 294: alter_add ::= ALTER TABLE fullname ADD kwcolumn_opt nm typetoken
+	case 294:
+		return &alterAddInfo{
+			table: getString(getRHS(p, ruleNo, 3)),
+			name:  getString(getRHS(p, ruleNo, 6)),
+			typ:   getString(getRHS(p, ruleNo, 7)),
+		}
+
+	// Rule 295: cmd ::= ALTER TABLE fullname DROP kwcolumn_opt nm
+	case 295:
+		return &sql.AlterTableStmt{
+			Table:  getString(getRHS(p, ruleNo, 3)),
+			Action: "DROP",
+			Column: getString(getRHS(p, ruleNo, 6)),
+		}
+
+	// Rule 296: cmd ::= ALTER TABLE fullname RENAME kwcolumn_opt nm TO nm
+	case 296:
+		return &sql.AlterTableStmt{
+			Table:   getString(getRHS(p, ruleNo, 3)),
+			Action:  "RENAME",
+			Column:  getString(getRHS(p, ruleNo, 6)),
+			NewName: getString(getRHS(p, ruleNo, 8)),
+		}
+
+	// Rule 297: cmd ::= ALTER TABLE fullname DROP CONSTRAINT nm
+	case 297:
+		return &sql.AlterTableStmt{
+			Table:   getString(getRHS(p, ruleNo, 3)),
+			Action:  "DROP",
+			Column:  "CONSTRAINT",
+			NewName: getString(getRHS(p, ruleNo, 6)),
+		}
+
+	// Rules 298-299: ALTER COLUMN DROP/SET NOT NULL
+	case 298:
+		return &sql.AlterTableStmt{
+			Table:          getString(getRHS(p, ruleNo, 3)),
+			Action:         "ALTER",
+			Column:         getString(getRHS(p, ruleNo, 6)),
+			AlterColAction: "DROP NOT NULL",
+		}
+	case 299:
+		return &sql.AlterTableStmt{
+			Table:          getString(getRHS(p, ruleNo, 3)),
+			Action:         "ALTER",
+			Column:         getString(getRHS(p, ruleNo, 6)),
+			AlterColAction: "SET NOT NULL",
+		}
+
+	// Rules 300-301: ALTER TABLE ADD [CONSTRAINT nm] CHECK(expr)
+	case 300, 301:
+		return nil // CHECK constraints at ALTER level not yet supported at runtime
 
 	// Rule 302: cmd ::= create_vtab
 	case 302:
@@ -2161,6 +2277,53 @@ type triggerDeclInfo struct {
 	table      string
 	when       sql.Expr
 	ifNotExist bool
+}
+
+// alterAddInfo is an intermediate value for the alter_add nonterminal
+// (rule 294), carrying the table name, column name, and type token before
+// they are combined with carglist constraints in rule 293.
+type alterAddInfo struct {
+	table string
+	name  string
+	typ   string
+}
+
+func getAlterAddInfo(v interface{}) *alterAddInfo {
+	if ai, ok := v.(*alterAddInfo); ok {
+		return ai
+	}
+	return &alterAddInfo{}
+}
+
+// mergeColumnDef merges non-zero fields from src into dst.
+func mergeColumnDef(dst *sql.ColumnDef, src sql.ColumnDef) {
+	if src.Type != "" {
+		dst.Type = src.Type
+	}
+	if src.NotNull {
+		dst.NotNull = true
+	}
+	if src.PrimaryKey {
+		dst.PrimaryKey = true
+	}
+	if src.Unique {
+		dst.Unique = true
+	}
+	if src.Default != nil {
+		dst.Default = src.Default
+	}
+	if src.Check != nil {
+		dst.Check = src.Check
+	}
+	if src.References != "" {
+		dst.References = src.References
+	}
+	if src.Collate != "" {
+		dst.Collate = src.Collate
+	}
+	if src.AutoInc {
+		dst.AutoInc = true
+	}
 }
 
 func getString(v interface{}) string {

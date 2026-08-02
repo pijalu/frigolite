@@ -302,7 +302,7 @@ func keywordToCode(kw string) int {
 	case "COLLATE":
 		return TK_COLLATE
 	case "COLUMN":
-		return TK_COLUMN
+		return TK_COLUMNKW
 	case "COMMIT":
 		return TK_COMMIT
 	case "CONFLICT":
