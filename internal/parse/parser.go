@@ -125,6 +125,15 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 			lalrErr = fmt.Errorf("near %q: syntax error", tok.Value)
 			break
 		}
+		// When a keyword token is mapped to TK_ID (unknown keyword treated as
+		// identifier), restore the original case from the input text. The RD
+		// lexer uppercases keyword values, but SQLite preserves identifier case.
+		if code == TK_ID && tok.Type == sql.TokenKeyword {
+			end := tok.Pos + len(tok.Value)
+			if end <= len(input) {
+				tok.Value = input[tok.Pos:end]
+			}
+		}
 
 		result := parser.Parse(code, tok)
 		if result == ParseError {

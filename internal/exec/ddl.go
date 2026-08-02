@@ -1665,7 +1665,7 @@ func strictStorageClass(v interface{}) string {
 	v = util.UnwrapColumnValue(v)
 	switch v.(type) {
 	case int64:
-		return "INTEGER"
+		return "INT"
 	case float64:
 		return "REAL"
 	case string:

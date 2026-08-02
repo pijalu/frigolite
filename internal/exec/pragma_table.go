@@ -113,16 +113,16 @@ func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 // argument, it returns one row for every table in the schema.
 // Columns: schema, name, type, ncol, wr (without rowid), strict.
 func (e *Engine) materializeTableList(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
-	// Note: "strict" is a SQL keyword, so the LALR parser uppercases it to
-	// "STRICT" when used as a column reference. We use the uppercase name
-	// to match what the parser produces.
+	// Note: "strict" is a SQL keyword, so the LALR parser uppercases it.
+	// But with case-restoration for TK_ID fallback, the original case is
+	// preserved. We use lowercase to match SQLite's pragma_table_list output.
 	cols := []sql.ColumnDef{
 		{Name: "schema"},
 		{Name: "name"},
 		{Name: "type"},
 		{Name: "ncol"},
 		{Name: "wr"},
-		{Name: "STRICT"},
+		{Name: "strict"},
 	}
 
 	entries, err := e.mainDB.Schema.GetEntries(schema.TypeTable)

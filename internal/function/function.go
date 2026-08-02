@@ -193,6 +193,10 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "Ieee754", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnIeee754})
 	r.register(&Func{Name: "Ieee754_from_blob", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnIeee754FromBlob})
 	r.register(&Func{Name: "Ieee754_inc", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnIeee754Inc})
+	// if()/iif(): SQLite compiles these as a CASE expression.
+	// if(c1,v1,c2,v2,...,default) = CASE WHEN c1 THEN v1 WHEN c2 THEN v2 ... ELSE default END
+	r.register(&Func{Name: "IF", Type: TypeScalar, MinArgs: 3, MaxArgs: -1, ScalarFn: fnIfIIf})
+	r.register(&Func{Name: "IIF", Type: TypeScalar, MinArgs: 3, MaxArgs: -1, ScalarFn: fnIfIIf})
 }
 
 // --- Aggregate implementations ---
@@ -1407,6 +1411,55 @@ func fnIDENTITY(args []interface{}) (interface{}, error) {
 
 func fnIDENTITY2(args []interface{}) (interface{}, error) {
 	return args[0], nil
+}
+
+// fnIfIIf implements if()/iif() as a CASE expression.
+// if(c1,v1,c2,v2,...,default): evaluate condition/value pairs left to right,
+// return the first value whose condition is truthy. If odd args, last is default.
+// Standard 3-arg form: iif(cond, yes, no).
+func fnIfIIf(args []interface{}) (interface{}, error) {
+	// Process condition/value pairs
+	i := 0
+	for i+1 < len(args) {
+		cond := args[i]
+		val := args[i+1]
+		if isTruthyValue(cond) {
+			return val, nil
+		}
+		i += 2
+	}
+	// If there's a trailing default (odd number of args), return it
+	if i < len(args) {
+		return args[i], nil
+	}
+	return nil, nil
+}
+
+// isTruthyValue reports whether a value is truthy (non-zero, non-NULL, non-empty).
+func isTruthyValue(v interface{}) bool {
+	v = unwrap(v)
+	switch x := v.(type) {
+	case nil:
+		return false
+	case int64:
+		return x != 0
+	case float64:
+		return x != 0
+	case string:
+		return x != ""
+	case []byte:
+		return len(x) > 0
+	default:
+		return true
+	}
+}
+
+func unwrap(v interface{}) interface{} {
+	// ColumnValue unwrap
+	if cv, ok := v.(*util.ColumnValue); ok {
+		return util.UnwrapColumnValue(cv)
+	}
+	return v
 }
 
 func fnIeee754(args []interface{}) (interface{}, error) {
