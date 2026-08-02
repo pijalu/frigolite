@@ -217,9 +217,9 @@ func Test_join8(t *testing.T) {
 		}
 	}
 	{ // "join8-6022"
-		r = db.Query("\n  CREATE TABLE a(key TEXT);\n  INSERT INTO a(key) VALUES('a'),('b');\n  SELECT quote(a.key), b.value\n    FROM a RIGHT JOIN json_each('[\"a\",\"c\"]') AS b ON a.key=b.value;\n")
+		r = db.Query("\n  CREATE TABLE a(key TEXT);\n  INSERT INTO a(key) VALUES('a'),('b');\n  SELECT quote(a.key), b.value\n    FROM a RIGHT JOIN json_each('" + sqlLiteral("\"a\",\"c\"") + "') AS b ON a.key=b.value;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE a(key TEXT);\n  INSERT INTO a(key) VALUES('a'),('b');\n  SELECT quote(a.key), b.value\n    FROM a RIGHT JOIN json_each('[\"a\",\"c\"]') AS b ON a.key=b.value;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE a(key TEXT);\n  INSERT INTO a(key) VALUES('a'),('b');\n  SELECT quote(a.key), b.value\n    FROM a RIGHT JOIN json_each('" + sqlLiteral("\"a\",\"c\"") + "') AS b ON a.key=b.value;\n")
 			return
 		}
 		got := flatten(r)
@@ -232,9 +232,9 @@ func Test_join8(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "join8-7000"
-		_res = db.Exec("\nCREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\nCREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;\n")
+		r = db.Query("\nCREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\nCREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;\n")
 		}
 	}
 	tcl_nullvalue = "-"
@@ -574,9 +574,9 @@ func Test_join8(t *testing.T) {
 		}
 	}
 	{ // "join8-15100"
-		_res = db.Exec("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t4(x TEXT);\n  CREATE TABLE t5(y TEXT);\n  CREATE TABLE t6(z TEXT);\n  INSERT INTO t4 VALUES('a'), ('b');\n  INSERT INTO t5 VALUES('b'), ('c');\n  INSERT INTO t6 VALUES('a'), ('d');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t4(x TEXT);\n  CREATE TABLE t5(y TEXT);\n  CREATE TABLE t6(z TEXT);\n  INSERT INTO t4 VALUES('a'), ('b');\n  INSERT INTO t5 VALUES('b'), ('c');\n  INSERT INTO t6 VALUES('a'), ('d');\n")
+		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t4(x TEXT);\n  CREATE TABLE t5(y TEXT);\n  CREATE TABLE t6(z TEXT);\n  INSERT INTO t4 VALUES('a'), ('b');\n  INSERT INTO t5 VALUES('b'), ('c');\n  INSERT INTO t6 VALUES('a'), ('d');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t4(x TEXT);\n  CREATE TABLE t5(y TEXT);\n  CREATE TABLE t6(z TEXT);\n  INSERT INTO t4 VALUES('a'), ('b');\n  INSERT INTO t5 VALUES('b'), ('c');\n  INSERT INTO t6 VALUES('a'), ('d');\n")
 		}
 	}
 	tcl_nullvalue = "-"

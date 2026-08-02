@@ -191,9 +191,9 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-3.2"
 		str = "1234567890 110" // TCL namespace variable
 		_ = str // suppress unused warning
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES(" + str + ");\n    COMMIT;\n  ")
+		_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    COMMIT;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES(" + str + ");\n    COMMIT;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    COMMIT;\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
@@ -214,9 +214,9 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-4.1"
 		str = "1234567890 110" // TCL namespace variable
 		_ = str // suppress unused warning
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES(" + str + ");\n    CREATE TABLE tbl1(a, b, c);\n  ")
+		_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    CREATE TABLE tbl1(a, b, c);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES(" + str + ");\n    CREATE TABLE tbl1(a, b, c);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES(" + sqlLiteral(str) + ");\n    CREATE TABLE tbl1(a, b, c);\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
@@ -250,18 +250,18 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-5.2.1"
 		str = "abcdefghij 110" // TCL namespace variable
 		_ = str // suppress unused warning
-		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES(" + str + ");\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
+		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES(" + str + ");\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "incrvacuum-5.2.2"
 		str = "abcdefghij 110" // TCL namespace variable
 		_ = str // suppress unused warning
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO tbl1 VALUES(" + str + ");\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;\n  ")
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO tbl1 VALUES(" + str + ");\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO tbl1 VALUES(" + sqlLiteral(str) + ");\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;\n  ")
 		}
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
@@ -615,9 +615,9 @@ func Test_incrvacuum(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		str = "\"abcdefghij\" 500"
 		_ = str // suppress unused warning
-		r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('a', " + str + ");\n    INSERT INTO t1 VALUES('b', " + str + ");\n    INSERT INTO t1 VALUES('c', " + str + ");\n    INSERT INTO t1 VALUES('d', " + str + ");\n    INSERT INTO t1 VALUES('e', " + str + ");\n    INSERT INTO t1 VALUES('f', " + str + ");\n    INSERT INTO t1 VALUES('g', " + str + ");\n    INSERT INTO t1 VALUES('h', " + str + ");\n    INSERT INTO t1 VALUES('i', " + str + ");\n    INSERT INTO t1 VALUES('j', " + str + ");\n    INSERT INTO t1 VALUES('j', " + str + ");\n\n    CREATE TABLE t2(x PRIMARY KEY, y);\n    INSERT INTO t2 VALUES('a', " + str + ");\n    INSERT INTO t2 VALUES('b', " + str + ");\n    INSERT INTO t2 VALUES('c', " + str + ");\n    INSERT INTO t2 VALUES('d', " + str + ");\n\n    BEGIN;\n      DELETE FROM t2;\n      PRAGMA incremental_vacuum;\n  ")
+		r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('a', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('b', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('c', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('d', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('e', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('f', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('g', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('h', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('i', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('j', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('j', " + sqlLiteral(str) + ");\n\n    CREATE TABLE t2(x PRIMARY KEY, y);\n    INSERT INTO t2 VALUES('a', " + sqlLiteral(str) + ");\n    INSERT INTO t2 VALUES('b', " + sqlLiteral(str) + ");\n    INSERT INTO t2 VALUES('c', " + sqlLiteral(str) + ");\n    INSERT INTO t2 VALUES('d', " + sqlLiteral(str) + ");\n\n    BEGIN;\n      DELETE FROM t2;\n      PRAGMA incremental_vacuum;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('a', " + str + ");\n    INSERT INTO t1 VALUES('b', " + str + ");\n    INSERT INTO t1 VALUES('c', " + str + ");\n    INSERT INTO t1 VALUES('d', " + str + ");\n    INSERT INTO t1 VALUES('e', " + str + ");\n    INSERT INTO t1 VALUES('f', " + str + ");\n    INSERT INTO t1 VALUES('g', " + str + ");\n    INSERT INTO t1 VALUES('h', " + str + ");\n    INSERT INTO t1 VALUES('i', " + str + ");\n    INSERT INTO t1 VALUES('j', " + str + ");\n    INSERT INTO t1 VALUES('j', " + str + ");\n\n    CREATE TABLE t2(x PRIMARY KEY, y);\n    INSERT INTO t2 VALUES('a', " + str + ");\n    INSERT INTO t2 VALUES('b', " + str + ");\n    INSERT INTO t2 VALUES('c', " + str + ");\n    INSERT INTO t2 VALUES('d', " + str + ");\n\n    BEGIN;\n      DELETE FROM t2;\n      PRAGMA incremental_vacuum;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('a', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('b', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('c', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('d', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('e', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('f', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('g', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('h', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('i', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('j', " + sqlLiteral(str) + ");\n    INSERT INTO t1 VALUES('j', " + sqlLiteral(str) + ");\n\n    CREATE TABLE t2(x PRIMARY KEY, y);\n    INSERT INTO t2 VALUES('a', " + sqlLiteral(str) + ");\n    INSERT INTO t2 VALUES('b', " + sqlLiteral(str) + ");\n    INSERT INTO t2 VALUES('c', " + sqlLiteral(str) + ");\n    INSERT INTO t2 VALUES('d', " + sqlLiteral(str) + ");\n\n    BEGIN;\n      DELETE FROM t2;\n      PRAGMA incremental_vacuum;\n  ")
 		}
 		_res = db.Exec("INSERT INTO t2 SELECT * FROM t1")
 		_ = _res // catchsql
@@ -630,9 +630,9 @@ func Test_incrvacuum(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "incrvacuum-16.0"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n  ")
 		}
 	}
 	_dbtmp5, err := frigolite.Open("test.db")

@@ -57,9 +57,15 @@ func Test_tkt3757(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "tkt3757-1.1"
-		_res = db.Exec("\n     CREATE TABLE t1(x INTEGER, y INTEGER, z TEXT);\n     CREATE INDEX t1i1 ON t1(y,z);\n     INSERT INTO t1 VALUES(1,2,'three');\n     CREATE TABLE t2(a INTEGER, b TEXT);\n     INSERT INTO t2 VALUES(2, 'two');\n     ANALYZE;\n     SELECT * FROM sqlite_stat1 ORDER BY 1, 2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t1(x INTEGER, y INTEGER, z TEXT);\n     CREATE INDEX t1i1 ON t1(y,z);\n     INSERT INTO t1 VALUES(1,2,'three');\n     CREATE TABLE t2(a INTEGER, b TEXT);\n     INSERT INTO t2 VALUES(2, 'two');\n     ANALYZE;\n     SELECT * FROM sqlite_stat1 ORDER BY 1, 2;\n  ")
+		r = db.Query("\n     CREATE TABLE t1(x INTEGER, y INTEGER, z TEXT);\n     CREATE INDEX t1i1 ON t1(y,z);\n     INSERT INTO t1 VALUES(1,2,'three');\n     CREATE TABLE t2(a INTEGER, b TEXT);\n     INSERT INTO t2 VALUES(2, 'two');\n     ANALYZE;\n     SELECT * FROM sqlite_stat1 ORDER BY 1, 2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE TABLE t1(x INTEGER, y INTEGER, z TEXT);\n     CREATE INDEX t1i1 ON t1(y,z);\n     INSERT INTO t1 VALUES(1,2,'three');\n     CREATE TABLE t2(a INTEGER, b TEXT);\n     INSERT INTO t2 VALUES(2, 'two');\n     ANALYZE;\n     SELECT * FROM sqlite_stat1 ORDER BY 1, 2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t1i1 {1 1 1} t2 {} 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3757-1.2"

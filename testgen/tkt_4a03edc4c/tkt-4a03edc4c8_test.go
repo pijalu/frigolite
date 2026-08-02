@@ -58,15 +58,27 @@ func Test_tkt_4a03edc4c8(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt-4a03ed-1.2"
-		_res = db.Exec("\n    PRAGMA integrity_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA integrity_check;\n  ")
+		r = db.Query("\n    PRAGMA integrity_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-4a03ed-1.3"
-		_res = db.Exec("\n    SELECT * FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\n    SELECT * FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

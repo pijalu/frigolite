@@ -68,9 +68,11 @@ type Engine struct {
 	fkCache           map[string][]fkCascadeRef        // cached FK ON DELETE CASCADE refs per parent table
 	inTransaction     bool                             // tracks if we're inside a BEGIN/COMMIT block
 	ddlBuffer         []func()                         // DDL undo operations for transaction rollback
+	txSnapshots       map[string]*pager.PagerState     // pager snapshots per database at BEGIN (for ROLLBACK undo)
 	outerRow          Row                              // outer query row for correlated subquery resolution
 	outerRowStack     []Row                            // stack of enclosing outer rows for multi-level correlation
 	outerRows         []RowMap                         // all outer rows for correlated aggregate evaluation
+	cteScopes         [][]sql.CTEDef                   // CTE scopes from enclosing statements (innermost last)
 	currentScanTable  string                           // table name being scanned (for qualified column resolution)
 	resolvingViews    map[string]bool                  // tracks views currently being resolved (circular reference detection)
 	legacyAlterTable  bool                             // PRAGMA legacy_alter_table setting

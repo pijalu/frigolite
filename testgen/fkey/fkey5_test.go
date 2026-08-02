@@ -65,45 +65,63 @@ func Test_fkey5(t *testing.T) {
 	testprefix = "fkey5"
 	_ = testprefix // suppress unused warning
 	{ // do_test "fkey5-1.1"
-		_res = db.Exec("\n    CREATE TABLE p1(a INTEGER PRIMARY KEY); INSERT INTO p1 VALUES(88),(89);\n    CREATE TABLE p2(a INT PRIMARY KEY); INSERT INTO p2 VALUES(77),(78);\n    CREATE TABLE p3(a TEXT PRIMARY KEY);\n    INSERT INTO p3 VALUES(66),(67),('alpha'),('BRAVO');\n    CREATE TABLE p4(a TEXT PRIMARY KEY COLLATE nocase);\n    INSERT INTO p4 VALUES('alpha'),('BRAVO'),('55'),('Delta'),('ECHO');\n    CREATE TABLE p5(a INTEGER PRIMARY KEY, b, c, UNIQUE(b,c));\n    INSERT INTO p5 VALUES(1,'Alpha','abc'),(2,'beta','def');\n    CREATE TABLE p6(a INTEGER PRIMARY KEY, b TEXT COLLATE nocase,\n                    c TEXT COLLATE rtrim, UNIQUE(b,c));\n    INSERT INTO p6 VALUES(1,'Alpha','abc '),(2,'bETA','def    ');\n\n    CREATE TABLE c1(x INTEGER PRIMARY KEY references p1);\n    CREATE TABLE c2(x INTEGER PRIMARY KEY references p2);\n    CREATE TABLE c3(x INTEGER PRIMARY KEY references p3);\n    CREATE TABLE c4(x INTEGER PRIMARY KEY references p4);\n    CREATE TABLE c5(x INT references p1);\n    CREATE TABLE c6(x INT references p2);\n    CREATE TABLE c7(x INT references p3);\n    CREATE TABLE c8(x INT references p4);\n    CREATE TABLE c9(x TEXT UNIQUE references p1);\n    CREATE TABLE c10(x TEXT UNIQUE references p2);\n    CREATE TABLE c11(x TEXT UNIQUE references p3);\n    CREATE TABLE c12(x TEXT UNIQUE references p4);\n    CREATE TABLE c13(x TEXT COLLATE nocase references p3);\n    CREATE TABLE c14(x TEXT COLLATE nocase references p4);\n    CREATE TABLE c15(x, y, FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c16(x, y, FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c17(x, y, FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c18(x, y, FOREIGN KEY(x,y) REFERENCES p6(c,b));\n    CREATE TABLE c19(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c20(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c21(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c22(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(c,b));\n\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p1(a INTEGER PRIMARY KEY); INSERT INTO p1 VALUES(88),(89);\n    CREATE TABLE p2(a INT PRIMARY KEY); INSERT INTO p2 VALUES(77),(78);\n    CREATE TABLE p3(a TEXT PRIMARY KEY);\n    INSERT INTO p3 VALUES(66),(67),('alpha'),('BRAVO');\n    CREATE TABLE p4(a TEXT PRIMARY KEY COLLATE nocase);\n    INSERT INTO p4 VALUES('alpha'),('BRAVO'),('55'),('Delta'),('ECHO');\n    CREATE TABLE p5(a INTEGER PRIMARY KEY, b, c, UNIQUE(b,c));\n    INSERT INTO p5 VALUES(1,'Alpha','abc'),(2,'beta','def');\n    CREATE TABLE p6(a INTEGER PRIMARY KEY, b TEXT COLLATE nocase,\n                    c TEXT COLLATE rtrim, UNIQUE(b,c));\n    INSERT INTO p6 VALUES(1,'Alpha','abc '),(2,'bETA','def    ');\n\n    CREATE TABLE c1(x INTEGER PRIMARY KEY references p1);\n    CREATE TABLE c2(x INTEGER PRIMARY KEY references p2);\n    CREATE TABLE c3(x INTEGER PRIMARY KEY references p3);\n    CREATE TABLE c4(x INTEGER PRIMARY KEY references p4);\n    CREATE TABLE c5(x INT references p1);\n    CREATE TABLE c6(x INT references p2);\n    CREATE TABLE c7(x INT references p3);\n    CREATE TABLE c8(x INT references p4);\n    CREATE TABLE c9(x TEXT UNIQUE references p1);\n    CREATE TABLE c10(x TEXT UNIQUE references p2);\n    CREATE TABLE c11(x TEXT UNIQUE references p3);\n    CREATE TABLE c12(x TEXT UNIQUE references p4);\n    CREATE TABLE c13(x TEXT COLLATE nocase references p3);\n    CREATE TABLE c14(x TEXT COLLATE nocase references p4);\n    CREATE TABLE c15(x, y, FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c16(x, y, FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c17(x, y, FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c18(x, y, FOREIGN KEY(x,y) REFERENCES p6(c,b));\n    CREATE TABLE c19(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c20(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c21(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c22(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(c,b));\n\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    CREATE TABLE p1(a INTEGER PRIMARY KEY); INSERT INTO p1 VALUES(88),(89);\n    CREATE TABLE p2(a INT PRIMARY KEY); INSERT INTO p2 VALUES(77),(78);\n    CREATE TABLE p3(a TEXT PRIMARY KEY);\n    INSERT INTO p3 VALUES(66),(67),('alpha'),('BRAVO');\n    CREATE TABLE p4(a TEXT PRIMARY KEY COLLATE nocase);\n    INSERT INTO p4 VALUES('alpha'),('BRAVO'),('55'),('Delta'),('ECHO');\n    CREATE TABLE p5(a INTEGER PRIMARY KEY, b, c, UNIQUE(b,c));\n    INSERT INTO p5 VALUES(1,'Alpha','abc'),(2,'beta','def');\n    CREATE TABLE p6(a INTEGER PRIMARY KEY, b TEXT COLLATE nocase,\n                    c TEXT COLLATE rtrim, UNIQUE(b,c));\n    INSERT INTO p6 VALUES(1,'Alpha','abc '),(2,'bETA','def    ');\n\n    CREATE TABLE c1(x INTEGER PRIMARY KEY references p1);\n    CREATE TABLE c2(x INTEGER PRIMARY KEY references p2);\n    CREATE TABLE c3(x INTEGER PRIMARY KEY references p3);\n    CREATE TABLE c4(x INTEGER PRIMARY KEY references p4);\n    CREATE TABLE c5(x INT references p1);\n    CREATE TABLE c6(x INT references p2);\n    CREATE TABLE c7(x INT references p3);\n    CREATE TABLE c8(x INT references p4);\n    CREATE TABLE c9(x TEXT UNIQUE references p1);\n    CREATE TABLE c10(x TEXT UNIQUE references p2);\n    CREATE TABLE c11(x TEXT UNIQUE references p3);\n    CREATE TABLE c12(x TEXT UNIQUE references p4);\n    CREATE TABLE c13(x TEXT COLLATE nocase references p3);\n    CREATE TABLE c14(x TEXT COLLATE nocase references p4);\n    CREATE TABLE c15(x, y, FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c16(x, y, FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c17(x, y, FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c18(x, y, FOREIGN KEY(x,y) REFERENCES p6(c,b));\n    CREATE TABLE c19(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c20(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c21(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c22(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(c,b));\n\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p1(a INTEGER PRIMARY KEY); INSERT INTO p1 VALUES(88),(89);\n    CREATE TABLE p2(a INT PRIMARY KEY); INSERT INTO p2 VALUES(77),(78);\n    CREATE TABLE p3(a TEXT PRIMARY KEY);\n    INSERT INTO p3 VALUES(66),(67),('alpha'),('BRAVO');\n    CREATE TABLE p4(a TEXT PRIMARY KEY COLLATE nocase);\n    INSERT INTO p4 VALUES('alpha'),('BRAVO'),('55'),('Delta'),('ECHO');\n    CREATE TABLE p5(a INTEGER PRIMARY KEY, b, c, UNIQUE(b,c));\n    INSERT INTO p5 VALUES(1,'Alpha','abc'),(2,'beta','def');\n    CREATE TABLE p6(a INTEGER PRIMARY KEY, b TEXT COLLATE nocase,\n                    c TEXT COLLATE rtrim, UNIQUE(b,c));\n    INSERT INTO p6 VALUES(1,'Alpha','abc '),(2,'bETA','def    ');\n\n    CREATE TABLE c1(x INTEGER PRIMARY KEY references p1);\n    CREATE TABLE c2(x INTEGER PRIMARY KEY references p2);\n    CREATE TABLE c3(x INTEGER PRIMARY KEY references p3);\n    CREATE TABLE c4(x INTEGER PRIMARY KEY references p4);\n    CREATE TABLE c5(x INT references p1);\n    CREATE TABLE c6(x INT references p2);\n    CREATE TABLE c7(x INT references p3);\n    CREATE TABLE c8(x INT references p4);\n    CREATE TABLE c9(x TEXT UNIQUE references p1);\n    CREATE TABLE c10(x TEXT UNIQUE references p2);\n    CREATE TABLE c11(x TEXT UNIQUE references p3);\n    CREATE TABLE c12(x TEXT UNIQUE references p4);\n    CREATE TABLE c13(x TEXT COLLATE nocase references p3);\n    CREATE TABLE c14(x TEXT COLLATE nocase references p4);\n    CREATE TABLE c15(x, y, FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c16(x, y, FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c17(x, y, FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c18(x, y, FOREIGN KEY(x,y) REFERENCES p6(c,b));\n    CREATE TABLE c19(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c20(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c21(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c22(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(c,b));\n\n    PRAGMA foreign_key_check;\n  ")
 		}
 	}
 	{ // do_test "fkey5-1.2"
-		_res = db.Exec("\n    INSERT INTO c1 VALUES(90),(87),(88);\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c1 VALUES(90),(87),(88);\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    INSERT INTO c1 VALUES(90),(87),(88);\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c1 VALUES(90),(87),(88);\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c1 87 p1 0 c1 90 p1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-1.2b"
-		_res = db.Exec("\n    PRAGMA main.foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA main.foreign_key_check;\n  ")
+		r = db.Query("\n    PRAGMA main.foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c1 87 p1 0 c1 90 p1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-1.2c"
-		_res = db.Exec("\n    PRAGMA temp.foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA temp.foreign_key_check;\n  ")
+		r = db.Query("\n    PRAGMA temp.foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA temp.foreign_key_check;\n  ")
 		}
 	}
 	{ // do_test "fkey5-1.3"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c1);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c1 87 p1 0 c1 90 p1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-1.4"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c2);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c2);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c2);\n  ")
 		}
 	}
 	{ // do_test "fkey5-1.5"
-		_res = db.Exec("\n    PRAGMA main.foreign_key_check(c2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA main.foreign_key_check(c2);\n  ")
+		r = db.Query("\n    PRAGMA main.foreign_key_check(c2);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.foreign_key_check(c2);\n  ")
 		}
 	}
 	{ // do_test "fkey5-1.6"
@@ -111,21 +129,33 @@ func Test_fkey5(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "fkey5-2.0"
-		_res = db.Exec("\n    INSERT INTO c5 SELECT x FROM c1;\n    DELETE FROM c1;\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c5 SELECT x FROM c1;\n    DELETE FROM c1;\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    INSERT INTO c5 SELECT x FROM c1;\n    DELETE FROM c1;\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c5 SELECT x FROM c1;\n    DELETE FROM c1;\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c5 1 p1 0 c5 3 p1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-2.1"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c5);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c5);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c5);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c5);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c5 1 p1 0 c5 3 p1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-2.2"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c1);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c1);\n  ")
 		}
 	}
 	{ // "fkey5-2.3"
@@ -141,129 +171,249 @@ func Test_fkey5(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey5-3.0"
-		_res = db.Exec("\n    INSERT INTO c9 SELECT x FROM c5;\n    DELETE FROM c5;\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c9 SELECT x FROM c5;\n    DELETE FROM c5;\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    INSERT INTO c9 SELECT x FROM c5;\n    DELETE FROM c5;\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c9 SELECT x FROM c5;\n    DELETE FROM c5;\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c9 1 p1 0 c9 3 p1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-3.1"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c9);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c9);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c9);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c9);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c9 1 p1 0 c9 3 p1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-3.2"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c5);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c5);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c5);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c5);\n  ")
 		}
 	}
 	{ // do_test "fkey5-4.0"
-		_res = db.Exec("\n    DELETE FROM c9;\n    INSERT INTO c2 VALUES(79),(77),(76);\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM c9;\n    INSERT INTO c2 VALUES(79),(77),(76);\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    DELETE FROM c9;\n    INSERT INTO c2 VALUES(79),(77),(76);\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM c9;\n    INSERT INTO c2 VALUES(79),(77),(76);\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c2 76 p2 0 c2 79 p2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-4.1"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c2);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c2);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c2);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c2 76 p2 0 c2 79 p2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-4.2"
-		_res = db.Exec("\n    INSERT INTO c6 SELECT x FROM c2;\n    DELETE FROM c2;\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c6 SELECT x FROM c2;\n    DELETE FROM c2;\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    INSERT INTO c6 SELECT x FROM c2;\n    DELETE FROM c2;\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c6 SELECT x FROM c2;\n    DELETE FROM c2;\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c6 1 p2 0 c6 3 p2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-4.3"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c6);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c6);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c6);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c6);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c6 1 p2 0 c6 3 p2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-4.4"
-		_res = db.Exec("\n    INSERT INTO c10 SELECT x FROM c6;\n    DELETE FROM c6;\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c10 SELECT x FROM c6;\n    DELETE FROM c6;\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    INSERT INTO c10 SELECT x FROM c6;\n    DELETE FROM c6;\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c10 SELECT x FROM c6;\n    DELETE FROM c6;\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c10 1 p2 0 c10 3 p2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-4.5"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c10);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c10);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c10);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c10);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c10 1 p2 0 c10 3 p2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-5.0"
-		_res = db.Exec("\n    DELETE FROM c10;\n    INSERT INTO c3 VALUES(68),(67),(65);\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM c10;\n    INSERT INTO c3 VALUES(68),(67),(65);\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    DELETE FROM c10;\n    INSERT INTO c3 VALUES(68),(67),(65);\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM c10;\n    INSERT INTO c3 VALUES(68),(67),(65);\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c3 65 p3 0 c3 68 p3 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-5.1"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c3);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c3);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c3);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c3 65 p3 0 c3 68 p3 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-5.2"
-		_res = db.Exec("\n    INSERT INTO c7 SELECT x FROM c3;\n    INSERT INTO c7 VALUES('Alpha'),('alpha'),('foxtrot');\n    DELETE FROM c3;\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c7 SELECT x FROM c3;\n    INSERT INTO c7 VALUES('Alpha'),('alpha'),('foxtrot');\n    DELETE FROM c3;\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    INSERT INTO c7 SELECT x FROM c3;\n    INSERT INTO c7 VALUES('Alpha'),('alpha'),('foxtrot');\n    DELETE FROM c3;\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c7 SELECT x FROM c3;\n    INSERT INTO c7 VALUES('Alpha'),('alpha'),('foxtrot');\n    DELETE FROM c3;\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c7 1 p3 0 c7 3 p3 0 c7 4 p3 0 c7 6 p3 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-5.3"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c7);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c7);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c7);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c7);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c7 1 p3 0 c7 3 p3 0 c7 4 p3 0 c7 6 p3 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-5.4"
-		_res = db.Exec("\n    INSERT INTO c11 SELECT x FROM c7;\n    DELETE FROM c7;\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c11 SELECT x FROM c7;\n    DELETE FROM c7;\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    INSERT INTO c11 SELECT x FROM c7;\n    DELETE FROM c7;\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c11 SELECT x FROM c7;\n    DELETE FROM c7;\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c11 1 p3 0 c11 3 p3 0 c11 4 p3 0 c11 6 p3 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-5.5"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c11);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c11);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c11);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c11);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c11 1 p3 0 c11 3 p3 0 c11 4 p3 0 c11 6 p3 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-6.0"
-		_res = db.Exec("\n    DELETE FROM c11;\n    INSERT INTO c4 VALUES(54),(55),(56);\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM c11;\n    INSERT INTO c4 VALUES(54),(55),(56);\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    DELETE FROM c11;\n    INSERT INTO c4 VALUES(54),(55),(56);\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM c11;\n    INSERT INTO c4 VALUES(54),(55),(56);\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c4 54 p4 0 c4 56 p4 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-6.1"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c4);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c4);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c4);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c4 54 p4 0 c4 56 p4 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-6.2"
-		_res = db.Exec("\n    INSERT INTO c8 SELECT x FROM c4;\n    INSERT INTO c8 VALUES('Alpha'),('ALPHA'),('foxtrot');\n    DELETE FROM c4;\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c8 SELECT x FROM c4;\n    INSERT INTO c8 VALUES('Alpha'),('ALPHA'),('foxtrot');\n    DELETE FROM c4;\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    INSERT INTO c8 SELECT x FROM c4;\n    INSERT INTO c8 VALUES('Alpha'),('ALPHA'),('foxtrot');\n    DELETE FROM c4;\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c8 SELECT x FROM c4;\n    INSERT INTO c8 VALUES('Alpha'),('ALPHA'),('foxtrot');\n    DELETE FROM c4;\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c8 1 p4 0 c8 3 p4 0 c8 6 p4 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-6.3"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c8);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c8);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c8);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c8);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c8 1 p4 0 c8 3 p4 0 c8 6 p4 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-6.4"
-		_res = db.Exec("\n    INSERT INTO c12 SELECT x FROM c8;\n    DELETE FROM c8;\n    PRAGMA foreign_key_check;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c12 SELECT x FROM c8;\n    DELETE FROM c8;\n    PRAGMA foreign_key_check;\n  ")
+		r = db.Query("\n    INSERT INTO c12 SELECT x FROM c8;\n    DELETE FROM c8;\n    PRAGMA foreign_key_check;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c12 SELECT x FROM c8;\n    DELETE FROM c8;\n    PRAGMA foreign_key_check;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c12 1 p4 0 c12 3 p4 0 c12 6 p4 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-6.5"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c12);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c12);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c12);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c12);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c12 1 p4 0 c12 3 p4 0 c12 6 p4 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-7.1"
@@ -276,63 +426,93 @@ func Test_fkey5(t *testing.T) {
 		_ = tclSort(res) // lsort result
 	}
 	{ // do_test "fkey5-7.2"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c14);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c14);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c14);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c14);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c14 1 p4 0 c14 3 p4 0 c14 6 p4 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-7.3"
-		_res = db.Exec("\n    PRAGMA foreign_key_check(c13);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_key_check(c13);\n  ")
+		r = db.Query("\n    PRAGMA foreign_key_check(c13);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA foreign_key_check(c13);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c13 1 p3 0 c13 2 p3 0 c13 3 p3 0 c13 4 p3 0 c13 5 p3 0 c13 6 p3 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-8.0"
-		_res = db.Exec("\n    DELETE FROM c13;\n    DELETE FROM c14;\n    INSERT INTO c19 VALUES('alpha','abc');\n    PRAGMA foreign_key_check(c19);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM c13;\n    DELETE FROM c14;\n    INSERT INTO c19 VALUES('alpha','abc');\n    PRAGMA foreign_key_check(c19);\n  ")
+		r = db.Query("\n    DELETE FROM c13;\n    DELETE FROM c14;\n    INSERT INTO c19 VALUES('alpha','abc');\n    PRAGMA foreign_key_check(c19);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM c13;\n    DELETE FROM c14;\n    INSERT INTO c19 VALUES('alpha','abc');\n    PRAGMA foreign_key_check(c19);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c19 1 p5 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-8.1"
-		_res = db.Exec("\n    DELETE FROM c19;\n    INSERT INTO c19 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c19);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM c19;\n    INSERT INTO c19 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c19);\n  ")
+		r = db.Query("\n    DELETE FROM c19;\n    INSERT INTO c19 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c19);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM c19;\n    INSERT INTO c19 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c19);\n  ")
 		}
 	}
 	{ // do_test "fkey5-8.2"
-		_res = db.Exec("\n    INSERT INTO c20 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c20);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c20 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c20);\n  ")
+		r = db.Query("\n    INSERT INTO c20 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c20);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c20 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c20);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c20 1 p5 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-8.3"
-		_res = db.Exec("\n    DELETE FROM c20;\n    INSERT INTO c20 VALUES('abc','Alpha');\n    PRAGMA foreign_key_check(c20);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM c20;\n    INSERT INTO c20 VALUES('abc','Alpha');\n    PRAGMA foreign_key_check(c20);\n  ")
+		r = db.Query("\n    DELETE FROM c20;\n    INSERT INTO c20 VALUES('abc','Alpha');\n    PRAGMA foreign_key_check(c20);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM c20;\n    INSERT INTO c20 VALUES('abc','Alpha');\n    PRAGMA foreign_key_check(c20);\n  ")
 		}
 	}
 	{ // do_test "fkey5-8.4"
-		_res = db.Exec("\n    INSERT INTO c21 VALUES('alpha','abc    ');\n    PRAGMA foreign_key_check(c21);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c21 VALUES('alpha','abc    ');\n    PRAGMA foreign_key_check(c21);\n  ")
+		r = db.Query("\n    INSERT INTO c21 VALUES('alpha','abc    ');\n    PRAGMA foreign_key_check(c21);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c21 VALUES('alpha','abc    ');\n    PRAGMA foreign_key_check(c21);\n  ")
 		}
 	}
 	{ // do_test "fkey5-8.5"
-		_res = db.Exec("\n    DELETE FROM c21;\n    INSERT INTO c19 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c21);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM c21;\n    INSERT INTO c19 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c21);\n  ")
+		r = db.Query("\n    DELETE FROM c21;\n    INSERT INTO c19 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c21);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM c21;\n    INSERT INTO c19 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c21);\n  ")
 		}
 	}
 	{ // do_test "fkey5-8.6"
-		_res = db.Exec("\n    INSERT INTO c22 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c22);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO c22 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c22);\n  ")
+		r = db.Query("\n    INSERT INTO c22 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c22);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO c22 VALUES('Alpha','abc');\n    PRAGMA foreign_key_check(c22);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "c22 1 p6 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey5-8.7"
-		_res = db.Exec("\n    DELETE FROM c22;\n    INSERT INTO c22 VALUES('abc  ','ALPHA');\n    PRAGMA foreign_key_check(c22);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM c22;\n    INSERT INTO c22 VALUES('abc  ','ALPHA');\n    PRAGMA foreign_key_check(c22);\n  ")
+		r = db.Query("\n    DELETE FROM c22;\n    INSERT INTO c22 VALUES('abc  ','ALPHA');\n    PRAGMA foreign_key_check(c22);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM c22;\n    INSERT INTO c22 VALUES('abc  ','ALPHA');\n    PRAGMA foreign_key_check(c22);\n  ")
 		}
 	}
 	{ // "9.1.1"
@@ -492,9 +672,9 @@ func Test_fkey5(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "13.10"
-		_res = db.Exec("\n      PRAGMA foreign_keys=OFF;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n      CREATE TABLE t2(x TEXT PRIMARY KEY, y INT);\n      CREATE TABLE t3(w TEXT, z INT REFERENCES t1);\n      INSERT INTO t2 VALUES('abc',11),('def',22),('xyz',99);\n      INSERT INTO t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n      INSERT INTO t3 VALUES(11,7),(22,19);\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA foreign_keys=OFF;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n      CREATE TABLE t2(x TEXT PRIMARY KEY, y INT);\n      CREATE TABLE t3(w TEXT, z INT REFERENCES t1);\n      INSERT INTO t2 VALUES('abc',11),('def',22),('xyz',99);\n      INSERT INTO t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n      INSERT INTO t3 VALUES(11,7),(22,19);\n    ")
+		r = db.Query("\n      PRAGMA foreign_keys=OFF;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n      CREATE TABLE t2(x TEXT PRIMARY KEY, y INT);\n      CREATE TABLE t3(w TEXT, z INT REFERENCES t1);\n      INSERT INTO t2 VALUES('abc',11),('def',22),('xyz',99);\n      INSERT INTO t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n      INSERT INTO t3 VALUES(11,7),(22,19);\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA foreign_keys=OFF;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n      CREATE TABLE t2(x TEXT PRIMARY KEY, y INT);\n      CREATE TABLE t3(w TEXT, z INT REFERENCES t1);\n      INSERT INTO t2 VALUES('abc',11),('def',22),('xyz',99);\n      INSERT INTO t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n      INSERT INTO t3 VALUES(11,7),(22,19);\n    ")
 		}
 	}
 	{ // "13.11"

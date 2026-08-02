@@ -132,9 +132,9 @@ func Test_zipfile2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile([testzip]);\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile(" + sqlLiteral("testzip") + ");\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile([testzip]);\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE aaa USING zipfile('testzip');\n  CREATE VIRTUAL TABLE bbb USING zipfile(\"testzip\");\n  CREATE VIRTUAL TABLE ccc USING zipfile(`testzip`);\n  CREATE VIRTUAL TABLE ddd USING zipfile(" + sqlLiteral("testzip") + ");\n  CREATE VIRTUAL TABLE eee USING zipfile(testzip);\n  CREATE VIRTUAL TABLE fff USING zipfile('test''zip');\n")
 		}
 	}
 	{ // do_test "2.0"
@@ -165,9 +165,9 @@ func Test_zipfile2(t *testing.T) {
 	blob = "blob $archive"
 	_ = blob // suppress unused warning
 	{ // "3.2"
-		r = db.Query("\n  SELECT name,mtime,data FROM zipfile($blob)\n")
+		r = db.Query("\n  SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name,mtime,data FROM zipfile($blob)\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n")
 			return
 		}
 		got := flatten(r)
@@ -188,9 +188,9 @@ func Test_zipfile2(t *testing.T) {
 		blob = "blob $a"
 		_ = blob // suppress unused warning
 		{ // "3.3." + i
-			_res = db.Exec("\n    SELECT name,mtime,data FROM zipfile($blob)\n  ")
+			_res = db.Exec("\n    SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT name,mtime,data FROM zipfile($blob)\n  ")
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT name,mtime,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 			}
 		}
 		// incr i 1
@@ -213,9 +213,9 @@ func Test_zipfile2(t *testing.T) {
 		blob = "blob $a"
 		_ = blob // suppress unused warning
 		{ // "3.4." + i
-			r = db.Query("\n    SELECT name,data FROM zipfile($blob)\n  ")
+			r = db.Query("\n    SELECT name,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name,data FROM zipfile($blob)\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 				return
 			}
 			got := flatten(r)
@@ -242,9 +242,9 @@ func Test_zipfile2(t *testing.T) {
 		blob = "blob $a"
 		_ = blob // suppress unused warning
 		{ // "3.5." + i
-			r = db.Query("\n    SELECT name,data FROM zipfile($blob)\n  ")
+			r = db.Query("\n    SELECT name,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name,data FROM zipfile($blob)\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name,data FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 				return
 			}
 			got := flatten(r)
@@ -266,9 +266,9 @@ func Test_zipfile2(t *testing.T) {
 	blob = "blob $archive2"
 	_ = blob // suppress unused warning
 	{ // "4.0"
-		r = db.Query("\n  SELECT name,mtime,data,method FROM zipfile($blob)\n")
+		r = db.Query("\n  SELECT name,mtime,data,method FROM zipfile(" + sqlLiteral(blob) + ")\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name,mtime,data,method FROM zipfile($blob)\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name,mtime,data,method FROM zipfile(" + sqlLiteral(blob) + ")\n")
 			return
 		}
 		got := flatten(r)
@@ -289,17 +289,17 @@ func Test_zipfile2(t *testing.T) {
 	blob = "blob $a"
 	_ = blob // suppress unused warning
 	{ // "4.1"
-		_res = db.Exec("\n  SELECT name,mtime,data,method FROM zipfile($blob)\n")
+		_res = db.Exec("\n  SELECT name,mtime,data,method FROM zipfile(" + sqlLiteral(blob) + ")\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "inflate() failed (0)") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "inflate() failed (0)", _res.Error, "\n  SELECT name,mtime,data,method FROM zipfile($blob)\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "inflate() failed (0)", _res.Error, "\n  SELECT name,mtime,data,method FROM zipfile(" + sqlLiteral(blob) + ")\n")
 		}
 	}
 	blob = "blob [string map {0800 0900} $archive2]"
 	_ = blob // suppress unused warning
 	{ // "4.2"
-		r = db.Query("\n  SELECT name,mtime,data IS NULL,method FROM zipfile($blob)\n")
+		r = db.Query("\n  SELECT name,mtime,data IS NULL,method FROM zipfile(" + sqlLiteral(blob) + ")\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name,mtime,data IS NULL,method FROM zipfile($blob)\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name,mtime,data IS NULL,method FROM zipfile(" + sqlLiteral(blob) + ")\n")
 			return
 		}
 		got := flatten(r)
@@ -319,9 +319,9 @@ func Test_zipfile2(t *testing.T) {
 			blob = "blob [string map [list 504B0506 $sub] $archive2]"
 			_ = blob // suppress unused warning
 			{ // "4.3." + tn
-				_res = db.Exec("\n    SELECT * FROM zipfile($blob)\n  ")
+				_res = db.Exec("\n    SELECT * FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot find end of central directory record") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot find end of central directory record", _res.Error, "\n    SELECT * FROM zipfile($blob)\n  ")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot find end of central directory record", _res.Error, "\n    SELECT * FROM zipfile(" + sqlLiteral(blob) + ")\n  ")
 				}
 			}
 		}
@@ -334,9 +334,9 @@ func Test_zipfile2(t *testing.T) {
 			_ = hex // suppress unused warning
 			blob2 = "binary decode hex $hex"
 			_ = blob2 // suppress unused warning
-			r = db.Query(" SELECT name, data IS NULL FROM zipfile(" + blob2 + ") ")
+			r = db.Query(" SELECT name, data IS NULL FROM zipfile(" + sqlLiteral(blob2) + ") ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name, data IS NULL FROM zipfile(" + blob2 + ") ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name, data IS NULL FROM zipfile(" + sqlLiteral(blob2) + ") ")
 			}
 		}
 		os.Remove("test.zip")

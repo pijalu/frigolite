@@ -125,9 +125,9 @@ func Test_timediff1(t *testing.T) {
 					r1 = "db one {SELECT datetime($d1)}"
 					_ = r1 // suppress unused warning
 					{ // "timediff-4-" + x1 + x2
-						r = db.Query("\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
+						r = db.Query("\n      SELECT datetime(" + sqlLiteral(d2) + ", timediff(" + sqlLiteral(d1) + "," + sqlLiteral(d2) + "));\n    ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime(" + sqlLiteral(d2) + ", timediff(" + sqlLiteral(d1) + "," + sqlLiteral(d2) + "));\n    ")
 							return
 						}
 						got := flatten(r)
@@ -139,9 +139,9 @@ func Test_timediff1(t *testing.T) {
 					r2 = "db one {SELECT datetime($d2)}"
 					_ = r2 // suppress unused warning
 					{ // "timediff-4-" + x2 + x1
-						r = db.Query("\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
+						r = db.Query("\n      SELECT datetime(" + sqlLiteral(d1) + ", timediff(" + sqlLiteral(d2) + "," + sqlLiteral(d1) + "));\n    ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime(" + sqlLiteral(d1) + ", timediff(" + sqlLiteral(d2) + "," + sqlLiteral(d1) + "));\n    ")
 							return
 						}
 						got := flatten(r)
@@ -195,9 +195,9 @@ func Test_timediff1(t *testing.T) {
 							r1 = "db one {SELECT datetime($d1)}"
 							_ = r1 // suppress unused warning
 							{ // "timediff-6-" + x1 + x2
-								r = db.Query("\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
+								r = db.Query("\n      SELECT datetime(" + sqlLiteral(d2) + ", timediff(" + sqlLiteral(d1) + "," + sqlLiteral(d2) + "));\n    ")
 								if r.Error != nil {
-									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime(" + sqlLiteral(d2) + ", timediff(" + sqlLiteral(d1) + "," + sqlLiteral(d2) + "));\n    ")
 									return
 								}
 								got := flatten(r)
@@ -209,9 +209,9 @@ func Test_timediff1(t *testing.T) {
 							r2 = "db one {SELECT datetime($d2)}"
 							_ = r2 // suppress unused warning
 							{ // "timediff-6-" + x2 + x1
-								r = db.Query("\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
+								r = db.Query("\n      SELECT datetime(" + sqlLiteral(d1) + ", timediff(" + sqlLiteral(d2) + "," + sqlLiteral(d1) + "));\n    ")
 								if r.Error != nil {
-									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime(" + sqlLiteral(d1) + ", timediff(" + sqlLiteral(d2) + "," + sqlLiteral(d1) + "));\n    ")
 									return
 								}
 								got := flatten(r)

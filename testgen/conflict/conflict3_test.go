@@ -522,9 +522,9 @@ func Test_conflict3(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "13.1.0"
-		_res = db.Exec("\n    PRAGMA recursive_triggers = true;\n    CREATE TABLE t0 (c0 UNIQUE, c1 UNIQUE);\n    CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN \n      DELETE FROM t0; \n    END;\n\n    INSERT INTO t0 VALUES(1, NULL);\n    INSERT INTO t0 VALUES(0, NULL);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA recursive_triggers = true;\n    CREATE TABLE t0 (c0 UNIQUE, c1 UNIQUE);\n    CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN \n      DELETE FROM t0; \n    END;\n\n    INSERT INTO t0 VALUES(1, NULL);\n    INSERT INTO t0 VALUES(0, NULL);\n  ")
+		r = db.Query("\n    PRAGMA recursive_triggers = true;\n    CREATE TABLE t0 (c0 UNIQUE, c1 UNIQUE);\n    CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN \n      DELETE FROM t0; \n    END;\n\n    INSERT INTO t0 VALUES(1, NULL);\n    INSERT INTO t0 VALUES(0, NULL);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA recursive_triggers = true;\n    CREATE TABLE t0 (c0 UNIQUE, c1 UNIQUE);\n    CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN \n      DELETE FROM t0; \n    END;\n\n    INSERT INTO t0 VALUES(1, NULL);\n    INSERT INTO t0 VALUES(0, NULL);\n  ")
 		}
 	}
 	{ // "13.1.1"
@@ -536,15 +536,9 @@ func Test_conflict3(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // "13.1.3"
-		r = db.Query("\n    SELECT * FROM t0\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t0\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} 0 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n    SELECT * FROM t0\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "0") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "0", _res.Error, "\n    SELECT * FROM t0\n  ")
 		}
 	}
 	{ // "13.2.0"

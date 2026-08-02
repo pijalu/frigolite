@@ -74,9 +74,15 @@ func Test_corruptK(t *testing.T) {
 	}
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "1.1"
-		_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(100));   -- make this into a free slot\n  INSERT INTO t1 VALUES(randomblob(27));    -- this one will be corrupt\n  INSERT INTO t1 VALUES(randomblob(800));\n\n  DELETE FROM t1 WHERE rowid=2;  -- free the 100 byte slot\n  PRAGMA page_count\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(100));   -- make this into a free slot\n  INSERT INTO t1 VALUES(randomblob(27));    -- this one will be corrupt\n  INSERT INTO t1 VALUES(randomblob(800));\n\n  DELETE FROM t1 WHERE rowid=2;  -- free the 100 byte slot\n  PRAGMA page_count\n")
+		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(100));   -- make this into a free slot\n  INSERT INTO t1 VALUES(randomblob(27));    -- this one will be corrupt\n  INSERT INTO t1 VALUES(randomblob(800));\n\n  DELETE FROM t1 WHERE rowid=2;  -- free the 100 byte slot\n  PRAGMA page_count\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(100));   -- make this into a free slot\n  INSERT INTO t1 VALUES(randomblob(27));    -- this one will be corrupt\n  INSERT INTO t1 VALUES(randomblob(800));\n\n  DELETE FROM t1 WHERE rowid=2;  -- free the 100 byte slot\n  PRAGMA page_count\n")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.2"
@@ -148,9 +154,9 @@ func Test_corruptK(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "3.1"
-			_res = db.Exec("\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);\n  ")
+			r = db.Query("\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);\n  ")
 			}
 		}
 		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)

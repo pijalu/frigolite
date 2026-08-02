@@ -439,9 +439,9 @@ func Test_like3(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "like3-7.0"
-		_res = db.Exec("\n    PRAGMA encoding = 'UTF-16be';\n  \n    CREATE TABLE Example(word TEXT NOT NULL);\n    CREATE INDEX Example_word on Example(word);\n  \n    INSERT INTO Example VALUES(char(0x307F));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding = 'UTF-16be';\n  \n    CREATE TABLE Example(word TEXT NOT NULL);\n    CREATE INDEX Example_word on Example(word);\n  \n    INSERT INTO Example VALUES(char(0x307F));\n  ")
+		r = db.Query("\n    PRAGMA encoding = 'UTF-16be';\n  \n    CREATE TABLE Example(word TEXT NOT NULL);\n    CREATE INDEX Example_word on Example(word);\n  \n    INSERT INTO Example VALUES(char(0x307F));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'UTF-16be';\n  \n    CREATE TABLE Example(word TEXT NOT NULL);\n    CREATE INDEX Example_word on Example(word);\n  \n    INSERT INTO Example VALUES(char(0x307F));\n  ")
 		}
 	}
 	{ // "like3-7.1"
@@ -544,9 +544,9 @@ func Test_like3(t *testing.T) {
 				x = "db one {SELECT x || '%' FROM t1}"
 				_ = x // suppress unused warning
 				{ // "like3-8." + tn + ".5"
-					r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
+					r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE " + sqlLiteral(x) + "\n    ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t1 WHERE x LIKE " + sqlLiteral(x) + "\n    ")
 						return
 					}
 					got := flatten(r)
@@ -562,9 +562,9 @@ func Test_like3(t *testing.T) {
 					}
 				}
 				{ // "like3-8." + tn + ".7"
-					r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
+					r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE " + sqlLiteral(x) + "\n    ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t1 WHERE x LIKE " + sqlLiteral(x) + "\n    ")
 						return
 					}
 					got := flatten(r)

@@ -330,9 +330,9 @@ func Test_fts3conf(t *testing.T) {
 			}
 		}
 		{ // "4.3.2"
-			_res = db.Exec("\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n")
+			r = db.Query("\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n")
 			}
 		}
 		{ // "4.4.1"

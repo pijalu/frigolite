@@ -126,15 +126,15 @@ func Test_fts3ab(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3ab-2.1"
-		r = db.Query("\n    CREATE VIRTUAL TABLE t2 USING fts3(from,to);\n    INSERT INTO t2(" + "from" + "," + "to" + ") VALUES ('one two three', 'four five six');\n    SELECT " + "from" + ", " + "to" + " FROM t2\n  ")
+		r = db.Query("\n    CREATE VIRTUAL TABLE t2 USING fts3(from,to);\n    INSERT INTO t2(" + sqlLiteral("from") + "," + sqlLiteral("to") + ") VALUES ('one two three', 'four five six');\n    SELECT " + sqlLiteral("from") + ", " + sqlLiteral("to") + " FROM t2\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t2 USING fts3(from,to);\n    INSERT INTO t2(" + "from" + "," + "to" + ") VALUES ('one two three', 'four five six');\n    SELECT " + "from" + ", " + "to" + " FROM t2\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t2 USING fts3(from,to);\n    INSERT INTO t2(" + sqlLiteral("from") + "," + sqlLiteral("to") + ") VALUES ('one two three', 'four five six');\n    SELECT " + sqlLiteral("from") + ", " + sqlLiteral("to") + " FROM t2\n  ")
 		}
 	}
 	// proc definition (not transpiled)
-	_res = db.Exec("\n   CREATE VIRTUAL TABLE t4 USING fts3(" + "norm" + ",'plusone',\"invert\");\n")
+	_res = db.Exec("\n   CREATE VIRTUAL TABLE t4 USING fts3(" + sqlLiteral("norm") + ",'plusone',\"invert\");\n")
 	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE VIRTUAL TABLE t4 USING fts3(" + "norm" + ",'plusone',\"invert\");\n")
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE VIRTUAL TABLE t4 USING fts3(" + sqlLiteral("norm") + ",'plusone',\"invert\");\n")
 	}
 	i = "1"
 	_ = i // suppress unused warning

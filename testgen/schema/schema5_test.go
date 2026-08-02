@@ -50,9 +50,15 @@ func Test_schema5(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "schema5-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a,b,c, PRIMARY KEY(a) UNIQUE (a) CONSTRAINT one);\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c, PRIMARY KEY(a) UNIQUE (a) CONSTRAINT one);\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a,b,c, PRIMARY KEY(a) UNIQUE (a) CONSTRAINT one);\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c, PRIMARY KEY(a) UNIQUE (a) CONSTRAINT one);\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "schema5-1.2"
@@ -60,9 +66,15 @@ func Test_schema5(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "schema5-1.3"
-		_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c,\n        CONSTRAINT one PRIMARY KEY(a) CONSTRAINT two CHECK(b<10) UNIQUE(b)\n        CONSTRAINT three\n    );\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c,\n        CONSTRAINT one PRIMARY KEY(a) CONSTRAINT two CHECK(b<10) UNIQUE(b)\n        CONSTRAINT three\n    );\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c,\n        CONSTRAINT one PRIMARY KEY(a) CONSTRAINT two CHECK(b<10) UNIQUE(b)\n        CONSTRAINT three\n    );\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a,b,c,\n        CONSTRAINT one PRIMARY KEY(a) CONSTRAINT two CHECK(b<10) UNIQUE(b)\n        CONSTRAINT three\n    );\n    INSERT INTO t1 VALUES(1,2,3);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "schema5-1.4"

@@ -315,9 +315,9 @@ func Test_fts3auto(t *testing.T) {
 					if tclBool(i + "&0x10") {
 						doc = tclListAppend(doc, "five")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + doc + ", null) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(doc) + ", null) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + doc + ", null) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(doc) + ", null) ")
 					}
 					// incr i 1
 					{
@@ -455,9 +455,9 @@ func Test_fts3auto(t *testing.T) {
 									b := _items6[_idx6+1]
 									_ = b // suppress unused warning
 									_ = _idx6
-										_res = db.Exec("INSERT INTO t1(a, b) VALUES(" + a + ", " + b + ")")
+										_res = db.Exec("INSERT INTO t1(a, b) VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ")")
 										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a, b) VALUES(" + a + ", " + b + ")")
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a, b) VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ")")
 										}
 									}
 									// do_fts3query_test 5.$tn.1.1 t1 {s*} (unsupported command, not transpiled)
@@ -507,9 +507,9 @@ func Test_fts3auto(t *testing.T) {
 											d := _items8[_idx8+3]
 											_ = d // suppress unused warning
 											_ = _idx8
-												_res = db.Exec(" INSERT INTO t1 VALUES(" + a + ", " + b + ", " + c + ", " + d + ") ")
+												_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(d) + ") ")
 												if _res.Error != nil {
-													t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + a + ", " + b + ", " + c + ", " + d + ") ")
+													t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(d) + ") ")
 												}
 											}
 											// do_fts3query_test 6.$tn.1 t1 {b:G} (unsupported command, not transpiled)
@@ -534,9 +534,9 @@ func Test_fts3auto(t *testing.T) {
 												}
 												for _, x := range tclSplitList("\"F E N O T K X V A X I E X A P G Q V H U\"\n    \"R V A E T C V Q N I E L O N U G J K L U\"\n    \"U Y I G W M V F J L X I D C H F P J Q B\"\n    \"S G D Z X R P G S S Y B K A S G A I L L\"\n    \"L S I C H T Z S R Q P R N K J X L F M J\"\n    \"C C C D P X B Z C M A D A C X S B T X V\"\n    \"W Y J M D R G V R K B X S A W R I T N C\"\n    \"P K L W T M S P O Y Y V V O E H Q A I R\"\n    \"C D Y I C Z F H J C O Y A Q F L S B D K\"\n    \"P G S C Y C Y V I M B D S Z D D Y W I E\"\n    \"Z K Z U E E S F Y X T U A L W O U J C Q\"\n    \"P A T Z S W L P L Q V Y Y I P W U X S S\"\n    \"I U I H U O F Z F R H R F T N D X A G M\"\n    \"N A B M S H K X S O Y D T X S B R Y H Z\"\n    \"L U D A S K I L S V Z J P U B E B Y H M\"") {
 												_ = x // suppress unused warning
-													_res = db.Exec(" INSERT INTO t1 VALUES(" + x + ") ")
+													_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(x) + ") ")
 													if _res.Error != nil {
-														t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + x + ") ")
+														t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(x) + ") ")
 													}
 												}
 												// fts3_make_deferrable t1 B 2 (unsupported command, not transpiled)

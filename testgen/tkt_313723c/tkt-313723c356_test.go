@@ -53,9 +53,15 @@ func Test_tkt_313723c356(t *testing.T) {
 		return
 	}
 	{ // "tkt-313723c356.1"
-		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(randomblob(400), randomblob(400));\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(randomblob(400), randomblob(400));\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n")
+		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(randomblob(400), randomblob(400));\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(randomblob(400), randomblob(400));\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)

@@ -7,7 +7,6 @@ package in
 import (
 "github.com/pijalu/frigolite"
 "regexp"
-"strings"
 "testing"
 )
 
@@ -578,9 +577,15 @@ func Test_in4(t *testing.T) {
 		}
 	}
 	{ // "in4-5.1"
-		_res = db.Exec("\n  CREATE TABLE t5(c INTEGER PRIMARY KEY, d TEXT COLLATE nocase);\n  INSERT INTO t5 VALUES(17, 'fuzz');\n  SELECT 1 FROM t5 WHERE 'fuzz' IN (d);  -- match\n  SELECT 2 FROM t5 WHERE 'FUZZ' IN (d);  -- no match\n  SELECT 3 FROM t5 WHERE d IN ('fuzz');  -- match\n  SELECT 4 FROM t5 WHERE d IN ('FUZZ');  -- match\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3 4") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 4", _res.Error, "\n  CREATE TABLE t5(c INTEGER PRIMARY KEY, d TEXT COLLATE nocase);\n  INSERT INTO t5 VALUES(17, 'fuzz');\n  SELECT 1 FROM t5 WHERE 'fuzz' IN (d);  -- match\n  SELECT 2 FROM t5 WHERE 'FUZZ' IN (d);  -- no match\n  SELECT 3 FROM t5 WHERE d IN ('fuzz');  -- match\n  SELECT 4 FROM t5 WHERE d IN ('FUZZ');  -- match\n")
+		r = db.Query("\n  CREATE TABLE t5(c INTEGER PRIMARY KEY, d TEXT COLLATE nocase);\n  INSERT INTO t5 VALUES(17, 'fuzz');\n  SELECT 1 FROM t5 WHERE 'fuzz' IN (d);  -- match\n  SELECT 2 FROM t5 WHERE 'FUZZ' IN (d);  -- no match\n  SELECT 3 FROM t5 WHERE d IN ('fuzz');  -- match\n  SELECT 4 FROM t5 WHERE d IN ('FUZZ');  -- match\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(c INTEGER PRIMARY KEY, d TEXT COLLATE nocase);\n  INSERT INTO t5 VALUES(17, 'fuzz');\n  SELECT 1 FROM t5 WHERE 'fuzz' IN (d);  -- match\n  SELECT 2 FROM t5 WHERE 'FUZZ' IN (d);  -- no match\n  SELECT 3 FROM t5 WHERE d IN ('fuzz');  -- match\n  SELECT 4 FROM t5 WHERE d IN ('FUZZ');  -- match\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "in4-6.1"

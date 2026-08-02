@@ -74,9 +74,9 @@ func Test_altermalloc2(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
-		_res = db.Exec("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);\n")
+		r = db.Query("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);\n")
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)

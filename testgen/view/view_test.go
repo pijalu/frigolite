@@ -514,9 +514,9 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-10.1"
-		r = db.Query("\n    CREATE TABLE t3(\"9\" integer, " + "4" + " text);\n    INSERT INTO t3 VALUES(1,2);\n    CREATE VIEW v_t3_a AS SELECT a." + "9" + " FROM t3 AS a;\n    CREATE VIEW v_t3_b AS SELECT \"4\" FROM t3;\n    SELECT * FROM v_t3_a;\n  ")
+		r = db.Query("\n    CREATE TABLE t3(\"9\" integer, " + sqlLiteral("4") + " text);\n    INSERT INTO t3 VALUES(1,2);\n    CREATE VIEW v_t3_a AS SELECT a." + sqlLiteral("9") + " FROM t3 AS a;\n    CREATE VIEW v_t3_b AS SELECT \"4\" FROM t3;\n    SELECT * FROM v_t3_a;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(\"9\" integer, " + "4" + " text);\n    INSERT INTO t3 VALUES(1,2);\n    CREATE VIEW v_t3_a AS SELECT a." + "9" + " FROM t3 AS a;\n    CREATE VIEW v_t3_b AS SELECT \"4\" FROM t3;\n    SELECT * FROM v_t3_a;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(\"9\" integer, " + sqlLiteral("4") + " text);\n    INSERT INTO t3 VALUES(1,2);\n    CREATE VIEW v_t3_a AS SELECT a." + sqlLiteral("9") + " FROM t3 AS a;\n    CREATE VIEW v_t3_b AS SELECT \"4\" FROM t3;\n    SELECT * FROM v_t3_a;\n  ")
 		}
 	}
 	{ // do_test "view-10.2"

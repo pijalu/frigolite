@@ -248,9 +248,9 @@ func Test_trigger2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl; DELETE FROM log; " + prep)
 			}
-			_res = db.Exec("CREATE TRIGGER the_trigger BEFORE " + "$statement 0 6" + "\n             ON tbl BEGIN " + tr_program_fixed + " END;")
+			_res = db.Exec("CREATE TRIGGER the_trigger BEFORE " + "$statement 0 6" + "\\\n             ON tbl BEGIN " + tr_program_fixed + " END;")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger BEFORE " + "$statement 0 6" + "\n             ON tbl BEGIN " + tr_program_fixed + " END;")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger BEFORE " + "$statement 0 6" + "\\\n             ON tbl BEGIN " + tr_program_fixed + " END;")
 			}
 			{ // do_test "trigger2-2." + ii + "-before"
 				_res = db.Exec("execsql {" + statement + " " + query + "}")
@@ -272,9 +272,9 @@ func Test_trigger2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl; DELETE FROM log; " + prep)
 			}
-			_res = db.Exec("CREATE TRIGGER the_trigger AFTER " + "$statement 0 6" + "\n             ON tbl BEGIN " + tr_program_fixed + " END;")
+			_res = db.Exec("CREATE TRIGGER the_trigger AFTER " + "$statement 0 6" + "\\\n             ON tbl BEGIN " + tr_program_fixed + " END;")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger AFTER " + "$statement 0 6" + "\n             ON tbl BEGIN " + tr_program_fixed + " END;")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER the_trigger AFTER " + "$statement 0 6" + "\\\n             ON tbl BEGIN " + tr_program_fixed + " END;")
 			}
 			{ // do_test "trigger2-2." + ii + "-after"
 				_res = db.Exec("execsql {" + statement + " " + query + "}")
@@ -297,9 +297,9 @@ func Test_trigger2(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl (a, b, c, d);\n  CREATE TABLE log (a);\n  INSERT INTO log VALUES (0);\n  INSERT INTO tbl VALUES (0, 0, 0, 0);\n  INSERT INTO tbl VALUES (1, 0, 0, 0);\n  CREATE TRIGGER tbl_after_update_cd BEFORE UPDATE OF c, d ON tbl\n    BEGIN\n      UPDATE log SET a = a + 1;\n    END;\n")
 	}
 	{ // do_test "trigger2-3.1"
-		_res = db.Exec("\n    UPDATE tbl SET b = 1, c = 10; -- 2\n    UPDATE tbl SET b = 10; -- 0\n    UPDATE tbl SET d = 4 WHERE a = 0; --1\n    UPDATE tbl SET a = 4, b = 10; --0\n    SELECT * FROM log;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE tbl SET b = 1, c = 10; -- 2\n    UPDATE tbl SET b = 10; -- 0\n    UPDATE tbl SET d = 4 WHERE a = 0; --1\n    UPDATE tbl SET a = 4, b = 10; --0\n    SELECT * FROM log;\n  ")
+		r = db.Query("\n    UPDATE tbl SET b = 1, c = 10; -- 2\n    UPDATE tbl SET b = 10; -- 0\n    UPDATE tbl SET d = 4 WHERE a = 0; --1\n    UPDATE tbl SET a = 4, b = 10; --0\n    SELECT * FROM log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE tbl SET b = 1, c = 10; -- 2\n    UPDATE tbl SET b = 10; -- 0\n    UPDATE tbl SET d = 4 WHERE a = 0; --1\n    UPDATE tbl SET a = 4, b = 10; --0\n    SELECT * FROM log;\n  ")
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE tbl;\n  DROP TABLE log;\n")

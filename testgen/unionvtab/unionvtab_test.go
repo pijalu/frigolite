@@ -306,16 +306,16 @@ func Test_unionvtab(t *testing.T) {
 			sql = "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\")"
 			_ = sql // suppress unused warning
 			{ // "2.4." + tn
-				_res = db.Exec("\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\");\n  ")
+				_res = db.Exec("\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + strings.Join(tclSplitList(L), ",") + "\\\");\n  ")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES " + strings.Join(tclSplitList(L), ",") + "\");\n  ")
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + strings.Join(tclSplitList(L), ",") + "\\\");\n  ")
 				}
 			}
 		}
 		{ // "2.5"
-			_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    " + sqlLiteral("SELECT 'main', 'b1', 0, 100 WHERE 0") + "\n  )\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no source tables configured") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no source tables configured", _res.Error, "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no source tables configured", _res.Error, "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    " + sqlLiteral("SELECT 'main', 'b1', 0, 100 WHERE 0") + "\n  )\n")
 			}
 		}
 		// foreach {tn sql} "1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }"
@@ -344,9 +344,9 @@ func Test_unionvtab(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			// load_static_extension db unionvtab (unsupported command, not transpiled)
 			{ // "3.0"
-				_res = db.Exec("\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
+				r = db.Query("\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
 				}
 			}
 			{ // "3.1"
@@ -870,9 +870,9 @@ func Test_unionvtab(t *testing.T) {
 			S = "-9.223372036854776e+18"
 			_ = S // suppress unused warning
 			{ // "3.8.1"
-				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= $S ")
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= " + sqlLiteral(S) + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= $S ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= " + sqlLiteral(S) + " ")
 					return
 				}
 				got := flatten(r)
@@ -882,9 +882,9 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			{ // "3.8.2"
-				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >  $S ")
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >  " + sqlLiteral(S) + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >  $S ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >  " + sqlLiteral(S) + " ")
 					return
 				}
 				got := flatten(r)
@@ -894,9 +894,9 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			{ // "3.8.3"
-				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= $S ")
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= " + sqlLiteral(S) + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= $S ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= " + sqlLiteral(S) + " ")
 					return
 				}
 				got := flatten(r)
@@ -906,9 +906,9 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			{ // "3.8.4"
-				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <  $S ")
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <  " + sqlLiteral(S) + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <  $S ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <  " + sqlLiteral(S) + " ")
 					return
 				}
 				got := flatten(r)
@@ -918,9 +918,9 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			{ // "3.9.1"
-				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= $L ")
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= " + sqlLiteral(L) + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= $L ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= " + sqlLiteral(L) + " ")
 					return
 				}
 				got := flatten(r)
@@ -930,9 +930,9 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			{ // "3.9.2"
-				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >  $L ")
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >  " + sqlLiteral(L) + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >  $L ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >  " + sqlLiteral(L) + " ")
 					return
 				}
 				got := flatten(r)
@@ -942,9 +942,9 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			{ // "3.9.3"
-				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= $L ")
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= " + sqlLiteral(L) + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= $L ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= " + sqlLiteral(L) + " ")
 					return
 				}
 				got := flatten(r)
@@ -954,9 +954,9 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			{ // "3.9.4"
-				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <  $L ")
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <  " + sqlLiteral(L) + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <  $L ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <  " + sqlLiteral(L) + " ")
 					return
 				}
 				got := flatten(r)
@@ -1086,9 +1086,9 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			{ // "4.0"
-				_res = db.Exec("\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES($S, 'one');\n  INSERT INTO s1 VALUES($S+1, 'two');\n  INSERT INTO s1 VALUES($S+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES($L, 'six');\n  INSERT INTO l1 VALUES($L-1, 'five');\n  INSERT INTO l1 VALUES($L-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
+				_res = db.Exec("\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + ", 'one');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+1, 'two');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + ", 'six');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-1, 'five');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES($S, 'one');\n  INSERT INTO s1 VALUES($S+1, 'two');\n  INSERT INTO s1 VALUES($S+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES($L, 'six');\n  INSERT INTO l1 VALUES($L-1, 'five');\n  INSERT INTO l1 VALUES($L-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + ", 'one');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+1, 'two');\n  INSERT INTO s1 VALUES(" + sqlLiteral(S) + "+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + ", 'six');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-1, 'five');\n  INSERT INTO l1 VALUES(" + sqlLiteral(L) + "-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
 				}
 			}
 			{ // "4.1"
@@ -1112,9 +1112,9 @@ func Test_unionvtab(t *testing.T) {
 				_ = v // suppress unused warning
 				_ = _idx2
 					{ // "4.2." + v
-						r = db.Query(" SELECT * FROM sl WHERE rowid=$k ")
+						r = db.Query(" SELECT * FROM sl WHERE rowid=" + sqlLiteral(k) + " ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sl WHERE rowid=$k ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sl WHERE rowid=" + sqlLiteral(k) + " ")
 							return
 						}
 						got := flatten(r)
@@ -1209,9 +1209,9 @@ func Test_unionvtab(t *testing.T) {
 					}
 				}
 				{ // "5.0"
-					r = db.Query("\n  CREATE TABLE c0(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c1(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c2(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c3(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c4(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c5(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c6(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c7(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c8(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c9(one, two INTEGER PRIMARY KEY);\n\n  INSERT INTO c0 VALUES('zero', 0);\n  INSERT INTO c1 VALUES('one', 1);\n  INSERT INTO c2 VALUES('two', 2);\n  INSERT INTO c3 VALUES('three', 3);\n  INSERT INTO c4 VALUES('four', 4);\n  INSERT INTO c5 VALUES('five', 5);\n  INSERT INTO c6 VALUES('six', 6);\n  INSERT INTO c7 VALUES('seven', 7);\n  INSERT INTO c8 VALUES('eight', 8);\n  INSERT INTO c9 VALUES('nine', 9);\n\n  CREATE VIRTUAL TABLE temp.cc USING unionvtab([\n    SELECT 'main', 'c9', 9, 9 UNION ALL\n    SELECT 'main', 'c8', 8, 8 UNION ALL\n    SELECT 'main', 'c7', 7, 7 UNION ALL\n    SELECT 'main', 'c6', 6, 6 UNION ALL\n    SELECT 'main', 'c5', 5, 5 UNION ALL\n    SELECT 'main', 'c4', 4, 4 UNION ALL\n    SELECT 'main', 'c3', 3, 3 UNION ALL\n    SELECT 'main', 'c2', 2, 2 UNION ALL\n    SELECT 'main', 'c1', 1, 1 UNION ALL\n    SELECT 'main', 'c0', 0, 0\n  ]);\n\n  SELECT sum(two) FROM cc;\n")
+					r = db.Query("\n  CREATE TABLE c0(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c1(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c2(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c3(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c4(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c5(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c6(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c7(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c8(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c9(one, two INTEGER PRIMARY KEY);\n\n  INSERT INTO c0 VALUES('zero', 0);\n  INSERT INTO c1 VALUES('one', 1);\n  INSERT INTO c2 VALUES('two', 2);\n  INSERT INTO c3 VALUES('three', 3);\n  INSERT INTO c4 VALUES('four', 4);\n  INSERT INTO c5 VALUES('five', 5);\n  INSERT INTO c6 VALUES('six', 6);\n  INSERT INTO c7 VALUES('seven', 7);\n  INSERT INTO c8 VALUES('eight', 8);\n  INSERT INTO c9 VALUES('nine', 9);\n\n  CREATE VIRTUAL TABLE temp.cc USING unionvtab(" + sqlLiteral("SELECT 'main', 'c9', 9, 9 UNION ALL\n    SELECT 'main', 'c8', 8, 8 UNION ALL\n    SELECT 'main', 'c7', 7, 7 UNION ALL\n    SELECT 'main', 'c6', 6, 6 UNION ALL\n    SELECT 'main', 'c5', 5, 5 UNION ALL\n    SELECT 'main', 'c4', 4, 4 UNION ALL\n    SELECT 'main', 'c3', 3, 3 UNION ALL\n    SELECT 'main', 'c2', 2, 2 UNION ALL\n    SELECT 'main', 'c1', 1, 1 UNION ALL\n    SELECT 'main', 'c0', 0, 0") + ");\n\n  SELECT sum(two) FROM cc;\n")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE c0(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c1(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c2(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c3(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c4(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c5(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c6(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c7(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c8(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c9(one, two INTEGER PRIMARY KEY);\n\n  INSERT INTO c0 VALUES('zero', 0);\n  INSERT INTO c1 VALUES('one', 1);\n  INSERT INTO c2 VALUES('two', 2);\n  INSERT INTO c3 VALUES('three', 3);\n  INSERT INTO c4 VALUES('four', 4);\n  INSERT INTO c5 VALUES('five', 5);\n  INSERT INTO c6 VALUES('six', 6);\n  INSERT INTO c7 VALUES('seven', 7);\n  INSERT INTO c8 VALUES('eight', 8);\n  INSERT INTO c9 VALUES('nine', 9);\n\n  CREATE VIRTUAL TABLE temp.cc USING unionvtab([\n    SELECT 'main', 'c9', 9, 9 UNION ALL\n    SELECT 'main', 'c8', 8, 8 UNION ALL\n    SELECT 'main', 'c7', 7, 7 UNION ALL\n    SELECT 'main', 'c6', 6, 6 UNION ALL\n    SELECT 'main', 'c5', 5, 5 UNION ALL\n    SELECT 'main', 'c4', 4, 4 UNION ALL\n    SELECT 'main', 'c3', 3, 3 UNION ALL\n    SELECT 'main', 'c2', 2, 2 UNION ALL\n    SELECT 'main', 'c1', 1, 1 UNION ALL\n    SELECT 'main', 'c0', 0, 0\n  ]);\n\n  SELECT sum(two) FROM cc;\n")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE c0(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c1(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c2(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c3(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c4(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c5(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c6(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c7(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c8(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c9(one, two INTEGER PRIMARY KEY);\n\n  INSERT INTO c0 VALUES('zero', 0);\n  INSERT INTO c1 VALUES('one', 1);\n  INSERT INTO c2 VALUES('two', 2);\n  INSERT INTO c3 VALUES('three', 3);\n  INSERT INTO c4 VALUES('four', 4);\n  INSERT INTO c5 VALUES('five', 5);\n  INSERT INTO c6 VALUES('six', 6);\n  INSERT INTO c7 VALUES('seven', 7);\n  INSERT INTO c8 VALUES('eight', 8);\n  INSERT INTO c9 VALUES('nine', 9);\n\n  CREATE VIRTUAL TABLE temp.cc USING unionvtab(" + sqlLiteral("SELECT 'main', 'c9', 9, 9 UNION ALL\n    SELECT 'main', 'c8', 8, 8 UNION ALL\n    SELECT 'main', 'c7', 7, 7 UNION ALL\n    SELECT 'main', 'c6', 6, 6 UNION ALL\n    SELECT 'main', 'c5', 5, 5 UNION ALL\n    SELECT 'main', 'c4', 4, 4 UNION ALL\n    SELECT 'main', 'c3', 3, 3 UNION ALL\n    SELECT 'main', 'c2', 2, 2 UNION ALL\n    SELECT 'main', 'c1', 1, 1 UNION ALL\n    SELECT 'main', 'c0', 0, 0") + ");\n\n  SELECT sum(two) FROM cc;\n")
 						return
 					}
 					got := flatten(r)

@@ -197,9 +197,9 @@ func Test_corruptB(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		v = "abcdefghij 200"
 		_ = v // suppress unused warning
-		_res = db.Exec("\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(" + v + ");\n  ")
+		_res = db.Exec("\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(" + sqlLiteral(v) + ");\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(" + v + ");\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(" + sqlLiteral(v) + ");\n  ")
 		}
 		t2_root = tclExecSQL(db, "{SELECT rootpage FROM sqlite_master WHERE name = 't2'}")
 		_ = t2_root // suppress unused warning

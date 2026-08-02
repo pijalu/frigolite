@@ -52,15 +52,27 @@ func Test_tkt3541(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3541-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT CASE ~max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT CASE ~max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT CASE ~max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT CASE ~max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3541-1.2"
-		_res = db.Exec("\n    SELECT CASE NOT max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT CASE NOT max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;\n  ")
+		r = db.Query("\n    SELECT CASE NOT max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT CASE NOT max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

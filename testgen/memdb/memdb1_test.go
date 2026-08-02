@@ -111,9 +111,9 @@ func Test_memdb1(t *testing.T) {
 		}
 	}
 	{ // "120"
-		_res = db.Exec("\n  PRAGMA auto_vacuum = off;\n  VACUUM;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = off;\n  VACUUM;\n")
+		r = db.Query("\n  PRAGMA auto_vacuum = off;\n  VACUUM;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = off;\n  VACUUM;\n")
 		}
 	}
 	{ // "130"
@@ -173,9 +173,15 @@ func Test_memdb1(t *testing.T) {
 		}
 	}
 	{ // do_test "161"
-		_res = db.Exec("INSERT INTO t1 VALUES(3,4); SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(3,4); SELECT * FROM t1")
+		r = db.Query("INSERT INTO t1 VALUES(3,4); SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "INSERT INTO t1 VALUES(3,4); SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "162"
@@ -390,9 +396,15 @@ func Test_memdb1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "800"
-			_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n  ")
+			r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "wal"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		fd = "open test.db"

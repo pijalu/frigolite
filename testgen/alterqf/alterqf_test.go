@@ -79,9 +79,9 @@ func Test_alterqf(t *testing.T) {
 		_ = after // suppress unused warning
 		_ = _idx0
 			{ // "1." + tn
-				r = db.Query("\n    SELECT sqlite_rename_quotefix('main', $before)\n  ")
+				r = db.Query("\n    SELECT sqlite_rename_quotefix('main', " + sqlLiteral(before) + ")\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_rename_quotefix('main', $before)\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_rename_quotefix('main', " + sqlLiteral(before) + ")\n  ")
 					return
 				}
 				got := flatten(r)

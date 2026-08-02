@@ -291,9 +291,9 @@ func Test_skipscan2(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			_res = db.Exec(" INSERT INTO t3 VALUES(" + i + "%2, " + i + ", 'xyz') ")
+			_res = db.Exec(" INSERT INTO t3 VALUES(" + sqlLiteral(i) + "%2, " + sqlLiteral(i) + ", 'xyz') ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES(" + i + "%2, " + i + ", 'xyz') ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES(" + sqlLiteral(i) + "%2, " + sqlLiteral(i) + ", 'xyz') ")
 			}
 			// incr i 1
 			{

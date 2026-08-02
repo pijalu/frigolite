@@ -208,9 +208,9 @@ func Test_vacuum_into(t *testing.T) {
 			}
 		}
 		{ // "vacuum-into-620"
-			_res = db.Exec("\n    PRAGMA page_size=1024;\n    VACUUM INTO 'test.db2';\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    VACUUM INTO 'test.db2';\n  ")
+			r = db.Query("\n    PRAGMA page_size=1024;\n    VACUUM INTO 'test.db2';\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    VACUUM INTO 'test.db2';\n  ")
 			}
 		}
 		{ // do_test "vacuum-into-630"

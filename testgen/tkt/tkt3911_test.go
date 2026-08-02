@@ -58,27 +58,51 @@ func Test_tkt3911(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3911.2"
-		_res = db.Exec("\n    SELECT * FROM t1 JOIN (t2) AS x USING (b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1 JOIN (t2) AS x USING (b);\n  ")
+		r = db.Query("\n    SELECT * FROM t1 JOIN (t2) AS x USING (b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 JOIN (t2) AS x USING (b);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3911.3"
-		_res = db.Exec("\n    SELECT * FROM t1 JOIN (SELECT * FROM t2) AS x USING (b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1 JOIN (SELECT * FROM t2) AS x USING (b);\n  ")
+		r = db.Query("\n    SELECT * FROM t1 JOIN (SELECT * FROM t2) AS x USING (b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 JOIN (SELECT * FROM t2) AS x USING (b);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3911.4"
-		_res = db.Exec("\n    CREATE TABLE t3(m,a);\n    INSERT INTO t3 VALUES('one',1);\n    INSERT INTO t3 VALUES('two',2);\n\n    SELECT * FROM t3 JOIN (SELECT * FROM t1 NATURAL JOIN t2) AS x USING(a);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(m,a);\n    INSERT INTO t3 VALUES('one',1);\n    INSERT INTO t3 VALUES('two',2);\n\n    SELECT * FROM t3 JOIN (SELECT * FROM t1 NATURAL JOIN t2) AS x USING(a);\n  ")
+		r = db.Query("\n    CREATE TABLE t3(m,a);\n    INSERT INTO t3 VALUES('one',1);\n    INSERT INTO t3 VALUES('two',2);\n\n    SELECT * FROM t3 JOIN (SELECT * FROM t1 NATURAL JOIN t2) AS x USING(a);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(m,a);\n    INSERT INTO t3 VALUES('one',1);\n    INSERT INTO t3 VALUES('two',2);\n\n    SELECT * FROM t3 JOIN (SELECT * FROM t1 NATURAL JOIN t2) AS x USING(a);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3911.5"
-		_res = db.Exec("\n    SELECT * FROM t3 JOIN (SELECT * FROM t1 JOIN t2 USING (b)) AS x USING(a);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t3 JOIN (SELECT * FROM t1 JOIN t2 USING (b)) AS x USING(a);\n  ")
+		r = db.Query("\n    SELECT * FROM t3 JOIN (SELECT * FROM t1 JOIN t2 USING (b)) AS x USING(a);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 JOIN (SELECT * FROM t1 JOIN t2 USING (b)) AS x USING(a);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

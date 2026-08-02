@@ -50,381 +50,579 @@ func Test_whereB(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "whereB-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(x,y);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b TEXT);  -- affinity of t2.b is TEXT\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x,y);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b TEXT);  -- affinity of t2.b is TEXT\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(x,y);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b TEXT);  -- affinity of t2.b is TEXT\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x,y);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b TEXT);  -- affinity of t2.b is TEXT\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-1.2"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		}
 	}
 	{ // do_test "whereB-1.3"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		}
 	}
 	{ // do_test "whereB-1.4"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-1.100"
-		_res = db.Exec("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		}
 	}
 	{ // do_test "whereB-1.101"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		}
 	}
 	{ // do_test "whereB-1.102"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-2.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y TEXT);    -- affinity of t1.y is TEXT\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y TEXT);    -- affinity of t1.y is TEXT\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y TEXT);    -- affinity of t1.y is TEXT\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y TEXT);    -- affinity of t1.y is TEXT\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-2.2"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		}
 	}
 	{ // do_test "whereB-2.3"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		}
 	}
 	{ // do_test "whereB-2.4"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-2.100"
-		_res = db.Exec("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		}
 	}
 	{ // do_test "whereB-2.101"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		}
 	}
 	{ // do_test "whereB-2.102"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-3.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-3.2"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		}
 	}
 	{ // do_test "whereB-3.3"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		}
 	}
 	{ // do_test "whereB-3.4"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-3.100"
-		_res = db.Exec("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
 		}
 	}
 	{ // do_test "whereB-3.101"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
 		}
 	}
 	{ // do_test "whereB-3.102"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-4.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b NUMERIC);  -- affinity of t2.b is NUMERIC\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b NUMERIC);  -- affinity of t2.b is NUMERIC\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b NUMERIC);  -- affinity of t2.b is NUMERIC\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b NUMERIC);  -- affinity of t2.b is NUMERIC\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-4.2"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-4.3"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-4.4"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-4.100"
-		_res = db.Exec("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-4.101"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-4.102"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-5.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b INT);  -- affinity of t2.b is INTEGER\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b INT);  -- affinity of t2.b is INTEGER\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b INT);  -- affinity of t2.b is INTEGER\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b INT);  -- affinity of t2.b is INTEGER\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-5.2"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-5.3"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-5.4"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-5.100"
-		_res = db.Exec("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-5.101"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-5.102"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-6.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b REAL);  -- affinity of t2.b is REAL\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99.0);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b REAL);  -- affinity of t2.b is REAL\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99.0);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b REAL);  -- affinity of t2.b is REAL\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99.0);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b REAL);  -- affinity of t2.b is REAL\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99.0);\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-6.2"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-6.3"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-6.4"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-6.100"
-		_res = db.Exec("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-6.101"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-6.102"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-7.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y NUMERIC);  -- affinity of t1.y is NUMERIC\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y NUMERIC);  -- affinity of t1.y is NUMERIC\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y NUMERIC);  -- affinity of t1.y is NUMERIC\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y NUMERIC);  -- affinity of t1.y is NUMERIC\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-7.2"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-7.3"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-7.4"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-7.100"
-		_res = db.Exec("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-7.101"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-7.102"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-8.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y INT);  -- affinity of t1.y is INTEGER\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y INT);  -- affinity of t1.y is INTEGER\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y INT);  -- affinity of t1.y is INTEGER\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y INT);  -- affinity of t1.y is INTEGER\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-8.2"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-8.3"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-8.4"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-8.100"
-		_res = db.Exec("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-8.101"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-8.102"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-9.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y REAL);  -- affinity of t1.y is REAL\n    INSERT INTO t1 VALUES(1,99.0);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y REAL);  -- affinity of t1.y is REAL\n    INSERT INTO t1 VALUES(1,99.0);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y REAL);  -- affinity of t1.y is REAL\n    INSERT INTO t1 VALUES(1,99.0);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y REAL);  -- affinity of t1.y is REAL\n    INSERT INTO t1 VALUES(1,99.0);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-9.2"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-9.3"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-9.4"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 	{ // do_test "whereB-9.100"
-		_res = db.Exec("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		r = db.Query("\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-9.101"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE b=y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereB-9.102"
-		_res = db.Exec("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		r = db.Query("\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;\n  ")
 		}
 	}
 }

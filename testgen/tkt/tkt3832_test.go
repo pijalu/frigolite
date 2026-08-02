@@ -52,9 +52,15 @@ func Test_tkt3832(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3832-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a INT, b INTEGER PRIMARY KEY);\n    CREATE TABLE log(x);\n    CREATE TRIGGER t1r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(new.b);\n    END;\n    INSERT INTO t1 VALUES(NULL,5);\n    INSERT INTO t1 SELECT b, a FROM t1 ORDER BY b;\n    SELECT rowid, * FROM t1;\n    SELECT rowid, * FROM log;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INT, b INTEGER PRIMARY KEY);\n    CREATE TABLE log(x);\n    CREATE TRIGGER t1r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(new.b);\n    END;\n    INSERT INTO t1 VALUES(NULL,5);\n    INSERT INTO t1 SELECT b, a FROM t1 ORDER BY b;\n    SELECT rowid, * FROM t1;\n    SELECT rowid, * FROM log;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a INT, b INTEGER PRIMARY KEY);\n    CREATE TABLE log(x);\n    CREATE TRIGGER t1r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(new.b);\n    END;\n    INSERT INTO t1 VALUES(NULL,5);\n    INSERT INTO t1 SELECT b, a FROM t1 ORDER BY b;\n    SELECT rowid, * FROM t1;\n    SELECT rowid, * FROM log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INT, b INTEGER PRIMARY KEY);\n    CREATE TABLE log(x);\n    CREATE TRIGGER t1r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(new.b);\n    END;\n    INSERT INTO t1 VALUES(NULL,5);\n    INSERT INTO t1 SELECT b, a FROM t1 ORDER BY b;\n    SELECT rowid, * FROM t1;\n    SELECT rowid, * FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 {} 5 6 5 6 1 5 2 -1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

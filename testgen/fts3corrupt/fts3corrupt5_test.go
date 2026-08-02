@@ -119,9 +119,9 @@ func Test_fts3corrupt5(t *testing.T) {
 				_ = res // suppress unused warning
 			}
 			{ // "1.3." + tn + ".2"
-				_res = db.Exec("\n    SELECT * FROM ft WHERE ft MATCH $q\n  ")
+				_res = db.Exec("\n    SELECT * FROM ft WHERE ft MATCH " + sqlLiteral(q) + "\n  ")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM ft WHERE ft MATCH $q\n  ")
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM ft WHERE ft MATCH " + sqlLiteral(q) + "\n  ")
 				}
 			}
 		}

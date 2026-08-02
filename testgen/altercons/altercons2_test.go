@@ -90,9 +90,9 @@ func Test_altercons2(t *testing.T) {
 				}
 			}
 			{ // "1." + tn + ".1"
-				_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema SET sql = $::newsql\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema SET sql = $::newsql\n  ")
+				r = db.Query("\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema SET sql = " + sqlLiteral(newsql) + "\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema SET sql = " + sqlLiteral(newsql) + "\n  ")
 				}
 			}
 			{ // "1." + tn + ".2"

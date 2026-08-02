@@ -277,51 +277,99 @@ func Test_zeroblob(t *testing.T) {
 		_ = strconv.Itoa(tclLLength(tclExecSQL(db, "{\n    SELECT 'hello' AS a, zeroblob(10) as b from t1 ORDER BY a, b;\n  }"))) // llength result
 	}
 	{ // do_test "zeroblob-9.1"
-		_res = db.Exec("SELECT x'0000' IN (x'000000')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x'0000' IN (x'000000')")
+		r = db.Query("SELECT x'0000' IN (x'000000')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x'0000' IN (x'000000')")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-9.2"
-		_res = db.Exec("SELECT x'0000' IN (x'0000')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x'0000' IN (x'0000')")
+		r = db.Query("SELECT x'0000' IN (x'0000')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x'0000' IN (x'0000')")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-9.3"
-		_res = db.Exec("SELECT zeroblob(2) IN (x'000000')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT zeroblob(2) IN (x'000000')")
+		r = db.Query("SELECT zeroblob(2) IN (x'000000')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT zeroblob(2) IN (x'000000')")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-9.4"
-		_res = db.Exec("SELECT zeroblob(2) IN (x'0000')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT zeroblob(2) IN (x'0000')")
+		r = db.Query("SELECT zeroblob(2) IN (x'0000')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT zeroblob(2) IN (x'0000')")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-9.5"
-		_res = db.Exec("SELECT x'0000' IN (zeroblob(3))")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x'0000' IN (zeroblob(3))")
+		r = db.Query("SELECT x'0000' IN (zeroblob(3))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x'0000' IN (zeroblob(3))")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-9.6"
-		_res = db.Exec("SELECT x'0000' IN (zeroblob(2))")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x'0000' IN (zeroblob(2))")
+		r = db.Query("SELECT x'0000' IN (zeroblob(2))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x'0000' IN (zeroblob(2))")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-9.7"
-		_res = db.Exec("SELECT zeroblob(2) IN (zeroblob(3))")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT zeroblob(2) IN (zeroblob(3))")
+		r = db.Query("SELECT zeroblob(2) IN (zeroblob(3))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT zeroblob(2) IN (zeroblob(3))")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-9.8"
-		_res = db.Exec("SELECT zeroblob(2) IN (zeroblob(2))")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT zeroblob(2) IN (zeroblob(2))")
+		r = db.Query("SELECT zeroblob(2) IN (zeroblob(2))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT zeroblob(2) IN (zeroblob(2))")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "zeroblob-10.1"

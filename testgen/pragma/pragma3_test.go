@@ -144,9 +144,15 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma3-160"
-		_res = db.Exec("\n    BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;\n  ")
+		r = db.Query("\n    BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2 101 201 301 401 555 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma3-170"
@@ -154,9 +160,15 @@ func Test_pragma3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "pragma3-180"
-		_res = db.Exec("\n    COMMIT;\n    PRAGMA data_version;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    PRAGMA data_version;\n  ")
+		r = db.Query("\n    COMMIT;\n    PRAGMA data_version;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    PRAGMA data_version;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma3-190"
@@ -167,9 +179,15 @@ func Test_pragma3(t *testing.T) {
 		// expr [db eval {PRAGMA data_version}]!=[db2 eval {PRAGMA data_version}] (not evaluated)
 	}
 	{ // do_test "pragma3-200"
-		_res = db.Exec("PRAGMA data_version; SELECT * FROM t1;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA data_version; SELECT * FROM t1;")
+		r = db.Query("PRAGMA data_version; SELECT * FROM t1;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA data_version; SELECT * FROM t1;")
+			return
+		}
+		got := flatten(r)
+		want := "2 101 201 301 401 555"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma3-201"
@@ -194,9 +212,15 @@ func Test_pragma3(t *testing.T) {
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "pragma3-300"
-		_res = db.Exec("\n      PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;\n    ")
+		r = db.Query("\n      PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma3-310"
@@ -204,9 +228,15 @@ func Test_pragma3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "pragma3-320"
-		_res = db.Exec("\n      PRAGMA data_version;\n      SELECT * FROM t4;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA data_version;\n      SELECT * FROM t4;\n    ")
+		r = db.Query("\n      PRAGMA data_version;\n      SELECT * FROM t4;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA data_version;\n      SELECT * FROM t4;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 123 456 789"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma3-330"
@@ -214,9 +244,15 @@ func Test_pragma3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "pragma3-340"
-		_res = db.Exec("\n      PRAGMA data_version;\n      SELECT * FROM t3;\n      SELECT * FROM t4;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA data_version;\n      SELECT * FROM t3;\n      SELECT * FROM t4;\n    ")
+		r = db.Query("\n      PRAGMA data_version;\n      SELECT * FROM t3;\n      SELECT * FROM t4;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA data_version;\n      SELECT * FROM t3;\n      SELECT * FROM t4;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 abc def ghi 123 456 789"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db2.Close()
@@ -233,9 +269,15 @@ func Test_pragma3(t *testing.T) {
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "pragma3-400"
-				_res = db.Exec("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
+				r = db.Query("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
+					return
+				}
+				got := flatten(r)
+				want := "2 wal 101 201"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "pragma3-410"
@@ -243,9 +285,15 @@ func Test_pragma3(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test "pragma3-420"
-				_res = db.Exec("UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1")
+				r = db.Query("UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1")
+					return
+				}
+				got := flatten(r)
+				want := "2 111 222"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "pragma3-430"

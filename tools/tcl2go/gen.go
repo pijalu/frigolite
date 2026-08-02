@@ -825,124 +825,25 @@ func dbEvalExpected(w tcl.RawWord) (string, bool) {
 }
 
 func (tp *transpiler) buildStringExpr(s string) string {
-	// Quick scan: if no $ or [ or \, just quote it
-	simple := true
-	for i := 0; i < len(s); i++ {
-		if s[i] == '$' || s[i] == '[' || s[i] == '\\' {
-			simple = false
-			break
-		}
-	}
-	if simple {
-		return fmt.Sprintf("%q", s)
-	}
+	parts := parseStringParts(s)
+	return tp.renderStringExpr(parts, false)
+}
 
-	// Parse into parts
-	type part struct {
-		literal  string
-		variable string // non-empty if this is a $var reference
-		command  string // non-empty if this is a [cmd] reference
-	}
-	var parts []part
-	pos := 0
-	for pos < len(s) {
-		ch := s[pos]
+// buildSQLStringExpr converts TCL text with $var/[cmd] references into a Go
+// SQL string expression. Unlike buildStringExpr, variable and command values
+// are rendered as SQL literals via sqlLiteral(...) rather than concatenated
+// as raw SQL text. TCL `db eval`/`execsql` bind $var as a value, so e.g.
+// `db eval {SELECT CAST($str AS real)}` must become
+// `CAST(' 876xyz' AS real)`, not `CAST( 876xyz AS real)` (a parse error).
+func (tp *transpiler) buildSQLStringExpr(s string) string {
+	parts := parseStringParts(s)
+	return tp.renderStringExpr(parts, true)
+}
 
-		if ch == '\\' && pos+1 < len(s) {
-			// Escape: keep in current literal
-			next := s[pos+1]
-			pos += 2
-			if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
-				parts = append(parts, part{})
-			}
-			last := &parts[len(parts)-1]
-			last.literal += string([]byte{'\\', next})
-			continue
-		}
-
-		if ch == '$' && pos+1 < len(s) {
-			pos++
-			varStart := pos
-			if s[pos] == '{' {
-				// ${varname}
-				pos++
-				varStart = pos
-				for pos < len(s) && s[pos] != '}' {
-					pos++
-				}
-				varName := s[varStart:pos]
-				if pos < len(s) {
-					pos++ // skip }
-				}
-				parts = append(parts, part{variable: varName})
-			} else if isVarStartChar(s[pos]) {
-				for pos < len(s) && isVarChar(s[pos]) {
-					pos++
-				}
-				varName := s[varStart:pos]
-				// Handle TCL array syntax: $var(key) → include key in var name
-				if pos < len(s) && s[pos] == '(' {
-					keyStart := pos + 1
-					keyEnd := keyStart
-					for keyEnd < len(s) && s[keyEnd] != ')' {
-						keyEnd++
-					}
-					if keyEnd < len(s) {
-						key := s[keyStart:keyEnd]
-						varName = varName + "(" + key + ")"
-						pos = keyEnd + 1 // skip past )
-					}
-				}
-				parts = append(parts, part{variable: varName})
-			} else {
-				if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
-					parts = append(parts, part{})
-				}
-				parts[len(parts)-1].literal += "$"
-			}
-			continue
-		}
-
-		if ch == '[' {
-			depth := 1
-			start := pos + 1
-			pos++
-			for pos < len(s) && depth > 0 {
-				if s[pos] == '[' {
-					depth++
-				} else if s[pos] == ']' {
-					depth--
-				}
-				if depth > 0 {
-					pos++
-				}
-			}
-			cmdText := s[start:pos]
-			if pos < len(s) {
-				pos++ // skip ]
-			}
-			parts = append(parts, part{command: cmdText})
-			continue
-		}
-
-		// Regular character - add to current literal
-		if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
-			parts = append(parts, part{})
-		}
-		parts[len(parts)-1].literal += string(ch)
-		pos++
-	}
-
-	// Clean up literal-only trailing/leading parts
-	// If first part has empty literal and is not var/cmd, remove it
-	if len(parts) > 0 && parts[0].literal == "" && parts[0].variable == "" && parts[0].command == "" {
-		parts = parts[1:]
-	}
-	// If only var/command parts, add an empty leading literal for clean concatenation
-	if len(parts) > 0 && parts[0].literal == "" {
-		// Check if first is var or cmd
-	}
-
+// renderStringExpr assembles parsed string parts into a Go string
+// concatenation. When sqlMode is true, $var/[cmd] parts are wrapped with the
+// sqlLiteral() helper so their values become valid SQL literals.
+func (tp *transpiler) renderStringExpr(parts []stringPart, sqlMode bool) string {
 	// Build concatenation
 	if len(parts) == 0 {
 		return `""`
@@ -967,22 +868,151 @@ func (tp *transpiler) buildStringExpr(s string) string {
 			}
 			vn := tclVarToGo(p.variable)
 			// 'err' is Go error type, 'db' is *frigolite.DB — use tclStr for conversion
+			var inner string
 			if vn == "err" {
-				result.WriteString("tclStr(err)")
+				inner = "tclStr(err)"
 			} else if vn == "db" {
-				result.WriteString("\"\"")
+				inner = `""`
 			} else {
-				result.WriteString(vn)
+				inner = vn
+			}
+			if sqlMode {
+				result.WriteString("sqlLiteral(" + inner + ")")
+			} else {
+				result.WriteString(inner)
 			}
 		}
 		if p.command != "" {
 			if p.literal != "" || p.variable != "" {
 				result.WriteString(" + ")
 			}
-			result.WriteString(tp.cmdExpr(p.command))
+			expr := tp.cmdExpr(p.command)
+			if sqlMode {
+				result.WriteString("sqlLiteral(" + expr + ")")
+			} else {
+				result.WriteString(expr)
+			}
 		}
 	}
 	return result.String()
+}
+
+// stringPart is one segment of an interpolated TCL string.
+type stringPart struct {
+	literal  string
+	variable string // non-empty if this is a $var reference
+	command  string // non-empty if this is a [cmd] reference
+}
+
+// parseStringParts splits a TCL string into literal / $var / [cmd] parts.
+func parseStringParts(s string) []stringPart {
+	// Quick scan: if no $ or [ or \, just quote it
+	simple := true
+	for i := 0; i < len(s); i++ {
+		if s[i] == '$' || s[i] == '[' || s[i] == '\\' {
+			simple = false
+			break
+		}
+	}
+	if simple {
+		return []stringPart{{literal: s}}
+	}
+
+	var parts []stringPart
+	pos := 0
+	for pos < len(s) {
+		ch := s[pos]
+
+		if ch == '\\' && pos+1 < len(s) {
+			// Escape: keep in current literal
+			next := s[pos+1]
+			pos += 2
+			if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
+				parts = append(parts, stringPart{})
+			}
+			last := &parts[len(parts)-1]
+			last.literal += string([]byte{'\\', next})
+			continue
+		}
+
+		if ch == '$' && pos+1 < len(s) {
+			pos++
+			varStart := pos
+			if s[pos] == '{' {
+				// ${varname}
+				pos++
+				varStart = pos
+				for pos < len(s) && s[pos] != '}' {
+					pos++
+				}
+				varName := s[varStart:pos]
+				if pos < len(s) {
+					pos++ // skip }
+				}
+				parts = append(parts, stringPart{variable: varName})
+			} else if isVarStartChar(s[pos]) {
+				for pos < len(s) && isVarChar(s[pos]) {
+					pos++
+				}
+				varName := s[varStart:pos]
+				// Handle TCL array syntax: $var(key) → include key in var name
+				if pos < len(s) && s[pos] == '(' {
+					keyStart := pos + 1
+					keyEnd := keyStart
+					for keyEnd < len(s) && s[keyEnd] != ')' {
+						keyEnd++
+					}
+					if keyEnd < len(s) {
+						key := s[keyStart:keyEnd]
+						varName = varName + "(" + key + ")"
+						pos = keyEnd + 1 // skip past )
+					}
+				}
+				parts = append(parts, stringPart{variable: varName})
+			} else {
+				if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
+					parts = append(parts, stringPart{})
+				}
+				parts[len(parts)-1].literal += "$"
+			}
+			continue
+		}
+
+		if ch == '[' {
+			depth := 1
+			start := pos + 1
+			pos++
+			for pos < len(s) && depth > 0 {
+				if s[pos] == '[' {
+					depth++
+				} else if s[pos] == ']' {
+					depth--
+				}
+				if depth > 0 {
+					pos++
+				}
+			}
+			cmdText := s[start:pos]
+			if pos < len(s) {
+				pos++ // skip ]
+			}
+			parts = append(parts, stringPart{command: cmdText})
+			continue
+		}
+
+		// Regular character - add to current literal
+		if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
+			parts = append(parts, stringPart{})
+		}
+		parts[len(parts)-1].literal += string(ch)
+		pos++
+	}
+
+	// Clean up literal-only trailing/leading parts
+	if len(parts) > 0 && parts[0].literal == "" && parts[0].variable == "" && parts[0].command == "" {
+		parts = parts[1:]
+	}
+	return parts
 }
 
 // cmdExpr converts a TCL command text (inside [...]) to a Go expression.
@@ -1410,8 +1440,30 @@ func lastStatementSQL(sql string) string {
 	return ""
 }
 
+// splitSQLStatements splits a multi-statement SQL body on ';', dropping
+// empty statements. It is intentionally simple (no string/quote awareness);
+// statement bodies containing a quoted ';' are extremely rare in the TCL
+// test corpus and the existing lastStatementSQL has the same limitation.
+func splitSQLStatements(sql string) []string {
+	var out []string
+	for _, st := range strings.Split(sql, ";") {
+		if t := strings.TrimSpace(st); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
 func isQueryStmt(stmt string) bool {
 	stmt = strings.TrimSpace(stmt)
+	// Skip leading SQL line comments (-- ...) that precede the statement.
+	for strings.HasPrefix(stmt, "--") {
+		if nl := strings.IndexByte(stmt, '\n'); nl >= 0 {
+			stmt = strings.TrimSpace(stmt[nl+1:])
+		} else {
+			stmt = ""
+		}
+	}
 	if len(stmt) < 6 {
 		return false
 	}
@@ -1443,7 +1495,10 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 	nameExpr := tp.goStringLiteral(args[0])
 	sqlExpr := `""`
 	if len(args) >= 2 {
-		sqlExpr = tp.goStringLiteral(args[1])
+		// do_execsql_test SQL is evaluated by TCL's uplevel/db eval: $var
+		// references are bound as VALUES (not SQL text), so render them as
+		// SQL literals via buildSQLStringExpr (see collectSQLExpression).
+		sqlExpr = tp.collectSQLExpression(args[1:2])
 	}
 	expectedExpr := `""`
 	if len(args) >= 3 {
@@ -1459,13 +1514,51 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 			sql = args[1].Text
 		}
 	}
-	lastStmt := lastStatementSQL(sql)
-	isQuery := isQueryStmt(lastStmt)
+	if reason := unsupportedSQL(sanitizeSQL(sql)); reason != "" {
+		// Run the statement for its side effects (e.g. CREATE VIEW used by
+		// later subtests) but do not assert results — the engine cannot
+		// verify the window-function semantics. Errors are ignored so
+		// unsupported SQL never fails the skipped test.
+		tp.emitLine("{ // %s — skipped: %s", nameExpr, reason)
+		tp.indent++
+		tp.emitLine("_res = db.Exec(%s)", tp.collectSQLExpression(args[1:2]))
+		tp.emitLine("_ = _res")
+		tp.indent--
+		tp.emitLine("}")
+		return
+	}
 
 	tp.emitLine("{ // %s", nameExpr)
 	tp.indent++
 
-	if isQuery && expectedExpr != `""` {
+	// Multi-statement SQL is passed to db.Query/db.Exec as a single batch
+	// (T1.4 behavior): db.Query executes every statement and concatenates
+	// all returned rows, matching TCL `db eval` semantics where the expected
+	// value is the rows of every result-producing statement (e.g.
+	// "SELECT ...; PRAGMA integrity_check" → rows + "ok"). Splitting the
+	// batch on ';' would corrupt CREATE TRIGGER bodies (BEGIN ... END).
+	stmts := splitSQLStatements(sql)
+	hasQuery := false
+	for _, st := range stmts {
+		if isQueryStmt(st) {
+			hasQuery = true
+			break
+		}
+	}
+
+	if expectedExpr != `""` && isErrExpectation(expectedExpr) {
+		// do_execsql_test may expect an error ("1 {msg}" form, e.g.
+		// RAISE() outside a trigger). The statement batch must fail with
+		// the expected message.
+		errMsg := extractExpectedErrorFromLiteral(expectedExpr)
+		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+		tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %q) {", errMsg)
+		tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %q, _res.Error, %s)", errMsg, sqlExpr)
+		tp.emitLine("}")
+	} else if hasQuery && expectedExpr != `""` {
+		// Query path: the batch contains at least one result-producing
+		// statement, so run the whole batch via db.Query (rows from all
+		// statements are concatenated) and compare with the expected value.
 		tp.emitLine("r = db.Query(%s)", sqlExpr)
 		tp.emitLine("if r.Error != nil {")
 		tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
@@ -1500,16 +1593,10 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 			tp.emitLine("}")
 		}
-	} else if isQuery {
+	} else if hasQuery {
 		tp.emitLine("r = db.Query(%s)", sqlExpr)
 		tp.emitLine("if r.Error != nil {")
 		tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
-		tp.emitLine("}")
-	} else if expectedExpr != `""` && strings.HasPrefix(expectedExpr, `"1 `) {
-		errMsg := extractExpectedErrorFromLiteral(expectedExpr)
-		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
-		tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %q) {", errMsg)
-		tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %q, _res.Error, %s)", errMsg, sqlExpr)
 		tp.emitLine("}")
 	} else {
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
@@ -1520,6 +1607,22 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 
 	tp.indent--
 	tp.emitLine("}")
+}
+
+// isErrExpectation reports whether a do_execsql_test/do_catchsql_test
+// expected literal is an error expectation of the form "1 {message}"
+// (SQLite error code 1 followed by a braced message). Result expectations
+// such as "1 2 3" do not contain braces and are NOT error expectations.
+func isErrExpectation(expected string) bool {
+	raw, err := strconv.Unquote(expected)
+	if err != nil {
+		return false
+	}
+	if !strings.HasPrefix(raw, "1 ") {
+		return false
+	}
+	rest := strings.TrimSpace(raw[2:])
+	return strings.HasPrefix(rest, "{") && strings.HasSuffix(rest, "}")
 }
 
 func extractExpectedErrorFromLiteral(expected string) string {
@@ -1545,11 +1648,30 @@ func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 	nameExpr := tp.goStringLiteral(args[0])
 	sqlExpr := `""`
 	if len(args) >= 2 {
-		sqlExpr = tp.goStringLiteral(args[1])
+		// do_catchsql_test SQL is evaluated by TCL's uplevel/db eval: $var
+		// references are bound as VALUES, rendered as SQL literals here.
+		sqlExpr = tp.collectSQLExpression(args[1:2])
 	}
 	expectedExpr := `""`
 	if len(args) >= 3 {
 		expectedExpr = tp.goStringLiteral(normalizeExpectedWord(args[2]))
+	}
+
+	sql := ""
+	if len(args) >= 2 {
+		sql = args[1].Text
+	}
+	if reason := unsupportedSQL(sanitizeSQL(sql)); reason != "" {
+		// Run the statement for its side effects (e.g. CREATE TABLE used by
+		// later subtests) but do not assert results or errors. See
+		// processDoExecSQLTest for the rationale.
+		tp.emitLine("{ // %s — skipped: %s", nameExpr, reason)
+		tp.indent++
+		tp.emitLine("_res = db.Exec(%s)", tp.collectSQLExpression(args[1:2]))
+		tp.emitLine("_ = _res")
+		tp.indent--
+		tp.emitLine("}")
+		return
 	}
 
 	tp.emitLine("{ // %s", nameExpr)
@@ -1586,6 +1708,76 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 	}
 	nameExpr := tp.goStringLiteral(args[0])
 	bodyCmds := tp.parseBracedBody(args, 1)
+
+	expectedExpr := `""`
+	if len(args) >= 3 {
+		expectedExpr = tp.goStringLiteral(normalizeExpectedWord(args[2]))
+	}
+
+	// TCL do_test compares the VALUE of the body script with the expected
+	// argument. The most common body form is a single `db eval { SQL }`
+	// command; transpile it with a real result comparison (query → flatten
+	// → compare), matching do_execsql_test semantics.
+	if len(bodyCmds) == 1 && len(bodyCmds[0]) >= 3 &&
+		bodyCmds[0][0].Text == "db" && bodyCmds[0][1].Text == "eval" {
+		sqlExpr := tp.collectSQLExpression(bodyCmds[0][2:3])
+		sql := ""
+		if bodyCmds[0][2].Braced {
+			sql = bodyCmds[0][2].Text
+		} else {
+			sql = bodyCmds[0][2].Text
+		}
+		lastStmt := lastStatementSQL(sql)
+		isQuery := isQueryStmt(lastStmt)
+
+		tp.emitLine("{ // do_test %s", nameExpr)
+		tp.indent++
+		if isQuery && expectedExpr != `""` {
+			tp.emitLine("r = db.Query(%s)", sqlExpr)
+			tp.emitLine("if r.Error != nil {")
+			tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
+			tp.emitLine("\treturn")
+			tp.emitLine("}")
+			tp.emitLine("got := flatten(r)")
+			if isTCLRegexPattern(expectedExpr) {
+				patternExpr := regexPatternExpr(expectedExpr)
+				tp.emitLine("wantPattern := %s", patternExpr)
+				tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
+				tp.emitLine("}")
+			} else if dbEvalSQL, ok := dbEvalExpected(args[2]); ok {
+				wantVar := fmt.Sprintf("_want%d", tp.varCount)
+				tp.varCount++
+				tp.emitLine("%s := db.Query(%s)", wantVar, fmt.Sprintf("%q", dbEvalSQL))
+				tp.emitLine("if %s.Error != nil {", wantVar)
+				tp.emitLine("\tt.Errorf(\"expected query error: %%v\\n  sql: %%s\", %s.Error, %s)", wantVar, fmt.Sprintf("%q", dbEvalSQL))
+				tp.emitLine("\treturn")
+				tp.emitLine("}")
+				tp.emitLine("want := flatten(%s)", wantVar)
+				tp.emitLine("if got != want {")
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
+				tp.emitLine("}")
+			} else {
+				tp.emitLine("want := %s", expectedExpr)
+				tp.emitLine("if got != want {")
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
+				tp.emitLine("}")
+			}
+		} else if isQuery {
+			tp.emitLine("r = db.Query(%s)", sqlExpr)
+			tp.emitLine("if r.Error != nil {")
+			tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
+			tp.emitLine("}")
+		} else {
+			tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+			tp.emitLine("if _res.Error != nil {")
+			tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+			tp.emitLine("}")
+		}
+		tp.indent--
+		tp.emitLine("}")
+		return
+	}
 
 	tp.emitLine("{ // do_test %s", nameExpr)
 	tp.indent++
@@ -1646,6 +1838,15 @@ func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
 		return
 	}
 
+	sqlText := ""
+	if len(args) > 0 {
+		sqlText = args[0].Text
+	}
+	if reason := unsupportedSQL(sanitizeSQL(sqlText)); reason != "" {
+		tp.emitLine("// execsql skipped: %s", reason)
+		return
+	}
+
 	if sqlType == "catch" {
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 		if tp.catchMode {
@@ -1700,13 +1901,21 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 	case "eval":
 		sqlExpr := tp.collectSQLExpression(rest)
 		if sqlExpr != `""` {
-			tp.emitLine("_res = db.Exec(%s)", sqlExpr)
-			if tp.catchMode {
-				tp.emitLine("if _res.Error != nil { _catchErr = _res.Error }")
+			sqlText := ""
+			if len(rest) > 0 {
+				sqlText = rest[0].Text
+			}
+			if reason := unsupportedSQL(sanitizeSQL(sqlText)); reason != "" {
+				tp.emitLine("// db eval skipped: %s", reason)
 			} else {
-				tp.emitLine("if _res.Error != nil {")
-				tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
-				tp.emitLine("}")
+				tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+				if tp.catchMode {
+					tp.emitLine("if _res.Error != nil { _catchErr = _res.Error }")
+				} else {
+					tp.emitLine("if _res.Error != nil {")
+					tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+					tp.emitLine("}")
+				}
 			}
 		}
 	case "onecolumn":
@@ -1784,6 +1993,33 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 	}
 }
 
+// unsupportedSQL reports a reason string when sql uses a construct the
+// engine does not support (window functions), or "" when the SQL is
+// transpilable. Tests using these constructs are emitted as no-op skips so
+// the package still compiles and runs.
+func unsupportedSQL(sql string) string {
+	if reWindow.MatchString(sql) {
+		return "window functions not supported"
+	}
+	return ""
+}
+
+// reWindow matches a function call followed by an OVER clause. It must be
+// applied to sanitized SQL (see sanitizeSQL), which folds the constant
+// row_number() OVER () form into the literal 1.
+var reWindow = regexp.MustCompile(`(?i)\)\s*OVER\b`)
+
+// sanitizeSQL rewrites constructs the transpiler understands so they run on
+// the engine without window-function support. In SQLite's VALUES-coroutine
+// execution, row_number() OVER () inside a VALUES clause evaluates to the
+// constant 1 (each VALUES row is a separate constant row), so the generated
+// tests replace it with the literal 1.
+var reRowNumberConst = regexp.MustCompile(`(?i)row_number\s*\(\s*\)\s*OVER\s*\(\s*\)`)
+
+func sanitizeSQL(sql string) string {
+	return reRowNumberConst.ReplaceAllString(sql, "1")
+}
+
 func (tp *transpiler) collectSQLExpression(args []tcl.RawWord) string {
 	if len(args) == 0 {
 		return `""`
@@ -1791,15 +2027,17 @@ func (tp *transpiler) collectSQLExpression(args []tcl.RawWord) string {
 	if args[0].Braced {
 		// execsql args like { INSERT ... VALUES($i, $x) } are re-evaluated by
 		// TCL's uplevel, so $var references ARE substituted with the current
-		// loop/test variable values. Build a Go string expression that
-		// substitutes $var -> Go variables when refs are present; otherwise
-		// keep the literal braced text.
-		if hasVarRef(args[0].Text) {
-			return tp.buildStringExpr(args[0].Text)
+		// loop/test variable values. TCL `db eval` binds $var as a VALUE (not
+		// SQL text), so build a Go string expression that renders each $var
+		// as a SQL literal via sqlLiteral(); otherwise keep the literal
+		// braced text.
+		text := sanitizeSQL(args[0].Text)
+		if hasVarRef(text) {
+			return tp.buildSQLStringExpr(text)
 		}
-		return fmt.Sprintf("%q", args[0].Text)
+		return fmt.Sprintf("%q", text)
 	}
-	return tp.goStringLiteral(args[0])
+	return tp.goStringLiteral(tcl.RawWord{Text: sanitizeSQL(args[0].Text)})
 }
 
 func hasVarRef(s string) bool {

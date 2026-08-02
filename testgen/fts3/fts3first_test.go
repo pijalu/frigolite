@@ -100,9 +100,9 @@ func Test_fts3first(t *testing.T) {
 				rev = "lreverse $res"
 				_ = rev // suppress unused warning
 				{ // "1." + x + "." + tn + ".1"
-					r = db.Query("SELECT docid FROM x1 WHERE x1 MATCH $match")
+					r = db.Query("SELECT docid FROM x1 WHERE x1 MATCH " + sqlLiteral(match))
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT docid FROM x1 WHERE x1 MATCH $match")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT docid FROM x1 WHERE x1 MATCH " + sqlLiteral(match))
 						return
 					}
 					got := flatten(r)
@@ -112,9 +112,9 @@ func Test_fts3first(t *testing.T) {
 					}
 				}
 				{ // "1." + x + "." + tn + ".2"
-					r = db.Query("SELECT docid FROM x2 WHERE x2 MATCH $match")
+					r = db.Query("SELECT docid FROM x2 WHERE x2 MATCH " + sqlLiteral(match))
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT docid FROM x2 WHERE x2 MATCH $match")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT docid FROM x2 WHERE x2 MATCH " + sqlLiteral(match))
 						return
 					}
 					got := flatten(r)
@@ -144,9 +144,9 @@ func Test_fts3first(t *testing.T) {
 				rev = "lreverse $res"
 				_ = rev // suppress unused warning
 				{ // "1.3." + tn + ".1"
-					r = db.Query("\n    SELECT snippet(x1, '[', ']', '...') FROM x1 WHERE x1 MATCH $match\n  ")
+					r = db.Query("\n    SELECT snippet(x1, '" + sqlLiteral("', '") + "', '...') FROM x1 WHERE x1 MATCH " + sqlLiteral(match) + "\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(x1, '[', ']', '...') FROM x1 WHERE x1 MATCH $match\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(x1, '" + sqlLiteral("', '") + "', '...') FROM x1 WHERE x1 MATCH " + sqlLiteral(match) + "\n  ")
 						return
 					}
 					got := flatten(r)
@@ -156,9 +156,9 @@ func Test_fts3first(t *testing.T) {
 					}
 				}
 				{ // "1.3." + tn + ".2"
-					r = db.Query("\n    SELECT snippet(x2, '[', ']', '...') FROM x2 WHERE x2 MATCH $match\n  ")
+					r = db.Query("\n    SELECT snippet(x2, '" + sqlLiteral("', '") + "', '...') FROM x2 WHERE x2 MATCH " + sqlLiteral(match) + "\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(x2, '[', ']', '...') FROM x2 WHERE x2 MATCH $match\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(x2, '" + sqlLiteral("', '") + "', '...') FROM x2 WHERE x2 MATCH " + sqlLiteral(match) + "\n  ")
 						return
 					}
 					got := flatten(r)
@@ -181,9 +181,9 @@ func Test_fts3first(t *testing.T) {
 					rev = "lreverse $res"
 					_ = rev // suppress unused warning
 					{ // "1.3." + tn + ".1"
-						r = db.Query("\n    SELECT mit(matchinfo(x1, 'x')) FROM x1 WHERE x1 MATCH $match\n  ")
+						r = db.Query("\n    SELECT mit(matchinfo(x1, 'x')) FROM x1 WHERE x1 MATCH " + sqlLiteral(match) + "\n  ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(x1, 'x')) FROM x1 WHERE x1 MATCH $match\n  ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(x1, 'x')) FROM x1 WHERE x1 MATCH " + sqlLiteral(match) + "\n  ")
 							return
 						}
 						got := flatten(r)
@@ -193,9 +193,9 @@ func Test_fts3first(t *testing.T) {
 						}
 					}
 					{ // "1.3." + tn + ".2"
-						r = db.Query("\n    SELECT mit(matchinfo(x2, 'x')) FROM x2 WHERE x2 MATCH $match\n  ")
+						r = db.Query("\n    SELECT mit(matchinfo(x2, 'x')) FROM x2 WHERE x2 MATCH " + sqlLiteral(match) + "\n  ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(x2, 'x')) FROM x2 WHERE x2 MATCH $match\n  ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(x2, 'x')) FROM x2 WHERE x2 MATCH " + sqlLiteral(match) + "\n  ")
 							return
 						}
 						got := flatten(r)

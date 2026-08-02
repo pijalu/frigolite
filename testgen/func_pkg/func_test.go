@@ -530,9 +530,9 @@ func Test_func(t *testing.T) {
 		x2 = tclExprWith("40223.0 + $i", map[string]string{"i": i})
 		_ = x2 // suppress unused warning
 		{ // do_test "func-4.17." + i
-			r = db.Query("SELECT round(" + x1 + ");")
+			r = db.Query("SELECT round(" + sqlLiteral(x1) + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + x1 + ");")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ");")
 			}
 		}
 		// incr i 1
@@ -551,9 +551,9 @@ func Test_func(t *testing.T) {
 		x2 = tclExprWith("40222.10 + $i", map[string]string{"i": i})
 		_ = x2 // suppress unused warning
 		{ // do_test "func-4.18." + i
-			r = db.Query("SELECT round(" + x1 + ",1);")
+			r = db.Query("SELECT round(" + sqlLiteral(x1) + ",1);")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + x1 + ",1);")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ",1);")
 			}
 		}
 		// incr i 1
@@ -586,21 +586,21 @@ func Test_func(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 		{ // do_test "func-4.23." + i
-			r = db.Query("SELECT round(40223.4999999999," + i + ");")
+			r = db.Query("SELECT round(40223.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999," + i + ");")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999," + sqlLiteral(i) + ");")
 			}
 		}
 		{ // do_test "func-4.24." + i
-			r = db.Query("SELECT round(40224.4999999999," + i + ");")
+			r = db.Query("SELECT round(40224.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999," + i + ");")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999," + sqlLiteral(i) + ");")
 			}
 		}
 		{ // do_test "func-4.25." + i
-			r = db.Query("SELECT round(40225.4999999999," + i + ");")
+			r = db.Query("SELECT round(40225.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999," + i + ");")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999," + sqlLiteral(i) + ");")
 			}
 		}
 		// incr i 1
@@ -615,21 +615,21 @@ func Test_func(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
 		{ // do_test "func-4.26." + i
-			r = db.Query("SELECT round(40223.4999999999," + i + ");")
+			r = db.Query("SELECT round(40223.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999," + i + ");")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40223.4999999999," + sqlLiteral(i) + ");")
 			}
 		}
 		{ // do_test "func-4.27." + i
-			r = db.Query("SELECT round(40224.4999999999," + i + ");")
+			r = db.Query("SELECT round(40224.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999," + i + ");")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40224.4999999999," + sqlLiteral(i) + ");")
 			}
 		}
 		{ // do_test "func-4.28." + i
-			r = db.Query("SELECT round(40225.4999999999," + i + ");")
+			r = db.Query("SELECT round(40225.4999999999," + sqlLiteral(i) + ");")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999," + i + ");")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(40225.4999999999," + sqlLiteral(i) + ");")
 			}
 		}
 		// incr i 1
@@ -1092,9 +1092,9 @@ func Test_func(t *testing.T) {
 	V = "one"
 	_ = V // suppress unused warning
 	{ // "13.8.4"
-		r = db.Query("\n  SELECT test_auxdata($V), $V FROM t4;\n")
+		r = db.Query("\n  SELECT test_auxdata(" + sqlLiteral(V) + "), " + sqlLiteral(V) + " FROM t4;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_auxdata($V), $V FROM t4;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_auxdata(" + sqlLiteral(V) + "), " + sqlLiteral(V) + " FROM t4;\n")
 			return
 		}
 		got := flatten(r)
@@ -1106,9 +1106,9 @@ func Test_func(t *testing.T) {
 	V = "two"
 	_ = V // suppress unused warning
 	{ // "13.8.5"
-		r = db.Query("\n  SELECT test_auxdata($V), $V FROM t4;\n")
+		r = db.Query("\n  SELECT test_auxdata(" + sqlLiteral(V) + "), " + sqlLiteral(V) + " FROM t4;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_auxdata($V), $V FROM t4;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_auxdata(" + sqlLiteral(V) + "), " + sqlLiteral(V) + " FROM t4;\n")
 			return
 		}
 		got := flatten(r)
@@ -1120,9 +1120,9 @@ func Test_func(t *testing.T) {
 	V = "three"
 	_ = V // suppress unused warning
 	{ // "13.8.6"
-		r = db.Query("\n  SELECT test_auxdata($V), $V FROM t4;\n")
+		r = db.Query("\n  SELECT test_auxdata(" + sqlLiteral(V) + "), " + sqlLiteral(V) + " FROM t4;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_auxdata($V), $V FROM t4;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_auxdata(" + sqlLiteral(V) + "), " + sqlLiteral(V) + " FROM t4;\n")
 			return
 		}
 		got := flatten(r)
@@ -1338,9 +1338,9 @@ func Test_func(t *testing.T) {
 					}
 				}
 				{ // do_test "func-20." + i
-					r = db.Query("SELECT soundex(" + name + ")")
+					r = db.Query("SELECT soundex(" + sqlLiteral(name) + ")")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex(" + name + ")")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex(" + sqlLiteral(name) + ")")
 					}
 				}
 			}
@@ -1406,9 +1406,9 @@ func Test_func(t *testing.T) {
 			_ = str // suppress unused warning
 			rep = "B 65536" // TCL namespace variable
 			_ = rep // suppress unused warning
-			r = db.Query("\n      SELECT LENGTH(REPLACE(" + str + ", 'C', " + rep + "));\n    ")
+			r = db.Query("\n      SELECT LENGTH(REPLACE(" + sqlLiteral(str) + ", 'C', " + sqlLiteral(rep) + "));\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT LENGTH(REPLACE(" + str + ", 'C', " + rep + "));\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT LENGTH(REPLACE(" + sqlLiteral(str) + ", 'C', " + sqlLiteral(rep) + "));\n    ")
 			}
 		}
 		{ // do_test "func-22.1"
@@ -1876,9 +1876,9 @@ func Test_func(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 0xd800 }() {
 			{ // "func-30.5." + i
-				r = db.Query("SELECT unicode(char($i))")
+				r = db.Query("SELECT unicode(char(" + sqlLiteral(i) + "))")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char($i))")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char(" + sqlLiteral(i) + "))")
 					return
 				}
 				got := flatten(r)
@@ -1901,9 +1901,9 @@ func Test_func(t *testing.T) {
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 0xfeff }() {
 			}
 			{ // "func-30.5." + i
-				r = db.Query("SELECT unicode(char($i))")
+				r = db.Query("SELECT unicode(char(" + sqlLiteral(i) + "))")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char($i))")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char(" + sqlLiteral(i) + "))")
 					return
 				}
 				got := flatten(r)
@@ -1924,9 +1924,9 @@ func Test_func(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 0x10ffff }() {
 			{ // "func-30.5." + i
-				r = db.Query("SELECT unicode(char($i))")
+				r = db.Query("SELECT unicode(char(" + sqlLiteral(i) + "))")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char($i))")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char(" + sqlLiteral(i) + "))")
 					return
 				}
 				got := flatten(r)
@@ -1992,9 +1992,9 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // "func-32.130"
-			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,e,f);\n  INSERT INTO t1 VALUES(1,2.5,'xyz',x'e0c1b2a3',null);\n  SELECT test_frombind(a,b,c,e,f,$xyz) FROM t1;\n")
+			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,e,f);\n  INSERT INTO t1 VALUES(1,2.5,'xyz',x'e0c1b2a3',null);\n  SELECT test_frombind(a,b,c,e,f," + sqlLiteral(xyz) + ") FROM t1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,e,f);\n  INSERT INTO t1 VALUES(1,2.5,'xyz',x'e0c1b2a3',null);\n  SELECT test_frombind(a,b,c,e,f,$xyz) FROM t1;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,e,f);\n  INSERT INTO t1 VALUES(1,2.5,'xyz',x'e0c1b2a3',null);\n  SELECT test_frombind(a,b,c,e,f," + sqlLiteral(xyz) + ") FROM t1;\n")
 				return
 			}
 			got := flatten(r)
@@ -2004,9 +2004,9 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // "func-32.140"
-			r = db.Query("\n  SELECT test_frombind(a,b,c,e,f,$xyz+f) FROM t1;\n")
+			r = db.Query("\n  SELECT test_frombind(a,b,c,e,f," + sqlLiteral(xyz) + "+f) FROM t1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(a,b,c,e,f,$xyz+f) FROM t1;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(a,b,c,e,f," + sqlLiteral(xyz) + "+f) FROM t1;\n")
 				return
 			}
 			got := flatten(r)
@@ -2016,9 +2016,9 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // "func-32.150"
-			r = db.Query("\n  SELECT test_frombind(x.a,y.b,x.c,:123,y.e,x.f,$xyz+y.f) FROM t1 x, t1 y;\n")
+			r = db.Query("\n  SELECT test_frombind(x.a,y.b,x.c,:123,y.e,x.f," + sqlLiteral(xyz) + "+y.f) FROM t1 x, t1 y;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(x.a,y.b,x.c,:123,y.e,x.f,$xyz+y.f) FROM t1 x, t1 y;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(x.a,y.b,x.c,:123,y.e,x.f," + sqlLiteral(xyz) + "+y.f) FROM t1 x, t1 y;\n")
 				return
 			}
 			got := flatten(r)
@@ -2211,9 +2211,9 @@ func Test_func(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 			{ // "func-39." + tclExprWith("10*$i+100", map[string]string{"i": i})
-				r = db.Query("\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<$i)\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
+				r = db.Query("\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<" + sqlLiteral(i) + ")\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<$i)\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<" + sqlLiteral(i) + ")\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
 					return
 				}
 				got := flatten(r)

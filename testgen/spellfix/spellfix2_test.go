@@ -101,9 +101,9 @@ func Test_spellfix2(t *testing.T) {
 	{ // do_test "1.4"
 		for _, l := range tclSplitList("a b c d e f g h i j k l m n o p q r s t u v w x y z") {
 		_ = l // suppress unused warning
-			_res = db.Exec(" INSERT INTO demo(word) VALUES ('amsterdam' || " + l + ") ")
+			_res = db.Exec(" INSERT INTO demo(word) VALUES ('amsterdam' || " + sqlLiteral(l) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO demo(word) VALUES ('amsterdam' || " + l + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO demo(word) VALUES ('amsterdam' || " + sqlLiteral(l) + ") ")
 			}
 		}
 	}

@@ -395,9 +395,9 @@ func Test_altertab(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // "8.1"
-		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
+		r = db.Query("\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
 		}
 	}
 	{ // "8.2"
@@ -1202,9 +1202,9 @@ func Test_altertab(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "30.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,e,f);\n  CREATE TABLE t2(a,b,c);\n  CREATE INDEX t1abc ON t1(a,b,c+d+e);\n  CREATE VIEW v1(x,y) AS \n    SELECT t1.b,t2.b FROM t1,t2 WHERE t1.a=t2.a \n      GROUP BY 1 HAVING t2.c NOT NULL LIMIT 10;\n  CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN 'no' NOT NULL BEGIN\n    INSERT INTO t2(a,a,b,c) VALUES(new.b,new.a,new.c-7);\n    WITH c1(x) AS (\n      VALUES(0) \n        UNION ALL \n      SELECT current_time+x FROM c1 WHERE x \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE x<1\n    ), c2(x) AS (VALUES(0),(1))\n    SELECT * FROM c1 AS x1, c2 AS x2, (\n      SELECT x+1 FROM c1 WHERE x IS NOT TRUE \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE 1<x\n    ) AS x3, c2 x5;\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d,e,f);\n  CREATE TABLE t2(a,b,c);\n  CREATE INDEX t1abc ON t1(a,b,c+d+e);\n  CREATE VIEW v1(x,y) AS \n    SELECT t1.b,t2.b FROM t1,t2 WHERE t1.a=t2.a \n      GROUP BY 1 HAVING t2.c NOT NULL LIMIT 10;\n  CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN 'no' NOT NULL BEGIN\n    INSERT INTO t2(a,a,b,c) VALUES(new.b,new.a,new.c-7);\n    WITH c1(x) AS (\n      VALUES(0) \n        UNION ALL \n      SELECT current_time+x FROM c1 WHERE x \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE x<1\n    ), c2(x) AS (VALUES(0),(1))\n    SELECT * FROM c1 AS x1, c2 AS x2, (\n      SELECT x+1 FROM c1 WHERE x IS NOT TRUE \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE 1<x\n    ) AS x3, c2 x5;\n  END;\n")
+		r = db.Query("\n  CREATE TABLE t1(a,b,c,d,e,f);\n  CREATE TABLE t2(a,b,c);\n  CREATE INDEX t1abc ON t1(a,b,c+d+e);\n  CREATE VIEW v1(x,y) AS \n    SELECT t1.b,t2.b FROM t1,t2 WHERE t1.a=t2.a \n      GROUP BY 1 HAVING t2.c NOT NULL LIMIT 10;\n  CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN 'no' NOT NULL BEGIN\n    INSERT INTO t2(a,a,b,c) VALUES(new.b,new.a,new.c-7);\n    WITH c1(x) AS (\n      VALUES(0) \n        UNION ALL \n      SELECT current_time+x FROM c1 WHERE x \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE x<1\n    ), c2(x) AS (VALUES(0),(1))\n    SELECT * FROM c1 AS x1, c2 AS x2, (\n      SELECT x+1 FROM c1 WHERE x IS NOT TRUE \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE 1<x\n    ) AS x3, c2 x5;\n  END;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c,d,e,f);\n  CREATE TABLE t2(a,b,c);\n  CREATE INDEX t1abc ON t1(a,b,c+d+e);\n  CREATE VIEW v1(x,y) AS \n    SELECT t1.b,t2.b FROM t1,t2 WHERE t1.a=t2.a \n      GROUP BY 1 HAVING t2.c NOT NULL LIMIT 10;\n  CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN 'no' NOT NULL BEGIN\n    INSERT INTO t2(a,a,b,c) VALUES(new.b,new.a,new.c-7);\n    WITH c1(x) AS (\n      VALUES(0) \n        UNION ALL \n      SELECT current_time+x FROM c1 WHERE x \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE x<1\n    ), c2(x) AS (VALUES(0),(1))\n    SELECT * FROM c1 AS x1, c2 AS x2, (\n      SELECT x+1 FROM c1 WHERE x IS NOT TRUE \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE 1<x\n    ) AS x3, c2 x5;\n  END;\n")
 		}
 	}
 	{ // "30.1"

@@ -408,9 +408,9 @@ func Test_existsexpr(t *testing.T) {
 		}
 	}
 	{ // "9.1"
-		_res = db.Exec("\n  PRAGMA automatic_index = off;\n  CREATE TABLE t2(ii);\n  INSERT INTO t2 VALUES(100);\n  INSERT INTO t2 VALUES(200);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = off;\n  CREATE TABLE t2(ii);\n  INSERT INTO t2 VALUES(100);\n  INSERT INTO t2 VALUES(200);\n")
+		r = db.Query("\n  PRAGMA automatic_index = off;\n  CREATE TABLE t2(ii);\n  INSERT INTO t2 VALUES(100);\n  INSERT INTO t2 VALUES(200);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = off;\n  CREATE TABLE t2(ii);\n  INSERT INTO t2 VALUES(100);\n  INSERT INTO t2 VALUES(200);\n")
 		}
 	}
 	{ // "9.2"

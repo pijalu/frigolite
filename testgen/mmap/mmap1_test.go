@@ -121,9 +121,15 @@ func Test_mmap1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "2.1"
-			_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   16\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   32\n    PRAGMA wal_checkpoint;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   16\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   32\n    PRAGMA wal_checkpoint;\n  ")
+			r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   16\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   32\n    PRAGMA wal_checkpoint;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   16\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   32\n    PRAGMA wal_checkpoint;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "67108864 wal 0 103 103"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "2.2"
@@ -170,9 +176,9 @@ func Test_mmap1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 67108864; ")
 		}
 		{ // "3.1"
-			_res = db.Exec("\n  PRAGMA auto_vacuum = 1;\n\n  CREATE TABLE t1(a, b, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(rblob(500), rblob(500));\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n\n  CREATE TABLE t2(a, b, UNIQUE(a, b));\n  INSERT INTO t2 SELECT * FROM t1;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 1;\n\n  CREATE TABLE t1(a, b, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(rblob(500), rblob(500));\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n\n  CREATE TABLE t2(a, b, UNIQUE(a, b));\n  INSERT INTO t2 SELECT * FROM t1;\n")
+			r = db.Query("\n  PRAGMA auto_vacuum = 1;\n\n  CREATE TABLE t1(a, b, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(rblob(500), rblob(500));\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n\n  CREATE TABLE t2(a, b, UNIQUE(a, b));\n  INSERT INTO t2 SELECT * FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 1;\n\n  CREATE TABLE t1(a, b, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(rblob(500), rblob(500));\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n\n  CREATE TABLE t2(a, b, UNIQUE(a, b));\n  INSERT INTO t2 SELECT * FROM t1;\n")
 			}
 		}
 		{ // do_test "3.2"
@@ -201,9 +207,15 @@ func Test_mmap1(t *testing.T) {
 		eee = "e 400"
 		_ = eee // suppress unused warning
 		{ // "4.1"
-			_res = db.Exec("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES($aaa);\n  INSERT INTO t1 VALUES($bbb);\n  INSERT INTO t1 VALUES($ccc);\n  INSERT INTO t1 VALUES($ddd);\n  SELECT * FROM t1;\n  BEGIN;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES($aaa);\n  INSERT INTO t1 VALUES($bbb);\n  INSERT INTO t1 VALUES($ccc);\n  INSERT INTO t1 VALUES($ddd);\n  SELECT * FROM t1;\n  BEGIN;\n")
+			r = db.Query("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(bbb) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ccc) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ddd) + ");\n  SELECT * FROM t1;\n  BEGIN;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(bbb) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ccc) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ddd) + ");\n  SELECT * FROM t1;\n  BEGIN;\n")
+				return
+			}
+			got := flatten(r)
+			want := "list $aaa $bbb $ccc $ddd"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "4.2"
@@ -244,9 +256,9 @@ func Test_mmap1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 67108864; ")
 		}
 		{ // "5.1"
-			r = db.Query("\n  PRAGMA auto_vacuum = 2;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES($aaa);\n  INSERT INTO t1 VALUES($bbb);\n  INSERT INTO t1 VALUES($ccc);\n  INSERT INTO t1 VALUES($ddd);\n\n  PRAGMA auto_vacuum;\n  SELECT * FROM t1;\n")
+			r = db.Query("\n  PRAGMA auto_vacuum = 2;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(bbb) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ccc) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ddd) + ");\n\n  PRAGMA auto_vacuum;\n  SELECT * FROM t1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 2;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES($aaa);\n  INSERT INTO t1 VALUES($bbb);\n  INSERT INTO t1 VALUES($ccc);\n  INSERT INTO t1 VALUES($ddd);\n\n  PRAGMA auto_vacuum;\n  SELECT * FROM t1;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 2;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(bbb) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ccc) + ");\n  INSERT INTO t1 VALUES(" + sqlLiteral(ddd) + ");\n\n  PRAGMA auto_vacuum;\n  SELECT * FROM t1;\n")
 				return
 			}
 			got := flatten(r)

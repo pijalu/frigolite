@@ -568,9 +568,9 @@ func Test_upsert4(t *testing.T) {
 															}
 														}
 														{ // "8." + tn + ".2"
-															r = db.Query("\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;\n  ")
+															r = db.Query("\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, " + sqlLiteral("a b") + ")\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;\n  ")
 															if r.Error != nil {
-																t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;\n  ")
+																t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, " + sqlLiteral("a b") + ")\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;\n  ")
 																return
 															}
 															got := flatten(r)
@@ -580,9 +580,9 @@ func Test_upsert4(t *testing.T) {
 															}
 														}
 														{ // "8." + tn + ".3"
-															r = db.Query("\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.w!='hello';\n    SELECT * FROM excluded;\n  ")
+															r = db.Query("\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, " + sqlLiteral("a b") + ")\n      DO UPDATE SET w=w||w WHERE excluded.w!='hello';\n    SELECT * FROM excluded;\n  ")
 															if r.Error != nil {
-																t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.w!='hello';\n    SELECT * FROM excluded;\n  ")
+																t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, " + sqlLiteral("a b") + ")\n      DO UPDATE SET w=w||w WHERE excluded.w!='hello';\n    SELECT * FROM excluded;\n  ")
 																return
 															}
 															got := flatten(r)
@@ -592,9 +592,9 @@ func Test_upsert4(t *testing.T) {
 															}
 														}
 														{ // "8." + tn + ".4"
-															r = db.Query("\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n    SELECT * FROM excluded;\n  ")
+															r = db.Query("\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, " + sqlLiteral("a b") + ")\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n    SELECT * FROM excluded;\n  ")
 															if r.Error != nil {
-																t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n    SELECT * FROM excluded;\n  ")
+																t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, " + sqlLiteral("a b") + ")\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n    SELECT * FROM excluded;\n  ")
 																return
 															}
 															got := flatten(r)
@@ -604,9 +604,9 @@ func Test_upsert4(t *testing.T) {
 															}
 														}
 														{ // "8." + tn + ".5"
-															_res = db.Exec("\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, [a b]) WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n  ")
+															_res = db.Exec("\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, " + sqlLiteral("a b") + ") WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n  ")
 															if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: y") {
-																t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: y", _res.Error, "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, [a b]) WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n  ")
+																t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: y", _res.Error, "\n    INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, " + sqlLiteral("a b") + ") WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n  ")
 															}
 														}
 													}

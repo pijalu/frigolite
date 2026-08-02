@@ -80,9 +80,9 @@ func Test_bigfile2(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" INSERT INTO t1 VALUES(3, " + str + ") ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(3, " + sqlLiteral(str) + ") ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, " + str + ") ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, " + sqlLiteral(str) + ") ")
 		}
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection

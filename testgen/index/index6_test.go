@@ -7,6 +7,7 @@ package index
 import (
 "github.com/pijalu/frigolite"
 "regexp"
+"strings"
 "testing"
 )
 
@@ -338,15 +339,9 @@ func Test_index6(t *testing.T) {
 		}
 	}
 	{ // "index6-7.0"
-		r = db.Query("\n  CREATE TABLE t7a(x);\n  CREATE TABLE t7b(y);\n  INSERT INTO t7a(x) VALUES(1);\n  CREATE INDEX t7ax ON t7a(x) WHERE x=99;\n  PRAGMA automatic_index=OFF;\n  SELECT * FROM t7a LEFT JOIN t7b ON (x=99) ORDER BY x;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t7a(x);\n  CREATE TABLE t7b(y);\n  INSERT INTO t7a(x) VALUES(1);\n  CREATE INDEX t7ax ON t7a(x) WHERE x=99;\n  PRAGMA automatic_index=OFF;\n  SELECT * FROM t7a LEFT JOIN t7b ON (x=99) ORDER BY x;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  CREATE TABLE t7a(x);\n  CREATE TABLE t7b(y);\n  INSERT INTO t7a(x) VALUES(1);\n  CREATE INDEX t7ax ON t7a(x) WHERE x=99;\n  PRAGMA automatic_index=OFF;\n  SELECT * FROM t7a LEFT JOIN t7b ON (x=99) ORDER BY x;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  CREATE TABLE t7a(x);\n  CREATE TABLE t7b(y);\n  INSERT INTO t7a(x) VALUES(1);\n  CREATE INDEX t7ax ON t7a(x) WHERE x=99;\n  PRAGMA automatic_index=OFF;\n  SELECT * FROM t7a LEFT JOIN t7b ON (x=99) ORDER BY x;\n")
 		}
 	}
 	{ // "index6-7.1"

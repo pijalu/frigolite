@@ -1398,6 +1398,12 @@ func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldR
 	for _, stmt := range stmts {
 		res := e.Exec(stmt)
 		if res.Error != nil {
+			// RAISE(IGNORE) aborts the current statement without error and
+			// execution continues with the next statement in the trigger
+			// program (SQLite semantics).
+			if res.Error == errRaiseIgnore {
+				continue
+			}
 			// Add "main." schema prefix for table-not-found errors during trigger execution,
 			// matching SQLite's behavior where trigger execution errors include the default schema.
 			errMsg := res.Error.Error()

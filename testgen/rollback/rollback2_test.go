@@ -116,9 +116,9 @@ func Test_rollback2(t *testing.T) {
 	leader = "\"abcdefghij\" 70"
 	_ = leader // suppress unused warning
 	{ // "4.1"
-		_res = db.Exec(" UPDATE t1 SET h = $leader || h; ")
+		_res = db.Exec(" UPDATE t1 SET h = " + sqlLiteral(leader) + " || h; ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET h = $leader || h; ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET h = " + sqlLiteral(leader) + " || h; ")
 		}
 	}
 	{ // "4.2"

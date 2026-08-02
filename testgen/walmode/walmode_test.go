@@ -416,9 +416,15 @@ func Test_walmode(t *testing.T) {
 			}
 			// faultsim_delete_and_reopen (unsupported command, not transpiled)
 			{ // "walmode-8.1"
-				_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);\n")
+				r = db.Query("\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);\n")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "walmode-8.2"

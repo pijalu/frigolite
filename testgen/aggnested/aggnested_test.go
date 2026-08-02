@@ -55,27 +55,51 @@ func Test_aggnested(t *testing.T) {
 	testprefix = "aggnested"
 	_ = testprefix // suppress unused warning
 	{ // do_test "aggnested-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a1 INTEGER);\n    INSERT INTO t1 VALUES(1), (2), (3);\n    CREATE TABLE t2(b1 INTEGER);\n    INSERT INTO t2 VALUES(4), (5);\n    SELECT (SELECT string_agg(a1,'x') FROM t2) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a1 INTEGER);\n    INSERT INTO t1 VALUES(1), (2), (3);\n    CREATE TABLE t2(b1 INTEGER);\n    INSERT INTO t2 VALUES(4), (5);\n    SELECT (SELECT string_agg(a1,'x') FROM t2) FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a1 INTEGER);\n    INSERT INTO t1 VALUES(1), (2), (3);\n    CREATE TABLE t2(b1 INTEGER);\n    INSERT INTO t2 VALUES(4), (5);\n    SELECT (SELECT string_agg(a1,'x') FROM t2) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a1 INTEGER);\n    INSERT INTO t1 VALUES(1), (2), (3);\n    CREATE TABLE t2(b1 INTEGER);\n    INSERT INTO t2 VALUES(4), (5);\n    SELECT (SELECT string_agg(a1,'x') FROM t2) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1x2x3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-1.2"
-		_res = db.Exec("\n    SELECT\n     (SELECT string_agg(a1,'x') || '-' || string_agg(b1,'y') FROM t2)\n    FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT\n     (SELECT string_agg(a1,'x') || '-' || string_agg(b1,'y') FROM t2)\n    FROM t1;\n  ")
+		r = db.Query("\n    SELECT\n     (SELECT string_agg(a1,'x') || '-' || string_agg(b1,'y') FROM t2)\n    FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT\n     (SELECT string_agg(a1,'x') || '-' || string_agg(b1,'y') FROM t2)\n    FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1x2x3-4y5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-1.3"
-		_res = db.Exec("\n    SELECT (SELECT string_agg(b1,a1) FROM t2) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT (SELECT string_agg(b1,a1) FROM t2) FROM t1;\n  ")
+		r = db.Query("\n    SELECT (SELECT string_agg(b1,a1) FROM t2) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (SELECT string_agg(b1,a1) FROM t2) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "415 425 435"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-1.4"
-		_res = db.Exec("\n    SELECT (SELECT group_concat(a1,b1) FROM t2) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT (SELECT group_concat(a1,b1) FROM t2) FROM t1;\n  ")
+		r = db.Query("\n    SELECT (SELECT group_concat(a1,b1) FROM t2) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (SELECT group_concat(a1,b1) FROM t2) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "151 252 353"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-2.0"
@@ -86,57 +110,111 @@ func Test_aggnested(t *testing.T) {
 	}
 	db2.Close()
 	{ // do_test "aggnested-3.0"
-		_res = db.Exec("\n    CREATE TABLE AAA (\n      aaa_id       INTEGER PRIMARY KEY AUTOINCREMENT\n    );\n    CREATE TABLE RRR (\n      rrr_id      INTEGER     PRIMARY KEY AUTOINCREMENT,\n      rrr_date    INTEGER     NOT NULL,\n      rrr_aaa     INTEGER\n    );\n    CREATE TABLE TTT (\n      ttt_id      INTEGER PRIMARY KEY AUTOINCREMENT,\n      target_aaa  INTEGER NOT NULL,\n      source_aaa  INTEGER NOT NULL\n    );\n    insert into AAA (aaa_id) values (2);\n    insert into TTT (ttt_id, target_aaa, source_aaa)\n    values (4469, 2, 2);\n    insert into TTT (ttt_id, target_aaa, source_aaa)\n    values (4476, 2, 1);\n    insert into RRR (rrr_id, rrr_date, rrr_aaa)\n    values (0, 0, NULL);\n    insert into RRR (rrr_id, rrr_date, rrr_aaa)\n    values (2, 4312, 2);\n    SELECT i.aaa_id,\n      (SELECT sum(CASE WHEN (t.source_aaa == i.aaa_id) THEN 1 ELSE 0 END)\n         FROM TTT t\n      ) AS segfault\n    FROM\n     (SELECT curr.rrr_aaa as aaa_id\n        FROM RRR curr\n          -- you also can comment out the next line\n          -- it causes segfault to happen after one row is outputted\n          INNER JOIN AAA a ON (curr.rrr_aaa = aaa_id)\n          LEFT JOIN RRR r ON (r.rrr_id <> 0 AND r.rrr_date < curr.rrr_date)\n       GROUP BY curr.rrr_id\n      HAVING r.rrr_date IS NULL\n    ) i;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE AAA (\n      aaa_id       INTEGER PRIMARY KEY AUTOINCREMENT\n    );\n    CREATE TABLE RRR (\n      rrr_id      INTEGER     PRIMARY KEY AUTOINCREMENT,\n      rrr_date    INTEGER     NOT NULL,\n      rrr_aaa     INTEGER\n    );\n    CREATE TABLE TTT (\n      ttt_id      INTEGER PRIMARY KEY AUTOINCREMENT,\n      target_aaa  INTEGER NOT NULL,\n      source_aaa  INTEGER NOT NULL\n    );\n    insert into AAA (aaa_id) values (2);\n    insert into TTT (ttt_id, target_aaa, source_aaa)\n    values (4469, 2, 2);\n    insert into TTT (ttt_id, target_aaa, source_aaa)\n    values (4476, 2, 1);\n    insert into RRR (rrr_id, rrr_date, rrr_aaa)\n    values (0, 0, NULL);\n    insert into RRR (rrr_id, rrr_date, rrr_aaa)\n    values (2, 4312, 2);\n    SELECT i.aaa_id,\n      (SELECT sum(CASE WHEN (t.source_aaa == i.aaa_id) THEN 1 ELSE 0 END)\n         FROM TTT t\n      ) AS segfault\n    FROM\n     (SELECT curr.rrr_aaa as aaa_id\n        FROM RRR curr\n          -- you also can comment out the next line\n          -- it causes segfault to happen after one row is outputted\n          INNER JOIN AAA a ON (curr.rrr_aaa = aaa_id)\n          LEFT JOIN RRR r ON (r.rrr_id <> 0 AND r.rrr_date < curr.rrr_date)\n       GROUP BY curr.rrr_id\n      HAVING r.rrr_date IS NULL\n    ) i;\n  ")
+		r = db.Query("\n    CREATE TABLE AAA (\n      aaa_id       INTEGER PRIMARY KEY AUTOINCREMENT\n    );\n    CREATE TABLE RRR (\n      rrr_id      INTEGER     PRIMARY KEY AUTOINCREMENT,\n      rrr_date    INTEGER     NOT NULL,\n      rrr_aaa     INTEGER\n    );\n    CREATE TABLE TTT (\n      ttt_id      INTEGER PRIMARY KEY AUTOINCREMENT,\n      target_aaa  INTEGER NOT NULL,\n      source_aaa  INTEGER NOT NULL\n    );\n    insert into AAA (aaa_id) values (2);\n    insert into TTT (ttt_id, target_aaa, source_aaa)\n    values (4469, 2, 2);\n    insert into TTT (ttt_id, target_aaa, source_aaa)\n    values (4476, 2, 1);\n    insert into RRR (rrr_id, rrr_date, rrr_aaa)\n    values (0, 0, NULL);\n    insert into RRR (rrr_id, rrr_date, rrr_aaa)\n    values (2, 4312, 2);\n    SELECT i.aaa_id,\n      (SELECT sum(CASE WHEN (t.source_aaa == i.aaa_id) THEN 1 ELSE 0 END)\n         FROM TTT t\n      ) AS segfault\n    FROM\n     (SELECT curr.rrr_aaa as aaa_id\n        FROM RRR curr\n          -- you also can comment out the next line\n          -- it causes segfault to happen after one row is outputted\n          INNER JOIN AAA a ON (curr.rrr_aaa = aaa_id)\n          LEFT JOIN RRR r ON (r.rrr_id <> 0 AND r.rrr_date < curr.rrr_date)\n       GROUP BY curr.rrr_id\n      HAVING r.rrr_date IS NULL\n    ) i;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE AAA (\n      aaa_id       INTEGER PRIMARY KEY AUTOINCREMENT\n    );\n    CREATE TABLE RRR (\n      rrr_id      INTEGER     PRIMARY KEY AUTOINCREMENT,\n      rrr_date    INTEGER     NOT NULL,\n      rrr_aaa     INTEGER\n    );\n    CREATE TABLE TTT (\n      ttt_id      INTEGER PRIMARY KEY AUTOINCREMENT,\n      target_aaa  INTEGER NOT NULL,\n      source_aaa  INTEGER NOT NULL\n    );\n    insert into AAA (aaa_id) values (2);\n    insert into TTT (ttt_id, target_aaa, source_aaa)\n    values (4469, 2, 2);\n    insert into TTT (ttt_id, target_aaa, source_aaa)\n    values (4476, 2, 1);\n    insert into RRR (rrr_id, rrr_date, rrr_aaa)\n    values (0, 0, NULL);\n    insert into RRR (rrr_id, rrr_date, rrr_aaa)\n    values (2, 4312, 2);\n    SELECT i.aaa_id,\n      (SELECT sum(CASE WHEN (t.source_aaa == i.aaa_id) THEN 1 ELSE 0 END)\n         FROM TTT t\n      ) AS segfault\n    FROM\n     (SELECT curr.rrr_aaa as aaa_id\n        FROM RRR curr\n          -- you also can comment out the next line\n          -- it causes segfault to happen after one row is outputted\n          INNER JOIN AAA a ON (curr.rrr_aaa = aaa_id)\n          LEFT JOIN RRR r ON (r.rrr_id <> 0 AND r.rrr_date < curr.rrr_date)\n       GROUP BY curr.rrr_id\n      HAVING r.rrr_date IS NULL\n    ) i;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-3.1"
-		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1 (\n      id1 INTEGER PRIMARY KEY AUTOINCREMENT,\n      value1 INTEGER\n    );\n    INSERT INTO t1 VALUES(4469,2),(4476,1);\n    CREATE TABLE t2 (\n      id2 INTEGER PRIMARY KEY AUTOINCREMENT,\n      value2 INTEGER\n    );\n    INSERT INTO t2 VALUES(0,1),(2,2);\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT curr.value1 as xyz\n        FROM t1 AS curr LEFT JOIN t1 AS other\n       GROUP BY curr.id1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1 (\n      id1 INTEGER PRIMARY KEY AUTOINCREMENT,\n      value1 INTEGER\n    );\n    INSERT INTO t1 VALUES(4469,2),(4476,1);\n    CREATE TABLE t2 (\n      id2 INTEGER PRIMARY KEY AUTOINCREMENT,\n      value2 INTEGER\n    );\n    INSERT INTO t2 VALUES(0,1),(2,2);\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT curr.value1 as xyz\n        FROM t1 AS curr LEFT JOIN t1 AS other\n       GROUP BY curr.id1);\n  ")
+		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1 (\n      id1 INTEGER PRIMARY KEY AUTOINCREMENT,\n      value1 INTEGER\n    );\n    INSERT INTO t1 VALUES(4469,2),(4476,1);\n    CREATE TABLE t2 (\n      id2 INTEGER PRIMARY KEY AUTOINCREMENT,\n      value2 INTEGER\n    );\n    INSERT INTO t2 VALUES(0,1),(2,2);\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT curr.value1 as xyz\n        FROM t1 AS curr LEFT JOIN t1 AS other\n       GROUP BY curr.id1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1 (\n      id1 INTEGER PRIMARY KEY AUTOINCREMENT,\n      value1 INTEGER\n    );\n    INSERT INTO t1 VALUES(4469,2),(4476,1);\n    CREATE TABLE t2 (\n      id2 INTEGER PRIMARY KEY AUTOINCREMENT,\n      value2 INTEGER\n    );\n    INSERT INTO t2 VALUES(0,1),(2,2);\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT curr.value1 as xyz\n        FROM t1 AS curr LEFT JOIN t1 AS other\n       GROUP BY curr.id1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-3.1-rj"
-		_res = db.Exec("\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT curr.value1 as xyz\n        FROM t1 AS other RIGHT JOIN t1 AS curr\n       GROUP BY curr.id1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT curr.value1 as xyz\n        FROM t1 AS other RIGHT JOIN t1 AS curr\n       GROUP BY curr.id1);\n  ")
+		r = db.Query("\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT curr.value1 as xyz\n        FROM t1 AS other RIGHT JOIN t1 AS curr\n       GROUP BY curr.id1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT curr.value1 as xyz\n        FROM t1 AS other RIGHT JOIN t1 AS curr\n       GROUP BY curr.id1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-3.2"
-		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1 (\n      id1 INTEGER,\n      value1 INTEGER,\n      x1 INTEGER\n    );\n    INSERT INTO t1 VALUES(4469,2,98),(4469,1,99),(4469,3,97);\n    CREATE TABLE t2 (\n      value2 INTEGER\n    );\n    INSERT INTO t2 VALUES(1);\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT value1 as xyz, max(x1) AS pqr\n        FROM t1\n       GROUP BY id1);\n    SELECT\n     (SELECT sum(value2<>xyz) FROM t2)\n    FROM\n     (SELECT value1 as xyz, max(x1) AS pqr\n        FROM t1\n       GROUP BY id1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1 (\n      id1 INTEGER,\n      value1 INTEGER,\n      x1 INTEGER\n    );\n    INSERT INTO t1 VALUES(4469,2,98),(4469,1,99),(4469,3,97);\n    CREATE TABLE t2 (\n      value2 INTEGER\n    );\n    INSERT INTO t2 VALUES(1);\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT value1 as xyz, max(x1) AS pqr\n        FROM t1\n       GROUP BY id1);\n    SELECT\n     (SELECT sum(value2<>xyz) FROM t2)\n    FROM\n     (SELECT value1 as xyz, max(x1) AS pqr\n        FROM t1\n       GROUP BY id1);\n  ")
+		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1 (\n      id1 INTEGER,\n      value1 INTEGER,\n      x1 INTEGER\n    );\n    INSERT INTO t1 VALUES(4469,2,98),(4469,1,99),(4469,3,97);\n    CREATE TABLE t2 (\n      value2 INTEGER\n    );\n    INSERT INTO t2 VALUES(1);\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT value1 as xyz, max(x1) AS pqr\n        FROM t1\n       GROUP BY id1);\n    SELECT\n     (SELECT sum(value2<>xyz) FROM t2)\n    FROM\n     (SELECT value1 as xyz, max(x1) AS pqr\n        FROM t1\n       GROUP BY id1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1 (\n      id1 INTEGER,\n      value1 INTEGER,\n      x1 INTEGER\n    );\n    INSERT INTO t1 VALUES(4469,2,98),(4469,1,99),(4469,3,97);\n    CREATE TABLE t2 (\n      value2 INTEGER\n    );\n    INSERT INTO t2 VALUES(1);\n    SELECT\n     (SELECT sum(value2==xyz) FROM t2)\n    FROM\n     (SELECT value1 as xyz, max(x1) AS pqr\n        FROM t1\n       GROUP BY id1);\n    SELECT\n     (SELECT sum(value2<>xyz) FROM t2)\n    FROM\n     (SELECT value1 as xyz, max(x1) AS pqr\n        FROM t1\n       GROUP BY id1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-3.3"
-		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(id1, value1);\n    INSERT INTO t1 VALUES(4469,2),(4469,1);\n    CREATE TABLE t2 (value2);\n    INSERT INTO t2 VALUES(1);\n    SELECT (SELECT sum(value2=value1) FROM t2), max(value1)\n      FROM t1\n     GROUP BY id1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(id1, value1);\n    INSERT INTO t1 VALUES(4469,2),(4469,1);\n    CREATE TABLE t2 (value2);\n    INSERT INTO t2 VALUES(1);\n    SELECT (SELECT sum(value2=value1) FROM t2), max(value1)\n      FROM t1\n     GROUP BY id1;\n  ")
+		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(id1, value1);\n    INSERT INTO t1 VALUES(4469,2),(4469,1);\n    CREATE TABLE t2 (value2);\n    INSERT INTO t2 VALUES(1);\n    SELECT (SELECT sum(value2=value1) FROM t2), max(value1)\n      FROM t1\n     GROUP BY id1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(id1, value1);\n    INSERT INTO t1 VALUES(4469,2),(4469,1);\n    CREATE TABLE t2 (value2);\n    INSERT INTO t2 VALUES(1);\n    SELECT (SELECT sum(value2=value1) FROM t2), max(value1)\n      FROM t1\n     GROUP BY id1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-3.11"
-		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(id1, value1);\n    INSERT INTO t1 VALUES(4469,12),(4469,11),(4470,34);\n    CREATE INDEX t1id1 ON t1(id1);\n    CREATE TABLE t2 (value2);\n    INSERT INTO t2 VALUES(12),(34),(34);\n    INSERT INTO t2 SELECT value2 FROM t2;\n\n    SELECT max(value1), (SELECT count(*) FROM t2 WHERE value2=max(value1))\n      FROM t1\n     GROUP BY id1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(id1, value1);\n    INSERT INTO t1 VALUES(4469,12),(4469,11),(4470,34);\n    CREATE INDEX t1id1 ON t1(id1);\n    CREATE TABLE t2 (value2);\n    INSERT INTO t2 VALUES(12),(34),(34);\n    INSERT INTO t2 SELECT value2 FROM t2;\n\n    SELECT max(value1), (SELECT count(*) FROM t2 WHERE value2=max(value1))\n      FROM t1\n     GROUP BY id1;\n  ")
+		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(id1, value1);\n    INSERT INTO t1 VALUES(4469,12),(4469,11),(4470,34);\n    CREATE INDEX t1id1 ON t1(id1);\n    CREATE TABLE t2 (value2);\n    INSERT INTO t2 VALUES(12),(34),(34);\n    INSERT INTO t2 SELECT value2 FROM t2;\n\n    SELECT max(value1), (SELECT count(*) FROM t2 WHERE value2=max(value1))\n      FROM t1\n     GROUP BY id1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(id1, value1);\n    INSERT INTO t1 VALUES(4469,12),(4469,11),(4470,34);\n    CREATE INDEX t1id1 ON t1(id1);\n    CREATE TABLE t2 (value2);\n    INSERT INTO t2 VALUES(12),(34),(34);\n    INSERT INTO t2 SELECT value2 FROM t2;\n\n    SELECT max(value1), (SELECT count(*) FROM t2 WHERE value2=max(value1))\n      FROM t1\n     GROUP BY id1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 2 34 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-3.12"
-		_res = db.Exec("\n    SELECT max(value1), (SELECT count(*) FROM t2 WHERE value2=value1)\n      FROM t1\n     GROUP BY id1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT max(value1), (SELECT count(*) FROM t2 WHERE value2=value1)\n      FROM t1\n     GROUP BY id1;\n  ")
+		r = db.Query("\n    SELECT max(value1), (SELECT count(*) FROM t2 WHERE value2=value1)\n      FROM t1\n     GROUP BY id1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(value1), (SELECT count(*) FROM t2 WHERE value2=value1)\n      FROM t1\n     GROUP BY id1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 2 34 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-3.13"
-		_res = db.Exec("\n    SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1;\n  ")
+		r = db.Query("\n    SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 2 11 0 34 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-3.14"
-		_res = db.Exec("\n    SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     WHERE value1 IN (SELECT max(value1) FROM t1 GROUP BY id1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     WHERE value1 IN (SELECT max(value1) FROM t1 GROUP BY id1);\n  ")
+		r = db.Query("\n    SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     WHERE value1 IN (SELECT max(value1) FROM t1 GROUP BY id1);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT value1, (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     WHERE value1 IN (SELECT max(value1) FROM t1 GROUP BY id1);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 2 34 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "aggnested-3.15"
@@ -144,9 +222,15 @@ func Test_aggnested(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "aggnested-3.16"
-		_res = db.Exec("\n    SELECT max(value1), (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     GROUP BY id1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT max(value1), (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     GROUP BY id1;\n  ")
+		r = db.Query("\n    SELECT max(value1), (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     GROUP BY id1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT max(value1), (SELECT sum(value2=value1) FROM t2)\n      FROM t1\n     GROUP BY id1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 2 34 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "aggnested-4.1"

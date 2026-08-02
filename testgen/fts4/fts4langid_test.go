@@ -380,9 +380,9 @@ func Test_fts4langid(t *testing.T) {
 		ptr = "fts3_test_tokenizer"
 		_ = ptr // suppress unused warning
 		// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
-		r = db.Query(" SELECT fts3_tokenizer('testtokenizer', " + ptr + ") ")
+		r = db.Query(" SELECT fts3_tokenizer('testtokenizer', " + sqlLiteral(ptr) + ") ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT fts3_tokenizer('testtokenizer', " + ptr + ") ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT fts3_tokenizer('testtokenizer', " + sqlLiteral(ptr) + ") ")
 		}
 		// build_multilingual_db_2 db (unsupported command, not transpiled)
 	}
@@ -420,9 +420,9 @@ func Test_fts4langid(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
 		{ // "4.1.4." + i
-			r = db.Query("\n    SELECT count(*) FROM t4 WHERE t4 MATCH 'fox' AND lid=$i;\n  ")
+			r = db.Query("\n    SELECT count(*) FROM t4 WHERE t4 MATCH 'fox' AND lid=" + sqlLiteral(i) + ";\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t4 WHERE t4 MATCH 'fox' AND lid=$i;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t4 WHERE t4 MATCH 'fox' AND lid=" + sqlLiteral(i) + ";\n  ")
 				return
 			}
 			got := flatten(r)
@@ -479,9 +479,9 @@ func Test_fts4langid(t *testing.T) {
 	for _, langid := range tclSplitList("0 1 2 " + "1073741824") {
 	_ = langid // suppress unused warning
 		{ // "5.2." + langid
-			r = db.Query(" \n    SELECT docid FROM t5 WHERE t5 MATCH 'language' AND lid = $langid\n  ")
+			r = db.Query(" \n    SELECT docid FROM t5 WHERE t5 MATCH 'language' AND lid = " + sqlLiteral(langid) + "\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT docid FROM t5 WHERE t5 MATCH 'language' AND lid = $langid\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT docid FROM t5 WHERE t5 MATCH 'language' AND lid = " + sqlLiteral(langid) + "\n  ")
 				return
 			}
 			got := flatten(r)
@@ -503,9 +503,9 @@ func Test_fts4langid(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			_res = db.Exec("\n      INSERT INTO t6(content, lid) VALUES(\n        'I (row '||" + i + "||') belong to language N!', " + lid + "\n      );\n    ")
+			_res = db.Exec("\n      INSERT INTO t6(content, lid) VALUES(\n        'I (row '||" + sqlLiteral(i) + "||') belong to language N!', " + sqlLiteral(lid) + "\n      );\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t6(content, lid) VALUES(\n        'I (row '||" + i + "||') belong to language N!', " + lid + "\n      );\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t6(content, lid) VALUES(\n        'I (row '||" + sqlLiteral(i) + "||') belong to language N!', " + sqlLiteral(lid) + "\n      );\n    ")
 			}
 			// incr i 1
 			{
@@ -521,9 +521,9 @@ func Test_fts4langid(t *testing.T) {
 		}
 	}
 	{ // do_test "5.3.3"
-		r = db.Query(" SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + lid)
+		r = db.Query(" SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + sqlLiteral(lid))
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + lid)
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + sqlLiteral(lid))
 		}
 	}
 	{ // "5.3.4"
@@ -545,9 +545,9 @@ func Test_fts4langid(t *testing.T) {
 		}
 	}
 	{ // "5.3.6"
-		r = db.Query(" \n  SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=$lid\n")
+		r = db.Query(" \n  SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + sqlLiteral(lid) + "\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=$lid\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT docid FROM t6 WHERE t6 MATCH 'belong' AND lid=" + sqlLiteral(lid) + "\n")
 			return
 		}
 		got := flatten(r)
@@ -573,9 +573,9 @@ func Test_fts4langid(t *testing.T) {
 			}
 		}
 		{ // "5.4." + lid + ".2"
-			r = db.Query("\n    INSERT INTO t6(content, lid) VALUES('zero zero zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('zero zero one', $lid);\n    INSERT INTO t6(content, lid) VALUES('zero one zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('zero one one', $lid);\n    INSERT INTO t6(content, lid) VALUES('one zero zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('one zero one', $lid);\n    INSERT INTO t6(content, lid) VALUES('one one zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('one one one', $lid);\n\n    SELECT docid FROM t6 WHERE t6 MATCH '\"zero zero\"' AND lid=$lid;\n  ")
+			r = db.Query("\n    INSERT INTO t6(content, lid) VALUES('zero zero zero', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('zero zero one', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('zero one zero', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('zero one one', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('one zero zero', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('one zero one', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('one one zero', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('one one one', " + sqlLiteral(lid) + ");\n\n    SELECT docid FROM t6 WHERE t6 MATCH '\"zero zero\"' AND lid=" + sqlLiteral(lid) + ";\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t6(content, lid) VALUES('zero zero zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('zero zero one', $lid);\n    INSERT INTO t6(content, lid) VALUES('zero one zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('zero one one', $lid);\n    INSERT INTO t6(content, lid) VALUES('one zero zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('one zero one', $lid);\n    INSERT INTO t6(content, lid) VALUES('one one zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('one one one', $lid);\n\n    SELECT docid FROM t6 WHERE t6 MATCH '\"zero zero\"' AND lid=$lid;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t6(content, lid) VALUES('zero zero zero', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('zero zero one', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('zero one zero', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('zero one one', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('one zero zero', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('one zero one', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('one one zero', " + sqlLiteral(lid) + ");\n    INSERT INTO t6(content, lid) VALUES('one one one', " + sqlLiteral(lid) + ");\n\n    SELECT docid FROM t6 WHERE t6 MATCH '\"zero zero\"' AND lid=" + sqlLiteral(lid) + ";\n  ")
 				return
 			}
 			got := flatten(r)
@@ -597,9 +597,9 @@ func Test_fts4langid(t *testing.T) {
 			}
 		}
 		{ // "5.4." + lid + ".4"
-			r = db.Query("\n    INSERT INTO t6(t6) VALUES('merge=100,3');\n    INSERT INTO t6(t6) VALUES('merge=100,3');\n    SELECT docid FROM t6 WHERE t6 MATCH '\"zero zero\"' AND lid=$lid;\n  ")
+			r = db.Query("\n    INSERT INTO t6(t6) VALUES('merge=100,3');\n    INSERT INTO t6(t6) VALUES('merge=100,3');\n    SELECT docid FROM t6 WHERE t6 MATCH '\"zero zero\"' AND lid=" + sqlLiteral(lid) + ";\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t6(t6) VALUES('merge=100,3');\n    INSERT INTO t6(t6) VALUES('merge=100,3');\n    SELECT docid FROM t6 WHERE t6 MATCH '\"zero zero\"' AND lid=$lid;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t6(t6) VALUES('merge=100,3');\n    INSERT INTO t6(t6) VALUES('merge=100,3');\n    SELECT docid FROM t6 WHERE t6 MATCH '\"zero zero\"' AND lid=" + sqlLiteral(lid) + ";\n  ")
 				return
 			}
 			got := flatten(r)

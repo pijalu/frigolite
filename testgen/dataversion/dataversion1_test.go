@@ -57,9 +57,15 @@ func Test_dataversion1(t *testing.T) {
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "dataversion1-100"
-		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	dv1 = "file_control_data_version db main"

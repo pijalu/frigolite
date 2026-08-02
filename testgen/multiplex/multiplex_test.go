@@ -335,39 +335,69 @@ func Test_multiplex(t *testing.T) {
 		}
 	}
 	{ // do_test "multiplex-2.5.3"
-		_res = db.Exec(" \n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, randomblob(4000));\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, randomblob(4000));\n    INSERT INTO t1 VALUES(5, 'five');\n    INSERT INTO t1 VALUES(6, randomblob(" + g_chunk_size + "));\n    INSERT INTO t1 VALUES(7, randomblob(" + g_chunk_size + "));\n  ")
+		_res = db.Exec(" \n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, randomblob(4000));\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, randomblob(4000));\n    INSERT INTO t1 VALUES(5, 'five');\n    INSERT INTO t1 VALUES(6, randomblob(" + sqlLiteral(g_chunk_size) + "));\n    INSERT INTO t1 VALUES(7, randomblob(" + sqlLiteral(g_chunk_size) + "));\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, randomblob(4000));\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, randomblob(4000));\n    INSERT INTO t1 VALUES(5, 'five');\n    INSERT INTO t1 VALUES(6, randomblob(" + g_chunk_size + "));\n    INSERT INTO t1 VALUES(7, randomblob(" + g_chunk_size + "));\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, randomblob(4000));\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, randomblob(4000));\n    INSERT INTO t1 VALUES(5, 'five');\n    INSERT INTO t1 VALUES(6, randomblob(" + sqlLiteral(g_chunk_size) + "));\n    INSERT INTO t1 VALUES(7, randomblob(" + sqlLiteral(g_chunk_size) + "));\n  ")
 		}
 	}
 	{ // do_test "multiplex-2.5.4"
-		_res = db.Exec("SELECT * FROM t1 WHERE a=1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 WHERE a=1")
+		r = db.Query("SELECT * FROM t1 WHERE a=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 WHERE a=1")
+			return
+		}
+		got := flatten(r)
+		want := "1 one"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex-2.5.5"
-		_res = db.Exec("SELECT * FROM t1 WHERE a=3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 WHERE a=3")
+		r = db.Query("SELECT * FROM t1 WHERE a=3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 WHERE a=3")
+			return
+		}
+		got := flatten(r)
+		want := "3 three"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex-2.5.6"
-		_res = db.Exec("SELECT * FROM t1 WHERE a=5")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 WHERE a=5")
+		r = db.Query("SELECT * FROM t1 WHERE a=5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 WHERE a=5")
+			return
+		}
+		got := flatten(r)
+		want := "5 five"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex-2.5.7"
-		_res = db.Exec("SELECT a,length(b) FROM t1 WHERE a=2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a,length(b) FROM t1 WHERE a=2")
+		r = db.Query("SELECT a,length(b) FROM t1 WHERE a=2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a,length(b) FROM t1 WHERE a=2")
+			return
+		}
+		got := flatten(r)
+		want := "2 4000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex-2.5.8"
-		_res = db.Exec("SELECT a,length(b) FROM t1 WHERE a=4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a,length(b) FROM t1 WHERE a=4")
+		r = db.Query("SELECT a,length(b) FROM t1 WHERE a=4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a,length(b) FROM t1 WHERE a=4")
+			return
+		}
+		got := flatten(r)
+		want := "4 4000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex-2.5.9"
@@ -431,21 +461,33 @@ func Test_multiplex(t *testing.T) {
 				}
 			}
 			{ // do_test "multiplex-2.6.3." + sz + "." + jmode
-				_res = db.Exec(" \n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 'one');\n        INSERT INTO t1 VALUES(2, randomblob(" + g_chunk_size + "));\n      ")
+				_res = db.Exec(" \n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 'one');\n        INSERT INTO t1 VALUES(2, randomblob(" + sqlLiteral(g_chunk_size) + "));\n      ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 'one');\n        INSERT INTO t1 VALUES(2, randomblob(" + g_chunk_size + "));\n      ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 'one');\n        INSERT INTO t1 VALUES(2, randomblob(" + sqlLiteral(g_chunk_size) + "));\n      ")
 				}
 			}
 			{ // do_test "multiplex-2.6.4." + sz + "." + jmode
-				_res = db.Exec("SELECT b FROM t1 WHERE a=1")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b FROM t1 WHERE a=1")
+				r = db.Query("SELECT b FROM t1 WHERE a=1")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=1")
+					return
+				}
+				got := flatten(r)
+				want := "one"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "multiplex-2.6.5." + sz + "." + jmode
-				_res = db.Exec("SELECT length(b) FROM t1 WHERE a=2")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT length(b) FROM t1 WHERE a=2")
+				r = db.Query("SELECT length(b) FROM t1 WHERE a=2")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT length(b) FROM t1 WHERE a=2")
+					return
+				}
+				got := flatten(r)
+				want := "list $g_chunk_size"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "multiplex-2.6.6." + sz + "." + jmode
@@ -762,9 +804,9 @@ func Test_multiplex(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA auto_vacuum=OFF;\n  ")
 		}
-		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(" + g_chunk_size + "));\n    INSERT INTO t1 VALUES(2, randomblob(" + g_chunk_size + "));\n  ")
+		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(" + sqlLiteral(g_chunk_size) + "));\n    INSERT INTO t1 VALUES(2, randomblob(" + sqlLiteral(g_chunk_size) + "));\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(" + g_chunk_size + "));\n    INSERT INTO t1 VALUES(2, randomblob(" + g_chunk_size + "));\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(" + sqlLiteral(g_chunk_size) + "));\n    INSERT INTO t1 VALUES(2, randomblob(" + sqlLiteral(g_chunk_size) + "));\n  ")
 		}
 	}
 	{ // do_test "multiplex-6.2.1"

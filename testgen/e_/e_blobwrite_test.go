@@ -84,9 +84,9 @@ func Test_e_blobwrite(t *testing.T) {
 	dots = ". 40"
 	_ = dots // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, $dots);\n  INSERT INTO t1 VALUES(-2, $dots);\n  INSERT INTO t1 VALUES(-3, $dots);\n  INSERT INTO t1 VALUES(-4, $dots);\n  INSERT INTO t1 VALUES(-5, $dots);\n  INSERT INTO t1 VALUES(-6, $dots);\n")
+		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-2, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-3, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-4, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-5, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-6, " + sqlLiteral(dots) + ");\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, $dots);\n  INSERT INTO t1 VALUES(-2, $dots);\n  INSERT INTO t1 VALUES(-3, $dots);\n  INSERT INTO t1 VALUES(-4, $dots);\n  INSERT INTO t1 VALUES(-5, $dots);\n  INSERT INTO t1 VALUES(-6, $dots);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-2, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-3, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-4, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-5, " + sqlLiteral(dots) + ");\n  INSERT INTO t1 VALUES(-6, " + sqlLiteral(dots) + ");\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -100,9 +100,9 @@ func Test_e_blobwrite(t *testing.T) {
 	// blob_write_test 1.6 -6 0 $blob 40 { 0123456789012345678901234567890123456789 } (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "2.0"
-		_res = db.Exec("\n  CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES($dots, 43);\n  INSERT INTO t2 VALUES($dots, 44);\n  INSERT INTO t2 VALUES($dots, 45);\n")
+		_res = db.Exec("\n  CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 43);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 44);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 45);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES($dots, 43);\n  INSERT INTO t2 VALUES($dots, 44);\n  INSERT INTO t2 VALUES($dots, 45);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 43);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 44);\n  INSERT INTO t2 VALUES(" + sqlLiteral(dots) + ", 45);\n")
 		}
 	}
 	// sqlite3_blob_open db main t2 a 43 0 B (unsupported command, not transpiled)
@@ -133,9 +133,9 @@ func Test_e_blobwrite(t *testing.T) {
 	// blob_write_error_test 2.3.3 $B 5 $blob 5 SQLITE_ABORT {query aborted} (unsupported command, not transpiled)
 	// sqlite3_blob_close $B (unsupported command, not transpiled)
 	{ // "3.0"
-		r = db.Query("\n  CREATE TABLE t3(i INTEGER PRIMARY KEY, j TEXT, k TEXT);\n  INSERT INTO t3 VALUES(1, $dots, $dots);\n  INSERT INTO t3 VALUES(2, $dots, $dots);\n  SELECT * FROM t3 WHERE i=1;\n")
+		r = db.Query("\n  CREATE TABLE t3(i INTEGER PRIMARY KEY, j TEXT, k TEXT);\n  INSERT INTO t3 VALUES(1, " + sqlLiteral(dots) + ", " + sqlLiteral(dots) + ");\n  INSERT INTO t3 VALUES(2, " + sqlLiteral(dots) + ", " + sqlLiteral(dots) + ");\n  SELECT * FROM t3 WHERE i=1;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(i INTEGER PRIMARY KEY, j TEXT, k TEXT);\n  INSERT INTO t3 VALUES(1, $dots, $dots);\n  INSERT INTO t3 VALUES(2, $dots, $dots);\n  SELECT * FROM t3 WHERE i=1;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(i INTEGER PRIMARY KEY, j TEXT, k TEXT);\n  INSERT INTO t3 VALUES(1, " + sqlLiteral(dots) + ", " + sqlLiteral(dots) + ");\n  INSERT INTO t3 VALUES(2, " + sqlLiteral(dots) + ", " + sqlLiteral(dots) + ");\n  SELECT * FROM t3 WHERE i=1;\n")
 			return
 		}
 		got := flatten(r)

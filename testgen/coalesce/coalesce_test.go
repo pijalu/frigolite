@@ -50,57 +50,111 @@ func Test_coalesce(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "coalesce-1.0"
-		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t1 VALUES(1, null, null, null);\n    INSERT INTO t1 VALUES(2, 2, 99, 99);\n    INSERT INTO t1 VALUES(3, null, 3, 99);\n    INSERT INTO t1 VALUES(4, null, null, 4);\n    INSERT INTO t1 VALUES(5, null, null, null);\n    INSERT INTO t1 VALUES(6, 22, 99, 99);\n    INSERT INTO t1 VALUES(7, null, 33, 99);\n    INSERT INTO t1 VALUES(8, null, null, 44);\n\n    SELECT coalesce(b,c,d) FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t1 VALUES(1, null, null, null);\n    INSERT INTO t1 VALUES(2, 2, 99, 99);\n    INSERT INTO t1 VALUES(3, null, 3, 99);\n    INSERT INTO t1 VALUES(4, null, null, 4);\n    INSERT INTO t1 VALUES(5, null, null, null);\n    INSERT INTO t1 VALUES(6, 22, 99, 99);\n    INSERT INTO t1 VALUES(7, null, 33, 99);\n    INSERT INTO t1 VALUES(8, null, null, 44);\n\n    SELECT coalesce(b,c,d) FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t1 VALUES(1, null, null, null);\n    INSERT INTO t1 VALUES(2, 2, 99, 99);\n    INSERT INTO t1 VALUES(3, null, 3, 99);\n    INSERT INTO t1 VALUES(4, null, null, 4);\n    INSERT INTO t1 VALUES(5, null, null, null);\n    INSERT INTO t1 VALUES(6, 22, 99, 99);\n    INSERT INTO t1 VALUES(7, null, 33, 99);\n    INSERT INTO t1 VALUES(8, null, null, 44);\n\n    SELECT coalesce(b,c,d) FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t1 VALUES(1, null, null, null);\n    INSERT INTO t1 VALUES(2, 2, 99, 99);\n    INSERT INTO t1 VALUES(3, null, 3, 99);\n    INSERT INTO t1 VALUES(4, null, null, 4);\n    INSERT INTO t1 VALUES(5, null, null, null);\n    INSERT INTO t1 VALUES(6, 22, 99, 99);\n    INSERT INTO t1 VALUES(7, null, 33, 99);\n    INSERT INTO t1 VALUES(8, null, null, 44);\n\n    SELECT coalesce(b,c,d) FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 2 3 4 {} 22 33 44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "coalesce-1.1"
-		_res = db.Exec("\n    SELECT coalesce(d+c+b,d+c,d) FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT coalesce(d+c+b,d+c,d) FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\n    SELECT coalesce(d+c+b,d+c,d) FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT coalesce(d+c+b,d+c,d) FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 200 102 4 {} 220 132 44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "coalesce-1.2"
-		_res = db.Exec("\n    SELECT ifnull(d+c+b,ifnull(d+c,d)) FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT ifnull(d+c+b,ifnull(d+c,d)) FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\n    SELECT ifnull(d+c+b,ifnull(d+c,d)) FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT ifnull(d+c+b,ifnull(d+c,d)) FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 200 102 4 {} 220 132 44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "coalesce-1.3"
-		_res = db.Exec("\n    SELECT ifnull(ifnull(d+c+b,d+c),d) FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT ifnull(ifnull(d+c+b,d+c),d) FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\n    SELECT ifnull(ifnull(d+c+b,d+c),d) FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT ifnull(ifnull(d+c+b,d+c),d) FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 200 102 4 {} 220 132 44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "coalesce-1.4"
-		_res = db.Exec("\n    SELECT ifnull(ifnull(b,c),d) FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT ifnull(ifnull(b,c),d) FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\n    SELECT ifnull(ifnull(b,c),d) FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT ifnull(ifnull(b,c),d) FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 2 3 4 {} 22 33 44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "coalesce-1.5"
-		_res = db.Exec("\n    SELECT ifnull(b,ifnull(c,d)) FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT ifnull(b,ifnull(c,d)) FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\n    SELECT ifnull(b,ifnull(c,d)) FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT ifnull(b,ifnull(c,d)) FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 2 3 4 {} 22 33 44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "coalesce-1.6"
-		_res = db.Exec("\n    SELECT coalesce(b,NOT b,-b,abs(b),lower(b),length(b),min(b,5),b*123,c)\n      FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT coalesce(b,NOT b,-b,abs(b),lower(b),length(b),min(b,5),b*123,c)\n      FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\n    SELECT coalesce(b,NOT b,-b,abs(b),lower(b),length(b),min(b,5),b*123,c)\n      FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT coalesce(b,NOT b,-b,abs(b),lower(b),length(b),min(b,5),b*123,c)\n      FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 2 3 {} {} 22 33 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "coalesce-1.7"
-		_res = db.Exec("\n    SELECT ifnull(nullif(a,4),99)\n      FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT ifnull(nullif(a,4),99)\n      FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\n    SELECT ifnull(nullif(a,4),99)\n      FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT ifnull(nullif(a,4),99)\n      FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 99 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "coalesce-1.8"
-		_res = db.Exec("\npragma vdbe_listing=on;\n    SELECT coalesce(\n      CASE WHEN b=2 THEN 123 END,\n      CASE WHEN b=3 THEN 234 END,\n      CASE WHEN c=3 THEN 345 WHEN c=33 THEN 456 END,\n      d\n    )\n    FROM t1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\npragma vdbe_listing=on;\n    SELECT coalesce(\n      CASE WHEN b=2 THEN 123 END,\n      CASE WHEN b=3 THEN 234 END,\n      CASE WHEN c=3 THEN 345 WHEN c=33 THEN 456 END,\n      d\n    )\n    FROM t1 ORDER BY a;\n  ")
+		r = db.Query("\npragma vdbe_listing=on;\n    SELECT coalesce(\n      CASE WHEN b=2 THEN 123 END,\n      CASE WHEN b=3 THEN 234 END,\n      CASE WHEN c=3 THEN 345 WHEN c=33 THEN 456 END,\n      d\n    )\n    FROM t1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\npragma vdbe_listing=on;\n    SELECT coalesce(\n      CASE WHEN b=2 THEN 123 END,\n      CASE WHEN b=3 THEN 234 END,\n      CASE WHEN c=3 THEN 345 WHEN c=33 THEN 456 END,\n      d\n    )\n    FROM t1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} 123 345 4 {} 99 456 44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

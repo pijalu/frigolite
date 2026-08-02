@@ -67,9 +67,9 @@ func Test_dbstatus2(t *testing.T) {
 	testprefix = "dbstatus2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, randomblob(600));\n  INSERT INTO t1 VALUES(2, randomblob(600));\n  INSERT INTO t1 VALUES(3, randomblob(600));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, randomblob(600));\n  INSERT INTO t1 VALUES(2, randomblob(600));\n  INSERT INTO t1 VALUES(3, randomblob(600));\n")
+		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, randomblob(600));\n  INSERT INTO t1 VALUES(2, randomblob(600));\n  INSERT INTO t1 VALUES(3, randomblob(600));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, randomblob(600));\n  INSERT INTO t1 VALUES(2, randomblob(600));\n  INSERT INTO t1 VALUES(3, randomblob(600));\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -175,9 +175,15 @@ func Test_dbstatus2(t *testing.T) {
 		// db_spill db 0 (unsupported command, not transpiled)
 	}
 	{ // "3.2"
-		_res = db.Exec("\n  PRAGMA journal_mode=DELETE;\n  PRAGMA cache_size=3;\n  UPDATE t1 SET b=randomblob(1000);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode=DELETE;\n  PRAGMA cache_size=3;\n  UPDATE t1 SET b=randomblob(1000);\n")
+		r = db.Query("\n  PRAGMA journal_mode=DELETE;\n  PRAGMA cache_size=3;\n  UPDATE t1 SET b=randomblob(1000);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode=DELETE;\n  PRAGMA cache_size=3;\n  UPDATE t1 SET b=randomblob(1000);\n")
+			return
+		}
+		got := flatten(r)
+		want := "delete"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.3"
@@ -194,9 +200,9 @@ func Test_dbstatus2(t *testing.T) {
 			// db_temp_spill db 0 (unsupported command, not transpiled)
 		}
 		{ // "4.2"
-			_res = db.Exec("\n    CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;\n  ")
+			r = db.Query("\n    CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;\n  ")
 			}
 		}
 		{ // do_test "4.3"

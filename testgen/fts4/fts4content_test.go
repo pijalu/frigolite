@@ -189,9 +189,9 @@ func Test_fts4content(t *testing.T) {
 		_ = rowidlist // suppress unused warning
 		_ = _idx0
 			{ // "2.2.1." + tn
-				r = db.Query("\n    SELECT rowid FROM ft2 WHERE ft2 MATCH $match\n  ")
+				r = db.Query("\n    SELECT rowid FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft2 WHERE ft2 MATCH $match\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 					return
 				}
 				got := flatten(r)
@@ -201,9 +201,9 @@ func Test_fts4content(t *testing.T) {
 				}
 			}
 			{ // "2.2.2." + tn
-				r = db.Query("\n    SELECT docid FROM ft2 WHERE ft2 MATCH $match\n  ")
+				r = db.Query("\n    SELECT docid FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM ft2 WHERE ft2 MATCH $match\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 					return
 				}
 				got := flatten(r)
@@ -224,9 +224,9 @@ func Test_fts4content(t *testing.T) {
 			_ = result // suppress unused warning
 			_ = _idx1
 				{ // "2.3." + tn
-					r = db.Query("\n    SELECT * FROM ft2 WHERE ft2 MATCH $match\n  ")
+					r = db.Query("\n    SELECT * FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM ft2 WHERE ft2 MATCH $match\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 						return
 					}
 					got := flatten(r)
@@ -247,9 +247,9 @@ func Test_fts4content(t *testing.T) {
 				_ = result // suppress unused warning
 				_ = _idx2
 					{ // "2.4." + tn
-						r = db.Query("\n    SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH $match\n  ")
+						r = db.Query("\n    SELECT snippet(ft2, '" + sqlLiteral("', '") + "', '..', -1, 6) FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH $match\n  ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(ft2, '" + sqlLiteral("', '") + "', '..', -1, 6) FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 							return
 						}
 						got := flatten(r)
@@ -270,9 +270,9 @@ func Test_fts4content(t *testing.T) {
 					_ = result // suppress unused warning
 					_ = _idx3
 						{ // "2.5." + tn
-							r = db.Query("\n    SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH $match\n  ")
+							r = db.Query("\n    SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH $match\n  ")
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 								return
 							}
 							got := flatten(r)
@@ -365,9 +365,9 @@ func Test_fts4content(t *testing.T) {
 								res = tclListAppend(res, rowid, "", "")
 							}
 							{ // "3.2.2." + tn
-								r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+								r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 								if r.Error != nil {
-									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 									return
 								}
 								got := flatten(r)
@@ -377,9 +377,9 @@ func Test_fts4content(t *testing.T) {
 								}
 							}
 							{ // "3.2.3." + tn
-								r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+								r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 								if r.Error != nil {
-									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 									return
 								}
 								got := flatten(r)
@@ -412,9 +412,9 @@ func Test_fts4content(t *testing.T) {
 									res = tclListAppend(res, rowid, "", "")
 								}
 								{ // "3.3.2." + tn
-									r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+									r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 										return
 									}
 									got := flatten(r)
@@ -424,9 +424,9 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // "3.3.3." + tn
-									r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+									r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 										return
 									}
 									got := flatten(r)
@@ -459,9 +459,9 @@ func Test_fts4content(t *testing.T) {
 										res = tclListAppend(res, rowid, "", "")
 									}
 									{ // "3.3.2." + tn
-										r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+										r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 										if r.Error != nil {
-											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 											return
 										}
 										got := flatten(r)
@@ -471,9 +471,9 @@ func Test_fts4content(t *testing.T) {
 										}
 									}
 									{ // "3.3.3." + tn
-										r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+										r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 										if r.Error != nil {
-											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH " + sqlLiteral(match) + "\n  ")
 											return
 										}
 										got := flatten(r)
@@ -902,15 +902,9 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // "9.3"
-									r = db.Query("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-										return
-									}
-									got := flatten(r)
-									want := "1 {a b} {c d} 2 {e f} {a b}"
-									if got != want {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									_res = db.Exec("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a b} {c d} 2 {e f} {a b") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a b} {c d} 2 {e f} {a b", _res.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
 									}
 								}
 								{ // "9.4"
@@ -932,15 +926,9 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // "9.6"
-									r = db.Query("\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-										return
-									}
-									got := flatten(r)
-									want := "1 {a b} {c d} 2 {e f} {a b}"
-									if got != want {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									_res = db.Exec("\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a b} {c d} 2 {e f} {a b") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a b} {c d} 2 {e f} {a b", _res.Error, "\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
 									}
 								}
 								db.Close()
@@ -952,15 +940,9 @@ func Test_fts4content(t *testing.T) {
 								// write_file t2.txt {a b c d e f g h i j k l m a b c d e f g h i j k l ...} (unsupported command, not transpiled)
 								// write_file t3.txt {n o p q r s t u v w x y z n o p q r s t u v w x y ...} (unsupported command, not transpiled)
 								{ // "10.1"
-									r = db.Query("\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
-									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
-										return
-									}
-									got := flatten(r)
-									want := "1 {a b c d e f g h i j k l m n o p q r s t u v w x y z} 2 {a b c d e f g h i j k l m a b c d e f g h i j k l m} 3 {n o p q r s t u v w x y z n o p q r s t u v w x y z}"
-									if got != want {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									_res = db.Exec("\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a b c d e f g h i j k l m n o p q r s t u v w x y z} 2 {a b c d e f g h i j k l m a b c d e f g h i j k l m} 3 {n o p q r s t u v w x y z n o p q r s t u v w x y z") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a b c d e f g h i j k l m n o p q r s t u v w x y z} 2 {a b c d e f g h i j k l m a b c d e f g h i j k l m} 3 {n o p q r s t u v w x y z n o p q r s t u v w x y z", _res.Error, "\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
 									}
 								}
 								{ // "10.2"
@@ -982,9 +964,9 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // "10.4"
-									r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+									r = db.Query("\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
 									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
 										return
 									}
 									got := flatten(r)
@@ -994,9 +976,9 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // "10.5"
-									r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
+									r = db.Query("\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
 									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
 										return
 									}
 									got := flatten(r)
@@ -1012,9 +994,9 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // "10.7"
-									r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+									r = db.Query("\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
 									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
 										return
 									}
 									got := flatten(r)
@@ -1090,9 +1072,9 @@ func Test_fts4content(t *testing.T) {
 								db, err = frigolite.Open("")
 								if err != nil { t.Fatal(err) }
 								{ // "13.0"
-									_res = db.Exec("\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
+									r = db.Query("\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
 									}
 								}
 								{ // "13.1"

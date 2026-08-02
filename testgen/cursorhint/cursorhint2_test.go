@@ -76,9 +76,9 @@ func Test_cursorhint2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
+		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
 		}
 	}
 	// do_extract_hints_test 1.1 {\n  SELECT * FROM t1 WHERE a=1;\n} {\n  t1 EQ(c0,1)\n} (unsupported command, not transpiled)

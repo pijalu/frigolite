@@ -68,9 +68,9 @@ func Test_e_blobclose(t *testing.T) {
 	dots = ". 40"
 	_ = dots // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, $dots);\n  INSERT INTO x1 VALUES(-10, $dots);\n  INSERT INTO x1 VALUES(-100, $dots);\n  INSERT INTO x1 VALUES(-1000, $dots);\n  INSERT INTO x1 VALUES(-10000, $dots);\n")
+		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-100, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-1000, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10000, " + sqlLiteral(dots) + ");\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, $dots);\n  INSERT INTO x1 VALUES(-10, $dots);\n  INSERT INTO x1 VALUES(-100, $dots);\n  INSERT INTO x1 VALUES(-1000, $dots);\n  INSERT INTO x1 VALUES(-10000, $dots);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-100, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-1000, " + sqlLiteral(dots) + ");\n  INSERT INTO x1 VALUES(-10000, " + sqlLiteral(dots) + ");\n")
 		}
 	}
 	{ // "1.1"

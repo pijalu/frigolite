@@ -580,25 +580,25 @@ func Test_tclsqlite(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	{ // do_test "tcl-2.1"
-		_res = db.Exec("CREATE TABLE tu0123x(a int, bu1235 float)")
+		_res = db.Exec("CREATE TABLE t\\u0123x(a int, b\\u1235 float)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tu0123x(a int, bu1235 float)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t\\u0123x(a int, b\\u1235 float)")
 		}
 	}
 	{ // do_test "tcl-2.2"
-		r = db.Query("PRAGMA table_info(tu0123x)")
+		r = db.Query("PRAGMA table_info(t\\u0123x)")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA table_info(tu0123x)")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA table_info(t\\u0123x)")
 		}
 	}
 	{ // do_test "tcl-2.3"
-		_res = db.Exec("INSERT INTO tu0123x VALUES(1,2.3)")
+		_res = db.Exec("INSERT INTO t\\u0123x VALUES(1,2.3)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tu0123x VALUES(1,2.3)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t\\u0123x VALUES(1,2.3)")
 		}
-		_res = db.Exec("SELECT * FROM tu0123x")
+		_res = db.Exec("SELECT * FROM t\\u0123x")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM tu0123x")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t\\u0123x")
 		}
 	}
 	{ // do_test "tcl-3.1"
@@ -729,9 +729,9 @@ func Test_tclsqlite(t *testing.T) {
 		_ = x_1 // suppress unused warning
 		x_2 = "B"
 		_ = x_2 // suppress unused warning
-		r = db.Query("\n      INSERT INTO t3 VALUES(" + x_1 + "," + x_2 + "," + x_3 + ");\n      SELECT * FROM t3\n    ")
+		r = db.Query("\n      INSERT INTO t3 VALUES(" + sqlLiteral(x_1) + "," + sqlLiteral(x_2) + "," + sqlLiteral(x_3) + ");\n      SELECT * FROM t3\n    ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t3 VALUES(" + x_1 + "," + x_2 + "," + x_3 + ");\n      SELECT * FROM t3\n    ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t3 VALUES(" + sqlLiteral(x_1) + "," + sqlLiteral(x_2) + "," + sqlLiteral(x_3) + ");\n      SELECT * FROM t3\n    ")
 		}
 	}
 	{ // do_test "tcl-5.2"
@@ -747,9 +747,9 @@ func Test_tclsqlite(t *testing.T) {
 		}
 		x = "binary format h12 686900686f00"
 		_ = x // suppress unused warning
-		_res = db.Exec("\n      UPDATE t3 SET a=" + x + ";\n    ")
+		_res = db.Exec("\n      UPDATE t3 SET a=" + sqlLiteral(x) + ";\n    ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t3 SET a=" + x + ";\n    ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t3 SET a=" + sqlLiteral(x) + ";\n    ")
 		}
 		_res = db.Exec("\n      SELECT a FROM t3\n    ")
 		if _res.Error != nil {
@@ -1058,9 +1058,15 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-10.13"
-		_res = db.Exec("SELECT * FROM t4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
+		r = db.Query("SELECT * FROM t4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t4")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 5 6 7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tcl-10.14"
@@ -1229,9 +1235,9 @@ func Test_tclsqlite(t *testing.T) {
 		}
 		x = "abc123"
 		_ = x // suppress unused warning
-		_res = db.Exec("INSERT INTO t5 VALUES(" + x + ")")
+		_res = db.Exec("INSERT INTO t5 VALUES(" + sqlLiteral(x) + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t5 VALUES(" + x + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t5 VALUES(" + sqlLiteral(x) + ")")
 		}
 		_res = db.Exec("SELECT typeof(x) FROM t5")
 		if _res.Error != nil {
@@ -1240,15 +1246,21 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // do_test "tcl-13.2"
 		// binary scan $x H notUsed (test infra, not transpiled)
-		_res = db.Exec("\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(" + x + ");\n      SELECT typeof(x) FROM t5;\n    ")
+		_res = db.Exec("\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(" + sqlLiteral(x) + ");\n      SELECT typeof(x) FROM t5;\n    ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(" + x + ");\n      SELECT typeof(x) FROM t5;\n    ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(" + sqlLiteral(x) + ");\n      SELECT typeof(x) FROM t5;\n    ")
 		}
 	}
 	{ // do_test "tcl-13.3"
-		_res = db.Exec("\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(@x);\n      SELECT typeof(x) FROM t5;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(@x);\n      SELECT typeof(x) FROM t5;\n    ")
+		r = db.Query("\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(@x);\n      SELECT typeof(x) FROM t5;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(@x);\n      SELECT typeof(x) FROM t5;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tcl-13.4"
@@ -1442,21 +1454,27 @@ func Test_tclsqlite(t *testing.T) {
 		bindings_ghi = "3.1415926"
 		_ = bindings_ghi // suppress unused warning
 		// proc definition (not transpiled)
-		_res = db.Exec("SELECT " + abc + ", typeof(" + abc + "), " + def + ", typeof(" + def + "), " + ghi + ", typeof(" + ghi + ")")
+		_res = db.Exec("SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + abc + ", typeof(" + abc + "), " + def + ", typeof(" + def + "), " + ghi + ", typeof(" + ghi + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ")")
 		}
 	}
 	{ // do_test "18.110"
-		_res = db.Exec("SELECT quote(@def), typeof(@def)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT quote(@def), typeof(@def)")
+		r = db.Query("SELECT quote(@def), typeof(@def)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT quote(@def), typeof(@def)")
+			return
+		}
+		got := flatten(r)
+		want := "X'68656C6C6F' blob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "18.120"
-		r = db.Query("\n  SELECT typeof($mno);\n")
+		r = db.Query("\n  SELECT typeof(" + sqlLiteral(mno) + ");\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof($mno);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof(" + sqlLiteral(mno) + ");\n")
 			return
 		}
 		got := flatten(r)
@@ -1466,24 +1484,24 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // "18.130"
-		_res = db.Exec("\n  SELECT $e01;\n")
+		_res = db.Exec("\n  SELECT " + sqlLiteral(e01) + ";\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such variable: $e01") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such variable: $e01", _res.Error, "\n  SELECT $e01;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such variable: $e01", _res.Error, "\n  SELECT " + sqlLiteral(e01) + ";\n")
 		}
 	}
 	{ // do_test "18.140"
 	}
 	{ // do_test "18.200"
-		_res = db.Exec("SELECT " + abc + ", typeof(" + abc + "), " + def + ", typeof(" + def + "), " + ghi + ", typeof(" + ghi + ")")
+		_res = db.Exec("SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + abc + ", typeof(" + abc + "), " + def + ", typeof(" + def + "), " + ghi + ", typeof(" + ghi + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ")")
 		}
 	}
 	{ // do_test "18.300"
 		// proc definition (not transpiled)
-		_res = db.Exec("SELECT " + abc + ", @def, " + ghi_123 + ", :mno")
+		_res = db.Exec("SELECT " + sqlLiteral(abc) + ", @def, " + sqlLiteral(ghi_123) + ", :mno")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + abc + ", @def, " + ghi_123 + ", :mno")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(abc) + ", @def, " + sqlLiteral(ghi_123) + ", :mno")
 		}
 	}
 	{ // do_test "18.900"
@@ -1504,9 +1522,9 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "18.910"
 	}
 	{ // "19.911"
-		_res = db.Exec("\n  SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi);\n")
+		_res = db.Exec("\n  SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid command name \"bind_fallback_does_not_exist\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid command name \"bind_fallback_does_not_exist\"", _res.Error, "\n  SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid command name \"bind_fallback_does_not_exist\"", _res.Error, "\n  SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ");\n")
 		}
 	}
 	{ // do_test "20.0"

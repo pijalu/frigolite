@@ -86,9 +86,9 @@ func Test_index4(t *testing.T) {
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.4"
-		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    CREATE INDEX i2 ON t1(x);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    CREATE INDEX i2 ON t1(x);\n  ")
+		r = db.Query("\n    PRAGMA cache_size = 10;\n    CREATE INDEX i2 ON t1(x);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    CREATE INDEX i2 ON t1(x);\n  ")
 		}
 	}
 	{ // "1.5"

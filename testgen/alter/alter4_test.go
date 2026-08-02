@@ -394,9 +394,9 @@ func Test_alter4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "alter4-11.0"
-		_res = db.Exec("\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d);\n  INSERT INTO t1(c,d) VALUES(1,2);\n  PRAGMA foreign_keys = on;\n  ALTER TABLE t1 ADD COLUMN e;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d);\n  INSERT INTO t1(c,d) VALUES(1,2);\n  PRAGMA foreign_keys = on;\n  ALTER TABLE t1 ADD COLUMN e;\n")
+		r = db.Query("\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d);\n  INSERT INTO t1(c,d) VALUES(1,2);\n  PRAGMA foreign_keys = on;\n  ALTER TABLE t1 ADD COLUMN e;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d);\n  INSERT INTO t1(c,d) VALUES(1,2);\n  PRAGMA foreign_keys = on;\n  ALTER TABLE t1 ADD COLUMN e;\n")
 		}
 	}
 	{ // "alter4-11.1"

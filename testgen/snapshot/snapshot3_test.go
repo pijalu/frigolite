@@ -61,9 +61,15 @@ func Test_snapshot3(t *testing.T) {
 		return
 	}
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n")
+		r = db.Query("\n  CREATE TABLE t1(y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.1"
@@ -155,9 +161,15 @@ func Test_snapshot3(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db2, err = frigolite.Open("test.db")

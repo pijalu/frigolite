@@ -163,39 +163,75 @@ func Test_fuzzer1(t *testing.T) {
 		}
 	}
 	{ // do_test "fuzzer1-1.8"
-		_res = db.Exec("\n    SELECT word, distance FROM f1 WHERE word MATCH 'abcde' AND distance<100\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT word, distance FROM f1 WHERE word MATCH 'abcde' AND distance<100\n  ")
+		r = db.Query("\n    SELECT word, distance FROM f1 WHERE word MATCH 'abcde' AND distance<100\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM f1 WHERE word MATCH 'abcde' AND distance<100\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abcde 0 abcda 1 ebcde 10 ebcda 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fuzzer1-1.9"
-		_res = db.Exec("\n    SELECT word, distance FROM f1 WHERE word MATCH 'abcde' AND distance<=100\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT word, distance FROM f1 WHERE word MATCH 'abcde' AND distance<=100\n  ")
+		r = db.Query("\n    SELECT word, distance FROM f1 WHERE word MATCH 'abcde' AND distance<=100\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM f1 WHERE word MATCH 'abcde' AND distance<=100\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abcde 0 abcda 1 ebcde 10 ebcda 11 abcdo 100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fuzzer1-1.10"
-		_res = db.Exec("\n    SELECT word, distance FROM f1\n     WHERE word MATCH 'abcde' AND distance<100 AND ruleset=0\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT word, distance FROM f1\n     WHERE word MATCH 'abcde' AND distance<100 AND ruleset=0\n  ")
+		r = db.Query("\n    SELECT word, distance FROM f1\n     WHERE word MATCH 'abcde' AND distance<100 AND ruleset=0\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM f1\n     WHERE word MATCH 'abcde' AND distance<100 AND ruleset=0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abcde 0 abcda 1 ebcde 10 ebcda 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fuzzer1-1.11"
-		_res = db.Exec("\n    SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=100 AND ruleset=0\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=100 AND ruleset=0\n  ")
+		r = db.Query("\n    SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=100 AND ruleset=0\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=100 AND ruleset=0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abcde 0 abcda 1 ebcde 10 ebcda 11 abcdo 100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fuzzer1-1.12"
-		_res = db.Exec("\n    SELECT word, distance FROM f1\n     WHERE word MATCH 'abcde' AND distance<11 AND ruleset=1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT word, distance FROM f1\n     WHERE word MATCH 'abcde' AND distance<11 AND ruleset=1\n  ")
+		r = db.Query("\n    SELECT word, distance FROM f1\n     WHERE word MATCH 'abcde' AND distance<11 AND ruleset=1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM f1\n     WHERE word MATCH 'abcde' AND distance<11 AND ruleset=1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abcde 0 axcde 1 abcye 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fuzzer1-1.13"
-		_res = db.Exec("\n    SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=11 AND ruleset=1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=11 AND ruleset=1\n  ")
+		r = db.Query("\n    SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=11 AND ruleset=1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=11 AND ruleset=1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abcde 0 axcde 1 abcye 10 axcye 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fuzzer1-1.14"
@@ -260,9 +296,9 @@ func Test_fuzzer1(t *testing.T) {
 		}
 	}
 	{ // "5.1"
-		r = db.Query("\n  CREATE TABLE \"fuzzer [x] rules table\"(a, b, c, d);\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, NULL, 'abc', 10);\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n  SELECT word, distance FROM x WHERE word MATCH '123' LIMIT 4;\n")
+		r = db.Query("\n  CREATE TABLE \"fuzzer " + sqlLiteral("x") + " rules table\"(a, b, c, d);\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, NULL, 'abc', 10);\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n  SELECT word, distance FROM x WHERE word MATCH '123' LIMIT 4;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE \"fuzzer [x] rules table\"(a, b, c, d);\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, NULL, 'abc', 10);\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n  SELECT word, distance FROM x WHERE word MATCH '123' LIMIT 4;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE \"fuzzer " + sqlLiteral("x") + " rules table\"(a, b, c, d);\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, NULL, 'abc', 10);\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n  SELECT word, distance FROM x WHERE word MATCH '123' LIMIT 4;\n")
 			return
 		}
 		got := flatten(r)
@@ -272,9 +308,9 @@ func Test_fuzzer1(t *testing.T) {
 		}
 	}
 	{ // "5.2"
-		r = db.Query("\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'x', NULL, 20);\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, NULL, NULL, 10);\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'x', 'x', 10);\n\n  DROP TABLE x;\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n\n  SELECT word, distance FROM x WHERE word MATCH 'xx';\n")
+		r = db.Query("\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'x', NULL, 20);\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, NULL, NULL, 10);\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'x', 'x', 10);\n\n  DROP TABLE x;\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n\n  SELECT word, distance FROM x WHERE word MATCH 'xx';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'x', NULL, 20);\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, NULL, NULL, 10);\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'x', 'x', 10);\n\n  DROP TABLE x;\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n\n  SELECT word, distance FROM x WHERE word MATCH 'xx';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'x', NULL, 20);\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, NULL, NULL, 10);\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'x', 'x', 10);\n\n  DROP TABLE x;\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n\n  SELECT word, distance FROM x WHERE word MATCH 'xx';\n")
 			return
 		}
 		got := flatten(r)
@@ -284,45 +320,45 @@ func Test_fuzzer1(t *testing.T) {
 		}
 	}
 	{ // "5.3.1"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'c', 'd', 1001);\n")
+		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'c', 'd', 1001);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'c', 'd', 1001);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'c', 'd', 1001);\n")
 		}
 	}
 	{ // "5.3.2"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: cost must be between 1 and 1000") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: cost must be between 1 and 1000", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: cost must be between 1 and 1000", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		}
 	}
 	{ // "5.3.3"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'd', 'c', 0);\n")
+		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'd', 'c', 0);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'd', 'c', 0);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'd', 'c', 0);\n")
 		}
 	}
 	{ // "5.3.4"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: cost must be between 1 and 1000") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: cost must be between 1 and 1000", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: cost must be between 1 and 1000", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		}
 	}
 	{ // "5.3.5"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'd', 'c', -20);\n")
+		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'd', 'c', -20);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'd', 'c', -20);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(0, 'd', 'c', -20);\n")
 		}
 	}
 	{ // "5.3.6"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: cost must be between 1 and 1000") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: cost must be between 1 and 1000", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: cost must be between 1 and 1000", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		}
 	}
 	{ // "5.4.1"
-		r = db.Query("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(\n    0, 'x', '12345678901234567890123456789012345678901234567890', 2\n  );\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n  SELECT word FROM x WHERE word MATCH 'x';\n")
+		r = db.Query("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(\n    0, 'x', '12345678901234567890123456789012345678901234567890', 2\n  );\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n  SELECT word FROM x WHERE word MATCH 'x';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(\n    0, 'x', '12345678901234567890123456789012345678901234567890', 2\n  );\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n  SELECT word FROM x WHERE word MATCH 'x';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(\n    0, 'x', '12345678901234567890123456789012345678901234567890', 2\n  );\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n  SELECT word FROM x WHERE word MATCH 'x';\n")
 			return
 		}
 		got := flatten(r)
@@ -332,57 +368,57 @@ func Test_fuzzer1(t *testing.T) {
 		}
 	}
 	{ // "5.4.2"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(\n    0, 'x', '123456789012345678901234567890123456789012345678901', 2\n  );\n")
+		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(\n    0, 'x', '123456789012345678901234567890123456789012345678901', 2\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(\n    0, 'x', '123456789012345678901234567890123456789012345678901', 2\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(\n    0, 'x', '123456789012345678901234567890123456789012345678901', 2\n  );\n")
 		}
 	}
 	{ // "5.4.3"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: maximum string length is 50") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: maximum string length is 50", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: maximum string length is 50", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		}
 	}
 	{ // "5.4.4"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(\n    0, '123456789012345678901234567890123456789012345678901', 'x', 2\n  );\n")
+		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(\n    0, '123456789012345678901234567890123456789012345678901', 'x', 2\n  );\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(\n    0, '123456789012345678901234567890123456789012345678901', 'x', 2\n  );\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(\n    0, '123456789012345678901234567890123456789012345678901', 'x', 2\n  );\n")
 		}
 	}
 	{ // "5.4.5"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: maximum string length is 50") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: maximum string length is 50", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: maximum string length is 50", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		}
 	}
 	{ // "5.5.1"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(-1, 'x', 'y', 2);\n")
+		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(-1, 'x', 'y', 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(-1, 'x', 'y', 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES(-1, 'x', 'y', 2);\n")
 		}
 	}
 	{ // "5.5.2"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: ruleset must be between 0 and 2147483647") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: ruleset must be between 0 and 2147483647", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: ruleset must be between 0 and 2147483647", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		}
 	}
 	{ // "5.5.3"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES((1<<32)+100, 'x', 'y', 2);\n")
+		_res = db.Exec("\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES((1<<32)+100, 'x', 'y', 2);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES((1<<32)+100, 'x', 'y', 2);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer " + sqlLiteral("x") + " rules table\";\n  INSERT INTO \"fuzzer " + sqlLiteral("x") + " rules table\" VALUES((1<<32)+100, 'x', 'y', 2);\n")
 		}
 	}
 	{ // "5.5.4"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: ruleset must be between 0 and 2147483647") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: ruleset must be between 0 and 2147483647", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer [x] rules table');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: ruleset must be between 0 and 2147483647", _res.Error, "\n  CREATE VIRTUAL TABLE x USING fuzzer('fuzzer " + sqlLiteral("x") + " rules table');\n")
 		}
 	}
 	{ // "7.1"
-		_res = db.Exec("\n  CREATE TABLE [x2 \"rules] (a, b, c, d);\n  INSERT INTO [x2 \"rules] VALUES(0, 'a', 'b', 5);\n")
+		_res = db.Exec("\n  CREATE TABLE " + sqlLiteral("x2 \"rules") + " (a, b, c, d);\n  INSERT INTO " + sqlLiteral("x2 \"rules") + " VALUES(0, 'a', 'b', 5);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE [x2 \"rules] (a, b, c, d);\n  INSERT INTO [x2 \"rules] VALUES(0, 'a', 'b', 5);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE " + sqlLiteral("x2 \"rules") + " (a, b, c, d);\n  INSERT INTO " + sqlLiteral("x2 \"rules") + " VALUES(0, 'a', 'b', 5);\n")
 		}
 	}
 	// foreach {tn sql} "1 { CREATE VIRTUAL TABLE x2 USING fuzzer( " + "x2 \"rules" + " ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }"
@@ -653,9 +689,9 @@ func Test_fuzzer1(t *testing.T) {
 			}
 		}
 		{ // "11.3"
-			_res = db.Exec("\n  DROP TABLE IF EXISTS f3;\n  CREATE VIRTUAL TABLE f3 USING fuzzer([aaaaaaaaaaaaaaaa]bbbbbbbbbbbbbbbb);\n")
+			_res = db.Exec("\n  DROP TABLE IF EXISTS f3;\n  CREATE VIRTUAL TABLE f3 USING fuzzer(" + sqlLiteral("aaaaaaaaaaaaaaaa") + "bbbbbbbbbbbbbbbb);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb", _res.Error, "\n  DROP TABLE IF EXISTS f3;\n  CREATE VIRTUAL TABLE f3 USING fuzzer([aaaaaaaaaaaaaaaa]bbbbbbbbbbbbbbbb);\n")
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb", _res.Error, "\n  DROP TABLE IF EXISTS f3;\n  CREATE VIRTUAL TABLE f3 USING fuzzer(" + sqlLiteral("aaaaaaaaaaaaaaaa") + "bbbbbbbbbbbbbbbb);\n")
 			}
 		}
 		{ // "11.4"

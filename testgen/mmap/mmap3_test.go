@@ -66,15 +66,27 @@ func Test_mmap3(t *testing.T) {
 		}
 	}
 	{ // do_test "mmap3-1.2"
-		_res = db.Exec("\n    PRAGMA mmap_size=50000;\n    CREATE TABLE t2(a,b);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA mmap_size=50000;\n    CREATE TABLE t2(a,b);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
+		r = db.Query("\n    PRAGMA mmap_size=50000;\n    CREATE TABLE t2(a,b);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA mmap_size=50000;\n    CREATE TABLE t2(a,b);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "50000 nums t1 t2 ok 50000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "mmap3-1.3"
-		_res = db.Exec("\n    PRAGMA mmap_size=250000;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA mmap_size=250000;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
+		r = db.Query("\n    PRAGMA mmap_size=250000;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA mmap_size=250000;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "250000 nums t1 ok 250000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "mmap3-1.4"
@@ -106,9 +118,15 @@ func Test_mmap3(t *testing.T) {
 		_ = x // suppress unused warning
 	}
 	{ // do_test "mmap3-1.7"
-		_res = db.Exec("\n    PRAGMA mmap_size(0);\n    CREATE TABLE t3(a,b,c);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA mmap_size(0);\n    CREATE TABLE t3(a,b,c);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
+		r = db.Query("\n    PRAGMA mmap_size(0);\n    CREATE TABLE t3(a,b,c);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA mmap_size(0);\n    CREATE TABLE t3(a,b,c);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 nums t1 t3 ok 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "mmap3-1.8"

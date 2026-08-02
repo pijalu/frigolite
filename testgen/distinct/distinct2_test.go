@@ -6,6 +6,7 @@ package distinct
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -369,9 +370,9 @@ func Test_distinct2(t *testing.T) {
 		}
 	}
 	{ // "2030"
-		_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2ab ON t2(a, b);\n  \n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'one', i%2, 'one' FROM c;\n\n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'two', i%2, 'two' FROM c;\n\n  CREATE TABLE t3(x INTEGER PRIMARY KEY);\n  INSERT INTO t3 VALUES(1);\n\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2ab ON t2(a, b);\n  \n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'one', i%2, 'one' FROM c;\n\n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'two', i%2, 'two' FROM c;\n\n  CREATE TABLE t3(x INTEGER PRIMARY KEY);\n  INSERT INTO t3 VALUES(1);\n\n  ANALYZE;\n")
+		r = db.Query("\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2ab ON t2(a, b);\n  \n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'one', i%2, 'one' FROM c;\n\n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'two', i%2, 'two' FROM c;\n\n  CREATE TABLE t3(x INTEGER PRIMARY KEY);\n  INSERT INTO t3 VALUES(1);\n\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2ab ON t2(a, b);\n  \n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'one', i%2, 'one' FROM c;\n\n  WITH c(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM c WHERE i<64)\n    INSERT INTO t2 SELECT 'two', i%2, 'two' FROM c;\n\n  CREATE TABLE t3(x INTEGER PRIMARY KEY);\n  INSERT INTO t3 VALUES(1);\n\n  ANALYZE;\n")
 		}
 	}
 	{ // "2040"
@@ -435,15 +436,9 @@ func Test_distinct2(t *testing.T) {
 		}
 	}
 	{ // "4020"
-		r = db.Query("\n  SELECT b FROM t1 UNION SELECT 1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b FROM t1 UNION SELECT 1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT b FROM t1 UNION SELECT 1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  SELECT b FROM t1 UNION SELECT 1;\n")
 		}
 	}
 	db.Close()
@@ -550,51 +545,27 @@ func Test_distinct2(t *testing.T) {
 		}
 	}
 	{ // "6010"
-		r = db.Query("\n  SELECT DISTINCT * FROM t1 LEFT OUTER JOIN t0 ON c0>c1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT * FROM t1 LEFT OUTER JOIN t0 ON c0>c1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT DISTINCT * FROM t1 LEFT OUTER JOIN t0 ON c0>c1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  SELECT DISTINCT * FROM t1 LEFT OUTER JOIN t0 ON c0>c1;\n")
 		}
 	}
 	{ // "6020"
-		r = db.Query("\n  SELECT DISTINCT * FROM t1 FULL OUTER JOIN t0 ON c0>c1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT * FROM t1 FULL OUTER JOIN t0 ON c0>c1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} {} 0 {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT DISTINCT * FROM t1 FULL OUTER JOIN t0 ON c0>c1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{} 0 {}") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{} 0 {}", _res.Error, "\n  SELECT DISTINCT * FROM t1 FULL OUTER JOIN t0 ON c0>c1;\n")
 		}
 	}
 	{ // "6040"
-		r = db.Query("\n  ANALYZE;\n  SELECT DISTINCT * FROM t1 LEFT OUTER JOIN t0 ON c0>c1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ANALYZE;\n  SELECT DISTINCT * FROM t1 LEFT OUTER JOIN t0 ON c0>c1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  ANALYZE;\n  SELECT DISTINCT * FROM t1 LEFT OUTER JOIN t0 ON c0>c1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  ANALYZE;\n  SELECT DISTINCT * FROM t1 LEFT OUTER JOIN t0 ON c0>c1;\n")
 		}
 	}
 	{ // "6050"
-		r = db.Query("\n  SELECT DISTINCT * FROM t1 FULL OUTER JOIN t0 ON c0>c1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT * FROM t1 FULL OUTER JOIN t0 ON c0>c1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} {} 0 {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT DISTINCT * FROM t1 FULL OUTER JOIN t0 ON c0>c1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{} 0 {}") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{} 0 {}", _res.Error, "\n  SELECT DISTINCT * FROM t1 FULL OUTER JOIN t0 ON c0>c1;\n")
 		}
 	}
 }

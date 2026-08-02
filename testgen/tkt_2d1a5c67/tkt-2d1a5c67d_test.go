@@ -123,9 +123,9 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
-		_res = db.Exec("\n  PRAGMA cache_size = 10;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t4(a);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA cache_size = 10;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t4(a);\n")
+		r = db.Query("\n  PRAGMA cache_size = 10;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t4(a);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 10;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t4(a);\n")
 		}
 	}
 	{ // "3.2"

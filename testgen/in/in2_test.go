@@ -70,9 +70,9 @@ func Test_in2(t *testing.T) {
 		ii = "0" // TCL namespace variable
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return ii_n < N_n }() {
-			_res = db.Exec("INSERT INTO a VALUES(" + ii + ", " + ii + ")")
+			_res = db.Exec("INSERT INTO a VALUES(" + sqlLiteral(ii) + ", " + sqlLiteral(ii) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a VALUES(" + ii + ", " + ii + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a VALUES(" + sqlLiteral(ii) + ", " + sqlLiteral(ii) + ")")
 			}
 			// incr ii 1
 			{
@@ -91,9 +91,9 @@ func Test_in2(t *testing.T) {
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return ii_n < N_n }() {
 			_t = "format \"x%04d\" $ii" // TCL namespace variable
 			_ = _t // suppress unused warning
-			_res = db.Exec("INSERT INTO a VALUES(NULL, " + _t + ")")
+			_res = db.Exec("INSERT INTO a VALUES(NULL, " + sqlLiteral(_t) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a VALUES(NULL, " + _t + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a VALUES(NULL, " + sqlLiteral(_t) + ")")
 			}
 			// incr ii 1
 			{
@@ -108,9 +108,9 @@ func Test_in2(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return ii_n < N_n }() {
 		{ // do_test "in2-" + ii
-			r = db.Query("\n      SELECT 1 IN (SELECT a FROM a WHERE (i < " + ii + ") OR (i >= " + N + "))\n    ")
+			r = db.Query("\n      SELECT 1 IN (SELECT a FROM a WHERE (i < " + sqlLiteral(ii) + ") OR (i >= " + sqlLiteral(N) + "))\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1 IN (SELECT a FROM a WHERE (i < " + ii + ") OR (i >= " + N + "))\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1 IN (SELECT a FROM a WHERE (i < " + sqlLiteral(ii) + ") OR (i >= " + sqlLiteral(N) + "))\n    ")
 			}
 		}
 		// incr ii 1

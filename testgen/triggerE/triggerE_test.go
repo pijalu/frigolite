@@ -94,9 +94,9 @@ func Test_triggerE(t *testing.T) {
 		}
 		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		{ // "2.1"
-			_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
+			r = db.Query("\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
 			}
 		}
 		_dbtmp1, err := frigolite.Open("test.db")
@@ -117,9 +117,9 @@ func Test_triggerE(t *testing.T) {
 		{ // do_test "2.2.2"
 			one = "3"
 			_ = one // suppress unused warning
-			r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES(" + one + ", ?1);\n    SELECT * FROM t2;\n  ")
+			r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES(" + sqlLiteral(one) + ", ?1);\n    SELECT * FROM t2;\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES(" + one + ", ?1);\n    SELECT * FROM t2;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES(" + sqlLiteral(one) + ", ?1);\n    SELECT * FROM t2;\n  ")
 			}
 		}
 		{ // "2.2.3"

@@ -7,6 +7,7 @@ package join
 import (
 "fmt"
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -917,27 +918,15 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-15.110"
-		r = db.Query("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  INSERT INTO t1(a,b) VALUES(1,0),(11,1),(12,1),(13,1),(121,12);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY);\n  INSERT INTO t2(x) VALUES(0),(1);\n  SELECT  a1, a2, a3, a4, a5\n   FROM (SELECT a AS a1 FROM t1 WHERE b=0)\n        JOIN (SELECT x AS x1 FROM t2)\n        LEFT JOIN (SELECT a AS a2, b AS b2 FROM t1)\n          ON x1 IS TRUE AND b2=a1\n        JOIN (SELECT x AS x2 FROM t2)\n          ON x2<=CASE WHEN x1 THEN CASE WHEN a2 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a3, b AS b3 FROM t1)\n          ON x2 IS TRUE AND b3=a2\n        JOIN (SELECT x AS x3 FROM t2)\n          ON x3<=CASE WHEN x2 THEN CASE WHEN a3 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a4, b AS b4 FROM t1)\n          ON x3 IS TRUE AND b4=a3\n        JOIN (SELECT x AS x4 FROM t2)\n          ON x4<=CASE WHEN x3 THEN CASE WHEN a4 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a5, b AS b5 FROM t1)\n          ON x4 IS TRUE AND b5=a4\n   ORDER BY a1, a2, a3, a4, a5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  INSERT INTO t1(a,b) VALUES(1,0),(11,1),(12,1),(13,1),(121,12);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY);\n  INSERT INTO t2(x) VALUES(0),(1);\n  SELECT  a1, a2, a3, a4, a5\n   FROM (SELECT a AS a1 FROM t1 WHERE b=0)\n        JOIN (SELECT x AS x1 FROM t2)\n        LEFT JOIN (SELECT a AS a2, b AS b2 FROM t1)\n          ON x1 IS TRUE AND b2=a1\n        JOIN (SELECT x AS x2 FROM t2)\n          ON x2<=CASE WHEN x1 THEN CASE WHEN a2 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a3, b AS b3 FROM t1)\n          ON x2 IS TRUE AND b3=a2\n        JOIN (SELECT x AS x3 FROM t2)\n          ON x3<=CASE WHEN x2 THEN CASE WHEN a3 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a4, b AS b4 FROM t1)\n          ON x3 IS TRUE AND b4=a3\n        JOIN (SELECT x AS x4 FROM t2)\n          ON x4<=CASE WHEN x3 THEN CASE WHEN a4 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a5, b AS b5 FROM t1)\n          ON x4 IS TRUE AND b5=a4\n   ORDER BY a1, a2, a3, a4, a5;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} {} {} {} 1 11 {} {} {} 1 12 {} {} {} 1 12 121 {} {} 1 13 {} {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  INSERT INTO t1(a,b) VALUES(1,0),(11,1),(12,1),(13,1),(121,12);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY);\n  INSERT INTO t2(x) VALUES(0),(1);\n  SELECT  a1, a2, a3, a4, a5\n   FROM (SELECT a AS a1 FROM t1 WHERE b=0)\n        JOIN (SELECT x AS x1 FROM t2)\n        LEFT JOIN (SELECT a AS a2, b AS b2 FROM t1)\n          ON x1 IS TRUE AND b2=a1\n        JOIN (SELECT x AS x2 FROM t2)\n          ON x2<=CASE WHEN x1 THEN CASE WHEN a2 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a3, b AS b3 FROM t1)\n          ON x2 IS TRUE AND b3=a2\n        JOIN (SELECT x AS x3 FROM t2)\n          ON x3<=CASE WHEN x2 THEN CASE WHEN a3 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a4, b AS b4 FROM t1)\n          ON x3 IS TRUE AND b4=a3\n        JOIN (SELECT x AS x4 FROM t2)\n          ON x4<=CASE WHEN x3 THEN CASE WHEN a4 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a5, b AS b5 FROM t1)\n          ON x4 IS TRUE AND b5=a4\n   ORDER BY a1, a2, a3, a4, a5;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{} {} {} 1 11 {} {} {} 1 12 {} {} {} 1 12 121 {} {} 1 13 {} {}") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{} {} {} 1 11 {} {} {} 1 12 {} {} {} 1 12 121 {} {} 1 13 {} {}", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  INSERT INTO t1(a,b) VALUES(1,0),(11,1),(12,1),(13,1),(121,12);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY);\n  INSERT INTO t2(x) VALUES(0),(1);\n  SELECT  a1, a2, a3, a4, a5\n   FROM (SELECT a AS a1 FROM t1 WHERE b=0)\n        JOIN (SELECT x AS x1 FROM t2)\n        LEFT JOIN (SELECT a AS a2, b AS b2 FROM t1)\n          ON x1 IS TRUE AND b2=a1\n        JOIN (SELECT x AS x2 FROM t2)\n          ON x2<=CASE WHEN x1 THEN CASE WHEN a2 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a3, b AS b3 FROM t1)\n          ON x2 IS TRUE AND b3=a2\n        JOIN (SELECT x AS x3 FROM t2)\n          ON x3<=CASE WHEN x2 THEN CASE WHEN a3 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a4, b AS b4 FROM t1)\n          ON x3 IS TRUE AND b4=a3\n        JOIN (SELECT x AS x4 FROM t2)\n          ON x4<=CASE WHEN x3 THEN CASE WHEN a4 THEN 1 ELSE -1 END ELSE 0 END\n        LEFT JOIN (SELECT a AS a5, b AS b5 FROM t1)\n          ON x4 IS TRUE AND b5=a4\n   ORDER BY a1, a2, a3, a4, a5;\n")
 		}
 	}
 	{ // "join-16.100"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1(a) VALUES(1);\n  CREATE TABLE t2(b INT);\n  SELECT a, b\n    FROM t1 LEFT JOIN t2 ON 0\n   WHERE (b IS NOT NULL)=0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1(a) VALUES(1);\n  CREATE TABLE t2(b INT);\n  SELECT a, b\n    FROM t1 LEFT JOIN t2 ON 0\n   WHERE (b IS NOT NULL)=0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1(a) VALUES(1);\n  CREATE TABLE t2(b INT);\n  SELECT a, b\n    FROM t1 LEFT JOIN t2 ON 0\n   WHERE (b IS NOT NULL)=0;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1(a) VALUES(1);\n  CREATE TABLE t2(b INT);\n  SELECT a, b\n    FROM t1 LEFT JOIN t2 ON 0\n   WHERE (b IS NOT NULL)=0;\n")
 		}
 	}
 	{ // "join-17.100"
@@ -986,15 +975,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-18.3"
-		r = db.Query("\n  SELECT * FROM t1 LEFT JOIN t0 WHERE NOT(a IS FALSE);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 LEFT JOIN t0 WHERE NOT(a IS FALSE);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT * FROM t1 LEFT JOIN t0 WHERE NOT(a IS FALSE);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  SELECT * FROM t1 LEFT JOIN t0 WHERE NOT(a IS FALSE);\n")
 		}
 	}
 	{ // "join-18.4"
@@ -1147,9 +1130,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.20"
-		r = db.Query("\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('[\"a\", \"b\", null]');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('[\"a\", \"c\", null]');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
+		r = db.Query("\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('" + sqlLiteral("\"a\", \"c\", null") + "');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('[\"a\", \"b\", null]');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('[\"a\", \"c\", null]');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('" + sqlLiteral("\"a\", \"c\", null") + "');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1171,9 +1154,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.22"
-		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"c\", null]') AS b\n           LEFT JOIN\n           json_each('[\"a\", \"b\", null]') AS a ON a.value = b.value;\n  ")
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b\n           LEFT JOIN\n           json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"c\", null]') AS b\n           LEFT JOIN\n           json_each('[\"a\", \"b\", null]') AS a ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b\n           LEFT JOIN\n           json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1183,9 +1166,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.23"
-		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a\n           RIGHT JOIN\n           json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a\n           RIGHT JOIN\n           json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1195,9 +1178,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.24"
-		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1207,9 +1190,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.25"
-		r = db.Query("\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1246,15 +1229,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-24.2"
-		r = db.Query("\n  SELECT * FROM t2 LEFT JOIN t1 ON a=0 WHERE (x='x' OR x IS NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2 LEFT JOIN t1 ON a=0 WHERE (x='x' OR x IS NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT * FROM t2 LEFT JOIN t1 ON a=0 WHERE (x='x' OR x IS NULL);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  SELECT * FROM t2 LEFT JOIN t1 ON a=0 WHERE (x='x' OR x IS NULL);\n")
 		}
 	}
 	db.Close()

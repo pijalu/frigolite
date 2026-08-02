@@ -67,9 +67,9 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	{ // "fkey6-1.1"
-		_res = db.Exec("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,\n          z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED);\n  CREATE INDEX t2z ON t2(z);\n  CREATE TABLE t3(u INTEGER PRIMARY KEY, v INTEGER REFERENCES t1(x));\n  CREATE INDEX t3v ON t3(v);\n  INSERT INTO t1 VALUES(1),(2),(3),(4),(5);\n  INSERT INTO t2 VALUES(1,1),(2,2);\n  INSERT INTO t3 VALUES(3,3),(4,4);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,\n          z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED);\n  CREATE INDEX t2z ON t2(z);\n  CREATE TABLE t3(u INTEGER PRIMARY KEY, v INTEGER REFERENCES t1(x));\n  CREATE INDEX t3v ON t3(v);\n  INSERT INTO t1 VALUES(1),(2),(3),(4),(5);\n  INSERT INTO t2 VALUES(1,1),(2,2);\n  INSERT INTO t3 VALUES(3,3),(4,4);\n")
+		r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,\n          z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED);\n  CREATE INDEX t2z ON t2(z);\n  CREATE TABLE t3(u INTEGER PRIMARY KEY, v INTEGER REFERENCES t1(x));\n  CREATE INDEX t3v ON t3(v);\n  INSERT INTO t1 VALUES(1),(2),(3),(4),(5);\n  INSERT INTO t2 VALUES(1,1),(2,2);\n  INSERT INTO t3 VALUES(3,3),(4,4);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,\n          z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED);\n  CREATE INDEX t2z ON t2(z);\n  CREATE TABLE t3(u INTEGER PRIMARY KEY, v INTEGER REFERENCES t1(x));\n  CREATE INDEX t3v ON t3(v);\n  INSERT INTO t1 VALUES(1),(2),(3),(4),(5);\n  INSERT INTO t2 VALUES(1,1),(2,2);\n  INSERT INTO t3 VALUES(3,3),(4,4);\n")
 		}
 	}
 	{ // do_test "fkey6-1.2"
@@ -110,9 +110,15 @@ func Test_fkey6(t *testing.T) {
 		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // "fkey6-1.10.1"
-		_res = db.Exec("\n  PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "0 1 0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "0 1 0", _res.Error, "\n  PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n")
+		r = db.Query("\n  PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 0 1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fkey6-1.10.2"
@@ -222,15 +228,15 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	{ // "3.2.3"
-		_res = db.Exec("\n  BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n  COMMIT;\n")
+		r = db.Query("\n  BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n  COMMIT;\n")
 		}
 	}
 	{ // "3.2.4"
-		_res = db.Exec("\n  BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n")
+		r = db.Query("\n  BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n")
 		}
 	}
 	{ // "3.2.5"
@@ -300,15 +306,15 @@ func Test_fkey6(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
-		_res = db.Exec("\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n")
+		r = db.Query("\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n")
 		}
 	}
 	{ // "5.1"
-		_res = db.Exec("\n  BEGIN;\n    INSERT INTO c1 VALUES(123);\n    PRAGMA defer_foreign_keys = 1;\n    INSERT INTO p1 VALUES(123, 'one two three');\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO c1 VALUES(123);\n    PRAGMA defer_foreign_keys = 1;\n    INSERT INTO p1 VALUES(123, 'one two three');\n  COMMIT;\n")
+		r = db.Query("\n  BEGIN;\n    INSERT INTO c1 VALUES(123);\n    PRAGMA defer_foreign_keys = 1;\n    INSERT INTO p1 VALUES(123, 'one two three');\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    INSERT INTO c1 VALUES(123);\n    PRAGMA defer_foreign_keys = 1;\n    INSERT INTO p1 VALUES(123, 'one two three');\n  COMMIT;\n")
 		}
 	}
 	db.Close()
@@ -316,9 +322,9 @@ func Test_fkey6(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
 		{ // "6.1"
-			_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');\n  ")
+			r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');\n  ")
 			}
 		}
 		_dbtmp0, err := frigolite.Open("test.db")
@@ -337,9 +343,9 @@ func Test_fkey6(t *testing.T) {
 			}
 		}
 		{ // "6.3"
-			_res = db.Exec("\n    BEGIN;\n      INSERT INTO t2 VALUES(1,0),(2,1);\n      CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n      INSERT INTO t3 VALUES(3,3);\n      PRAGMA defer_foreign_keys=ON;\n      DELETE FROM t2;\n    COMMIT;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t2 VALUES(1,0),(2,1);\n      CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n      INSERT INTO t3 VALUES(3,3);\n      PRAGMA defer_foreign_keys=ON;\n      DELETE FROM t2;\n    COMMIT;\n  ")
+			r = db.Query("\n    BEGIN;\n      INSERT INTO t2 VALUES(1,0),(2,1);\n      CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n      INSERT INTO t3 VALUES(3,3);\n      PRAGMA defer_foreign_keys=ON;\n      DELETE FROM t2;\n    COMMIT;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      INSERT INTO t2 VALUES(1,0),(2,1);\n      CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n      INSERT INTO t3 VALUES(3,3);\n      PRAGMA defer_foreign_keys=ON;\n      DELETE FROM t2;\n    COMMIT;\n  ")
 			}
 		}
 	}

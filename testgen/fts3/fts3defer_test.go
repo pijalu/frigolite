@@ -102,9 +102,9 @@ func Test_fts3defer(t *testing.T) {
 	aaa = "\"a \" 15000"
 	_ = aaa // suppress unused warning
 	{ // "1.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4;\n  BEGIN;\n    INSERT INTO t1 VALUES('this is a dog');\n    INSERT INTO t1 VALUES('an instance of a phrase');\n    INSERT INTO t1 VALUES('an instance of a longer phrase');\n    INSERT INTO t1 VALUES($aaa);\n  COMMIT;\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4;\n  BEGIN;\n    INSERT INTO t1 VALUES('this is a dog');\n    INSERT INTO t1 VALUES('an instance of a phrase');\n    INSERT INTO t1 VALUES('an instance of a longer phrase');\n    INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4;\n  BEGIN;\n    INSERT INTO t1 VALUES('this is a dog');\n    INSERT INTO t1 VALUES('an instance of a phrase');\n    INSERT INTO t1 VALUES('an instance of a longer phrase');\n    INSERT INTO t1 VALUES($aaa);\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4;\n  BEGIN;\n    INSERT INTO t1 VALUES('this is a dog');\n    INSERT INTO t1 VALUES('an instance of a phrase');\n    INSERT INTO t1 VALUES('an instance of a longer phrase');\n    INSERT INTO t1 VALUES(" + sqlLiteral(aaa) + ");\n  COMMIT;\n")
 		}
 	}
 	tests = "\n  1  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a dog\"'}                 {1}\n  2  {SELECT rowid FROM t1 WHERE t1 MATCH '\"is a dog\"'}              {1}\n  3  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}       {3}\n  4  {SELECT snippet(t1) FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}  \n     {\"an instance of <b>a</b> <b>longer</b> <b>phrase</b>\"}\n  5  {SELECT rowid FROM t1 WHERE t1 MATCH 'a dog'}                   {1}\n"
@@ -112,9 +112,15 @@ func Test_fts3defer(t *testing.T) {
 	// do_select_tests 1.2 $tests (unsupported command, not transpiled)
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "1.3"
-		_res = db.Exec("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n")
+		r = db.Query("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// do_select_tests 1.4 $tests (unsupported command, not transpiled)
@@ -322,9 +328,9 @@ func Test_fts3defer(t *testing.T) {
 				L = tclListAppend(L, "common", "rare")
 				val = strings.Join(tclSplitList(L), "\"")
 				_ = val // suppress unused warning
-				_res = db.Exec("\n      INSERT INTO ft VALUES(\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ",\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + "\n      );\n    COMMIT;\n  ")
+				_res = db.Exec("\n      INSERT INTO ft VALUES(\n        " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ",\n        " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + "\n      );\n    COMMIT;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ",\n        " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + ", " + val + "\n      );\n    COMMIT;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n        " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ",\n        " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + "\n      );\n    COMMIT;\n  ")
 				}
 			}
 			_dbtmp2, err := frigolite.Open("test.db")

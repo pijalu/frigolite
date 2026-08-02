@@ -277,9 +277,9 @@ func Test_stat(t *testing.T) {
 	}
 	os.Remove("test.db2")
 	{ // "7.1"
-		_res = db.Exec("\n  ATTACH 'test.db2' AS '123';\n  PRAGMA \"123\".auto_vacuum = OFF;\n  CREATE TABLE \"123\".x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS '123';\n  PRAGMA \"123\".auto_vacuum = OFF;\n  CREATE TABLE \"123\".x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);\n")
+		r = db.Query("\n  ATTACH 'test.db2' AS '123';\n  PRAGMA \"123\".auto_vacuum = OFF;\n  CREATE TABLE \"123\".x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ATTACH 'test.db2' AS '123';\n  PRAGMA \"123\".auto_vacuum = OFF;\n  CREATE TABLE \"123\".x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);\n")
 		}
 	}
 	{ // "7.1.1"

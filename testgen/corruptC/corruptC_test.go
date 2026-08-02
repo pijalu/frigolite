@@ -265,9 +265,9 @@ func Test_corruptC(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		blob = "abcdefghij 10000"
 		_ = blob // suppress unused warning
-		_res = db.Exec(" INSERT INTO t1 VALUES (1, " + blob + ") ")
+		_res = db.Exec(" INSERT INTO t1 VALUES (1, " + sqlLiteral(blob) + ") ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES (1, " + blob + ") ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES (1, " + sqlLiteral(blob) + ") ")
 		}
 		_dbtmp14, err := frigolite.Open("test.db")
 		_ = _dbtmp14 // sqlite3 db connection

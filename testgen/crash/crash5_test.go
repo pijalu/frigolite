@@ -78,9 +78,9 @@ func Test_crash5(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			c = "3 1500"
 			_ = c // suppress unused warning
-			_res = db.Exec("\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', " + c + ");\n    ")
+			_res = db.Exec("\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', " + sqlLiteral(c) + ");\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', " + c + ");\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', " + sqlLiteral(c) + ");\n    ")
 			}
 			{ // do_test "crash5-" + ii + "." + jj + ".1"
 				// crashsql -delay 1 -file test.db-journal -seed $ii -tclbody [join [list \\n        [list s... (unsupported command, not transpiled)
@@ -90,15 +90,27 @@ func Test_crash5(t *testing.T) {
 			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // do_test "crash5-" + ii + "." + jj + ".2"
-				_res = db.Exec("pragma integrity_check")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "pragma integrity_check")
+				r = db.Query("pragma integrity_check")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma integrity_check")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "crash5-" + ii + "." + jj + ".3"
-				_res = db.Exec("SELECT * FROM t1")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+				r = db.Query("SELECT * FROM t1")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+					return
+				}
+				got := flatten(r)
+				want := "list 1111111111 2222222222 $::c"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			// incr jj 1

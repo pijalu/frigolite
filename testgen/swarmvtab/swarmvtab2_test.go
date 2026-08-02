@@ -75,9 +75,9 @@ func Test_swarmvtab2(t *testing.T) {
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "100"
-		_res = db.Exec("\n  CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );\n")
+		r = db.Query("\n  CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );\n")
 		}
 	}
 	{ // "110"

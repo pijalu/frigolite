@@ -133,9 +133,9 @@ func Test_istrue(t *testing.T) {
 	X = "9"
 	_ = X // suppress unused warning
 	{ // "istrue-160"
-		r = db.Query("\n  SELECT x FROM t1 WHERE y IS TRUE OR (8==$X)\n")
+		r = db.Query("\n  SELECT x FROM t1 WHERE y IS TRUE OR (8==" + sqlLiteral(X) + ")\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS TRUE OR (8==$X)\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS TRUE OR (8==" + sqlLiteral(X) + ")\n")
 			return
 		}
 		got := flatten(r)
@@ -145,9 +145,9 @@ func Test_istrue(t *testing.T) {
 		}
 	}
 	{ // "istrue-170"
-		r = db.Query("\n  SELECT x FROM t1 WHERE y IS FALSE OR (8==$X)\n")
+		r = db.Query("\n  SELECT x FROM t1 WHERE y IS FALSE OR (8==" + sqlLiteral(X) + ")\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS FALSE OR (8==$X)\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS FALSE OR (8==" + sqlLiteral(X) + ")\n")
 			return
 		}
 		got := flatten(r)
@@ -157,9 +157,9 @@ func Test_istrue(t *testing.T) {
 		}
 	}
 	{ // "istrue-180"
-		r = db.Query("\n  SELECT x FROM t1 WHERE y IS NULL OR (8==$X);\n")
+		r = db.Query("\n  SELECT x FROM t1 WHERE y IS NULL OR (8==" + sqlLiteral(X) + ");\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS NULL OR (8==$X);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS NULL OR (8==" + sqlLiteral(X) + ");\n")
 			return
 		}
 		got := flatten(r)
@@ -169,9 +169,9 @@ func Test_istrue(t *testing.T) {
 		}
 	}
 	{ // "istrue-190"
-		r = db.Query("\n  SELECT x FROM t1 WHERE y IS NOT TRUE OR (8==$X);\n")
+		r = db.Query("\n  SELECT x FROM t1 WHERE y IS NOT TRUE OR (8==" + sqlLiteral(X) + ");\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS NOT TRUE OR (8==$X);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS NOT TRUE OR (8==" + sqlLiteral(X) + ");\n")
 			return
 		}
 		got := flatten(r)
@@ -181,9 +181,9 @@ func Test_istrue(t *testing.T) {
 		}
 	}
 	{ // "istrue-200"
-		r = db.Query("\n  SELECT x FROM t1 WHERE y IS NOT FALSE OR (8==$X);\n")
+		r = db.Query("\n  SELECT x FROM t1 WHERE y IS NOT FALSE OR (8==" + sqlLiteral(X) + ");\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS NOT FALSE OR (8==$X);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS NOT FALSE OR (8==" + sqlLiteral(X) + ");\n")
 			return
 		}
 		got := flatten(r)
@@ -193,9 +193,9 @@ func Test_istrue(t *testing.T) {
 		}
 	}
 	{ // "istrue-210"
-		r = db.Query("\n  SELECT x FROM t1 WHERE y IS NOT NULL OR (8==$X);\n")
+		r = db.Query("\n  SELECT x FROM t1 WHERE y IS NOT NULL OR (8==" + sqlLiteral(X) + ");\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS NOT NULL OR (8==$X);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x FROM t1 WHERE y IS NOT NULL OR (8==" + sqlLiteral(X) + ");\n")
 			return
 		}
 		got := flatten(r)

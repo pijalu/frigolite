@@ -201,9 +201,9 @@ func Test_fordelete(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "5.1"
-				_res = db.Exec("\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n  );\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n  );\n")
+				r = db.Query("\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n  );\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n  );\n")
 				}
 			}
 			{ // "5.2"

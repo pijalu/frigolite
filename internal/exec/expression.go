@@ -86,9 +86,76 @@ func (e *Engine) evalComplexExpr(expr sql.Expr, row Row) (interface{}, error) {
 		return e.evalCaseExpr(v, row)
 	case *sql.CastExpr:
 		return e.evalCastExpr(v, row)
+	case *sql.RaiseExpr:
+		return e.evalRaiseExpr(v, row)
 	default:
 		return nil, fmt.Errorf("unknown expression type: %T", expr)
 	}
+}
+
+// errRaiseIgnore is a sentinel error returned when a trigger program executes
+// RAISE(IGNORE). The statement that hit it is aborted without error and
+// execution continues with the next statement in the trigger program.
+var errRaiseIgnore = fmt.Errorf("RAISE(IGNORE)")
+
+// evalRaiseExpr evaluates the RAISE() special function. RAISE() is only valid
+// inside a trigger program; outside one it is a syntax/semantic error. Within
+// a trigger, RAISE(IGNORE) aborts the current statement (signaled via
+// errRaiseIgnore) and the other kinds abort with the given error message.
+func (e *Engine) evalRaiseExpr(v *sql.RaiseExpr, row Row) (interface{}, error) {
+	if e.triggerDepth == 0 {
+		return nil, fmt.Errorf("RAISE() may only be used within a trigger-program")
+	}
+	if strings.EqualFold(v.Kind, "IGNORE") {
+		return nil, errRaiseIgnore
+	}
+	msg := ""
+	if v.Message != nil {
+		val, err := e.evalExpr(v.Message, row)
+		if err != nil {
+			return nil, err
+		}
+		if val != nil {
+			msg = fmt.Sprintf("%v", val)
+		}
+	}
+	return nil, fmt.Errorf("%s", msg)
+}
+
+// evalRaiseFuncCall handles RAISE() when it reaches expression evaluation as
+// a regular function call (the legacy parser represents RAISE(IGNORE) as a
+// FuncCall whose first argument is a column reference). The LALR parser
+// produces a *sql.RaiseExpr instead, handled by evalRaiseExpr.
+func (e *Engine) evalRaiseFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
+	if e.triggerDepth == 0 {
+		return nil, fmt.Errorf("RAISE() may only be used within a trigger-program")
+	}
+	if len(f.Args) == 0 {
+		return nil, fmt.Errorf("RAISE() requires an argument")
+	}
+	kind := ""
+	if col, ok := f.Args[0].(*sql.ColumnRef); ok {
+		kind = strings.ToUpper(col.Name)
+	}
+	if kind == "" {
+		if s, ok := f.Args[0].(*sql.StringLit); ok {
+			kind = strings.ToUpper(s.Value)
+		}
+	}
+	if kind == "IGNORE" {
+		return nil, errRaiseIgnore
+	}
+	msg := ""
+	if len(f.Args) > 1 {
+		val, err := e.evalExpr(f.Args[1], row)
+		if err != nil {
+			return nil, err
+		}
+		if val != nil {
+			msg = fmt.Sprintf("%v", val)
+		}
+	}
+	return nil, fmt.Errorf("%s", msg)
 }
 
 func (e *Engine) evalSubquery(v *sql.Subquery, row Row) (interface{}, error) {
@@ -218,10 +285,51 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (interface{}, error) {
 		case int64:
 			return float64(x), nil
 		case string:
-			// SQLite: CAST(text AS REAL) parses the text as a number;
-			// non-numeric text coerces to 0.0.
-			if f, err := strconv.ParseFloat(strings.TrimSpace(x), 64); err == nil {
+			// SQLite: CAST(text AS REAL) parses the text as a number,
+			// accepting a leading numeric prefix and ignoring trailing
+			// garbage (sqlite3AtoF). E.g. CAST(' 876xyz' AS REAL) is 876.0.
+			t := strings.TrimSpace(x)
+			if f, err := strconv.ParseFloat(t, 64); err == nil {
 				return f, nil
+			}
+			// Numeric prefix parse: [sign] digits [.digits] [eE [sign] digits]
+			i := 0
+			if i < len(t) && (t[i] == '+' || t[i] == '-') {
+				i++
+			}
+			digits := 0
+			for i < len(t) && t[i] >= '0' && t[i] <= '9' {
+				i++
+				digits++
+			}
+			if i < len(t) && t[i] == '.' {
+				i++
+				for i < len(t) && t[i] >= '0' && t[i] <= '9' {
+					i++
+					digits++
+				}
+			}
+			if digits > 0 && i < len(t) && (t[i] == 'e' || t[i] == 'E') {
+				j := i + 1
+				if j < len(t) && (t[j] == '+' || t[j] == '-') {
+					j++
+				}
+				if j < len(t) && t[j] >= '0' && t[j] <= '9' {
+					i = j
+					for i < len(t) && t[i] >= '0' && t[i] <= '9' {
+						i++
+					}
+				}
+			}
+			if digits > 0 {
+				if f, err := strconv.ParseFloat(t[:i], 64); err == nil {
+					return f, nil
+				}
+				// Overflow: SQLite returns +/-Inf.
+				if t[0] == '-' {
+					return math.Inf(-1), nil
+				}
+				return math.Inf(1), nil
 			}
 			return float64(0), nil
 		default:
@@ -1000,6 +1108,8 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 		return e.lastChanges, nil
 	case "LAST_INSERT_ROWID":
 		return e.lastRowID, nil
+	case "RAISE":
+		return e.evalRaiseFuncCall(f, row)
 	}
 
 	fn, ok := e.funcs.Find(f.Name)
@@ -1036,6 +1146,25 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 
 	if fn.Type == function.TypeScalar {
 		return fn.ScalarFn(args)
+	}
+
+	// Scalar min/max: with two or more arguments, MIN()/MAX() are scalar
+	// functions. SQLite semantics: if any argument is NULL the result is
+	// NULL (unlike the aggregate forms, which ignore NULLs).
+	if fn.Type == function.TypeAggregate && len(args) >= 2 && (upper == "MIN" || upper == "MAX") {
+		for _, a := range args {
+			if a == nil {
+				return nil, nil
+			}
+		}
+		best := args[0]
+		for _, a := range args[1:] {
+			if (upper == "MIN" && util.CompareValues(a, best) < 0) ||
+				(upper == "MAX" && util.CompareValues(a, best) > 0) {
+				best = a
+			}
+		}
+		return best, nil
 	}
 
 	// For aggregate functions, evaluate step by step if row is provided

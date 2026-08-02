@@ -57,9 +57,9 @@ func Test_subjournal(t *testing.T) {
 	testprefix = "subjournal"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
+		r = db.Query("\n  PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
 		}
 	}
 	{ // "1.1"

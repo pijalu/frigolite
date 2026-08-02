@@ -50,9 +50,9 @@ func Test_tkt_5e10420e8d(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt-5e10420e8d.1"
-		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = incremental;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x);\n  CREATE TABLE t3(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = incremental;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x);\n  CREATE TABLE t3(x);\n")
+		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = incremental;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x);\n  CREATE TABLE t3(x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = incremental;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x);\n  CREATE TABLE t3(x);\n")
 		}
 	}
 	{ // "tkt-5e10420e8d.2"

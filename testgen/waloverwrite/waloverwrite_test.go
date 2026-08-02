@@ -115,9 +115,9 @@ func Test_waloverwrite(t *testing.T) {
 					_ = _row2 // suppress unused warning
 					x := fmt.Sprint(_row2[0])
 					_ = x // suppress unused warning
-						_res = db.Exec(" UPDATE t1 SET y = randomblob(799) WHERE x=" + x + " ")
+						_res = db.Exec(" UPDATE t1 SET y = randomblob(799) WHERE x=" + sqlLiteral(x) + " ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(799) WHERE x=" + x + " ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(799) WHERE x=" + sqlLiteral(x) + " ")
 						}
 					}
 					// incr i 1
@@ -188,9 +188,9 @@ func Test_waloverwrite(t *testing.T) {
 					_ = _row3 // suppress unused warning
 					x := fmt.Sprint(_row3[0])
 					_ = x // suppress unused warning
-						_res = db.Exec(" UPDATE t1 SET y = randomblob(798) WHERE x=" + x + " ")
+						_res = db.Exec(" UPDATE t1 SET y = randomblob(798) WHERE x=" + sqlLiteral(x) + " ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(798) WHERE x=" + x + " ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(798) WHERE x=" + sqlLiteral(x) + " ")
 						}
 					}
 					// incr i 1
@@ -220,9 +220,9 @@ func Test_waloverwrite(t *testing.T) {
 					_ = _row4 // suppress unused warning
 					x := fmt.Sprint(_row4[0])
 					_ = x // suppress unused warning
-						_res = db.Exec(" UPDATE t1 SET y = randomblob(797) WHERE x=" + x + " ")
+						_res = db.Exec(" UPDATE t1 SET y = randomblob(797) WHERE x=" + sqlLiteral(x) + " ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(797) WHERE x=" + x + " ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(797) WHERE x=" + sqlLiteral(x) + " ")
 						}
 					}
 					// incr i 1

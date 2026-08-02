@@ -204,9 +204,15 @@ func Test_basexx1(t *testing.T) {
 	}
 	// sqlite3_limit db SQLITE_LIMIT_LENGTH $inLimit (unsupported command, not transpiled)
 	{ // "112"
-		_res = db.Exec("\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'[\\]^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1 0 0 0 0 0 0 0 0 0 0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1 0 0 0 0 0 0 0 0 0 0", _res.Error, "\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'[\\]^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
+		r = db.Query("\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'" + sqlLiteral("\\") + "^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'" + sqlLiteral("\\") + "^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 0 0 0 0 0 0 0 0 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "113"

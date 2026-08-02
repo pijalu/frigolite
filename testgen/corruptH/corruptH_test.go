@@ -75,9 +75,9 @@ func Test_corruptH(t *testing.T) {
 		return
 	}
 	{ // "1.1"
-		_res = db.Exec("\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(randomblob(200));\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(randomblob(200));\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n")
+		r = db.Query("\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(randomblob(200));\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(randomblob(200));\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n")
 		}
 	}
 	{ // do_test "1.2"
@@ -102,9 +102,9 @@ func Test_corruptH(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
-		_res = db.Exec("\n  PRAGMA auto_vacuum=0;\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t3(x);\n\n  CREATE TABLE t2(x PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(randomblob(100));\n\n  DROP TABLE t3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum=0;\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t3(x);\n\n  CREATE TABLE t2(x PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(randomblob(100));\n\n  DROP TABLE t3;\n")
+		r = db.Query("\n  PRAGMA auto_vacuum=0;\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t3(x);\n\n  CREATE TABLE t2(x PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(randomblob(100));\n\n  DROP TABLE t3;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum=0;\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t3(x);\n\n  CREATE TABLE t2(x PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(randomblob(100));\n\n  DROP TABLE t3;\n")
 		}
 	}
 	{ // do_test "2.2"
@@ -132,9 +132,9 @@ func Test_corruptH(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
-		_res = db.Exec("\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(c INTEGER PRAGMA KEY, d);\n  INSERT INTO t2 VALUES(1, randomblob(1100));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(c INTEGER PRAGMA KEY, d);\n  INSERT INTO t2 VALUES(1, randomblob(1100));\n")
+		r = db.Query("\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(c INTEGER PRAGMA KEY, d);\n  INSERT INTO t2 VALUES(1, randomblob(1100));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(c INTEGER PRAGMA KEY, d);\n  INSERT INTO t2 VALUES(1, randomblob(1100));\n")
 		}
 	}
 	{ // do_test "3.2"

@@ -65,9 +65,9 @@ func Test_json102(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "json102-100"
-		r = db.Query("\n  SELECT json_object('ex','[52,3.14159]');\n")
+		r = db.Query("\n  SELECT json_object('ex','" + sqlLiteral("52,3.14159") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('ex','[52,3.14159]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('ex','" + sqlLiteral("52,3.14159") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -77,9 +77,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-100b"
-		r = db.Query("\n  SELECT json(jsonb_object('ex','[52,3.14159]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_object('ex','" + sqlLiteral("52,3.14159") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_object('ex','[52,3.14159]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_object('ex','" + sqlLiteral("52,3.14159") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -89,9 +89,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-110"
-		r = db.Query("\n  SELECT json_object('ex',json('[52,3.14159]'));\n")
+		r = db.Query("\n  SELECT json_object('ex',json('" + sqlLiteral("52,3.14159") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('ex',json('[52,3.14159]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('ex',json('" + sqlLiteral("52,3.14159") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -101,9 +101,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-110-2"
-		r = db.Query("\n  SELECT json(jsonb_object('ex',json('[52,3.14159]')));\n")
+		r = db.Query("\n  SELECT json(jsonb_object('ex',json('" + sqlLiteral("52,3.14159") + "')));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_object('ex',json('[52,3.14159]')));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_object('ex',json('" + sqlLiteral("52,3.14159") + "')));\n")
 			return
 		}
 		got := flatten(r)
@@ -113,9 +113,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-110-3"
-		r = db.Query("\n  SELECT json_object('ex',jsonb('[52,3.14159]'));\n")
+		r = db.Query("\n  SELECT json_object('ex',jsonb('" + sqlLiteral("52,3.14159") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('ex',jsonb('[52,3.14159]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('ex',jsonb('" + sqlLiteral("52,3.14159") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -125,9 +125,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-110-3"
-		r = db.Query("\n  SELECT json(jsonb_object('ex',jsonb('[52,3.14159]')));\n")
+		r = db.Query("\n  SELECT json(jsonb_object('ex',jsonb('" + sqlLiteral("52,3.14159") + "')));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_object('ex',jsonb('[52,3.14159]')));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_object('ex',jsonb('" + sqlLiteral("52,3.14159") + "')));\n")
 			return
 		}
 		got := flatten(r)
@@ -185,9 +185,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-130"
-		r = db.Query("\n  SELECT json(' { \"this\" : \"is\", \"a\": [ \"test\" ] } ');\n")
+		r = db.Query("\n  SELECT json(' { \"this\" : \"is\", \"a\": " + sqlLiteral("\"test\"") + " } ');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(' { \"this\" : \"is\", \"a\": [ \"test\" ] } ');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(' { \"this\" : \"is\", \"a\": " + sqlLiteral("\"test\"") + " } ');\n")
 			return
 		}
 		got := flatten(r)
@@ -197,9 +197,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-130b"
-		r = db.Query("\n  SELECT json(jsonb(' { \"this\" : \"is\", \"a\": [ \"test\" ] } '));\n")
+		r = db.Query("\n  SELECT json(jsonb(' { \"this\" : \"is\", \"a\": " + sqlLiteral("\"test\"") + " } '));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb(' { \"this\" : \"is\", \"a\": [ \"test\" ] } '));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb(' { \"this\" : \"is\", \"a\": " + sqlLiteral("\"test\"") + " } '));\n")
 			return
 		}
 		got := flatten(r)
@@ -233,9 +233,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-150"
-		r = db.Query("\n  SELECT json_array('[1,2]');\n")
+		r = db.Query("\n  SELECT json_array('" + sqlLiteral("1,2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array('[1,2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array('" + sqlLiteral("1,2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -245,9 +245,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-150b"
-		r = db.Query("\n  SELECT json(jsonb_array('[1,2]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_array('" + sqlLiteral("1,2") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_array('[1,2]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_array('" + sqlLiteral("1,2") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -305,9 +305,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-170"
-		r = db.Query("\n  SELECT json_array(1,null,'3','[4,5]','{\"six\":7.7}');\n")
+		r = db.Query("\n  SELECT json_array(1,null,'3','" + sqlLiteral("4,5") + "','{\"six\":7.7}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(1,null,'3','[4,5]','{\"six\":7.7}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(1,null,'3','" + sqlLiteral("4,5") + "','{\"six\":7.7}');\n")
 			return
 		}
 		got := flatten(r)
@@ -317,9 +317,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-170b"
-		r = db.Query("\n  SELECT json(jsonb_array(1,null,'3','[4,5]','{\"six\":7.7}'));\n")
+		r = db.Query("\n  SELECT json(jsonb_array(1,null,'3','" + sqlLiteral("4,5") + "','{\"six\":7.7}'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_array(1,null,'3','[4,5]','{\"six\":7.7}'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_array(1,null,'3','" + sqlLiteral("4,5") + "','{\"six\":7.7}'));\n")
 			return
 		}
 		got := flatten(r)
@@ -329,9 +329,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-180"
-		r = db.Query("\n  SELECT json_array(1,null,'3',json('[4,5]'),json('{\"six\":7.7}'));\n")
+		r = db.Query("\n  SELECT json_array(1,null,'3',json('" + sqlLiteral("4,5") + "'),json('{\"six\":7.7}'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(1,null,'3',json('[4,5]'),json('{\"six\":7.7}'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(1,null,'3',json('" + sqlLiteral("4,5") + "'),json('{\"six\":7.7}'));\n")
 			return
 		}
 		got := flatten(r)
@@ -341,9 +341,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-180-2"
-		r = db.Query("\n  SELECT json_array(1,null,'3',jsonb('[4,5]'),json('{\"six\":7.7}'));\n")
+		r = db.Query("\n  SELECT json_array(1,null,'3',jsonb('" + sqlLiteral("4,5") + "'),json('{\"six\":7.7}'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(1,null,'3',jsonb('[4,5]'),json('{\"six\":7.7}'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(1,null,'3',jsonb('" + sqlLiteral("4,5") + "'),json('{\"six\":7.7}'));\n")
 			return
 		}
 		got := flatten(r)
@@ -353,9 +353,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-180-3"
-		r = db.Query("\n  SELECT json(jsonb_array(1,null,'3',json('[4,5]'),json('{\"six\":7.7}')));\n")
+		r = db.Query("\n  SELECT json(jsonb_array(1,null,'3',json('" + sqlLiteral("4,5") + "'),json('{\"six\":7.7}')));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_array(1,null,'3',json('[4,5]'),json('{\"six\":7.7}')));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_array(1,null,'3',json('" + sqlLiteral("4,5") + "'),json('{\"six\":7.7}')));\n")
 			return
 		}
 		got := flatten(r)
@@ -365,9 +365,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-180-4"
-		r = db.Query("\n  SELECT json(jsonb_array(1,null,'3',jsonb('[4,5]'),jsonb('{\"six\":7.7}')));\n")
+		r = db.Query("\n  SELECT json(jsonb_array(1,null,'3',jsonb('" + sqlLiteral("4,5") + "'),jsonb('{\"six\":7.7}')));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_array(1,null,'3',jsonb('[4,5]'),jsonb('{\"six\":7.7}')));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_array(1,null,'3',jsonb('" + sqlLiteral("4,5") + "'),jsonb('{\"six\":7.7}')));\n")
 			return
 		}
 		got := flatten(r)
@@ -377,9 +377,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-190"
-		r = db.Query("\n  SELECT json_array_length('[1,2,3,4]');\n")
+		r = db.Query("\n  SELECT json_array_length('" + sqlLiteral("1,2,3,4") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('[1,2,3,4]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('" + sqlLiteral("1,2,3,4") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -389,9 +389,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-190b"
-		r = db.Query("\n  SELECT json_array_length(jsonb('[1,2,3,4]'));\n")
+		r = db.Query("\n  SELECT json_array_length(jsonb('" + sqlLiteral("1,2,3,4") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('[1,2,3,4]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('" + sqlLiteral("1,2,3,4") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -401,9 +401,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-191"
-		r = db.Query("\n  SELECT json_array_length( json_remove('[1,2,3,4]','$[2]') );\n")
+		r = db.Query("\n  SELECT json_array_length( json_remove('" + sqlLiteral("1,2,3,4") + "','$" + sqlLiteral("2") + "') );\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length( json_remove('[1,2,3,4]','$[2]') );\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length( json_remove('" + sqlLiteral("1,2,3,4") + "','$" + sqlLiteral("2") + "') );\n")
 			return
 		}
 		got := flatten(r)
@@ -413,9 +413,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-191b"
-		r = db.Query("\n  SELECT json_array_length( jsonb_remove('[1,2,3,4]','$[2]') );\n")
+		r = db.Query("\n  SELECT json_array_length( jsonb_remove('" + sqlLiteral("1,2,3,4") + "','$" + sqlLiteral("2") + "') );\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length( jsonb_remove('[1,2,3,4]','$[2]') );\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length( jsonb_remove('" + sqlLiteral("1,2,3,4") + "','$" + sqlLiteral("2") + "') );\n")
 			return
 		}
 		got := flatten(r)
@@ -425,9 +425,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-200"
-		r = db.Query("\n  SELECT json_array_length('[1,2,3,4]', '$');\n")
+		r = db.Query("\n  SELECT json_array_length('" + sqlLiteral("1,2,3,4") + "', '$');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('[1,2,3,4]', '$');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('" + sqlLiteral("1,2,3,4") + "', '$');\n")
 			return
 		}
 		got := flatten(r)
@@ -437,9 +437,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-200b"
-		r = db.Query("\n  SELECT json_array_length(jsonb('[1,2,3,4]'), '$');\n")
+		r = db.Query("\n  SELECT json_array_length(jsonb('" + sqlLiteral("1,2,3,4") + "'), '$');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('[1,2,3,4]'), '$');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('" + sqlLiteral("1,2,3,4") + "'), '$');\n")
 			return
 		}
 		got := flatten(r)
@@ -449,9 +449,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-210"
-		r = db.Query("\n  SELECT json_array_length('[1,2,3,4]', '$[2]');\n")
+		r = db.Query("\n  SELECT json_array_length('" + sqlLiteral("1,2,3,4") + "', '$" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('[1,2,3,4]', '$[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('" + sqlLiteral("1,2,3,4") + "', '$" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -461,9 +461,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-210b"
-		r = db.Query("\n  SELECT json_array_length(jsonb('[1,2,3,4]'), '$[2]');\n")
+		r = db.Query("\n  SELECT json_array_length(jsonb('" + sqlLiteral("1,2,3,4") + "'), '$" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('[1,2,3,4]'), '$[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('" + sqlLiteral("1,2,3,4") + "'), '$" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -473,9 +473,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-220"
-		r = db.Query("\n  SELECT json_array_length('{\"one\":[1,2,3]}');\n")
+		r = db.Query("\n  SELECT json_array_length('{\"one\":" + sqlLiteral("1,2,3") + "}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('{\"one\":[1,2,3]}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('{\"one\":" + sqlLiteral("1,2,3") + "}');\n")
 			return
 		}
 		got := flatten(r)
@@ -485,9 +485,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-220"
-		r = db.Query("\n  SELECT json_array_length('{\"one\":[1,2,3]}');\n")
+		r = db.Query("\n  SELECT json_array_length('{\"one\":" + sqlLiteral("1,2,3") + "}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('{\"one\":[1,2,3]}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('{\"one\":" + sqlLiteral("1,2,3") + "}');\n")
 			return
 		}
 		got := flatten(r)
@@ -497,9 +497,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-230b"
-		r = db.Query("\n  SELECT json_array_length(jsonb('{\"one\":[1,2,3]}'), '$.one');\n")
+		r = db.Query("\n  SELECT json_array_length(jsonb('{\"one\":" + sqlLiteral("1,2,3") + "}'), '$.one');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('{\"one\":[1,2,3]}'), '$.one');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('{\"one\":" + sqlLiteral("1,2,3") + "}'), '$.one');\n")
 			return
 		}
 		got := flatten(r)
@@ -509,9 +509,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-240"
-		r = db.Query("\n  SELECT json_array_length('{\"one\":[1,2,3]}', '$.two');\n")
+		r = db.Query("\n  SELECT json_array_length('{\"one\":" + sqlLiteral("1,2,3") + "}', '$.two');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('{\"one\":[1,2,3]}', '$.two');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length('{\"one\":" + sqlLiteral("1,2,3") + "}', '$.two');\n")
 			return
 		}
 		got := flatten(r)
@@ -521,9 +521,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-240b"
-		r = db.Query("\n  SELECT json_array_length(jsonb('{\"one\":[1,2,3]}'), '$.two');\n")
+		r = db.Query("\n  SELECT json_array_length(jsonb('{\"one\":" + sqlLiteral("1,2,3") + "}'), '$.two');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('{\"one\":[1,2,3]}'), '$.two');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_length(jsonb('{\"one\":" + sqlLiteral("1,2,3") + "}'), '$.two');\n")
 			return
 		}
 		got := flatten(r)
@@ -533,9 +533,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-250"
-		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$');\n")
+		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$');\n")
 			return
 		}
 		got := flatten(r)
@@ -545,9 +545,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-250-2"
-		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$');\n")
+		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$');\n")
 			return
 		}
 		got := flatten(r)
@@ -557,9 +557,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-250-3"
-		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$'));\n")
 			return
 		}
 		got := flatten(r)
@@ -569,9 +569,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-250-4"
-		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$'));\n")
 			return
 		}
 		got := flatten(r)
@@ -581,9 +581,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-260"
-		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c');\n")
+		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c');\n")
 			return
 		}
 		got := flatten(r)
@@ -593,9 +593,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-260-2"
-		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c');\n")
+		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.c');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.c');\n")
 			return
 		}
 		got := flatten(r)
@@ -605,9 +605,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-260-3"
-		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c'));\n")
 			return
 		}
 		got := flatten(r)
@@ -617,9 +617,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-260-4"
-		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.c'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.c'));\n")
 			return
 		}
 		got := flatten(r)
@@ -629,9 +629,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-270"
-		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2]');\n")
+		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -641,9 +641,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-270-2"
-		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c[2]');\n")
+		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.c" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.c" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -653,9 +653,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-270-3"
-		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c[2]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.c" + sqlLiteral("2") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.c[2]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.c" + sqlLiteral("2") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -665,9 +665,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-270-4"
-		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c" + sqlLiteral("2") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c" + sqlLiteral("2") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -677,9 +677,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-280"
-		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2].f');\n")
+		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c" + sqlLiteral("2") + ".f');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2].f');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c" + sqlLiteral("2") + ".f');\n")
 			return
 		}
 		got := flatten(r)
@@ -689,9 +689,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-280b"
-		r = db.Query("\n  SELECT jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2].f');\n")
+		r = db.Query("\n  SELECT jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c" + sqlLiteral("2") + ".f');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.c[2].f');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.c" + sqlLiteral("2") + ".f');\n")
 			return
 		}
 		got := flatten(r)
@@ -701,9 +701,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-290"
-		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":[4,5],\"f\":7}','$.c','$.a');\n")
+		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5") + ",\"f\":7}','$.c','$.a');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":[4,5],\"f\":7}','$.c','$.a');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5") + ",\"f\":7}','$.c','$.a');\n")
 			return
 		}
 		got := flatten(r)
@@ -713,9 +713,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-290-2"
-		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5],\"f\":7}'),'$.c','$.a');\n")
+		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5") + ",\"f\":7}'),'$.c','$.a');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5],\"f\":7}'),'$.c','$.a');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5") + ",\"f\":7}'),'$.c','$.a');\n")
 			return
 		}
 		got := flatten(r)
@@ -725,9 +725,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-290-3"
-		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5],\"f\":7}','$.c','$.a'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5") + ",\"f\":7}','$.c','$.a'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5],\"f\":7}','$.c','$.a'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5") + ",\"f\":7}','$.c','$.a'));\n")
 			return
 		}
 		got := flatten(r)
@@ -737,9 +737,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-290-4"
-		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5],\"f\":7}'),'$.c','$.a'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5") + ",\"f\":7}'),'$.c','$.a'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5],\"f\":7}'),'$.c','$.a'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5") + ",\"f\":7}'),'$.c','$.a'));\n")
 			return
 		}
 		got := flatten(r)
@@ -749,9 +749,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-300"
-		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x');\n")
+		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.x');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.x');\n")
 			return
 		}
 		got := flatten(r)
@@ -761,9 +761,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-300b"
-		r = db.Query("\n  SELECT jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x');\n")
+		r = db.Query("\n  SELECT jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.x');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.x');\n")
 			return
 		}
 		got := flatten(r)
@@ -773,9 +773,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-310"
-		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x', '$.a');\n")
+		r = db.Query("\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.x', '$.a');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x', '$.a');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.x', '$.a');\n")
 			return
 		}
 		got := flatten(r)
@@ -785,9 +785,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-310-2"
-		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.x', '$.a');\n")
+		r = db.Query("\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.x', '$.a');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.x', '$.a');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.x', '$.a');\n")
 			return
 		}
 		got := flatten(r)
@@ -797,9 +797,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-310-3"
-		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.x', '$.a'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.x', '$.a'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":[4,5,{\"f\":7}]}'), '$.x', '$.a'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract(jsonb('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}'), '$.x', '$.a'));\n")
 			return
 		}
 		got := flatten(r)
@@ -809,9 +809,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-310-43"
-		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x', '$.a'));\n")
+		r = db.Query("\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.x', '$.a'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x', '$.a'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_extract('{\"a\":2,\"c\":" + sqlLiteral("4,5,{\"f\":7}") + "}', '$.x', '$.a'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1109,9 +1109,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-380"
-		r = db.Query("\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', '[97,96]');\n")
+		r = db.Query("\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', '" + sqlLiteral("97,96") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', '[97,96]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', '" + sqlLiteral("97,96") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1121,9 +1121,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-380-2"
-		r = db.Query("\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '[97,96]');\n")
+		r = db.Query("\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '" + sqlLiteral("97,96") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '[97,96]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '" + sqlLiteral("97,96") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1133,9 +1133,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-380-3"
-		r = db.Query("\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', '[97,96]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', '" + sqlLiteral("97,96") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', '[97,96]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', '" + sqlLiteral("97,96") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1145,9 +1145,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-380-4"
-		r = db.Query("\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '[97,96]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '" + sqlLiteral("97,96") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '[97,96]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', '" + sqlLiteral("97,96") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1157,9 +1157,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-390"
-		r = db.Query("\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', json('[97,96]'));\n")
+		r = db.Query("\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', json('" + sqlLiteral("97,96") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', json('[97,96]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', json('" + sqlLiteral("97,96") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1169,9 +1169,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-390-2"
-		r = db.Query("\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('[97,96]'));\n")
+		r = db.Query("\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('" + sqlLiteral("97,96") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('[97,96]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('" + sqlLiteral("97,96") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1181,9 +1181,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-390-3"
-		r = db.Query("\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', json('[97,96]')));\n")
+		r = db.Query("\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', json('" + sqlLiteral("97,96") + "')));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', json('[97,96]')));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', json('" + sqlLiteral("97,96") + "')));\n")
 			return
 		}
 		got := flatten(r)
@@ -1193,9 +1193,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-390-4"
-		r = db.Query("\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('[97,96]')));\n")
+		r = db.Query("\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('" + sqlLiteral("97,96") + "')));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('[97,96]')));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', json('" + sqlLiteral("97,96") + "')));\n")
 			return
 		}
 		got := flatten(r)
@@ -1205,9 +1205,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-390-5"
-		r = db.Query("\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', jsonb('[97,96]'));\n")
+		r = db.Query("\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', jsonb('" + sqlLiteral("97,96") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', jsonb('[97,96]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set('{\"a\":2,\"c\":4}', '$.c', jsonb('" + sqlLiteral("97,96") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1217,9 +1217,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-390-6"
-		r = db.Query("\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('[97,96]'));\n")
+		r = db.Query("\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('" + sqlLiteral("97,96") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('[97,96]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('" + sqlLiteral("97,96") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1229,9 +1229,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-390-7"
-		r = db.Query("\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', jsonb('[97,96]')));\n")
+		r = db.Query("\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', jsonb('" + sqlLiteral("97,96") + "')));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', jsonb('[97,96]')));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set('{\"a\":2,\"c\":4}', '$.c', jsonb('" + sqlLiteral("97,96") + "')));\n")
 			return
 		}
 		got := flatten(r)
@@ -1241,9 +1241,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-390-8"
-		r = db.Query("\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('[97,96]')));\n")
+		r = db.Query("\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('" + sqlLiteral("97,96") + "')));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('[97,96]')));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_set(jsonb('{\"a\":2,\"c\":4}'), '$.c', jsonb('" + sqlLiteral("97,96") + "')));\n")
 			return
 		}
 		got := flatten(r)
@@ -1445,9 +1445,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-440"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[2]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1457,9 +1457,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-440-2"
-		r = db.Query("\n  SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[2]');\n")
+		r = db.Query("\n  SELECT json_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1469,9 +1469,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-440-3"
-		r = db.Query("\n  SELECT json(jsonb_remove('[0,1,2,3,4]','$[2]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("2") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove('[0,1,2,3,4]','$[2]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("2") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1481,9 +1481,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-440-4"
-		r = db.Query("\n  SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[2]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("2") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[2]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("2") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1493,9 +1493,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-445-1"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[5]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("5") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[5]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("5") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1505,9 +1505,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-445-2"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[6]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("6") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[6]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("6") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1517,9 +1517,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-445-3"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[4294967295]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("4294967295") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[4294967295]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("4294967295") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1529,9 +1529,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-445-4"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[4294967296]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("4294967296") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[4294967296]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("4294967296") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1541,9 +1541,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-445-5"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[4294967297]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("4294967297") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[4294967297]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("4294967297") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1553,9 +1553,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-445-6"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[42949672950]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("42949672950") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[42949672950]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("42949672950") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1565,9 +1565,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-445-7"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[42949672960]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("42949672960") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[42949672960]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("42949672960") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1577,9 +1577,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-450"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[2]','$[0]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("2") + "','$" + sqlLiteral("0") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[2]','$[0]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("2") + "','$" + sqlLiteral("0") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1589,9 +1589,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-450-2"
-		r = db.Query("\n  SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[2]','$[0]');\n")
+		r = db.Query("\n  SELECT json_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("2") + "','$" + sqlLiteral("0") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[2]','$[0]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("2") + "','$" + sqlLiteral("0") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1601,9 +1601,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-450-3"
-		r = db.Query("\n  SELECT json(jsonb_remove('[0,1,2,3,4]','$[2]','$[0]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("2") + "','$" + sqlLiteral("0") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove('[0,1,2,3,4]','$[2]','$[0]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("2") + "','$" + sqlLiteral("0") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1613,9 +1613,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-450-4"
-		r = db.Query("\n  SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[2]','$[0]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("2") + "','$" + sqlLiteral("0") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[2]','$[0]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("2") + "','$" + sqlLiteral("0") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1625,9 +1625,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-460"
-		r = db.Query("\n  SELECT json_remove('[0,1,2,3,4]','$[0]','$[2]');\n")
+		r = db.Query("\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("0") + "','$" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('[0,1,2,3,4]','$[0]','$[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("0") + "','$" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1637,9 +1637,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-460-2"
-		r = db.Query("\n  SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[0]','$[2]');\n")
+		r = db.Query("\n  SELECT json_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("0") + "','$" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[0]','$[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("0") + "','$" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1649,9 +1649,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-460-3"
-		r = db.Query("\n  SELECT json(jsonb_remove('[0,1,2,3,4]','$[0]','$[2]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("0") + "','$" + sqlLiteral("2") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove('[0,1,2,3,4]','$[0]','$[2]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove('" + sqlLiteral("0,1,2,3,4") + "','$" + sqlLiteral("0") + "','$" + sqlLiteral("2") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1661,9 +1661,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-460-4"
-		r = db.Query("\n  SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[0]','$[2]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("0") + "','$" + sqlLiteral("2") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[0]','$[2]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_remove(jsonb('" + sqlLiteral("0,1,2,3,4") + "'),'$" + sqlLiteral("0") + "','$" + sqlLiteral("2") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -1865,9 +1865,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-510"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}');\n")
 			return
 		}
 		got := flatten(r)
@@ -1889,9 +1889,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-520"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$');\n")
 			return
 		}
 		got := flatten(r)
@@ -1913,9 +1913,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-530"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a');\n")
 			return
 		}
 		got := flatten(r)
@@ -1937,9 +1937,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-540"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[0]');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("0") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[0]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("0") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1949,9 +1949,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-540b"
-		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[0]');\n")
+		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("0") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[0]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("0") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1961,9 +1961,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-550"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[1]');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("1") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[1]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("1") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1973,9 +1973,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-550b"
-		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[1]');\n")
+		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("1") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[1]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("1") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1985,9 +1985,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-560"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[2]');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -1997,9 +1997,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-560b"
-		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[2]');\n")
+		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("2") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[2]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("2") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -2009,9 +2009,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-570"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[3]');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("3") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[3]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("3") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -2021,9 +2021,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-570b"
-		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[3]');\n")
+		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("3") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[3]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("3") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -2033,9 +2033,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-580"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[4]');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("4") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[4]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("4") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -2045,9 +2045,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-580b"
-		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[4]');\n")
+		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("4") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[4]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("4") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -2057,9 +2057,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-590"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[5]');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("5") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[5]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("5") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -2069,9 +2069,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-590b"
-		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[5]');\n")
+		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("5") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[5]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("5") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -2081,9 +2081,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-600"
-		r = db.Query("\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[6]');\n")
+		r = db.Query("\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("6") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[6]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{\"a\":" + sqlLiteral("2,3.5,true,false,null,\"x\"") + "}','$.a" + sqlLiteral("6") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -2093,9 +2093,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-600b"
-		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[6]');\n")
+		r = db.Query("\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("6") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[6]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a" + sqlLiteral("6") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -2129,9 +2129,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-1000"
-		r = db.Query("\n  CREATE TABLE user(name,phone,phoneb);\n  INSERT INTO user(name,phone) VALUES\n     ('Alice','[\"919-555-2345\",\"804-555-3621\"]'),\n     ('Bob','[\"201-555-8872\"]'),\n     ('Cindy','[\"704-555-9983\"]'),\n     ('Dave','[\"336-555-8421\",\"704-555-4321\",\"803-911-4421\"]');\n  UPDATE user SET phoneb=jsonb(phone);\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;\n")
+		r = db.Query("\n  CREATE TABLE user(name,phone,phoneb);\n  INSERT INTO user(name,phone) VALUES\n     ('Alice','" + sqlLiteral("\"919-555-2345\",\"804-555-3621\"") + "'),\n     ('Bob','" + sqlLiteral("\"201-555-8872\"") + "'),\n     ('Cindy','" + sqlLiteral("\"704-555-9983\"") + "'),\n     ('Dave','" + sqlLiteral("\"336-555-8421\",\"704-555-4321\",\"803-911-4421\"") + "');\n  UPDATE user SET phoneb=jsonb(phone);\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE user(name,phone,phoneb);\n  INSERT INTO user(name,phone) VALUES\n     ('Alice','[\"919-555-2345\",\"804-555-3621\"]'),\n     ('Bob','[\"201-555-8872\"]'),\n     ('Cindy','[\"704-555-9983\"]'),\n     ('Dave','[\"336-555-8421\",\"704-555-4321\",\"803-911-4421\"]');\n  UPDATE user SET phoneb=jsonb(phone);\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE user(name,phone,phoneb);\n  INSERT INTO user(name,phone) VALUES\n     ('Alice','" + sqlLiteral("\"919-555-2345\",\"804-555-3621\"") + "'),\n     ('Bob','" + sqlLiteral("\"201-555-8872\"") + "'),\n     ('Cindy','" + sqlLiteral("\"704-555-9983\"") + "'),\n     ('Dave','" + sqlLiteral("\"336-555-8421\",\"704-555-4321\",\"803-911-4421\"") + "');\n  UPDATE user SET phoneb=jsonb(phone);\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;\n")
 			return
 		}
 		got := flatten(r)
@@ -2153,9 +2153,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-1010"
-		r = db.Query("\n  UPDATE user\n     SET phone=json_extract(phone,'$[0]')\n   WHERE json_array_length(phone)<2;\n  SELECT name, substr(phone,1,5) FROM user ORDER BY name;\n")
+		r = db.Query("\n  UPDATE user\n     SET phone=json_extract(phone,'$" + sqlLiteral("0") + "')\n   WHERE json_array_length(phone)<2;\n  SELECT name, substr(phone,1,5) FROM user ORDER BY name;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE user\n     SET phone=json_extract(phone,'$[0]')\n   WHERE json_array_length(phone)<2;\n  SELECT name, substr(phone,1,5) FROM user ORDER BY name;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE user\n     SET phone=json_extract(phone,'$" + sqlLiteral("0") + "')\n   WHERE json_array_length(phone)<2;\n  SELECT name, substr(phone,1,5) FROM user ORDER BY name;\n")
 			return
 		}
 		got := flatten(r)
@@ -2177,9 +2177,9 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	{ // "json102-1100"
-		_res = db.Exec("\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":[1,2,3,4],\n    \"partlist\":[\n       {\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}\n    ]\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":[\"hello\",\"world\",\"xyzzy\"],\n    \"partlist\":[\n       {\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}\n    ]\n  }');\n")
+		_res = db.Exec("\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":" + sqlLiteral("1,2,3,4") + ",\n    \"partlist\":" + sqlLiteral("{\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}") + "\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":" + sqlLiteral("\"hello\",\"world\",\"xyzzy\"") + ",\n    \"partlist\":" + sqlLiteral("{\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}") + "\n  }');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":[1,2,3,4],\n    \"partlist\":[\n       {\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}\n    ]\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":[\"hello\",\"world\",\"xyzzy\"],\n    \"partlist\":[\n       {\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}\n    ]\n  }');\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":" + sqlLiteral("1,2,3,4") + ",\n    \"partlist\":" + sqlLiteral("{\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}") + "\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":" + sqlLiteral("\"hello\",\"world\",\"xyzzy\"") + ",\n    \"partlist\":" + sqlLiteral("{\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}") + "\n  }');\n")
 		}
 	}
 	correct_answer = "list \\\n    1 {$.id} 123 \\\n    1 {$.stuff[0]} 1 \\\n    1 {$.stuff[1]} 2 \\\n    1 {$.stuff[2]} 3 \\\n    1 {$.stuff[3]} 4 \\\n    1 {$.partlist[0].uuid} bb108722-572e-11e5-9320-7f3b63a4ca74 \\\n    1 {$.partlist[1].uuid} c690dc14-572e-11e5-95f9-dfc8861fd535 \\\n    1 {$.partlist[2].subassembly[0].uuid} 6fa5181e-5721-11e5-a04e-57f3d7b32808 \\\n    2 {$.id} 456 \\\n    2 {$.stuff[0]} hello \\\n    2 {$.stuff[1]} world \\\n    2 {$.stuff[2]} xyzzy \\\n    2 {$.partlist[0].uuid} 0 \\\n    2 {$.partlist[1].uuid} c690dc14-572e-11e5-95f9-dfc8861fd535"
@@ -2286,9 +2286,15 @@ func Test_json102(t *testing.T) {
 		str = "abcdef" + "\\\" [expr {$i+50}]" + "uvwxyz"
 		_ = str // suppress unused warning
 		{ // do_test "json102-" + "format %d [expr {$i+1300}]"
-			_res = db.Exec("SELECT json_extract(json_array(" + str + "),'$" + "0" + "')==" + str)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT json_extract(json_array(" + str + "),'$" + "0" + "')==" + str)
+			r = db.Query("SELECT json_extract(json_array(" + sqlLiteral(str) + "),'$" + sqlLiteral("0") + "')==" + sqlLiteral(str))
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_extract(json_array(" + sqlLiteral(str) + "),'$" + sqlLiteral("0") + "')==" + sqlLiteral(str))
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr i 1
@@ -2352,9 +2358,9 @@ func Test_json102(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "json102-1600"
-			r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":[7,8]}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x->'a' AS '->',\n    CASE WHEN subtype(x->'a') THEN 'json' ELSE typeof(x->'a') END AS 'type',\n    x->>'a' AS '->>',\n    CASE WHEN subtype(x->>'a') THEN 'json' ELSE typeof(x->>'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;\n")
+			r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":" + sqlLiteral("7,8") + "}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x->'a' AS '->',\n    CASE WHEN subtype(x->'a') THEN 'json' ELSE typeof(x->'a') END AS 'type',\n    x->>'a' AS '->>',\n    CASE WHEN subtype(x->>'a') THEN 'json' ELSE typeof(x->>'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":[7,8]}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x->'a' AS '->',\n    CASE WHEN subtype(x->'a') THEN 'json' ELSE typeof(x->'a') END AS 'type',\n    x->>'a' AS '->>',\n    CASE WHEN subtype(x->>'a') THEN 'json' ELSE typeof(x->>'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":" + sqlLiteral("7,8") + "}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x->'a' AS '->',\n    CASE WHEN subtype(x->'a') THEN 'json' ELSE typeof(x->'a') END AS 'type',\n    x->>'a' AS '->>',\n    CASE WHEN subtype(x->>'a') THEN 'json' ELSE typeof(x->>'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;\n")
 				return
 			}
 			got := flatten(r)
@@ -2364,9 +2370,9 @@ func Test_json102(t *testing.T) {
 			}
 		}
 		{ // "json102-1610"
-			r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+			r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('" + sqlLiteral("null,123,4.5,\"six\",[7,8],{\"b\":9}") + "');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$" + sqlLiteral("%d") + "',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$" + sqlLiteral("%d") + "',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$" + sqlLiteral("%d") + "',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('" + sqlLiteral("null,123,4.5,\"six\",[7,8],{\"b\":9}") + "');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$" + sqlLiteral("%d") + "',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$" + sqlLiteral("%d") + "',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$" + sqlLiteral("%d") + "',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
 				return
 			}
 			got := flatten(r)
@@ -2376,9 +2382,9 @@ func Test_json102(t *testing.T) {
 			}
 		}
 		{ // "json102-1620"
-			r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+			r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('" + sqlLiteral("null,123,4.5,\"six\",[7,8],{\"b\":9}") + "');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$" + sqlLiteral("%d") + "',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$" + sqlLiteral("%d") + "',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$" + sqlLiteral("%d") + "',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('" + sqlLiteral("null,123,4.5,\"six\",[7,8],{\"b\":9}") + "');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$" + sqlLiteral("%d") + "',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$" + sqlLiteral("%d") + "',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$" + sqlLiteral("%d") + "',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
 				return
 			}
 			got := flatten(r)
@@ -2446,9 +2452,9 @@ func Test_json102(t *testing.T) {
 			}
 		}
 		{ // "json102-1810"
-			r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->>'1';\n")
+			r = db.Query("\n  SELECT '" + sqlLiteral("\"zero\",\"one\",\"two\"") + "'->>'1';\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->>'1';\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '" + sqlLiteral("\"zero\",\"one\",\"two\"") + "'->>'1';\n")
 				return
 			}
 			got := flatten(r)
@@ -2458,9 +2464,9 @@ func Test_json102(t *testing.T) {
 			}
 		}
 		{ // "json102-1811"
-			r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->>1;\n")
+			r = db.Query("\n  SELECT '" + sqlLiteral("\"zero\",\"one\",\"two\"") + "'->>1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->>1;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '" + sqlLiteral("\"zero\",\"one\",\"two\"") + "'->>1;\n")
 				return
 			}
 			got := flatten(r)
@@ -2494,9 +2500,9 @@ func Test_json102(t *testing.T) {
 			}
 		}
 		{ // "json102-1830"
-			r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->'1';\n")
+			r = db.Query("\n  SELECT '" + sqlLiteral("\"zero\",\"one\",\"two\"") + "'->'1';\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->'1';\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '" + sqlLiteral("\"zero\",\"one\",\"two\"") + "'->'1';\n")
 				return
 			}
 			got := flatten(r)
@@ -2506,9 +2512,9 @@ func Test_json102(t *testing.T) {
 			}
 		}
 		{ // "json102-1831"
-			r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->1;\n")
+			r = db.Query("\n  SELECT '" + sqlLiteral("\"zero\",\"one\",\"two\"") + "'->1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->1;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '" + sqlLiteral("\"zero\",\"one\",\"two\"") + "'->1;\n")
 				return
 			}
 			got := flatten(r)

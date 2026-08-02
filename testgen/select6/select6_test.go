@@ -98,9 +98,9 @@ func Test_select6(t *testing.T) {
 		}
 	}
 	{ // do_test "select6-1.7"
-		r = db.Query("\n    SELECT a.y, a." + "count(*)" + ", " + "max(x)" + ", " + "count(*)" + "\n    FROM (SELECT count(*),y FROM t1 GROUP BY y) AS a,\n         (SELECT max(x),y FROM t1 GROUP BY y) as b\n    WHERE a.y=b.y ORDER BY a.y\n  ")
+		r = db.Query("\n    SELECT a.y, a." + sqlLiteral("count(*)") + ", " + sqlLiteral("max(x)") + ", " + sqlLiteral("count(*)") + "\n    FROM (SELECT count(*),y FROM t1 GROUP BY y) AS a,\n         (SELECT max(x),y FROM t1 GROUP BY y) as b\n    WHERE a.y=b.y ORDER BY a.y\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.y, a." + "count(*)" + ", " + "max(x)" + ", " + "count(*)" + "\n    FROM (SELECT count(*),y FROM t1 GROUP BY y) AS a,\n         (SELECT max(x),y FROM t1 GROUP BY y) as b\n    WHERE a.y=b.y ORDER BY a.y\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.y, a." + sqlLiteral("count(*)") + ", " + sqlLiteral("max(x)") + ", " + sqlLiteral("count(*)") + "\n    FROM (SELECT count(*),y FROM t1 GROUP BY y) AS a,\n         (SELECT max(x),y FROM t1 GROUP BY y) as b\n    WHERE a.y=b.y ORDER BY a.y\n  ")
 		}
 	}
 	{ // do_test "select6-1.8"
@@ -110,9 +110,9 @@ func Test_select6(t *testing.T) {
 		}
 	}
 	{ // do_test "select6-1.9"
-		r = db.Query("\n    SELECT q, p, r, b." + "min(x)+y" + "\n    FROM (SELECT count(*) as p , y as q FROM t1 GROUP BY y) AS a,\n         (SELECT max(x) as r, y as s, min(x)+y FROM t1 GROUP BY y) as b\n    WHERE q=s ORDER BY s\n  ")
+		r = db.Query("\n    SELECT q, p, r, b." + sqlLiteral("min(x)+y") + "\n    FROM (SELECT count(*) as p , y as q FROM t1 GROUP BY y) AS a,\n         (SELECT max(x) as r, y as s, min(x)+y FROM t1 GROUP BY y) as b\n    WHERE q=s ORDER BY s\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT q, p, r, b." + "min(x)+y" + "\n    FROM (SELECT count(*) as p , y as q FROM t1 GROUP BY y) AS a,\n         (SELECT max(x) as r, y as s, min(x)+y FROM t1 GROUP BY y) as b\n    WHERE q=s ORDER BY s\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT q, p, r, b." + sqlLiteral("min(x)+y") + "\n    FROM (SELECT count(*) as p , y as q FROM t1 GROUP BY y) AS a,\n         (SELECT max(x) as r, y as s, min(x)+y FROM t1 GROUP BY y) as b\n    WHERE q=s ORDER BY s\n  ")
 		}
 	}
 	{ // do_test "select6-2.0"
@@ -158,9 +158,9 @@ func Test_select6(t *testing.T) {
 		}
 	}
 	{ // do_test "select6-2.7"
-		r = db.Query("\n    SELECT a.b, a." + "count(*)" + ", " + "max(a)" + ", " + "count(*)" + "\n    FROM (SELECT count(*),b FROM t2 GROUP BY b) AS a,\n         (SELECT max(a),b FROM t2 GROUP BY b) as b\n    WHERE a.b=b.b ORDER BY a.b\n  ")
+		r = db.Query("\n    SELECT a.b, a." + sqlLiteral("count(*)") + ", " + sqlLiteral("max(a)") + ", " + sqlLiteral("count(*)") + "\n    FROM (SELECT count(*),b FROM t2 GROUP BY b) AS a,\n         (SELECT max(a),b FROM t2 GROUP BY b) as b\n    WHERE a.b=b.b ORDER BY a.b\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.b, a." + "count(*)" + ", " + "max(a)" + ", " + "count(*)" + "\n    FROM (SELECT count(*),b FROM t2 GROUP BY b) AS a,\n         (SELECT max(a),b FROM t2 GROUP BY b) as b\n    WHERE a.b=b.b ORDER BY a.b\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.b, a." + sqlLiteral("count(*)") + ", " + sqlLiteral("max(a)") + ", " + sqlLiteral("count(*)") + "\n    FROM (SELECT count(*),b FROM t2 GROUP BY b) AS a,\n         (SELECT max(a),b FROM t2 GROUP BY b) as b\n    WHERE a.b=b.b ORDER BY a.b\n  ")
 		}
 	}
 	{ // do_test "select6-2.8"
@@ -254,15 +254,15 @@ func Test_select6(t *testing.T) {
 		}
 	}
 	{ // do_test "select6-3.14"
-		r = db.Query("\n    SELECT " + "count(*)" + ",y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY " + "count(*)" + "\n  ")
+		r = db.Query("\n    SELECT " + sqlLiteral("count(*)") + ",y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY " + sqlLiteral("count(*)") + "\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT " + "count(*)" + ",y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY " + "count(*)" + "\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT " + sqlLiteral("count(*)") + ",y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY " + sqlLiteral("count(*)") + "\n  ")
 		}
 	}
 	{ // do_test "select6-3.15"
-		r = db.Query("\n    SELECT " + "count(*)" + ",y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY y\n  ")
+		r = db.Query("\n    SELECT " + sqlLiteral("count(*)") + ",y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY y\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT " + "count(*)" + ",y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY y\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT " + sqlLiteral("count(*)") + ",y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY y\n  ")
 		}
 	}
 	{ // do_test "select6-4.1"

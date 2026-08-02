@@ -56,15 +56,27 @@ func Test_contrib01(t *testing.T) {
 		}
 	}
 	{ // do_test "contrib01-1.1"
-		_res = db.Exec("\n    SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n      FROM T1, T2\n     WHERE T1.B = T2.B\n       AND T1.C = T2.C\n     GROUP BY T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H\n     ORDER BY +max(t1.c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n      FROM T1, T2\n     WHERE T1.B = T2.B\n       AND T1.C = T2.C\n     GROUP BY T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H\n     ORDER BY +max(t1.c);\n  ")
+		r = db.Query("\n    SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n      FROM T1, T2\n     WHERE T1.B = T2.B\n       AND T1.C = T2.C\n     GROUP BY T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H\n     ORDER BY +max(t1.c);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n      FROM T1, T2\n     WHERE T1.B = T2.B\n       AND T1.C = T2.C\n     GROUP BY T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H\n     ORDER BY +max(t1.c);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "702118 16183 6 0 5 5 0 15681 ^ 702118 16183 6 0 5 2 0 15682 ^"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "contrib01-1.2"
-		_res = db.Exec("\n   SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n     FROM T1, T2\n    WHERE T1.B = T2.B\n      AND T1.C = T2.C\n    GROUP BY T2.A, T2.B, T1.F, T1.D, T1.E, T1.G, T1.H\n    ORDER BY +max(t1.c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n     FROM T1, T2\n    WHERE T1.B = T2.B\n      AND T1.C = T2.C\n    GROUP BY T2.A, T2.B, T1.F, T1.D, T1.E, T1.G, T1.H\n    ORDER BY +max(t1.c);\n  ")
+		r = db.Query("\n   SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n     FROM T1, T2\n    WHERE T1.B = T2.B\n      AND T1.C = T2.C\n    GROUP BY T2.A, T2.B, T1.F, T1.D, T1.E, T1.G, T1.H\n    ORDER BY +max(t1.c);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n     FROM T1, T2\n    WHERE T1.B = T2.B\n      AND T1.C = T2.C\n    GROUP BY T2.A, T2.B, T1.F, T1.D, T1.E, T1.G, T1.H\n    ORDER BY +max(t1.c);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "702118 16183 6 0 5 5 0 15681 ^ 702118 16183 6 0 5 2 0 15682 ^"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -3,18 +3,19 @@
 **Source of truth for TCL semantics**: `/Users/muaddib/dev/sqlite/test/`
 **Package list**: `plans/PACKAGES_TIER1.txt` (58 packages)
 **Measured this session** (`go test -tags testgen -count=1 -timeout 90s` per package, parallel sweep):
-**29 PASS / 29 FAIL** at T1.4 start; **30 PASS / 28 FAIL** after T1.4 (only whereG flipped).
-**Progress**: T1.1 DONE (delete3 green 2.9s), T1.2 DONE (selectG 145s→5s via rowid cache), T1.3 DONE (cse green — comparison/IN/IS NULL/BETWEEN/logical never emit Go bool), T1.4 DONE (whereG green — TCL list-brace unwrap in tcl2go + comparison affinity/rowid INTEGER affinity fixes) — remaining 26 FAIL pending.
+**29 PASS / 29 FAIL** at T1.4 start; **30 PASS / 28 FAIL** after T1.4 (only whereG flipped); **32 PASS / 26 FAIL** after T1.5 (numcast, values, between flipped; whereA re-exposed by stricter do_test result-checking — see §1 note).
+**Progress**: T1.1 DONE (delete3 green 2.9s), T1.2 DONE (selectG 145s→5s via rowid cache), T1.3 DONE (cse green — comparison/IN/IS NULL/BETWEEN/logical never emit Go bool), T1.4 DONE (whereG green — TCL list-brace unwrap in tcl2go + comparison affinity/rowid INTEGER affinity fixes), T1.5 DONE (numcast/values/between green — $var-in-SQL → quoted literal in gen.go; harness result-checking + skip-side-effects; CTE scope stack for scalar-subquery CTEs; BEGIN/ROLLBACK pager snapshot/restore; RAISE() in triggers; scalar min/max NULL semantics; COLLATE in ORDER BY via compareValuesWithCollate) — remaining 26 FAIL pending.
 
-- **PASS (30)**: insert, delete_, update, null, types, coalesce, literal, select2,
+- **PASS (32)**: insert, delete_, update, null, types, coalesce, literal, select2,
   select3, select4, select5, select6, select8, select9, selectB, selectE, selectF,
-  selectG*, whereA, whereB, whereC, whereJ, whereK, whereN, delete2, delete4, valuesfault,
-  delete3, cse, whereG
+  selectG*, whereB, whereC, whereJ, whereK, whereN, delete2, delete4, valuesfault,
+  delete3, cse, whereG, numcast, values, between
   (*selectG passes alone in ~145s but times out under parallel load — O(n²) rowid scan, task T1.2)
-- **FAIL (28)**: affinity, between, cast, delete_pkg, expr, intpkey,
-  intreal, istrue, nulls, numcast, returning, select1, select7, selectA, selectC,
-  selectD, selectH, strict, subtype, values, where, whereD, whereE, whereF,
+- **FAIL (26)**: affinity, cast, delete_pkg, expr, intpkey,
+  intreal, istrue, nulls, returning, select1, select7, selectA, selectC,
+  selectD, selectH, strict, subtype, where, whereA, whereD, whereE, whereF,
   whereH, whereI, whereL, whereM
+  (whereA re-exposed: PRAGMA reverse_unordered_selects — test-only pragma, no engine support; btree reverse scan missing. Follow-up, not T1.5.)
 
 ---
 
@@ -60,7 +61,7 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 - [x] T1.2 — selectG O(n²): rowid cache in findNextRowID, bump on insert, invalidate on delete (commit pending)
 - [x] T1.3 — cse bool→0/1: evalIsNull/evalIsNotNull/evalBetween/evalInList + HAVING IsNull/NOT/IsNotNull now emit int64(0/1)
 - [x] T1.4 — whereG braces: tcl2go normalizeExpectedWord unwraps single {...} list-rendering groups; engine CompareValues rule-3 (no affinity → type ordering) + rowid wrapped with INTEGER affinity. Committed + pushed.
-- [ ] T1.5
+- [x] T1.5 — tcl2go $var-in-SQL → quoted literal; harness result-checking for do_test db-eval bodies + skipped tests run for side effects; engine: CTE scope stack (scalar-subquery CTEs), BEGIN/ROLLBACK pager snapshot/restore (DML undo), RAISE() trigger semantics, scalar min/max NULL, ORDER BY COLLATE via compareValuesWithCollate, RAISE parse rules 278-282. numcast/values/between green. Committed + pushed.
 - [ ] T1.6
 - [ ] T1.7
 - [ ] T1.8
@@ -99,13 +100,21 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
    `CAST( 876xyz AS real)` → parse error. **Fix (harness)**: transpile `$var`
    in SQL as a bound parameter or quote it as a string literal. AFTER that,
    the engine still needs REAL/NUMERIC CAST of strings to parse the numeric
-   prefix (§1.C numcast second bug).
+   prefix (§1.C numcast second bug). **FIXED (T1.5)**: `$var` in braced SQL
+   now transpiles to a quoted string literal via `sqlLiteral`; CAST string
+   numeric-prefix parse added in `castValue` (internal/exec/expression.go).
+   numcast package is green.
 
 2. **values** — `/Users/muaddib/dev/sqlite/test/values.test:77-88` (1.2.5/1.2.6)
    `INSERT INTO x1 VALUES(4,4,$a),(5,5,$b),(6,6,$c)` with `set a 4` etc. —
    tcl2go left `$a/$b/$c` as literal text (the `set` statements were skipped),
    engine parses `$a` as a NULL variable → third column of rows 4-6 is `{}`.
    **Fix (harness)**: same `$var`-in-SQL transpilation issue as numcast.
+   **FIXED (T1.5)**: `$var` → quoted literal via `sqlLiteral`; the engine
+   pieces (multi-row VALUES chain, VALUES column naming column1..N, CTE
+   scope stack for scalar-subquery CTEs, BEGIN/ROLLBACK DML undo via pager
+   snapshot/restore, RAISE() trigger semantics, scalar min/max NULL) landed
+   as part of values 13.x/16.x/18.x. values package is green.
 3. **whereG** — `/Users/muaddib/dev/sqlite/test/whereG.test:76,91,106`
    `} {{Mass in B Minor, BWV 232}}` — TCL list rendering wraps the single
    element (contains comma/space) in braces. The Go want string kept the braces
@@ -133,7 +142,11 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
    `x` = literal `int(log($i)/log(2))` → SQL error `unknown function: int`.
    **Fix (harness)**: extend `evalSimpleArith`/`tclExprWith` to evaluate TCL
    math functions (`int`, `log`, `pow`, ...) or compute these specific
-   expressions at transpile time.
+   expressions at transpile time. **FIXED (T1.5)**: `evalSimpleArith`
+   extended with TCL math (`int`, `log`, `pow`, `exp`, ...); do_test bodies
+   with `db eval {SQL}` now emit a real result comparison (flatten vs want);
+   skipped tests run for side effects so later subtests see CREATE VIEW/TABLE
+   state. between package is green.
 
 5. **expr** — `/Users/muaddib/dev/sqlite/test/expr.test:1048-1074` (expr-16.100/101/102)
    `SELECT implies_nonnull_row(...)` — registered in the **main engine**
@@ -371,7 +384,17 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 
 ### F. ENGINE bugs — DELETE / triggers / ordering
 
-31. **delete3** — `/Users/muaddib/dev/sqlite/test/delete3.test:21-48` (1.1)
+31. **whereA (re-exposed at T1.5)** — `/Users/muaddib/dev/sqlite/test/whereA.test`
+    `PRAGMA reverse_unordered_selects=1` — test-only pragma controlling
+    scan direction for queries without ORDER BY. Engine has no
+    `reverse_unordered_selects` PRAGMA (set/get) and no reverse btree scan
+    (cursor `Prev()` only handles same-leaf; no `Last()`/previous-leaf
+    navigation). At T1.4 the do_test bodies were error-check-only, so the
+    reversed-row expectations were never asserted; T1.5's stricter
+    result-checking exposed the gap. **Fix (engine, follow-up)**: implement
+    the pragma (per-connection flag) + reverse table scan. Not T1.5 scope.
+
+32. **delete3** — `/Users/muaddib/dev/sqlite/test/delete3.test:21-48` (1.1)
     `CREATE TABLE t1(x integer primary key); INSERT INTO t1 SELECT x+2 FROM
     t1;` repeated 20× doubling to 524288 rows. **NOT a panic — an infinite
     loop / hang** in `internal/exec/insert.go` — verified stack:

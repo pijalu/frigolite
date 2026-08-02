@@ -59,9 +59,15 @@ func Test_expridx2(t *testing.T) {
 		return
 	}
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1, '{a: 10, b: 20, c: 30}');\n  INSERT INTO t1 VALUES(2, '{a: 11, b: 21, c: 31}');\n  INSERT INTO t1 VALUES(3, '{a: 12, b: 22, c: 32}');\n  INSERT INTO t1 VALUES(4, '{a: 13, b: 23, c: 33}');\n\n  CREATE INDEX t1a ON t1( (b->>'a') );\n  CREATE INDEX t1b ON t1( (b->>'b') );\n  CREATE INDEX t1c ON t1( (b->>'c') );\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX t2b ON t2( b );\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n  INSERT INTO t2 VALUES(4, 4, 4);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1, '{a: 10, b: 20, c: 30}');\n  INSERT INTO t1 VALUES(2, '{a: 11, b: 21, c: 31}');\n  INSERT INTO t1 VALUES(3, '{a: 12, b: 22, c: 32}');\n  INSERT INTO t1 VALUES(4, '{a: 13, b: 23, c: 33}');\n\n  CREATE INDEX t1a ON t1( (b->>'a') );\n  CREATE INDEX t1b ON t1( (b->>'b') );\n  CREATE INDEX t1c ON t1( (b->>'c') );\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX t2b ON t2( b );\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n  INSERT INTO t2 VALUES(4, 4, 4);\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1, '{a: 10, b: 20, c: 30}');\n  INSERT INTO t1 VALUES(2, '{a: 11, b: 21, c: 31}');\n  INSERT INTO t1 VALUES(3, '{a: 12, b: 22, c: 32}');\n  INSERT INTO t1 VALUES(4, '{a: 13, b: 23, c: 33}');\n\n  CREATE INDEX t1a ON t1( (b->>'a') );\n  CREATE INDEX t1b ON t1( (b->>'b') );\n  CREATE INDEX t1c ON t1( (b->>'c') );\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX t2b ON t2( b );\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n  INSERT INTO t2 VALUES(4, 4, 4);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1, '{a: 10, b: 20, c: 30}');\n  INSERT INTO t1 VALUES(2, '{a: 11, b: 21, c: 31}');\n  INSERT INTO t1 VALUES(3, '{a: 12, b: 22, c: 32}');\n  INSERT INTO t1 VALUES(4, '{a: 13, b: 23, c: 33}');\n\n  CREATE INDEX t1a ON t1( (b->>'a') );\n  CREATE INDEX t1b ON t1( (b->>'b') );\n  CREATE INDEX t1c ON t1( (b->>'c') );\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX t2b ON t2( b );\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n  INSERT INTO t2 VALUES(4, 4, 4);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)

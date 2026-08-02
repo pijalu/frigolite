@@ -60,15 +60,15 @@ func Test_bigsort(t *testing.T) {
 	}
 	return
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  BEGIN;\n  WITH data(x,y) AS (\n    SELECT 1, zeroblob(10000)\n    UNION ALL\n    SELECT x+1, y FROM data WHERE x < 300000\n  )\n  INSERT INTO t1 SELECT * FROM data;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  BEGIN;\n  WITH data(x,y) AS (\n    SELECT 1, zeroblob(10000)\n    UNION ALL\n    SELECT x+1, y FROM data WHERE x < 300000\n  )\n  INSERT INTO t1 SELECT * FROM data;\n  COMMIT;\n")
+		r = db.Query("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  BEGIN;\n  WITH data(x,y) AS (\n    SELECT 1, zeroblob(10000)\n    UNION ALL\n    SELECT x+1, y FROM data WHERE x < 300000\n  )\n  INSERT INTO t1 SELECT * FROM data;\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  BEGIN;\n  WITH data(x,y) AS (\n    SELECT 1, zeroblob(10000)\n    UNION ALL\n    SELECT x+1, y FROM data WHERE x < 300000\n  )\n  INSERT INTO t1 SELECT * FROM data;\n  COMMIT;\n")
 		}
 	}
 	{ // "1.1"
-		_res = db.Exec("\n  PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);\n")
+		r = db.Query("\n  PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);\n")
 		}
 	}
 }

@@ -102,9 +102,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-110"
-		r = db.Query("\n  SELECT json_patch('{\n       \"title\": \"Goodbye!\",\n       \"author\" : {\n         \"givenName\" : \"John\",\n         \"familyName\" : \"Doe\"\n       },\n       \"tags\":[ \"example\", \"sample\" ],\n       \"content\": \"This will be unchanged\"\n     }','{\n       \"title\": \"Hello!\",\n       \"phoneNumber\": \"+01-123-456-7890\",\n       \"author\": {\n         \"familyName\": null\n       },\n       \"tags\": [ \"example\" ]\n     }');\n")
+		r = db.Query("\n  SELECT json_patch('{\n       \"title\": \"Goodbye!\",\n       \"author\" : {\n         \"givenName\" : \"John\",\n         \"familyName\" : \"Doe\"\n       },\n       \"tags\":" + sqlLiteral("\"example\", \"sample\"") + ",\n       \"content\": \"This will be unchanged\"\n     }','{\n       \"title\": \"Hello!\",\n       \"phoneNumber\": \"+01-123-456-7890\",\n       \"author\": {\n         \"familyName\": null\n       },\n       \"tags\": " + sqlLiteral("\"example\"") + "\n     }');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\n       \"title\": \"Goodbye!\",\n       \"author\" : {\n         \"givenName\" : \"John\",\n         \"familyName\" : \"Doe\"\n       },\n       \"tags\":[ \"example\", \"sample\" ],\n       \"content\": \"This will be unchanged\"\n     }','{\n       \"title\": \"Hello!\",\n       \"phoneNumber\": \"+01-123-456-7890\",\n       \"author\": {\n         \"familyName\": null\n       },\n       \"tags\": [ \"example\" ]\n     }');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\n       \"title\": \"Goodbye!\",\n       \"author\" : {\n         \"givenName\" : \"John\",\n         \"familyName\" : \"Doe\"\n       },\n       \"tags\":" + sqlLiteral("\"example\", \"sample\"") + ",\n       \"content\": \"This will be unchanged\"\n     }','{\n       \"title\": \"Hello!\",\n       \"phoneNumber\": \"+01-123-456-7890\",\n       \"author\": {\n         \"familyName\": null\n       },\n       \"tags\": " + sqlLiteral("\"example\"") + "\n     }');\n")
 			return
 		}
 		got := flatten(r)
@@ -114,9 +114,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-200"
-		r = db.Query("\n  SELECT json_patch('[1,2,3]','{\"x\":null}');\n")
+		r = db.Query("\n  SELECT json_patch('" + sqlLiteral("1,2,3") + "','{\"x\":null}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('[1,2,3]','{\"x\":null}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('" + sqlLiteral("1,2,3") + "','{\"x\":null}');\n")
 			return
 		}
 		got := flatten(r)
@@ -126,9 +126,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-210"
-		r = db.Query("\n  SELECT json_patch('[1,2,3]','{\"x\":null,\"y\":1,\"z\":null}');\n")
+		r = db.Query("\n  SELECT json_patch('" + sqlLiteral("1,2,3") + "','{\"x\":null,\"y\":1,\"z\":null}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('[1,2,3]','{\"x\":null,\"y\":1,\"z\":null}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('" + sqlLiteral("1,2,3") + "','{\"x\":null,\"y\":1,\"z\":null}');\n")
 			return
 		}
 		got := flatten(r)
@@ -150,9 +150,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-221"
-		r = db.Query("\n  SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":[1,null,3]}}}');\n")
+		r = db.Query("\n  SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":" + sqlLiteral("1,null,3") + "}}}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":[1,null,3]}}}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":" + sqlLiteral("1,null,3") + "}}}');\n")
 			return
 		}
 		got := flatten(r)
@@ -162,9 +162,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-222"
-		r = db.Query("\n  SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":[1,{\"dddd\":null},3]}}}');\n")
+		r = db.Query("\n  SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":" + sqlLiteral("1,{\"dddd\":null},3") + "}}}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":[1,{\"dddd\":null},3]}}}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{}','{\"a\":{\"bb\":{\"ccc\":" + sqlLiteral("1,{\"dddd\":null},3") + "}}}');\n")
 			return
 		}
 		got := flatten(r)
@@ -234,9 +234,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-304"
-		r = db.Query("\n  SELECT json_patch('{\"a\":[\"b\"]}','{\"a\":\"c\"}');\n")
+		r = db.Query("\n  SELECT json_patch('{\"a\":" + sqlLiteral("\"b\"") + "}','{\"a\":\"c\"}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\"a\":[\"b\"]}','{\"a\":\"c\"}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\"a\":" + sqlLiteral("\"b\"") + "}','{\"a\":\"c\"}');\n")
 			return
 		}
 		got := flatten(r)
@@ -246,9 +246,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-305"
-		r = db.Query("\n  SELECT json_patch('{\"a\":\"c\"}','{\"a\":[\"b\"]}');\n")
+		r = db.Query("\n  SELECT json_patch('{\"a\":\"c\"}','{\"a\":" + sqlLiteral("\"b\"") + "}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\"a\":\"c\"}','{\"a\":[\"b\"]}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\"a\":\"c\"}','{\"a\":" + sqlLiteral("\"b\"") + "}');\n")
 			return
 		}
 		got := flatten(r)
@@ -270,9 +270,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-307"
-		r = db.Query("\n  SELECT json_patch('{\"a\":[{\"b\":\"c\"}]}','{\"a\":[1]}');\n")
+		r = db.Query("\n  SELECT json_patch('{\"a\":" + sqlLiteral("{\"b\":\"c\"}") + "}','{\"a\":" + sqlLiteral("1") + "}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\"a\":[{\"b\":\"c\"}]}','{\"a\":[1]}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\"a\":" + sqlLiteral("{\"b\":\"c\"}") + "}','{\"a\":" + sqlLiteral("1") + "}');\n")
 			return
 		}
 		got := flatten(r)
@@ -282,9 +282,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-308"
-		r = db.Query("\n  SELECT json_patch('[\"a\",\"b\"]','[\"c\",\"d\"]');\n")
+		r = db.Query("\n  SELECT json_patch('" + sqlLiteral("\"a\",\"b\"") + "','" + sqlLiteral("\"c\",\"d\"") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('[\"a\",\"b\"]','[\"c\",\"d\"]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('" + sqlLiteral("\"a\",\"b\"") + "','" + sqlLiteral("\"c\",\"d\"") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -294,9 +294,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-309"
-		r = db.Query("\n  SELECT json_patch('{\"a\":\"b\"}','[\"c\"]');\n")
+		r = db.Query("\n  SELECT json_patch('{\"a\":\"b\"}','" + sqlLiteral("\"c\"") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\"a\":\"b\"}','[\"c\"]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{\"a\":\"b\"}','" + sqlLiteral("\"c\"") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -354,9 +354,9 @@ func Test_json104(t *testing.T) {
 		}
 	}
 	{ // "json104-313"
-		r = db.Query("\n  SELECT json_patch('[1,2]','{\"a\":\"b\",\"c\":null}');\n")
+		r = db.Query("\n  SELECT json_patch('" + sqlLiteral("1,2") + "','{\"a\":\"b\",\"c\":null}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('[1,2]','{\"a\":\"b\",\"c\":null}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('" + sqlLiteral("1,2") + "','{\"a\":\"b\",\"c\":null}');\n")
 			return
 		}
 		got := flatten(r)

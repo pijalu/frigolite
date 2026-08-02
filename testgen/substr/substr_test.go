@@ -92,33 +92,63 @@ func Test_substr(t *testing.T) {
 	// substr-test 1.17 abcdefg 100 200 {} (unsupported command, not transpiled)
 	// substr-test 1.18 abcdefg 200 100 {} (unsupported command, not transpiled)
 	{ // do_test "substr-1.90"
-		_res = db.Exec("SELECT ifnull(substr(NULL,1,1),'nil')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ifnull(substr(NULL,1,1),'nil')")
+		r = db.Query("SELECT ifnull(substr(NULL,1,1),'nil')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ifnull(substr(NULL,1,1),'nil')")
+			return
+		}
+		got := flatten(r)
+		want := "nil"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "substr-1.91"
-		_res = db.Exec("SELECT ifnull(substr(NULL,1),'nil')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ifnull(substr(NULL,1),'nil')")
+		r = db.Query("SELECT ifnull(substr(NULL,1),'nil')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ifnull(substr(NULL,1),'nil')")
+			return
+		}
+		got := flatten(r)
+		want := "nil"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "substr-1.92"
-		_res = db.Exec("SELECT ifnull(substr('abcdefg',NULL,1),'nil')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ifnull(substr('abcdefg',NULL,1),'nil')")
+		r = db.Query("SELECT ifnull(substr('abcdefg',NULL,1),'nil')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ifnull(substr('abcdefg',NULL,1),'nil')")
+			return
+		}
+		got := flatten(r)
+		want := "nil"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "substr-1.93"
-		_res = db.Exec("SELECT ifnull(substring('abcdefg',NULL),'nil')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ifnull(substring('abcdefg',NULL),'nil')")
+		r = db.Query("SELECT ifnull(substring('abcdefg',NULL),'nil')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ifnull(substring('abcdefg',NULL),'nil')")
+			return
+		}
+		got := flatten(r)
+		want := "nil"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "substr-1.94"
-		_res = db.Exec("SELECT ifnull(substr('abcdefg',1,NULL),'nil')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ifnull(substr('abcdefg',1,NULL),'nil')")
+		r = db.Query("SELECT ifnull(substr('abcdefg',1,NULL),'nil')")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ifnull(substr('abcdefg',1,NULL),'nil')")
+			return
+		}
+		got := flatten(r)
+		want := "nil"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// substr-test 2.1 \u1234\u2345\u3456 1 1 \u1234 (unsupported command, not transpiled)

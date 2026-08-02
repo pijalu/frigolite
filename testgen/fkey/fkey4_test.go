@@ -78,9 +78,15 @@ func Test_fkey4(t *testing.T) {
 	}
 	// verify_ex_errcode fkey4-1.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 	{ // do_test "fkey4-1.4"
-		_res = db.Exec("SELECT * FROM t2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2")
+		r = db.Query("SELECT * FROM t2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// sqlite3_finalize $::STMT1 (unsupported command, not transpiled)

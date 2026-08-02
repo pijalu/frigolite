@@ -651,9 +651,9 @@ func Test_wal(t *testing.T) {
 	nWal = "34"
 	_ = nWal // suppress unused warning
 	{ // do_test "wal-11.10"
-		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 32\n      SELECT count(*) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 32\n      SELECT count(*) FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 32\n      SELECT count(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 32\n      SELECT count(*) FROM t1;\n  ")
 		}
 		_list := tclList([]string{tclExpr("[file size test.db]/1024"), "file size test.db-wal"})
 		_ = _list
@@ -1207,9 +1207,15 @@ func Test_wal(t *testing.T) {
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				{ // "24.1"
-					_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    PRAGMA journal_mode = WAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(5000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    PRAGMA journal_mode = WAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(5000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
+					r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    PRAGMA journal_mode = WAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(5000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 2;\n    PRAGMA journal_mode = WAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(5000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "wal"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "24.2"

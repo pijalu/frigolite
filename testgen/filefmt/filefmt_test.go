@@ -168,9 +168,9 @@ func Test_filefmt(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "filefmt-2.1.1"
-		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
+		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
 		}
 	}
 	if tclBool("!" + "nonzero_reserved_bytes") {
@@ -196,9 +196,9 @@ func Test_filefmt(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "filefmt-2.2.1"
-		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
+		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
 		}
 	}
 	if tclBool("!" + "nonzero_reserved_bytes") {
@@ -210,9 +210,15 @@ func Test_filefmt(t *testing.T) {
 		// sql36231 { INSERT INTO t1 VALUES(a_string(3000)) } (unsupported command, not transpiled)
 	}
 	{ // "filefmt-2.2.4"
-		_res = db.Exec(" \n  PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;\n")
+		r = db.Query(" \n  PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -232,9 +238,9 @@ func Test_filefmt(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "filefmt-3.1"
-		_res = db.Exec("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a, b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a, b);\n")
+		r = db.Query("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a, b);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a, b);\n")
 		}
 	}
 	{ // do_test "filefmt-3.2"
@@ -256,9 +262,9 @@ func Test_filefmt(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "filefmt-4.1"
-		_res = db.Exec("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x, y);\n\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x, y);\n\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n")
+		r = db.Query("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x, y);\n\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x, y);\n\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n")
 		}
 	}
 	{ // do_test "filefmt-4.2"

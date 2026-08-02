@@ -14101,9 +14101,15 @@ func Test_joinD(t *testing.T) {
 		}
 	}
 	{ // "joinD-extra-1010"
-		_res = db.Exec("\n  BEGIN;\n  UPDATE v1 SET c=c+1000 WHERE y BETWEEN 30 and 40;\n  SELECT * FROM v1 WHERE y BETWEEN 30 AND 40 ORDER BY y;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  UPDATE v1 SET c=c+1000 WHERE y BETWEEN 30 and 40;\n  SELECT * FROM v1 WHERE y BETWEEN 30 AND 40 ORDER BY y;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  UPDATE v1 SET c=c+1000 WHERE y BETWEEN 30 and 40;\n  SELECT * FROM v1 WHERE y BETWEEN 30 AND 40 ORDER BY y;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  UPDATE v1 SET c=c+1000 WHERE y BETWEEN 30 and 40;\n  SELECT * FROM v1 WHERE y BETWEEN 30 AND 40 ORDER BY y;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "30 130 1230 330 130 30 1230 30 330 30 - - - - - - 233 33 - - 36 136 1236 336 136 36 1236 36 - - - - - - - - 239 39 - -"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

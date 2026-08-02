@@ -138,9 +138,15 @@ func Test_memsubsys1(t *testing.T) {
 	// reset_highwater_marks (unsupported command, not transpiled)
 	// build_test_db memsubsys1-3.2 {PRAGMA page_size=2048} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-3.2.3"
-		_res = db.Exec("PRAGMA page_size")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA page_size")
+		r = db.Query("PRAGMA page_size")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			return
+		}
+		got := flatten(r)
+		want := "2048"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "memsubsys1-3.2.4"

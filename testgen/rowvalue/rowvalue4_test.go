@@ -229,9 +229,9 @@ func Test_rowvalue4(t *testing.T) {
 							}
 						}
 						{ // "5.0"
-							_res = db.Exec("\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
+							r = db.Query("\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
 							}
 						}
 						{ // "5.1"

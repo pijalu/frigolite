@@ -247,9 +247,9 @@ func Test_vtabH(t *testing.T) {
 			res = "contents $pwd"
 			_ = res // suppress unused warning
 			{ // "3.2"
-				r = db.Query("\n    SELECT path FROM fstree WHERE path GLOB $pwd ORDER BY 1\n  ")
+				r = db.Query("\n    SELECT path FROM fstree WHERE path GLOB " + sqlLiteral(pwd) + " ORDER BY 1\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT path FROM fstree WHERE path GLOB $pwd ORDER BY 1\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT path FROM fstree WHERE path GLOB " + sqlLiteral(pwd) + " ORDER BY 1\n  ")
 					return
 				}
 				got := flatten(r)
@@ -290,9 +290,9 @@ func Test_vtabH(t *testing.T) {
 				_ = pwd // suppress unused warning
 				if tclBool("!" + "{*[_%]*} $pwd") {
 					{ // "3.5"
-						r = db.Query("\n      SELECT path, size FROM fstree \n       WHERE path GLOB $pwd || '/subdir/*' ORDER BY 1\n    ")
+						r = db.Query("\n      SELECT path, size FROM fstree \n       WHERE path GLOB " + sqlLiteral(pwd) + " || '/subdir/*' ORDER BY 1\n    ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT path, size FROM fstree \n       WHERE path GLOB $pwd || '/subdir/*' ORDER BY 1\n    ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT path, size FROM fstree \n       WHERE path GLOB " + sqlLiteral(pwd) + " || '/subdir/*' ORDER BY 1\n    ")
 							return
 						}
 						got := flatten(r)
@@ -302,9 +302,9 @@ func Test_vtabH(t *testing.T) {
 						}
 					}
 					{ // "3.6"
-						r = db.Query("\n      SELECT path, size FROM fstree\n       WHERE path LIKE $pwd || '/subdir/%' ORDER BY 1\n    ")
+						r = db.Query("\n      SELECT path, size FROM fstree\n       WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%' ORDER BY 1\n    ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT path, size FROM fstree\n       WHERE path LIKE $pwd || '/subdir/%' ORDER BY 1\n    ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT path, size FROM fstree\n       WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%' ORDER BY 1\n    ")
 							return
 						}
 						got := flatten(r)
@@ -314,9 +314,9 @@ func Test_vtabH(t *testing.T) {
 						}
 					}
 					{ // "3.7"
-						r = db.Query("\n      SELECT sum(size) FROM fstree WHERE path LIKE $pwd || '/subdir/%'\n    ")
+						r = db.Query("\n      SELECT sum(size) FROM fstree WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%'\n    ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(size) FROM fstree WHERE path LIKE $pwd || '/subdir/%'\n    ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(size) FROM fstree WHERE path LIKE " + sqlLiteral(pwd) + " || '/subdir/%'\n    ")
 							return
 						}
 						got := flatten(r)
@@ -326,9 +326,9 @@ func Test_vtabH(t *testing.T) {
 						}
 					}
 					{ // "3.8"
-						r = db.Query("\n      SELECT size FROM fstree WHERE path = $pwd || '/subdir/x1.txt'\n    ")
+						r = db.Query("\n      SELECT size FROM fstree WHERE path = " + sqlLiteral(pwd) + " || '/subdir/x1.txt'\n    ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT size FROM fstree WHERE path = $pwd || '/subdir/x1.txt'\n    ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT size FROM fstree WHERE path = " + sqlLiteral(pwd) + " || '/subdir/x1.txt'\n    ")
 							return
 						}
 						got := flatten(r)

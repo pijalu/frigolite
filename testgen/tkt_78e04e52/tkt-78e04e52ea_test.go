@@ -6,6 +6,7 @@ package tkt_78e04e52
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "testing"
 )
 
@@ -72,9 +73,15 @@ func Test_tkt_78e04e52ea(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-78e04-1.4"
-		_res = db.Exec("EXPLAIN QUERY PLAN SELECT \"\" FROM \"\" WHERE \"\" LIKE '1e5%';")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN SELECT \"\" FROM \"\" WHERE \"\" LIKE '1e5%';")
+		r = db.Query("EXPLAIN QUERY PLAN SELECT \"\" FROM \"\" WHERE \"\" LIKE '1e5%';")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN SELECT \"\" FROM \"\" WHERE \"\" LIKE '1e5%';")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "*SCAN  USING COVERING INDEX i1*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "tkt-78e04-1.5"

@@ -129,9 +129,9 @@ func Test_whereJ(t *testing.T) {
 		x = "0"
 		_ = x // suppress unused warning
 		for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 100 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + i + ", " + x + ", " + c + ") ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(x) + ", " + sqlLiteral(c) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + ", " + x + ", " + c + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(x) + ", " + sqlLiteral(c) + ") ")
 			}
 			// incr c 1
 			{
@@ -148,9 +148,9 @@ func Test_whereJ(t *testing.T) {
 				}
 			}
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "+1, 5, " + c + ") ")
+		_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "+1, 5, " + sqlLiteral(c) + ") ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "+1, 5, " + c + ") ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "+1, 5, " + sqlLiteral(c) + ") ")
 		}
 		// incr c 1
 		{

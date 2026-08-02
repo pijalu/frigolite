@@ -240,9 +240,9 @@ func Test_malloc(t *testing.T) {
 	big = "x 200"
 	_ = big // suppress unused warning
 	{ // "41.1"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a COLLATE utf16bin);\n  INSERT INTO t1 VALUES('fghij' || $::big);\n  INSERT INTO t1 VALUES('pqrst' || $::big);\n  INSERT INTO t1 VALUES('abcde' || $::big);\n  INSERT INTO t1 VALUES('uvwxy' || $::big);\n  INSERT INTO t1 VALUES('klmno' || $::big);\n  CREATE INDEX i1 ON t1(a);\n")
+		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a COLLATE utf16bin);\n  INSERT INTO t1 VALUES('fghij' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('pqrst' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('abcde' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('uvwxy' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('klmno' || " + sqlLiteral(big) + ");\n  CREATE INDEX i1 ON t1(a);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a COLLATE utf16bin);\n  INSERT INTO t1 VALUES('fghij' || $::big);\n  INSERT INTO t1 VALUES('pqrst' || $::big);\n  INSERT INTO t1 VALUES('abcde' || $::big);\n  INSERT INTO t1 VALUES('uvwxy' || $::big);\n  INSERT INTO t1 VALUES('klmno' || $::big);\n  CREATE INDEX i1 ON t1(a);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a COLLATE utf16bin);\n  INSERT INTO t1 VALUES('fghij' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('pqrst' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('abcde' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('uvwxy' || " + sqlLiteral(big) + ");\n  INSERT INTO t1 VALUES('klmno' || " + sqlLiteral(big) + ");\n  CREATE INDEX i1 ON t1(a);\n")
 		}
 	}
 	// do_faultsim_test 41.2 -faults oom* -body {\n  execsql { SELECT * FROM t1 WHERE a = ('abcde' ...} ... (unsupported command, not transpiled)

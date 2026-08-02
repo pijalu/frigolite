@@ -6,6 +6,7 @@ package resolver
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -190,15 +191,9 @@ func Test_resolver01(t *testing.T) {
 		}
 	}
 	{ // "resolver01-6.3"
-		r = db.Query("\n  CREATE TABLE t63(name);\n  INSERT INTO t63 VALUES (NULL);\n  INSERT INTO t63 VALUES ('abc');\n  SELECT count(),\n       NULLIF(name,'abc') AS name\n    FROM t63\n   GROUP BY lower(name);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t63(name);\n  INSERT INTO t63 VALUES (NULL);\n  INSERT INTO t63 VALUES ('abc');\n  SELECT count(),\n       NULLIF(name,'abc') AS name\n    FROM t63\n   GROUP BY lower(name);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} 1 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  CREATE TABLE t63(name);\n  INSERT INTO t63 VALUES (NULL);\n  INSERT INTO t63 VALUES ('abc');\n  SELECT count(),\n       NULLIF(name,'abc') AS name\n    FROM t63\n   GROUP BY lower(name);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1", _res.Error, "\n  CREATE TABLE t63(name);\n  INSERT INTO t63 VALUES (NULL);\n  INSERT INTO t63 VALUES ('abc');\n  SELECT count(),\n       NULLIF(name,'abc') AS name\n    FROM t63\n   GROUP BY lower(name);\n")
 		}
 	}
 	{ // "resolver01-7.1"

@@ -181,9 +181,9 @@ func Test_e_blobopen(t *testing.T) {
 					_ = _list
 				}
 				{ // "3." + tn + ".3"
-					r = db.Query("\n      SELECT c FROM x1 WHERE a=$iRow;\n    ")
+					r = db.Query("\n      SELECT c FROM x1 WHERE a=" + sqlLiteral(iRow) + ";\n    ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM x1 WHERE a=$iRow;\n    ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM x1 WHERE a=" + sqlLiteral(iRow) + ";\n    ")
 						return
 					}
 					got := flatten(r)
@@ -198,9 +198,9 @@ func Test_e_blobopen(t *testing.T) {
 					_ = _list
 				}
 				{ // "3." + tn + ".5"
-					r = db.Query("\n      SELECT c FROM x1 WHERE a=$iRow;\n    ")
+					r = db.Query("\n      SELECT c FROM x1 WHERE a=" + sqlLiteral(iRow) + ";\n    ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM x1 WHERE a=$iRow;\n    ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM x1 WHERE a=" + sqlLiteral(iRow) + ";\n    ")
 						return
 					}
 					got := flatten(r)

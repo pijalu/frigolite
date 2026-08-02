@@ -97,9 +97,9 @@ func Test_vacuum6(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "2." + tn + ".1"
-				r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob($sz) FROM s;\n  ")
+				r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob(" + sqlLiteral(sz) + ") FROM s;\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob($sz) FROM s;\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob(" + sqlLiteral(sz) + ") FROM s;\n  ")
 				}
 			}
 			{ // "2." + tn + ".2"
@@ -125,15 +125,15 @@ func Test_vacuum6(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
-			_res = db.Exec("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
+			r = db.Query("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
 			}
 		}
 		{ // "3.1"
-			_res = db.Exec("\n  PRAGMA page_size = 512;\n  VACUUM;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 512;\n  VACUUM;\n")
+			r = db.Query("\n  PRAGMA page_size = 512;\n  VACUUM;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 512;\n  VACUUM;\n")
 			}
 		}
 		{ // "3.2"

@@ -236,9 +236,9 @@ func Test_temptable2(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1.1"
-		_res = db.Exec("\n  PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
+		r = db.Query("\n  PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
 	{ // do_test "5.1.2"
@@ -247,9 +247,15 @@ func Test_temptable2(t *testing.T) {
 		// expr ($n (not evaluated)
 	}
 	{ // "5.1.3"
-		_res = db.Exec("\n  BEGIN;\n    UPDATE t1 SET a=2;\n    UPDATE t2 SET a=randomblob(100);\n    SELECT count(*) FROM t1;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    UPDATE t1 SET a=2;\n    UPDATE t2 SET a=randomblob(100);\n    SELECT count(*) FROM t1;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n    UPDATE t1 SET a=2;\n    UPDATE t2 SET a=randomblob(100);\n    SELECT count(*) FROM t1;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    UPDATE t1 SET a=2;\n    UPDATE t2 SET a=randomblob(100);\n    SELECT count(*) FROM t1;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.1.4"
@@ -427,9 +433,9 @@ func Test_temptable2(t *testing.T) {
 					}
 				}
 				{ // "9." + tn + "." + i + ".5"
-					_res = db.Exec(" \n      BEGIN;\n      DELETE FROM tx WHERE (random()%3)==0;\n      WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n        INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      COMMIT;\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      BEGIN;\n      DELETE FROM tx WHERE (random()%3)==0;\n      WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n        INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      COMMIT;\n    ")
+					r = db.Query(" \n      BEGIN;\n      DELETE FROM tx WHERE (random()%3)==0;\n      WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n        INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      COMMIT;\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      BEGIN;\n      DELETE FROM tx WHERE (random()%3)==0;\n      WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n        INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      COMMIT;\n    ")
 					}
 				}
 				{ // "9." + tn + "." + i + ".6"
@@ -456,15 +462,15 @@ func Test_temptable2(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "10.0"
-			_res = db.Exec("\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")
+			r = db.Query("\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")
 			}
 		}
 		{ // "10.1"
-			_res = db.Exec("\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
+			r = db.Query("\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
 			}
 		}
 		if tclBool("permutation" + "!=\"journaltest\" && " + TEMP_STORE + "<2") {

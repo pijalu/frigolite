@@ -62,21 +62,39 @@ func Test_coveridxscan(t *testing.T) {
 	testprefix = "coveridxscan"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.2"
-		_res = db.Exec("\n    SELECT a, c FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, c FROM t1;\n  ")
+		r = db.Query("\n    SELECT a, c FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, c FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 3 4 2 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.3"
-		_res = db.Exec("\n    SELECT b FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t1;\n  ")
+		r = db.Query("\n    SELECT b FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 4 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.1"
@@ -87,15 +105,27 @@ func Test_coveridxscan(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		_res = db.Exec("SELECT a, c FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a, c FROM t1")
+		r = db.Query("SELECT a, c FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a, c FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "5 3 4 2 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.3"
-		_res = db.Exec("SELECT b FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b FROM t1")
+		r = db.Query("SELECT b FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "4 8 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
@@ -104,21 +134,39 @@ func Test_coveridxscan(t *testing.T) {
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "3.1"
-		_res = db.Exec("SELECT a FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")
+		r = db.Query("SELECT a FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "5 4 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.2"
-		_res = db.Exec("SELECT a, c FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a, c FROM t1")
+		r = db.Query("SELECT a, c FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a, c FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "5 3 4 2 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.3"
-		_res = db.Exec("SELECT b FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b FROM t1")
+		r = db.Query("SELECT b FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "4 8 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
@@ -127,21 +175,39 @@ func Test_coveridxscan(t *testing.T) {
 	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.1"
-		_res = db.Exec("SELECT a FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")
+		r = db.Query("SELECT a FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "3 4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "4.2"
-		_res = db.Exec("SELECT a, c FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a, c FROM t1")
+		r = db.Query("SELECT a, c FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a, c FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "5 3 4 2 3 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "4.3"
-		_res = db.Exec("SELECT b FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b FROM t1")
+		r = db.Query("SELECT b FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "2 4 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

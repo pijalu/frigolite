@@ -467,9 +467,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "11.4"
-		_res = db.Exec("\n  SELECT * FROM log;\n  DELETE FROM log;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		r = db.Query("\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+			return
+		}
+		got := flatten(r)
+		want := "I1 1 2 I1 happy glad U1 1 9 D1 1 9 D1 happy glad"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.5"
@@ -485,9 +491,15 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "11.6"
-		_res = db.Exec("\n  SELECT * FROM log;\n  DELETE FROM log;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		r = db.Query("\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+			return
+		}
+		got := flatten(r)
+		want := "I2 bravo charlie"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.7"
@@ -503,18 +515,24 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	{ // "11.6"
-		_res = db.Exec("\n  SELECT * FROM log;\n  DELETE FROM log;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		r = db.Query("\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+			return
+		}
+		got := flatten(r)
+		want := "U3 1 101 U3 2 102 U3 3 103 D3 1 101 D3 2 102 D3 3 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "11.11"
-		_res = db.Exec("\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN SELECT 1; END;\n  DELETE FROM t1 RETURNING *;\n  DROP TRIGGER r1;\n  INSERT INTO t1 VALUES(5,30);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN SELECT 1; END;\n  DELETE FROM t1 RETURNING *;\n  DROP TRIGGER r1;\n  INSERT INTO t1 VALUES(5,30);\n")
+		r = db.Query("\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN SELECT 1; END;\n  DELETE FROM t1 RETURNING *;\n  DROP TRIGGER r1;\n  INSERT INTO t1 VALUES(5,30);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TEMP TABLE t1(a,b);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN SELECT 1; END;\n  DELETE FROM t1 RETURNING *;\n  DROP TRIGGER r1;\n  INSERT INTO t1 VALUES(5,30);\n")
 		}
 	}
 	{ // "11.12"
@@ -544,16 +562,16 @@ func Test_returning1(t *testing.T) {
 		_ = tclSort("array names cname") // lsort result
 	}
 	{ // do_test "12.2"
-		_res = db.Exec("INSERT INTO t1(x) VALUES(2) RETURNING " + "x" + ";")
+		_res = db.Exec("INSERT INTO t1(x) VALUES(2) RETURNING " + sqlLiteral("x") + ";")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(2) RETURNING " + "x" + ";")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(2) RETURNING " + sqlLiteral("x") + ";")
 		}
 		_ = tclSort("array names cname") // lsort result
 	}
 	{ // do_test "12.3"
-		_res = db.Exec("INSERT INTO t1(x) VALUES(3) RETURNING x AS " + "xyz" + ";")
+		_res = db.Exec("INSERT INTO t1(x) VALUES(3) RETURNING x AS " + sqlLiteral("xyz") + ";")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(3) RETURNING x AS " + "xyz" + ";")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(3) RETURNING x AS " + sqlLiteral("xyz") + ";")
 		}
 		_ = tclSort("array names cname") // lsort result
 	}
@@ -589,9 +607,9 @@ func Test_returning1(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "14.0"
-		_res = db.Exec("\n  PRAGMA foreign_keys(1);\n  CREATE TABLE Parent(id INTEGER PRIMARY KEY);\n  CREATE TABLE Child(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES Parent(id));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys(1);\n  CREATE TABLE Parent(id INTEGER PRIMARY KEY);\n  CREATE TABLE Child(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES Parent(id));\n")
+		r = db.Query("\n  PRAGMA foreign_keys(1);\n  CREATE TABLE Parent(id INTEGER PRIMARY KEY);\n  CREATE TABLE Child(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES Parent(id));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys(1);\n  CREATE TABLE Parent(id INTEGER PRIMARY KEY);\n  CREATE TABLE Child(id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES Parent(id));\n")
 		}
 	}
 	{ // "14.1"
@@ -741,21 +759,39 @@ func Test_returning1(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "N"
 		{ // "20.1"
-			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 8 4.6 2 3 8 5.25 4 3 8 5.67 6 3 8 5.5 8 3 3 3.0") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 8 4.6 2 3 8 5.25 4 3 8 5.67 6 3 8 5.5 8 3 3 3.0", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 8 4.6 2 3 8 5.25 4 3 8 5.67 6 3 8 5.5 8 3 3 3.0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "20.2"
-			_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 8 4.6 2 3 8 5.25 3 4 8 6.0 4 6 8 7.0 6 8 8 8.0 8 N N N") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 8 4.6 2 3 8 5.25 3 4 8 6.0 4 6 8 7.0 6 8 8 8.0 8 N N N", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			r = db.Query("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 8 4.6 2 3 8 5.25 3 4 8 6.0 4 6 8 7.0 6 8 8 8.0 8 N N N"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "20.3"
-			_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "102 108 104.6 2 203 208 205.25 3 304 308 306.0 4 406 408 407.0 6 608 608 608.0 8 N N N") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "102 108 104.6 2 203 208 205.25 3 304 308 306.0 4 406 408 407.0 6 608 608 608.0 8 N N N", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
+			r = db.Query("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 102 108 104.6 2 203 208 205.25 3 304 308 306.0 4 406 408 407.0 6 608 608 608.0 8 N N N"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()
@@ -789,9 +825,9 @@ func Test_returning1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "22.0"
-			_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  CREATE TABLE xyz (a);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON;\n  CREATE TABLE xyz (a);\n")
+			r = db.Query("\n  PRAGMA writable_schema=ON;\n  CREATE TABLE xyz (a);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema=ON;\n  CREATE TABLE xyz (a);\n")
 			}
 		}
 		{ // "22.1"
@@ -804,9 +840,9 @@ func Test_returning1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "23.0"
-			_res = db.Exec("\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;\n")
+			r = db.Query("\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;\n")
 			}
 		}
 		{ // "23.1"

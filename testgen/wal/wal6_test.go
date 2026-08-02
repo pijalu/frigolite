@@ -145,9 +145,15 @@ func Test_wal6(t *testing.T) {
 		_ = _list
 	}
 	{ // "2.5"
-		_res = db.Exec("\n  SELECT * FROM t1;\n  COMMIT;\n  INSERT INTO t1 VALUES('x', 'x') \n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "one 2 two") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "one 2 two", _res.Error, "\n  SELECT * FROM t1;\n  COMMIT;\n  INSERT INTO t1 VALUES('x', 'x') \n")
+		r = db.Query("\n  SELECT * FROM t1;\n  COMMIT;\n  INSERT INTO t1 VALUES('x', 'x') \n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n  COMMIT;\n  INSERT INTO t1 VALUES('x', 'x') \n")
+			return
+		}
+		got := flatten(r)
+		want := "1 one 2 two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -178,9 +184,15 @@ func Test_wal6(t *testing.T) {
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
-		_res = db.Exec(" \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE ab(a PRIMARY KEY, b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE ab(a PRIMARY KEY, b);\n")
+		r = db.Query(" \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE ab(a PRIMARY KEY, b);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE ab(a PRIMARY KEY, b);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.2.1"
@@ -262,9 +274,15 @@ func Test_wal6(t *testing.T) {
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "5.2"

@@ -510,15 +510,21 @@ func Test_indexexpr1(t *testing.T) {
 		}
 	}
 	{ // "indexexpr1-500"
-		_res = db.Exec("\n  CREATE TABLE t5(a);\n  CREATE TABLE cnt(x);\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  INSERT INTO cnt(x) SELECT x FROM c;\n  INSERT INTO t5(a) SELECT printf('abc%03dxyz',x) FROM cnt;\n  CREATE INDEX t5ax ON t5( substr(a,4,3) );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a);\n  CREATE TABLE cnt(x);\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  INSERT INTO cnt(x) SELECT x FROM c;\n  INSERT INTO t5(a) SELECT printf('abc%03dxyz',x) FROM cnt;\n  CREATE INDEX t5ax ON t5( substr(a,4,3) );\n")
+		r = db.Query("\n  CREATE TABLE t5(a);\n  CREATE TABLE cnt(x);\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  INSERT INTO cnt(x) SELECT x FROM c;\n  INSERT INTO t5(a) SELECT printf('abc%03dxyz',x) FROM cnt;\n  CREATE INDEX t5ax ON t5( substr(a,4,3) );\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(a);\n  CREATE TABLE cnt(x);\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  INSERT INTO cnt(x) SELECT x FROM c;\n  INSERT INTO t5(a) SELECT printf('abc%03dxyz',x) FROM cnt;\n  CREATE INDEX t5ax ON t5( substr(a,4,3) );\n")
 		}
 	}
 	{ // "indexexpr1-510"
-		_res = db.Exec("\n  -- The use of the \"k\" alias in the WHERE clause is technically\n  -- illegal, but SQLite allows it for historical reasons.  In this\n  -- test and the next, verify that \"k\" can be used by the t5ax index\n  SELECT substr(a,4,3) AS k FROM cnt, t5 WHERE k=printf('%03d',x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- The use of the \"k\" alias in the WHERE clause is technically\n  -- illegal, but SQLite allows it for historical reasons.  In this\n  -- test and the next, verify that \"k\" can be used by the t5ax index\n  SELECT substr(a,4,3) AS k FROM cnt, t5 WHERE k=printf('%03d',x);\n")
+		r = db.Query("\n  -- The use of the \"k\" alias in the WHERE clause is technically\n  -- illegal, but SQLite allows it for historical reasons.  In this\n  -- test and the next, verify that \"k\" can be used by the t5ax index\n  SELECT substr(a,4,3) AS k FROM cnt, t5 WHERE k=printf('%03d',x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  -- The use of the \"k\" alias in the WHERE clause is technically\n  -- illegal, but SQLite allows it for historical reasons.  In this\n  -- test and the next, verify that \"k\" can be used by the t5ax index\n  SELECT substr(a,4,3) AS k FROM cnt, t5 WHERE k=printf('%03d',x);\n")
+			return
+		}
+		got := flatten(r)
+		want := "001 002 003 004 005"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "indexexpr1-510eqp"
@@ -708,9 +714,9 @@ func Test_indexexpr1(t *testing.T) {
 		}
 	}
 	{ // "indexexpr1-1400"
-		_res = db.Exec("\n  CREATE TABLE t1400(x TEXT);\n  CREATE INDEX t1400x ON t1400(1);  -- Index on a constant\n  SELECT 1 IN (SELECT 2) FROM t1400;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1400(x TEXT);\n  CREATE INDEX t1400x ON t1400(1);  -- Index on a constant\n  SELECT 1 IN (SELECT 2) FROM t1400;\n")
+		r = db.Query("\n  CREATE TABLE t1400(x TEXT);\n  CREATE INDEX t1400x ON t1400(1);  -- Index on a constant\n  SELECT 1 IN (SELECT 2) FROM t1400;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1400(x TEXT);\n  CREATE INDEX t1400x ON t1400(1);  -- Index on a constant\n  SELECT 1 IN (SELECT 2) FROM t1400;\n")
 		}
 	}
 	{ // "indexexpr1-1410"
@@ -750,9 +756,15 @@ func Test_indexexpr1(t *testing.T) {
 		}
 	}
 	{ // "indexexpr1-1500"
-		_res = db.Exec("\n  CREATE TABLE t1500(a INT PRIMARY KEY, b INT UNIQUE);\n  CREATE INDEX t1500ab ON t1500(a*b);\n  INSERT INTO t1500(a,b) VALUES(1,2);\n  REPLACE INTO t1500(a,b) VALUES(1,3);  -- formerly caused assertion fault\n  SELECT * FROM t1500;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3", _res.Error, "\n  CREATE TABLE t1500(a INT PRIMARY KEY, b INT UNIQUE);\n  CREATE INDEX t1500ab ON t1500(a*b);\n  INSERT INTO t1500(a,b) VALUES(1,2);\n  REPLACE INTO t1500(a,b) VALUES(1,3);  -- formerly caused assertion fault\n  SELECT * FROM t1500;\n")
+		r = db.Query("\n  CREATE TABLE t1500(a INT PRIMARY KEY, b INT UNIQUE);\n  CREATE INDEX t1500ab ON t1500(a*b);\n  INSERT INTO t1500(a,b) VALUES(1,2);\n  REPLACE INTO t1500(a,b) VALUES(1,3);  -- formerly caused assertion fault\n  SELECT * FROM t1500;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1500(a INT PRIMARY KEY, b INT UNIQUE);\n  CREATE INDEX t1500ab ON t1500(a*b);\n  INSERT INTO t1500(a,b) VALUES(1,2);\n  REPLACE INTO t1500(a,b) VALUES(1,3);  -- formerly caused assertion fault\n  SELECT * FROM t1500;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "indexexpr1-1510"
@@ -888,27 +900,51 @@ func Test_indexexpr1(t *testing.T) {
 		}
 	}
 	{ // "indexexpr1-2010"
-		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */\n")
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := ".* t1_one .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-2011"
-		_res = db.Exec("\n  SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */\n")
+		r = db.Query("\n  SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */\n")
+			return
+		}
+		got := flatten(r)
+		want := "55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "indexexpr1-2020"
-		_res = db.Exec("\n  EXPLAIN QUERY PLAN\n  SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */\n")
+		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := ".* t1_two .*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "indexexpr1-2021"
-		_res = db.Exec("\n  SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */\n")
+		r = db.Query("\n  SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */\n")
+			return
+		}
+		got := flatten(r)
+		want := "66"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "indexexpr1-2030"

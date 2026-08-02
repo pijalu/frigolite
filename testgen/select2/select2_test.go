@@ -141,9 +141,9 @@ func Test_select2(t *testing.T) {
 			_ = i2 // suppress unused warning
 			i3 = tclExprWith("$i*3", map[string]string{"i": i})
 			_ = i3 // suppress unused warning
-			_res = db.Exec("INSERT INTO tbl2 VALUES(" + i + "," + i2 + "," + i3 + ")")
+			_res = db.Exec("INSERT INTO tbl2 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(i2) + "," + sqlLiteral(i3) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl2 VALUES(" + i + "," + i2 + "," + i3 + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl2 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(i2) + "," + sqlLiteral(i3) + ")")
 			}
 			// incr i 1
 			{

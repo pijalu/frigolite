@@ -70,9 +70,9 @@ func Test_analyzeD(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			c = tclExprWith("$i % 200", map[string]string{"i": i})
 			_ = c // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1(a, b, c) VALUES( 2*(" + i + "/100), " + i + "%10, " + c + " ) ")
+			_res = db.Exec(" INSERT INTO t1(a, b, c) VALUES( 2*(" + sqlLiteral(i) + "/100), " + sqlLiteral(i) + "%10, " + sqlLiteral(c) + " ) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(a, b, c) VALUES( 2*(" + i + "/100), " + i + "%10, " + c + " ) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(a, b, c) VALUES( 2*(" + sqlLiteral(i) + "/100), " + sqlLiteral(i) + "%10, " + sqlLiteral(c) + " ) ")
 			}
 			// incr i 1
 			{

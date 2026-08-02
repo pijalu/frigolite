@@ -267,9 +267,9 @@ func Test_wal2(t *testing.T) {
 		_ = wal_locks // suppress unused warning
 		_ = _idx1
 			{ // do_test "wal2-1." + tn + ".1"
-				_res = db.Exec(" INSERT INTO t1 VALUES(" + iInsert + ") ")
+				_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(iInsert) + ") ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + iInsert + ") ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(iInsert) + ") ")
 				}
 				locks = "list" // TCL namespace variable
 				_ = locks // suppress unused warning
@@ -337,9 +337,9 @@ func Test_wal2(t *testing.T) {
 				{ // do_test "wal2-2." + tn + ".1"
 					oldhdr = "set_tvfs_hdr $::filename"
 					_ = oldhdr // suppress unused warning
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + iInsert + ") ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(iInsert) + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + iInsert + ") ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(iInsert) + ") ")
 					}
 					r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
 					if r.Error != nil {
@@ -1187,9 +1187,15 @@ func Test_wal2(t *testing.T) {
 									sqlite_fullsync_count = "0"
 									_ = sqlite_fullsync_count // suppress unused warning
 									{ // "wal2-14." + tn + ".2"
-										_res = db.Exec("\n    PRAGMA wal_autocheckpoint = 10;\n    CREATE TABLE t1(a, b);                -- 2 wal syncs\n    INSERT INTO t1 VALUES(1, 2);          -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    COMMIT;                               -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n  ")
-										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA wal_autocheckpoint = 10;\n    CREATE TABLE t1(a, b);                -- 2 wal syncs\n    INSERT INTO t1 VALUES(1, 2);          -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    COMMIT;                               -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n  ")
+										r = db.Query("\n    PRAGMA wal_autocheckpoint = 10;\n    CREATE TABLE t1(a, b);                -- 2 wal syncs\n    INSERT INTO t1 VALUES(1, 2);          -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    COMMIT;                               -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA wal_autocheckpoint = 10;\n    CREATE TABLE t1(a, b);                -- 2 wal syncs\n    INSERT INTO t1 VALUES(1, 2);          -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    COMMIT;                               -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n  ")
+											return
+										}
+										got := flatten(r)
+										want := "10 0 3 3 0 1 1"
+										if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
 									{ // do_test "wal2-14." + tn + ".3"

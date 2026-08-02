@@ -58,9 +58,15 @@ func Test_trans3(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "trans3-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trans3-1.2"
@@ -97,9 +103,15 @@ func Test_trans3(t *testing.T) {
 		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "trans3-1.4"
-		_res = db.Exec("SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "trans3-1.5"
@@ -133,9 +145,15 @@ func Test_trans3(t *testing.T) {
 		_ = ecode // TCL namespace variable (query)
 	}
 	{ // do_test "trans3-1.7"
-		_res = db.Exec("SELECT * FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
+		r = db.Query("SELECT * FROM t1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

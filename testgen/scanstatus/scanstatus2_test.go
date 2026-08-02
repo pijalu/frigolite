@@ -148,9 +148,9 @@ func Test_scanstatus2(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
 	{ // "3.0"
-		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
+		r = db.Query("\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
 		}
 	}
 	// do_graph_test 2.1 {\n  SELECT * FROM x1, x2 WHERE c=+a;\n} {\nQUERY (nCycle=nnn)\n--SCAN x1 (n... (unsupported command, not transpiled)

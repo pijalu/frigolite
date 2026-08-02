@@ -84,9 +84,15 @@ func Test_win32lock(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA mmap_size=0")
 	}
 	{ // do_test "win32lock-1.1"
-		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,randomblob(100000));\n    INSERT INTO t1 VALUES(2,randomblob(50000));\n    INSERT INTO t1 VALUES(3,randomblob(25000));\n    INSERT INTO t1 VALUES(4,randomblob(12500));\n    SELECT x, length(y) FROM t1 ORDER BY rowid;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,randomblob(100000));\n    INSERT INTO t1 VALUES(2,randomblob(50000));\n    INSERT INTO t1 VALUES(3,randomblob(25000));\n    INSERT INTO t1 VALUES(4,randomblob(12500));\n    SELECT x, length(y) FROM t1 ORDER BY rowid;\n  ")
+		r = db.Query("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,randomblob(100000));\n    INSERT INTO t1 VALUES(2,randomblob(50000));\n    INSERT INTO t1 VALUES(3,randomblob(25000));\n    INSERT INTO t1 VALUES(4,randomblob(12500));\n    SELECT x, length(y) FROM t1 ORDER BY rowid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,randomblob(100000));\n    INSERT INTO t1 VALUES(2,randomblob(50000));\n    INSERT INTO t1 VALUES(3,randomblob(25000));\n    INSERT INTO t1 VALUES(4,randomblob(12500));\n    SELECT x, length(y) FROM t1 ORDER BY rowid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 100000 2 50000 3 25000 4 12500"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	old_pending_byte = "sqlite3_test_control_pending_byte 0x40000000"

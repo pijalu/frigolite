@@ -52,21 +52,27 @@ func Test_tkt3630(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3630-1"
-		_res = db.Exec("\n    CREATE TEMP TABLE temp1(a,b,c);\n    SELECT * FROM temp.sqlite_master WHERE sql GLOB '*TEMP*';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE temp1(a,b,c);\n    SELECT * FROM temp.sqlite_master WHERE sql GLOB '*TEMP*';\n  ")
+		r = db.Query("\n    CREATE TEMP TABLE temp1(a,b,c);\n    SELECT * FROM temp.sqlite_master WHERE sql GLOB '*TEMP*';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE temp1(a,b,c);\n    SELECT * FROM temp.sqlite_master WHERE sql GLOB '*TEMP*';\n  ")
 		}
 	}
 	{ // do_test "tkt3630-2"
-		_res = db.Exec("\n    CREATE TABLE main1(a,b,c);\n    CREATE TEMP TABLE temp2 AS SELECT * FROM main1;\n    SELECT * FROM sqlite_temp_master WHERE sql GLOB '*TEMP*';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE main1(a,b,c);\n    CREATE TEMP TABLE temp2 AS SELECT * FROM main1;\n    SELECT * FROM sqlite_temp_master WHERE sql GLOB '*TEMP*';\n  ")
+		r = db.Query("\n    CREATE TABLE main1(a,b,c);\n    CREATE TEMP TABLE temp2 AS SELECT * FROM main1;\n    SELECT * FROM sqlite_temp_master WHERE sql GLOB '*TEMP*';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE main1(a,b,c);\n    CREATE TEMP TABLE temp2 AS SELECT * FROM main1;\n    SELECT * FROM sqlite_temp_master WHERE sql GLOB '*TEMP*';\n  ")
 		}
 	}
 	{ // do_test "tkt3630-3"
-		_res = db.Exec("\n      ALTER TABLE temp2 ADD COLUMN d;\n      ALTER TABLE temp2 RENAME TO temp2rn;\n      SELECT name FROM temp.sqlite_master WHERE name LIKE 'temp2%';\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ALTER TABLE temp2 ADD COLUMN d;\n      ALTER TABLE temp2 RENAME TO temp2rn;\n      SELECT name FROM temp.sqlite_master WHERE name LIKE 'temp2%';\n    ")
+		r = db.Query("\n      ALTER TABLE temp2 ADD COLUMN d;\n      ALTER TABLE temp2 RENAME TO temp2rn;\n      SELECT name FROM temp.sqlite_master WHERE name LIKE 'temp2%';\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ALTER TABLE temp2 ADD COLUMN d;\n      ALTER TABLE temp2 RENAME TO temp2rn;\n      SELECT name FROM temp.sqlite_master WHERE name LIKE 'temp2%';\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "temp2rn"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

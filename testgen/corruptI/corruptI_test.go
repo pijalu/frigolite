@@ -75,9 +75,9 @@ func Test_corruptI(t *testing.T) {
 	}
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "1.1"
-		_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES('abcdefghijklmnop');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES('abcdefghijklmnop');\n")
+		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES('abcdefghijklmnop');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES('abcdefghijklmnop');\n")
 		}
 	}
 	{ // do_test "1.2"
@@ -167,9 +167,9 @@ func Test_corruptI(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
-		_res = db.Exec("\n  PRAGMA page_size = 65536;\n  PRAGMA autovacuum = 0;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(-1, 'abcdefghij');\n  INSERT INTO t1 VALUES(0, 'abcdefghij');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 65536;\n  PRAGMA autovacuum = 0;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(-1, 'abcdefghij');\n  INSERT INTO t1 VALUES(0, 'abcdefghij');\n")
+		r = db.Query("\n  PRAGMA page_size = 65536;\n  PRAGMA autovacuum = 0;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(-1, 'abcdefghij');\n  INSERT INTO t1 VALUES(0, 'abcdefghij');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 65536;\n  PRAGMA autovacuum = 0;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(-1, 'abcdefghij');\n  INSERT INTO t1 VALUES(0, 'abcdefghij');\n")
 		}
 	}
 	root = "db one {SELECT rootpage FROM sqlite_master}"
@@ -243,9 +243,9 @@ func Test_corruptI(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
-		_res = db.Exec("\n  PRAGMA page_size = 512;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(600));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 512;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(600));\n")
+		r = db.Query("\n  PRAGMA page_size = 512;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(600));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 512;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(600));\n")
 		}
 	}
 	{ // do_test "6.1"
@@ -275,9 +275,9 @@ func Test_corruptI(t *testing.T) {
 	}
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "7.1"
-		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name = 'sqlite_autoindex_t1_1';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name = 'sqlite_autoindex_t1_1';\n")
+		r = db.Query("\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name = 'sqlite_autoindex_t1_1';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name = 'sqlite_autoindex_t1_1';\n")
 		}
 	}
 	{ // do_test "7.2"
@@ -291,9 +291,9 @@ func Test_corruptI(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "8.0"
-		_res = db.Exec("\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n")
+		r = db.Query("\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n")
 		}
 	}
 	{ // do_test "8.1"

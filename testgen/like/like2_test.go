@@ -52,489 +52,975 @@ func Test_like2(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "like2-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(x INT, y COLLATE NOCASE);\n    INSERT INTO t1(x,y) VALUES(1,CAST(x'01' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(2,CAST(x'02' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(3,CAST(x'03' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(4,CAST(x'04' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(5,CAST(x'05' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(6,CAST(x'06' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(7,CAST(x'07' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(8,CAST(x'08' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(9,CAST(x'09' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(10,CAST(x'0a' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(11,CAST(x'0b' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(12,CAST(x'0c' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(13,CAST(x'0d' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(14,CAST(x'0e' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(15,CAST(x'0f' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(16,CAST(x'10' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(17,CAST(x'11' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(18,CAST(x'12' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(19,CAST(x'13' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(20,CAST(x'14' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(21,CAST(x'15' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(22,CAST(x'16' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(23,CAST(x'17' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(24,CAST(x'18' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(25,CAST(x'19' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(26,CAST(x'1a' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(27,CAST(x'1b' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(28,CAST(x'1c' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(29,CAST(x'1d' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(30,CAST(x'1e' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(31,CAST(x'1f' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(32,' ');\n    INSERT INTO t1(x,y) VALUES(33,'!');\n    INSERT INTO t1(x,y) VALUES(34,'\"');\n    INSERT INTO t1(x,y) VALUES(35,'#');\n    INSERT INTO t1(x,y) VALUES(36,'$');\n    INSERT INTO t1(x,y) VALUES(37,'%');\n    INSERT INTO t1(x,y) VALUES(38,'&');\n    INSERT INTO t1(x,y) VALUES(39,'''');\n    INSERT INTO t1(x,y) VALUES(40,'(');\n    INSERT INTO t1(x,y) VALUES(41,')');\n    INSERT INTO t1(x,y) VALUES(42,'*');\n    INSERT INTO t1(x,y) VALUES(43,'+');\n    INSERT INTO t1(x,y) VALUES(44,',');\n    INSERT INTO t1(x,y) VALUES(45,'-');\n    INSERT INTO t1(x,y) VALUES(46,'.');\n    INSERT INTO t1(x,y) VALUES(47,'/');\n    INSERT INTO t1(x,y) VALUES(48,'0');\n    INSERT INTO t1(x,y) VALUES(49,'1');\n    INSERT INTO t1(x,y) VALUES(50,'2');\n    INSERT INTO t1(x,y) VALUES(51,'3');\n    INSERT INTO t1(x,y) VALUES(52,'4');\n    INSERT INTO t1(x,y) VALUES(53,'5');\n    INSERT INTO t1(x,y) VALUES(54,'6');\n    INSERT INTO t1(x,y) VALUES(55,'7');\n    INSERT INTO t1(x,y) VALUES(56,'8');\n    INSERT INTO t1(x,y) VALUES(57,'9');\n    INSERT INTO t1(x,y) VALUES(58,':');\n    INSERT INTO t1(x,y) VALUES(59,';');\n    INSERT INTO t1(x,y) VALUES(60,'<');\n    INSERT INTO t1(x,y) VALUES(61,'=');\n    INSERT INTO t1(x,y) VALUES(62,'>');\n    INSERT INTO t1(x,y) VALUES(63,'?');\n    INSERT INTO t1(x,y) VALUES(64,'@');\n    INSERT INTO t1(x,y) VALUES(65,'A');\n    INSERT INTO t1(x,y) VALUES(66,'B');\n    INSERT INTO t1(x,y) VALUES(67,'C');\n    INSERT INTO t1(x,y) VALUES(68,'D');\n    INSERT INTO t1(x,y) VALUES(69,'E');\n    INSERT INTO t1(x,y) VALUES(70,'F');\n    INSERT INTO t1(x,y) VALUES(71,'G');\n    INSERT INTO t1(x,y) VALUES(72,'H');\n    INSERT INTO t1(x,y) VALUES(73,'I');\n    INSERT INTO t1(x,y) VALUES(74,'J');\n    INSERT INTO t1(x,y) VALUES(75,'K');\n    INSERT INTO t1(x,y) VALUES(76,'L');\n    INSERT INTO t1(x,y) VALUES(77,'M');\n    INSERT INTO t1(x,y) VALUES(78,'N');\n    INSERT INTO t1(x,y) VALUES(79,'O');\n    INSERT INTO t1(x,y) VALUES(80,'P');\n    INSERT INTO t1(x,y) VALUES(81,'Q');\n    INSERT INTO t1(x,y) VALUES(82,'R');\n    INSERT INTO t1(x,y) VALUES(83,'S');\n    INSERT INTO t1(x,y) VALUES(84,'T');\n    INSERT INTO t1(x,y) VALUES(85,'U');\n    INSERT INTO t1(x,y) VALUES(86,'V');\n    INSERT INTO t1(x,y) VALUES(87,'W');\n    INSERT INTO t1(x,y) VALUES(88,'X');\n    INSERT INTO t1(x,y) VALUES(89,'Y');\n    INSERT INTO t1(x,y) VALUES(90,'Z');\n    INSERT INTO t1(x,y) VALUES(91,'" + "');\n    INSERT INTO t1(x,y) VALUES(92,'\\');\n    INSERT INTO t1(x,y) VALUES(93,'" + "');\n    INSERT INTO t1(x,y) VALUES(94,'^');\n    INSERT INTO t1(x,y) VALUES(95,'_');\n    INSERT INTO t1(x,y) VALUES(96,'`');\n    INSERT INTO t1(x,y) VALUES(97,'a');\n    INSERT INTO t1(x,y) VALUES(98,'b');\n    INSERT INTO t1(x,y) VALUES(99,'c');\n    INSERT INTO t1(x,y) VALUES(100,'d');\n    INSERT INTO t1(x,y) VALUES(101,'e');\n    INSERT INTO t1(x,y) VALUES(102,'f');\n    INSERT INTO t1(x,y) VALUES(103,'g');\n    INSERT INTO t1(x,y) VALUES(104,'h');\n    INSERT INTO t1(x,y) VALUES(105,'i');\n    INSERT INTO t1(x,y) VALUES(106,'j');\n    INSERT INTO t1(x,y) VALUES(107,'k');\n    INSERT INTO t1(x,y) VALUES(108,'l');\n    INSERT INTO t1(x,y) VALUES(109,'m');\n    INSERT INTO t1(x,y) VALUES(110,'n');\n    INSERT INTO t1(x,y) VALUES(111,'o');\n    INSERT INTO t1(x,y) VALUES(112,'p');\n    INSERT INTO t1(x,y) VALUES(113,'q');\n    INSERT INTO t1(x,y) VALUES(114,'r');\n    INSERT INTO t1(x,y) VALUES(115,'s');\n    INSERT INTO t1(x,y) VALUES(116,'t');\n    INSERT INTO t1(x,y) VALUES(117,'u');\n    INSERT INTO t1(x,y) VALUES(118,'v');\n    INSERT INTO t1(x,y) VALUES(119,'w');\n    INSERT INTO t1(x,y) VALUES(120,'x');\n    INSERT INTO t1(x,y) VALUES(121,'y');\n    INSERT INTO t1(x,y) VALUES(122,'z');\n    INSERT INTO t1(x,y) VALUES(123,'{');\n    INSERT INTO t1(x,y) VALUES(124,'|');\n    INSERT INTO t1(x,y) VALUES(125,'}');\n    INSERT INTO t1(x,y) VALUES(126,'~');\n    INSERT INTO t1(x,y) VALUES(127,CAST(x'7f' AS TEXT));\n    SELECT count(*) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x INT, y COLLATE NOCASE);\n    INSERT INTO t1(x,y) VALUES(1,CAST(x'01' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(2,CAST(x'02' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(3,CAST(x'03' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(4,CAST(x'04' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(5,CAST(x'05' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(6,CAST(x'06' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(7,CAST(x'07' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(8,CAST(x'08' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(9,CAST(x'09' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(10,CAST(x'0a' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(11,CAST(x'0b' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(12,CAST(x'0c' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(13,CAST(x'0d' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(14,CAST(x'0e' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(15,CAST(x'0f' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(16,CAST(x'10' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(17,CAST(x'11' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(18,CAST(x'12' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(19,CAST(x'13' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(20,CAST(x'14' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(21,CAST(x'15' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(22,CAST(x'16' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(23,CAST(x'17' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(24,CAST(x'18' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(25,CAST(x'19' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(26,CAST(x'1a' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(27,CAST(x'1b' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(28,CAST(x'1c' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(29,CAST(x'1d' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(30,CAST(x'1e' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(31,CAST(x'1f' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(32,' ');\n    INSERT INTO t1(x,y) VALUES(33,'!');\n    INSERT INTO t1(x,y) VALUES(34,'\"');\n    INSERT INTO t1(x,y) VALUES(35,'#');\n    INSERT INTO t1(x,y) VALUES(36,'$');\n    INSERT INTO t1(x,y) VALUES(37,'%');\n    INSERT INTO t1(x,y) VALUES(38,'&');\n    INSERT INTO t1(x,y) VALUES(39,'''');\n    INSERT INTO t1(x,y) VALUES(40,'(');\n    INSERT INTO t1(x,y) VALUES(41,')');\n    INSERT INTO t1(x,y) VALUES(42,'*');\n    INSERT INTO t1(x,y) VALUES(43,'+');\n    INSERT INTO t1(x,y) VALUES(44,',');\n    INSERT INTO t1(x,y) VALUES(45,'-');\n    INSERT INTO t1(x,y) VALUES(46,'.');\n    INSERT INTO t1(x,y) VALUES(47,'/');\n    INSERT INTO t1(x,y) VALUES(48,'0');\n    INSERT INTO t1(x,y) VALUES(49,'1');\n    INSERT INTO t1(x,y) VALUES(50,'2');\n    INSERT INTO t1(x,y) VALUES(51,'3');\n    INSERT INTO t1(x,y) VALUES(52,'4');\n    INSERT INTO t1(x,y) VALUES(53,'5');\n    INSERT INTO t1(x,y) VALUES(54,'6');\n    INSERT INTO t1(x,y) VALUES(55,'7');\n    INSERT INTO t1(x,y) VALUES(56,'8');\n    INSERT INTO t1(x,y) VALUES(57,'9');\n    INSERT INTO t1(x,y) VALUES(58,':');\n    INSERT INTO t1(x,y) VALUES(59,';');\n    INSERT INTO t1(x,y) VALUES(60,'<');\n    INSERT INTO t1(x,y) VALUES(61,'=');\n    INSERT INTO t1(x,y) VALUES(62,'>');\n    INSERT INTO t1(x,y) VALUES(63,'?');\n    INSERT INTO t1(x,y) VALUES(64,'@');\n    INSERT INTO t1(x,y) VALUES(65,'A');\n    INSERT INTO t1(x,y) VALUES(66,'B');\n    INSERT INTO t1(x,y) VALUES(67,'C');\n    INSERT INTO t1(x,y) VALUES(68,'D');\n    INSERT INTO t1(x,y) VALUES(69,'E');\n    INSERT INTO t1(x,y) VALUES(70,'F');\n    INSERT INTO t1(x,y) VALUES(71,'G');\n    INSERT INTO t1(x,y) VALUES(72,'H');\n    INSERT INTO t1(x,y) VALUES(73,'I');\n    INSERT INTO t1(x,y) VALUES(74,'J');\n    INSERT INTO t1(x,y) VALUES(75,'K');\n    INSERT INTO t1(x,y) VALUES(76,'L');\n    INSERT INTO t1(x,y) VALUES(77,'M');\n    INSERT INTO t1(x,y) VALUES(78,'N');\n    INSERT INTO t1(x,y) VALUES(79,'O');\n    INSERT INTO t1(x,y) VALUES(80,'P');\n    INSERT INTO t1(x,y) VALUES(81,'Q');\n    INSERT INTO t1(x,y) VALUES(82,'R');\n    INSERT INTO t1(x,y) VALUES(83,'S');\n    INSERT INTO t1(x,y) VALUES(84,'T');\n    INSERT INTO t1(x,y) VALUES(85,'U');\n    INSERT INTO t1(x,y) VALUES(86,'V');\n    INSERT INTO t1(x,y) VALUES(87,'W');\n    INSERT INTO t1(x,y) VALUES(88,'X');\n    INSERT INTO t1(x,y) VALUES(89,'Y');\n    INSERT INTO t1(x,y) VALUES(90,'Z');\n    INSERT INTO t1(x,y) VALUES(91,'" + "');\n    INSERT INTO t1(x,y) VALUES(92,'\\');\n    INSERT INTO t1(x,y) VALUES(93,'" + "');\n    INSERT INTO t1(x,y) VALUES(94,'^');\n    INSERT INTO t1(x,y) VALUES(95,'_');\n    INSERT INTO t1(x,y) VALUES(96,'`');\n    INSERT INTO t1(x,y) VALUES(97,'a');\n    INSERT INTO t1(x,y) VALUES(98,'b');\n    INSERT INTO t1(x,y) VALUES(99,'c');\n    INSERT INTO t1(x,y) VALUES(100,'d');\n    INSERT INTO t1(x,y) VALUES(101,'e');\n    INSERT INTO t1(x,y) VALUES(102,'f');\n    INSERT INTO t1(x,y) VALUES(103,'g');\n    INSERT INTO t1(x,y) VALUES(104,'h');\n    INSERT INTO t1(x,y) VALUES(105,'i');\n    INSERT INTO t1(x,y) VALUES(106,'j');\n    INSERT INTO t1(x,y) VALUES(107,'k');\n    INSERT INTO t1(x,y) VALUES(108,'l');\n    INSERT INTO t1(x,y) VALUES(109,'m');\n    INSERT INTO t1(x,y) VALUES(110,'n');\n    INSERT INTO t1(x,y) VALUES(111,'o');\n    INSERT INTO t1(x,y) VALUES(112,'p');\n    INSERT INTO t1(x,y) VALUES(113,'q');\n    INSERT INTO t1(x,y) VALUES(114,'r');\n    INSERT INTO t1(x,y) VALUES(115,'s');\n    INSERT INTO t1(x,y) VALUES(116,'t');\n    INSERT INTO t1(x,y) VALUES(117,'u');\n    INSERT INTO t1(x,y) VALUES(118,'v');\n    INSERT INTO t1(x,y) VALUES(119,'w');\n    INSERT INTO t1(x,y) VALUES(120,'x');\n    INSERT INTO t1(x,y) VALUES(121,'y');\n    INSERT INTO t1(x,y) VALUES(122,'z');\n    INSERT INTO t1(x,y) VALUES(123,'{');\n    INSERT INTO t1(x,y) VALUES(124,'|');\n    INSERT INTO t1(x,y) VALUES(125,'}');\n    INSERT INTO t1(x,y) VALUES(126,'~');\n    INSERT INTO t1(x,y) VALUES(127,CAST(x'7f' AS TEXT));\n    SELECT count(*) FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(x INT, y COLLATE NOCASE);\n    INSERT INTO t1(x,y) VALUES(1,CAST(x'01' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(2,CAST(x'02' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(3,CAST(x'03' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(4,CAST(x'04' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(5,CAST(x'05' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(6,CAST(x'06' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(7,CAST(x'07' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(8,CAST(x'08' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(9,CAST(x'09' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(10,CAST(x'0a' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(11,CAST(x'0b' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(12,CAST(x'0c' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(13,CAST(x'0d' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(14,CAST(x'0e' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(15,CAST(x'0f' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(16,CAST(x'10' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(17,CAST(x'11' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(18,CAST(x'12' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(19,CAST(x'13' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(20,CAST(x'14' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(21,CAST(x'15' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(22,CAST(x'16' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(23,CAST(x'17' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(24,CAST(x'18' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(25,CAST(x'19' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(26,CAST(x'1a' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(27,CAST(x'1b' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(28,CAST(x'1c' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(29,CAST(x'1d' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(30,CAST(x'1e' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(31,CAST(x'1f' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(32,' ');\n    INSERT INTO t1(x,y) VALUES(33,'!');\n    INSERT INTO t1(x,y) VALUES(34,'\"');\n    INSERT INTO t1(x,y) VALUES(35,'#');\n    INSERT INTO t1(x,y) VALUES(36,'$');\n    INSERT INTO t1(x,y) VALUES(37,'%');\n    INSERT INTO t1(x,y) VALUES(38,'&');\n    INSERT INTO t1(x,y) VALUES(39,'''');\n    INSERT INTO t1(x,y) VALUES(40,'(');\n    INSERT INTO t1(x,y) VALUES(41,')');\n    INSERT INTO t1(x,y) VALUES(42,'*');\n    INSERT INTO t1(x,y) VALUES(43,'+');\n    INSERT INTO t1(x,y) VALUES(44,',');\n    INSERT INTO t1(x,y) VALUES(45,'-');\n    INSERT INTO t1(x,y) VALUES(46,'.');\n    INSERT INTO t1(x,y) VALUES(47,'/');\n    INSERT INTO t1(x,y) VALUES(48,'0');\n    INSERT INTO t1(x,y) VALUES(49,'1');\n    INSERT INTO t1(x,y) VALUES(50,'2');\n    INSERT INTO t1(x,y) VALUES(51,'3');\n    INSERT INTO t1(x,y) VALUES(52,'4');\n    INSERT INTO t1(x,y) VALUES(53,'5');\n    INSERT INTO t1(x,y) VALUES(54,'6');\n    INSERT INTO t1(x,y) VALUES(55,'7');\n    INSERT INTO t1(x,y) VALUES(56,'8');\n    INSERT INTO t1(x,y) VALUES(57,'9');\n    INSERT INTO t1(x,y) VALUES(58,':');\n    INSERT INTO t1(x,y) VALUES(59,';');\n    INSERT INTO t1(x,y) VALUES(60,'<');\n    INSERT INTO t1(x,y) VALUES(61,'=');\n    INSERT INTO t1(x,y) VALUES(62,'>');\n    INSERT INTO t1(x,y) VALUES(63,'?');\n    INSERT INTO t1(x,y) VALUES(64,'@');\n    INSERT INTO t1(x,y) VALUES(65,'A');\n    INSERT INTO t1(x,y) VALUES(66,'B');\n    INSERT INTO t1(x,y) VALUES(67,'C');\n    INSERT INTO t1(x,y) VALUES(68,'D');\n    INSERT INTO t1(x,y) VALUES(69,'E');\n    INSERT INTO t1(x,y) VALUES(70,'F');\n    INSERT INTO t1(x,y) VALUES(71,'G');\n    INSERT INTO t1(x,y) VALUES(72,'H');\n    INSERT INTO t1(x,y) VALUES(73,'I');\n    INSERT INTO t1(x,y) VALUES(74,'J');\n    INSERT INTO t1(x,y) VALUES(75,'K');\n    INSERT INTO t1(x,y) VALUES(76,'L');\n    INSERT INTO t1(x,y) VALUES(77,'M');\n    INSERT INTO t1(x,y) VALUES(78,'N');\n    INSERT INTO t1(x,y) VALUES(79,'O');\n    INSERT INTO t1(x,y) VALUES(80,'P');\n    INSERT INTO t1(x,y) VALUES(81,'Q');\n    INSERT INTO t1(x,y) VALUES(82,'R');\n    INSERT INTO t1(x,y) VALUES(83,'S');\n    INSERT INTO t1(x,y) VALUES(84,'T');\n    INSERT INTO t1(x,y) VALUES(85,'U');\n    INSERT INTO t1(x,y) VALUES(86,'V');\n    INSERT INTO t1(x,y) VALUES(87,'W');\n    INSERT INTO t1(x,y) VALUES(88,'X');\n    INSERT INTO t1(x,y) VALUES(89,'Y');\n    INSERT INTO t1(x,y) VALUES(90,'Z');\n    INSERT INTO t1(x,y) VALUES(91,'" + sqlLiteral("');\n    INSERT INTO t1(x,y) VALUES(92,'\\');\n    INSERT INTO t1(x,y) VALUES(93,'") + "');\n    INSERT INTO t1(x,y) VALUES(94,'^');\n    INSERT INTO t1(x,y) VALUES(95,'_');\n    INSERT INTO t1(x,y) VALUES(96,'`');\n    INSERT INTO t1(x,y) VALUES(97,'a');\n    INSERT INTO t1(x,y) VALUES(98,'b');\n    INSERT INTO t1(x,y) VALUES(99,'c');\n    INSERT INTO t1(x,y) VALUES(100,'d');\n    INSERT INTO t1(x,y) VALUES(101,'e');\n    INSERT INTO t1(x,y) VALUES(102,'f');\n    INSERT INTO t1(x,y) VALUES(103,'g');\n    INSERT INTO t1(x,y) VALUES(104,'h');\n    INSERT INTO t1(x,y) VALUES(105,'i');\n    INSERT INTO t1(x,y) VALUES(106,'j');\n    INSERT INTO t1(x,y) VALUES(107,'k');\n    INSERT INTO t1(x,y) VALUES(108,'l');\n    INSERT INTO t1(x,y) VALUES(109,'m');\n    INSERT INTO t1(x,y) VALUES(110,'n');\n    INSERT INTO t1(x,y) VALUES(111,'o');\n    INSERT INTO t1(x,y) VALUES(112,'p');\n    INSERT INTO t1(x,y) VALUES(113,'q');\n    INSERT INTO t1(x,y) VALUES(114,'r');\n    INSERT INTO t1(x,y) VALUES(115,'s');\n    INSERT INTO t1(x,y) VALUES(116,'t');\n    INSERT INTO t1(x,y) VALUES(117,'u');\n    INSERT INTO t1(x,y) VALUES(118,'v');\n    INSERT INTO t1(x,y) VALUES(119,'w');\n    INSERT INTO t1(x,y) VALUES(120,'x');\n    INSERT INTO t1(x,y) VALUES(121,'y');\n    INSERT INTO t1(x,y) VALUES(122,'z');\n    INSERT INTO t1(x,y) VALUES(123,'{');\n    INSERT INTO t1(x,y) VALUES(124,'|');\n    INSERT INTO t1(x,y) VALUES(125,'}');\n    INSERT INTO t1(x,y) VALUES(126,'~');\n    INSERT INTO t1(x,y) VALUES(127,CAST(x'7f' AS TEXT));\n    SELECT count(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x INT, y COLLATE NOCASE);\n    INSERT INTO t1(x,y) VALUES(1,CAST(x'01' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(2,CAST(x'02' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(3,CAST(x'03' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(4,CAST(x'04' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(5,CAST(x'05' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(6,CAST(x'06' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(7,CAST(x'07' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(8,CAST(x'08' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(9,CAST(x'09' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(10,CAST(x'0a' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(11,CAST(x'0b' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(12,CAST(x'0c' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(13,CAST(x'0d' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(14,CAST(x'0e' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(15,CAST(x'0f' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(16,CAST(x'10' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(17,CAST(x'11' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(18,CAST(x'12' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(19,CAST(x'13' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(20,CAST(x'14' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(21,CAST(x'15' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(22,CAST(x'16' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(23,CAST(x'17' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(24,CAST(x'18' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(25,CAST(x'19' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(26,CAST(x'1a' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(27,CAST(x'1b' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(28,CAST(x'1c' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(29,CAST(x'1d' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(30,CAST(x'1e' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(31,CAST(x'1f' AS TEXT));\n    INSERT INTO t1(x,y) VALUES(32,' ');\n    INSERT INTO t1(x,y) VALUES(33,'!');\n    INSERT INTO t1(x,y) VALUES(34,'\"');\n    INSERT INTO t1(x,y) VALUES(35,'#');\n    INSERT INTO t1(x,y) VALUES(36,'$');\n    INSERT INTO t1(x,y) VALUES(37,'%');\n    INSERT INTO t1(x,y) VALUES(38,'&');\n    INSERT INTO t1(x,y) VALUES(39,'''');\n    INSERT INTO t1(x,y) VALUES(40,'(');\n    INSERT INTO t1(x,y) VALUES(41,')');\n    INSERT INTO t1(x,y) VALUES(42,'*');\n    INSERT INTO t1(x,y) VALUES(43,'+');\n    INSERT INTO t1(x,y) VALUES(44,',');\n    INSERT INTO t1(x,y) VALUES(45,'-');\n    INSERT INTO t1(x,y) VALUES(46,'.');\n    INSERT INTO t1(x,y) VALUES(47,'/');\n    INSERT INTO t1(x,y) VALUES(48,'0');\n    INSERT INTO t1(x,y) VALUES(49,'1');\n    INSERT INTO t1(x,y) VALUES(50,'2');\n    INSERT INTO t1(x,y) VALUES(51,'3');\n    INSERT INTO t1(x,y) VALUES(52,'4');\n    INSERT INTO t1(x,y) VALUES(53,'5');\n    INSERT INTO t1(x,y) VALUES(54,'6');\n    INSERT INTO t1(x,y) VALUES(55,'7');\n    INSERT INTO t1(x,y) VALUES(56,'8');\n    INSERT INTO t1(x,y) VALUES(57,'9');\n    INSERT INTO t1(x,y) VALUES(58,':');\n    INSERT INTO t1(x,y) VALUES(59,';');\n    INSERT INTO t1(x,y) VALUES(60,'<');\n    INSERT INTO t1(x,y) VALUES(61,'=');\n    INSERT INTO t1(x,y) VALUES(62,'>');\n    INSERT INTO t1(x,y) VALUES(63,'?');\n    INSERT INTO t1(x,y) VALUES(64,'@');\n    INSERT INTO t1(x,y) VALUES(65,'A');\n    INSERT INTO t1(x,y) VALUES(66,'B');\n    INSERT INTO t1(x,y) VALUES(67,'C');\n    INSERT INTO t1(x,y) VALUES(68,'D');\n    INSERT INTO t1(x,y) VALUES(69,'E');\n    INSERT INTO t1(x,y) VALUES(70,'F');\n    INSERT INTO t1(x,y) VALUES(71,'G');\n    INSERT INTO t1(x,y) VALUES(72,'H');\n    INSERT INTO t1(x,y) VALUES(73,'I');\n    INSERT INTO t1(x,y) VALUES(74,'J');\n    INSERT INTO t1(x,y) VALUES(75,'K');\n    INSERT INTO t1(x,y) VALUES(76,'L');\n    INSERT INTO t1(x,y) VALUES(77,'M');\n    INSERT INTO t1(x,y) VALUES(78,'N');\n    INSERT INTO t1(x,y) VALUES(79,'O');\n    INSERT INTO t1(x,y) VALUES(80,'P');\n    INSERT INTO t1(x,y) VALUES(81,'Q');\n    INSERT INTO t1(x,y) VALUES(82,'R');\n    INSERT INTO t1(x,y) VALUES(83,'S');\n    INSERT INTO t1(x,y) VALUES(84,'T');\n    INSERT INTO t1(x,y) VALUES(85,'U');\n    INSERT INTO t1(x,y) VALUES(86,'V');\n    INSERT INTO t1(x,y) VALUES(87,'W');\n    INSERT INTO t1(x,y) VALUES(88,'X');\n    INSERT INTO t1(x,y) VALUES(89,'Y');\n    INSERT INTO t1(x,y) VALUES(90,'Z');\n    INSERT INTO t1(x,y) VALUES(91,'" + sqlLiteral("');\n    INSERT INTO t1(x,y) VALUES(92,'\\');\n    INSERT INTO t1(x,y) VALUES(93,'") + "');\n    INSERT INTO t1(x,y) VALUES(94,'^');\n    INSERT INTO t1(x,y) VALUES(95,'_');\n    INSERT INTO t1(x,y) VALUES(96,'`');\n    INSERT INTO t1(x,y) VALUES(97,'a');\n    INSERT INTO t1(x,y) VALUES(98,'b');\n    INSERT INTO t1(x,y) VALUES(99,'c');\n    INSERT INTO t1(x,y) VALUES(100,'d');\n    INSERT INTO t1(x,y) VALUES(101,'e');\n    INSERT INTO t1(x,y) VALUES(102,'f');\n    INSERT INTO t1(x,y) VALUES(103,'g');\n    INSERT INTO t1(x,y) VALUES(104,'h');\n    INSERT INTO t1(x,y) VALUES(105,'i');\n    INSERT INTO t1(x,y) VALUES(106,'j');\n    INSERT INTO t1(x,y) VALUES(107,'k');\n    INSERT INTO t1(x,y) VALUES(108,'l');\n    INSERT INTO t1(x,y) VALUES(109,'m');\n    INSERT INTO t1(x,y) VALUES(110,'n');\n    INSERT INTO t1(x,y) VALUES(111,'o');\n    INSERT INTO t1(x,y) VALUES(112,'p');\n    INSERT INTO t1(x,y) VALUES(113,'q');\n    INSERT INTO t1(x,y) VALUES(114,'r');\n    INSERT INTO t1(x,y) VALUES(115,'s');\n    INSERT INTO t1(x,y) VALUES(116,'t');\n    INSERT INTO t1(x,y) VALUES(117,'u');\n    INSERT INTO t1(x,y) VALUES(118,'v');\n    INSERT INTO t1(x,y) VALUES(119,'w');\n    INSERT INTO t1(x,y) VALUES(120,'x');\n    INSERT INTO t1(x,y) VALUES(121,'y');\n    INSERT INTO t1(x,y) VALUES(122,'z');\n    INSERT INTO t1(x,y) VALUES(123,'{');\n    INSERT INTO t1(x,y) VALUES(124,'|');\n    INSERT INTO t1(x,y) VALUES(125,'}');\n    INSERT INTO t1(x,y) VALUES(126,'~');\n    INSERT INTO t1(x,y) VALUES(127,CAST(x'7f' AS TEXT));\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "127"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like2-1.2"
-		_res = db.Exec("\n    CREATE TABLE t2(x INT, y COLLATE NOCASE);\n    INSERT INTO t2 SELECT * FROM t1;\n    CREATE INDEX i2 ON t2(y);\n    SELECT count(*) FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x INT, y COLLATE NOCASE);\n    INSERT INTO t2 SELECT * FROM t1;\n    CREATE INDEX i2 ON t2(y);\n    SELECT count(*) FROM t2;\n  ")
+		r = db.Query("\n    CREATE TABLE t2(x INT, y COLLATE NOCASE);\n    INSERT INTO t2 SELECT * FROM t1;\n    CREATE INDEX i2 ON t2(y);\n    SELECT count(*) FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x INT, y COLLATE NOCASE);\n    INSERT INTO t2 SELECT * FROM t1;\n    CREATE INDEX i2 ON t2(y);\n    SELECT count(*) FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "127"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like2-1.3"
-		_res = db.Exec("\n    CREATE TABLE t3(x INT, y COLLATE NOCASE);\n    INSERT INTO t3 SELECT x, 'abc' || y || 'xyz' FROM t1;\n    CREATE INDEX i3 ON t3(y);\n    SELECT count(*) FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(x INT, y COLLATE NOCASE);\n    INSERT INTO t3 SELECT x, 'abc' || y || 'xyz' FROM t1;\n    CREATE INDEX i3 ON t3(y);\n    SELECT count(*) FROM t2;\n  ")
+		r = db.Query("\n    CREATE TABLE t3(x INT, y COLLATE NOCASE);\n    INSERT INTO t3 SELECT x, 'abc' || y || 'xyz' FROM t1;\n    CREATE INDEX i3 ON t3(y);\n    SELECT count(*) FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(x INT, y COLLATE NOCASE);\n    INSERT INTO t3 SELECT x, 'abc' || y || 'xyz' FROM t1;\n    CREATE INDEX i3 ON t3(y);\n    SELECT count(*) FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "127"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.32.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE ' %'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE ' %'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE ' %'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE ' %'")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.32.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE ' %'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE ' %'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE ' %'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE ' %'")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.32.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc %'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc %'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc %'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc %'")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.33.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '!%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '!%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '!%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '!%'")
+			return
+		}
+		got := flatten(r)
+		want := "33"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.33.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '!%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '!%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '!%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '!%'")
+			return
+		}
+		got := flatten(r)
+		want := "33"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.33.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc!%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc!%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc!%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc!%'")
+			return
+		}
+		got := flatten(r)
+		want := "33"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.34.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\"%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\"%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '\\\"%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '\\\"%'")
+			return
+		}
+		got := flatten(r)
+		want := "34"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.34.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\"%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\"%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '\\\"%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '\\\"%'")
+			return
+		}
+		got := flatten(r)
+		want := "34"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.34.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\"%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\"%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc\\\"%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\\"%'")
+			return
+		}
+		got := flatten(r)
+		want := "34"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.35.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '#%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '#%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '#%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '#%'")
+			return
+		}
+		got := flatten(r)
+		want := "35"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.35.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '#%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '#%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '#%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '#%'")
+			return
+		}
+		got := flatten(r)
+		want := "35"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.35.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc#%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc#%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc#%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc#%'")
+			return
+		}
+		got := flatten(r)
+		want := "35"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.36.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '$%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '$%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '\\$%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '\\$%'")
+			return
+		}
+		got := flatten(r)
+		want := "36"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.36.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '$%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '$%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '\\$%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '\\$%'")
+			return
+		}
+		got := flatten(r)
+		want := "36"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.36.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc$%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc$%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc\\$%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\$%'")
+			return
+		}
+		got := flatten(r)
+		want := "36"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.38.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '&%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '&%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '&%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '&%'")
+			return
+		}
+		got := flatten(r)
+		want := "38"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.38.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '&%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '&%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '&%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '&%'")
+			return
+		}
+		got := flatten(r)
+		want := "38"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.38.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc&%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc&%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc&%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc&%'")
+			return
+		}
+		got := flatten(r)
+		want := "38"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.39.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '''%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '''%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '''%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '''%'")
+			return
+		}
+		got := flatten(r)
+		want := "39"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.39.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '''%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '''%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '''%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '''%'")
+			return
+		}
+		got := flatten(r)
+		want := "39"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.39.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc''%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc''%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc''%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc''%'")
+			return
+		}
+		got := flatten(r)
+		want := "39"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.40.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '(%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '(%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '(%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '(%'")
+			return
+		}
+		got := flatten(r)
+		want := "40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.40.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '(%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '(%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '(%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '(%'")
+			return
+		}
+		got := flatten(r)
+		want := "40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.40.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc(%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc(%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc(%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc(%'")
+			return
+		}
+		got := flatten(r)
+		want := "40"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.41.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE ')%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE ')%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE ')%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE ')%'")
+			return
+		}
+		got := flatten(r)
+		want := "41"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.41.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE ')%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE ')%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE ')%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE ')%'")
+			return
+		}
+		got := flatten(r)
+		want := "41"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.41.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc)%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc)%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc)%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc)%'")
+			return
+		}
+		got := flatten(r)
+		want := "41"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.42.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '*%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '*%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '*%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '*%'")
+			return
+		}
+		got := flatten(r)
+		want := "42"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.42.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '*%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '*%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '*%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '*%'")
+			return
+		}
+		got := flatten(r)
+		want := "42"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.42.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc*%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc*%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc*%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc*%'")
+			return
+		}
+		got := flatten(r)
+		want := "42"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.43.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '+%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '+%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '+%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '+%'")
+			return
+		}
+		got := flatten(r)
+		want := "43"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.43.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '+%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '+%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '+%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '+%'")
+			return
+		}
+		got := flatten(r)
+		want := "43"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.43.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc+%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc+%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc+%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc+%'")
+			return
+		}
+		got := flatten(r)
+		want := "43"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.44.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE ',%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE ',%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE ',%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE ',%'")
+			return
+		}
+		got := flatten(r)
+		want := "44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.44.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE ',%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE ',%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE ',%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE ',%'")
+			return
+		}
+		got := flatten(r)
+		want := "44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.44.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc,%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc,%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc,%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc,%'")
+			return
+		}
+		got := flatten(r)
+		want := "44"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.45.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '-%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '-%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '-%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '-%'")
+			return
+		}
+		got := flatten(r)
+		want := "45"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.45.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '-%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '-%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '-%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '-%'")
+			return
+		}
+		got := flatten(r)
+		want := "45"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.45.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc-%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc-%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc-%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc-%'")
+			return
+		}
+		got := flatten(r)
+		want := "45"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.46.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '.%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '.%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '.%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '.%'")
+			return
+		}
+		got := flatten(r)
+		want := "46"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.46.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '.%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '.%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '.%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '.%'")
+			return
+		}
+		got := flatten(r)
+		want := "46"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.46.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc.%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc.%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc.%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc.%'")
+			return
+		}
+		got := flatten(r)
+		want := "46"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.47.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '/%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '/%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '/%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '/%'")
+			return
+		}
+		got := flatten(r)
+		want := "47"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.47.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '/%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '/%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '/%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '/%'")
+			return
+		}
+		got := flatten(r)
+		want := "47"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.47.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc/%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc/%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc/%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc/%'")
+			return
+		}
+		got := flatten(r)
+		want := "47"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.48.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '0%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '0%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '0%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '0%'")
+			return
+		}
+		got := flatten(r)
+		want := "48"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.48.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '0%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '0%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '0%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '0%'")
+			return
+		}
+		got := flatten(r)
+		want := "48"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.48.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc0%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc0%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc0%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc0%'")
+			return
+		}
+		got := flatten(r)
+		want := "48"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.49.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '1%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '1%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '1%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '1%'")
+			return
+		}
+		got := flatten(r)
+		want := "49"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.49.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '1%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '1%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '1%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '1%'")
+			return
+		}
+		got := flatten(r)
+		want := "49"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.49.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc1%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc1%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc1%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc1%'")
+			return
+		}
+		got := flatten(r)
+		want := "49"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.50.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '2%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '2%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '2%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '2%'")
+			return
+		}
+		got := flatten(r)
+		want := "50"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.50.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '2%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '2%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '2%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '2%'")
+			return
+		}
+		got := flatten(r)
+		want := "50"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.50.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc2%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc2%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc2%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc2%'")
+			return
+		}
+		got := flatten(r)
+		want := "50"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.51.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '3%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '3%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '3%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '3%'")
+			return
+		}
+		got := flatten(r)
+		want := "51"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.51.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '3%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '3%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '3%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '3%'")
+			return
+		}
+		got := flatten(r)
+		want := "51"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.51.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc3%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc3%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc3%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc3%'")
+			return
+		}
+		got := flatten(r)
+		want := "51"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.52.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '4%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '4%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '4%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '4%'")
+			return
+		}
+		got := flatten(r)
+		want := "52"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.52.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '4%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '4%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '4%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '4%'")
+			return
+		}
+		got := flatten(r)
+		want := "52"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.52.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc4%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc4%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc4%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc4%'")
+			return
+		}
+		got := flatten(r)
+		want := "52"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.53.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '5%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '5%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '5%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '5%'")
+			return
+		}
+		got := flatten(r)
+		want := "53"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.53.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '5%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '5%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '5%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '5%'")
+			return
+		}
+		got := flatten(r)
+		want := "53"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.53.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc5%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc5%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc5%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc5%'")
+			return
+		}
+		got := flatten(r)
+		want := "53"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.54.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '6%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '6%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '6%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '6%'")
+			return
+		}
+		got := flatten(r)
+		want := "54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.54.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '6%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '6%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '6%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '6%'")
+			return
+		}
+		got := flatten(r)
+		want := "54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.54.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc6%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc6%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc6%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc6%'")
+			return
+		}
+		got := flatten(r)
+		want := "54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.55.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '7%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '7%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '7%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '7%'")
+			return
+		}
+		got := flatten(r)
+		want := "55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.55.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '7%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '7%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '7%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '7%'")
+			return
+		}
+		got := flatten(r)
+		want := "55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.55.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc7%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc7%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc7%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc7%'")
+			return
+		}
+		got := flatten(r)
+		want := "55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.56.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '8%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '8%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '8%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '8%'")
+			return
+		}
+		got := flatten(r)
+		want := "56"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.56.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '8%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '8%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '8%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '8%'")
+			return
+		}
+		got := flatten(r)
+		want := "56"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.56.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc8%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc8%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc8%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc8%'")
+			return
+		}
+		got := flatten(r)
+		want := "56"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.57.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '9%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '9%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '9%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '9%'")
+			return
+		}
+		got := flatten(r)
+		want := "57"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.57.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '9%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '9%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '9%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '9%'")
+			return
+		}
+		got := flatten(r)
+		want := "57"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.57.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc9%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc9%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc9%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc9%'")
+			return
+		}
+		got := flatten(r)
+		want := "57"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.58.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE ':%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE ':%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE ':%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE ':%'")
+			return
+		}
+		got := flatten(r)
+		want := "58"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.58.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE ':%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE ':%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE ':%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE ':%'")
+			return
+		}
+		got := flatten(r)
+		want := "58"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.58.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc:%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc:%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc:%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc:%'")
+			return
+		}
+		got := flatten(r)
+		want := "58"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.59.1"
@@ -556,1203 +1042,2403 @@ func Test_like2(t *testing.T) {
 		}
 	}
 	{ // do_test "like-2.60.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '<%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '<%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '<%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '<%'")
+			return
+		}
+		got := flatten(r)
+		want := "60"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.60.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '<%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '<%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '<%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '<%'")
+			return
+		}
+		got := flatten(r)
+		want := "60"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.60.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc<%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc<%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc<%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc<%'")
+			return
+		}
+		got := flatten(r)
+		want := "60"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.61.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '=%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '=%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '=%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '=%'")
+			return
+		}
+		got := flatten(r)
+		want := "61"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.61.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '=%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '=%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '=%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '=%'")
+			return
+		}
+		got := flatten(r)
+		want := "61"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.61.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc=%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc=%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc=%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc=%'")
+			return
+		}
+		got := flatten(r)
+		want := "61"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.62.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '>%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '>%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '>%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '>%'")
+			return
+		}
+		got := flatten(r)
+		want := "62"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.62.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '>%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '>%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '>%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '>%'")
+			return
+		}
+		got := flatten(r)
+		want := "62"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.62.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc>%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc>%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc>%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc>%'")
+			return
+		}
+		got := flatten(r)
+		want := "62"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.63.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '?%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '?%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '?%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '?%'")
+			return
+		}
+		got := flatten(r)
+		want := "63"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.63.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '?%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '?%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '?%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '?%'")
+			return
+		}
+		got := flatten(r)
+		want := "63"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.63.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc?%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc?%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc?%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc?%'")
+			return
+		}
+		got := flatten(r)
+		want := "63"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.64.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '@%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '@%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '@%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '@%'")
+			return
+		}
+		got := flatten(r)
+		want := "64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.64.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '@%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '@%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '@%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '@%'")
+			return
+		}
+		got := flatten(r)
+		want := "64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.64.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc@%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc@%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc@%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc@%'")
+			return
+		}
+		got := flatten(r)
+		want := "64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.65.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'A%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'A%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'A%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'A%'")
+			return
+		}
+		got := flatten(r)
+		want := "65 97"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.65.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'A%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'A%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'A%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'A%'")
+			return
+		}
+		got := flatten(r)
+		want := "65 97"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.65.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcA%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcA%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcA%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcA%'")
+			return
+		}
+		got := flatten(r)
+		want := "65 97"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.66.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'B%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'B%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'B%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'B%'")
+			return
+		}
+		got := flatten(r)
+		want := "66 98"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.66.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'B%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'B%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'B%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'B%'")
+			return
+		}
+		got := flatten(r)
+		want := "66 98"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.66.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcB%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcB%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcB%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcB%'")
+			return
+		}
+		got := flatten(r)
+		want := "66 98"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.67.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'C%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'C%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'C%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'C%'")
+			return
+		}
+		got := flatten(r)
+		want := "67 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.67.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'C%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'C%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'C%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'C%'")
+			return
+		}
+		got := flatten(r)
+		want := "67 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.67.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcC%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcC%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcC%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcC%'")
+			return
+		}
+		got := flatten(r)
+		want := "67 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.68.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'D%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'D%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'D%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'D%'")
+			return
+		}
+		got := flatten(r)
+		want := "68 100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.68.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'D%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'D%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'D%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'D%'")
+			return
+		}
+		got := flatten(r)
+		want := "68 100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.68.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcD%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcD%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcD%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcD%'")
+			return
+		}
+		got := flatten(r)
+		want := "68 100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.69.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'E%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'E%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'E%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'E%'")
+			return
+		}
+		got := flatten(r)
+		want := "69 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.69.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'E%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'E%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'E%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'E%'")
+			return
+		}
+		got := flatten(r)
+		want := "69 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.69.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcE%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcE%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcE%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcE%'")
+			return
+		}
+		got := flatten(r)
+		want := "69 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.70.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'F%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'F%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'F%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'F%'")
+			return
+		}
+		got := flatten(r)
+		want := "70 102"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.70.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'F%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'F%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'F%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'F%'")
+			return
+		}
+		got := flatten(r)
+		want := "70 102"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.70.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcF%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcF%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcF%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcF%'")
+			return
+		}
+		got := flatten(r)
+		want := "70 102"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.71.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'G%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'G%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'G%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'G%'")
+			return
+		}
+		got := flatten(r)
+		want := "71 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.71.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'G%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'G%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'G%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'G%'")
+			return
+		}
+		got := flatten(r)
+		want := "71 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.71.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcG%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcG%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcG%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcG%'")
+			return
+		}
+		got := flatten(r)
+		want := "71 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.72.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'H%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'H%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'H%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'H%'")
+			return
+		}
+		got := flatten(r)
+		want := "72 104"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.72.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'H%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'H%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'H%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'H%'")
+			return
+		}
+		got := flatten(r)
+		want := "72 104"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.72.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcH%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcH%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcH%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcH%'")
+			return
+		}
+		got := flatten(r)
+		want := "72 104"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.73.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'I%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'I%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'I%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'I%'")
+			return
+		}
+		got := flatten(r)
+		want := "73 105"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.73.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'I%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'I%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'I%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'I%'")
+			return
+		}
+		got := flatten(r)
+		want := "73 105"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.73.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcI%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcI%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcI%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcI%'")
+			return
+		}
+		got := flatten(r)
+		want := "73 105"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.74.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'J%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'J%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'J%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'J%'")
+			return
+		}
+		got := flatten(r)
+		want := "74 106"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.74.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'J%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'J%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'J%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'J%'")
+			return
+		}
+		got := flatten(r)
+		want := "74 106"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.74.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcJ%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcJ%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcJ%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcJ%'")
+			return
+		}
+		got := flatten(r)
+		want := "74 106"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.75.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'K%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'K%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'K%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'K%'")
+			return
+		}
+		got := flatten(r)
+		want := "75 107"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.75.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'K%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'K%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'K%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'K%'")
+			return
+		}
+		got := flatten(r)
+		want := "75 107"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.75.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcK%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcK%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcK%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcK%'")
+			return
+		}
+		got := flatten(r)
+		want := "75 107"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.76.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'L%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'L%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'L%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'L%'")
+			return
+		}
+		got := flatten(r)
+		want := "76 108"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.76.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'L%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'L%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'L%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'L%'")
+			return
+		}
+		got := flatten(r)
+		want := "76 108"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.76.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcL%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcL%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcL%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcL%'")
+			return
+		}
+		got := flatten(r)
+		want := "76 108"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.77.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'M%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'M%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'M%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'M%'")
+			return
+		}
+		got := flatten(r)
+		want := "77 109"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.77.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'M%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'M%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'M%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'M%'")
+			return
+		}
+		got := flatten(r)
+		want := "77 109"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.77.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcM%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcM%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcM%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcM%'")
+			return
+		}
+		got := flatten(r)
+		want := "77 109"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.78.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'N%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'N%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'N%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'N%'")
+			return
+		}
+		got := flatten(r)
+		want := "78 110"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.78.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'N%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'N%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'N%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'N%'")
+			return
+		}
+		got := flatten(r)
+		want := "78 110"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.78.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcN%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcN%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcN%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcN%'")
+			return
+		}
+		got := flatten(r)
+		want := "78 110"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.79.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'O%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'O%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'O%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'O%'")
+			return
+		}
+		got := flatten(r)
+		want := "79 111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.79.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'O%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'O%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'O%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'O%'")
+			return
+		}
+		got := flatten(r)
+		want := "79 111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.79.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcO%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcO%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcO%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcO%'")
+			return
+		}
+		got := flatten(r)
+		want := "79 111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.80.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'P%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'P%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'P%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'P%'")
+			return
+		}
+		got := flatten(r)
+		want := "80 112"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.80.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'P%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'P%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'P%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'P%'")
+			return
+		}
+		got := flatten(r)
+		want := "80 112"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.80.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcP%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcP%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcP%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcP%'")
+			return
+		}
+		got := flatten(r)
+		want := "80 112"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.81.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'Q%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'Q%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'Q%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'Q%'")
+			return
+		}
+		got := flatten(r)
+		want := "81 113"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.81.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'Q%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'Q%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'Q%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'Q%'")
+			return
+		}
+		got := flatten(r)
+		want := "81 113"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.81.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcQ%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcQ%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcQ%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcQ%'")
+			return
+		}
+		got := flatten(r)
+		want := "81 113"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.82.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'R%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'R%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'R%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'R%'")
+			return
+		}
+		got := flatten(r)
+		want := "82 114"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.82.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'R%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'R%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'R%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'R%'")
+			return
+		}
+		got := flatten(r)
+		want := "82 114"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.82.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcR%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcR%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcR%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcR%'")
+			return
+		}
+		got := flatten(r)
+		want := "82 114"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.83.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'S%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'S%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'S%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'S%'")
+			return
+		}
+		got := flatten(r)
+		want := "83 115"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.83.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'S%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'S%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'S%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'S%'")
+			return
+		}
+		got := flatten(r)
+		want := "83 115"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.83.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcS%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcS%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcS%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcS%'")
+			return
+		}
+		got := flatten(r)
+		want := "83 115"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.84.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'T%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'T%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'T%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'T%'")
+			return
+		}
+		got := flatten(r)
+		want := "84 116"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.84.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'T%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'T%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'T%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'T%'")
+			return
+		}
+		got := flatten(r)
+		want := "84 116"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.84.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcT%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcT%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcT%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcT%'")
+			return
+		}
+		got := flatten(r)
+		want := "84 116"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.85.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'U%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'U%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'U%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'U%'")
+			return
+		}
+		got := flatten(r)
+		want := "85 117"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.85.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'U%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'U%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'U%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'U%'")
+			return
+		}
+		got := flatten(r)
+		want := "85 117"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.85.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcU%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcU%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcU%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcU%'")
+			return
+		}
+		got := flatten(r)
+		want := "85 117"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.86.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'V%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'V%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'V%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'V%'")
+			return
+		}
+		got := flatten(r)
+		want := "86 118"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.86.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'V%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'V%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'V%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'V%'")
+			return
+		}
+		got := flatten(r)
+		want := "86 118"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.86.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcV%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcV%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcV%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcV%'")
+			return
+		}
+		got := flatten(r)
+		want := "86 118"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.87.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'W%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'W%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'W%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'W%'")
+			return
+		}
+		got := flatten(r)
+		want := "87 119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.87.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'W%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'W%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'W%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'W%'")
+			return
+		}
+		got := flatten(r)
+		want := "87 119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.87.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcW%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcW%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcW%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcW%'")
+			return
+		}
+		got := flatten(r)
+		want := "87 119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.88.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'X%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'X%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'X%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'X%'")
+			return
+		}
+		got := flatten(r)
+		want := "88 120"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.88.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'X%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'X%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'X%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'X%'")
+			return
+		}
+		got := flatten(r)
+		want := "88 120"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.88.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcX%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcX%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcX%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcX%'")
+			return
+		}
+		got := flatten(r)
+		want := "88 120"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.89.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'Y%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'Y%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'Y%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'Y%'")
+			return
+		}
+		got := flatten(r)
+		want := "89 121"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.89.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'Y%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'Y%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'Y%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'Y%'")
+			return
+		}
+		got := flatten(r)
+		want := "89 121"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.89.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcY%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcY%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcY%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcY%'")
+			return
+		}
+		got := flatten(r)
+		want := "89 121"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.90.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'Z%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'Z%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'Z%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'Z%'")
+			return
+		}
+		got := flatten(r)
+		want := "90 122"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.90.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'Z%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'Z%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'Z%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'Z%'")
+			return
+		}
+		got := flatten(r)
+		want := "90 122"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.90.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcZ%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcZ%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcZ%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcZ%'")
+			return
+		}
+		got := flatten(r)
+		want := "90 122"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.91.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '" + "%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '" + "%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '\\[%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '\\[%'")
+			return
+		}
+		got := flatten(r)
+		want := "91"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.91.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '" + "%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '" + "%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '\\[%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '\\[%'")
+			return
+		}
+		got := flatten(r)
+		want := "91"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.91.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc" + "%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc" + "%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc\\[%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\[%'")
+			return
+		}
+		got := flatten(r)
+		want := "91"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.92.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '\\%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '\\%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '\\\\%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '\\\\%'")
+			return
+		}
+		got := flatten(r)
+		want := "92"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.92.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '\\%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '\\%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '\\\\%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '\\\\%'")
+			return
+		}
+		got := flatten(r)
+		want := "92"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.92.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc\\%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc\\\\%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\\\%'")
+			return
+		}
+		got := flatten(r)
+		want := "92"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.93.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE ']%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE ']%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '\\]%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '\\]%'")
+			return
+		}
+		got := flatten(r)
+		want := "93"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.93.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE ']%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE ']%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '\\]%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '\\]%'")
+			return
+		}
+		got := flatten(r)
+		want := "93"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.93.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc]%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc]%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc\\]%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\]%'")
+			return
+		}
+		got := flatten(r)
+		want := "93"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.94.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '^%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '^%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '^%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '^%'")
+			return
+		}
+		got := flatten(r)
+		want := "94"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.94.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '^%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '^%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '^%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '^%'")
+			return
+		}
+		got := flatten(r)
+		want := "94"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.94.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc^%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc^%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc^%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc^%'")
+			return
+		}
+		got := flatten(r)
+		want := "94"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.96.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '`%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '`%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '`%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '`%'")
+			return
+		}
+		got := flatten(r)
+		want := "96"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.96.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '`%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '`%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '`%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '`%'")
+			return
+		}
+		got := flatten(r)
+		want := "96"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.96.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc`%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc`%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc`%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc`%'")
+			return
+		}
+		got := flatten(r)
+		want := "96"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.97.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'a%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'a%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'a%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'a%'")
+			return
+		}
+		got := flatten(r)
+		want := "65 97"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.97.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'a%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'a%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'a%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'a%'")
+			return
+		}
+		got := flatten(r)
+		want := "65 97"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.97.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abca%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abca%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abca%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abca%'")
+			return
+		}
+		got := flatten(r)
+		want := "65 97"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.98.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'b%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'b%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'b%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'b%'")
+			return
+		}
+		got := flatten(r)
+		want := "66 98"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.98.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'b%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'b%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'b%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'b%'")
+			return
+		}
+		got := flatten(r)
+		want := "66 98"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.98.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcb%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcb%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcb%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcb%'")
+			return
+		}
+		got := flatten(r)
+		want := "66 98"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.99.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'c%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'c%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'c%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'c%'")
+			return
+		}
+		got := flatten(r)
+		want := "67 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.99.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'c%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'c%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'c%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'c%'")
+			return
+		}
+		got := flatten(r)
+		want := "67 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.99.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcc%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcc%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcc%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcc%'")
+			return
+		}
+		got := flatten(r)
+		want := "67 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.100.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'd%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'd%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'd%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'd%'")
+			return
+		}
+		got := flatten(r)
+		want := "68 100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.100.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'd%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'd%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'd%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'd%'")
+			return
+		}
+		got := flatten(r)
+		want := "68 100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.100.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcd%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcd%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcd%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcd%'")
+			return
+		}
+		got := flatten(r)
+		want := "68 100"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.101.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'e%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'e%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'e%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'e%'")
+			return
+		}
+		got := flatten(r)
+		want := "69 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.101.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'e%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'e%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'e%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'e%'")
+			return
+		}
+		got := flatten(r)
+		want := "69 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.101.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abce%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abce%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abce%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abce%'")
+			return
+		}
+		got := flatten(r)
+		want := "69 101"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.102.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'f%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'f%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'f%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'f%'")
+			return
+		}
+		got := flatten(r)
+		want := "70 102"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.102.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'f%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'f%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'f%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'f%'")
+			return
+		}
+		got := flatten(r)
+		want := "70 102"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.102.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcf%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcf%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcf%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcf%'")
+			return
+		}
+		got := flatten(r)
+		want := "70 102"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.103.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'g%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'g%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'g%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'g%'")
+			return
+		}
+		got := flatten(r)
+		want := "71 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.103.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'g%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'g%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'g%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'g%'")
+			return
+		}
+		got := flatten(r)
+		want := "71 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.103.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcg%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcg%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcg%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcg%'")
+			return
+		}
+		got := flatten(r)
+		want := "71 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.104.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'h%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'h%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'h%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'h%'")
+			return
+		}
+		got := flatten(r)
+		want := "72 104"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.104.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'h%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'h%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'h%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'h%'")
+			return
+		}
+		got := flatten(r)
+		want := "72 104"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.104.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abch%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abch%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abch%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abch%'")
+			return
+		}
+		got := flatten(r)
+		want := "72 104"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.105.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'i%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'i%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'i%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'i%'")
+			return
+		}
+		got := flatten(r)
+		want := "73 105"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.105.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'i%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'i%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'i%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'i%'")
+			return
+		}
+		got := flatten(r)
+		want := "73 105"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.105.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abci%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abci%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abci%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abci%'")
+			return
+		}
+		got := flatten(r)
+		want := "73 105"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.106.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'j%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'j%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'j%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'j%'")
+			return
+		}
+		got := flatten(r)
+		want := "74 106"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.106.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'j%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'j%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'j%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'j%'")
+			return
+		}
+		got := flatten(r)
+		want := "74 106"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.106.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcj%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcj%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcj%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcj%'")
+			return
+		}
+		got := flatten(r)
+		want := "74 106"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.107.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'k%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'k%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'k%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'k%'")
+			return
+		}
+		got := flatten(r)
+		want := "75 107"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.107.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'k%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'k%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'k%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'k%'")
+			return
+		}
+		got := flatten(r)
+		want := "75 107"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.107.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abck%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abck%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abck%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abck%'")
+			return
+		}
+		got := flatten(r)
+		want := "75 107"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.108.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'l%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'l%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'l%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'l%'")
+			return
+		}
+		got := flatten(r)
+		want := "76 108"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.108.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'l%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'l%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'l%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'l%'")
+			return
+		}
+		got := flatten(r)
+		want := "76 108"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.108.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcl%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcl%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcl%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcl%'")
+			return
+		}
+		got := flatten(r)
+		want := "76 108"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.109.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'm%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'm%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'm%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'm%'")
+			return
+		}
+		got := flatten(r)
+		want := "77 109"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.109.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'm%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'm%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'm%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'm%'")
+			return
+		}
+		got := flatten(r)
+		want := "77 109"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.109.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcm%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcm%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcm%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcm%'")
+			return
+		}
+		got := flatten(r)
+		want := "77 109"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.110.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'n%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'n%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'n%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'n%'")
+			return
+		}
+		got := flatten(r)
+		want := "78 110"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.110.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'n%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'n%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'n%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'n%'")
+			return
+		}
+		got := flatten(r)
+		want := "78 110"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.110.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcn%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcn%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcn%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcn%'")
+			return
+		}
+		got := flatten(r)
+		want := "78 110"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.111.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'o%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'o%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'o%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'o%'")
+			return
+		}
+		got := flatten(r)
+		want := "79 111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.111.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'o%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'o%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'o%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'o%'")
+			return
+		}
+		got := flatten(r)
+		want := "79 111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.111.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abco%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abco%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abco%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abco%'")
+			return
+		}
+		got := flatten(r)
+		want := "79 111"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.112.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'p%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'p%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'p%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'p%'")
+			return
+		}
+		got := flatten(r)
+		want := "80 112"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.112.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'p%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'p%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'p%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'p%'")
+			return
+		}
+		got := flatten(r)
+		want := "80 112"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.112.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcp%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcp%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcp%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcp%'")
+			return
+		}
+		got := flatten(r)
+		want := "80 112"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.113.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'q%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'q%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'q%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'q%'")
+			return
+		}
+		got := flatten(r)
+		want := "81 113"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.113.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'q%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'q%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'q%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'q%'")
+			return
+		}
+		got := flatten(r)
+		want := "81 113"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.113.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcq%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcq%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcq%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcq%'")
+			return
+		}
+		got := flatten(r)
+		want := "81 113"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.114.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'r%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'r%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'r%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'r%'")
+			return
+		}
+		got := flatten(r)
+		want := "82 114"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.114.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'r%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'r%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'r%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'r%'")
+			return
+		}
+		got := flatten(r)
+		want := "82 114"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.114.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcr%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcr%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcr%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcr%'")
+			return
+		}
+		got := flatten(r)
+		want := "82 114"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.115.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 's%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 's%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 's%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 's%'")
+			return
+		}
+		got := flatten(r)
+		want := "83 115"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.115.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 's%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 's%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 's%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 's%'")
+			return
+		}
+		got := flatten(r)
+		want := "83 115"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.115.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcs%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcs%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcs%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcs%'")
+			return
+		}
+		got := flatten(r)
+		want := "83 115"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.116.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 't%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 't%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 't%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 't%'")
+			return
+		}
+		got := flatten(r)
+		want := "84 116"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.116.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 't%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 't%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 't%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 't%'")
+			return
+		}
+		got := flatten(r)
+		want := "84 116"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.116.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abct%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abct%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abct%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abct%'")
+			return
+		}
+		got := flatten(r)
+		want := "84 116"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.117.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'u%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'u%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'u%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'u%'")
+			return
+		}
+		got := flatten(r)
+		want := "85 117"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.117.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'u%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'u%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'u%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'u%'")
+			return
+		}
+		got := flatten(r)
+		want := "85 117"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.117.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcu%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcu%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcu%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcu%'")
+			return
+		}
+		got := flatten(r)
+		want := "85 117"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.118.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'v%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'v%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'v%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'v%'")
+			return
+		}
+		got := flatten(r)
+		want := "86 118"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.118.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'v%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'v%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'v%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'v%'")
+			return
+		}
+		got := flatten(r)
+		want := "86 118"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.118.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcv%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcv%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcv%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcv%'")
+			return
+		}
+		got := flatten(r)
+		want := "86 118"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.119.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'w%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'w%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'w%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'w%'")
+			return
+		}
+		got := flatten(r)
+		want := "87 119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.119.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'w%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'w%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'w%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'w%'")
+			return
+		}
+		got := flatten(r)
+		want := "87 119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.119.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcw%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcw%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcw%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcw%'")
+			return
+		}
+		got := flatten(r)
+		want := "87 119"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.120.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'x%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'x%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'x%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'x%'")
+			return
+		}
+		got := flatten(r)
+		want := "88 120"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.120.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'x%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'x%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'x%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'x%'")
+			return
+		}
+		got := flatten(r)
+		want := "88 120"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.120.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcx%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcx%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcx%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcx%'")
+			return
+		}
+		got := flatten(r)
+		want := "88 120"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.121.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'y%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'y%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'y%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'y%'")
+			return
+		}
+		got := flatten(r)
+		want := "89 121"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.121.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'y%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'y%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'y%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'y%'")
+			return
+		}
+		got := flatten(r)
+		want := "89 121"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.121.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcy%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcy%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcy%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcy%'")
+			return
+		}
+		got := flatten(r)
+		want := "89 121"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.122.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE 'z%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE 'z%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE 'z%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE 'z%'")
+			return
+		}
+		got := flatten(r)
+		want := "90 122"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.122.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE 'z%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE 'z%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE 'z%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE 'z%'")
+			return
+		}
+		got := flatten(r)
+		want := "90 122"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.122.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abcz%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abcz%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abcz%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abcz%'")
+			return
+		}
+		got := flatten(r)
+		want := "90 122"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.123.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '173%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '173%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '\\173%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '\\173%'")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.123.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '173%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '173%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '\\173%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '\\173%'")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.123.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc173%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc173%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc\\173%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\173%'")
+			return
+		}
+		got := flatten(r)
+		want := "123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.124.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '|%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '|%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '|%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '|%'")
+			return
+		}
+		got := flatten(r)
+		want := "124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.124.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '|%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '|%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '|%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '|%'")
+			return
+		}
+		got := flatten(r)
+		want := "124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.124.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc|%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc|%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc|%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc|%'")
+			return
+		}
+		got := flatten(r)
+		want := "124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.125.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '175%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '175%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '\\175%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '\\175%'")
+			return
+		}
+		got := flatten(r)
+		want := "125"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.125.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '175%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '175%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '\\175%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '\\175%'")
+			return
+		}
+		got := flatten(r)
+		want := "125"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.125.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc175%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc175%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc\\175%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc\\175%'")
+			return
+		}
+		got := flatten(r)
+		want := "125"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.126.1"
-		_res = db.Exec("SELECT x FROM t1 WHERE y LIKE '~%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE y LIKE '~%'")
+		r = db.Query("SELECT x FROM t1 WHERE y LIKE '~%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t1 WHERE y LIKE '~%'")
+			return
+		}
+		got := flatten(r)
+		want := "126"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.126.2"
-		_res = db.Exec("SELECT x FROM t2 WHERE y LIKE '~%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t2 WHERE y LIKE '~%'")
+		r = db.Query("SELECT x FROM t2 WHERE y LIKE '~%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t2 WHERE y LIKE '~%'")
+			return
+		}
+		got := flatten(r)
+		want := "126"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-2.126.3"
-		_res = db.Exec("SELECT x FROM t3 WHERE y LIKE 'abc~%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t3 WHERE y LIKE 'abc~%'")
+		r = db.Query("SELECT x FROM t3 WHERE y LIKE 'abc~%'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x FROM t3 WHERE y LIKE 'abc~%'")
+			return
+		}
+		got := flatten(r)
+		want := "126"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-3.1"
-		_res = db.Exec("SELECT 'u01C0' LIKE '%x80'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 'u01C0' LIKE '%x80'")
+		r = db.Query("SELECT '\\u01C0' LIKE '%\\x80'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '\\u01C0' LIKE '%\\x80'")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-3.2"
-		_res = db.Exec("SELECT 'u0080' LIKE '%x80'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 'u0080' LIKE '%x80'")
+		r = db.Query("SELECT '\\u0080' LIKE '%\\x80'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '\\u0080' LIKE '%\\x80'")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

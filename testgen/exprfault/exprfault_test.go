@@ -66,9 +66,9 @@ func Test_exprfault(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
-		_res = db.Exec("\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1( hex(b) );\n  INSERT INTO t1 VALUES(10, randomblob(500));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1( hex(b) );\n  INSERT INTO t1 VALUES(10, randomblob(500));\n")
+		r = db.Query("\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1( hex(b) );\n  INSERT INTO t1 VALUES(10, randomblob(500));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1( hex(b) );\n  INSERT INTO t1 VALUES(10, randomblob(500));\n")
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)

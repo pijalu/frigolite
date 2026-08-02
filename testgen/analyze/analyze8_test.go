@@ -84,9 +84,9 @@ func Test_analyze8(t *testing.T) {
 			_ = c // suppress unused warning
 			c = tclExprWith("$c*$c*$c", map[string]string{"c": c})
 			_ = c // suppress unused warning
-			_res = db.Exec("INSERT INTO t1 VALUES(" + a + "," + b + "," + c + "," + i + ")")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + "," + sqlLiteral(i) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + a + "," + b + "," + c + "," + i + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + "," + sqlLiteral(i) + ")")
 			}
 			// incr i 1
 			{

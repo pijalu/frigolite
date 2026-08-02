@@ -283,17 +283,17 @@ func Test_backup(t *testing.T) {
 					}
 				}
 				for func() bool { l_n, l_e := strconv.Atoi("[file size test.db]/1024"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(nSrcPg); if r_e != nil { return false }; return l_n < r_n }() {
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + ii + ", randstr(200,200)) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(ii) + ", randstr(200,200)) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + ii + ", randstr(200,200)) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(ii) + ", randstr(200,200)) ")
 					}
 				}
 				ii = "0"
 				_ = ii // suppress unused warning
 				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDestRow_n, _nDestRow_e := strconv.Atoi(nDestRow); if _nDestRow_e != nil { return false }; return ii_n < nDestRow_n }() {
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + ii + ", randstr(1000,1000)) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(ii) + ", randstr(1000,1000)) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + ii + ", randstr(1000,1000)) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(ii) + ", randstr(1000,1000)) ")
 					}
 					// incr ii 1
 					{

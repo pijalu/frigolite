@@ -130,9 +130,9 @@ func Test_trans2(t *testing.T) {
 		for _, rec := range tclSplitList("scramble $data") {
 		_ = rec // suppress unused warning
 			// foreach id,u1,z,u2 rec (no body)
-			_res = db.Exec("INSERT INTO t1 VALUES(" + id + "," + u1 + ",zeroblob(" + z + ")," + u2 + ")")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(u1) + ",zeroblob(" + sqlLiteral(z) + ")," + sqlLiteral(u2) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + id + "," + u1 + ",zeroblob(" + z + ")," + u2 + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(id) + "," + sqlLiteral(u1) + ",zeroblob(" + sqlLiteral(z) + ")," + sqlLiteral(u2) + ")")
 			}
 		}
 		_res = db.Exec("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
@@ -240,13 +240,19 @@ func Test_trans2(t *testing.T) {
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "trans2-" + i + ".10"
-			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + max_rowid + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
+			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max_rowid) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
 			_ = _res // catchsql
 		}
 		{ // do_test "trans2-" + i + ".11"
-			_res = db.Exec("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			r = db.Query("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+				return
+			}
+			got := flatten(r)
+			want := newres
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "trans2-" + i + ".20"
@@ -263,13 +269,19 @@ func Test_trans2(t *testing.T) {
 			}
 		}
 		{ // do_test "trans2-" + i + ".30"
-			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + max1 + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
+			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max1) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
 			_ = _res // catchsql
 		}
 		{ // do_test "trans2-" + i + ".31"
-			_res = db.Exec("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			r = db.Query("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+				return
+			}
+			got := flatten(r)
+			want := origres
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "trans2-" + i + ".40"
@@ -300,13 +312,13 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
-			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + max1 + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
+			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max1) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
 			_ = _res // catchsql
 			_res = db.Exec(modsql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, modsql)
 			}
-			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + max1 + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
+			_res = db.Exec("\n      UPDATE t1 SET u1=u1||'x',\n          z = CASE WHEN id<" + sqlLiteral(max1) + "\n                   THEN zeroblob((random()&65535)%5000 + 1000) END;\n    ")
 			_ = _res // catchsql
 			_res = db.Exec("COMMIT")
 			if _res.Error != nil {

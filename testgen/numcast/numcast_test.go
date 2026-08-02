@@ -87,15 +87,27 @@ func Test_numcast(t *testing.T) {
 			_ = ival // suppress unused warning
 			_ = _idx0
 				{ // do_test "numcast-" + enc + "." + idx + ".1"
-					_res = db.Exec("SELECT CAST(" + str + " AS real)")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(" + str + " AS real)")
+					r = db.Query("SELECT CAST(" + sqlLiteral(str) + " AS real)")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(" + sqlLiteral(str) + " AS real)")
+						return
+					}
+					got := flatten(r)
+					want := rval
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "numcast-" + enc + "." + idx + ".2"
-					_res = db.Exec("SELECT CAST(" + str + " AS integer)")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(" + str + " AS integer)")
+					r = db.Query("SELECT CAST(" + sqlLiteral(str) + " AS integer)")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(" + sqlLiteral(str) + " AS integer)")
+						return
+					}
+					got := flatten(r)
+					want := ival
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 			}

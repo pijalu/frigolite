@@ -1135,9 +1135,9 @@ func Test_rowid(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "rowid-15.0"
-		_res = db.Exec("\n  PRAGMA reverse_unordered_selects=true;\n  CREATE TABLE t1 (c0, c1);\n  CREATE TABLE t2 (c0 INT UNIQUE);\n  INSERT INTO t1(c0, c1) VALUES (0, 0), (0, NULL);\n  INSERT INTO t2(c0) VALUES (1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA reverse_unordered_selects=true;\n  CREATE TABLE t1 (c0, c1);\n  CREATE TABLE t2 (c0 INT UNIQUE);\n  INSERT INTO t1(c0, c1) VALUES (0, 0), (0, NULL);\n  INSERT INTO t2(c0) VALUES (1);\n")
+		r = db.Query("\n  PRAGMA reverse_unordered_selects=true;\n  CREATE TABLE t1 (c0, c1);\n  CREATE TABLE t2 (c0 INT UNIQUE);\n  INSERT INTO t1(c0, c1) VALUES (0, 0), (0, NULL);\n  INSERT INTO t2(c0) VALUES (1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA reverse_unordered_selects=true;\n  CREATE TABLE t1 (c0, c1);\n  CREATE TABLE t2 (c0 INT UNIQUE);\n  INSERT INTO t1(c0, c1) VALUES (0, 0), (0, NULL);\n  INSERT INTO t2(c0) VALUES (1);\n")
 		}
 	}
 	{ // "rowid-15.1"
@@ -1153,15 +1153,9 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // "rowid-15.2"
-		r = db.Query("\n  SELECT 1, NULL INTERSECT SELECT * FROM (\n      SELECT t2.c0, t1.c1 FROM t1, t2\n      WHERE ((t2.rowid <= 'a')) OR (t1.c0 <= t2.c0) ORDER BY 'a' DESC LIMIT 100\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 1, NULL INTERSECT SELECT * FROM (\n      SELECT t2.c0, t1.c1 FROM t1, t2\n      WHERE ((t2.rowid <= 'a')) OR (t1.c0 <= t2.c0) ORDER BY 'a' DESC LIMIT 100\n  );\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT 1, NULL INTERSECT SELECT * FROM (\n      SELECT t2.c0, t1.c1 FROM t1, t2\n      WHERE ((t2.rowid <= 'a')) OR (t1.c0 <= t2.c0) ORDER BY 'a' DESC LIMIT 100\n  );\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "", _res.Error, "\n  SELECT 1, NULL INTERSECT SELECT * FROM (\n      SELECT t2.c0, t1.c1 FROM t1, t2\n      WHERE ((t2.rowid <= 'a')) OR (t1.c0 <= t2.c0) ORDER BY 'a' DESC LIMIT 100\n  );\n")
 		}
 	}
 	db.Close()

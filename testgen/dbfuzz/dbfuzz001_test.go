@@ -111,9 +111,15 @@ func Test_dbfuzz001(t *testing.T) {
 		}
 	}
 	{ // "dbfuzz001-440"
-		_res = db.Exec("\n  PRAGMA journal_mode=MEMORY;\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode=MEMORY;\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
+		r = db.Query("\n  PRAGMA journal_mode=MEMORY;\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode=MEMORY;\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
+			return
+		}
+		got := flatten(r)
+		want := "memory"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

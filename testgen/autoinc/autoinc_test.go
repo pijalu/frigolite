@@ -497,65 +497,125 @@ func Test_autoinc(t *testing.T) {
 		}
 	}
 	{ // do_test "autoinc-9.1"
-		_res = db.Exec("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    INSERT INTO t2 VALUES(NULL, 1);\n    CREATE TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t3 SELECT * FROM t2 WHERE y>1;\n\n    SELECT * FROM sqlite_sequence WHERE name='t3';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    INSERT INTO t2 VALUES(NULL, 1);\n    CREATE TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t3 SELECT * FROM t2 WHERE y>1;\n\n    SELECT * FROM sqlite_sequence WHERE name='t3';\n  ")
+		r = db.Query("\n    CREATE TABLE t2(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    INSERT INTO t2 VALUES(NULL, 1);\n    CREATE TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t3 SELECT * FROM t2 WHERE y>1;\n\n    SELECT * FROM sqlite_sequence WHERE name='t3';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    INSERT INTO t2 VALUES(NULL, 1);\n    CREATE TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t3 SELECT * FROM t2 WHERE y>1;\n\n    SELECT * FROM sqlite_sequence WHERE name='t3';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t3 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
 	{ // do_test "autoinc-3928.1"
-		_res = db.Exec("\n      CREATE TABLE t3928(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      CREATE TRIGGER t3928r1 BEFORE INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('before1');\n        INSERT INTO t3928(b) VALUES('before2');\n      END;\n      CREATE TRIGGER t3928r2 AFTER INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('after1');\n        INSERT INTO t3928(b) VALUES('after2');\n      END;\n      INSERT INTO t3928(b) VALUES('test');\n      SELECT * FROM t3928 ORDER BY a;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t3928(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      CREATE TRIGGER t3928r1 BEFORE INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('before1');\n        INSERT INTO t3928(b) VALUES('before2');\n      END;\n      CREATE TRIGGER t3928r2 AFTER INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('after1');\n        INSERT INTO t3928(b) VALUES('after2');\n      END;\n      INSERT INTO t3928(b) VALUES('test');\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		r = db.Query("\n      CREATE TABLE t3928(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      CREATE TRIGGER t3928r1 BEFORE INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('before1');\n        INSERT INTO t3928(b) VALUES('before2');\n      END;\n      CREATE TRIGGER t3928r2 AFTER INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('after1');\n        INSERT INTO t3928(b) VALUES('after2');\n      END;\n      INSERT INTO t3928(b) VALUES('test');\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t3928(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      CREATE TRIGGER t3928r1 BEFORE INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('before1');\n        INSERT INTO t3928(b) VALUES('before2');\n      END;\n      CREATE TRIGGER t3928r2 AFTER INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('after1');\n        INSERT INTO t3928(b) VALUES('after2');\n      END;\n      INSERT INTO t3928(b) VALUES('test');\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 before1 2 after1 3 after2 4 before2 5 after1 6 after2 7 test 8 before1 9 before2 10 after1 11 before1 12 before2 13 after2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3928.2"
-		_res = db.Exec("\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+		r = db.Query("\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "t3928 13"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3928.3"
-		_res = db.Exec("\n      DROP TRIGGER t3928r1;\n      DROP TRIGGER t3928r2;\n      CREATE TRIGGER t3928r3 BEFORE UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('before-int-' || new.b);\n      END;\n      CREATE TRIGGER t3928r4 AFTER UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('after-int-' || new.b);\n      END;\n      DELETE FROM t3928 WHERE a!=1;\n      UPDATE t3928 SET b=456 WHERE a=1;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER t3928r1;\n      DROP TRIGGER t3928r2;\n      CREATE TRIGGER t3928r3 BEFORE UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('before-int-' || new.b);\n      END;\n      CREATE TRIGGER t3928r4 AFTER UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('after-int-' || new.b);\n      END;\n      DELETE FROM t3928 WHERE a!=1;\n      UPDATE t3928 SET b=456 WHERE a=1;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		r = db.Query("\n      DROP TRIGGER t3928r1;\n      DROP TRIGGER t3928r2;\n      CREATE TRIGGER t3928r3 BEFORE UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('before-int-' || new.b);\n      END;\n      CREATE TRIGGER t3928r4 AFTER UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('after-int-' || new.b);\n      END;\n      DELETE FROM t3928 WHERE a!=1;\n      UPDATE t3928 SET b=456 WHERE a=1;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      DROP TRIGGER t3928r1;\n      DROP TRIGGER t3928r2;\n      CREATE TRIGGER t3928r3 BEFORE UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('before-int-' || new.b);\n      END;\n      CREATE TRIGGER t3928r4 AFTER UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('after-int-' || new.b);\n      END;\n      DELETE FROM t3928 WHERE a!=1;\n      UPDATE t3928 SET b=456 WHERE a=1;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 456 14 before-int-456 15 after-int-456"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3928.4"
-		_res = db.Exec("\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+		r = db.Query("\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_sequence WHERE name='t3928'\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "t3928 15"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3928.5"
-		_res = db.Exec("\n      CREATE TABLE t3928b(x);\n      INSERT INTO t3928b VALUES(100);\n      INSERT INTO t3928b VALUES(200);\n      INSERT INTO t3928b VALUES(300);\n      DELETE FROM t3928;\n      CREATE TABLE t3928c(y INTEGER PRIMARY KEY AUTOINCREMENT, z);\n      CREATE TRIGGER t3928br1 BEFORE DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('before-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('before-del-'||old.x);\n      END;\n      CREATE TRIGGER t3928br2 AFTER DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('after-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('after-del-'||old.x);\n      END;\n      DELETE FROM t3928b;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t3928b(x);\n      INSERT INTO t3928b VALUES(100);\n      INSERT INTO t3928b VALUES(200);\n      INSERT INTO t3928b VALUES(300);\n      DELETE FROM t3928;\n      CREATE TABLE t3928c(y INTEGER PRIMARY KEY AUTOINCREMENT, z);\n      CREATE TRIGGER t3928br1 BEFORE DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('before-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('before-del-'||old.x);\n      END;\n      CREATE TRIGGER t3928br2 AFTER DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('after-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('after-del-'||old.x);\n      END;\n      DELETE FROM t3928b;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		r = db.Query("\n      CREATE TABLE t3928b(x);\n      INSERT INTO t3928b VALUES(100);\n      INSERT INTO t3928b VALUES(200);\n      INSERT INTO t3928b VALUES(300);\n      DELETE FROM t3928;\n      CREATE TABLE t3928c(y INTEGER PRIMARY KEY AUTOINCREMENT, z);\n      CREATE TRIGGER t3928br1 BEFORE DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('before-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('before-del-'||old.x);\n      END;\n      CREATE TRIGGER t3928br2 AFTER DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('after-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('after-del-'||old.x);\n      END;\n      DELETE FROM t3928b;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t3928b(x);\n      INSERT INTO t3928b VALUES(100);\n      INSERT INTO t3928b VALUES(200);\n      INSERT INTO t3928b VALUES(300);\n      DELETE FROM t3928;\n      CREATE TABLE t3928c(y INTEGER PRIMARY KEY AUTOINCREMENT, z);\n      CREATE TRIGGER t3928br1 BEFORE DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('before-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('before-del-'||old.x);\n      END;\n      CREATE TRIGGER t3928br2 AFTER DELETE ON t3928b BEGIN\n        INSERT INTO t3928(b) VALUES('after-del-'||old.x);\n        INSERT INTO t3928c(z) VALUES('after-del-'||old.x);\n      END;\n      DELETE FROM t3928b;\n      SELECT * FROM t3928 ORDER BY a;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "16 before-del-100 17 after-del-100 18 before-del-200 19 after-del-200 20 before-del-300 21 after-del-300"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3928.6"
-		_res = db.Exec("\n      SELECT * FROM t3928c ORDER BY y;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM t3928c ORDER BY y;\n    ")
+		r = db.Query("\n      SELECT * FROM t3928c ORDER BY y;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t3928c ORDER BY y;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 before-del-100 2 after-del-100 3 before-del-200 4 after-del-200 5 before-del-300 6 after-del-300"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-3928.7"
-		_res = db.Exec("\n      SELECT * FROM sqlite_sequence WHERE name LIKE 't3928%' ORDER BY name;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT * FROM sqlite_sequence WHERE name LIKE 't3928%' ORDER BY name;\n    ")
+		r = db.Query("\n      SELECT * FROM sqlite_sequence WHERE name LIKE 't3928%' ORDER BY name;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_sequence WHERE name LIKE 't3928%' ORDER BY name;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "t3928 21 t3928c 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-a69637.1"
-		_res = db.Exec("\n      CREATE TABLE ta69637_1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TABLE ta69637_2(z);\n      CREATE TRIGGER ra69637_1 AFTER INSERT ON ta69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+1);\n      END;\n      INSERT INTO ta69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE ta69637_1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TABLE ta69637_2(z);\n      CREATE TRIGGER ra69637_1 AFTER INSERT ON ta69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+1);\n      END;\n      INSERT INTO ta69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
+		r = db.Query("\n      CREATE TABLE ta69637_1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TABLE ta69637_2(z);\n      CREATE TRIGGER ra69637_1 AFTER INSERT ON ta69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+1);\n      END;\n      INSERT INTO ta69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE ta69637_1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TABLE ta69637_2(z);\n      CREATE TRIGGER ra69637_1 AFTER INSERT ON ta69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+1);\n      END;\n      INSERT INTO ta69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 124"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoinc-a69637.2"
-		_res = db.Exec("\n      CREATE VIEW va69637_2 AS SELECT * FROM ta69637_2;\n      CREATE TRIGGER ra69637_2 INSTEAD OF INSERT ON va69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+10000);\n      END;\n      INSERT INTO va69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW va69637_2 AS SELECT * FROM ta69637_2;\n      CREATE TRIGGER ra69637_2 INSTEAD OF INSERT ON va69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+10000);\n      END;\n      INSERT INTO va69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
+		r = db.Query("\n      CREATE VIEW va69637_2 AS SELECT * FROM ta69637_2;\n      CREATE TRIGGER ra69637_2 INSTEAD OF INSERT ON va69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+10000);\n      END;\n      INSERT INTO va69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIEW va69637_2 AS SELECT * FROM ta69637_2;\n      CREATE TRIGGER ra69637_2 INSTEAD OF INSERT ON va69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+10000);\n      END;\n      INSERT INTO va69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1 124 2 10123"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "autoinc-10.1"
@@ -682,9 +742,9 @@ func Test_autoinc(t *testing.T) {
 		root2 = "db one {SELECT rootpage FROM sqlite_master\n                     WHERE name='fake'}"
 		_ = root2 // suppress unused warning
 		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
-		_res = db.Exec("\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + root2 + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + root1 + "\n    WHERE name='fake';\n  ")
+		_res = db.Exec("\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root2) + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root1) + "\n    WHERE name='fake';\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + root2 + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + root1 + "\n    WHERE name='fake';\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root2) + "\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=" + sqlLiteral(root1) + "\n    WHERE name='fake';\n  ")
 		}
 		_dbtmp4, err := frigolite.Open("test.db")
 		_ = _dbtmp4 // sqlite3 db connection

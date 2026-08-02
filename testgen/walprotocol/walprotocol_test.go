@@ -63,9 +63,15 @@ func Test_walprotocol(t *testing.T) {
 	testprefix = "walprotocol"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE x(y);\n  INSERT INTO x VALUES('z');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE x(y);\n  INSERT INTO x VALUES('z');\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE x(y);\n  INSERT INTO x VALUES('z');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE x(y);\n  INSERT INTO x VALUES('z');\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)

@@ -97,9 +97,9 @@ func Test_func5(t *testing.T) {
 	cvalue = "db one {SELECT counter2('hello')+1}"
 	_ = cvalue // suppress unused warning
 	{ // "func5-2.3"
-		r = db.Query("\n  SELECT x, y FROM t2\n   WHERE x+counter2('hello')=$cvalue+x\n   ORDER BY +x;\n")
+		r = db.Query("\n  SELECT x, y FROM t2\n   WHERE x+counter2('hello')=" + sqlLiteral(cvalue) + "+x\n   ORDER BY +x;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x, y FROM t2\n   WHERE x+counter2('hello')=$cvalue+x\n   ORDER BY +x;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x, y FROM t2\n   WHERE x+counter2('hello')=" + sqlLiteral(cvalue) + "+x\n   ORDER BY +x;\n")
 			return
 		}
 		got := flatten(r)

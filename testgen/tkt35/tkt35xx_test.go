@@ -76,9 +76,9 @@ func Test_tkt35xx(t *testing.T) {
 	big = "abcdefghij 22"
 	_ = big // suppress unused warning
 	{ // do_test "tkt35xx-1.2.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + big + ");\n    INSERT INTO t3 VALUES(2, " + big + ");\n    INSERT INTO t3 VALUES(3, " + big + ");\n    INSERT INTO t3 VALUES(4, " + big + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + big + ");\n    INSERT INTO t4 VALUES(1, " + big + ");\n  ")
+		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(2, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(3, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(4, " + sqlLiteral(big) + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + sqlLiteral(big) + ");\n    INSERT INTO t4 VALUES(1, " + sqlLiteral(big) + ");\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + big + ");\n    INSERT INTO t3 VALUES(2, " + big + ");\n    INSERT INTO t3 VALUES(3, " + big + ");\n    INSERT INTO t3 VALUES(4, " + big + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + big + ");\n    INSERT INTO t4 VALUES(1, " + big + ");\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(2, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(3, " + sqlLiteral(big) + ");\n    INSERT INTO t3 VALUES(4, " + sqlLiteral(big) + ");\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, " + sqlLiteral(big) + ");\n    INSERT INTO t4 VALUES(1, " + sqlLiteral(big) + ");\n  ")
 		}
 	}
 	{ // do_test "tkt35xx-1.2.2"
@@ -96,9 +96,9 @@ func Test_tkt35xx(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt35xx-1.2.5"
-		_res = db.Exec(" \n    INSERT INTO t3 VALUES(5, " + big + ");\n    COMMIT;\n  ")
+		_res = db.Exec(" \n    INSERT INTO t3 VALUES(5, " + sqlLiteral(big) + ");\n    COMMIT;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t3 VALUES(5, " + big + ");\n    COMMIT;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t3 VALUES(5, " + sqlLiteral(big) + ");\n    COMMIT;\n  ")
 		}
 	}
 	{ // do_test "tkt35xx-1.2.6"

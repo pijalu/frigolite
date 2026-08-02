@@ -70,9 +70,10 @@ func (s *SelectStmt) AppendUnion(next *SelectStmt, op SetOp, unionAll bool) {
 
 // CTEDef represents a Common Table Expression definition.
 type CTEDef struct {
-	Name    string
-	Columns []string
-	Select  *SelectStmt // body of the CTE (subquery)
+	Name      string
+	Columns   []string
+	Select    *SelectStmt // body of the CTE (subquery)
+	Recursive bool        // defined in a WITH RECURSIVE clause
 }
 
 // SetOp represents the type of set operation.
@@ -652,6 +653,17 @@ type CastExpr struct {
 }
 
 func (e *CastExpr) expr() {}
+
+// RaiseExpr represents the RAISE() special function, which is only valid
+// inside a trigger program. Kind is one of "IGNORE", "ROLLBACK", "ABORT" or
+// "FAIL". Message is the (optional) error message expression for the
+// non-IGNORE kinds.
+type RaiseExpr struct {
+	Kind    string
+	Message Expr
+}
+
+func (r *RaiseExpr) expr() {}
 
 // RowValue represents a parenthesized list of expressions (row value / tuple).
 // (a, b, c) is a row value used in comparisons: (a,b) = (1,2)

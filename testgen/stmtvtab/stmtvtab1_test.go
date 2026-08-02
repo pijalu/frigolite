@@ -6,6 +6,7 @@ package stmtvtab
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -72,15 +73,9 @@ func Test_stmtvtab1(t *testing.T) {
 	z = "alabama"
 	_ = z // suppress unused warning
 	{ // "stmtvtab1-100"
-		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES($a,$b,$c);\n  CREATE INDEX t1a ON t1(a);\n  SELECT run, sql FROM sqlite_stmt ORDER BY 1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES($a,$b,$c);\n  CREATE INDEX t1a ON t1(a);\n  SELECT run, sql FROM sqlite_stmt ORDER BY 1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {SELECT run, sql FROM sqlite_stmt ORDER BY 1;} 1 {CREATE INDEX t1a ON t1(a);} 1 {INSERT INTO t1 VALUES($a,$b,$c);} 1 {CREATE TABLE t1(a,b,c);}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n  CREATE INDEX t1a ON t1(a);\n  SELECT run, sql FROM sqlite_stmt ORDER BY 1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SELECT run, sql FROM sqlite_stmt ORDER BY 1;} 1 {CREATE INDEX t1a ON t1(a);} 1 {INSERT INTO t1 VALUES($a,$b,$c);} 1 {CREATE TABLE t1(a,b,c);") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SELECT run, sql FROM sqlite_stmt ORDER BY 1;} 1 {CREATE INDEX t1a ON t1(a);} 1 {INSERT INTO t1 VALUES($a,$b,$c);} 1 {CREATE TABLE t1(a,b,c);", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n  CREATE INDEX t1a ON t1(a);\n  SELECT run, sql FROM sqlite_stmt ORDER BY 1;\n")
 		}
 	}
 	x = "neon"
@@ -90,9 +85,9 @@ func Test_stmtvtab1(t *testing.T) {
 	z = "future"
 	_ = z // suppress unused warning
 	{ // "stmtvtab1-110"
-		r = db.Query("\n  INSERT INTO t1 VALUES($a,$b,$c);\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
+		r = db.Query("\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES($a,$b,$c);\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
 			return
 		}
 		got := flatten(r)
@@ -108,9 +103,9 @@ func Test_stmtvtab1(t *testing.T) {
 	z = "metal"
 	_ = z // suppress unused warning
 	{ // "stmtvtab1-120"
-		r = db.Query("\n  INSERT INTO t1 VALUES($a,$b,$c);\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
+		r = db.Query("\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES($a,$b,$c);\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
 			return
 		}
 		got := flatten(r)
@@ -126,9 +121,9 @@ func Test_stmtvtab1(t *testing.T) {
 	z = "grace"
 	_ = z // suppress unused warning
 	{ // "stmtvtab1-130"
-		r = db.Query("\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES($a,$b,$c);\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
+		r = db.Query("\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES($a,$b,$c);\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + "," + sqlLiteral(b) + "," + sqlLiteral(c) + ");\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
 			return
 		}
 		got := flatten(r)

@@ -91,9 +91,9 @@ func Test_func6(t *testing.T) {
 	bNullTrim = "1"
 	_ = bNullTrim // suppress unused warning
 	{ // "func6-100"
-		_res = db.Exec("\n  PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t1(a,b,c,d) SELECT printf('abc%03x',x), x, 1000-x, NULL FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE TABLE t2(x TEXT PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2(x,y) SELECT a, b FROM t1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t1(a,b,c,d) SELECT printf('abc%03x',x), x, 1000-x, NULL FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE TABLE t2(x TEXT PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2(x,y) SELECT a, b FROM t1;\n")
+		r = db.Query("\n  PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t1(a,b,c,d) SELECT printf('abc%03x',x), x, 1000-x, NULL FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE TABLE t2(x TEXT PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2(x,y) SELECT a, b FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t1(a,b,c,d) SELECT printf('abc%03x',x), x, 1000-x, NULL FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE TABLE t2(x TEXT PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2(x,y) SELECT a, b FROM t1;\n")
 		}
 	}
 	// proc definition (not transpiled)

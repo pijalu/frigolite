@@ -56,9 +56,9 @@ func Test_wherelimit3(t *testing.T) {
 	testprefix = "wherelimit3"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1000)\n    INSERT INTO t1 SELECT n, n FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1000)\n    INSERT INTO t1 SELECT n, n FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n")
+		r = db.Query("\n  CREATE TABLE t1(a INT, b INT);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1000)\n    INSERT INTO t1 SELECT n, n FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1000)\n    INSERT INTO t1 SELECT n, n FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n")
 		}
 	}
 	{ // "1.1"

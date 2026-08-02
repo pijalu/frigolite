@@ -6,6 +6,7 @@ package alterauth
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -148,6 +149,34 @@ func flatten(res *frigolite.Result) string {
 		}
 	}
 	return strings.Join(parts, " ")
+}
+
+// sqlLiteral renders a Go value as a SQL literal: numeric strings and numbers
+// stay numeric literals (matching the SQLite TCL binding, which binds TCL
+// variables by their numeric value when possible), strings are single-quoted
+// with '' escaping, and nil becomes NULL. Used by generated SQL that contains
+// TCL $var references (db eval binds $var as a value, never as raw SQL text).
+func sqlLiteral(v interface{}) string {
+	switch x := v.(type) {
+	case nil:
+		return "NULL"
+	case int:
+		return strconv.Itoa(x)
+	case int64:
+		return strconv.FormatInt(x, 10)
+	case float64:
+		return strconv.FormatFloat(x, 'g', -1, 64)
+	case string:
+		if _, err := strconv.ParseFloat(x, 64); err == nil {
+			// Numeric-looking TCL variable: keep it a numeric literal so
+			// e.g. INSERT ... VALUES($a) stores an INTEGER, not text.
+			return x
+		}
+		return "'" + strings.ReplaceAll(x, "'", "''") + "'"
+	case []byte:
+		return "'" + strings.ReplaceAll(string(x), "'", "''") + "'"
+	}
+	return "'" + strings.ReplaceAll(fmt.Sprintf("%v", v), "'", "''") + "'"
 }
 
 // tclListAppend appends items to a TCL-format list string.
@@ -478,6 +507,197 @@ func convertShifts(s string) string {
 	return s
 }
 
+// tclEvalFuncs resolves TCL math function calls (int(x), log(x), pow(a,b),
+// abs(x), ...) to numeric literals, repeatedly, so expressions like
+// "int(log(2)/log(2))" evaluate to "1". Unknown functions are left in place
+// (the caller's character check then rejects the expression).
+func tclEvalFuncs(s string) string {
+	for {
+		changed := false
+		for i := 0; i < len(s); i++ {
+			c := s[i]
+			if !(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z') {
+				continue
+			}
+			j := i
+			for j < len(s) && (s[j] >= 'a' && s[j] <= 'z' || s[j] >= 'A' && s[j] <= 'Z' || s[j] >= '0' && s[j] <= '9') {
+				j++
+			}
+			if j >= len(s) || s[j] != '(' {
+				i = j
+				continue
+			}
+			// Find matching close paren.
+			depth := 0
+			k := j
+			for k < len(s) {
+				switch s[k] {
+				case '(':
+					depth++
+				case ')':
+					depth--
+					if depth == 0 {
+						break
+					}
+				}
+				if depth == 0 {
+					break
+				}
+				k++
+			}
+			if depth != 0 || k >= len(s) {
+				i = j
+				continue
+			}
+			name := s[i:j]
+			argStr := s[j+1 : k]
+			res, err := tclMathFunc(name, argStr)
+			if err != nil {
+				i = j
+				continue
+			}
+			s = s[:i] + res + s[k+1:]
+			changed = true
+			break // restart scan after substitution
+		}
+		if !changed {
+			return s
+		}
+	}
+}
+
+// tclMathFunc applies a TCL expr math function to comma-separated arguments.
+func tclMathFunc(name, argStr string) (string, error) {
+	// Split arguments on top-level commas.
+	var args []string
+	depth := 0
+	start := 0
+	for i := 0; i < len(argStr); i++ {
+		switch argStr[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case ',':
+			if depth == 0 {
+				args = append(args, strings.TrimSpace(argStr[start:i]))
+				start = i + 1
+			}
+		}
+	}
+	args = append(args, strings.TrimSpace(argStr[start:]))
+	vals := make([]float64, len(args))
+	for i, a := range args {
+		if a == "" {
+			return "", fmt.Errorf("empty arg")
+		}
+		r, err := evalSimpleArith(a)
+		if err != nil {
+			return "", err
+		}
+		v, err := strconv.ParseFloat(r, 64)
+		if err != nil {
+			return "", err
+		}
+		vals[i] = v
+	}
+	need := func(n int) error {
+		if len(vals) < n {
+			return fmt.Errorf("%s: need %d args, have %d", name, n, len(vals))
+		}
+		return nil
+	}
+	switch name {
+	case "int":
+		if err := need(1); err != nil { return "", err }
+		// TCL int() truncates toward zero (like C cast to int64).
+		return strconv.FormatInt(int64(vals[0]), 10), nil
+	case "abs":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Abs(vals[0])), nil
+	case "double":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(vals[0]), nil
+	case "log":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Log(vals[0])), nil
+	case "log10":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Log10(vals[0])), nil
+	case "exp":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Exp(vals[0])), nil
+	case "sqrt":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Sqrt(vals[0])), nil
+	case "floor":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Floor(vals[0])), nil
+	case "ceil":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Ceil(vals[0])), nil
+	case "round":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Round(vals[0])), nil
+	case "pow":
+		if err := need(2); err != nil { return "", err }
+		return formatFloat(math.Pow(vals[0], vals[1])), nil
+	case "fmod":
+		if err := need(2); err != nil { return "", err }
+		return formatFloat(math.Mod(vals[0], vals[1])), nil
+	case "min":
+		if err := need(2); err != nil { return "", err }
+		return formatFloat(math.Min(vals[0], vals[1])), nil
+	case "max":
+		if err := need(2); err != nil { return "", err }
+		return formatFloat(math.Max(vals[0], vals[1])), nil
+	case "sin":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Sin(vals[0])), nil
+	case "cos":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Cos(vals[0])), nil
+	case "tan":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Tan(vals[0])), nil
+	case "asin":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Asin(vals[0])), nil
+	case "acos":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Acos(vals[0])), nil
+	case "atan":
+		if err := need(1); err != nil { return "", err }
+		return formatFloat(math.Atan(vals[0])), nil
+	case "atan2":
+		if err := need(2); err != nil { return "", err }
+		return formatFloat(math.Atan2(vals[0], vals[1])), nil
+	case "hypot":
+		if err := need(2); err != nil { return "", err }
+		return formatFloat(math.Hypot(vals[0], vals[1])), nil
+	case "cosh", "sinh", "tanh":
+		if err := need(1); err != nil { return "", err }
+		switch name {
+		case "cosh":
+			return formatFloat(math.Cosh(vals[0])), nil
+		case "sinh":
+			return formatFloat(math.Sinh(vals[0])), nil
+		default:
+			return formatFloat(math.Tanh(vals[0])), nil
+		}
+	}
+	return "", fmt.Errorf("unknown function %s", name)
+}
+
+// formatFloat renders a float the way TCL expr does for whole numbers: as an
+// integer when the value is integral, otherwise %g.
+func formatFloat(f float64) string {
+	if f == float64(int64(f)) {
+		return strconv.FormatInt(int64(f), 10)
+	}
+	return strconv.FormatFloat(f, 'g', -1, 64)
+}
+
 // evalSimpleArith evaluates a simple numeric arithmetic expression string
 // containing +, -, *, /, <<, >>, parentheses, and integer/float literals.
 func evalSimpleArith(s string) (string, error) {
@@ -489,6 +709,8 @@ func evalSimpleArith(s string) (string, error) {
 	// by powers of two, since the operator stack below only handles
 	// + - * / ( ). A<<N == A * (1<<N), A>>N == A / (1<<N).
 	s = convertShifts(s)
+	// Resolve TCL math functions (int(), log(), pow(), ...) to numbers.
+	s = tclEvalFuncs(s)
 	// Only accept expressions made of digits, spaces, operators, parens, and dots.
 	for i := 0; i < len(s); i++ {
 		c := s[i]

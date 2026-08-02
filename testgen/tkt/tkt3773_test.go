@@ -52,9 +52,15 @@ func Test_tkt3773(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3773-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(2,1);\n    INSERT INTO t1 VALUES(33,3);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(123,2);\n    INSERT INTO t2 VALUES(4,4);\n    SELECT a FROM (\n      SELECT a, b FROM t1\n      UNION ALL\n      SELECT x, y FROM t2\n      ORDER BY 2\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(2,1);\n    INSERT INTO t1 VALUES(33,3);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(123,2);\n    INSERT INTO t2 VALUES(4,4);\n    SELECT a FROM (\n      SELECT a, b FROM t1\n      UNION ALL\n      SELECT x, y FROM t2\n      ORDER BY 2\n    );\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(2,1);\n    INSERT INTO t1 VALUES(33,3);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(123,2);\n    INSERT INTO t2 VALUES(4,4);\n    SELECT a FROM (\n      SELECT a, b FROM t1\n      UNION ALL\n      SELECT x, y FROM t2\n      ORDER BY 2\n    );\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(2,1);\n    INSERT INTO t1 VALUES(33,3);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(123,2);\n    INSERT INTO t2 VALUES(4,4);\n    SELECT a FROM (\n      SELECT a, b FROM t1\n      UNION ALL\n      SELECT x, y FROM t2\n      ORDER BY 2\n    );\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 123 33 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

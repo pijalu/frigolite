@@ -90,9 +90,9 @@ func Test_e_reindex(t *testing.T) {
 	// do_reindex_tests e_reindex-0.1 {\n  1   "REINDEX"           {}\n  2   "REINDEX noc...} (unsupported command, not transpiled)
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "e_reindex-1.1"
-		_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")
+		r = db.Query("\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")
 		}
 	}
 	_dbtmp0, err := frigolite.Open("test.db")
@@ -100,9 +100,9 @@ func Test_e_reindex(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "e_reindex-1.2"
-		_res = db.Exec("\n  DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;\n")
+		r = db.Query("\n  DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;\n")
 		}
 	}
 	_dbtmp1, err := frigolite.Open("test.db")

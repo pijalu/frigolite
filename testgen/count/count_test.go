@@ -58,9 +58,15 @@ func Test_count(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "count-0.1"
-		_res = db.Exec("\n     SELECT count(*) FROM sqlite_master;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT count(*) FROM sqlite_master;\n  ")
+		r = db.Query("\n     SELECT count(*) FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT count(*) FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	iTest = "0"
@@ -95,15 +101,15 @@ func Test_count(t *testing.T) {
 			}
 		}
 		{ // do_test "count-1." + iTest + ".3"
-			_res = db.Exec("\n      INSERT INTO t1 SELECT * FROM t1;          --   4\n      INSERT INTO t1 SELECT * FROM t1;          --   8\n      INSERT INTO t1 SELECT * FROM t1;          --  16\n      INSERT INTO t1 SELECT * FROM t1;          --  32\n      INSERT INTO t1 SELECT * FROM t1;          --  64\n      INSERT INTO t1 SELECT * FROM t1;          -- 128\n      INSERT INTO t1 SELECT * FROM t1;          -- 256\n      SELECT count(*) FROM t1;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 SELECT * FROM t1;          --   4\n      INSERT INTO t1 SELECT * FROM t1;          --   8\n      INSERT INTO t1 SELECT * FROM t1;          --  16\n      INSERT INTO t1 SELECT * FROM t1;          --  32\n      INSERT INTO t1 SELECT * FROM t1;          --  64\n      INSERT INTO t1 SELECT * FROM t1;          -- 128\n      INSERT INTO t1 SELECT * FROM t1;          -- 256\n      SELECT count(*) FROM t1;\n    ")
+			r = db.Query("\n      INSERT INTO t1 SELECT * FROM t1;          --   4\n      INSERT INTO t1 SELECT * FROM t1;          --   8\n      INSERT INTO t1 SELECT * FROM t1;          --  16\n      INSERT INTO t1 SELECT * FROM t1;          --  32\n      INSERT INTO t1 SELECT * FROM t1;          --  64\n      INSERT INTO t1 SELECT * FROM t1;          -- 128\n      INSERT INTO t1 SELECT * FROM t1;          -- 256\n      SELECT count(*) FROM t1;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT * FROM t1;          --   4\n      INSERT INTO t1 SELECT * FROM t1;          --   8\n      INSERT INTO t1 SELECT * FROM t1;          --  16\n      INSERT INTO t1 SELECT * FROM t1;          --  32\n      INSERT INTO t1 SELECT * FROM t1;          --  64\n      INSERT INTO t1 SELECT * FROM t1;          -- 128\n      INSERT INTO t1 SELECT * FROM t1;          -- 256\n      SELECT count(*) FROM t1;\n    ")
 			}
 		}
 		{ // do_test "count-1." + iTest + ".4"
-			_res = db.Exec("\n      INSERT INTO t1 SELECT * FROM t1;          --  512\n      INSERT INTO t1 SELECT * FROM t1;          -- 1024\n      INSERT INTO t1 SELECT * FROM t1;          -- 2048\n      INSERT INTO t1 SELECT * FROM t1;          -- 4096\n      SELECT count(*) FROM t1;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 SELECT * FROM t1;          --  512\n      INSERT INTO t1 SELECT * FROM t1;          -- 1024\n      INSERT INTO t1 SELECT * FROM t1;          -- 2048\n      INSERT INTO t1 SELECT * FROM t1;          -- 4096\n      SELECT count(*) FROM t1;\n    ")
+			r = db.Query("\n      INSERT INTO t1 SELECT * FROM t1;          --  512\n      INSERT INTO t1 SELECT * FROM t1;          -- 1024\n      INSERT INTO t1 SELECT * FROM t1;          -- 2048\n      INSERT INTO t1 SELECT * FROM t1;          -- 4096\n      SELECT count(*) FROM t1;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 SELECT * FROM t1;          --  512\n      INSERT INTO t1 SELECT * FROM t1;          -- 1024\n      INSERT INTO t1 SELECT * FROM t1;          -- 2048\n      INSERT INTO t1 SELECT * FROM t1;          -- 4096\n      SELECT count(*) FROM t1;\n    ")
 			}
 		}
 		{ // do_test "count-1." + iTest + ".5"

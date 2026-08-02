@@ -176,9 +176,9 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-1.10"
-		_res = db.Exec("\n    PRAGMA case_sensitive_like;  -- No argument, does not change setting.\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like;  -- No argument, does not change setting.\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
+		r = db.Query("\n    PRAGMA case_sensitive_like;  -- No argument, does not change setting.\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like;  -- No argument, does not change setting.\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
 		}
 	}
 	{ // do_test "like-2.1"
@@ -527,9 +527,15 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-8.1"
-		_res = db.Exec("\n    CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('abcdef');\n    INSERT INTO t8 VALUES('ghijkl');\n    INSERT INTO t8 VALUES('mnopqr');\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('abcdef');\n    INSERT INTO t8 VALUES('ghijkl');\n    INSERT INTO t8 VALUES('mnopqr');\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
+		r = db.Query("\n    CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('abcdef');\n    INSERT INTO t8 VALUES('ghijkl');\n    INSERT INTO t8 VALUES('mnopqr');\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('abcdef');\n    INSERT INTO t8 VALUES('ghijkl');\n    INSERT INTO t8 VALUES('mnopqr');\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 ghijkl 2 ghijkl"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "like-8.2"

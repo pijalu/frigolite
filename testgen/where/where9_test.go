@@ -186,9 +186,15 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.2.1"
-		_res = db.Exec("SELECT count(*) FROM t1 UNION ALL SELECT a FROM t1 WHERE a>=85")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*) FROM t1 UNION ALL SELECT a FROM t1 WHERE a>=85")
+		r = db.Query("SELECT count(*) FROM t1 UNION ALL SELECT a FROM t1 WHERE a>=85")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 UNION ALL SELECT a FROM t1 WHERE a>=85")
+			return
+		}
+		got := flatten(r)
+		want := "99 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where9-6.2.2"
@@ -411,39 +417,75 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-8.1"
-		_res = db.Exec("\n    CREATE TABLE t81(a INTEGER PRIMARY KEY, b, c, d);\n    CREATE TABLE t82(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t83(p INTEGER PRIMARY KEY, q);\n    \n    INSERT INTO t81 VALUES(2,3,4,5);\n    INSERT INTO t81 VALUES(3,4,5,6);\n    INSERT INTO t82 VALUES(2,4);\n    INSERT INTO t83 VALUES(5,55);\n    \n    SELECT *\n      FROM t81 LEFT JOIN t82 ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t81(a INTEGER PRIMARY KEY, b, c, d);\n    CREATE TABLE t82(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t83(p INTEGER PRIMARY KEY, q);\n    \n    INSERT INTO t81 VALUES(2,3,4,5);\n    INSERT INTO t81 VALUES(3,4,5,6);\n    INSERT INTO t82 VALUES(2,4);\n    INSERT INTO t83 VALUES(5,55);\n    \n    SELECT *\n      FROM t81 LEFT JOIN t82 ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
+		r = db.Query("\n    CREATE TABLE t81(a INTEGER PRIMARY KEY, b, c, d);\n    CREATE TABLE t82(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t83(p INTEGER PRIMARY KEY, q);\n    \n    INSERT INTO t81 VALUES(2,3,4,5);\n    INSERT INTO t81 VALUES(3,4,5,6);\n    INSERT INTO t82 VALUES(2,4);\n    INSERT INTO t83 VALUES(5,55);\n    \n    SELECT *\n      FROM t81 LEFT JOIN t82 ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t81(a INTEGER PRIMARY KEY, b, c, d);\n    CREATE TABLE t82(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t83(p INTEGER PRIMARY KEY, q);\n    \n    INSERT INTO t81 VALUES(2,3,4,5);\n    INSERT INTO t81 VALUES(3,4,5,6);\n    INSERT INTO t82 VALUES(2,4);\n    INSERT INTO t83 VALUES(5,55);\n    \n    SELECT *\n      FROM t81 LEFT JOIN t82 ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 5 {} {} 5 55 3 4 5 6 2 4 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where9-8.2"
-		_res = db.Exec("\n    SELECT *\n      FROM t81 LEFT JOIN (t82) ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT *\n      FROM t81 LEFT JOIN (t82) ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
+		r = db.Query("\n    SELECT *\n      FROM t81 LEFT JOIN (t82) ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t81 LEFT JOIN (t82) ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 5 {} {} 5 55 3 4 5 6 2 4 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where9-8.3"
-		_res = db.Exec("\n    SELECT *\n      FROM (t81) LEFT JOIN (main.t82) ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT *\n      FROM (t81) LEFT JOIN (main.t82) ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
+		r = db.Query("\n    SELECT *\n      FROM (t81) LEFT JOIN (main.t82) ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM (t81) LEFT JOIN (main.t82) ON y=b JOIN t83\n     WHERE c==p OR d==p\n     ORDER BY +a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 3 4 5 {} {} 5 55 3 4 5 6 2 4 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where9-9.1"
-		_res = db.Exec("\n    CREATE TABLE t91(x); INSERT INTO t91 VALUES(1);\n    CREATE TABLE t92(y INTEGER PRIMARY KEY,a,b);\n    INSERT INTO t92 VALUES(1,2,3);\n    SELECT 1 FROM t91 LEFT JOIN t92 ON a=2 OR b=3;\n    SELECT 2 FROM t91 LEFT JOIN t92 ON a=2 AND b=3;\n    SELECT 3 FROM t91 LEFT JOIN t92 ON (a=2 OR b=3) AND y IS NULL;\n    SELECT 4 FROM t91 LEFT JOIN t92 ON (a=2 AND b=3) AND y IS NULL;\n    CREATE TEMP TABLE x9 AS SELECT * FROM t91 LEFT JOIN t92 ON a=2 OR b=3;\n    SELECT 5 FROM x9 WHERE y IS NULL;\n    SELECT 6 FROM t91 LEFT JOIN t92 ON a=2 OR b=3 WHERE y IS NULL;\n    SELECT 7 FROM t91 LEFT JOIN t92 ON a=2 AND b=3 WHERE y IS NULL;\n    SELECT 8 FROM t91 LEFT JOIN t92 ON a=22 OR b=33 WHERE y IS NULL;\n    SELECT 9 FROM t91 LEFT JOIN t92 ON a=22 AND b=33 WHERE y IS NULL;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t91(x); INSERT INTO t91 VALUES(1);\n    CREATE TABLE t92(y INTEGER PRIMARY KEY,a,b);\n    INSERT INTO t92 VALUES(1,2,3);\n    SELECT 1 FROM t91 LEFT JOIN t92 ON a=2 OR b=3;\n    SELECT 2 FROM t91 LEFT JOIN t92 ON a=2 AND b=3;\n    SELECT 3 FROM t91 LEFT JOIN t92 ON (a=2 OR b=3) AND y IS NULL;\n    SELECT 4 FROM t91 LEFT JOIN t92 ON (a=2 AND b=3) AND y IS NULL;\n    CREATE TEMP TABLE x9 AS SELECT * FROM t91 LEFT JOIN t92 ON a=2 OR b=3;\n    SELECT 5 FROM x9 WHERE y IS NULL;\n    SELECT 6 FROM t91 LEFT JOIN t92 ON a=2 OR b=3 WHERE y IS NULL;\n    SELECT 7 FROM t91 LEFT JOIN t92 ON a=2 AND b=3 WHERE y IS NULL;\n    SELECT 8 FROM t91 LEFT JOIN t92 ON a=22 OR b=33 WHERE y IS NULL;\n    SELECT 9 FROM t91 LEFT JOIN t92 ON a=22 AND b=33 WHERE y IS NULL;\n  ")
+		r = db.Query("\n    CREATE TABLE t91(x); INSERT INTO t91 VALUES(1);\n    CREATE TABLE t92(y INTEGER PRIMARY KEY,a,b);\n    INSERT INTO t92 VALUES(1,2,3);\n    SELECT 1 FROM t91 LEFT JOIN t92 ON a=2 OR b=3;\n    SELECT 2 FROM t91 LEFT JOIN t92 ON a=2 AND b=3;\n    SELECT 3 FROM t91 LEFT JOIN t92 ON (a=2 OR b=3) AND y IS NULL;\n    SELECT 4 FROM t91 LEFT JOIN t92 ON (a=2 AND b=3) AND y IS NULL;\n    CREATE TEMP TABLE x9 AS SELECT * FROM t91 LEFT JOIN t92 ON a=2 OR b=3;\n    SELECT 5 FROM x9 WHERE y IS NULL;\n    SELECT 6 FROM t91 LEFT JOIN t92 ON a=2 OR b=3 WHERE y IS NULL;\n    SELECT 7 FROM t91 LEFT JOIN t92 ON a=2 AND b=3 WHERE y IS NULL;\n    SELECT 8 FROM t91 LEFT JOIN t92 ON a=22 OR b=33 WHERE y IS NULL;\n    SELECT 9 FROM t91 LEFT JOIN t92 ON a=22 AND b=33 WHERE y IS NULL;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t91(x); INSERT INTO t91 VALUES(1);\n    CREATE TABLE t92(y INTEGER PRIMARY KEY,a,b);\n    INSERT INTO t92 VALUES(1,2,3);\n    SELECT 1 FROM t91 LEFT JOIN t92 ON a=2 OR b=3;\n    SELECT 2 FROM t91 LEFT JOIN t92 ON a=2 AND b=3;\n    SELECT 3 FROM t91 LEFT JOIN t92 ON (a=2 OR b=3) AND y IS NULL;\n    SELECT 4 FROM t91 LEFT JOIN t92 ON (a=2 AND b=3) AND y IS NULL;\n    CREATE TEMP TABLE x9 AS SELECT * FROM t91 LEFT JOIN t92 ON a=2 OR b=3;\n    SELECT 5 FROM x9 WHERE y IS NULL;\n    SELECT 6 FROM t91 LEFT JOIN t92 ON a=2 OR b=3 WHERE y IS NULL;\n    SELECT 7 FROM t91 LEFT JOIN t92 ON a=2 AND b=3 WHERE y IS NULL;\n    SELECT 8 FROM t91 LEFT JOIN t92 ON a=22 OR b=33 WHERE y IS NULL;\n    SELECT 9 FROM t91 LEFT JOIN t92 ON a=22 AND b=33 WHERE y IS NULL;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where9-10.1"
-		_res = db.Exec("\n    CREATE TABLE t101 (id INTEGER PRIMARY KEY);\n    INSERT INTO t101 VALUES (1);\n    SELECT * FROM t101 AS t0\n         LEFT JOIN t101 AS t1 ON t1.id BETWEEN 10 AND 20\n         JOIN t101 AS t2 ON (t2.id = t0.id OR (t2.id<>555 AND t2.id=t1.id));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t101 (id INTEGER PRIMARY KEY);\n    INSERT INTO t101 VALUES (1);\n    SELECT * FROM t101 AS t0\n         LEFT JOIN t101 AS t1 ON t1.id BETWEEN 10 AND 20\n         JOIN t101 AS t2 ON (t2.id = t0.id OR (t2.id<>555 AND t2.id=t1.id));\n  ")
+		r = db.Query("\n    CREATE TABLE t101 (id INTEGER PRIMARY KEY);\n    INSERT INTO t101 VALUES (1);\n    SELECT * FROM t101 AS t0\n         LEFT JOIN t101 AS t1 ON t1.id BETWEEN 10 AND 20\n         JOIN t101 AS t2 ON (t2.id = t0.id OR (t2.id<>555 AND t2.id=t1.id));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t101 (id INTEGER PRIMARY KEY);\n    INSERT INTO t101 VALUES (1);\n    SELECT * FROM t101 AS t0\n         LEFT JOIN t101 AS t1 ON t1.id BETWEEN 10 AND 20\n         JOIN t101 AS t2 ON (t2.id = t0.id OR (t2.id<>555 AND t2.id=t1.id));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where9-10.2"
-		_res = db.Exec("\n    CREATE TABLE t102 (id TEXT UNIQUE NOT NULL);\n    INSERT INTO t102 VALUES ('1');\n    SELECT * FROM t102 AS t0\n         LEFT JOIN t102 AS t1 ON t1.id GLOB 'abc%'\n         JOIN t102 AS t2 ON (t2.id = t0.id OR (t2.id<>555 AND t2.id=t1.id));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t102 (id TEXT UNIQUE NOT NULL);\n    INSERT INTO t102 VALUES ('1');\n    SELECT * FROM t102 AS t0\n         LEFT JOIN t102 AS t1 ON t1.id GLOB 'abc%'\n         JOIN t102 AS t2 ON (t2.id = t0.id OR (t2.id<>555 AND t2.id=t1.id));\n  ")
+		r = db.Query("\n    CREATE TABLE t102 (id TEXT UNIQUE NOT NULL);\n    INSERT INTO t102 VALUES ('1');\n    SELECT * FROM t102 AS t0\n         LEFT JOIN t102 AS t1 ON t1.id GLOB 'abc%'\n         JOIN t102 AS t2 ON (t2.id = t0.id OR (t2.id<>555 AND t2.id=t1.id));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t102 (id TEXT UNIQUE NOT NULL);\n    INSERT INTO t102 VALUES ('1');\n    SELECT * FROM t102 AS t0\n         LEFT JOIN t102 AS t1 ON t1.id GLOB 'abc%'\n         JOIN t102 AS t2 ON (t2.id = t0.id OR (t2.id<>555 AND t2.id=t1.id));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 {} 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

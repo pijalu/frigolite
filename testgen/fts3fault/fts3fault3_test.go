@@ -69,9 +69,9 @@ func Test_fts3fault3(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
-		_res = db.Exec("\n  BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;\n")
+		r = db.Query("\n  BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;\n")
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)

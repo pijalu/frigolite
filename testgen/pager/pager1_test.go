@@ -277,9 +277,15 @@ func Test_pager1(t *testing.T) {
 				}
 			}
 			{ // "pager1-3." + tn + ".2"
-				_res = db.Exec("\n    BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
+				r = db.Query("\n    BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "99"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "pager1-3." + tn + ".3"
@@ -590,9 +596,15 @@ func Test_pager1(t *testing.T) {
 					// proc definition (not transpiled)
 					// faultsim_delete_and_reopen (unsupported command, not transpiled)
 					{ // "pager1.4.5.1"
-						_res = db.Exec("\n  PRAGMA journal_mode = DELETE;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t1 VALUES('I', 'II');\n  INSERT INTO t2 VALUES('III', 'IV');\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  COMMIT;\n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = DELETE;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t1 VALUES('I', 'II');\n  INSERT INTO t2 VALUES('III', 'IV');\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  COMMIT;\n")
+						r = db.Query("\n  PRAGMA journal_mode = DELETE;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t1 VALUES('I', 'II');\n  INSERT INTO t2 VALUES('III', 'IV');\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  COMMIT;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = DELETE;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t1 VALUES('I', 'II');\n  INSERT INTO t2 VALUES('III', 'IV');\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  COMMIT;\n")
+							return
+						}
+						got := flatten(r)
+						want := "delete"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					// tv filter {} (unsupported command, not transpiled)
@@ -782,9 +794,15 @@ func Test_pager1(t *testing.T) {
 					// proc definition (not transpiled)
 					// faultsim_delete_and_reopen (unsupported command, not transpiled)
 					{ // "pager1.4.7.1"
-						_res = db.Exec("\n  PRAGMA journal_mode = DELETE;\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  CREATE INDEX i1 ON t1(y);\n  INSERT INTO t1 VALUES('I',   'one');\n  INSERT INTO t1 VALUES('II',  'four');\n  INSERT INTO t1 VALUES('III', 'nine');\n  BEGIN;\n    INSERT INTO t1 VALUES('IV', 'sixteen');\n    INSERT INTO t1 VALUES('V' , 'twentyfive');\n  COMMIT;\n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = DELETE;\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  CREATE INDEX i1 ON t1(y);\n  INSERT INTO t1 VALUES('I',   'one');\n  INSERT INTO t1 VALUES('II',  'four');\n  INSERT INTO t1 VALUES('III', 'nine');\n  BEGIN;\n    INSERT INTO t1 VALUES('IV', 'sixteen');\n    INSERT INTO t1 VALUES('V' , 'twentyfive');\n  COMMIT;\n")
+						r = db.Query("\n  PRAGMA journal_mode = DELETE;\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  CREATE INDEX i1 ON t1(y);\n  INSERT INTO t1 VALUES('I',   'one');\n  INSERT INTO t1 VALUES('II',  'four');\n  INSERT INTO t1 VALUES('III', 'nine');\n  BEGIN;\n    INSERT INTO t1 VALUES('IV', 'sixteen');\n    INSERT INTO t1 VALUES('V' , 'twentyfive');\n  COMMIT;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = DELETE;\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  CREATE INDEX i1 ON t1(y);\n  INSERT INTO t1 VALUES('I',   'one');\n  INSERT INTO t1 VALUES('II',  'four');\n  INSERT INTO t1 VALUES('III', 'nine');\n  BEGIN;\n    INSERT INTO t1 VALUES('IV', 'sixteen');\n    INSERT INTO t1 VALUES('V' , 'twentyfive');\n  COMMIT;\n")
+							return
+						}
+						got := flatten(r)
+						want := "delete"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					// tv filter {} (unsupported command, not transpiled)
@@ -1450,9 +1468,15 @@ func Test_pager1(t *testing.T) {
 							// testvfs tv -default 1 (unsupported command, not transpiled)
 							// faultsim_delete_and_reopen (unsupported command, not transpiled)
 							{ // "pager1-11.1"
-								_res = db.Exec("\n  PRAGMA journal_mode = DELETE;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE zz(top PRIMARY KEY);\n    INSERT INTO zz VALUES(a_string(222));\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n  COMMIT;\n  BEGIN;\n    UPDATE zz SET top = a_string(345);\n")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = DELETE;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE zz(top PRIMARY KEY);\n    INSERT INTO zz VALUES(a_string(222));\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n  COMMIT;\n  BEGIN;\n    UPDATE zz SET top = a_string(345);\n")
+								r = db.Query("\n  PRAGMA journal_mode = DELETE;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE zz(top PRIMARY KEY);\n    INSERT INTO zz VALUES(a_string(222));\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n  COMMIT;\n  BEGIN;\n    UPDATE zz SET top = a_string(345);\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = DELETE;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE zz(top PRIMARY KEY);\n    INSERT INTO zz VALUES(a_string(222));\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n  COMMIT;\n  BEGIN;\n    UPDATE zz SET top = a_string(345);\n")
+									return
+								}
+								got := flatten(r)
+								want := "delete"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							// proc definition (not transpiled)
@@ -1533,9 +1557,15 @@ func Test_pager1(t *testing.T) {
 							// proc definition (not transpiled)
 							// faultsim_delete_and_reopen (unsupported command, not transpiled)
 							{ // "pager1-13.1.1"
-								_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = PERSIST;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n    INSERT INTO t1 VALUES(NULL, a_string(400));\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   2 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   4 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   8 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  16 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  32 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  64 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /* 128 */\n  COMMIT;\n  UPDATE t1 SET b = a_string(400);\n")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = PERSIST;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n    INSERT INTO t1 VALUES(NULL, a_string(400));\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   2 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   4 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   8 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  16 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  32 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  64 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /* 128 */\n  COMMIT;\n  UPDATE t1 SET b = a_string(400);\n")
+								r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = PERSIST;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n    INSERT INTO t1 VALUES(NULL, a_string(400));\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   2 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   4 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   8 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  16 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  32 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  64 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /* 128 */\n  COMMIT;\n  UPDATE t1 SET b = a_string(400);\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = PERSIST;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n    INSERT INTO t1 VALUES(NULL, a_string(400));\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   2 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   4 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   8 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  16 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  32 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  64 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /* 128 */\n  COMMIT;\n  UPDATE t1 SET b = a_string(400);\n")
+									return
+								}
+								got := flatten(r)
+								want := "persist"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							if tcl_platform_os != "Windows NT" {
@@ -1543,9 +1573,9 @@ func Test_pager1(t *testing.T) {
 								_ = nUp // suppress unused warning
 								for func() bool { nUp_n, _nUp_e := strconv.Atoi(nUp); if _nUp_e != nil { return false }; return nUp_n < 64 }() {
 									{ // "pager1-13.1.2." + nUp + ".1"
-										_res = db.Exec(" \n    UPDATE t1 SET b = a_string(399) WHERE a <= $nUp\n  ")
+										_res = db.Exec(" \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
 										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    UPDATE t1 SET b = a_string(399) WHERE a <= $nUp\n  ")
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
 										}
 									}
 									{ // "pager1-13.1.2." + nUp + ".2"
@@ -1595,9 +1625,9 @@ func Test_pager1(t *testing.T) {
 								_ = nUp // suppress unused warning
 								for func() bool { nUp_n, _nUp_e := strconv.Atoi(nUp); if _nUp_e != nil { return false }; return nUp_n < 64 }() {
 									{ // "pager1-13.2.2." + nUp + ".1"
-										_res = db.Exec(" \n    UPDATE t1 SET b = a_string(399) WHERE a <= $nUp\n  ")
+										_res = db.Exec(" \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
 										if _res.Error != nil {
-											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    UPDATE t1 SET b = a_string(399) WHERE a <= $nUp\n  ")
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    UPDATE t1 SET b = a_string(399) WHERE a <= " + sqlLiteral(nUp) + "\n  ")
 										}
 									}
 									{ // "pager1-13.2.2." + nUp + ".2"
@@ -2239,9 +2269,9 @@ func Test_pager1(t *testing.T) {
 											}
 										}
 										{ // "34." + tn + ".2"
-											r = db.Query("\n    BEGIN;\n    INSERT INTO t1 VALUES(2, a_string($strsize));\n    DELETE FROM t1 WHERE oid=2;\n    COMMIT;\n    PRAGMA integrity_check;\n  ")
+											r = db.Query("\n    BEGIN;\n    INSERT INTO t1 VALUES(2, a_string(" + sqlLiteral(strsize) + "));\n    DELETE FROM t1 WHERE oid=2;\n    COMMIT;\n    PRAGMA integrity_check;\n  ")
 											if r.Error != nil {
-												t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(2, a_string($strsize));\n    DELETE FROM t1 WHERE oid=2;\n    COMMIT;\n    PRAGMA integrity_check;\n  ")
+												t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(2, a_string(" + sqlLiteral(strsize) + "));\n    DELETE FROM t1 WHERE oid=2;\n    COMMIT;\n    PRAGMA integrity_check;\n  ")
 												return
 											}
 											got := flatten(r)
@@ -2362,9 +2392,9 @@ func Test_pager1(t *testing.T) {
 											}
 										}
 										{ // "39.4"
-											_res = db.Exec("\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  DROP TABLE t2;\n  DROP TABLE t3;\n  DROP TABLE t4;\n")
-											if _res.Error != nil {
-												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  DROP TABLE t2;\n  DROP TABLE t3;\n  DROP TABLE t4;\n")
+											r = db.Query("\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  DROP TABLE t2;\n  DROP TABLE t3;\n  DROP TABLE t4;\n")
+											if r.Error != nil {
+												t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  DROP TABLE t2;\n  DROP TABLE t3;\n  DROP TABLE t4;\n")
 											}
 										}
 										{ // do_test "39.5"

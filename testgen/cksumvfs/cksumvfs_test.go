@@ -76,9 +76,9 @@ func Test_cksumvfs(t *testing.T) {
 	text = "db one \"SELECT hex(randomblob(5000))\""
 	_ = text // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, $text, NULL);\n")
+		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, " + sqlLiteral(text) + ", NULL);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, $text, NULL);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, " + sqlLiteral(text) + ", NULL);\n")
 		}
 	}
 	{ // "1.1"
@@ -107,9 +107,9 @@ func Test_cksumvfs(t *testing.T) {
 		ii = "1500"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob(" + ii + ")) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob(" + sqlLiteral(ii) + ")) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob(" + ii + ")) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob(" + sqlLiteral(ii) + ")) ")
 			}
 			// incr ii 1
 			{
@@ -137,9 +137,15 @@ func Test_cksumvfs(t *testing.T) {
 		}
 	}
 	{ // "1.5"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  DELETE FROM t1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  DELETE FROM t1;\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  DELETE FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  DELETE FROM t1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.6"

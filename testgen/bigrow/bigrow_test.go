@@ -390,9 +390,9 @@ func Test_bigrow(t *testing.T) {
 		v = "A 1100000000"
 		_ = v // suppress unused warning
 		{ // "bigrow-6.0"
-			_res = db.Exec("\n    CREATE TABLE docs(content TEXT);\n    INSERT INTO docs VALUES ( $v );\n  ")
+			_res = db.Exec("\n    CREATE TABLE docs(content TEXT);\n    INSERT INTO docs VALUES ( " + sqlLiteral(v) + " );\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE docs(content TEXT);\n    INSERT INTO docs VALUES ( $v );\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE docs(content TEXT);\n    INSERT INTO docs VALUES ( " + sqlLiteral(v) + " );\n  ")
 			}
 		}
 		{ // "bigrow-6.1"

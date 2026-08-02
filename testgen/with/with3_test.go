@@ -91,9 +91,9 @@ func Test_with3(t *testing.T) {
 		}
 	}
 	{ // "3.1.1"
-		_res = db.Exec("\n    CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;\n\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;\n\n  ")
+		r = db.Query("\n    CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;\n\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE y1(a, b);\n    CREATE INDEX y1a ON y1(a);\n\n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000)\n      INSERT INTO y1 SELECT i%10, i FROM cnt;\n    ANALYZE;\n\n  ")
 		}
 	}
 	{ // "3.1.2"

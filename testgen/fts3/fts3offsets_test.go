@@ -6,6 +6,7 @@ package fts3
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -85,15 +86,9 @@ func Test_fts3offsets(t *testing.T) {
 		}
 	}
 	{ // "1.1.1"
-		r = db.Query("\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {(A) x x x (B) (C) x x} 2 {(A) (B) (C) x (B) x x C} 3 {(A) x x (B) (C) x x x}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "(A) x x x (B) (C) x x} 2 {(A) (B) (C) x (B) x x C} 3 {(A) x x (B) (C) x x x") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "(A) x x x (B) (C) x x} 2 {(A) (B) (C) x (B) x x C} 3 {(A) x x (B) (C) x x x", _res.Error, "\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
 		}
 	}
 	{ // "1.2"
@@ -103,15 +98,9 @@ func Test_fts3offsets(t *testing.T) {
 		}
 	}
 	{ // "1.2.1"
-		r = db.Query("\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {(A) x x x (B) (C) x x} 2 {(A) x x C x x x C} 3 {(A) x x (B) (C) x x x}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "(A) x x x (B) (C) x x} 2 {(A) x x C x x x C} 3 {(A) x x (B) (C) x x x") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "(A) x x x (B) (C) x x} 2 {(A) x x C x x x C} 3 {(A) x x (B) (C) x x x", _res.Error, "\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
 		}
 	}
 	{ // "1.3"
@@ -121,15 +110,9 @@ func Test_fts3offsets(t *testing.T) {
 		}
 	}
 	{ // "1.3.1"
-		r = db.Query("\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {(A) (B) (C)} 2 {(A) x} 3 {(A) (B) (C)} 4 {(A) (B) (C) x x x x x x x B} 5 {(A) x x x x x x x x x C} 6 {(A) x x x x x x x x x x x B} 7 {(A) (B) (C)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "(A) (B) (C)} 2 {(A) x} 3 {(A) (B) (C)} 4 {(A) (B) (C) x x x x x x x B} 5 {(A) x x x x x x x x x C} 6 {(A) x x x x x x x x x x x B} 7 {(A) (B) (C)") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "(A) (B) (C)} 2 {(A) x} 3 {(A) (B) (C)} 4 {(A) (B) (C) x x x x x x x B} 5 {(A) x x x x x x x x x C} 6 {(A) x x x x x x x x x x x B} 7 {(A) (B) (C)", _res.Error, "\n  SELECT oid,extract(offsets(xx), x) FROM xx WHERE xx MATCH 'a OR (b NEAR/1 c)';\n")
 		}
 	}
 	{ // "1.4"

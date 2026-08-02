@@ -66,9 +66,9 @@ func Test_update2(t *testing.T) {
 	nrow = "10"
 	_ = nrow // suppress unused warning
 	{ // "1.1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<$nrow )\n  INSERT INTO t1(b) SELECT char((i % 26) + 65) FROM s;\n  INSERT INTO t2 SELECT * FROM t1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<$nrow )\n  INSERT INTO t1(b) SELECT char((i % 26) + 65) FROM s;\n  INSERT INTO t2 SELECT * FROM t1;\n")
+		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nrow) + " )\n  INSERT INTO t1(b) SELECT char((i % 26) + 65) FROM s;\n  INSERT INTO t2 SELECT * FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nrow) + " )\n  INSERT INTO t1(b) SELECT char((i % 26) + 65) FROM s;\n  INSERT INTO t2 SELECT * FROM t1;\n")
 		}
 	}
 	{ // "1.1.1"
@@ -95,9 +95,9 @@ func Test_update2(t *testing.T) {
 		}
 	}
 	{ // "1.2.0"
-		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<$nrow )\n  INSERT INTO t1(a, b) SELECT i+1, char((i % 26) + 65) FROM s;\n")
+		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nrow) + " )\n  INSERT INTO t1(a, b) SELECT i+1, char((i % 26) + 65) FROM s;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<$nrow )\n  INSERT INTO t1(a, b) SELECT i+1, char((i % 26) + 65) FROM s;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nrow) + " )\n  INSERT INTO t1(a, b) SELECT i+1, char((i % 26) + 65) FROM s;\n")
 		}
 	}
 	{ // "1.2.1"

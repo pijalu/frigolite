@@ -82,18 +82,24 @@ func Test_tkt3080(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt3080.4"
-		_res = db.Exec("\n    SELECT name FROM sqlite_master;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM sqlite_master;\n  ")
+		r = db.Query("\n    SELECT name FROM sqlite_master;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1 t2 t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "tkt3080.10"
 		sql = "\n       CREATE VIRTUAL TABLE t4 USING echo(t2);\n       INSERT INTO t4 VALUES(123);\n       DROP TABLE t4;\n     "
 		_ = sql // suppress unused warning
-		_res = db.Exec("\n       DELETE FROM t1;\n       INSERT INTO t1 VALUES(" + sql + ");\n     ")
+		_res = db.Exec("\n       DELETE FROM t1;\n       INSERT INTO t1 VALUES(" + sqlLiteral(sql) + ");\n     ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       DELETE FROM t1;\n       INSERT INTO t1 VALUES(" + sql + ");\n     ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       DELETE FROM t1;\n       INSERT INTO t1 VALUES(" + sqlLiteral(sql) + ");\n     ")
 		}
 		_res = db.Exec("\n       SELECT execsql(x) FROM t1\n     ")
 		if _res.Error != nil {

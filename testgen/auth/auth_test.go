@@ -1424,9 +1424,9 @@ func Test_auth(t *testing.T) {
 		}
 		attachfilename = ":memory:" // TCL namespace variable
 		_ = attachfilename // suppress unused warning
-		_res = db.Exec("ATTACH " + attachfilename + " AS test1")
+		_res = db.Exec("ATTACH " + sqlLiteral(attachfilename) + " AS test1")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH " + attachfilename + " AS test1")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH " + sqlLiteral(attachfilename) + " AS test1")
 		}
 		_ = authargs // TCL namespace variable (query)
 	}

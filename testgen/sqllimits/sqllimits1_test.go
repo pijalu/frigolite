@@ -378,19 +378,19 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.2"
-		_res = db.Exec(" SELECT LENGTH(randomblob(" + LARGESIZE + ")) ")
+		_res = db.Exec(" SELECT LENGTH(randomblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.3"
-		_res = db.Exec(" SELECT quote(randomblob(" + LARGESIZE + ")) ")
+		_res = db.Exec(" SELECT quote(randomblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.4"
-		_res = db.Exec(" SELECT LENGTH(zeroblob(" + LARGESIZE + ")) ")
+		_res = db.Exec(" SELECT LENGTH(zeroblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.5"
-		_res = db.Exec(" SELECT quote(zeroblob(" + LARGESIZE + ")) ")
+		_res = db.Exec(" SELECT quote(zeroblob(" + sqlLiteral(LARGESIZE) + ")) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.6"
@@ -402,13 +402,13 @@ func Test_sqllimits1(t *testing.T) {
 		_ = str // suppress unused warning
 		rep = "B 65537" // TCL namespace variable
 		_ = rep // suppress unused warning
-		_res = db.Exec(" SELECT replace(" + str + ", 'A', " + rep + ") ")
+		_res = db.Exec(" SELECT replace(" + sqlLiteral(str) + ", 'A', " + sqlLiteral(rep) + ") ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.10"
 		str = "%J 12100" // TCL namespace variable
 		_ = str // suppress unused warning
-		_res = db.Exec(" SELECT length(strftime(" + str + ", '2003-10-31')) ")
+		_res = db.Exec(" SELECT length(strftime(" + sqlLiteral(str) + ", '2003-10-31')) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.11"
@@ -416,19 +416,19 @@ func Test_sqllimits1(t *testing.T) {
 		_ = str1 // suppress unused warning
 		str2 = "B [expr {$SQLITE_LIMIT_LENGTH - 10}]" // TCL namespace variable
 		_ = str2 // suppress unused warning
-		_res = db.Exec(" SELECT " + str1 + " || " + str2 + " ")
+		_res = db.Exec(" SELECT " + sqlLiteral(str1) + " || " + sqlLiteral(str2) + " ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.12"
 		str1 = "' [expr {$SQLITE_LIMIT_LENGTH - 10}]" // TCL namespace variable
 		_ = str1 // suppress unused warning
-		_res = db.Exec(" SELECT quote(" + str1 + ") ")
+		_res = db.Exec(" SELECT quote(" + sqlLiteral(str1) + ") ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.13"
 		str1 = "' [expr {$SQLITE_LIMIT_LENGTH - 10}]" // TCL namespace variable
 		_ = str1 // suppress unused warning
-		_res = db.Exec(" SELECT hex(" + str1 + ") ")
+		_res = db.Exec(" SELECT hex(" + sqlLiteral(str1) + ") ")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.14.1"
@@ -576,12 +576,12 @@ func Test_sqllimits1(t *testing.T) {
 	}
 	{ // do_test "sqllimits1-5.17.2"
 		// sqlite3_limit db SQLITE_LIMIT_LENGTH 0x7fffffff (unsupported command, not transpiled)
-		_res = db.Exec("SELECT 'A' || " + strvalue)
+		_res = db.Exec("SELECT 'A' || " + sqlLiteral(strvalue))
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.17.3"
 		// sqlite3_limit db SQLITE_LIMIT_LENGTH $SQLITE_LIMIT_LENGTH (unsupported command, not transpiled)
-		_res = db.Exec("SELECT 'A' || " + strvalue)
+		_res = db.Exec("SELECT 'A' || " + sqlLiteral(strvalue))
 		_ = _res // catchsql
 	}
 	blobvalue = "41 $::SQLITE_LIMIT_LENGTH"
@@ -597,11 +597,11 @@ func Test_sqllimits1(t *testing.T) {
 	strvalue = "D [expr {$SQLITE_LIMIT_LENGTH-11}]"
 	_ = strvalue // suppress unused warning
 	{ // do_test "sqllimits1-5.20"
-		_res = db.Exec("SELECT strftime('%Y ' || " + strvalue + ", '2008-01-02')")
+		_res = db.Exec("SELECT strftime('%Y ' || " + sqlLiteral(strvalue) + ", '2008-01-02')")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.21"
-		_res = db.Exec("SELECT strftime('%Y-%m-%d ' || " + strvalue + ", '2008-01-02')")
+		_res = db.Exec("SELECT strftime('%Y-%m-%d ' || " + sqlLiteral(strvalue) + ", '2008-01-02')")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-6.1"
@@ -1135,9 +1135,9 @@ func Test_sqllimits1(t *testing.T) {
 		_ = pattern // suppress unused warning
 		_string = "\"A\" [expr {$max*2}]" // TCL namespace variable
 		_ = _string // suppress unused warning
-		r = db.Query("\n    SELECT " + _string + " LIKE " + pattern + ";\n  ")
+		r = db.Query("\n    SELECT " + sqlLiteral(_string) + " LIKE " + sqlLiteral(pattern) + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT " + _string + " LIKE " + pattern + ";\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT " + sqlLiteral(_string) + " LIKE " + sqlLiteral(pattern) + ";\n  ")
 		}
 	}
 	{ // do_test "sqllimits1-15.2"
@@ -1147,7 +1147,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = pattern // suppress unused warning
 		_string = "\"A\" [expr {$max*2}]" // TCL namespace variable
 		_ = _string // suppress unused warning
-		_res = db.Exec("\n    SELECT " + _string + " LIKE " + pattern + ";\n  ")
+		_res = db.Exec("\n    SELECT " + sqlLiteral(_string) + " LIKE " + sqlLiteral(pattern) + ";\n  ")
 		_ = _res // catchsql
 	}
 	{ // "sqllimits1.17.0"

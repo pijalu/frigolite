@@ -86,9 +86,15 @@ func Test_sort5(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA mmap_size = 10000000;\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA mmap_size = 10000000;\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n")
+		r = db.Query("\n  PRAGMA mmap_size = 10000000;\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA mmap_size = 10000000;\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.1"
@@ -99,9 +105,9 @@ func Test_sort5(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + i + ", randomblob(2000)) ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", randomblob(2000)) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + ", randomblob(2000)) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", randomblob(2000)) ")
 			}
 			// incr i 1
 			{

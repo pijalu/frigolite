@@ -50,9 +50,15 @@ func Test_autoanalyze1(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "autoanalyze1-100"
-		_res = db.Exec("\n  -- Build up a test table with some indexes\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE UNIQUE INDEX t1bc ON t1(b,c);\n  CREATE INDEX t1d ON t1(d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c,d) SELECT x, x, x, x FROM c;\n  -- Verify that the hasStat1 flag is clear on on indexes\n  SELECT idx, flgs FROM pragma_stats\n   WHERE idx IS NOT NULL\n   ORDER BY idx;\n  -- Verify that the TF_HasStat1 flag is clear on the table\n  SELECT tbl, (flgs & 0x10)!=0 FROM pragma_stats WHERE tbl='t1' AND idx IS NULL;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- Build up a test table with some indexes\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE UNIQUE INDEX t1bc ON t1(b,c);\n  CREATE INDEX t1d ON t1(d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c,d) SELECT x, x, x, x FROM c;\n  -- Verify that the hasStat1 flag is clear on on indexes\n  SELECT idx, flgs FROM pragma_stats\n   WHERE idx IS NOT NULL\n   ORDER BY idx;\n  -- Verify that the TF_HasStat1 flag is clear on the table\n  SELECT tbl, (flgs & 0x10)!=0 FROM pragma_stats WHERE tbl='t1' AND idx IS NULL;\n")
+		r = db.Query("\n  -- Build up a test table with some indexes\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE UNIQUE INDEX t1bc ON t1(b,c);\n  CREATE INDEX t1d ON t1(d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c,d) SELECT x, x, x, x FROM c;\n  -- Verify that the hasStat1 flag is clear on on indexes\n  SELECT idx, flgs FROM pragma_stats\n   WHERE idx IS NOT NULL\n   ORDER BY idx;\n  -- Verify that the TF_HasStat1 flag is clear on the table\n  SELECT tbl, (flgs & 0x10)!=0 FROM pragma_stats WHERE tbl='t1' AND idx IS NULL;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  -- Build up a test table with some indexes\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE UNIQUE INDEX t1bc ON t1(b,c);\n  CREATE INDEX t1d ON t1(d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c,d) SELECT x, x, x, x FROM c;\n  -- Verify that the hasStat1 flag is clear on on indexes\n  SELECT idx, flgs FROM pragma_stats\n   WHERE idx IS NOT NULL\n   ORDER BY idx;\n  -- Verify that the TF_HasStat1 flag is clear on the table\n  SELECT tbl, (flgs & 0x10)!=0 FROM pragma_stats WHERE tbl='t1' AND idx IS NULL;\n")
+			return
+		}
+		got := flatten(r)
+		want := "t1bc 0 t1d 0 t1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "autoanalyze1-110"

@@ -215,9 +215,9 @@ func Test_analyze9(t *testing.T) {
 			_ = a // suppress unused warning
 			b = "0"
 			_ = b // suppress unused warning
-			_res = db.Exec(" INSERT INTO t2 VALUES(" + a + ", " + b + ") ")
+			_res = db.Exec(" INSERT INTO t2 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(" + a + ", " + b + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ") ")
 			}
 			// incr i 1
 			{
@@ -361,9 +361,9 @@ func Test_analyze9(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES('x', " + i + ") ")
+			_res = db.Exec(" INSERT INTO t1 VALUES('x', " + sqlLiteral(i) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('x', " + i + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('x', " + sqlLiteral(i) + ") ")
 			}
 			// incr i tclExprWith("(($i<1000)?1:10)", map[string]string{"i": i})
 			{
@@ -394,18 +394,18 @@ func Test_analyze9(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1"
-		_res = db.Exec("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t0(v);\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t0(v);\n  ANALYZE;\n")
+		r = db.Query("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t0(v);\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t0(v);\n  ANALYZE;\n")
 		}
 	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "6.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  PRAGMA writable_schema = 1;\n  CREATE TEMP TABLE x1 AS\n    SELECT tbl,idx,neq,nlt,ndlt,sample FROM sqlite_stat4\n    ORDER BY (rowid%5), rowid;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat4 SELECT * FROM x1;\n  PRAGMA writable_schema = 0;\n  ANALYZE sqlite_master;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  PRAGMA writable_schema = 1;\n  CREATE TEMP TABLE x1 AS\n    SELECT tbl,idx,neq,nlt,ndlt,sample FROM sqlite_stat4\n    ORDER BY (rowid%5), rowid;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat4 SELECT * FROM x1;\n  PRAGMA writable_schema = 0;\n  ANALYZE sqlite_master;\n")
+		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  PRAGMA writable_schema = 1;\n  CREATE TEMP TABLE x1 AS\n    SELECT tbl,idx,neq,nlt,ndlt,sample FROM sqlite_stat4\n    ORDER BY (rowid%5), rowid;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat4 SELECT * FROM x1;\n  PRAGMA writable_schema = 0;\n  ANALYZE sqlite_master;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  PRAGMA writable_schema = 1;\n  CREATE TEMP TABLE x1 AS\n    SELECT tbl,idx,neq,nlt,ndlt,sample FROM sqlite_stat4\n    ORDER BY (rowid%5), rowid;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat4 SELECT * FROM x1;\n  PRAGMA writable_schema = 0;\n  ANALYZE sqlite_master;\n")
 		}
 	}
 	{ // "6.2"
@@ -717,9 +717,9 @@ func Test_analyze9(t *testing.T) {
 					}
 					b = tclExprWith("$i % 5", map[string]string{"i": i})
 					_ = b // suppress unused warning
-					_res = db.Exec(" INSERT INTO t4 VALUES(" + a + ", " + b + ") ")
+					_res = db.Exec(" INSERT INTO t4 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(" + a + ", " + b + ") ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ") ")
 					}
 					// incr i 1
 					{
@@ -798,9 +798,9 @@ func Test_analyze9(t *testing.T) {
 						}
 						b = tclExprWith("$i % 5", map[string]string{"i": i})
 						_ = b // suppress unused warning
-						_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', " + a + ", " + b + ") ")
+						_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', " + sqlLiteral(a) + ", " + sqlLiteral(b) + ") ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(X'abcdef', " + a + ", " + b + ") ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(X'abcdef', " + sqlLiteral(a) + ", " + sqlLiteral(b) + ") ")
 						}
 						// incr i 1
 						{
@@ -867,9 +867,9 @@ func Test_analyze9(t *testing.T) {
 						a = "def"
 						_ = a // suppress unused warning
 					}
-					_res = db.Exec(" INSERT INTO t1(rowid, a, b, c) VALUES(" + i + ", " + a + ", " + i + ", " + i + ") ")
+					_res = db.Exec(" INSERT INTO t1(rowid, a, b, c) VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(a) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, a, b, c) VALUES(" + i + ", " + a + ", " + i + ", " + i + ") ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, a, b, c) VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(a) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
 					}
 					// incr i 1
 					{
@@ -921,9 +921,9 @@ func Test_analyze9(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 					c = tclExprWith("$i % 3", map[string]string{"i": i})
 					_ = c // suppress unused warning
-					_res = db.Exec(" INSERT INTO t1 VALUES('ott', " + i + ", " + c + ") ")
+					_res = db.Exec(" INSERT INTO t1 VALUES('ott', " + sqlLiteral(i) + ", " + sqlLiteral(c) + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('ott', " + i + ", " + c + ") ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('ott', " + sqlLiteral(i) + ", " + sqlLiteral(c) + ") ")
 					}
 					// incr i 1
 					{
@@ -962,14 +962,14 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "," + i + "," + i + "," + i + ") ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "," + i + "," + i + "," + i + ") ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + ") ")
 					}
 					if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
-						_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "," + i + "," + i + "," + i + ") ")
+						_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + ") ")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "," + i + "," + i + "," + i + ") ")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + ") ")
 						}
 					}
 					// incr i 1
@@ -990,9 +990,9 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1600 }() {
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "/10," + i + "/17," + i + "/27," + i + "/37) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "/10," + sqlLiteral(i) + "/17," + sqlLiteral(i) + "/27," + sqlLiteral(i) + "/37) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "/10," + i + "/17," + i + "/27," + i + "/37) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "/10," + sqlLiteral(i) + "/17," + sqlLiteral(i) + "/27," + sqlLiteral(i) + "/37) ")
 					}
 					// incr i 1
 					{
@@ -1008,45 +1008,45 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "*50," + i + "*50," + i + "*50," + i + "*50) ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50," + sqlLiteral(i) + "*50) ")
 					}
 					// incr i 1
 					{
@@ -1072,9 +1072,9 @@ func Test_analyze9(t *testing.T) {
 						b = "1"
 						_ = b // suppress unused warning
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "/10," + b + "," + i + "," + i + ") ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "/10," + sqlLiteral(b) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + ") ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "/10," + b + "," + i + "," + i + ") ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "/10," + sqlLiteral(b) + "," + sqlLiteral(i) + "," + sqlLiteral(i) + ") ")
 					}
 					// incr i 1
 					{
@@ -1235,18 +1235,18 @@ func Test_analyze9(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + one + ");\n    ANALYZE;\n  ")
+				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(one) + ");\n    ANALYZE;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + one + ");\n    ANALYZE;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(one) + ");\n    ANALYZE;\n  ")
 				}
 				nByte = tclLIndex("sqlite3_db_status", "db")
 				_ = nByte // suppress unused warning
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + two + ");\n    ANALYZE;\n  ")
+				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(two) + ");\n    ANALYZE;\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + two + ");\n    ANALYZE;\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(two) + ");\n    ANALYZE;\n  ")
 				}
 				nByte2 = tclLIndex("sqlite3_db_status", "db")
 				_ = nByte2 // suppress unused warning
@@ -1272,9 +1272,9 @@ func Test_analyze9(t *testing.T) {
 						b = i
 						_ = b // suppress unused warning
 					}
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "%2, " + b + ", " + i + "/2, 'abc') ")
+					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "%2, " + sqlLiteral(b) + ", " + sqlLiteral(i) + "/2, 'abc') ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "%2, " + b + ", " + i + "/2, 'abc') ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "%2, " + sqlLiteral(b) + ", " + sqlLiteral(i) + "/2, 'abc') ")
 					}
 					// incr i 1
 					{
@@ -1336,9 +1336,9 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 9 }() {
-					_res = db.Exec("\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n    ")
+					_res = db.Exec("\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n      INSERT INTO t1 VALUES(" + i + ", 0);\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", 0);\n    ")
 					}
 					// incr i 1
 					{
@@ -1390,9 +1390,9 @@ func Test_analyze9(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
-					_res = db.Exec("\n      INSERT INTO t1 VALUES(" + i + ", r(), r(), r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  r(), r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  " + i + ");\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  " + i + ");\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  r(), r());\n      INSERT INTO t1 VALUES(" + i + ", r(), r(), r());\n    ")
+					_res = db.Exec("\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", r(), r(), r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  r(), r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ",  r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ");\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ");\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ",  r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  r(), r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", r(), r(), r());\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(" + i + ", r(), r(), r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  r(), r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  " + i + ");\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  " + i + ");\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  " + i + ",  r());\n      INSERT INTO t1 VALUES(" + i + ", " + i + ",  r(), r());\n      INSERT INTO t1 VALUES(" + i + ", r(), r(), r());\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", r(), r(), r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  r(), r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ",  r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ");\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ");\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  " + sqlLiteral(i) + ",  r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ",  r(), r());\n      INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", r(), r(), r());\n    ")
 					}
 					// incr i 1
 					{
@@ -1415,9 +1415,9 @@ func Test_analyze9(t *testing.T) {
 				val = i + " " + i + " " + i + " " + i
 				_ = val // suppress unused warning
 				{ // "20.3." + i
-					r = db.Query("\n      SELECT count(*) FROM sqlite_stat4 \n      WHERE lrange(test_decode(sample), 0, 3)=$val\n    ")
+					r = db.Query("\n      SELECT count(*) FROM sqlite_stat4 \n      WHERE lrange(test_decode(sample), 0, 3)=" + sqlLiteral(val) + "\n    ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM sqlite_stat4 \n      WHERE lrange(test_decode(sample), 0, 3)=$val\n    ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM sqlite_stat4 \n      WHERE lrange(test_decode(sample), 0, 3)=" + sqlLiteral(val) + "\n    ")
 						return
 					}
 					got := flatten(r)
@@ -1447,9 +1447,9 @@ func Test_analyze9(t *testing.T) {
 				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-					_res = db.Exec(" \n      INSERT INTO t2 VALUES(CASE WHEN " + i + " < 80 THEN 'one' ELSE 'two' END, " + i + ") \n    ")
+					_res = db.Exec(" \n      INSERT INTO t2 VALUES(CASE WHEN " + sqlLiteral(i) + " < 80 THEN 'one' ELSE 'two' END, " + sqlLiteral(i) + ") \n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t2 VALUES(CASE WHEN " + i + " < 80 THEN 'one' ELSE 'two' END, " + i + ") \n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t2 VALUES(CASE WHEN " + sqlLiteral(i) + " < 80 THEN 'one' ELSE 'two' END, " + sqlLiteral(i) + ") \n    ")
 					}
 					// incr i 1
 					{
@@ -1486,9 +1486,9 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			{ // "22.1"
-				_res = db.Exec("\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
+				r = db.Query("\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
 				}
 			}
 			// foreach {tn where res} "1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}"
@@ -1510,9 +1510,9 @@ func Test_analyze9(t *testing.T) {
 				}
 				// proc definition (not transpiled)
 				{ // "23.0"
-					_res = db.Exec("\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
+					r = db.Query("\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
 					}
 				}
 				{ // "23.1"
@@ -1528,9 +1528,9 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 				{ // "24.0"
-					_res = db.Exec("\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
+					r = db.Query("\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
 					}
 				}
 				// foreach {tn where eqp} "1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}"
@@ -1551,9 +1551,9 @@ func Test_analyze9(t *testing.T) {
 						}
 					}
 					{ // "25.1"
-						_res = db.Exec("\n    CREATE TABLE t6(a, b);\n    WITH ints(i,j) AS (\n      SELECT 1,1 UNION ALL SELECT i+1,j+1 FROM ints WHERE i<100\n    ) INSERT INTO t6 SELECT * FROM ints;\n    CREATE INDEX aa ON t6(a);\n    CREATE INDEX bb ON t6(b);\n    ANALYZE;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a, b);\n    WITH ints(i,j) AS (\n      SELECT 1,1 UNION ALL SELECT i+1,j+1 FROM ints WHERE i<100\n    ) INSERT INTO t6 SELECT * FROM ints;\n    CREATE INDEX aa ON t6(a);\n    CREATE INDEX bb ON t6(b);\n    ANALYZE;\n  ")
+						r = db.Query("\n    CREATE TABLE t6(a, b);\n    WITH ints(i,j) AS (\n      SELECT 1,1 UNION ALL SELECT i+1,j+1 FROM ints WHERE i<100\n    ) INSERT INTO t6 SELECT * FROM ints;\n    CREATE INDEX aa ON t6(a);\n    CREATE INDEX bb ON t6(b);\n    ANALYZE;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t6(a, b);\n    WITH ints(i,j) AS (\n      SELECT 1,1 UNION ALL SELECT i+1,j+1 FROM ints WHERE i<100\n    ) INSERT INTO t6 SELECT * FROM ints;\n    CREATE INDEX aa ON t6(a);\n    CREATE INDEX bb ON t6(b);\n    ANALYZE;\n  ")
 						}
 					}
 					{ // "25.2.1"
@@ -1597,9 +1597,9 @@ func Test_analyze9(t *testing.T) {
 						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-							_res = db.Exec(" INSERT INTO t1(x, y) VALUES(" + i + ", " + i + ") ")
+							_res = db.Exec(" INSERT INTO t1(x, y) VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(x, y) VALUES(" + i + ", " + i + ") ")
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(x, y) VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
 							}
 							// incr i 1
 							{
@@ -1612,9 +1612,9 @@ func Test_analyze9(t *testing.T) {
 						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-							_res = db.Exec("\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + i + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + i + ", 100;\n      ")
+							_res = db.Exec("\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", 100;\n      ")
 							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + i + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + i + ", 100;\n      ")
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+" + sqlLiteral(i) + ", 100;\n      ")
 							}
 							// incr i 1
 							{
@@ -1663,9 +1663,9 @@ func Test_analyze9(t *testing.T) {
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
 					{ // "26.2.1"
-						_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
+						r = db.Query("\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
 						}
 					}
 					{ // "26.2.2"

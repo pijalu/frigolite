@@ -56,9 +56,9 @@ func Test_aggorderby(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "aggorderby-1.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a TEXT,b INT,c INT,d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<9)\n  INSERT INTO t1(a,b,c,d) SELECT printf('%d',(x*7)%10),1,x,10-x FROM c;\n  INSERT INTO t1(a,b,c,d) SELECT a, 2, c, 10-d FROM t1;\n  CREATE INDEX t1b ON t1(b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT,b INT,c INT,d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<9)\n  INSERT INTO t1(a,b,c,d) SELECT printf('%d',(x*7)%10),1,x,10-x FROM c;\n  INSERT INTO t1(a,b,c,d) SELECT a, 2, c, 10-d FROM t1;\n  CREATE INDEX t1b ON t1(b);\n")
+		r = db.Query("\n  CREATE TABLE t1(a TEXT,b INT,c INT,d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<9)\n  INSERT INTO t1(a,b,c,d) SELECT printf('%d',(x*7)%10),1,x,10-x FROM c;\n  INSERT INTO t1(a,b,c,d) SELECT a, 2, c, 10-d FROM t1;\n  CREATE INDEX t1b ON t1(b);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a TEXT,b INT,c INT,d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<9)\n  INSERT INTO t1(a,b,c,d) SELECT printf('%d',(x*7)%10),1,x,10-x FROM c;\n  INSERT INTO t1(a,b,c,d) SELECT a, 2, c, 10-d FROM t1;\n  CREATE INDEX t1b ON t1(b);\n")
 		}
 	}
 	{ // "aggorderby-1.2"
@@ -314,9 +314,9 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	{ // "aggorderby-9.0"
-		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY y) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY y) FROM c;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY y) FROM c;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY y) FROM c;\n")
 			return
 		}
 		got := flatten(r)
@@ -326,9 +326,9 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	{ // "aggorderby-9.1"
-		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('[4,4]', 4),\n    ('{a:3}', 3),\n    ('[4,4]', 4),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY y) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{a:3}', 3),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY y) FROM c;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('[4,4]', 4),\n    ('{a:3}', 3),\n    ('[4,4]', 4),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY y) FROM c;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{a:3}', 3),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY y) FROM c;\n")
 			return
 		}
 		got := flatten(r)
@@ -338,9 +338,9 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	{ // "aggorderby-9.2"
-		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY json(x)) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY json(x)) FROM c;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY json(x)) FROM c;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY json(x)) FROM c;\n")
 			return
 		}
 		got := flatten(r)
@@ -350,9 +350,9 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	{ // "aggorderby-9.3"
-		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('[4,4]', 4),\n    ('{a:3}', 3),\n    ('[4,4]', 4),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY json(x)) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{a:3}', 3),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY json(x)) FROM c;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('[4,4]', 4),\n    ('{a:3}', 3),\n    ('[4,4]', 4),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY json(x)) FROM c;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{a:3}', 3),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY json(x)) FROM c;\n")
 			return
 		}
 		got := flatten(r)

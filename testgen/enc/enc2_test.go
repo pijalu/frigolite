@@ -108,18 +108,24 @@ func Test_enc2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
+		_res = db.Exec("PRAGMA encoding = \\\"" + enc + "\\\"")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \"" + enc + "\"")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \\\"" + enc + "\\\"")
 		}
 		_res = db.Exec(dbcontents)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, dbcontents)
 		}
 		{ // do_test "enc2-" + i + ".0.1"
-			_res = db.Exec("PRAGMA encoding")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
+			r = db.Query("PRAGMA encoding")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+				return
+			}
+			got := flatten(r)
+			want := enc
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "enc2-" + i + ".0.2"

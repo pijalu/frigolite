@@ -252,9 +252,9 @@ func Test_gencol1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-4.100"
-			_res = db.Exec("\n  CREATE TABLE t0 (\n    c0,\n    c1 a UNIQUE AS (1),\n    c2,\n    c3 REFERENCES t0(c1)\n  );\n  PRAGMA foreign_keys = true;\n  INSERT INTO t0(c0,c2,c3) VALUES(0,0,1);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0 (\n    c0,\n    c1 a UNIQUE AS (1),\n    c2,\n    c3 REFERENCES t0(c1)\n  );\n  PRAGMA foreign_keys = true;\n  INSERT INTO t0(c0,c2,c3) VALUES(0,0,1);\n")
+			r = db.Query("\n  CREATE TABLE t0 (\n    c0,\n    c1 a UNIQUE AS (1),\n    c2,\n    c3 REFERENCES t0(c1)\n  );\n  PRAGMA foreign_keys = true;\n  INSERT INTO t0(c0,c2,c3) VALUES(0,0,1);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0 (\n    c0,\n    c1 a UNIQUE AS (1),\n    c2,\n    c3 REFERENCES t0(c1)\n  );\n  PRAGMA foreign_keys = true;\n  INSERT INTO t0(c0,c2,c3) VALUES(0,0,1);\n")
 			}
 		}
 		{ // "gencol1-4.110"
@@ -480,9 +480,9 @@ func Test_gencol1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-11.10"
-			_res = db.Exec("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    c3 BLOB GENERATED ALWAYS AS (1), \n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = true;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    c3 BLOB GENERATED ALWAYS AS (1), \n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
+			r = db.Query("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    c3 BLOB GENERATED ALWAYS AS (1), \n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = true;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    c3 BLOB GENERATED ALWAYS AS (1), \n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
 			}
 		}
 		{ // "gencol1-11.20"
@@ -797,15 +797,27 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		{ // "gencol1-20.1"
-			_res = db.Exec("\n  CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;\n")
+			r = db.Query("\n  CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;\n")
+				return
+			}
+			got := flatten(r)
+			want := "2001-01-01 0 0 0 {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "gencol1-20.2"
-			_res = db.Exec("\n  -- Do an UPSERT on the b column\n  INSERT INTO tab (prim, b)\n  VALUES ('2001-01-01',5)\n      ON CONFLICT(prim) DO UPDATE SET  b=excluded.b;\n  -- Now b is NULL rather than 5\n  SELECT * FROM tab;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- Do an UPSERT on the b column\n  INSERT INTO tab (prim, b)\n  VALUES ('2001-01-01',5)\n      ON CONFLICT(prim) DO UPDATE SET  b=excluded.b;\n  -- Now b is NULL rather than 5\n  SELECT * FROM tab;\n")
+			r = db.Query("\n  -- Do an UPSERT on the b column\n  INSERT INTO tab (prim, b)\n  VALUES ('2001-01-01',5)\n      ON CONFLICT(prim) DO UPDATE SET  b=excluded.b;\n  -- Now b is NULL rather than 5\n  SELECT * FROM tab;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  -- Do an UPSERT on the b column\n  INSERT INTO tab (prim, b)\n  VALUES ('2001-01-01',5)\n      ON CONFLICT(prim) DO UPDATE SET  b=excluded.b;\n  -- Now b is NULL rather than 5\n  SELECT * FROM tab;\n")
+				return
+			}
+			got := flatten(r)
+			want := "2001-01-01 0 0 5 {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()

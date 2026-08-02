@@ -50,9 +50,15 @@ func Test_tkt_2ea2425d34(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-2ea24-1.1"
-		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t1 VALUES(3,'ghi');\n    SELECT a FROM t1 WHERE length(b)<10 AND b<>'def' ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t1 VALUES(3,'ghi');\n    SELECT a FROM t1 WHERE length(b)<10 AND b<>'def' ORDER BY a;\n  ")
+		r = db.Query("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t1 VALUES(3,'ghi');\n    SELECT a FROM t1 WHERE length(b)<10 AND b<>'def' ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t1 VALUES(3,'ghi');\n    SELECT a FROM t1 WHERE length(b)<10 AND b<>'def' ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

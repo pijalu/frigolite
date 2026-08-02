@@ -107,9 +107,9 @@ func Test_where2(t *testing.T) {
 			_ = y // suppress unused warning
 			z = tclExprWith("$x+$y", map[string]string{"x": x, "y": y})
 			_ = z // suppress unused warning
-			_res = db.Exec("INSERT INTO t1 VALUES(" + w + "," + x + "," + y + "," + z + ")")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + w + "," + x + "," + y + "," + z + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
 			}
 			// incr i 1
 			{
@@ -158,27 +158,51 @@ func Test_where2(t *testing.T) {
 		// expr $out1!=$out2 && $out2!=$out3 (not evaluated)
 	}
 	{ // "where2-2.5"
-		_res = db.Exec("\n  -- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();\n")
+		r = db.Query("\n  -- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  -- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := " random"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "where2-2.5b"
-		_res = db.Exec("\n  -- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();\n")
+		r = db.Query("\n  -- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  -- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := " SorterOpen "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "where2-2.6"
-		_res = db.Exec("\n  -- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);\n")
+		r = db.Query("\n  -- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  -- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := " abs"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "where2-2.6b"
-		_res = db.Exec("\n  -- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);\n")
+		r = db.Query("\n  -- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  -- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);\n")
+			return
+		}
+		got := flatten(r)
+		wantPattern := " SorterOpen "
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "where2-3.1"
@@ -612,9 +636,9 @@ func Test_where2(t *testing.T) {
 		i = "4"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
-			_res = db.Exec("INSERT INTO t10 VALUES(1," + i + "," + i + ")")
+			_res = db.Exec("INSERT INTO t10 VALUES(1," + sqlLiteral(i) + "," + sqlLiteral(i) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t10 VALUES(1," + i + "," + i + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t10 VALUES(1," + sqlLiteral(i) + "," + sqlLiteral(i) + ")")
 			}
 			// incr i 1
 			{
@@ -639,9 +663,9 @@ func Test_where2(t *testing.T) {
 		}
 	}
 	{ // do_test "where2-11.2"
-		_res = db.Exec("\n    CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;\n  ")
+		r = db.Query("\n    CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;\n  ")
 		}
 	}
 	{ // do_test "where2-11.3"
@@ -658,9 +682,9 @@ func Test_where2(t *testing.T) {
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // "where2-12.1"
-			r = db.Query("\n  CREATE TABLE t12(x INTEGER PRIMARY KEY, y INT, z CHAR(100));\n  CREATE INDEX t12y ON t12(y);\n  EXPLAIN QUERY PLAN\n    SELECT a.x, b.x\n      FROM t12 AS a JOIN t12 AS b ON a.y=b.x\n     WHERE (b.x=$abc OR b.y=$abc);\n")
+			r = db.Query("\n  CREATE TABLE t12(x INTEGER PRIMARY KEY, y INT, z CHAR(100));\n  CREATE INDEX t12y ON t12(y);\n  EXPLAIN QUERY PLAN\n    SELECT a.x, b.x\n      FROM t12 AS a JOIN t12 AS b ON a.y=b.x\n     WHERE (b.x=" + sqlLiteral(abc) + " OR b.y=" + sqlLiteral(abc) + ");\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t12(x INTEGER PRIMARY KEY, y INT, z CHAR(100));\n  CREATE INDEX t12y ON t12(y);\n  EXPLAIN QUERY PLAN\n    SELECT a.x, b.x\n      FROM t12 AS a JOIN t12 AS b ON a.y=b.x\n     WHERE (b.x=$abc OR b.y=$abc);\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t12(x INTEGER PRIMARY KEY, y INT, z CHAR(100));\n  CREATE INDEX t12y ON t12(y);\n  EXPLAIN QUERY PLAN\n    SELECT a.x, b.x\n      FROM t12 AS a JOIN t12 AS b ON a.y=b.x\n     WHERE (b.x=" + sqlLiteral(abc) + " OR b.y=" + sqlLiteral(abc) + ");\n")
 				return
 			}
 			got := flatten(r)

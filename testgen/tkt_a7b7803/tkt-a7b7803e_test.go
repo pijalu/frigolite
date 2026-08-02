@@ -50,51 +50,99 @@ func Test_tkt_a7b7803e(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-a7b7803e.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(0,'first'),(99,'fuzzy');\n    SELECT (t1.a==0) AS x, b\n      FROM t1\n     WHERE a=0 OR x;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(0,'first'),(99,'fuzzy');\n    SELECT (t1.a==0) AS x, b\n      FROM t1\n     WHERE a=0 OR x;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(0,'first'),(99,'fuzzy');\n    SELECT (t1.a==0) AS x, b\n      FROM t1\n     WHERE a=0 OR x;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(0,'first'),(99,'fuzzy');\n    SELECT (t1.a==0) AS x, b\n      FROM t1\n     WHERE a=0 OR x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 first"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-a7b7803e.2"
-		_res = db.Exec("\n    SELECT a, (t1.b='fuzzy') AS x\n      FROM t1\n     WHERE x\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, (t1.b='fuzzy') AS x\n      FROM t1\n     WHERE x\n  ")
+		r = db.Query("\n    SELECT a, (t1.b='fuzzy') AS x\n      FROM t1\n     WHERE x\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, (t1.b='fuzzy') AS x\n      FROM t1\n     WHERE x\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "99 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-a7b7803e.3"
-		_res = db.Exec("\n    SELECT (a=99) AS x, (t1.b='fuzzy') AS y, *\n      FROM t1\n     WHERE x AND y\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT (a=99) AS x, (t1.b='fuzzy') AS y, *\n      FROM t1\n     WHERE x AND y\n  ")
+		r = db.Query("\n    SELECT (a=99) AS x, (t1.b='fuzzy') AS y, *\n      FROM t1\n     WHERE x AND y\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (a=99) AS x, (t1.b='fuzzy') AS y, *\n      FROM t1\n     WHERE x AND y\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 99 fuzzy"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-a7b7803e.4"
-		_res = db.Exec("\n    SELECT (a=99) AS x, (t1.b='first') AS y, *\n      FROM t1\n     WHERE x OR y\n     ORDER BY a\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT (a=99) AS x, (t1.b='first') AS y, *\n      FROM t1\n     WHERE x OR y\n     ORDER BY a\n  ")
+		r = db.Query("\n    SELECT (a=99) AS x, (t1.b='first') AS y, *\n      FROM t1\n     WHERE x OR y\n     ORDER BY a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (a=99) AS x, (t1.b='first') AS y, *\n      FROM t1\n     WHERE x OR y\n     ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 1 0 first 1 0 99 fuzzy"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-a7b7803e.5"
-		_res = db.Exec("\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x OR y\n     ORDER BY M.a, N.a\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x OR y\n     ORDER BY M.a, N.a\n  ")
+		r = db.Query("\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x OR y\n     ORDER BY M.a, N.a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x OR y\n     ORDER BY M.a, N.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 first 1 first 1 fuzzy 1 first 1 fuzzy 0 fuzzy"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-a7b7803e.6"
-		_res = db.Exec("\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x AND y\n     ORDER BY M.a, N.a\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x AND y\n     ORDER BY M.a, N.a\n  ")
+		r = db.Query("\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x AND y\n     ORDER BY M.a, N.a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x AND y\n     ORDER BY M.a, N.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 fuzzy 1 first"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-a7b7803e.7"
-		_res = db.Exec("\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x AND y\n     ORDER BY M.a, N.a\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x AND y\n     ORDER BY M.a, N.a\n  ")
+		r = db.Query("\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x AND y\n     ORDER BY M.a, N.a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x AND y\n     ORDER BY M.a, N.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 fuzzy 1 first"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-a7b7803e.8"
-		_res = db.Exec("\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x\n     ORDER BY M.a, N.a\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x\n     ORDER BY M.a, N.a\n  ")
+		r = db.Query("\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x\n     ORDER BY M.a, N.a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x\n     ORDER BY M.a, N.a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 fuzzy 1 first 1 fuzzy 0 fuzzy"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

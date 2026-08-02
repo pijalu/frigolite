@@ -82,9 +82,15 @@ func Test_extension01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		_res = db.Exec("\n    SELECT writefile('./file2.txt', 'A second test line');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT writefile('./file2.txt', 'A second test line');\n  ")
+		r = db.Query("\n    SELECT writefile('./file2.txt', 'A second test line');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT writefile('./file2.txt', 'A second test line');\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "18"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.3"
@@ -97,9 +103,15 @@ func Test_extension01(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.4"
-		_res = db.Exec("\n    SELECT writefile('./file2.txt', NULL);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT writefile('./file2.txt', NULL);\n  ")
+		r = db.Query("\n    SELECT writefile('./file2.txt', NULL);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT writefile('./file2.txt', NULL);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.5"

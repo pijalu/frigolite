@@ -77,9 +77,9 @@ func Test_swarmvtab(t *testing.T) {
 	nFile = sqlite_open_file_count
 	_ = nFile // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n  INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n\n  CREATE TABLE dir(f, t, imin, imax);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n  INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n\n  CREATE TABLE dir(f, t, imin, imax);\n")
+		r = db.Query("\n  CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n  INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n\n  CREATE TABLE dir(f, t, imin, imax);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n  INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n\n  CREATE TABLE dir(f, t, imin, imax);\n")
 		}
 	}
 	{ // do_test "1.1"

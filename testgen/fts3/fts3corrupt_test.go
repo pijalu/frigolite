@@ -72,17 +72,17 @@ func Test_fts3corrupt(t *testing.T) {
 		_ = blob // suppress unused warning
 		blob = "binary format a7ca* $blob 24 [string range $blob 8 end]"
 		_ = blob // suppress unused warning
-		_res = db.Exec(" UPDATE t1_segdir SET root = " + blob + " ")
+		_res = db.Exec(" UPDATE t1_segdir SET root = " + sqlLiteral(blob) + " ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = " + blob + " ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = " + sqlLiteral(blob) + " ")
 		}
 	}
 	{ // do_test "fts3corrupt-1.2"
 		for _, w := range tclSplitList("a b c d e f g h i j k l m n o") {
 		_ = w // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + w + ") ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(w) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + w + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(w) + ") ")
 			}
 		}
 	}
@@ -112,9 +112,9 @@ func Test_fts3corrupt(t *testing.T) {
 		_ = blob // suppress unused warning
 		blob = "binary format a*a* \"\\x00\\x7F\" [string range $blob 2 end]"
 		_ = blob // suppress unused warning
-		_res = db.Exec(" UPDATE t1_segdir SET root = " + blob + " ")
+		_res = db.Exec(" UPDATE t1_segdir SET root = " + sqlLiteral(blob) + " ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = " + blob + " ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = " + sqlLiteral(blob) + " ")
 		}
 	}
 	{ // "2.2"
@@ -137,9 +137,9 @@ func Test_fts3corrupt(t *testing.T) {
 		_ = blob // suppress unused warning
 		blob = "binary format a11a*a* $blob \"\\x7F\" [string range $blob 12 end]"
 		_ = blob // suppress unused warning
-		_res = db.Exec(" UPDATE t1_segdir SET root = " + blob + " ")
+		_res = db.Exec(" UPDATE t1_segdir SET root = " + sqlLiteral(blob) + " ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = " + blob + " ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1_segdir SET root = " + sqlLiteral(blob) + " ")
 		}
 	}
 	{ // "3.2"
@@ -164,9 +164,9 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 		for _, s := range tclSplitList("\"amxtvoo adqwroyhz auq aithtir avniqnuynvf axp ahibayfynig agbicpm\"\n     \"ajdtebs anteaxr aieynenwmd awpl alo akxcrwow aoxftge aoqvgul\"\n     \"amcfvdr auz apu aebelm ahuxyz aqc asyafdb agulvhvqu\"\n     \"apepwfyz azkhdvkw aenyelxzbk aslnitbyet aycdsdcpgr aqzzdbc agfi axnypydou\"\n     \"aaqrzzcm apcxdxo atumltzj aevvivo aodknoft aqoyytoz alobx apldt\"") {
 		_ = s // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + s + ") ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(s) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + s + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(s) + ") ")
 			}
 		}
 		_res = db.Exec("COMMIT")
@@ -186,9 +186,9 @@ func Test_fts3corrupt(t *testing.T) {
 	blob = "binary format cca*cca*cca*cca*cca*cca*cca*cca*cca*cca*a* \\\n  22 120 [string repeat a 120]  \\\n  22 120 [string repeat b 120]  \\\n  22 120 [string repeat c 120]  \\\n  22 120 [string repeat d 120]  \\\n  22 120 [string repeat e 120]  \\\n  22 120 [string repeat f 120]  \\\n  22 120 [string repeat g 120]  \\\n  22 120 [string repeat h 120]  \\\n  22 120 [string repeat i 120]  \\\n  22 120 [string repeat j 120]  \\\n  \"\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\""
 	_ = blob // suppress unused warning
 	{ // "4.3"
-		_res = db.Exec("\n  UPDATE t1_segdir SET root = $blob;\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
+		_res = db.Exec("\n  UPDATE t1_segdir SET root = " + sqlLiteral(blob) + ";\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t1_segdir SET root = $blob;\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t1_segdir SET root = " + sqlLiteral(blob) + ";\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
 		}
 	}
 	{ // do_test "4.3.1"

@@ -52,9 +52,15 @@ func Test_tkt3791(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3791-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(x, y DEFAULT(datetime('now')));\n    INSERT INTO t1(x) VALUES(1);\n    SELECT x, length(y) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y DEFAULT(datetime('now')));\n    INSERT INTO t1(x) VALUES(1);\n    SELECT x, length(y) FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(x, y DEFAULT(datetime('now')));\n    INSERT INTO t1(x) VALUES(1);\n    SELECT x, length(y) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x, y DEFAULT(datetime('now')));\n    INSERT INTO t1(x) VALUES(1);\n    SELECT x, length(y) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 19"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

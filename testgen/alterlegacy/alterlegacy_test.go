@@ -64,9 +64,9 @@ func Test_alterlegacy(t *testing.T) {
 	testprefix = "alterlegacy"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, CHECK(t1.a != t1.b));\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, CHECK(t1.a != t1.b));\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;\n")
+		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, CHECK(t1.a != t1.b));\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, CHECK(t1.a != t1.b));\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;\n")
 		}
 	}
 	{ // "1.1"
@@ -164,9 +164,9 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
-		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE txx(a, b, c);\n  INSERT INTO txx VALUES(1, 2, 3);\n  CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx;\n  CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one;\n  CREATE VIEW temp.ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE txx(a, b, c);\n  INSERT INTO txx VALUES(1, 2, 3);\n  CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx;\n  CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one;\n  CREATE VIEW temp.ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx;\n")
+		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE txx(a, b, c);\n  INSERT INTO txx VALUES(1, 2, 3);\n  CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx;\n  CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one;\n  CREATE VIEW temp.ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE txx(a, b, c);\n  INSERT INTO txx VALUES(1, 2, 3);\n  CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx;\n  CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one;\n  CREATE VIEW temp.ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx;\n")
 		}
 	}
 	{ // "3.1.1"
@@ -245,9 +245,9 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
-		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  CREATE table t1(x, y);\n  CREATE table t2(a, b);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT t1.x, * FROM t1, t2;\n    INSERT INTO t2 VALUES(new.x, new.y);\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE table t1(x, y);\n  CREATE table t2(a, b);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT t1.x, * FROM t1, t2;\n    INSERT INTO t2 VALUES(new.x, new.y);\n  END;\n")
+		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE table t1(x, y);\n  CREATE table t2(a, b);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT t1.x, * FROM t1, t2;\n    INSERT INTO t2 VALUES(new.x, new.y);\n  END;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE table t1(x, y);\n  CREATE table t2(a, b);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT t1.x, * FROM t1, t2;\n    INSERT INTO t2 VALUES(new.x, new.y);\n  END;\n")
 		}
 	}
 	{ // "4.1"
@@ -381,9 +381,9 @@ func Test_alterlegacy(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // "8.1"
-		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
+		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
 		}
 	}
 	{ // "8.2"
@@ -408,9 +408,9 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "9.0"
-		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t2;\n")
+		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t2;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t2;\n")
 		}
 	}
 	{ // "9.1"
@@ -466,9 +466,9 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "10.0"
-		_res = db.Exec("\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE fff USING fts5(x, y, z);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE fff USING fts5(x, y, z);\n  ")
+		r = db.Query("\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE fff USING fts5(x, y, z);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE fff USING fts5(x, y, z);\n  ")
 		}
 	}
 	{ // "10.1"
@@ -497,9 +497,9 @@ func Test_alterlegacy(t *testing.T) {
 	_ = trigger // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "11.0"
-		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;\n")
+		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;\n")
 		}
 	}
 	{ // "11.1"
@@ -560,9 +560,9 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "12.0"
-		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);\n")
+		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);\n")
 		}
 	}
 	{ // "12.1"
@@ -587,9 +587,9 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "14.0"
-		_res = db.Exec("\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE rt USING rtree(id, minx, maxx, miny, maxy);\n\n    CREATE TABLE \"mytable\" ( \"fid\" INTEGER PRIMARY KEY, \"geom\" BLOB);\n\n    CREATE TRIGGER tr1 AFTER UPDATE OF \"geom\" ON \"mytable\" \n          WHEN OLD.\"fid\" = NEW.\"fid\" AND NEW.\"geom\" IS NULL BEGIN \n      DELETE FROM rt WHERE id = OLD.\"fid\"; \n    END;\n\n    INSERT INTO mytable VALUES(1, X'abcd');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE rt USING rtree(id, minx, maxx, miny, maxy);\n\n    CREATE TABLE \"mytable\" ( \"fid\" INTEGER PRIMARY KEY, \"geom\" BLOB);\n\n    CREATE TRIGGER tr1 AFTER UPDATE OF \"geom\" ON \"mytable\" \n          WHEN OLD.\"fid\" = NEW.\"fid\" AND NEW.\"geom\" IS NULL BEGIN \n      DELETE FROM rt WHERE id = OLD.\"fid\"; \n    END;\n\n    INSERT INTO mytable VALUES(1, X'abcd');\n  ")
+		r = db.Query("\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE rt USING rtree(id, minx, maxx, miny, maxy);\n\n    CREATE TABLE \"mytable\" ( \"fid\" INTEGER PRIMARY KEY, \"geom\" BLOB);\n\n    CREATE TRIGGER tr1 AFTER UPDATE OF \"geom\" ON \"mytable\" \n          WHEN OLD.\"fid\" = NEW.\"fid\" AND NEW.\"geom\" IS NULL BEGIN \n      DELETE FROM rt WHERE id = OLD.\"fid\"; \n    END;\n\n    INSERT INTO mytable VALUES(1, X'abcd');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE rt USING rtree(id, minx, maxx, miny, maxy);\n\n    CREATE TABLE \"mytable\" ( \"fid\" INTEGER PRIMARY KEY, \"geom\" BLOB);\n\n    CREATE TRIGGER tr1 AFTER UPDATE OF \"geom\" ON \"mytable\" \n          WHEN OLD.\"fid\" = NEW.\"fid\" AND NEW.\"geom\" IS NULL BEGIN \n      DELETE FROM rt WHERE id = OLD.\"fid\"; \n    END;\n\n    INSERT INTO mytable VALUES(1, X'abcd');\n  ")
 		}
 	}
 	{ // "14.1"
@@ -620,9 +620,9 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "14.5"
-		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER xyz AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM v1;\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER xyz AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM v1;\n  END;\n")
+		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER xyz AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM v1;\n  END;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER xyz AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM v1;\n  END;\n")
 		}
 	}
 	{ // "14.6"

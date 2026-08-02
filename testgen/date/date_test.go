@@ -652,9 +652,15 @@ func Test_date(t *testing.T) {
 		}
 	}
 	{ // do_test "date-15.2"
-		_res = db.Exec("\n     SELECT a==b FROM (SELECT current_timestamp AS a,\n                               sleeper(), current_timestamp AS b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT a==b FROM (SELECT current_timestamp AS a,\n                               sleeper(), current_timestamp AS b);\n  ")
+		r = db.Query("\n     SELECT a==b FROM (SELECT current_timestamp AS a,\n                               sleeper(), current_timestamp AS b);\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT a==b FROM (SELECT current_timestamp AS a,\n                               sleeper(), current_timestamp AS b);\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// datetest 16.1 {date(147483649)} NULL (unsupported command, not transpiled)

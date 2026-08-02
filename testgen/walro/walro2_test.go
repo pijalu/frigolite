@@ -82,9 +82,15 @@ func Test_walro2(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "0.0"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	MINSHMSZ = "file size test.db-shm"

@@ -62,30 +62,54 @@ func Test_jrnlmode3(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "jrnlmode3-1.1"
-		_res = db.Exec("\n    PRAGMA journal_mode=OFF;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode=OFF;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA journal_mode=OFF;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode=OFF;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "off exclusive 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode3-1.2"
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "jrnlmode3-2.1"
-		_res = db.Exec("\n    PRAGMA locking_mode=EXCLUSIVE;\n    PRAGMA journal_mode=OFF;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode=EXCLUSIVE;\n    PRAGMA journal_mode=OFF;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA locking_mode=EXCLUSIVE;\n    PRAGMA journal_mode=OFF;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode=EXCLUSIVE;\n    PRAGMA journal_mode=OFF;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "exclusive off 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "jrnlmode3-2.2"
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	all_journal_modes = "delete persist truncate memory off"
@@ -109,21 +133,33 @@ func Test_jrnlmode3(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "jrnlmode3-3." + cnt + ".1-(" + fromjmode + "-to-" + tojmode + ")"
-				_res = db.Exec("PRAGMA journal_mode = " + fromjmode + ";")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode = " + fromjmode + ";")
+				r = db.Query("PRAGMA journal_mode = " + fromjmode + ";")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode = " + fromjmode + ";")
+					return
+				}
+				got := flatten(r)
+				want := fromjmode
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".2"
-				_res = db.Exec("PRAGMA main.journal_mode")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA main.journal_mode")
+				r = db.Query("PRAGMA main.journal_mode")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA main.journal_mode")
+					return
+				}
+				got := flatten(r)
+				want := fromjmode
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".3"
-				_res = db.Exec("\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + cnt + ");\n      ")
+				_res = db.Exec("\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(cnt) + ");\n      ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + cnt + ");\n      ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        CREATE TABLE t1(x);\n        BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(cnt) + ");\n      ")
 				}
 				_res = db.Exec("PRAGMA journal_mode=" + tojmode)
 				if _res.Error != nil {
@@ -131,15 +167,21 @@ func Test_jrnlmode3(t *testing.T) {
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".4"
-				_res = db.Exec("\n        ROLLBACK;\n        SELECT * FROM t1;\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        ROLLBACK;\n        SELECT * FROM t1;\n      ")
+				r = db.Query("\n        ROLLBACK;\n        SELECT * FROM t1;\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        ROLLBACK;\n        SELECT * FROM t1;\n      ")
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".5"
-				_res = db.Exec("PRAGMA journal_mode=" + tojmode)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=" + tojmode)
+				r = db.Query("PRAGMA journal_mode=" + tojmode)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode=" + tojmode)
+					return
+				}
+				got := flatten(r)
+				want := tojmode
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".6"

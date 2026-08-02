@@ -129,9 +129,9 @@ func Test_enc(t *testing.T) {
 	{ // do_test "enc-11.2"
 		cp200 = "u00C8"
 		_ = cp200 // suppress unused warning
-		r = db.Query("\n    SELECT count(*) FROM ab WHERE a = " + cp200 + ";\n  ")
+		r = db.Query("\n    SELECT count(*) FROM ab WHERE a = " + sqlLiteral(cp200) + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM ab WHERE a = " + cp200 + ";\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM ab WHERE a = " + sqlLiteral(cp200) + ";\n  ")
 		}
 	}
 	db.Close()
@@ -200,9 +200,9 @@ func Test_enc(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.6"
-		_res = db.Exec("\n  PRAGMA encoding = 'UTF-8';\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA encoding = 'UTF-8';\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
+		r = db.Query("\n  PRAGMA encoding = 'UTF-8';\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding = 'UTF-8';\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
 		}
 	}
 	{ // do_test "enc-12.7"
@@ -253,9 +253,9 @@ func Test_enc(t *testing.T) {
 	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "enc-13.1"
-		_res = db.Exec("PRAGMA function_list")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA function_list")
+		r = db.Query("PRAGMA function_list")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA function_list")
 		}
 	}
 	_res = db.Exec("CREATE VIRTUAL TABLE t3 USING rtree(id,x1,x2)")

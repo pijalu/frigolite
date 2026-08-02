@@ -80,9 +80,9 @@ func Test_fts4umlaut(t *testing.T) {
 		_ = res2 // suppress unused warning
 		_ = _idx0
 			{ // "1." + tn + ".1"
-				r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH $q\n  ")
+				r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH " + sqlLiteral(q) + "\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH $q\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH " + sqlLiteral(q) + "\n  ")
 					return
 				}
 				got := flatten(r)
@@ -92,9 +92,9 @@ func Test_fts4umlaut(t *testing.T) {
 				}
 			}
 			{ // "1." + tn + ".2"
-				r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'\n  ")
+				r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, " + sqlLiteral(q) + ");\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, " + sqlLiteral(q) + ");\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'\n  ")
 					return
 				}
 				got := flatten(r)
@@ -104,9 +104,9 @@ func Test_fts4umlaut(t *testing.T) {
 				}
 			}
 			{ // "1." + tn + ".3"
-				r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH $q\n  ")
+				r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH " + sqlLiteral(q) + "\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH $q\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH " + sqlLiteral(q) + "\n  ")
 					return
 				}
 				got := flatten(r)
@@ -116,9 +116,9 @@ func Test_fts4umlaut(t *testing.T) {
 				}
 			}
 			{ // "1." + tn + ".4"
-				r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'\n  ")
+				r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, " + sqlLiteral(q) + ");\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, " + sqlLiteral(q) + ");\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'\n  ")
 					return
 				}
 				got := flatten(r)

@@ -103,7 +103,7 @@ func Test_uri2(t *testing.T) {
 			{ // do_test "1." + tn + ".2"
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec(" ATTACH " + uri + " AS aux ")
+				_res = db.Exec(" ATTACH " + sqlLiteral(uri) + " AS aux ")
 				_ = _res // catchsql
 			}
 			{ // do_test "1." + tn + ".3"

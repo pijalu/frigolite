@@ -153,9 +153,15 @@ func Test_distinct(t *testing.T) {
 				}
 			}
 			{ // do_test "3.0"
-				_res = db.Exec("\n    CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b));\n    INSERT INTO t3 VALUES\n        (null, null, 1),\n        (null, null, 2),\n        (null, 3, 4),\n        (null, 3, 5),\n        (6, null, 7),\n        (6, null, 8);\n    SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b));\n    INSERT INTO t3 VALUES\n        (null, null, 1),\n        (null, null, 2),\n        (null, 3, 4),\n        (null, 3, 5),\n        (6, null, 7),\n        (6, null, 8);\n    SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;\n  ")
+				r = db.Query("\n    CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b));\n    INSERT INTO t3 VALUES\n        (null, null, 1),\n        (null, null, 2),\n        (null, 3, 4),\n        (null, 3, 5),\n        (6, null, 7),\n        (6, null, 8);\n    SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b));\n    INSERT INTO t3 VALUES\n        (null, null, 1),\n        (null, null, 2),\n        (null, 3, 4),\n        (null, 3, 5),\n        (6, null, 7),\n        (6, null, 8);\n    SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "{} {} {} 3 6 {}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "3.1"

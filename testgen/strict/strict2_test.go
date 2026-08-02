@@ -54,9 +54,9 @@ func Test_strict2(t *testing.T) {
 	testprefix = "strict2"
 	_ = testprefix // suppress unused warning
 	{ // "strict2-1.1"
-		_res = db.Exec("\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');\n")
+		r = db.Query("\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');\n")
 		}
 	}
 	_dbtmp0, err := frigolite.Open("test.db")

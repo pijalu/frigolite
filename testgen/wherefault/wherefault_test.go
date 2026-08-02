@@ -65,9 +65,9 @@ func Test_wherefault(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
-		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  BEGIN TRANSACTION;    \n    CREATE TABLE t1(\n      a INT AS (c*11),\n      b TEXT AS (substr(d,1,3)) STORED, \n      c INTEGEB PRIMARI KEY, d TEXT\n    );\n    CREATE INDEX t1a ON t1(a);\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  BEGIN TRANSACTION;    \n    CREATE TABLE t1(\n      a INT AS (c*11),\n      b TEXT AS (substr(d,1,3)) STORED, \n      c INTEGEB PRIMARI KEY, d TEXT\n    );\n    CREATE INDEX t1a ON t1(a);\n  COMMIT;\n")
+		r = db.Query("\n  PRAGMA writable_schema = 1;\n  BEGIN TRANSACTION;    \n    CREATE TABLE t1(\n      a INT AS (c*11),\n      b TEXT AS (substr(d,1,3)) STORED, \n      c INTEGEB PRIMARI KEY, d TEXT\n    );\n    CREATE INDEX t1a ON t1(a);\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = 1;\n  BEGIN TRANSACTION;    \n    CREATE TABLE t1(\n      a INT AS (c*11),\n      b TEXT AS (substr(d,1,3)) STORED, \n      c INTEGEB PRIMARI KEY, d TEXT\n    );\n    CREATE INDEX t1a ON t1(a);\n  COMMIT;\n")
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)

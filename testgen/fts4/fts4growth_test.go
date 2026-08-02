@@ -78,9 +78,9 @@ func Test_fts4growth(t *testing.T) {
 	{ // do_test "1.2"
 		for _, L := range tclSplitList("{\"See here, young man,\" said Mulga Bill, \"from Walgett to the sea,}\n    {From Conroy's Gap to Castlereagh, there's none can ride like me.}\n    {I'm good all round at everything as everybody knows,}\n    {Although I'm not the one to talk -- I hate a man that blows.}") {
 		_ = L // suppress unused warning
-			_res = db.Exec(" INSERT INTO x1 VALUES(" + L + ") ")
+			_res = db.Exec(" INSERT INTO x1 VALUES(" + sqlLiteral(L) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x1 VALUES(" + L + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x1 VALUES(" + sqlLiteral(L) + ") ")
 			}
 		}
 		r = db.Query(" SELECT end_block, length(root) FROM x1_segdir ")
@@ -103,9 +103,9 @@ func Test_fts4growth(t *testing.T) {
 	{ // do_test "1.4"
 		for _, L := range tclSplitList("{But riding is my special gift, my chiefest, sole delight;}\n    {Just ask a wild duck can it swim, a wildcat can it fight.}\n    {There's nothing clothed in hair or hide, or built of flesh or steel,}\n    {There's nothing walks or jumps, or runs, on axle, hoof, or wheel,}\n    {But what I'll sit, while hide will hold and girths and straps are tight:}\n    {I'll ride this here two-wheeled concern right straight away at sight.\"}") {
 		_ = L // suppress unused warning
-			_res = db.Exec(" INSERT INTO x1 VALUES(" + L + ") ")
+			_res = db.Exec(" INSERT INTO x1 VALUES(" + sqlLiteral(L) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x1 VALUES(" + L + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x1 VALUES(" + sqlLiteral(L) + ") ")
 			}
 		}
 		r = db.Query(" \n    INSERT INTO x1(x1) VALUES('merge=4,4');\n    SELECT level, end_block, length(root) FROM x1_segdir;\n  ")
@@ -128,9 +128,9 @@ func Test_fts4growth(t *testing.T) {
 	{ // do_test "1.6"
 		for _, L := range tclSplitList("{'Twas Mulga Bill, from Eaglehawk, that sought his own abode,}\n    {That perched above Dead Man's Creek, beside the mountain road.}\n    {He turned the cycle down the hill and mounted for the fray,}\n    {But 'ere he'd gone a dozen yards it bolted clean away.}\n\n    {It left the track, and through the trees, just like a silver steak,}\n    {It whistled down the awful slope towards the Dead Man's Creek.}\n    {It shaved a stump by half an inch, it dodged a big white-box:}\n    {The very wallaroos in fright went scrambling up the rocks,}\n\n    {The wombats hiding in their caves dug deeper underground,}\n    {As Mulga Bill, as white as chalk, sat tight to every bound.}\n    {It struck a stone and gave a spring that cleared a fallen tree,}\n    {It raced beside a precipice as close as close could be;}\n\n    {And then as Mulga Bill let out one last despairing shriek}\n    {It made a leap of twenty feet into the Dead Man's Creek.}\n    {It shaved a stump by half an inch, it dodged a big white-box:}\n    {The very wallaroos in fright went scrambling up the rocks,}\n    {The wombats hiding in their caves dug deeper underground,}") {
 		_ = L // suppress unused warning
-			_res = db.Exec(" INSERT INTO x1 VALUES(" + L + ") ")
+			_res = db.Exec(" INSERT INTO x1 VALUES(" + sqlLiteral(L) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x1 VALUES(" + L + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x1 VALUES(" + sqlLiteral(L) + ") ")
 			}
 		}
 		r = db.Query(" \n    SELECT level, end_block, length(root) FROM x1_segdir;\n  ")
@@ -166,9 +166,9 @@ func Test_fts4growth(t *testing.T) {
 		_ = _row0 // suppress unused warning
 		id := fmt.Sprint(_row0[0])
 		_ = id // suppress unused warning
-			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT " + id + ", words FROM t1 WHERE docid=" + id + "\n    ")
+			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT " + sqlLiteral(id) + ", words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT " + id + ", words FROM t1 WHERE docid=" + id + "\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT " + sqlLiteral(id) + ", words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
 			}
 		}
 		_rows1 := db.Query("SELECT docid FROM t1")
@@ -179,9 +179,9 @@ func Test_fts4growth(t *testing.T) {
 		_ = _row1 // suppress unused warning
 		id := fmt.Sprint(_row1[0])
 		_ = id // suppress unused warning
-			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + id + "\n    ")
+			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + id + "\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=" + sqlLiteral(id) + "\n    ")
 			}
 			if tclBool("db one {SELECT count(*) FROM x2_segdir WHERE level<2}" + "==2") {
 			}
@@ -423,9 +423,9 @@ func Test_fts4growth(t *testing.T) {
 		_ = _row2 // suppress unused warning
 		_r := fmt.Sprint(_row2[0])
 		_ = _r // suppress unused warning
-			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + _r + "\n    ")
+			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + sqlLiteral(_r) + "\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + _r + "\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=" + sqlLiteral(_r) + "\n    ")
 			}
 		}
 		_rows3 := db.Query("SELECT docid FROM t1 LIMIT -1 OFFSET 20")
@@ -436,9 +436,9 @@ func Test_fts4growth(t *testing.T) {
 		_ = _row3 // suppress unused warning
 		d := fmt.Sprint(_row3[0])
 		_ = d // suppress unused warning
-			_res = db.Exec(" DELETE FROM x2 WHERE docid = " + d + " ")
+			_res = db.Exec(" DELETE FROM x2 WHERE docid = " + sqlLiteral(d) + " ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x2 WHERE docid = " + d + " ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x2 WHERE docid = " + sqlLiteral(d) + " ")
 			}
 		}
 		r = db.Query("\n    INSERT INTO x2(x2) VALUES('optimize');\n    SELECT level, idx, end_block FROM x2_segdir\n  ")

@@ -138,9 +138,9 @@ func Test_wal3(t *testing.T) {
 		{ // do_test "wal3-1." + i + ".1"
 			str = "a_string 800"
 			_ = str // suppress unused warning
-			_res = db.Exec(" UPDATE t1 SET x = " + str + " WHERE rowid = " + i + " ")
+			_res = db.Exec(" UPDATE t1 SET x = " + sqlLiteral(str) + " WHERE rowid = " + sqlLiteral(i) + " ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET x = " + str + " WHERE rowid = " + i + " ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET x = " + sqlLiteral(str) + " WHERE rowid = " + sqlLiteral(i) + " ")
 			}
 			L = tclListAppend(L, "wal_frame_count test.db-wal 1024")
 			r = db.Query("\n      BEGIN;\n        INSERT INTO t1 SELECT a_string(800) FROM t1 LIMIT 100;\n      ROLLBACK;\n      PRAGMA integrity_check;\n    ")
@@ -157,9 +157,9 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-1." + i + ".3"
-			r = db.Query(" SELECT x FROM t1 WHERE rowid = " + i + " ")
+			r = db.Query(" SELECT x FROM t1 WHERE rowid = " + sqlLiteral(i) + " ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM t1 WHERE rowid = " + i + " ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM t1 WHERE rowid = " + sqlLiteral(i) + " ")
 			}
 		}
 		{ // do_test "wal3-1." + i + ".4"
@@ -181,9 +181,9 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-1." + i + ".6"
-			r = db.Query(" SELECT x FROM t1 WHERE rowid = " + i + " ")
+			r = db.Query(" SELECT x FROM t1 WHERE rowid = " + sqlLiteral(i) + " ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM t1 WHERE rowid = " + i + " ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM t1 WHERE rowid = " + sqlLiteral(i) + " ")
 			}
 		}
 		{ // do_test "wal3-1." + i + ".7"
@@ -529,9 +529,9 @@ func Test_wal3(t *testing.T) {
 				_dbtmp1, err := frigolite.Open("test.db")
 				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec(" UPDATE whoami SET x = " + c + " ")
+				_res = db.Exec(" UPDATE whoami SET x = " + sqlLiteral(c) + " ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE whoami SET x = " + c + " ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE whoami SET x = " + sqlLiteral(c) + " ")
 				}
 				r = db.Query("\n      BEGIN;\n      SELECT * FROM whoami\n    ")
 				if r.Error != nil {

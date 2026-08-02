@@ -75,9 +75,15 @@ func Test_walcrash3(t *testing.T) {
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
-		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 128;\n  PRAGMA journal_size_limit = 16384;\n\n  CREATE TABLE t1(a BLOB, b BLOB, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(randomblob(10), randomblob(1000));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 128;\n  PRAGMA journal_size_limit = 16384;\n\n  CREATE TABLE t1(a BLOB, b BLOB, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(randomblob(10), randomblob(1000));\n")
+		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 128;\n  PRAGMA journal_size_limit = 16384;\n\n  CREATE TABLE t1(a BLOB, b BLOB, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(randomblob(10), randomblob(1000));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 128;\n  PRAGMA journal_size_limit = 16384;\n\n  CREATE TABLE t1(a BLOB, b BLOB, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(randomblob(10), randomblob(1000));\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal 128 16384"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)

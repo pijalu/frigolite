@@ -56,15 +56,27 @@ func Test_whereA(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "whereA-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 values(2,'hello','world');\n    INSERT INTO t1 VALUES(3,4.53,NULL);\n    SELECT * FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 values(2,'hello','world');\n    INSERT INTO t1 VALUES(3,4.53,NULL);\n    SELECT * FROM t1\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 values(2,'hello','world');\n    INSERT INTO t1 VALUES(3,4.53,NULL);\n    SELECT * FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 values(2,'hello','world');\n    INSERT INTO t1 VALUES(3,4.53,NULL);\n    SELECT * FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 2 hello world 3 4.53 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-1.2"
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4.53 {} 2 hello world 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-1.3"
@@ -86,15 +98,27 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.5"
-		_res = db.Exec("\n    VACUUM;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
+		r = db.Query("\n    VACUUM;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    VACUUM;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 2 hello world 3 4.53 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-1.6"
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects;\n  ")
+		r = db.Query("\n    PRAGMA reverse_unordered_selects;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-1.7"
@@ -125,45 +149,87 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-2.1"
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE a>0;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE a>0;\n  ")
+		r = db.Query("\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE a>0;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE a>0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 2 hello world 3 4.53 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-2.2"
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0;\n  ")
+		r = db.Query("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 4.53 {} 2 hello world 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-2.3"
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0 ORDER BY rowid;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0 ORDER BY rowid;\n  ")
+		r = db.Query("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0 ORDER BY rowid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0 ORDER BY rowid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 2 hello world 3 4.53 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-3.1"
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE b>0;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE b>0;\n  ")
+		r = db.Query("\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE b>0;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE b>0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 3 4.53 {} 2 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-3.2"
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0;\n  ")
+		r = db.Query("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 hello world 3 4.53 {} 1 2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-3.3"
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0 ORDER BY b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0 ORDER BY b;\n  ")
+		r = db.Query("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0 ORDER BY b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0 ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 3 4.53 {} 2 hello world"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "whereA-4.1"
-		_res = db.Exec("\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT x FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT x FROM t2;\n  ")
+		r = db.Query("\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT x FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT x FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)

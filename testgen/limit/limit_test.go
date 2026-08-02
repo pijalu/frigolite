@@ -509,9 +509,9 @@ func Test_limit(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "limit-11.1"
-		_res = db.Exec("\n     SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x\n  ")
+		r = db.Query("\n     SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x\n  ")
 		}
 	}
 	{ // do_test "limit-12.1"
@@ -537,273 +537,537 @@ func Test_limit(t *testing.T) {
 		}
 	}
 	{ // do_test "limit-13.2"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 1")
+		r = db.Query("SELECT z FROM v13c LIMIT 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.3"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 2")
+		r = db.Query("SELECT z FROM v13c LIMIT 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 2")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.4"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 3")
+		r = db.Query("SELECT z FROM v13c LIMIT 3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 3")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.5"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 4")
+		r = db.Query("SELECT z FROM v13c LIMIT 4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 4")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.6"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 5")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 5")
+		r = db.Query("SELECT z FROM v13c LIMIT 5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 5")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.7"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 6")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 6")
+		r = db.Query("SELECT z FROM v13c LIMIT 6")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 6")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12 21 22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.8"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 7")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 7")
+		r = db.Query("SELECT z FROM v13c LIMIT 7")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 7")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12 21 22 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.9"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 8")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 8")
+		r = db.Query("SELECT z FROM v13c LIMIT 8")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 8")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12 21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.10"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 9")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 9")
+		r = db.Query("SELECT z FROM v13c LIMIT 9")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 9")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 11 12 21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.11"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 1 OFFSET 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 1")
+		r = db.Query("SELECT z FROM v13c LIMIT 1 OFFSET 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 1")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.12"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 2 OFFSET 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 1")
+		r = db.Query("SELECT z FROM v13c LIMIT 2 OFFSET 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.13"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 3 OFFSET 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 1")
+		r = db.Query("SELECT z FROM v13c LIMIT 3 OFFSET 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.14"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 4 OFFSET 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 1")
+		r = db.Query("SELECT z FROM v13c LIMIT 4 OFFSET 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 11 12 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.15"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 5 OFFSET 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 5 OFFSET 1")
+		r = db.Query("SELECT z FROM v13c LIMIT 5 OFFSET 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 5 OFFSET 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 11 12 21 22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.16"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 6 OFFSET 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 6 OFFSET 1")
+		r = db.Query("SELECT z FROM v13c LIMIT 6 OFFSET 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 6 OFFSET 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 11 12 21 22 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.17"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 7 OFFSET 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 7 OFFSET 1")
+		r = db.Query("SELECT z FROM v13c LIMIT 7 OFFSET 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 7 OFFSET 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 11 12 21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.18"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 8 OFFSET 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 8 OFFSET 1")
+		r = db.Query("SELECT z FROM v13c LIMIT 8 OFFSET 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 8 OFFSET 1")
+			return
+		}
+		got := flatten(r)
+		want := "2 11 12 21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.21"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 1 OFFSET 2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 2")
+		r = db.Query("SELECT z FROM v13c LIMIT 1 OFFSET 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 2")
+			return
+		}
+		got := flatten(r)
+		want := "11"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.22"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 2 OFFSET 2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 2")
+		r = db.Query("SELECT z FROM v13c LIMIT 2 OFFSET 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 2")
+			return
+		}
+		got := flatten(r)
+		want := "11 12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.23"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 3 OFFSET 2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 2")
+		r = db.Query("SELECT z FROM v13c LIMIT 3 OFFSET 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 2")
+			return
+		}
+		got := flatten(r)
+		want := "11 12 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.24"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 4 OFFSET 2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 2")
+		r = db.Query("SELECT z FROM v13c LIMIT 4 OFFSET 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 2")
+			return
+		}
+		got := flatten(r)
+		want := "11 12 21 22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.25"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 5 OFFSET 2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 5 OFFSET 2")
+		r = db.Query("SELECT z FROM v13c LIMIT 5 OFFSET 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 5 OFFSET 2")
+			return
+		}
+		got := flatten(r)
+		want := "11 12 21 22 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.26"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 6 OFFSET 2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 6 OFFSET 2")
+		r = db.Query("SELECT z FROM v13c LIMIT 6 OFFSET 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 6 OFFSET 2")
+			return
+		}
+		got := flatten(r)
+		want := "11 12 21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.27"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 7 OFFSET 2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 7 OFFSET 2")
+		r = db.Query("SELECT z FROM v13c LIMIT 7 OFFSET 2")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 7 OFFSET 2")
+			return
+		}
+		got := flatten(r)
+		want := "11 12 21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.31"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 1 OFFSET 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 3")
+		r = db.Query("SELECT z FROM v13c LIMIT 1 OFFSET 3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 3")
+			return
+		}
+		got := flatten(r)
+		want := "12"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.32"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 2 OFFSET 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 3")
+		r = db.Query("SELECT z FROM v13c LIMIT 2 OFFSET 3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 3")
+			return
+		}
+		got := flatten(r)
+		want := "12 21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.33"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 3 OFFSET 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 3")
+		r = db.Query("SELECT z FROM v13c LIMIT 3 OFFSET 3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 3")
+			return
+		}
+		got := flatten(r)
+		want := "12 21 22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.34"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 4 OFFSET 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 3")
+		r = db.Query("SELECT z FROM v13c LIMIT 4 OFFSET 3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 3")
+			return
+		}
+		got := flatten(r)
+		want := "12 21 22 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.35"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 5 OFFSET 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 5 OFFSET 3")
+		r = db.Query("SELECT z FROM v13c LIMIT 5 OFFSET 3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 5 OFFSET 3")
+			return
+		}
+		got := flatten(r)
+		want := "12 21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.36"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 6 OFFSET 3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 6 OFFSET 3")
+		r = db.Query("SELECT z FROM v13c LIMIT 6 OFFSET 3")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 6 OFFSET 3")
+			return
+		}
+		got := flatten(r)
+		want := "12 21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.41"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 1 OFFSET 4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 4")
+		r = db.Query("SELECT z FROM v13c LIMIT 1 OFFSET 4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 4")
+			return
+		}
+		got := flatten(r)
+		want := "21"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.42"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 2 OFFSET 4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 4")
+		r = db.Query("SELECT z FROM v13c LIMIT 2 OFFSET 4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 4")
+			return
+		}
+		got := flatten(r)
+		want := "21 22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.43"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 3 OFFSET 4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 4")
+		r = db.Query("SELECT z FROM v13c LIMIT 3 OFFSET 4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 4")
+			return
+		}
+		got := flatten(r)
+		want := "21 22 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.44"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 4 OFFSET 4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 4")
+		r = db.Query("SELECT z FROM v13c LIMIT 4 OFFSET 4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 4")
+			return
+		}
+		got := flatten(r)
+		want := "21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.45"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 5 OFFSET 4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 5 OFFSET 4")
+		r = db.Query("SELECT z FROM v13c LIMIT 5 OFFSET 4")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 5 OFFSET 4")
+			return
+		}
+		got := flatten(r)
+		want := "21 22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.51"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 1 OFFSET 5")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 5")
+		r = db.Query("SELECT z FROM v13c LIMIT 1 OFFSET 5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 5")
+			return
+		}
+		got := flatten(r)
+		want := "22"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.52"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 2 OFFSET 5")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 5")
+		r = db.Query("SELECT z FROM v13c LIMIT 2 OFFSET 5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 5")
+			return
+		}
+		got := flatten(r)
+		want := "22 31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.53"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 3 OFFSET 5")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 5")
+		r = db.Query("SELECT z FROM v13c LIMIT 3 OFFSET 5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 5")
+			return
+		}
+		got := flatten(r)
+		want := "22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.54"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 4 OFFSET 5")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 5")
+		r = db.Query("SELECT z FROM v13c LIMIT 4 OFFSET 5")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 4 OFFSET 5")
+			return
+		}
+		got := flatten(r)
+		want := "22 31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.61"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 1 OFFSET 6")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 6")
+		r = db.Query("SELECT z FROM v13c LIMIT 1 OFFSET 6")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 6")
+			return
+		}
+		got := flatten(r)
+		want := "31"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.62"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 2 OFFSET 6")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 6")
+		r = db.Query("SELECT z FROM v13c LIMIT 2 OFFSET 6")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 6")
+			return
+		}
+		got := flatten(r)
+		want := "31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.63"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 3 OFFSET 6")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 6")
+		r = db.Query("SELECT z FROM v13c LIMIT 3 OFFSET 6")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 3 OFFSET 6")
+			return
+		}
+		got := flatten(r)
+		want := "31 32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.71"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 1 OFFSET 7")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 7")
+		r = db.Query("SELECT z FROM v13c LIMIT 1 OFFSET 7")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 7")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.72"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 2 OFFSET 7")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 7")
+		r = db.Query("SELECT z FROM v13c LIMIT 2 OFFSET 7")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 2 OFFSET 7")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "limit-13.81"
-		_res = db.Exec("SELECT z FROM v13c LIMIT 1 OFFSET 8")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 8")
+		r = db.Query("SELECT z FROM v13c LIMIT 1 OFFSET 8")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT z FROM v13c LIMIT 1 OFFSET 8")
 		}
 	}
 	{ // "limit-14.1"

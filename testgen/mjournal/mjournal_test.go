@@ -178,9 +178,9 @@ func Test_mjournal(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
-		_res = db.Exec("\n  PRAGMA synchronous = OFF;\n  CREATE TABLE t1(x, y);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA synchronous = OFF;\n  CREATE TABLE t1(x, y);\n")
+		r = db.Query("\n  PRAGMA synchronous = OFF;\n  CREATE TABLE t1(x, y);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA synchronous = OFF;\n  CREATE TABLE t1(x, y);\n")
 		}
 	}
 	{ // "3.1"

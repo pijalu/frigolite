@@ -6,6 +6,7 @@ package join
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -160,15 +161,9 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	{ // "join5-3.1"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{}") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{}", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;\n")
 		}
 	}
 	{ // "join5-3.2"
@@ -343,9 +338,9 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	{ // "7.1"
-		_res = db.Exec("\n  CREATE TABLE t2(x, y, z);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t2 SELECT i/10, i, NULL FROM s;\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y, z);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t2 SELECT i/10, i, NULL FROM s;\n  ANALYZE;\n")
+		r = db.Query("\n  CREATE TABLE t2(x, y, z);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t2 SELECT i/10, i, NULL FROM s;\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t2(x, y, z);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t2 SELECT i/10, i, NULL FROM s;\n  ANALYZE;\n")
 		}
 	}
 	{ // "7.2"
@@ -355,9 +350,9 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	{ // "7.3"
-		_res = db.Exec("\n  CREATE TABLE t3(x);\n  INSERT INTO t3(x) VALUES(1);\n  CREATE INDEX t3x ON t3(x);\n\n  CREATE TABLE t4(x, y, z);\n  CREATE INDEX t4xy ON t4(x, y);\n  CREATE INDEX t4xz ON t4(x, z);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n  INSERT INTO t4 SELECT i/10, i, i FROM s;\n\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10 1' WHERE idx='t3x';\n  ANALYZE sqlite_schema;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x);\n  INSERT INTO t3(x) VALUES(1);\n  CREATE INDEX t3x ON t3(x);\n\n  CREATE TABLE t4(x, y, z);\n  CREATE INDEX t4xy ON t4(x, y);\n  CREATE INDEX t4xz ON t4(x, z);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n  INSERT INTO t4 SELECT i/10, i, i FROM s;\n\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10 1' WHERE idx='t3x';\n  ANALYZE sqlite_schema;\n")
+		r = db.Query("\n  CREATE TABLE t3(x);\n  INSERT INTO t3(x) VALUES(1);\n  CREATE INDEX t3x ON t3(x);\n\n  CREATE TABLE t4(x, y, z);\n  CREATE INDEX t4xy ON t4(x, y);\n  CREATE INDEX t4xz ON t4(x, z);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n  INSERT INTO t4 SELECT i/10, i, i FROM s;\n\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10 1' WHERE idx='t3x';\n  ANALYZE sqlite_schema;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(x);\n  INSERT INTO t3(x) VALUES(1);\n  CREATE INDEX t3x ON t3(x);\n\n  CREATE TABLE t4(x, y, z);\n  CREATE INDEX t4xy ON t4(x, y);\n  CREATE INDEX t4xz ON t4(x, z);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n  INSERT INTO t4 SELECT i/10, i, i FROM s;\n\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10 1' WHERE idx='t3x';\n  ANALYZE sqlite_schema;\n")
 		}
 	}
 	{ // "7.4"
@@ -439,9 +434,9 @@ func Test_join5(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "11.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8)\n  INSERT INTO t1(a,b) SELECT x, 10*x FROM c;\n  INSERT INTO t2(c,d) SELECT b*2, 100*a FROM t1;\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES\n    ('t1',NULL,150105),('t2',NULL,98747);\n  ANALYZE sqlite_schema;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8)\n  INSERT INTO t1(a,b) SELECT x, 10*x FROM c;\n  INSERT INTO t2(c,d) SELECT b*2, 100*a FROM t1;\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES\n    ('t1',NULL,150105),('t2',NULL,98747);\n  ANALYZE sqlite_schema;\n")
+		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8)\n  INSERT INTO t1(a,b) SELECT x, 10*x FROM c;\n  INSERT INTO t2(c,d) SELECT b*2, 100*a FROM t1;\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES\n    ('t1',NULL,150105),('t2',NULL,98747);\n  ANALYZE sqlite_schema;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8)\n  INSERT INTO t1(a,b) SELECT x, 10*x FROM c;\n  INSERT INTO t2(c,d) SELECT b*2, 100*a FROM t1;\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES\n    ('t1',NULL,150105),('t2',NULL,98747);\n  ANALYZE sqlite_schema;\n")
 		}
 	}
 	{ // "11.2"
@@ -484,9 +479,9 @@ func Test_join5(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "12.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, c INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x, x*1000, x*1000000 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%3==0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%4==0;\n  CREATE INDEX t3c ON t3(c);\n  INSERT INTO t1(a,b,c) VALUES(200, 200000, NULL);\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT, c INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x, x*1000, x*1000000 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%3==0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%4==0;\n  CREATE INDEX t3c ON t3(c);\n  INSERT INTO t1(a,b,c) VALUES(200, 200000, NULL);\n  ANALYZE;\n")
+		r = db.Query("\n  CREATE TABLE t1(a INT, b INT, c INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x, x*1000, x*1000000 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%3==0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%4==0;\n  CREATE INDEX t3c ON t3(c);\n  INSERT INTO t1(a,b,c) VALUES(200, 200000, NULL);\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT, b INT, c INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x, x*1000, x*1000000 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%3==0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%4==0;\n  CREATE INDEX t3c ON t3(c);\n  INSERT INTO t1(a,b,c) VALUES(200, 200000, NULL);\n  ANALYZE;\n")
 		}
 	}
 	{ // "12.2"

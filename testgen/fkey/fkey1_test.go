@@ -221,9 +221,9 @@ func Test_fkey1(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
-		_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  DROP table \"sqlsim4\";\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  DROP table \"sqlsim4\";\n")
+		r = db.Query("\n  PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  DROP table \"sqlsim4\";\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  DROP table \"sqlsim4\";\n")
 		}
 	}
 	db.Close()
@@ -246,9 +246,9 @@ func Test_fkey1(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "9.1"
-		_res = db.Exec("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\", \"\"\"3\" PRIMARY KEY);\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" REFERENCES \"\"\"1\" ON DELETE RESTRICT);\n  DELETE FROM \"\"\"1\";\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\", \"\"\"3\" PRIMARY KEY);\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" REFERENCES \"\"\"1\" ON DELETE RESTRICT);\n  DELETE FROM \"\"\"1\";\n")
+		r = db.Query("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\", \"\"\"3\" PRIMARY KEY);\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" REFERENCES \"\"\"1\" ON DELETE RESTRICT);\n  DELETE FROM \"\"\"1\";\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\", \"\"\"3\" PRIMARY KEY);\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" REFERENCES \"\"\"1\" ON DELETE RESTRICT);\n  DELETE FROM \"\"\"1\";\n")
 		}
 	}
 }

@@ -60,9 +60,9 @@ func Test_fts3corrupt3(t *testing.T) {
 	testprefix = "fts3corrupt3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n  COMMIT;\n")
+		r = db.Query("\n  PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n  COMMIT;\n")
 		}
 	}
 	{ // "1.1"
@@ -97,9 +97,9 @@ func Test_fts3corrupt3(t *testing.T) {
 	doc3 = "\"z \" 600"
 	_ = doc3 // suppress unused warning
 	{ // "2.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES($doc1);\n    INSERT INTO t2 VALUES($doc2);\n    INSERT INTO t2 VALUES($doc3);\n  COMMIT;\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc1) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc2) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc3) + ");\n  COMMIT;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES($doc1);\n    INSERT INTO t2 VALUES($doc2);\n    INSERT INTO t2 VALUES($doc3);\n  COMMIT;\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc1) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc2) + ");\n    INSERT INTO t2 VALUES(" + sqlLiteral(doc3) + ");\n  COMMIT;\n")
 		}
 	}
 	{ // "2.1"

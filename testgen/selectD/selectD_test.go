@@ -70,45 +70,87 @@ func Test_selectD(t *testing.T) {
 			}
 		}
 		{ // do_test "selectD-" + i + ".1"
-			_res = db.Exec("\n      SELECT *\n        FROM (t1), (t2), (t3), (t4)\n       WHERE t4.a=t3.a+111 \n         AND t3.a=t2.a+111\n         AND t2.a=t1.a+111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT *\n        FROM (t1), (t2), (t3), (t4)\n       WHERE t4.a=t3.a+111 \n         AND t3.a=t2.a+111\n         AND t2.a=t1.a+111;\n    ")
+			r = db.Query("\n      SELECT *\n        FROM (t1), (t2), (t3), (t4)\n       WHERE t4.a=t3.a+111 \n         AND t3.a=t2.a+111\n         AND t2.a=t1.a+111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT *\n        FROM (t1), (t2), (t3), (t4)\n       WHERE t4.a=t3.a+111 \n         AND t3.a=t2.a+111\n         AND t2.a=t1.a+111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "111 x1 222 x2 333 x3 444 x4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".2.1"
-			_res = db.Exec("\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+			r = db.Query("\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "111 x1 222 x2 333 x3 444 x4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".2.2"
-			_res = db.Exec("\n      SELECT t3.a\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT t3.a\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+			r = db.Query("\n      SELECT t3.a\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT t3.a\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "333"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".2.3"
-			_res = db.Exec("\n      SELECT t3.*\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT t3.*\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+			r = db.Query("\n      SELECT t3.*\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT t3.*\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "333 x3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".2.3"
-			_res = db.Exec("\n      SELECT t3.*, t2.*\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT t3.*, t2.*\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+			r = db.Query("\n      SELECT t3.*, t2.*\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT t3.*, t2.*\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "333 x3 222 x2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".2.4"
-			_res = db.Exec("\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 JOIN aux1.t4 ON aux1.t4.a=main.t4.a+111)\n                              ON main.t4.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 JOIN aux1.t4 ON aux1.t4.a=main.t4.a+111)\n                              ON main.t4.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+			r = db.Query("\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 JOIN aux1.t4 ON aux1.t4.a=main.t4.a+111)\n                              ON main.t4.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 JOIN aux1.t4 ON aux1.t4.a=main.t4.a+111)\n                              ON main.t4.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "111 x1 222 x2 444 x4 555 x5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".2.5"
-			_res = db.Exec("\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 AS x JOIN aux1.t4 ON aux1.t4.a=x.a+111)\n                              ON x.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 AS x JOIN aux1.t4 ON aux1.t4.a=x.a+111)\n                              ON x.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+			r = db.Query("\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 AS x JOIN aux1.t4 ON aux1.t4.a=x.a+111)\n                              ON x.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (main.t4 AS x JOIN aux1.t4 ON aux1.t4.a=x.a+111)\n                              ON x.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "111 x1 222 x2 444 x4 555 x5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".2.6"
@@ -116,39 +158,75 @@ func Test_selectD(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "selectD-" + i + ".2.7"
-			_res = db.Exec("\n      SELECT x.a, y.b\n        FROM t1 JOIN (t2 JOIN (main.t4 x JOIN aux1.t4 y ON y.a=x.a+111)\n                              ON x.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT x.a, y.b\n        FROM t1 JOIN (t2 JOIN (main.t4 x JOIN aux1.t4 y ON y.a=x.a+111)\n                              ON x.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+			r = db.Query("\n      SELECT x.a, y.b\n        FROM t1 JOIN (t2 JOIN (main.t4 x JOIN aux1.t4 y ON y.a=x.a+111)\n                              ON x.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT x.a, y.b\n        FROM t1 JOIN (t2 JOIN (main.t4 x JOIN aux1.t4 y ON y.a=x.a+111)\n                              ON x.a=t2.a+222)\n                     ON t2.a=t1.a+111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "444 x5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".3"
-			_res = db.Exec("\n      UPDATE t2 SET a=111;\n      UPDATE t3 SET a=111;\n      UPDATE t4 SET a=111;\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 USING(a)) USING (a)) USING (a);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t2 SET a=111;\n      UPDATE t3 SET a=111;\n      UPDATE t4 SET a=111;\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 USING(a)) USING (a)) USING (a);\n    ")
+			r = db.Query("\n      UPDATE t2 SET a=111;\n      UPDATE t3 SET a=111;\n      UPDATE t4 SET a=111;\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 USING(a)) USING (a)) USING (a);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t2 SET a=111;\n      UPDATE t3 SET a=111;\n      UPDATE t4 SET a=111;\n      SELECT *\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 USING(a)) USING (a)) USING (a);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "111 x1 x2 x3 x4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".4"
-			_res = db.Exec("\n      UPDATE t2 SET a=111;\n      UPDATE t3 SET a=111;\n      UPDATE t4 SET a=111;\n      SELECT *\n        FROM t1 LEFT JOIN (t2 LEFT JOIN (t3 LEFT JOIN t4 USING(a))\n                                        USING (a))\n                           USING (a);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t2 SET a=111;\n      UPDATE t3 SET a=111;\n      UPDATE t4 SET a=111;\n      SELECT *\n        FROM t1 LEFT JOIN (t2 LEFT JOIN (t3 LEFT JOIN t4 USING(a))\n                                        USING (a))\n                           USING (a);\n    ")
+			r = db.Query("\n      UPDATE t2 SET a=111;\n      UPDATE t3 SET a=111;\n      UPDATE t4 SET a=111;\n      SELECT *\n        FROM t1 LEFT JOIN (t2 LEFT JOIN (t3 LEFT JOIN t4 USING(a))\n                                        USING (a))\n                           USING (a);\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t2 SET a=111;\n      UPDATE t3 SET a=111;\n      UPDATE t4 SET a=111;\n      SELECT *\n        FROM t1 LEFT JOIN (t2 LEFT JOIN (t3 LEFT JOIN t4 USING(a))\n                                        USING (a))\n                           USING (a);\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "111 x1 x2 x3 x4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".5"
-			_res = db.Exec("\n      UPDATE t3 SET a=222;\n      UPDATE t4 SET a=222;\n      SELECT *\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t3 SET a=222;\n      UPDATE t4 SET a=222;\n      SELECT *\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
+			r = db.Query("\n      UPDATE t3 SET a=222;\n      UPDATE t4 SET a=222;\n      SELECT *\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t3 SET a=222;\n      UPDATE t4 SET a=222;\n      SELECT *\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "111 x1 x2 222 x3 x4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".6"
-			_res = db.Exec("\n      UPDATE t4 SET a=333;\n      SELECT *\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t4 SET a=333;\n      SELECT *\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
+			r = db.Query("\n      UPDATE t4 SET a=333;\n      SELECT *\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t4 SET a=333;\n      SELECT *\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "111 x1 x2 222 x3 {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "selectD-" + i + ".7"
-			_res = db.Exec("\n      SELECT t1.*, t2.*, t3.*, t4.b\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT t1.*, t2.*, t3.*, t4.b\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
+			r = db.Query("\n      SELECT t1.*, t2.*, t3.*, t4.b\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT t1.*, t2.*, t3.*, t4.b\n        FROM (t1 LEFT JOIN t2 USING(a)) JOIN (t3 LEFT JOIN t4 USING(a))\n             ON t1.a=t3.a-111;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "111 x1 111 x2 222 x3 {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr i 1

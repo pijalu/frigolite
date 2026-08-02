@@ -68,28 +68,52 @@ func Test_ieee754(t *testing.T) {
 		_ = rep // suppress unused warning
 		_ = _idx0
 			{ // do_test "ieee754-100-" + id + "-1"
-				_res = db.Exec("SELECT ieee754(" + float + ");")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ieee754(" + float + ");")
+				r = db.Query("SELECT ieee754(" + float + ");")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ieee754(" + float + ");")
+					return
+				}
+				got := flatten(r)
+				want := "ieee754(" + rep + ")"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "ieee754-100-" + id + "-2"
-				_res = db.Exec("SELECT ieee754(" + rep + ")==" + float + ";")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ieee754(" + rep + ")==" + float + ";")
+				r = db.Query("SELECT ieee754(" + rep + ")==" + float + ";")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ieee754(" + rep + ")==" + float + ";")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			if float != "0.0" {
 				{ // do_test "ieee754-100-" + id + "-3"
-					_res = db.Exec("SELECT ieee754(-" + float + ");")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ieee754(-" + float + ");")
+					r = db.Query("SELECT ieee754(-" + float + ");")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ieee754(-" + float + ");")
+						return
+					}
+					got := flatten(r)
+					want := "ieee754(-" + rep + ")"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "ieee754-100-" + id + "-4"
-					_res = db.Exec("SELECT ieee754(-" + rep + ")==-" + float + ";")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ieee754(-" + rep + ")==-" + float + ";")
+					r = db.Query("SELECT ieee754(-" + rep + ")==-" + float + ";")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ieee754(-" + rep + ")==-" + float + ";")
+						return
+					}
+					got := flatten(r)
+					want := "1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 			}

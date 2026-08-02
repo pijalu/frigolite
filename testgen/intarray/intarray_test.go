@@ -78,9 +78,9 @@ func Test_intarray(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 999 }() {
 			b = "format {x%03d} $i"
 			_ = b // suppress unused warning
-			_res = db.Exec("INSERT INTO t1(a,b) VALUES(" + i + "," + b + ")")
+			_res = db.Exec("INSERT INTO t1(a,b) VALUES(" + sqlLiteral(i) + "," + sqlLiteral(b) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a,b) VALUES(" + i + "," + b + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a,b) VALUES(" + sqlLiteral(i) + "," + sqlLiteral(b) + ")")
 			}
 			// incr i 1
 			{
@@ -130,9 +130,9 @@ func Test_intarray(t *testing.T) {
 		rc = tclListAppend(rc, ia1)
 	}
 	{ // do_test "intarray-1.2"
-		_res = db.Exec("\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
+		r = db.Query("\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
 		}
 	}
 	{ // do_test "intarray-1.3"
@@ -143,9 +143,15 @@ func Test_intarray(t *testing.T) {
 		}
 	}
 	{ // do_test "intarray-1.4"
-		_res = db.Exec("\n    SELECT count(b) FROM t1 WHERE a NOT IN ia3 ORDER BY a\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT count(b) FROM t1 WHERE a NOT IN ia3 ORDER BY a\n  ")
+		r = db.Query("\n    SELECT count(b) FROM t1 WHERE a NOT IN ia3 ORDER BY a\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(b) FROM t1 WHERE a NOT IN ia3 ORDER BY a\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "996"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intarray-1.5"
@@ -173,15 +179,27 @@ func Test_intarray(t *testing.T) {
 		}
 	}
 	{ // do_test "intarray-1.6"
-		_res = db.Exec("\n    DELETE FROM t1 WHERE a IN ia1;\n    SELECT count(*) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE a IN ia1;\n    SELECT count(*) FROM t1;\n  ")
+		r = db.Query("\n    DELETE FROM t1 WHERE a IN ia1;\n    SELECT count(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a IN ia1;\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intarray-2.1"
-		_res = db.Exec("\n    CREATE TEMP TABLE t3(p,q);\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3 WHERE p IN ia1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE t3(p,q);\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3 WHERE p IN ia1;\n  ")
+		r = db.Query("\n    CREATE TEMP TABLE t3(p,q);\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3 WHERE p IN ia1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE t3(p,q);\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3 WHERE p IN ia1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "999"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "intarray-2.2"

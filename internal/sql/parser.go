@@ -1178,13 +1178,18 @@ func (p *Parser) parseInsertSource(s *InsertStmt) {
 		// First tuple
 		p.expect(TokenLParen)
 		s.Values = [][]Expr{p.parseExprList()}
+		firstLen := len(s.Values[0])
 		p.expect(TokenRParen)
 		// Additional tuples
 		for p.cur.Type == TokenComma {
 			p.next()
 			if p.cur.Type == TokenLParen {
 				p.next()
-				s.Values = append(s.Values, p.parseExprList())
+				row := p.parseExprList()
+				if len(row) != firstLen {
+					p.setErr("all VALUES must have the same number of terms")
+				}
+				s.Values = append(s.Values, row)
 				p.expect(TokenRParen)
 			}
 		}
@@ -1840,7 +1845,9 @@ func (p *Parser) parseTableOptions(s *CreateTableStmt) {
 
 func (p *Parser) parseWithStatement() Stmt {
 	p.next() // skip WITH
+	recursive := false
 	if p.cur.Type == TokenKeyword && p.cur.Value == "RECURSIVE" {
+		recursive = true
 		p.next()
 	}
 	var ctes []CTEDef
@@ -1849,6 +1856,7 @@ func (p *Parser) parseWithStatement() Stmt {
 		if cte == nil {
 			return nil
 		}
+		cte.Recursive = recursive
 		ctes = append(ctes, *cte)
 		if p.cur.Type == TokenComma {
 			p.next()
@@ -1936,21 +1944,36 @@ func (p *Parser) parseCTEBody() *SelectStmt {
 
 func (p *Parser) parseValuesSubquery() *SelectStmt {
 	p.next() // skip VALUES
-	vs := &SelectStmt{}
 	// Parse one or more value rows: (expr, expr), (expr, expr), ...
+	// The first row defines the columns; additional rows are chained as
+	// UNION ALL members so the executor can evaluate the full list.
+	var head, tail *SelectStmt
+	firstRowLen := -1
 	for p.cur.Type == TokenLParen {
 		p.next()
 		row := p.parseExprList()
-		if len(vs.Columns) == 0 {
-			// First row defines the columns
-			for _, expr := range row {
-				vs.Columns = append(vs.Columns, SelectColumn{Expr: expr})
-			}
+		if firstRowLen >= 0 && len(row) != firstRowLen {
+			p.setErr("all VALUES must have the same number of terms")
 		}
-		// Store additional rows as Values data
-		// (Currently just parsing; execution stores rows differently)
+		if firstRowLen < 0 {
+			firstRowLen = len(row)
+		}
+		node := &SelectStmt{}
+		for _, expr := range row {
+			node.Columns = append(node.Columns, SelectColumn{Expr: expr})
+		}
+		node.ValuesChain = true
 		if p.cur.Type == TokenRParen {
 			p.next()
+		}
+		if head == nil {
+			head = node
+			tail = node
+		} else {
+			tail.SetOp = SetUnion
+			tail.UnionAll = true
+			tail.Union = node
+			tail = node
 		}
 		if p.cur.Type == TokenComma {
 			p.next()
@@ -1960,25 +1983,25 @@ func (p *Parser) parseValuesSubquery() *SelectStmt {
 	}
 	if p.cur.Type == TokenKeyword && (p.cur.Value == "UNION" || p.cur.Value == "INTERSECT" || p.cur.Value == "EXCEPT") {
 		if p.cur.Value == "UNION" {
-			vs.SetOp = SetUnion
+			head.SetOp = SetUnion
 			p.next()
 			if p.cur.Type == TokenKeyword && p.cur.Value == "ALL" {
-				vs.UnionAll = true
+				head.UnionAll = true
 				p.next()
 			}
 		} else if p.cur.Value == "INTERSECT" {
-			vs.SetOp = SetIntersect
+			head.SetOp = SetIntersect
 			p.next()
 		} else if p.cur.Value == "EXCEPT" {
-			vs.SetOp = SetExcept
+			head.SetOp = SetExcept
 			p.next()
 		}
-		vs.Union = p.parseSelectBody()
+		head.Union = p.parseSelectBody()
 	}
 	// ORDER BY and LIMIT apply to the outermost compound result
-	p.parseSelectOrderBy(vs)
-	p.parseSelectLimit(vs)
-	return vs
+	p.parseSelectOrderBy(head)
+	p.parseSelectLimit(head)
+	return head
 }
 
 // skipTableConstraint consumes a table-level constraint expression.

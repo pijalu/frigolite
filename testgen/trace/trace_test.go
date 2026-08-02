@@ -121,9 +121,9 @@ func Test_trace(t *testing.T) {
 		_ = stmtlist // suppress unused warning
 		xyzzy = "a*"
 		_ = xyzzy // suppress unused warning
-		_res = db.Exec("\n     SELECT y FROM t1b WHERE x GLOB " + xyzzy + "\n  ")
+		_res = db.Exec("\n     SELECT y FROM t1b WHERE x GLOB " + sqlLiteral(xyzzy) + "\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT y FROM t1b WHERE x GLOB " + xyzzy + "\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT y FROM t1b WHERE x GLOB " + sqlLiteral(xyzzy) + "\n  ")
 		}
 	}
 	{ // do_test "trace-1.7"
@@ -274,9 +274,9 @@ func Test_trace(t *testing.T) {
 		}
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		r = db.Query("SELECT " + t6int + ", " + t6real + ", " + t6str + ", " + t6blob + ", " + t6null)
+		r = db.Query("SELECT " + sqlLiteral(t6int) + ", " + sqlLiteral(t6real) + ", " + sqlLiteral(t6str) + ", " + sqlLiteral(t6blob) + ", " + sqlLiteral(t6null))
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + t6int + ", " + t6real + ", " + t6str + ", " + t6blob + ", " + t6null)
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + sqlLiteral(t6int) + ", " + sqlLiteral(t6real) + ", " + sqlLiteral(t6str) + ", " + sqlLiteral(t6blob) + ", " + sqlLiteral(t6null))
 		}
 	}
 	{ // do_test "trace-6.2"
@@ -284,23 +284,23 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.3"
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		r = db.Query("SELECT " + t6int + ", ?1, " + t6int)
+		r = db.Query("SELECT " + sqlLiteral(t6int) + ", ?1, " + sqlLiteral(t6int))
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + t6int + ", ?1, " + t6int)
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + sqlLiteral(t6int) + ", ?1, " + sqlLiteral(t6int))
 		}
 	}
 	{ // do_test "trace-6.4"
 	}
 	{ // do_test "trace-6.5"
-		_res = db.Exec("CREATE TABLE t6(" + "$::t6int" + ",\"?1\"); INSERT INTO t6 VALUES(1,2)")
+		_res = db.Exec("CREATE TABLE t6(" + sqlLiteral("$::t6int") + ",\"?1\"); INSERT INTO t6 VALUES(1,2)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t6(" + "$::t6int" + ",\"?1\"); INSERT INTO t6 VALUES(1,2)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t6(" + sqlLiteral("$::t6int") + ",\"?1\"); INSERT INTO t6 VALUES(1,2)")
 		}
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		r = db.Query("SELECT '" + t6int + "', " + "$::t6int" + ", " + t6int + ", ?1, \"?1\", " + t6int + " FROM t6")
+		r = db.Query("SELECT '" + sqlLiteral(t6int) + "', " + sqlLiteral("$::t6int") + ", " + sqlLiteral(t6int) + ", ?1, \"?1\", " + sqlLiteral(t6int) + " FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '" + t6int + "', " + "$::t6int" + ", " + t6int + ", ?1, \"?1\", " + t6int + " FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '" + sqlLiteral(t6int) + "', " + sqlLiteral("$::t6int") + ", " + sqlLiteral(t6int) + ", ?1, \"?1\", " + sqlLiteral(t6int) + " FROM t6")
 		}
 	}
 	{ // do_test "trace-6.6"
@@ -308,15 +308,15 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.100"
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6(" + "$::t6str" + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
+		_res = db.Exec("\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6(" + sqlLiteral("$::t6str") + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6(" + "$::t6str" + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6(" + sqlLiteral("$::t6str") + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		}
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		r = db.Query("SELECT '" + t6str + "', " + "$::t6str" + ", " + t6str + ", ?1, \"?1\", " + t6str + " FROM t6")
+		r = db.Query("SELECT '" + sqlLiteral(t6str) + "', " + sqlLiteral("$::t6str") + ", " + sqlLiteral(t6str) + ", ?1, \"?1\", " + sqlLiteral(t6str) + " FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '" + t6str + "', " + "$::t6str" + ", " + t6str + ", ?1, \"?1\", " + t6str + " FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '" + sqlLiteral(t6str) + "', " + sqlLiteral("$::t6str") + ", " + sqlLiteral(t6str) + ", ?1, \"?1\", " + sqlLiteral(t6str) + " FROM t6")
 		}
 	}
 	{ // do_test "trace-6.101"
@@ -324,15 +324,15 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.200"
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6(" + "$::t6str" + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
+		_res = db.Exec("\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6(" + sqlLiteral("$::t6str") + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6(" + "$::t6str" + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6(" + sqlLiteral("$::t6str") + ",\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		}
 		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		r = db.Query("SELECT '" + t6str + "', " + "$::t6str" + ", " + t6str + ", ?1, \"?1\", " + t6str + " FROM t6")
+		r = db.Query("SELECT '" + sqlLiteral(t6str) + "', " + sqlLiteral("$::t6str") + ", " + sqlLiteral(t6str) + ", ?1, \"?1\", " + sqlLiteral(t6str) + " FROM t6")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '" + t6str + "', " + "$::t6str" + ", " + t6str + ", ?1, \"?1\", " + t6str + " FROM t6")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '" + sqlLiteral(t6str) + "', " + sqlLiteral("$::t6str") + ", " + sqlLiteral(t6str) + ", ?1, \"?1\", " + sqlLiteral(t6str) + " FROM t6")
 		}
 	}
 	{ // do_test "trace-6.201"

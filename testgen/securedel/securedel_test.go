@@ -57,70 +57,136 @@ func Test_securedel(t *testing.T) {
 	DEFAULT_SECDEL = "2"
 	_ = DEFAULT_SECDEL // suppress unused warning
 	{ // do_test "securedel-1.0"
-		_res = db.Exec("PRAGMA secure_delete;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA secure_delete;")
+		r = db.Query("PRAGMA secure_delete;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA secure_delete;")
+			return
+		}
+		got := flatten(r)
+		want := DEFAULT_SECDEL
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	os.Remove("test2.db")
 	{ // do_test "securedel-1.1"
-		_res = db.Exec("\n    ATTACH 'test2.db' AS db2;\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test2.db' AS db2;\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    ATTACH 'test2.db' AS db2;\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test2.db' AS db2;\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "list 1 $DEFAULT_SECDEL"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "securedel-1.2"
-		_res = db.Exec("\n    PRAGMA main.secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA main.secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    PRAGMA main.secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "list 0 $DEFAULT_SECDEL"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "securedel-1.3"
-		_res = db.Exec("\n    PRAGMA secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    PRAGMA secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA secure_delete=OFF;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "securedel-1.4"
-		_res = db.Exec("\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "securedel-1.5"
-		_res = db.Exec("\n    PRAGMA secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    PRAGMA secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "securedel-1.6"
-		_res = db.Exec("\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "securedel-1.7"
-		_res = db.Exec("\n    PRAGMA main.secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA main.secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    PRAGMA main.secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.secure_delete=FAST;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "securedel-1.8"
-		_res = db.Exec("\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "securedel-2.1"
-		_res = db.Exec("\n    DETACH db2;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH db2;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    DETACH db2;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DETACH db2;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "securedel-2.2"
-		_res = db.Exec("\n    DETACH db2;\n    PRAGMA main.secure_delete=OFF;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH db2;\n    PRAGMA main.secure_delete=OFF;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+		r = db.Query("\n    DETACH db2;\n    PRAGMA main.secure_delete=OFF;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DETACH db2;\n    PRAGMA main.secure_delete=OFF;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

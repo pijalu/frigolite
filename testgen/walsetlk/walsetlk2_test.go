@@ -65,9 +65,15 @@ func Test_walsetlk2(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// testvfs tvfs (unsupported command, not transpiled)
@@ -219,9 +225,15 @@ func Test_walsetlk2(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	if func() bool { sqlite_options_setlk_timeout_n, _sqlite_options_setlk_timeout_e := strconv.Atoi(sqlite_options_setlk_timeout); if _sqlite_options_setlk_timeout_e != nil { return false }; return sqlite_options_setlk_timeout_n == 1 }() {
 		{ // "3.0"
-			_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');\n")
+			r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');\n")
+				return
+			}
+			got := flatten(r)
+			want := "wal"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// sqlite3_setlk_timeout db -1 (unsupported command, not transpiled)

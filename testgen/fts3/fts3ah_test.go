@@ -84,9 +84,9 @@ func Test_fts3ah(t *testing.T) {
 	_ = bterm // suppress unused warning
 	xterm = "x $len"
 	_ = xterm // suppress unused warning
-	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1 (rowid, content) VALUES(1, " + doc1 + ");\n  INSERT INTO t1 (rowid, content) VALUES(2, " + doc2 + ");\n  INSERT INTO t1 (rowid, content) VALUES(3, " + doc3 + ");\n")
+	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1 (rowid, content) VALUES(1, " + sqlLiteral(doc1) + ");\n  INSERT INTO t1 (rowid, content) VALUES(2, " + sqlLiteral(doc2) + ");\n  INSERT INTO t1 (rowid, content) VALUES(3, " + sqlLiteral(doc3) + ");\n")
 	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1 (rowid, content) VALUES(1, " + doc1 + ");\n  INSERT INTO t1 (rowid, content) VALUES(2, " + doc2 + ");\n  INSERT INTO t1 (rowid, content) VALUES(3, " + doc3 + ");\n")
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1 (rowid, content) VALUES(1, " + sqlLiteral(doc1) + ");\n  INSERT INTO t1 (rowid, content) VALUES(2, " + sqlLiteral(doc2) + ");\n  INSERT INTO t1 (rowid, content) VALUES(3, " + sqlLiteral(doc3) + ");\n")
 	}
 	{ // do_test "fts3ah-1.1"
 		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'something'")
@@ -95,15 +95,15 @@ func Test_fts3ah(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3ah-1.2"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH " + aterm)
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(aterm))
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH " + aterm)
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(aterm))
 		}
 	}
 	{ // do_test "fts3ah-1.3"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH " + xterm)
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(xterm))
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH " + xterm)
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(xterm))
 		}
 	}
 	{ // do_test "fts3ah-1.4"
@@ -113,9 +113,9 @@ func Test_fts3ah(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3ah-1.5"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"" + aterm + " " + bterm + "\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"" + aterm + " " + bterm + "\\\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"" + aterm + " " + bterm + "\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"" + aterm + " " + bterm + "\\\"'")
 		}
 	}
 }

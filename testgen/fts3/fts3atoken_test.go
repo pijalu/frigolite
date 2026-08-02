@@ -126,22 +126,22 @@ func Test_fts3atoken(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3atoken-1.7"
-		r = db.Query("\n    SELECT fts3_tokenizer('blah2', " + simple + ") IS NULL;\n  ")
+		r = db.Query("\n    SELECT fts3_tokenizer('blah2', " + sqlLiteral(simple) + ") IS NULL;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fts3_tokenizer('blah2', " + simple + ") IS NULL;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fts3_tokenizer('blah2', " + sqlLiteral(simple) + ") IS NULL;\n  ")
 		}
 	}
 	{ // do_test "fts3atoken-1.8"
-		r = db.Query("\n    SELECT fts3_tokenizer(" + blah2name + ") == fts3_tokenizer(" + simplename + "),\n           typeof(fts3_tokenizer(" + blah2name + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + simplename + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
+		r = db.Query("\n    SELECT fts3_tokenizer(" + sqlLiteral(blah2name) + ") == fts3_tokenizer(" + sqlLiteral(simplename) + "),\n           typeof(fts3_tokenizer(" + sqlLiteral(blah2name) + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + sqlLiteral(simplename) + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fts3_tokenizer(" + blah2name + ") == fts3_tokenizer(" + simplename + "),\n           typeof(fts3_tokenizer(" + blah2name + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + simplename + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fts3_tokenizer(" + sqlLiteral(blah2name) + ") == fts3_tokenizer(" + sqlLiteral(simplename) + "),\n           typeof(fts3_tokenizer(" + sqlLiteral(blah2name) + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + sqlLiteral(simplename) + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
 		}
 	}
 	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
 	{ // do_test "fts3atoken-1.9"
-		r = db.Query("\n    SELECT fts3_tokenizer('blah2') == fts3_tokenizer('simple'),\n           typeof(fts3_tokenizer(" + blah2name + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + simplename + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
+		r = db.Query("\n    SELECT fts3_tokenizer('blah2') == fts3_tokenizer('simple'),\n           typeof(fts3_tokenizer(" + sqlLiteral(blah2name) + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + sqlLiteral(simplename) + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fts3_tokenizer('blah2') == fts3_tokenizer('simple'),\n           typeof(fts3_tokenizer(" + blah2name + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + simplename + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fts3_tokenizer('blah2') == fts3_tokenizer('simple'),\n           typeof(fts3_tokenizer(" + sqlLiteral(blah2name) + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + sqlLiteral(simplename) + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
 		}
 	}
 	{ // "fts3atoken-1.10"
@@ -233,9 +233,9 @@ func Test_fts3atoken(t *testing.T) {
 	{ // do_test "5.2"
 		str = "cp_to_str {19968 26085 32822 32645 27874 23433 20986}"
 		_ = str // suppress unused warning
-		_res = db.Exec(" INSERT INTO x1 VALUES(" + str + ") ")
+		_res = db.Exec(" INSERT INTO x1 VALUES(" + sqlLiteral(str) + ") ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x1 VALUES(" + str + ") ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x1 VALUES(" + sqlLiteral(str) + ") ")
 		}
 	}
 	{ // do_test "fts3atoken-internal"

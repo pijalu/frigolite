@@ -74,9 +74,9 @@ func Test_date4(t *testing.T) {
 		TS = tclExprWith("$i*86390", map[string]string{"i": i})
 		_ = TS // suppress unused warning
 		{ // "date4-" + i
-			r = db.Query("\n    SELECT strftime($::FMT,$::TS,'unixepoch');\n  ")
+			r = db.Query("\n    SELECT strftime(" + sqlLiteral(FMT) + "," + sqlLiteral(TS) + ",'unixepoch');\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT strftime($::FMT,$::TS,'unixepoch');\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT strftime(" + sqlLiteral(FMT) + "," + sqlLiteral(TS) + ",'unixepoch');\n  ")
 				return
 			}
 			got := flatten(r)

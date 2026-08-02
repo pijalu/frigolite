@@ -433,9 +433,9 @@ func Test_alterdropcol(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "8.0"
-				_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'\n")
+				r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'\n")
 				}
 			}
 			_dbtmp2, err := frigolite.Open("test.db")

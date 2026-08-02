@@ -494,9 +494,9 @@ func Test_sort(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100000 }() {
-			_res = db.Exec(" INSERT INTO t10 VALUES( " + i + "/10, " + i + "%10 ) ")
+			_res = db.Exec(" INSERT INTO t10 VALUES( " + sqlLiteral(i) + "/10, " + sqlLiteral(i) + "%10 ) ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t10 VALUES( " + i + "/10, " + i + "%10 ) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t10 VALUES( " + sqlLiteral(i) + "/10, " + sqlLiteral(i) + "%10 ) ")
 			}
 			// incr i 1
 			{
@@ -592,9 +592,9 @@ func Test_sort(t *testing.T) {
 				}
 			}
 			{ // "15." + tn + ".1"
-				r = db.Query("\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one UNION ALL\n      SELECT 1, $ten UNION ALL\n      SELECT 3, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+				r = db.Query("\n    WITH rr AS (\n      SELECT 4, " + sqlLiteral(ten) + " UNION ALL\n      SELECT 2, " + sqlLiteral(one) + " UNION ALL\n      SELECT 1, " + sqlLiteral(ten) + " UNION ALL\n      SELECT 3, " + sqlLiteral(one) + "\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one UNION ALL\n      SELECT 1, $ten UNION ALL\n      SELECT 3, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH rr AS (\n      SELECT 4, " + sqlLiteral(ten) + " UNION ALL\n      SELECT 2, " + sqlLiteral(one) + " UNION ALL\n      SELECT 1, " + sqlLiteral(ten) + " UNION ALL\n      SELECT 3, " + sqlLiteral(one) + "\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
 					return
 				}
 				got := flatten(r)
@@ -616,9 +616,9 @@ func Test_sort(t *testing.T) {
 				}
 			}
 			{ // "15." + tn + ".3"
-				r = db.Query("\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+				r = db.Query("\n    WITH rr AS (\n      SELECT 4, " + sqlLiteral(ten) + " UNION ALL\n      SELECT 2, " + sqlLiteral(one) + "\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH rr AS (\n      SELECT 4, " + sqlLiteral(ten) + " UNION ALL\n      SELECT 2, " + sqlLiteral(one) + "\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
 					return
 				}
 				got := flatten(r)
@@ -670,9 +670,9 @@ func Test_sort(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "18.1"
-			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
+			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
 			}
 		}
 		{ // "18.2"

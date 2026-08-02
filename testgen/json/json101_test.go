@@ -83,21 +83,39 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-1.1.01"
-		_res = db.Exec("\n  SELECT json_array(1,'{\"abc\":2.5,\"def\":null,\"ghi\":hello}',99);\n  -- the second term goes in as a string:\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array(1,'{\"abc\":2.5,\"def\":null,\"ghi\":hello}',99);\n  -- the second term goes in as a string:\n")
+		r = db.Query("\n  SELECT json_array(1,'{\"abc\":2.5,\"def\":null,\"ghi\":hello}',99);\n  -- the second term goes in as a string:\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(1,'{\"abc\":2.5,\"def\":null,\"ghi\":hello}',99);\n  -- the second term goes in as a string:\n")
+			return
+		}
+		got := flatten(r)
+		want := "[1,\"{\\\\\"abc\\\\\":2.5,\\\\\"def\\\\\":null,\\\\\"ghi\\\\\":hello}\",99]"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-1.1.02"
-		_res = db.Exec("\n  SELECT json_array(1,json('{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"}'),99);\n  -- the second term goes in as JSON\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array(1,json('{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"}'),99);\n  -- the second term goes in as JSON\n")
+		r = db.Query("\n  SELECT json_array(1,json('{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"}'),99);\n  -- the second term goes in as JSON\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(1,json('{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"}'),99);\n  -- the second term goes in as JSON\n")
+			return
+		}
+		got := flatten(r)
+		want := "[1,{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"},99]"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-1.1.03"
-		_res = db.Exec("\n  SELECT json_array(1,json_object('abc',2.5,'def',null,'ghi','hello'),99);\n  -- the second term goes in as JSON\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array(1,json_object('abc',2.5,'def',null,'ghi','hello'),99);\n  -- the second term goes in as JSON\n")
+		r = db.Query("\n  SELECT json_array(1,json_object('abc',2.5,'def',null,'ghi','hello'),99);\n  -- the second term goes in as JSON\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(1,json_object('abc',2.5,'def',null,'ghi','hello'),99);\n  -- the second term goes in as JSON\n")
+			return
+		}
+		got := flatten(r)
+		want := "[1,{\"abc\":2.5,\"def\":null,\"ghi\":\"hello\"},99]"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "json101-1.2"
@@ -257,9 +275,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-3.1"
-		r = db.Query("\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a','[3,4,5]');\n")
+		r = db.Query("\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a','" + sqlLiteral("3,4,5") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a','[3,4,5]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a','" + sqlLiteral("3,4,5") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -269,9 +287,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-3.1b"
-		r = db.Query("\n  SELECT json(jsonb_replace('{\"a\":1,\"b\":2}','$.a','[3,4,5]'));\n")
+		r = db.Query("\n  SELECT json(jsonb_replace('{\"a\":1,\"b\":2}','$.a','" + sqlLiteral("3,4,5") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_replace('{\"a\":1,\"b\":2}','$.a','[3,4,5]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(jsonb_replace('{\"a\":1,\"b\":2}','$.a','" + sqlLiteral("3,4,5") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -281,9 +299,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-3.2"
-		r = db.Query("\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a',json('[3,4,5]'));\n")
+		r = db.Query("\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a',json('" + sqlLiteral("3,4,5") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a',json('[3,4,5]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a',json('" + sqlLiteral("3,4,5") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -293,9 +311,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-3.2b"
-		r = db.Query("\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a',jsonb('[3,4,5]'));\n")
+		r = db.Query("\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a',jsonb('" + sqlLiteral("3,4,5") + "'));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a',jsonb('[3,4,5]'));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace('{\"a\":1,\"b\":2}','$.a',jsonb('" + sqlLiteral("3,4,5") + "'));\n")
 			return
 		}
 		got := flatten(r)
@@ -377,9 +395,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-4.1"
-		r = db.Query("\n  CREATE TABLE j1(x);\n  INSERT INTO j1(x)\n   VALUES('true'),('false'),('null'),('123'),('-234'),('34.5e+6'),\n         ('\"\"'),('\"\\\"\"'),('\"\\\\\"'),('\"abcdefghijlmnopqrstuvwxyz\"'),\n         ('[]'),('{}'),('[true,false,null,123,-234,34.5e+6,{},[]]'),\n         ('{\"a\":true,\"b\":{\"c\":false}}');\n  SELECT * FROM j1 WHERE NOT json_valid(x);\n")
+		r = db.Query("\n  CREATE TABLE j1(x);\n  INSERT INTO j1(x)\n   VALUES('true'),('false'),('null'),('123'),('-234'),('34.5e+6'),\n         ('\"\"'),('\"\\\"\"'),('\"\\\\\"'),('\"abcdefghijlmnopqrstuvwxyz\"'),\n         ('" + "'),('{}'),('" + sqlLiteral("true,false,null,123,-234,34.5e+6,{},[]") + "'),\n         ('{\"a\":true,\"b\":{\"c\":false}}');\n  SELECT * FROM j1 WHERE NOT json_valid(x);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE j1(x);\n  INSERT INTO j1(x)\n   VALUES('true'),('false'),('null'),('123'),('-234'),('34.5e+6'),\n         ('\"\"'),('\"\\\"\"'),('\"\\\\\"'),('\"abcdefghijlmnopqrstuvwxyz\"'),\n         ('[]'),('{}'),('[true,false,null,123,-234,34.5e+6,{},[]]'),\n         ('{\"a\":true,\"b\":{\"c\":false}}');\n  SELECT * FROM j1 WHERE NOT json_valid(x);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE j1(x);\n  INSERT INTO j1(x)\n   VALUES('true'),('false'),('null'),('123'),('-234'),('34.5e+6'),\n         ('\"\"'),('\"\\\"\"'),('\"\\\\\"'),('\"abcdefghijlmnopqrstuvwxyz\"'),\n         ('" + "'),('{}'),('" + sqlLiteral("true,false,null,123,-234,34.5e+6,{},[]") + "'),\n         ('{\"a\":true,\"b\":{\"c\":false}}');\n  SELECT * FROM j1 WHERE NOT json_valid(x);\n")
 		}
 	}
 	{ // "json101-4.2"
@@ -467,9 +485,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-5.1"
-		r = db.Query("\n  CREATE TABLE j2(id INTEGER PRIMARY KEY, json, src);\n  INSERT INTO j2(id,json,src)\n  VALUES(1,'{\n    \"firstName\": \"John\",\n    \"lastName\": \"Smith\",\n    \"isAlive\": true,\n    \"age\": 25,\n    \"address\": {\n      \"streetAddress\": \"21 2nd Street\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"postalCode\": \"10021-3100\"\n    },\n    \"phoneNumbers\": [\n      {\n        \"type\": \"home\",\n        \"number\": \"212 555-1234\"\n      },\n      {\n        \"type\": \"office\",\n        \"number\": \"646 555-4567\"\n      }\n    ],\n    \"children\": [],\n    \"spouse\": null\n  }','https://en.wikipedia.org/wiki/JSON');\n  INSERT INTO j2(id,json,src)\n  VALUES(2, '{\n\t\"id\": \"0001\",\n\t\"type\": \"donut\",\n\t\"name\": \"Cake\",\n\t\"ppu\": 0.55,\n\t\"batters\":\n\t\t{\n\t\t\t\"batter\":\n\t\t\t\t[\n\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" },\n\t\t\t\t\t{ \"id\": \"1003\", \"type\": \"Blueberry\" },\n\t\t\t\t\t{ \"id\": \"1004\", \"type\": \"Devil''s Food\" }\n\t\t\t\t]\n\t\t},\n\t\"topping\":\n\t\t[\n\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t{ \"id\": \"5007\", \"type\": \"Powdered Sugar\" },\n\t\t\t{ \"id\": \"5006\", \"type\": \"Chocolate with Sprinkles\" },\n\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t]\n   }','https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html');\n   INSERT INTO j2(id,json,src)\n   VALUES(3,'[\n\t{\n\t\t\"id\": \"0001\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Cake\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" },\n\t\t\t\t\t\t{ \"id\": \"1003\", \"type\": \"Blueberry\" },\n\t\t\t\t\t\t{ \"id\": \"1004\", \"type\": \"Devil''s Food\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t\t{ \"id\": \"5007\", \"type\": \"Powdered Sugar\" },\n\t\t\t\t{ \"id\": \"5006\", \"type\": \"Chocolate with Sprinkles\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t},\n\t{\n\t\t\"id\": \"0002\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Raised\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t},\n\t{\n\t\t\"id\": \"0003\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Old Fashioned\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t}\n   ]','https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html');\n   SELECT count(*) FROM j2;\n   CREATE TABLE j2b(id INTEGER PRIMARY KEY, json, src);\n   INSERT INTO J2b(id,json,src) SELECT id, jsonb(json), src FROM j2;\n   SELECT count(*) FROM j2b;\n")
+		r = db.Query("\n  CREATE TABLE j2(id INTEGER PRIMARY KEY, json, src);\n  INSERT INTO j2(id,json,src)\n  VALUES(1,'{\n    \"firstName\": \"John\",\n    \"lastName\": \"Smith\",\n    \"isAlive\": true,\n    \"age\": 25,\n    \"address\": {\n      \"streetAddress\": \"21 2nd Street\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"postalCode\": \"10021-3100\"\n    },\n    \"phoneNumbers\": " + sqlLiteral("{\n        \"type\": \"home\",\n        \"number\": \"212 555-1234\"\n      },\n      {\n        \"type\": \"office\",\n        \"number\": \"646 555-4567\"\n      }") + ",\n    \"children\": " + ",\n    \"spouse\": null\n  }','https://en.wikipedia.org/wiki/JSON');\n  INSERT INTO j2(id,json,src)\n  VALUES(2, '{\n\t\"id\": \"0001\",\n\t\"type\": \"donut\",\n\t\"name\": \"Cake\",\n\t\"ppu\": 0.55,\n\t\"batters\":\n\t\t{\n\t\t\t\"batter\":\n\t\t\t\t" + sqlLiteral("{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" },\n\t\t\t\t\t{ \"id\": \"1003\", \"type\": \"Blueberry\" },\n\t\t\t\t\t{ \"id\": \"1004\", \"type\": \"Devil''s Food\" }") + "\n\t\t},\n\t\"topping\":\n\t\t" + sqlLiteral("{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t{ \"id\": \"5007\", \"type\": \"Powdered Sugar\" },\n\t\t\t{ \"id\": \"5006\", \"type\": \"Chocolate with Sprinkles\" },\n\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }") + "\n   }','https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html');\n   INSERT INTO j2(id,json,src)\n   VALUES(3,'" + sqlLiteral("{\n\t\t\"id\": \"0001\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Cake\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" },\n\t\t\t\t\t\t{ \"id\": \"1003\", \"type\": \"Blueberry\" },\n\t\t\t\t\t\t{ \"id\": \"1004\", \"type\": \"Devil''s Food\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t\t{ \"id\": \"5007\", \"type\": \"Powdered Sugar\" },\n\t\t\t\t{ \"id\": \"5006\", \"type\": \"Chocolate with Sprinkles\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t},\n\t{\n\t\t\"id\": \"0002\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Raised\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t},\n\t{\n\t\t\"id\": \"0003\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Old Fashioned\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t}") + "','https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html');\n   SELECT count(*) FROM j2;\n   CREATE TABLE j2b(id INTEGER PRIMARY KEY, json, src);\n   INSERT INTO J2b(id,json,src) SELECT id, jsonb(json), src FROM j2;\n   SELECT count(*) FROM j2b;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE j2(id INTEGER PRIMARY KEY, json, src);\n  INSERT INTO j2(id,json,src)\n  VALUES(1,'{\n    \"firstName\": \"John\",\n    \"lastName\": \"Smith\",\n    \"isAlive\": true,\n    \"age\": 25,\n    \"address\": {\n      \"streetAddress\": \"21 2nd Street\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"postalCode\": \"10021-3100\"\n    },\n    \"phoneNumbers\": [\n      {\n        \"type\": \"home\",\n        \"number\": \"212 555-1234\"\n      },\n      {\n        \"type\": \"office\",\n        \"number\": \"646 555-4567\"\n      }\n    ],\n    \"children\": [],\n    \"spouse\": null\n  }','https://en.wikipedia.org/wiki/JSON');\n  INSERT INTO j2(id,json,src)\n  VALUES(2, '{\n\t\"id\": \"0001\",\n\t\"type\": \"donut\",\n\t\"name\": \"Cake\",\n\t\"ppu\": 0.55,\n\t\"batters\":\n\t\t{\n\t\t\t\"batter\":\n\t\t\t\t[\n\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" },\n\t\t\t\t\t{ \"id\": \"1003\", \"type\": \"Blueberry\" },\n\t\t\t\t\t{ \"id\": \"1004\", \"type\": \"Devil''s Food\" }\n\t\t\t\t]\n\t\t},\n\t\"topping\":\n\t\t[\n\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t{ \"id\": \"5007\", \"type\": \"Powdered Sugar\" },\n\t\t\t{ \"id\": \"5006\", \"type\": \"Chocolate with Sprinkles\" },\n\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t]\n   }','https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html');\n   INSERT INTO j2(id,json,src)\n   VALUES(3,'[\n\t{\n\t\t\"id\": \"0001\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Cake\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" },\n\t\t\t\t\t\t{ \"id\": \"1003\", \"type\": \"Blueberry\" },\n\t\t\t\t\t\t{ \"id\": \"1004\", \"type\": \"Devil''s Food\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t\t{ \"id\": \"5007\", \"type\": \"Powdered Sugar\" },\n\t\t\t\t{ \"id\": \"5006\", \"type\": \"Chocolate with Sprinkles\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t},\n\t{\n\t\t\"id\": \"0002\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Raised\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t},\n\t{\n\t\t\"id\": \"0003\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Old Fashioned\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t}\n   ]','https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html');\n   SELECT count(*) FROM j2;\n   CREATE TABLE j2b(id INTEGER PRIMARY KEY, json, src);\n   INSERT INTO J2b(id,json,src) SELECT id, jsonb(json), src FROM j2;\n   SELECT count(*) FROM j2b;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE j2(id INTEGER PRIMARY KEY, json, src);\n  INSERT INTO j2(id,json,src)\n  VALUES(1,'{\n    \"firstName\": \"John\",\n    \"lastName\": \"Smith\",\n    \"isAlive\": true,\n    \"age\": 25,\n    \"address\": {\n      \"streetAddress\": \"21 2nd Street\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"postalCode\": \"10021-3100\"\n    },\n    \"phoneNumbers\": " + sqlLiteral("{\n        \"type\": \"home\",\n        \"number\": \"212 555-1234\"\n      },\n      {\n        \"type\": \"office\",\n        \"number\": \"646 555-4567\"\n      }") + ",\n    \"children\": " + ",\n    \"spouse\": null\n  }','https://en.wikipedia.org/wiki/JSON');\n  INSERT INTO j2(id,json,src)\n  VALUES(2, '{\n\t\"id\": \"0001\",\n\t\"type\": \"donut\",\n\t\"name\": \"Cake\",\n\t\"ppu\": 0.55,\n\t\"batters\":\n\t\t{\n\t\t\t\"batter\":\n\t\t\t\t" + sqlLiteral("{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" },\n\t\t\t\t\t{ \"id\": \"1003\", \"type\": \"Blueberry\" },\n\t\t\t\t\t{ \"id\": \"1004\", \"type\": \"Devil''s Food\" }") + "\n\t\t},\n\t\"topping\":\n\t\t" + sqlLiteral("{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t{ \"id\": \"5007\", \"type\": \"Powdered Sugar\" },\n\t\t\t{ \"id\": \"5006\", \"type\": \"Chocolate with Sprinkles\" },\n\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }") + "\n   }','https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html');\n   INSERT INTO j2(id,json,src)\n   VALUES(3,'" + sqlLiteral("{\n\t\t\"id\": \"0001\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Cake\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" },\n\t\t\t\t\t\t{ \"id\": \"1003\", \"type\": \"Blueberry\" },\n\t\t\t\t\t\t{ \"id\": \"1004\", \"type\": \"Devil''s Food\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t\t{ \"id\": \"5007\", \"type\": \"Powdered Sugar\" },\n\t\t\t\t{ \"id\": \"5006\", \"type\": \"Chocolate with Sprinkles\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t},\n\t{\n\t\t\"id\": \"0002\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Raised\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5005\", \"type\": \"Sugar\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t},\n\t{\n\t\t\"id\": \"0003\",\n\t\t\"type\": \"donut\",\n\t\t\"name\": \"Old Fashioned\",\n\t\t\"ppu\": 0.55,\n\t\t\"batters\":\n\t\t\t{\n\t\t\t\t\"batter\":\n\t\t\t\t\t[\n\t\t\t\t\t\t{ \"id\": \"1001\", \"type\": \"Regular\" },\n\t\t\t\t\t\t{ \"id\": \"1002\", \"type\": \"Chocolate\" }\n\t\t\t\t\t]\n\t\t\t},\n\t\t\"topping\":\n\t\t\t[\n\t\t\t\t{ \"id\": \"5001\", \"type\": \"None\" },\n\t\t\t\t{ \"id\": \"5002\", \"type\": \"Glazed\" },\n\t\t\t\t{ \"id\": \"5003\", \"type\": \"Chocolate\" },\n\t\t\t\t{ \"id\": \"5004\", \"type\": \"Maple\" }\n\t\t\t]\n\t}") + "','https://adobe.github.io/Spry/samples/data_region/JSONDataSetSample.html');\n   SELECT count(*) FROM j2;\n   CREATE TABLE j2b(id INTEGER PRIMARY KEY, json, src);\n   INSERT INTO J2b(id,json,src) SELECT id, jsonb(json), src FROM j2;\n   SELECT count(*) FROM j2b;\n")
 			return
 		}
 		got := flatten(r)
@@ -503,21 +521,21 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-5.3"
-		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
+		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '" + sqlLiteral("'||key||'") + "'\n                                ELSE '.'||key END);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_tree(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '" + sqlLiteral("'||key||'") + "'\n                                ELSE '.'||key END);\n")
 		}
 	}
 	{ // "json101-5.3b"
-		r = db.Query("\n  SELECT j2b.rowid, jx.rowid, fullkey, path, key\n    FROM j2b, json_tree(j2b.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
+		r = db.Query("\n  SELECT j2b.rowid, jx.rowid, fullkey, path, key\n    FROM j2b, json_tree(j2b.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '" + sqlLiteral("'||key||'") + "'\n                                ELSE '.'||key END);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2b.rowid, jx.rowid, fullkey, path, key\n    FROM j2b, json_tree(j2b.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2b.rowid, jx.rowid, fullkey, path, key\n    FROM j2b, json_tree(j2b.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '" + sqlLiteral("'||key||'") + "'\n                                ELSE '.'||key END);\n")
 		}
 	}
 	{ // "json101-5.4"
-		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
+		r = db.Query("\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '" + sqlLiteral("'||key||'") + "'\n                                ELSE '.'||key END);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '['||key||']'\n                                ELSE '.'||key END);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j2.rowid, jx.rowid, fullkey, path, key\n    FROM j2, json_each(j2.json) AS jx\n   WHERE fullkey!=(path || CASE WHEN typeof(key)=='integer' THEN '" + sqlLiteral("'||key||'") + "'\n                                ELSE '.'||key END);\n")
 		}
 	}
 	{ // "json101-5.5"
@@ -545,9 +563,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-5.10"
-		r = db.Query("\n  SELECT json_insert('{}','$.a',value) FROM json_tree('[1,2,3]') WHERE atom IS NULL;\n")
+		r = db.Query("\n  SELECT json_insert('{}','$.a',value) FROM json_tree('" + sqlLiteral("1,2,3") + "') WHERE atom IS NULL;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_insert('{}','$.a',value) FROM json_tree('[1,2,3]') WHERE atom IS NULL;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_insert('{}','$.a',value) FROM json_tree('" + sqlLiteral("1,2,3") + "') WHERE atom IS NULL;\n")
 			return
 		}
 		got := flatten(r)
@@ -557,9 +575,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-5.11"
-		r = db.Query("\n  SELECT json_insert('{}','$.a',value) FROM json_tree('\"[1,2,3]\"');\n")
+		r = db.Query("\n  SELECT json_insert('{}','$.a',value) FROM json_tree('\"" + sqlLiteral("1,2,3") + "\"');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_insert('{}','$.a',value) FROM json_tree('\"[1,2,3]\"');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_insert('{}','$.a',value) FROM json_tree('\"" + sqlLiteral("1,2,3") + "\"');\n")
 			return
 		}
 		got := flatten(r)
@@ -653,9 +671,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-6.8"
-		r = db.Query("\n  SELECT json_error_position('[\"a\",55,\"b\",72,]');\n")
+		r = db.Query("\n  SELECT json_error_position('" + sqlLiteral("\"a\",55,\"b\",72,") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position('[\"a\",55,\"b\",72,]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position('" + sqlLiteral("\"a\",55,\"b\",72,") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -665,9 +683,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-6.9"
-		r = db.Query("\n  SELECT json_error_position('[\"a\",55,\"b\",72 , ]');\n")
+		r = db.Query("\n  SELECT json_error_position('" + sqlLiteral("\"a\",55,\"b\",72 ,") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position('[\"a\",55,\"b\",72 , ]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position('" + sqlLiteral("\"a\",55,\"b\",72 ,") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -677,9 +695,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-6.10"
-		r = db.Query("\n  SELECT json_error_position('[\"a\",55,\"b\",72,,]');\n")
+		r = db.Query("\n  SELECT json_error_position('" + sqlLiteral("\"a\",55,\"b\",72,,") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position('[\"a\",55,\"b\",72,,]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position('" + sqlLiteral("\"a\",55,\"b\",72,,") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -689,9 +707,9 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	{ // "json101-6.11"
-		r = db.Query("\n  SELECT json_valid('[\"a\",55,\"b\",72]');\n")
+		r = db.Query("\n  SELECT json_valid('" + sqlLiteral("\"a\",55,\"b\",72") + "');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('[\"a\",55,\"b\",72]');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('" + sqlLiteral("\"a\",55,\"b\",72") + "');\n")
 			return
 		}
 		got := flatten(r)
@@ -711,9 +729,9 @@ func Test_json101(t *testing.T) {
 		_ = ws // suppress unused warning
 		_ = _idx0
 			{ // "json101-" + tn + ".1"
-				r = db.Query("SELECT json_valid(printf('%s{%s\"x\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
+				r = db.Query("SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_valid(printf('%s{%s\"x\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
 					return
 				}
 				got := flatten(r)
@@ -748,9 +766,9 @@ func Test_json101(t *testing.T) {
 			}
 		}
 		{ // "json101-8.2"
-			r = db.Query("\n  SELECT a=json_extract(b,'$[0]') FROM t8;\n")
+			r = db.Query("\n  SELECT a=json_extract(b,'$" + sqlLiteral("0") + "') FROM t8;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a=json_extract(b,'$[0]') FROM t8;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a=json_extract(b,'$" + sqlLiteral("0") + "') FROM t8;\n")
 				return
 			}
 			got := flatten(r)
@@ -1174,9 +1192,15 @@ func Test_json101(t *testing.T) {
 			}
 		}
 		{ // "json101-10.28"
-			_res = db.Exec("\n  SELECT json_valid('\" \\; \"');\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT json_valid('\" \\; \"');\n")
+			r = db.Query("\n  SELECT json_valid('\" \\; \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\; \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "json101-10.29"
@@ -2056,27 +2080,27 @@ func Test_json101(t *testing.T) {
 			}
 		}
 		{ // "json101-11.0"
-			_res = db.Exec("\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','[',']'));\n")
+			_res = db.Exec("\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','" + sqlLiteral("','") + "'));\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','[',']'));\n")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','" + sqlLiteral("','") + "'));\n")
 			}
 		}
 		{ // "json101-11.1"
-			_res = db.Exec("\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','[',']'));\n")
+			_res = db.Exec("\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','" + sqlLiteral("','") + "'));\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','[',']'));\n")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','" + sqlLiteral("','") + "'));\n")
 			}
 		}
 		{ // "json101-11.2"
-			_res = db.Exec("\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+			_res = db.Exec("\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','" + sqlLiteral("','}'),'[','{\"a\":'));\n  /* } */"))
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','" + sqlLiteral("','}'),'[','{\"a\":'));\n  /* } */"))
 			}
 		}
 		{ // "json101-11.3"
-			_res = db.Exec("\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+			_res = db.Exec("\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','" + sqlLiteral("','}'),'[','{\"a\":'));\n  /* } */"))
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','" + sqlLiteral("','}'),'[','{\"a\":'));\n  /* } */"))
 			}
 		}
 		{ // "json101-12.100"
@@ -2134,9 +2158,9 @@ func Test_json101(t *testing.T) {
 			}
 		}
 		{ // "json101-13.100"
-			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(id, json);\n  INSERT INTO t1(id,json) VALUES(1,'{\"items\":[3,5]}');\n  CREATE TABLE t2(id, json);\n  INSERT INTO t2(id,json) VALUES(2,'{\"value\":2}');\n  INSERT INTO t2(id,json) VALUES(3,'{\"value\":3}');\n  INSERT INTO t2(id,json) VALUES(4,'{\"value\":4}');\n  INSERT INTO t2(id,json) VALUES(5,'{\"value\":5}');\n  INSERT INTO t2(id,json) VALUES(6,'{\"value\":6}');\n  SELECT *, 'NL' FROM t1 CROSS JOIN t2\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
+			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(id, json);\n  INSERT INTO t1(id,json) VALUES(1,'{\"items\":" + sqlLiteral("3,5") + "}');\n  CREATE TABLE t2(id, json);\n  INSERT INTO t2(id,json) VALUES(2,'{\"value\":2}');\n  INSERT INTO t2(id,json) VALUES(3,'{\"value\":3}');\n  INSERT INTO t2(id,json) VALUES(4,'{\"value\":4}');\n  INSERT INTO t2(id,json) VALUES(5,'{\"value\":5}');\n  INSERT INTO t2(id,json) VALUES(6,'{\"value\":6}');\n  SELECT *, 'NL' FROM t1 CROSS JOIN t2\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(id, json);\n  INSERT INTO t1(id,json) VALUES(1,'{\"items\":[3,5]}');\n  CREATE TABLE t2(id, json);\n  INSERT INTO t2(id,json) VALUES(2,'{\"value\":2}');\n  INSERT INTO t2(id,json) VALUES(3,'{\"value\":3}');\n  INSERT INTO t2(id,json) VALUES(4,'{\"value\":4}');\n  INSERT INTO t2(id,json) VALUES(5,'{\"value\":5}');\n  INSERT INTO t2(id,json) VALUES(6,'{\"value\":6}');\n  SELECT *, 'NL' FROM t1 CROSS JOIN t2\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(id, json);\n  INSERT INTO t1(id,json) VALUES(1,'{\"items\":" + sqlLiteral("3,5") + "}');\n  CREATE TABLE t2(id, json);\n  INSERT INTO t2(id,json) VALUES(2,'{\"value\":2}');\n  INSERT INTO t2(id,json) VALUES(3,'{\"value\":3}');\n  INSERT INTO t2(id,json) VALUES(4,'{\"value\":4}');\n  INSERT INTO t2(id,json) VALUES(5,'{\"value\":5}');\n  INSERT INTO t2(id,json) VALUES(6,'{\"value\":6}');\n  SELECT *, 'NL' FROM t1 CROSS JOIN t2\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
 				return
 			}
 			got := flatten(r)
@@ -2368,9 +2392,9 @@ func Test_json101(t *testing.T) {
 			}
 		}
 		{ // "json101-18.3"
-			r = db.Query("\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].hi');\n")
+			r = db.Query("\n  SELECT json_extract('" + sqlLiteral("3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8") + "', '$" + sqlLiteral("1") + ".\"\"" + sqlLiteral("1") + ".hi');\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].hi');\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('" + sqlLiteral("3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8") + "', '$" + sqlLiteral("1") + ".\"\"" + sqlLiteral("1") + ".hi');\n")
 				return
 			}
 			got := flatten(r)
@@ -2380,9 +2404,9 @@ func Test_json101(t *testing.T) {
 			}
 		}
 		{ // "json101-18.4"
-			r = db.Query("\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].\"hi\"');\n")
+			r = db.Query("\n  SELECT json_extract('" + sqlLiteral("3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8") + "', '$" + sqlLiteral("1") + ".\"\"" + sqlLiteral("1") + ".\"hi\"');\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].\"hi\"');\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('" + sqlLiteral("3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8") + "', '$" + sqlLiteral("1") + ".\"\"" + sqlLiteral("1") + ".\"hi\"');\n")
 				return
 			}
 			got := flatten(r)
@@ -2810,9 +2834,9 @@ func Test_json101(t *testing.T) {
 			}
 		}
 		{ // "json101-23.1"
-			r = db.Query("\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set(json_set('[]','$[#]',0), '$[#]',1) AS j);\n")
+			r = db.Query("\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set(json_set('" + "','$" + sqlLiteral("#") + "',0), '$" + sqlLiteral("#") + "',1) AS j);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set(json_set('[]','$[#]',0), '$[#]',1) AS j);\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set(json_set('" + "','$" + sqlLiteral("#") + "',0), '$" + sqlLiteral("#") + "',1) AS j);\n")
 				return
 			}
 			got := flatten(r)
@@ -2822,9 +2846,9 @@ func Test_json101(t *testing.T) {
 			}
 		}
 		{ // "json101-23.2"
-			r = db.Query("\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set('[]','$[#]',0,'$[#]',1) AS j);\n")
+			r = db.Query("\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set('" + "','$" + sqlLiteral("#") + "',0,'$" + sqlLiteral("#") + "',1) AS j);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set('[]','$[#]',0,'$[#]',1) AS j);\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set('" + "','$" + sqlLiteral("#") + "',0,'$" + sqlLiteral("#") + "',1) AS j);\n")
 				return
 			}
 			got := flatten(r)
@@ -2851,9 +2875,9 @@ func Test_json101(t *testing.T) {
 			_ = repl // suppress unused warning
 			_ = _idx1
 				{ // "json101-24." + id + ".insert"
-					r = db.Query("\n    SELECT json_insert($start,$path,9);\n  ")
+					r = db.Query("\n    SELECT json_insert(" + sqlLiteral(start) + "," + sqlLiteral(path) + ",9);\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_insert($start,$path,9);\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_insert(" + sqlLiteral(start) + "," + sqlLiteral(path) + ",9);\n  ")
 						return
 					}
 					got := flatten(r)
@@ -2863,9 +2887,9 @@ func Test_json101(t *testing.T) {
 					}
 				}
 				{ // "json101-24." + id + ".set"
-					r = db.Query("\n    SELECT json_set($start,$path,9);\n  ")
+					r = db.Query("\n    SELECT json_set(" + sqlLiteral(start) + "," + sqlLiteral(path) + ",9);\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_set($start,$path,9);\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_set(" + sqlLiteral(start) + "," + sqlLiteral(path) + ",9);\n  ")
 						return
 					}
 					got := flatten(r)
@@ -2875,9 +2899,9 @@ func Test_json101(t *testing.T) {
 					}
 				}
 				{ // "json101-24." + id + ".replace"
-					r = db.Query("\n    SELECT json_replace($start,$path,9);\n  ")
+					r = db.Query("\n    SELECT json_replace(" + sqlLiteral(start) + "," + sqlLiteral(path) + ",9);\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_replace($start,$path,9);\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_replace(" + sqlLiteral(start) + "," + sqlLiteral(path) + ",9);\n  ")
 						return
 					}
 					got := flatten(r)

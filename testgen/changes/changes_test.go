@@ -77,15 +77,21 @@ func Test_changes(t *testing.T) {
 			nBig = tclExprWith("$nRow", map[string]string{"nRow": nRow})
 			_ = nBig // suppress unused warning
 			{ // "1." + tn + ".0"
-				_res = db.Exec("\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
+				r = db.Query("\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "off"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1." + tn + ".1"
-				r = db.Query("\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < $nBig\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
+				r = db.Query("\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < " + sqlLiteral(nBig) + "\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < $nBig\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < " + sqlLiteral(nBig) + "\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
 				}
 			}
 			{ // do_test "1." + tn + ".2"

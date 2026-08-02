@@ -480,9 +480,9 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 	}
 	{ // "9.1"
-		r = db.Query("\n  CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '[', ']', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';\n")
+		r = db.Query("\n  CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '" + sqlLiteral("', '") + "', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '[', ']', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '" + sqlLiteral("', '") + "', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';\n")
 			return
 		}
 		got := flatten(r)
@@ -525,9 +525,9 @@ func Test_fts3matchinfo(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // "11.1." + tn + ".1"
-				r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH $expr\n  ")
+				r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH " + sqlLiteral(expr) + "\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH $expr\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH " + sqlLiteral(expr) + "\n  ")
 					return
 				}
 				got := flatten(r)
@@ -562,9 +562,9 @@ func Test_fts3matchinfo(t *testing.T) {
 						r2 = tclListAppend(r2, M)
 					}
 					{ // "11.1." + tn + ".2"
-						r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
+						r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH " + sqlLiteral(expr) + "\n  ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH " + sqlLiteral(expr) + "\n  ")
 							return
 						}
 						got := flatten(r)
@@ -574,9 +574,9 @@ func Test_fts3matchinfo(t *testing.T) {
 						}
 					}
 					{ // "11.1." + tn + ".2"
-						r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
+						r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH " + sqlLiteral(expr) + "\n  ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH " + sqlLiteral(expr) + "\n  ")
 							return
 						}
 						got := flatten(r)

@@ -139,9 +139,9 @@ func Test_fts4incr(t *testing.T) {
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
 				x = tclLIndex(num, "") + " zero"
 				_ = x // suppress unused warning
-				_res = db.Exec(" INSERT INTO t2(docid, content) VALUES(" + i + ", " + x + ") ")
+				_res = db.Exec(" INSERT INTO t2(docid, content) VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(x) + ") ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(docid, content) VALUES(" + i + ", " + x + ") ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(docid, content) VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(x) + ") ")
 				}
 				// incr i 1
 				{

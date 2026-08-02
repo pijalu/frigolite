@@ -73,9 +73,9 @@ func Test_triggerF(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "1." + tn + ".0"
-				_res = db.Exec("\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
+				r = db.Query("\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
 				}
 			}
 			_res = db.Exec(sql)

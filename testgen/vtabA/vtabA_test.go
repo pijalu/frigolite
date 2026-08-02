@@ -164,9 +164,15 @@ func Test_vtabA(t *testing.T) {
 		// analyse_parse {(a whatelse can i hidden test, b HIDDEN hidden)} {a b} (unsupported command, not transpiled)
 	}
 	{ // do_test "vtabA-3.1"
-		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIRTUAL TABLE vt1 USING echo(t1);\n    CREATE VIRTUAL TABLE vt2 USING echo(t2);\n    UPDATE vt2 SET x=(SELECT a FROM vt1 WHERE b=2) WHERE y=4;\n    SELECT * FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIRTUAL TABLE vt1 USING echo(t1);\n    CREATE VIRTUAL TABLE vt2 USING echo(t2);\n    UPDATE vt2 SET x=(SELECT a FROM vt1 WHERE b=2) WHERE y=4;\n    SELECT * FROM t2;\n  ")
+		r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIRTUAL TABLE vt1 USING echo(t1);\n    CREATE VIRTUAL TABLE vt2 USING echo(t2);\n    UPDATE vt2 SET x=(SELECT a FROM vt1 WHERE b=2) WHERE y=4;\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIRTUAL TABLE vt1 USING echo(t1);\n    CREATE VIRTUAL TABLE vt2 USING echo(t2);\n    UPDATE vt2 SET x=(SELECT a FROM vt1 WHERE b=2) WHERE y=4;\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

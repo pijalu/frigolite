@@ -189,9 +189,9 @@ func Test_mallocK(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // "8.0"
-		_res = db.Exec("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE x2(x TEXT, y TEXT);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO x2 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX x2x ON x2(x);\n  CREATE INDEX x2y ON x2(y);\n  ANALYZE;\n  DELETE FROM x2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE x2(x TEXT, y TEXT);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO x2 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX x2x ON x2(x);\n  CREATE INDEX x2y ON x2(y);\n  ANALYZE;\n  DELETE FROM x2;\n")
+		r = db.Query("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE x2(x TEXT, y TEXT);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO x2 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX x2x ON x2(x);\n  CREATE INDEX x2y ON x2(y);\n  ANALYZE;\n  DELETE FROM x2;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE x2(x TEXT, y TEXT);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO x2 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX x2x ON x2(x);\n  CREATE INDEX x2y ON x2(y);\n  ANALYZE;\n  DELETE FROM x2;\n")
 		}
 	}
 	// proc definition (not transpiled)

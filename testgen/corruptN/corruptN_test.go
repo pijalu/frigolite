@@ -85,9 +85,9 @@ func Test_corruptN(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	if tclBool("!" + "info exists ::G(perm:presql)") {
 		{ // "3.0"
-			_res = db.Exec("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = 'CREATE TABLE sqlite_sequence(name-seq)' \n      WHERE name = 'sqlite_sequence';\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = 'CREATE TABLE sqlite_sequence(name-seq)' \n      WHERE name = 'sqlite_sequence';\n  ")
+			r = db.Query("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = 'CREATE TABLE sqlite_sequence(name-seq)' \n      WHERE name = 'sqlite_sequence';\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = 'CREATE TABLE sqlite_sequence(name-seq)' \n      WHERE name = 'sqlite_sequence';\n  ")
 			}
 		}
 		_dbtmp0, err := frigolite.Open("test.db")
@@ -103,9 +103,9 @@ func Test_corruptN(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "4.1"
-			_res = db.Exec("\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n    INSERT INTO x1 VALUES(1, 1, 2);\n    INSERT INTO x1 VALUES(2, 2, 3);\n    INSERT INTO x1 VALUES(3, 3, 4);\n    INSERT INTO x1 VALUES(4, 5, 6);\n    PRAGMA writable_schema = 1;\n\n    UPDATE sqlite_schema SET rootpage = (\n      SELECT rootpage FROM sqlite_schema WHERE name = 'sqlite_autoindex_x1_2'\n    ) WHERE name = 'sqlite_autoindex_x1_1';\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n    INSERT INTO x1 VALUES(1, 1, 2);\n    INSERT INTO x1 VALUES(2, 2, 3);\n    INSERT INTO x1 VALUES(3, 3, 4);\n    INSERT INTO x1 VALUES(4, 5, 6);\n    PRAGMA writable_schema = 1;\n\n    UPDATE sqlite_schema SET rootpage = (\n      SELECT rootpage FROM sqlite_schema WHERE name = 'sqlite_autoindex_x1_2'\n    ) WHERE name = 'sqlite_autoindex_x1_1';\n  ")
+			r = db.Query("\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n    INSERT INTO x1 VALUES(1, 1, 2);\n    INSERT INTO x1 VALUES(2, 2, 3);\n    INSERT INTO x1 VALUES(3, 3, 4);\n    INSERT INTO x1 VALUES(4, 5, 6);\n    PRAGMA writable_schema = 1;\n\n    UPDATE sqlite_schema SET rootpage = (\n      SELECT rootpage FROM sqlite_schema WHERE name = 'sqlite_autoindex_x1_2'\n    ) WHERE name = 'sqlite_autoindex_x1_1';\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n    INSERT INTO x1 VALUES(1, 1, 2);\n    INSERT INTO x1 VALUES(2, 2, 3);\n    INSERT INTO x1 VALUES(3, 3, 4);\n    INSERT INTO x1 VALUES(4, 5, 6);\n    PRAGMA writable_schema = 1;\n\n    UPDATE sqlite_schema SET rootpage = (\n      SELECT rootpage FROM sqlite_schema WHERE name = 'sqlite_autoindex_x1_2'\n    ) WHERE name = 'sqlite_autoindex_x1_1';\n  ")
 			}
 		}
 		_dbtmp1, err := frigolite.Open("test.db")
@@ -123,9 +123,9 @@ func Test_corruptN(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // "5.0"
-		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';\n  ")
 		}
 	}
 	if tclBool("info exists ::G(perm:presql)" + "==0 || " + G_perm_presql + "==\"\"") {
@@ -143,9 +143,9 @@ func Test_corruptN(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
-		_res = db.Exec("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(b) VALUES(zeroblob(300)),(zeroblob(300)),(zeroblob(300)),(zeroblob(300));\n  CREATE TABLE t2(a);\n  CREATE TRIGGER t1tr BEFORE UPDATE ON t1 BEGIN DELETE FROM t2; END;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET rootpage=3 WHERE rowid=2;\n  PRAGMA writable_schema=RESET;\n  INSERT INTO t2 VALUES('active'),('boomer'),('atom'),('atomic'),\n         ('alpha channel backup abandon test aback boomer atom alpha active');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(b) VALUES(zeroblob(300)),(zeroblob(300)),(zeroblob(300)),(zeroblob(300));\n  CREATE TABLE t2(a);\n  CREATE TRIGGER t1tr BEFORE UPDATE ON t1 BEGIN DELETE FROM t2; END;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET rootpage=3 WHERE rowid=2;\n  PRAGMA writable_schema=RESET;\n  INSERT INTO t2 VALUES('active'),('boomer'),('atom'),('atomic'),\n         ('alpha channel backup abandon test aback boomer atom alpha active');\n")
+		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(b) VALUES(zeroblob(300)),(zeroblob(300)),(zeroblob(300)),(zeroblob(300));\n  CREATE TABLE t2(a);\n  CREATE TRIGGER t1tr BEFORE UPDATE ON t1 BEGIN DELETE FROM t2; END;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET rootpage=3 WHERE rowid=2;\n  PRAGMA writable_schema=RESET;\n  INSERT INTO t2 VALUES('active'),('boomer'),('atom'),('atomic'),\n         ('alpha channel backup abandon test aback boomer atom alpha active');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(b) VALUES(zeroblob(300)),(zeroblob(300)),(zeroblob(300)),(zeroblob(300));\n  CREATE TABLE t2(a);\n  CREATE TRIGGER t1tr BEFORE UPDATE ON t1 BEGIN DELETE FROM t2; END;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET rootpage=3 WHERE rowid=2;\n  PRAGMA writable_schema=RESET;\n  INSERT INTO t2 VALUES('active'),('boomer'),('atom'),('atomic'),\n         ('alpha channel backup abandon test aback boomer atom alpha active');\n")
 		}
 	}
 	{ // "6.1"
@@ -173,9 +173,9 @@ func Test_corruptN(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
-		_res = db.Exec("\n  BEGIN;\n  CREATE TABLE p1(x PRIMARY KEY);\n  CREATE TABLE c1(y);\n\n  PRAGMA schema_version = 0;\n  PRAGMA writable_schema = RESET;\n\n  INSERT INTO c1 VALUES(1000);\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE TABLE p1(x PRIMARY KEY);\n  CREATE TABLE c1(y);\n\n  PRAGMA schema_version = 0;\n  PRAGMA writable_schema = RESET;\n\n  INSERT INTO c1 VALUES(1000);\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  CREATE TABLE p1(x PRIMARY KEY);\n  CREATE TABLE c1(y);\n\n  PRAGMA schema_version = 0;\n  PRAGMA writable_schema = RESET;\n\n  INSERT INTO c1 VALUES(1000);\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  CREATE TABLE p1(x PRIMARY KEY);\n  CREATE TABLE c1(y);\n\n  PRAGMA schema_version = 0;\n  PRAGMA writable_schema = RESET;\n\n  INSERT INTO c1 VALUES(1000);\n  ROLLBACK;\n")
 		}
 	}
 	{ // "7.1"

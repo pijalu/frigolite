@@ -261,9 +261,9 @@ func Test_e_vacuum(t *testing.T) {
 		os.Remove("test.db2")
 		// create_db { PRAGMA auto_vacuum = NONE } (unsupported command, not transpiled)
 		{ // "e_vacuum-2.1.1"
-			_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
+			r = db.Query("\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
 			}
 		}
 		original_size = "file size test.db2"
@@ -348,9 +348,15 @@ func Test_e_vacuum(t *testing.T) {
 		}
 		os.Remove("test2.db")
 		{ // "e_vacuum-3.1.6"
-			_res = db.Exec("\n  VACUUM INTO 'test2.db';\n  ATTACH 'test2.db' AS aux1;\n  SELECT rowid, x FROM aux1.t5;\n  DETACH aux1;\n")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "x 3 z") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "x 3 z", _res.Error, "\n  VACUUM INTO 'test2.db';\n  ATTACH 'test2.db' AS aux1;\n  SELECT rowid, x FROM aux1.t5;\n  DETACH aux1;\n")
+			r = db.Query("\n  VACUUM INTO 'test2.db';\n  ATTACH 'test2.db' AS aux1;\n  SELECT rowid, x FROM aux1.t5;\n  DETACH aux1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM INTO 'test2.db';\n  ATTACH 'test2.db' AS aux1;\n  SELECT rowid, x FROM aux1.t5;\n  DETACH aux1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 x 3 z"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "e_vacuum-3.1.7"

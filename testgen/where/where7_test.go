@@ -7,7 +7,6 @@ package where
 import (
 "github.com/pijalu/frigolite"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -67,16 +66,28 @@ func Test_where7(t *testing.T) {
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // "where7-1.1.1"
-			_res = db.Exec("\n    CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 1 2 2") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 1 2 2", _res.Error, "\n    CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;\n  ")
+			r = db.Query("\n    CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 1 2 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	} else {
 		{ // "where7-1.1.1-noopt"
-			_res = db.Exec("\n    CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 1 2 3") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 1 2 3", _res.Error, "\n    CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;\n  ")
+			r = db.Query("\n    CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 1 2 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}

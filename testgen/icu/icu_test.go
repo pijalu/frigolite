@@ -148,27 +148,27 @@ func Test_icu(t *testing.T) {
 		}
 	}
 	{ // "icu-5.1"
-		_res = db.Exec(" SELECT regexp('a[abc]c.*', 'abc') ")
+		_res = db.Exec(" SELECT regexp('a" + sqlLiteral("abc") + "c.*', 'abc') ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT regexp('a[abc]c.*', 'abc') ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT regexp('a" + sqlLiteral("abc") + "c.*', 'abc') ")
 		}
 	}
 	{ // "icu-5.2"
-		_res = db.Exec(" \n    SELECT regexp('a[abc]c.*') \n  ")
+		_res = db.Exec(" \n    SELECT regexp('a" + sqlLiteral("abc") + "c.*') \n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function regexp()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function regexp()", _res.Error, " \n    SELECT regexp('a[abc]c.*') \n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function regexp()", _res.Error, " \n    SELECT regexp('a" + sqlLiteral("abc") + "c.*') \n  ")
 		}
 	}
 	{ // "icu-5.3"
-		_res = db.Exec(" \n    SELECT regexp('a[abc]c.*', 'abc', 'c') \n  ")
+		_res = db.Exec(" \n    SELECT regexp('a" + sqlLiteral("abc") + "c.*', 'abc', 'c') \n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function regexp()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function regexp()", _res.Error, " \n    SELECT regexp('a[abc]c.*', 'abc', 'c') \n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function regexp()", _res.Error, " \n    SELECT regexp('a" + sqlLiteral("abc") + "c.*', 'abc', 'c') \n  ")
 		}
 	}
 	{ // "icu-5.4"
-		_res = db.Exec(" \n    SELECT 'abc' REGEXP 'a[abc]c.*'\n  ")
+		_res = db.Exec(" \n    SELECT 'abc' REGEXP 'a" + sqlLiteral("abc") + "c.*'\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    SELECT 'abc' REGEXP 'a[abc]c.*'\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    SELECT 'abc' REGEXP 'a" + sqlLiteral("abc") + "c.*'\n  ")
 		}
 	}
 	{ // "icu-5.5"

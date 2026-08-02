@@ -362,8 +362,8 @@ func Test_e_createtable(t *testing.T) {
 			}
 			{ // "e_createtable-2.4." + tn + ".2"
 				_res = db.Exec("SELECT min(rowid), count(rowid)==max(rowid) FROM " + tbl)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1", _res.Error, "SELECT min(rowid), count(rowid)==max(rowid) FROM " + tbl)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT min(rowid), count(rowid)==max(rowid) FROM " + tbl)
 				}
 			}
 		}

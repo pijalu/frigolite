@@ -168,9 +168,15 @@ func Test_update(t *testing.T) {
 	{ // do_test "update-3.5.1"
 	}
 	{ // do_test "update-3.5.2"
-		_res = db.Exec("SELECT count(*) FROM test1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*) FROM test1")
+		r = db.Query("SELECT count(*) FROM test1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM test1")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "update-3.5.3"
@@ -1124,21 +1130,39 @@ func Test_update(t *testing.T) {
 	}
 	tcl_nullvalue = "NULL"
 	{ // "update-21.2"
-		_res = db.Exec("\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null;\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null;\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null;\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null;\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "6 -54 100 NULL"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "update-21.3"
-		_res = db.Exec("\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "3 NULL 6 -54"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "update-21.4"
-		_res = db.Exec("\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null OR NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null OR NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null OR NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null OR NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "6 -54 100 NULL"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "update-21.11"

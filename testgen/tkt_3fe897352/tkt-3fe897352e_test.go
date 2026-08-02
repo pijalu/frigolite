@@ -58,21 +58,39 @@ func Test_tkt_3fe897352e(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-3fe89-1.2"
-		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('00D8'));\n    SELECT hex(x) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('00D8'));\n    SELECT hex(x) FROM t1;\n  ")
+		r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('00D8'));\n    SELECT hex(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('00D8'));\n    SELECT hex(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "EDA080"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-3fe89-1.3"
-		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16be('DFFF'));\n    SELECT hex(x) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16be('DFFF'));\n    SELECT hex(x) FROM t1;\n  ")
+		r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16be('DFFF'));\n    SELECT hex(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16be('DFFF'));\n    SELECT hex(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "EDBFBF"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-3fe89-1.4"
-		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('FFDF'));\n    SELECT hex(x) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('FFDF'));\n    SELECT hex(x) FROM t1;\n  ")
+		r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('FFDF'));\n    SELECT hex(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('FFDF'));\n    SELECT hex(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "EDBFBF"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

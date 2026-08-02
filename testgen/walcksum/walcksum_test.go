@@ -282,9 +282,15 @@ func Test_walcksum(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
-		_res = db.Exec("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
+		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal 0 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "3.1"
@@ -324,9 +330,15 @@ func Test_walcksum(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
-		_res = db.Exec("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
+		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal 0 2 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "4.1.1"
@@ -384,9 +396,15 @@ func Test_walcksum(t *testing.T) {
 		}
 	}
 	{ // "5.1"
-		_res = db.Exec("\n  BEGIN;\n    SELECT count(*) FROM t1;\n    SAVEPOINT one;\n    INSERT INTO t1 VALUES(4, randomblob(2048), 'four');\n    INSERT INTO t1 VALUES(5, randomblob(2048), 'five');\n    INSERT INTO t1 VALUES(6, randomblob(2048), 'six');\n    INSERT INTO t1 VALUES(7, randomblob(2048), 'seven');\n    ROLLBACK TO one;\n    INSERT INTO t1 VALUES(8, randomblob(2048), 'eight');\n    INSERT INTO t1 VALUES(9, randomblob(2048), 'nine');\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    SELECT count(*) FROM t1;\n    SAVEPOINT one;\n    INSERT INTO t1 VALUES(4, randomblob(2048), 'four');\n    INSERT INTO t1 VALUES(5, randomblob(2048), 'five');\n    INSERT INTO t1 VALUES(6, randomblob(2048), 'six');\n    INSERT INTO t1 VALUES(7, randomblob(2048), 'seven');\n    ROLLBACK TO one;\n    INSERT INTO t1 VALUES(8, randomblob(2048), 'eight');\n    INSERT INTO t1 VALUES(9, randomblob(2048), 'nine');\n  COMMIT;\n")
+		r = db.Query("\n  BEGIN;\n    SELECT count(*) FROM t1;\n    SAVEPOINT one;\n    INSERT INTO t1 VALUES(4, randomblob(2048), 'four');\n    INSERT INTO t1 VALUES(5, randomblob(2048), 'five');\n    INSERT INTO t1 VALUES(6, randomblob(2048), 'six');\n    INSERT INTO t1 VALUES(7, randomblob(2048), 'seven');\n    ROLLBACK TO one;\n    INSERT INTO t1 VALUES(8, randomblob(2048), 'eight');\n    INSERT INTO t1 VALUES(9, randomblob(2048), 'nine');\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    SELECT count(*) FROM t1;\n    SAVEPOINT one;\n    INSERT INTO t1 VALUES(4, randomblob(2048), 'four');\n    INSERT INTO t1 VALUES(5, randomblob(2048), 'five');\n    INSERT INTO t1 VALUES(6, randomblob(2048), 'six');\n    INSERT INTO t1 VALUES(7, randomblob(2048), 'seven');\n    ROLLBACK TO one;\n    INSERT INTO t1 VALUES(8, randomblob(2048), 'eight');\n    INSERT INTO t1 VALUES(9, randomblob(2048), 'nine');\n  COMMIT;\n")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	tclFileCopy("test.db", "test2.db")

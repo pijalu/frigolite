@@ -62,252 +62,252 @@ func Test_tkt_38cb5df375(t *testing.T) {
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.1." + ii
-			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.2." + ii
-			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.3." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.4." + ii
-			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.5." + ii
-			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.11." + ii
-			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.12." + ii
-			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.13." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.14." + ii
-			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.21." + ii
-			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.22." + ii
-			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.23." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.24." + ii
-			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.31." + ii
-			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9 10 11") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.32." + ii
-			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.33." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.34." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.35." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.35b." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.35c." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.35d." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.35e." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.36." + ii
-			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.37." + ii
-			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.38." + ii
-			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.41." + ii
-			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.42." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7 8 9") {
 	_ = ii // suppress unused warning
 		{ // do_test "tkt-38cb5df375.43." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + ii + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT " + sqlLiteral(ii) + ";\n    ")
 			}
 		}
 	}
@@ -316,9 +316,9 @@ func Test_tkt_38cb5df375(t *testing.T) {
 		jj = tclExprWith("7-$ii", map[string]string{"ii": ii})
 		_ = jj // suppress unused warning
 		{ // do_test "tkt-38cb5df375.51." + ii
-			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT " + ii + ")\n      ORDER BY a DESC\n      LIMIT " + jj + ";\n    ")
+			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT " + sqlLiteral(ii) + ")\n      ORDER BY a DESC\n      LIMIT " + sqlLiteral(jj) + ";\n    ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT " + ii + ")\n      ORDER BY a DESC\n      LIMIT " + jj + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT " + sqlLiteral(ii) + ")\n      ORDER BY a DESC\n      LIMIT " + sqlLiteral(jj) + ";\n    ")
 			}
 		}
 	}

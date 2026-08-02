@@ -66,27 +66,51 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-a one-c two-a two-b three-a three-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.1b"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "1.2a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-a one-c two-a two-b three-a three-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.2b"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "1.3a"
@@ -97,64 +121,124 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3b"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	// optimization_control db all 1 (unsupported command, not transpiled)
 	{ // do_test "1.4a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-a three-c two-a two-b one-a one-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.4b"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-a three-c two-a two-b one-a one-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.4c"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "1.5a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-c one-a two-b two-a three-c three-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.5b"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-c one-a two-b two-a three-c three-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.5c"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "1.6a"
-		_res = db.Exec("\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY title DESC, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY title DESC, tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY title DESC, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY title DESC, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-c three-a two-b two-a one-c one-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.6b"
-		_res = db.Exec("\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY +title DESC, +tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY +title DESC, +tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY +title DESC, +tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY +title DESC, +tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-c three-a two-b two-a one-c one-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.6c"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY title DESC, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY title DESC, tn DESC\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY title DESC, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY title DESC, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "2.0"
@@ -164,39 +248,75 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-a one-c two-a two-b three-a three-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.1b"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "2.1c"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, aid, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, aid, tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, aid, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, aid, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-a one-c two-a two-b three-a three-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.1d"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, aid, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, aid, tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, aid, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, aid, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "2.2a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-a one-c two-a two-b three-a three-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.2b"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "2.3a"
@@ -207,64 +327,124 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3b"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	// optimization_control db all 1 (unsupported command, not transpiled)
 	{ // do_test "2.4a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-a three-c two-a two-b one-a one-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.4b"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-a three-c two-a two-b one-a one-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.4c"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "2.5a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-c one-a two-b two-a three-c three-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.5b"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-c one-a two-b two-a three-c three-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.5c"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "2.6a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-c three-a two-b two-a one-c one-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.6b"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-c three-a two-b two-a one-c one-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.6c"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "3.0"
@@ -274,27 +454,51 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1a"
-		_res = db.Exec("\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-c one-a two-b two-a three-c three-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.1b"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "3.2a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-c one-a two-b two-a three-c three-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.2b"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "3.3a"
@@ -305,70 +509,136 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "3.3b"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	// optimization_control db all 1 (unsupported command, not transpiled)
 	{ // do_test "3.4a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-a one-c two-a two-b three-a three-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.4b"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "one-a one-c two-a two-b three-a three-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.4c"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "3.5a"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-c three-a two-b two-a one-c one-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.5b"
-		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn DESC\n  ")
+		r = db.Query("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title DESC, +tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-c three-a two-b two-a one-c one-a"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.5c"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "3.6a"
-		_res = db.Exec("\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		r = db.Query("\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-a three-c two-a two-b one-a one-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.6b"
-		_res = db.Exec("\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY +title DESC, +tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY +title DESC, +tn\n  ")
+		r = db.Query("\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY +title DESC, +tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY +title DESC, +tn\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "three-a three-c two-a two-b one-a one-c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.6c"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "ORDER BY"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "4.0"
-		_res = db.Exec("\n    CREATE TABLE t41(a INT UNIQUE NOT NULL, b INT NOT NULL);\n    CREATE INDEX t41ba ON t41(b,a);\n    CREATE TABLE t42(x INT NOT NULL REFERENCES t41(a), y INT NOT NULL);\n    CREATE UNIQUE INDEX t42xy ON t42(x,y);\n    INSERT INTO t41 VALUES(1,1),(3,1);\n    INSERT INTO t42 VALUES(1,13),(1,15),(3,14),(3,16);\n    \n    SELECT b, y FROM t41 CROSS JOIN t42 ON x=a ORDER BY b, y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t41(a INT UNIQUE NOT NULL, b INT NOT NULL);\n    CREATE INDEX t41ba ON t41(b,a);\n    CREATE TABLE t42(x INT NOT NULL REFERENCES t41(a), y INT NOT NULL);\n    CREATE UNIQUE INDEX t42xy ON t42(x,y);\n    INSERT INTO t41 VALUES(1,1),(3,1);\n    INSERT INTO t42 VALUES(1,13),(1,15),(3,14),(3,16);\n    \n    SELECT b, y FROM t41 CROSS JOIN t42 ON x=a ORDER BY b, y;\n  ")
+		r = db.Query("\n    CREATE TABLE t41(a INT UNIQUE NOT NULL, b INT NOT NULL);\n    CREATE INDEX t41ba ON t41(b,a);\n    CREATE TABLE t42(x INT NOT NULL REFERENCES t41(a), y INT NOT NULL);\n    CREATE UNIQUE INDEX t42xy ON t42(x,y);\n    INSERT INTO t41 VALUES(1,1),(3,1);\n    INSERT INTO t42 VALUES(1,13),(1,15),(3,14),(3,16);\n    \n    SELECT b, y FROM t41 CROSS JOIN t42 ON x=a ORDER BY b, y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t41(a INT UNIQUE NOT NULL, b INT NOT NULL);\n    CREATE INDEX t41ba ON t41(b,a);\n    CREATE TABLE t42(x INT NOT NULL REFERENCES t41(a), y INT NOT NULL);\n    CREATE UNIQUE INDEX t42xy ON t42(x,y);\n    INSERT INTO t41 VALUES(1,1),(3,1);\n    INSERT INTO t42 VALUES(1,13),(1,15),(3,14),(3,16);\n    \n    SELECT b, y FROM t41 CROSS JOIN t42 ON x=a ORDER BY b, y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 13 1 14 1 15 1 16"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "5.0"
@@ -441,9 +711,9 @@ func Test_orderby1(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "8.0"
-		_res = db.Exec("\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
+		r = db.Query("\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
 		}
 	}
 	{ // "8.1"

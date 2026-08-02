@@ -315,12 +315,14 @@ type maxAgg struct {
 }
 
 func (m *maxAgg) Step(args []interface{}) error {
-	if len(args) == 0 || args[0] == nil {
-		return nil
-	}
-	if !m.set || less(m.max, args[0]) {
-		m.max = args[0]
-		m.set = true
+	for _, arg := range args {
+		if arg == nil {
+			continue
+		}
+		if !m.set || less(m.max, arg) {
+			m.max = arg
+			m.set = true
+		}
 	}
 	return nil
 }

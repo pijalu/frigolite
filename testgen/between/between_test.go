@@ -104,9 +104,9 @@ func Test_between(t *testing.T) {
 			_ = y // suppress unused warning
 			z = tclExprWith("$x+$y", map[string]string{"x": x, "y": y})
 			_ = z // suppress unused warning
-			_res = db.Exec("INSERT INTO t1 VALUES(" + w + "," + x + "," + y + "," + z + ")")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + w + "," + x + "," + y + "," + z + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
 			}
 			// incr i 1
 			{

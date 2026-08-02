@@ -61,15 +61,27 @@ func Test_amatch1(t *testing.T) {
 		}
 	}
 	{ // do_test "amatch1-1.1"
-		_res = db.Exec("\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 ORDER BY 1 LIMIT 5\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 ORDER BY 1 LIMIT 5\n  ")
+		r = db.Query("\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 ORDER BY 1 LIMIT 5\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 ORDER BY 1 LIMIT 5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "baalhanan babel back backward bad"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "amatch1-1.2"
-		_res = db.Exec("\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 LIMIT 5\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 LIMIT 5\n  ")
+		r = db.Query("\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 LIMIT 5\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 LIMIT 5\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "baalhanan babel back backward bad"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// load_static_extension db amatch (unsupported command, not transpiled)

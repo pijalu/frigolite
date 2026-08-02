@@ -53,27 +53,51 @@ func Test_tkt_31338dca7e(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-31338-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(111);\n    INSERT INTO t1 VALUES(222);\n    INSERT INTO t2 VALUES(333);\n    INSERT INTO t2 VALUES(444);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(111);\n    INSERT INTO t1 VALUES(222);\n    INSERT INTO t2 VALUES(333);\n    INSERT INTO t2 VALUES(444);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(111);\n    INSERT INTO t1 VALUES(222);\n    INSERT INTO t2 VALUES(333);\n    INSERT INTO t2 VALUES(444);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(111);\n    INSERT INTO t1 VALUES(222);\n    INSERT INTO t2 VALUES(333);\n    INSERT INTO t2 VALUES(444);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "111 333 222 333 222 444"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-31338-1.2"
-		_res = db.Exec("\n    CREATE INDEX t1x ON t1(x);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t1x ON t1(x);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;\n  ")
+		r = db.Query("\n    CREATE INDEX t1x ON t1(x);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX t1x ON t1(x);\n    SELECT * FROM t1, t2\n     WHERE (x=111 AND y!=444) OR x=222\n     ORDER BY x, y;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "111 333 222 333 222 444"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-31338-2.1"
-		_res = db.Exec("\n    CREATE TABLE t3(v,w);\n    CREATE TABLE t4(x,y);\n    CREATE TABLE t5(z);\n    INSERT INTO t3 VALUES(111,222);\n    INSERT INTO t3 VALUES(333,444);\n    INSERT INTO t4 VALUES(222,333);\n    INSERT INTO t4 VALUES(444,555);\n    INSERT INTO t5 VALUES(888);\n    INSERT INTO t5 VALUES(999);\n    \n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(v,w);\n    CREATE TABLE t4(x,y);\n    CREATE TABLE t5(z);\n    INSERT INTO t3 VALUES(111,222);\n    INSERT INTO t3 VALUES(333,444);\n    INSERT INTO t4 VALUES(222,333);\n    INSERT INTO t4 VALUES(444,555);\n    INSERT INTO t5 VALUES(888);\n    INSERT INTO t5 VALUES(999);\n    \n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;\n  ")
+		r = db.Query("\n    CREATE TABLE t3(v,w);\n    CREATE TABLE t4(x,y);\n    CREATE TABLE t5(z);\n    INSERT INTO t3 VALUES(111,222);\n    INSERT INTO t3 VALUES(333,444);\n    INSERT INTO t4 VALUES(222,333);\n    INSERT INTO t4 VALUES(444,555);\n    INSERT INTO t5 VALUES(888);\n    INSERT INTO t5 VALUES(999);\n    \n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(v,w);\n    CREATE TABLE t4(x,y);\n    CREATE TABLE t5(z);\n    INSERT INTO t3 VALUES(111,222);\n    INSERT INTO t3 VALUES(333,444);\n    INSERT INTO t4 VALUES(222,333);\n    INSERT INTO t4 VALUES(444,555);\n    INSERT INTO t5 VALUES(888);\n    INSERT INTO t5 VALUES(999);\n    \n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "111 222 222 333 888 333 444 444 555 888 333 444 444 555 999"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-31338-2.2"
-		_res = db.Exec("\n   CREATE INDEX t3v ON t3(v);\n   CREATE INDEX t4x ON t4(x);\n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE INDEX t3v ON t3(v);\n   CREATE INDEX t4x ON t4(x);\n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;\n  ")
+		r = db.Query("\n   CREATE INDEX t3v ON t3(v);\n   CREATE INDEX t4x ON t4(x);\n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   CREATE INDEX t3v ON t3(v);\n   CREATE INDEX t4x ON t4(x);\n    SELECT * FROM t3, t4, t5\n     WHERE (v=111 AND x=w AND z!=999) OR (v=333 AND x=444)\n     ORDER BY v, w, x, y, z;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "111 222 222 333 888 333 444 444 555 888 333 444 444 555 999"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-31338-3.1"
@@ -96,39 +120,75 @@ func Test_tkt_31338dca7e(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-31338-3.2"
-		_res = db.Exec("    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b=2 AND b NOT IN (\n               SELECT x+1 FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b=2 AND b NOT IN (\n               SELECT x+1 FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		r = db.Query("    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b=2 AND b NOT IN (\n               SELECT x+1 FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b=2 AND b NOT IN (\n               SELECT x+1 FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 1 2 3 4 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-31338-3.3"
-		_res = db.Exec("    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (+a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (+a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		r = db.Query("    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (+a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (+a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 1 2 3 4 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-31338-3.4"
-		_res = db.Exec("    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (+b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (+b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		r = db.Query("    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (+b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "    \n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (+b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 1 2 3 4 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-31338-3.5"
-		_res = db.Exec("\n    CREATE TABLE t5(a,b,c,d,e,f);\n    CREATE TABLE t6(g,h);\n    CREATE TRIGGER t6r AFTER INSERT ON t6 BEGIN\n      INSERT INTO t5    \n        SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n         WHERE (a=1 AND h=4)\n            OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n    END;\n    INSERT INTO t6 VALUES(88,99);\n    SELECT * FROM t5;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t5(a,b,c,d,e,f);\n    CREATE TABLE t6(g,h);\n    CREATE TRIGGER t6r AFTER INSERT ON t6 BEGIN\n      INSERT INTO t5    \n        SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n         WHERE (a=1 AND h=4)\n            OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n    END;\n    INSERT INTO t6 VALUES(88,99);\n    SELECT * FROM t5;\n  ")
+		r = db.Query("\n    CREATE TABLE t5(a,b,c,d,e,f);\n    CREATE TABLE t6(g,h);\n    CREATE TRIGGER t6r AFTER INSERT ON t6 BEGIN\n      INSERT INTO t5    \n        SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n         WHERE (a=1 AND h=4)\n            OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n    END;\n    INSERT INTO t6 VALUES(88,99);\n    SELECT * FROM t5;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a,b,c,d,e,f);\n    CREATE TABLE t6(g,h);\n    CREATE TRIGGER t6r AFTER INSERT ON t6 BEGIN\n      INSERT INTO t5    \n        SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n         WHERE (a=1 AND h=4)\n            OR (b IN (\n               SELECT x FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n    END;\n    INSERT INTO t6 VALUES(88,99);\n    SELECT * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 1 2 3 4 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-31338-3.6"
-		_res = db.Exec("    \n    INSERT INTO t1 VALUES(2,4,3,4);\n    INSERT INTO t1 VALUES(99,101,3,4);\n    INSERT INTO t1 VALUES(98,97,3,4);\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x+a FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "    \n    INSERT INTO t1 VALUES(2,4,3,4);\n    INSERT INTO t1 VALUES(99,101,3,4);\n    INSERT INTO t1 VALUES(98,97,3,4);\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x+a FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		r = db.Query("    \n    INSERT INTO t1 VALUES(2,4,3,4);\n    INSERT INTO t1 VALUES(99,101,3,4);\n    INSERT INTO t1 VALUES(98,97,3,4);\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x+a FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "    \n    INSERT INTO t1 VALUES(2,4,3,4);\n    INSERT INTO t1 VALUES(99,101,3,4);\n    INSERT INTO t1 VALUES(98,97,3,4);\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x+a FROM (SELECT e+f AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 2 4 3 4 {} 4 99 101 3 4 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-31338-3.7"
-		_res = db.Exec("\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f+a AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f+a AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		r = db.Query("\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f+a AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3 LEFT JOIN t1 ON d=g LEFT JOIN t4 ON c=h\n     WHERE (a=1 AND h=4)\n         OR (b IN (\n               SELECT x FROM (SELECT e+f+a AS x, e FROM t2 ORDER BY 1 LIMIT 2)\n               GROUP BY e\n            ));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4 2 4 3 4 {} 4 99 101 3 4 {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

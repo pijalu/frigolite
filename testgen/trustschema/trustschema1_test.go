@@ -190,9 +190,15 @@ func Test_trustschema1(t *testing.T) {
 		}
 	}
 	{ // "1.400"
-		_res = db.Exec("\n  CREATE TABLE t4(a,b,c);\n  INSERT INTO t4 VALUES(1,2,3),('a','b','c'),(4,'d',0);\n  SELECT * FROM t4;\n  CREATE TEMP TABLE temp4(a,b,c);\n  INSERT INTO temp4 SELECT * FROM t4;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3 a b c 4 d 0") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3 a b c 4 d 0", _res.Error, "\n  CREATE TABLE t4(a,b,c);\n  INSERT INTO t4 VALUES(1,2,3),('a','b','c'),(4,'d',0);\n  SELECT * FROM t4;\n  CREATE TEMP TABLE temp4(a,b,c);\n  INSERT INTO temp4 SELECT * FROM t4;\n")
+		r = db.Query("\n  CREATE TABLE t4(a,b,c);\n  INSERT INTO t4 VALUES(1,2,3),('a','b','c'),(4,'d',0);\n  SELECT * FROM t4;\n  CREATE TEMP TABLE temp4(a,b,c);\n  INSERT INTO temp4 SELECT * FROM t4;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(a,b,c);\n  INSERT INTO t4 VALUES(1,2,3),('a','b','c'),(4,'d',0);\n  SELECT * FROM t4;\n  CREATE TEMP TABLE temp4(a,b,c);\n  INSERT INTO temp4 SELECT * FROM t4;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 a b c 4 d 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.410"
@@ -244,9 +250,15 @@ func Test_trustschema1(t *testing.T) {
 		}
 	}
 	{ // "1.500"
-		_res = db.Exec("\n  CREATE TABLE t5(a,b,c);\n  INSERT INTO t5 VALUES(1,2,3),(4,5,6),(7,0,-3);\n  SELECT * FROM t5;\n  CREATE TEMP TABLE temp5(a,b,c);\n  INSERT INTO temp5 SELECT * FROM t5;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3 4 5 6 7 0 -3") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3 4 5 6 7 0 -3", _res.Error, "\n  CREATE TABLE t5(a,b,c);\n  INSERT INTO t5 VALUES(1,2,3),(4,5,6),(7,0,-3);\n  SELECT * FROM t5;\n  CREATE TEMP TABLE temp5(a,b,c);\n  INSERT INTO temp5 SELECT * FROM t5;\n")
+		r = db.Query("\n  CREATE TABLE t5(a,b,c);\n  INSERT INTO t5 VALUES(1,2,3),(4,5,6),(7,0,-3);\n  SELECT * FROM t5;\n  CREATE TEMP TABLE temp5(a,b,c);\n  INSERT INTO temp5 SELECT * FROM t5;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(a,b,c);\n  INSERT INTO t5 VALUES(1,2,3),(4,5,6),(7,0,-3);\n  SELECT * FROM t5;\n  CREATE TEMP TABLE temp5(a,b,c);\n  INSERT INTO temp5 SELECT * FROM t5;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 0 -3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.510"

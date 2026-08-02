@@ -84,9 +84,9 @@ func Test_selectG(t *testing.T) {
 		}
 		microsec = "0"
 		_ = microsec // suppress unused warning
-		_res = db.Exec("\n    SELECT count(x), sum(x), avg(x), " + microsec + "<10000000 FROM t1;\n  ")
+		_res = db.Exec("\n    SELECT count(x), sum(x), avg(x), " + sqlLiteral(microsec) + "<10000000 FROM t1;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT count(x), sum(x), avg(x), " + microsec + "<10000000 FROM t1;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT count(x), sum(x), avg(x), " + sqlLiteral(microsec) + "<10000000 FROM t1;\n  ")
 		}
 	}
 	{ // do_test "110"

@@ -50,27 +50,51 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-d82e3-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(null,'abc');\n    INSERT INTO t1 VALUES(null,'def');\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(null,'ghi');\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(null,'abc');\n    INSERT INTO t1 VALUES(null,'def');\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(null,'ghi');\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(null,'abc');\n    INSERT INTO t1 VALUES(null,'def');\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(null,'ghi');\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(null,'abc');\n    INSERT INTO t1 VALUES(null,'def');\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(null,'ghi');\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 ghi"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-d82e3-1.2"
-		_res = db.Exec("\n    CREATE TEMP TABLE t2(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t2 VALUES(null,'jkl');\n    INSERT INTO t2 VALUES(null,'mno');\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(null,'pqr');\n    SELECT * FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE t2(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t2 VALUES(null,'jkl');\n    INSERT INTO t2 VALUES(null,'mno');\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(null,'pqr');\n    SELECT * FROM t2;\n  ")
+		r = db.Query("\n    CREATE TEMP TABLE t2(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t2 VALUES(null,'jkl');\n    INSERT INTO t2 VALUES(null,'mno');\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(null,'pqr');\n    SELECT * FROM t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE t2(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t2 VALUES(null,'jkl');\n    INSERT INTO t2 VALUES(null,'mno');\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(null,'pqr');\n    SELECT * FROM t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 pqr"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-d82e3-1.3"
-		_res = db.Exec("\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
+		r = db.Query("\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "main t1 3 temp t2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-d82e3-1.4"
-		_res = db.Exec("\n    VACUUM;\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
+		r = db.Query("\n    VACUUM;\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    VACUUM;\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "main t1 3 temp t2 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db2, err = frigolite.Open("test.db")
@@ -88,9 +112,15 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-d82e3-2.2"
-		_res = db.Exec("\n    VACUUM;\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
+		r = db.Query("\n    VACUUM;\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    VACUUM;\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db2.Close()

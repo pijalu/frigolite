@@ -584,9 +584,15 @@ func Test_capi3(t *testing.T) {
 			// sqlite3_get_autocommit $DB (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3-11.3.4"
-			_res = db.Exec("PRAGMA lock_status")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA lock_status")
+			r = db.Query("PRAGMA lock_status")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA lock_status")
+				return
+			}
+			got := flatten(r)
+			want := "main shared temp closed"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "capi3-11.4"

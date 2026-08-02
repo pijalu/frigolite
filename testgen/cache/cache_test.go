@@ -100,9 +100,15 @@ func Test_cache(t *testing.T) {
 	}
 	// db_delete_and_reopen (unsupported command, not transpiled)
 	{ // "cache-2.0"
-		_res = db.Exec("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');\n")
+		r = db.Query("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');\n")
+			return
+		}
+		got := flatten(r)
+		want := "delete"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	i = "0"

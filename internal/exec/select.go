@@ -9,6 +9,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -145,6 +146,14 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// Push this statement's WITH (CTE) definitions so nested subqueries can
+	// resolve them by name (SQLite's name resolver consults enclosing WITH
+	// clauses). Pop on return regardless of path.
+	if len(s.CTEs) > 0 {
+		e.cteScopes = append(e.cteScopes, s.CTEs)
+		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
+	}
+
 	// Handle SELECT without FROM (e.g., SELECT 1, SELECT CASE...)
 	if s.From.Name == "" && s.From.Subquery == nil && len(s.From.As) == 0 {
 		return e.execSelectNoFrom(s)
@@ -155,9 +164,13 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		return e.execSelectFromSubquery(s)
 	}
 
-	// Handle CTE: check if the from table matches a CTE definition
-	for _, cte := range s.CTEs {
-		if cte.Name == s.From.Name || cte.Name == s.From.As {
+	// Handle CTE: check if the from table matches a CTE definition (either
+	// declared on this statement or in an enclosing WITH clause).
+	if cte, ok := e.findCTE(s, s.From.Name); ok {
+		return e.execSelectCTE(s, &cte)
+	}
+	if s.From.As != "" {
+		if cte, ok := e.findCTE(s, s.From.As); ok {
 			return e.execSelectCTE(s, &cte)
 		}
 	}
@@ -584,10 +597,9 @@ func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 	if hasViewCircularRef(sqlStr, entry.Name) {
 		return &Result{Error: fmt.Errorf("view %s is circularly defined", entry.Name)}
 	}
-	parser := sql.NewParser(selectSQL)
-	stmts := parser.Parse()
-	if parser.Err() != nil || len(stmts) == 0 {
-		return &Result{Error: fmt.Errorf("exec: view parse error: %v", parser.Err())}
+	stmts, err := parse.ParseSQL(selectSQL)
+	if err != nil || len(stmts) == 0 {
+		return &Result{Error: fmt.Errorf("exec: view parse error: %v", err)}
 	}
 	if sel, ok := stmts[0].(*sql.SelectStmt); ok {
 		return e.execSelect(sel)
@@ -663,6 +675,14 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 // execSelectNoFrom handles SELECT without FROM clause.
 func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 	columns := e.buildColumnNames(s.Columns, nil)
+	if s.ValuesChain {
+		// A VALUES statement exposes its result columns as column1..columnN
+		// (SQLite naming). Without real names, materializing the rows into
+		// row maps collapses distinct columns onto the same key.
+		for i := range columns {
+			columns[i] = fmt.Sprintf("column%d", i+1)
+		}
+	}
 
 	// Validate positional ORDER BY terms against the number of result columns.
 	if len(s.OrderBy) > 0 {
@@ -938,8 +958,11 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 
 // execSelectCTE executes a query that references a CTE definition.
 func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
-	// Handle recursive CTE (WITH RECURSIVE ...)
-	if cte.Select != nil && cte.Select.Union != nil {
+	// Handle recursive CTE. A CTE is recursive when declared WITH RECURSIVE
+	// or when its body references the CTE name in a FROM position (SQLite
+	// accepts self-referencing CTEs regardless of the keyword, e.g.
+	// "WITH s(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<10)").
+	if cte.Select != nil && (cte.Recursive || cteBodyReferencesSelf(cte)) {
 		return e.execRecursiveCTE(s, cte)
 	}
 	// Non-recursive CTE: execute the CTE's SELECT directly
@@ -960,6 +983,27 @@ func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	for i, row := range cteResult.Rows {
 		allRowMaps[i] = buildRowMapFromValues(row, colDefs, int64(i+1))
 	}
+
+	// If the outer query joins the CTE with other tables (or references the
+	// CTE twice, e.g. "FROM x one, x two"), process the joins here. The join
+	// path resolves right-side CTE references via findCTE.
+	if len(s.Joins) > 0 {
+		var err error
+		allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		if s.Where != nil {
+			filtered := allRowMaps[:0]
+			for _, rowMap := range allRowMaps {
+				if e.rowPassesWhere(s.Where, rowMap, nil) {
+					filtered = append(filtered, rowMap)
+				}
+			}
+			allRowMaps = filtered
+		}
+	}
+
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
 		return result
 	}
@@ -969,6 +1013,87 @@ func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	}
 	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
 	return e.finalizeSelectResult(result, s, allRowMaps)
+}
+
+// cteBodyReferencesSelf reports whether a CTE body references the CTE name in
+// any FROM position (the base FROM, join tables, union members, or nested
+// subqueries). A body that does is recursive even when the WITH clause omits
+// the RECURSIVE keyword — SQLite accepts self-referencing CTEs regardless.
+func cteBodyReferencesSelf(cte *sql.CTEDef) bool {
+	if cte == nil || cte.Select == nil {
+		return false
+	}
+	return selectFromRefersTo(cte.Select, cte.Name)
+}
+
+// selectFromRefersTo walks a SELECT's FROM positions (base table, joins,
+// union members, nested subqueries) looking for a reference to name.
+func selectFromRefersTo(s *sql.SelectStmt, name string) bool {
+	if s == nil {
+		return false
+	}
+	if s.From.Name == name || s.From.As == name {
+		return true
+	}
+	if s.From.Subquery != nil && selectFromRefersTo(s.From.Subquery, name) {
+		return true
+	}
+	for i := range s.Joins {
+		j := &s.Joins[i]
+		if j.Table.Name == name || j.Table.As == name {
+			return true
+		}
+		if j.Table.Subquery != nil && selectFromRefersTo(j.Table.Subquery, name) {
+			return true
+		}
+	}
+	return s.Union != nil && selectFromRefersTo(s.Union, name)
+}
+
+// findCTE returns the CTE definition whose name matches the given table
+// reference. It first checks the CTEs declared directly on the statement,
+// then consults enclosing WITH clauses (innermost scope first), matching
+// SQLite's name-resolution order for nested queries.
+func (e *Engine) findCTE(s *sql.SelectStmt, name string) (sql.CTEDef, bool) {
+	if s == nil {
+		return sql.CTEDef{}, false
+	}
+	for _, cte := range s.CTEs {
+		if cte.Name == name {
+			return cte, true
+		}
+	}
+	for i := len(e.cteScopes) - 1; i >= 0; i-- {
+		for _, cte := range e.cteScopes[i] {
+			if cte.Name == name {
+				return cte, true
+			}
+		}
+	}
+	return sql.CTEDef{}, false
+}
+
+// materializeCTEForJoin executes a CTE body and builds column definitions and
+// row maps suitable for use as a join operand.
+func (e *Engine) materializeCTEForJoin(cte *sql.CTEDef) ([]sql.ColumnDef, []RowMap, error) {
+	cteResult := e.execSelect(cte.Select)
+	if cteResult.Error != nil {
+		return nil, nil, cteResult.Error
+	}
+	colDefs := make([]sql.ColumnDef, len(cteResult.Columns))
+	for i, colName := range cteResult.Columns {
+		colDefs[i] = sql.ColumnDef{Name: colName}
+	}
+	if len(cte.Columns) > 0 {
+		for i := 0; i < len(colDefs) && i < len(cte.Columns); i++ {
+			colDefs[i].Name = cte.Columns[i]
+		}
+	}
+	rowMaps := make([]RowMap, len(cteResult.Rows))
+	for i, row := range cteResult.Rows {
+		rowMaps[i] = buildRowMapFromValues(row, colDefs, int64(i+1))
+	}
+	return colDefs, rowMaps, nil
 }
 
 // execRecursiveCTE executes a recursive CTE (WITH RECURSIVE ...).
@@ -1134,6 +1259,18 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 					}
 				}
 				rightMaps = append(rightMaps, rightRowMap)
+			}
+		} else if cteDef, ok := e.findCTE(s, join.Table.Name); ok {
+			// A CTE referenced in a JOIN (e.g. "FROM t LEFT JOIN VVV" where
+			// VVV is a WITH definition). Materialize the CTE body once.
+			var merr error
+			rightDefs, rightMaps, merr = e.materializeCTEForJoin(&cteDef)
+			if merr != nil {
+				return nil, nil, merr
+			}
+			tableName = join.Table.Name
+			if join.Table.As != "" {
+				tableName = join.Table.As
 			}
 		} else if tableEntry, err := e.schema.FindTable(join.Table.Name); err != nil {
 			viewEntry, viewErr := e.schema.FindView(join.Table.Name)
@@ -3807,7 +3944,7 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 		}
 		left, _ := e.evalExpr(ob.Expr, rowMaps[i])
 		right, _ := e.evalExpr(ob.Expr, rowMaps[j])
-		cmp := util.CompareValues(left, right)
+		cmp := compareValuesWithCollate(left, right)
 		if ob.Desc {
 			cmp = -cmp
 		}

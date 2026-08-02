@@ -163,9 +163,15 @@ func Test_upsert1(t *testing.T) {
 		}
 	}
 	{ // "upsert1-400"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a TEXT UNIQUE, b INT DEFAULT 1);\n  INSERT INTO t2(a) VALUES('one'),('two'),('three');\n  PRAGMA count_changes=ON;\n  INSERT INTO t2(a) VALUES('one'),('one'),('three'),('four')\n      ON CONFLICT(a) DO UPDATE SET b=b+1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a TEXT UNIQUE, b INT DEFAULT 1);\n  INSERT INTO t2(a) VALUES('one'),('two'),('three');\n  PRAGMA count_changes=ON;\n  INSERT INTO t2(a) VALUES('one'),('one'),('three'),('four')\n      ON CONFLICT(a) DO UPDATE SET b=b+1;\n")
+		r = db.Query("\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a TEXT UNIQUE, b INT DEFAULT 1);\n  INSERT INTO t2(a) VALUES('one'),('two'),('three');\n  PRAGMA count_changes=ON;\n  INSERT INTO t2(a) VALUES('one'),('one'),('three'),('four')\n      ON CONFLICT(a) DO UPDATE SET b=b+1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a TEXT UNIQUE, b INT DEFAULT 1);\n  INSERT INTO t2(a) VALUES('one'),('two'),('three');\n  PRAGMA count_changes=ON;\n  INSERT INTO t2(a) VALUES('one'),('one'),('three'),('four')\n      ON CONFLICT(a) DO UPDATE SET b=b+1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "upsert1-410"
@@ -325,9 +331,15 @@ func Test_upsert1(t *testing.T) {
 		}
 	}
 	{ // "upsert1-800"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 REAL UNIQUE, c1);\n  CREATE UNIQUE INDEX test800i0 ON t0(0 || c1);\n  INSERT INTO t0(c0, c1) VALUES (1, 2),  (2, 1);\n  INSERT INTO t0(c0) VALUES (1) ON CONFLICT(c0) DO UPDATE SET c1=excluded.c0;\n  PRAGMA integrity_check;\n  REINDEX;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 REAL UNIQUE, c1);\n  CREATE UNIQUE INDEX test800i0 ON t0(0 || c1);\n  INSERT INTO t0(c0, c1) VALUES (1, 2),  (2, 1);\n  INSERT INTO t0(c0) VALUES (1) ON CONFLICT(c0) DO UPDATE SET c1=excluded.c0;\n  PRAGMA integrity_check;\n  REINDEX;\n")
+		r = db.Query("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 REAL UNIQUE, c1);\n  CREATE UNIQUE INDEX test800i0 ON t0(0 || c1);\n  INSERT INTO t0(c0, c1) VALUES (1, 2),  (2, 1);\n  INSERT INTO t0(c0) VALUES (1) ON CONFLICT(c0) DO UPDATE SET c1=excluded.c0;\n  PRAGMA integrity_check;\n  REINDEX;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 REAL UNIQUE, c1);\n  CREATE UNIQUE INDEX test800i0 ON t0(0 || c1);\n  INSERT INTO t0(c0, c1) VALUES (1, 2),  (2, 1);\n  INSERT INTO t0(c0) VALUES (1) ON CONFLICT(c0) DO UPDATE SET c1=excluded.c0;\n  PRAGMA integrity_check;\n  REINDEX;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db, err = frigolite.Open("")

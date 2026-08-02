@@ -80,9 +80,15 @@ func Test_nan(t *testing.T) {
 		// do_realnum_test nan-1.1.5 {\n    sqlite3_bind_double $::STMT 1 NaN0\n    sqli...} {{} null inf real -inf real {} null {} null} (expr test, not transpiled)
 		// do_realnum_test nan-1.1.6 {\n    sqlite3_bind_double $::STMT 1 -NaN0\n    sql...} {{} null inf real -inf real {} null {} null {} null} (expr test, not transpiled)
 		{ // do_test "nan-1.1.7"
-			_res = db.Exec("\n      UPDATE t1 SET x=x-x;\n      SELECT x, typeof(x) FROM t1;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET x=x-x;\n      SELECT x, typeof(x) FROM t1;\n    ")
+			r = db.Query("\n      UPDATE t1 SET x=x-x;\n      SELECT x, typeof(x) FROM t1;\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET x=x-x;\n      SELECT x, typeof(x) FROM t1;\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "{} null {} null {} null {} null {} null {} null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
@@ -145,9 +151,15 @@ func Test_nan(t *testing.T) {
 		}
 	}
 	{ // do_test "nan-1.2.7"
-		_res = db.Exec("\n    UPDATE t1 SET x=x-x;\n    SELECT CAST(x AS text), typeof(x) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET x=x-x;\n    SELECT CAST(x AS text), typeof(x) FROM t1;\n  ")
+		r = db.Query("\n    UPDATE t1 SET x=x-x;\n    SELECT CAST(x AS text), typeof(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET x=x-x;\n    SELECT CAST(x AS text), typeof(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "{} null {} null {} null {} null {} null {} null"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "nan-2.1"
@@ -173,9 +185,15 @@ func Test_nan(t *testing.T) {
 			// hexio_read test.db 2040 8 (unsupported command, not transpiled)
 		}
 		{ // do_test "nan-3.2"
-			_res = db.Exec("\n      SELECT x, typeof(x) FROM t1\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT x, typeof(x) FROM t1\n    ")
+			r = db.Query("\n      SELECT x, typeof(x) FROM t1\n    ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT x, typeof(x) FROM t1\n    ")
+				return
+			}
+			got := flatten(r)
+			want := "0.5 real"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "nan-3.3"

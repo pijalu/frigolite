@@ -367,9 +367,9 @@ func Test_dbstatus(t *testing.T) {
 				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				{ // "4.0"
-					_res = db.Exec("\n      PRAGMA auto_vacuum=NONE;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES(1, 2, 3);\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum=NONE;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES(1, 2, 3);\n    ")
+					r = db.Query("\n      PRAGMA auto_vacuum=NONE;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES(1, 2, 3);\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum=NONE;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES(1, 2, 3);\n    ")
 					}
 				}
 				// do_cacheused_test 4.0.1 db { 4568 4568 } (unsupported command, not transpiled)

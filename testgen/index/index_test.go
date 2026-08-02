@@ -412,7 +412,7 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "index-6.1.1"
-		_res = db.Exec("CREATE INDEX " + "index1" + " ON test2(g1)")
+		_res = db.Exec("CREATE INDEX " + sqlLiteral("index1") + " ON test2(g1)")
 		_ = _res // catchsql
 	}
 	{ // do_test "index-6.1b"
@@ -960,15 +960,27 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // "index-23.0"
-		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b REAL);\n  CREATE UNIQUE INDEX t1x1 ON t1(a GLOB b);\n  INSERT INTO t1(a,b) VALUES('0.0','1'),('1.0','1');\n  SELECT * FROM t1;\n  REINDEX;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b REAL);\n  CREATE UNIQUE INDEX t1x1 ON t1(a GLOB b);\n  INSERT INTO t1(a,b) VALUES('0.0','1'),('1.0','1');\n  SELECT * FROM t1;\n  REINDEX;\n")
+		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b REAL);\n  CREATE UNIQUE INDEX t1x1 ON t1(a GLOB b);\n  INSERT INTO t1(a,b) VALUES('0.0','1'),('1.0','1');\n  SELECT * FROM t1;\n  REINDEX;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b REAL);\n  CREATE UNIQUE INDEX t1x1 ON t1(a GLOB b);\n  INSERT INTO t1(a,b) VALUES('0.0','1'),('1.0','1');\n  SELECT * FROM t1;\n  REINDEX;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0.0 1.0 1.0 1.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "index-23.1"
-		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a REAL);\n  CREATE UNIQUE INDEX index_0 ON t1(TYPEOF(a));\n  INSERT OR IGNORE INTO t1(a) VALUES (0.1),(FALSE);\n  SELECT * FROM t1;\n  REINDEX;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a REAL);\n  CREATE UNIQUE INDEX index_0 ON t1(TYPEOF(a));\n  INSERT OR IGNORE INTO t1(a) VALUES (0.1),(FALSE);\n  SELECT * FROM t1;\n  REINDEX;\n")
+		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a REAL);\n  CREATE UNIQUE INDEX index_0 ON t1(TYPEOF(a));\n  INSERT OR IGNORE INTO t1(a) VALUES (0.1),(FALSE);\n  SELECT * FROM t1;\n  REINDEX;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a REAL);\n  CREATE UNIQUE INDEX index_0 ON t1(TYPEOF(a));\n  INSERT OR IGNORE INTO t1(a) VALUES (0.1),(FALSE);\n  SELECT * FROM t1;\n  REINDEX;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0.1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

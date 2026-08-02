@@ -8,7 +8,6 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
-"strings"
 "testing"
 )
 
@@ -1026,9 +1025,15 @@ func Test_savepoint(t *testing.T) {
 	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "savepoint-17.1"
-		_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t6(a, b);\n    INSERT INTO t6 VALUES(1, 2);\n    SAVEPOINT one;\n      INSERT INTO t6 VALUES(3, 4);\n    ROLLBACK TO one;\n    SELECT * FROM t6;\n  ROLLBACK;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2", _res.Error, "\n  BEGIN;\n    CREATE TABLE t6(a, b);\n    INSERT INTO t6 VALUES(1, 2);\n    SAVEPOINT one;\n      INSERT INTO t6 VALUES(3, 4);\n    ROLLBACK TO one;\n    SELECT * FROM t6;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n    CREATE TABLE t6(a, b);\n    INSERT INTO t6 VALUES(1, 2);\n    SAVEPOINT one;\n      INSERT INTO t6 VALUES(3, 4);\n    ROLLBACK TO one;\n    SELECT * FROM t6;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    CREATE TABLE t6(a, b);\n    INSERT INTO t6 VALUES(1, 2);\n    SAVEPOINT one;\n      INSERT INTO t6 VALUES(3, 4);\n    ROLLBACK TO one;\n    SELECT * FROM t6;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "savepoint-17.2"

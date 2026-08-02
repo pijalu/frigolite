@@ -50,45 +50,87 @@ func Test_tkt_8454a207b9(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-8454a207b9.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT -123.0;\n    SELECT b, typeof(b) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT -123.0;\n    SELECT b, typeof(b) FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT -123.0;\n    SELECT b, typeof(b) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT -123.0;\n    SELECT b, typeof(b) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-123.0 text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-8454a207b9.2"
-		_res = db.Exec("\n    ALTER TABLE t1 ADD COLUMN c TEXT DEFAULT -123.5;\n    SELECT c, typeof(c) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ADD COLUMN c TEXT DEFAULT -123.5;\n    SELECT c, typeof(c) FROM t1;\n  ")
+		r = db.Query("\n    ALTER TABLE t1 ADD COLUMN c TEXT DEFAULT -123.5;\n    SELECT c, typeof(c) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD COLUMN c TEXT DEFAULT -123.5;\n    SELECT c, typeof(c) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-123.5 text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-8454a207b9.3"
-		_res = db.Exec("\n    ALTER TABLE t1 ADD COLUMN d TEXT DEFAULT -'hello';\n    SELECT d, typeof(d) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ADD COLUMN d TEXT DEFAULT -'hello';\n    SELECT d, typeof(d) FROM t1;\n  ")
+		r = db.Query("\n    ALTER TABLE t1 ADD COLUMN d TEXT DEFAULT -'hello';\n    SELECT d, typeof(d) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD COLUMN d TEXT DEFAULT -'hello';\n    SELECT d, typeof(d) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 text"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-8454a207b9.4"
-		_res = db.Exec("\n    ALTER TABLE t1 ADD COLUMN e DEFAULT -123.0;\n    SELECT e, typeof(e) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ADD COLUMN e DEFAULT -123.0;\n    SELECT e, typeof(e) FROM t1;\n  ")
+		r = db.Query("\n    ALTER TABLE t1 ADD COLUMN e DEFAULT -123.0;\n    SELECT e, typeof(e) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD COLUMN e DEFAULT -123.0;\n    SELECT e, typeof(e) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-123.0 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-8454a207b9.5"
-		_res = db.Exec("\n    ALTER TABLE t1 ADD COLUMN f DEFAULT -123.5;\n    SELECT f, typeof(f) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ADD COLUMN f DEFAULT -123.5;\n    SELECT f, typeof(f) FROM t1;\n  ")
+		r = db.Query("\n    ALTER TABLE t1 ADD COLUMN f DEFAULT -123.5;\n    SELECT f, typeof(f) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD COLUMN f DEFAULT -123.5;\n    SELECT f, typeof(f) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-123.5 real"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-8454a207b9.6"
-		_res = db.Exec("\n    ALTER TABLE t1 ADD COLUMN g DEFAULT -9223372036854775808;\n    SELECT g, typeof(g) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ADD COLUMN g DEFAULT -9223372036854775808;\n    SELECT g, typeof(g) FROM t1;\n  ")
+		r = db.Query("\n    ALTER TABLE t1 ADD COLUMN g DEFAULT -9223372036854775808;\n    SELECT g, typeof(g) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD COLUMN g DEFAULT -9223372036854775808;\n    SELECT g, typeof(g) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "-9223372036854775808 integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-8454a207b9.7"
-		_res = db.Exec("\n    ALTER TABLE t1 ADD COLUMN h DEFAULT 9223372036854775807;\n    SELECT h, typeof(h) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ADD COLUMN h DEFAULT 9223372036854775807;\n    SELECT h, typeof(h) FROM t1;\n  ")
+		r = db.Query("\n    ALTER TABLE t1 ADD COLUMN h DEFAULT 9223372036854775807;\n    SELECT h, typeof(h) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t1 ADD COLUMN h DEFAULT 9223372036854775807;\n    SELECT h, typeof(h) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "9223372036854775807 integer"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

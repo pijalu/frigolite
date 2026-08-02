@@ -128,9 +128,9 @@ func Test_parser1(t *testing.T) {
 	zero = "0"
 	_ = zero // suppress unused warning
 	{ // "parser1-4.1"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  SELECT max(x) AND $zero FROM t1;\n")
+		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  SELECT max(x) AND " + sqlLiteral(zero) + " FROM t1;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  SELECT max(x) AND $zero FROM t1;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  SELECT max(x) AND " + sqlLiteral(zero) + " FROM t1;\n")
 			return
 		}
 		got := flatten(r)

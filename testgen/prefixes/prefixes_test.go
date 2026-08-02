@@ -77,9 +77,9 @@ func Test_prefixes(t *testing.T) {
 		_ = expected // suppress unused warning
 		_ = _idx0
 			{ // "1." + tn
-				r = db.Query(" SELECT prefix_length($zLeft, $zRight) ")
+				r = db.Query(" SELECT prefix_length(" + sqlLiteral(zLeft) + ", " + sqlLiteral(zRight) + ") ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT prefix_length($zLeft, $zRight) ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT prefix_length(" + sqlLiteral(zLeft) + ", " + sqlLiteral(zRight) + ") ")
 					return
 				}
 				got := flatten(r)
@@ -106,9 +106,9 @@ func Test_prefixes(t *testing.T) {
 			_ = expected // suppress unused warning
 			_ = _idx1
 				{ // "2." + tn
-					r = db.Query("\n    WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k<=$INPUT)\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k<=substr($INPUT, 1, prefix_length(finder.str, $INPUT))\n        ) FROM finder WHERE length(finder.str)>0\n      )\n    SELECT str FROM finder WHERE length(str)==prefix_length(str, $INPUT) LIMIT 1\n  ")
+					r = db.Query("\n    WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k<=" + sqlLiteral(INPUT) + ")\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k<=substr(" + sqlLiteral(INPUT) + ", 1, prefix_length(finder.str, " + sqlLiteral(INPUT) + "))\n        ) FROM finder WHERE length(finder.str)>0\n      )\n    SELECT str FROM finder WHERE length(str)==prefix_length(str, " + sqlLiteral(INPUT) + ") LIMIT 1\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k<=$INPUT)\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k<=substr($INPUT, 1, prefix_length(finder.str, $INPUT))\n        ) FROM finder WHERE length(finder.str)>0\n      )\n    SELECT str FROM finder WHERE length(str)==prefix_length(str, $INPUT) LIMIT 1\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k<=" + sqlLiteral(INPUT) + ")\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k<=substr(" + sqlLiteral(INPUT) + ", 1, prefix_length(finder.str, " + sqlLiteral(INPUT) + "))\n        ) FROM finder WHERE length(finder.str)>0\n      )\n    SELECT str FROM finder WHERE length(str)==prefix_length(str, " + sqlLiteral(INPUT) + ") LIMIT 1\n  ")
 						return
 					}
 					got := flatten(r)

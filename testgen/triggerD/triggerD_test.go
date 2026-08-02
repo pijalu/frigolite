@@ -57,21 +57,39 @@ func Test_triggerD(t *testing.T) {
 		}
 	}
 	{ // do_test "triggerD-1.2"
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log\n  ")
+		r = db.Query("\n    INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "r1 100 200 300 400 r2 100 200 300 400"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerD-1.3"
-		_res = db.Exec("\n    DELETE FROM log;\n    UPDATE t1 SET rowid=rowid+1;\n    SELECT * FROM log\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM log;\n    UPDATE t1 SET rowid=rowid+1;\n    SELECT * FROM log\n  ")
+		r = db.Query("\n    DELETE FROM log;\n    UPDATE t1 SET rowid=rowid+1;\n    SELECT * FROM log\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM log;\n    UPDATE t1 SET rowid=rowid+1;\n    SELECT * FROM log\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "r3.old 100 200 300 400 r3.new 101 200 300 400 r4.old 100 200 300 400 r4.new 101 200 300 400"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerD-1.4"
-		_res = db.Exec("\n    DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log\n  ")
+		r = db.Query("\n    DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "r5 101 200 300 400 r6 101 200 300 400"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerD-2.1"
@@ -81,33 +99,63 @@ func Test_triggerD(t *testing.T) {
 		}
 	}
 	{ // do_test "triggerD-2.2"
-		_res = db.Exec("\n    DELETE FROM log;\n    INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM log;\n    INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log;\n  ")
+		r = db.Query("\n    DELETE FROM log;\n    INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM log;\n    INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "r1 -1 -1 -1 200 r2 1 1 1 200"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerD-2.3"
-		_res = db.Exec("\n    DELETE FROM log;\n    UPDATE t1 SET x=x+1;\n    SELECT * FROM log\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM log;\n    UPDATE t1 SET x=x+1;\n    SELECT * FROM log\n  ")
+		r = db.Query("\n    DELETE FROM log;\n    UPDATE t1 SET x=x+1;\n    SELECT * FROM log\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM log;\n    UPDATE t1 SET x=x+1;\n    SELECT * FROM log\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "r3.old 1 1 1 200 r3.new 1 1 1 201 r4.old 1 1 1 200 r4.new 1 1 1 201"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerD-2.4"
-		_res = db.Exec("\n    DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log\n  ")
+		r = db.Query("\n    DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "r5 1 1 1 201 r6 1 1 1 201"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerD-3.1"
-		_res = db.Exec("\n    CREATE TABLE t300(x);\n    CREATE TEMP TABLE t300(x);\n    CREATE TABLE t301(y);\n    CREATE TRIGGER main.r300 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(10000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t300(x);\n    CREATE TEMP TABLE t300(x);\n    CREATE TABLE t301(y);\n    CREATE TRIGGER main.r300 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(10000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;\n  ")
+		r = db.Query("\n    CREATE TABLE t300(x);\n    CREATE TEMP TABLE t300(x);\n    CREATE TABLE t301(y);\n    CREATE TRIGGER main.r300 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(10000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t300(x);\n    CREATE TEMP TABLE t300(x);\n    CREATE TABLE t301(y);\n    CREATE TRIGGER main.r300 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(10000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10003"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerD-3.2"
-		_res = db.Exec("\n    DELETE FROM t301;\n    CREATE TRIGGER temp.r301 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(20000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t301;\n    CREATE TRIGGER temp.r301 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(20000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;\n  ")
+		r = db.Query("\n    DELETE FROM t301;\n    CREATE TRIGGER temp.r301 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(20000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t301;\n    CREATE TRIGGER temp.r301 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(20000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10003 20004"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerD-4.1"

@@ -130,9 +130,9 @@ func Test_incrblob(t *testing.T) {
 	{ // do_test "incrblob-1.3.1"
 		str = ". 10000" // TCL namespace variable
 		_ = str // suppress unused warning
-		_res = db.Exec("\n    INSERT INTO blobs(rowid, k, v) VALUES(3, 'three', " + str + ");\n  ")
+		_res = db.Exec("\n    INSERT INTO blobs(rowid, k, v) VALUES(3, 'three', " + sqlLiteral(str) + ");\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO blobs(rowid, k, v) VALUES(3, 'three', " + str + ");\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO blobs(rowid, k, v) VALUES(3, 'three', " + sqlLiteral(str) + ");\n  ")
 		}
 	}
 	{ // do_test "incrblob-1.3.2"
@@ -194,9 +194,9 @@ func Test_incrblob(t *testing.T) {
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".1"
 			str = "abcdefghij 2900" // TCL namespace variable
 			_ = str // suppress unused warning
-			_res = db.Exec("\n      BEGIN;\n      CREATE TABLE blobs(k PRIMARY KEY, v BLOB, i INTEGER);\n      DELETE FROM blobs;\n      INSERT INTO blobs VALUES('one', " + str + " || randstr(500,500), 45);\n      COMMIT;\n    ")
+			_res = db.Exec("\n      BEGIN;\n      CREATE TABLE blobs(k PRIMARY KEY, v BLOB, i INTEGER);\n      DELETE FROM blobs;\n      INSERT INTO blobs VALUES('one', " + sqlLiteral(str) + " || randstr(500,500), 45);\n      COMMIT;\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE blobs(k PRIMARY KEY, v BLOB, i INTEGER);\n      DELETE FROM blobs;\n      INSERT INTO blobs VALUES('one', " + str + " || randstr(500,500), 45);\n      COMMIT;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE blobs(k PRIMARY KEY, v BLOB, i INTEGER);\n      DELETE FROM blobs;\n      INSERT INTO blobs VALUES('one', " + sqlLiteral(str) + " || randstr(500,500), 45);\n      COMMIT;\n    ")
 			}
 			// expr [file size test.db]/1024 (not evaluated)
 		}
@@ -598,9 +598,9 @@ func Test_incrblob(t *testing.T) {
 		os.Remove("test2.db")
 		size = tclExprWith("[file size $::cmdlinearg(INFO_SCRIPT)]", map[string]string{"::cmdlinearg": cmdlinearg}) // TCL namespace variable
 		_ = size // suppress unused warning
-		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.files(name, text);\n      INSERT INTO aux.files VALUES('this one', zeroblob(" + size + "));\n    ")
+		_res = db.Exec("\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.files(name, text);\n      INSERT INTO aux.files VALUES('this one', zeroblob(" + sqlLiteral(size) + "));\n    ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.files(name, text);\n      INSERT INTO aux.files VALUES('this one', zeroblob(" + size + "));\n    ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.files(name, text);\n      INSERT INTO aux.files VALUES('this one', zeroblob(" + sqlLiteral(size) + "));\n    ")
 		}
 		fd = "db incrblob aux files text 1"
 		_ = fd // suppress unused warning
@@ -806,9 +806,9 @@ func Test_incrblob(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "incrblob-7.2.1"
-			_res = db.Exec("\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + data + ");\n  ")
+			_res = db.Exec("\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + sqlLiteral(data) + ");\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + data + ");\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + sqlLiteral(data) + ");\n  ")
 			}
 			b = "db incrblob -readonly t1 b 123" // TCL namespace variable
 			_ = b // suppress unused warning
@@ -833,9 +833,9 @@ func Test_incrblob(t *testing.T) {
 		otherdata = "$::data 0 1000" + "$::data 1001 end" // TCL namespace variable
 		_ = otherdata // suppress unused warning
 		{ // do_test "incrblob-7.3.1"
-			_res = db.Exec("\n    INSERT INTO t2 VALUES(456, " + otherdata + ");\n  ")
+			_res = db.Exec("\n    INSERT INTO t2 VALUES(456, " + sqlLiteral(otherdata) + ");\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(456, " + otherdata + ");\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(456, " + sqlLiteral(otherdata) + ");\n  ")
 			}
 			b = "db incrblob -readonly t2 b 456" // TCL namespace variable
 			_ = b // suppress unused warning

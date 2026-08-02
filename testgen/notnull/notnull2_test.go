@@ -54,9 +54,9 @@ func Test_notnull2(t *testing.T) {
 	testprefix = "notnull2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;\n")
+		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;\n")
 		}
 	}
 	// do_vmstep_test 1.1.1 {\n  SELECT * FROM t1 LEFT JOIN t2 WHERE a=c AND d ...} 100 {} (unsupported command, not transpiled)

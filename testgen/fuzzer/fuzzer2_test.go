@@ -87,9 +87,9 @@ func Test_fuzzer2(t *testing.T) {
 				_ = c3 // suppress unused warning
 					for _, c4 := range tclSplitList(LETTERS) {
 					_ = c4 // suppress unused warning
-						_res = db.Exec("INSERT INTO x1_rules VALUES(0, " + c1 + "||" + c2 + ", " + c3 + "||" + c4 + ", " + cost + ")")
+						_res = db.Exec("INSERT INTO x1_rules VALUES(0, " + sqlLiteral(c1) + "||" + sqlLiteral(c2) + ", " + sqlLiteral(c3) + "||" + sqlLiteral(c4) + ", " + sqlLiteral(cost) + ")")
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1_rules VALUES(0, " + c1 + "||" + c2 + ", " + c3 + "||" + c4 + ", " + cost + ")")
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1_rules VALUES(0, " + sqlLiteral(c1) + "||" + sqlLiteral(c2) + ", " + sqlLiteral(c3) + "||" + sqlLiteral(c4) + ", " + sqlLiteral(cost) + ")")
 						}
 						cost = tclExprWith("($cost%1000) + 1", map[string]string{"cost": cost})
 						_ = cost // suppress unused warning

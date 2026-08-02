@@ -317,9 +317,15 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // "6.2"
-		_res = db.Exec("\n  SELECT type,name,tbl_name,sql FROM aux.sqlite_master;\n  INSERT INTO aux.t1 VALUES(1,2,3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT type,name,tbl_name,sql FROM aux.sqlite_master;\n  INSERT INTO aux.t1 VALUES(1,2,3);\n")
+		r = db.Query("\n  SELECT type,name,tbl_name,sql FROM aux.sqlite_master;\n  INSERT INTO aux.t1 VALUES(1,2,3);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT type,name,tbl_name,sql FROM aux.sqlite_master;\n  INSERT INTO aux.t1 VALUES(1,2,3);\n")
+			return
+		}
+		got := flatten(r)
+		want := "table t1 t1 {CREATE TABLE t1(a, b, c)}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "6.3"

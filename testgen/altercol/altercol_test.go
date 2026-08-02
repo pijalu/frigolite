@@ -227,9 +227,9 @@ func Test_altercol(t *testing.T) {
 			}
 		}
 		{ // "4.0"
-			_res = db.Exec("\n  CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, d));\n  CREATE TABLE p1(c, d, PRIMARY KEY(c, d));\n  PRAGMA foreign_keys = 1;\n  INSERT INTO p1 VALUES(1, 2);\n  INSERT INTO p1 VALUES(3, 4);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, d));\n  CREATE TABLE p1(c, d, PRIMARY KEY(c, d));\n  PRAGMA foreign_keys = 1;\n  INSERT INTO p1 VALUES(1, 2);\n  INSERT INTO p1 VALUES(3, 4);\n")
+			r = db.Query("\n  CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, d));\n  CREATE TABLE p1(c, d, PRIMARY KEY(c, d));\n  PRAGMA foreign_keys = 1;\n  INSERT INTO p1 VALUES(1, 2);\n  INSERT INTO p1 VALUES(3, 4);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, d));\n  CREATE TABLE p1(c, d, PRIMARY KEY(c, d));\n  PRAGMA foreign_keys = 1;\n  INSERT INTO p1 VALUES(1, 2);\n  INSERT INTO p1 VALUES(3, 4);\n")
 			}
 		}
 		{ // "4.1"
@@ -305,9 +305,9 @@ func Test_altercol(t *testing.T) {
 			}
 		}
 		{ // "6.2"
-			_res = db.Exec("\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
+			_res = db.Exec("\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO " + sqlLiteral("where") + ";\n")
 			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];\n")
+				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO " + sqlLiteral("where") + ";\n")
 			}
 		}
 		{ // "6.3"
@@ -1103,9 +1103,15 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					{ // "23.3"
-						_res = db.Exec("\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n  PRAGMA writable_schema=OFF;\n  SELECT name FROM sqlite_master\n     WHERE (name, sql) NOT IN (SELECT name, sql FROM schema_copy);\n  ROLLBACK;\n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n  PRAGMA writable_schema=OFF;\n  SELECT name FROM sqlite_master\n     WHERE (name, sql) NOT IN (SELECT name, sql FROM schema_copy);\n  ROLLBACK;\n")
+						r = db.Query("\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n  PRAGMA writable_schema=OFF;\n  SELECT name FROM sqlite_master\n     WHERE (name, sql) NOT IN (SELECT name, sql FROM schema_copy);\n  ROLLBACK;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n  PRAGMA writable_schema=OFF;\n  SELECT name FROM sqlite_master\n     WHERE (name, sql) NOT IN (SELECT name, sql FROM schema_copy);\n  ROLLBACK;\n")
+							return
+						}
+						got := flatten(r)
+						want := "t1"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // "23.10"
@@ -1127,15 +1133,27 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					{ // "23.13"
-						_res = db.Exec("\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n  PRAGMA writable_schema=OFF;\n  SELECT name FROM sqlite_master\n     WHERE (name, sql) NOT IN (SELECT name, sql FROM schema_copy);\n  ROLLBACK;\n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n  PRAGMA writable_schema=OFF;\n  SELECT name FROM sqlite_master\n     WHERE (name, sql) NOT IN (SELECT name, sql FROM schema_copy);\n  ROLLBACK;\n")
+						r = db.Query("\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n  PRAGMA writable_schema=OFF;\n  SELECT name FROM sqlite_master\n     WHERE (name, sql) NOT IN (SELECT name, sql FROM schema_copy);\n  ROLLBACK;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n  PRAGMA writable_schema=OFF;\n  SELECT name FROM sqlite_master\n     WHERE (name, sql) NOT IN (SELECT name, sql FROM schema_copy);\n  ROLLBACK;\n")
+							return
+						}
+						got := flatten(r)
+						want := "t1"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					{ // "23.20"
-						_res = db.Exec("\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, c1 INT, c2 INT);\n  CREATE VIEW t4v1 AS SELECT id, c1, c99 FROM t4;\n  DELETE FROM schema_copy;\n  INSERT INTO schema_copy SELECT name, sql FROM sqlite_schema;\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t4 RENAME to t4new;\n  SELECT name FROM sqlite_schema WHERE (name,sql) NOT IN (SELECT * FROM schema_copy);\n  ROLLBACK;\n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, c1 INT, c2 INT);\n  CREATE VIEW t4v1 AS SELECT id, c1, c99 FROM t4;\n  DELETE FROM schema_copy;\n  INSERT INTO schema_copy SELECT name, sql FROM sqlite_schema;\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t4 RENAME to t4new;\n  SELECT name FROM sqlite_schema WHERE (name,sql) NOT IN (SELECT * FROM schema_copy);\n  ROLLBACK;\n")
+						r = db.Query("\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, c1 INT, c2 INT);\n  CREATE VIEW t4v1 AS SELECT id, c1, c99 FROM t4;\n  DELETE FROM schema_copy;\n  INSERT INTO schema_copy SELECT name, sql FROM sqlite_schema;\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t4 RENAME to t4new;\n  SELECT name FROM sqlite_schema WHERE (name,sql) NOT IN (SELECT * FROM schema_copy);\n  ROLLBACK;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, c1 INT, c2 INT);\n  CREATE VIEW t4v1 AS SELECT id, c1, c99 FROM t4;\n  DELETE FROM schema_copy;\n  INSERT INTO schema_copy SELECT name, sql FROM sqlite_schema;\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t4 RENAME to t4new;\n  SELECT name FROM sqlite_schema WHERE (name,sql) NOT IN (SELECT * FROM schema_copy);\n  ROLLBACK;\n")
+							return
+						}
+						got := flatten(r)
+						want := "t4new"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					db.Close()

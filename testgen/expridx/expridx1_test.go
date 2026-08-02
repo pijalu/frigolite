@@ -201,9 +201,9 @@ func Test_expridx1(t *testing.T) {
 		_ = a // suppress unused warning
 		_ = _idx0
 			{ // "1.3.3." + tn
-				_res = db.Exec("\n    DELETE FROM t1 WHERE a=$a\n  ")
+				_res = db.Exec("\n    DELETE FROM t1 WHERE a=" + sqlLiteral(a) + "\n  ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE a=$a\n  ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE a=" + sqlLiteral(a) + "\n  ")
 				}
 			}
 		}
@@ -231,9 +231,9 @@ func Test_expridx1(t *testing.T) {
 		nRow = "1000"
 		_ = nRow // suppress unused warning
 		{ // "2.0"
-			_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
+			r = db.Query("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
 			}
 		}
 		idxcheck = "\n  SELECT a, b FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND +b=o.b AND +c=o.c)\n"
@@ -270,9 +270,9 @@ func Test_expridx1(t *testing.T) {
 			ii = "1"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; return ii_n < nRow_n }() {
-				_res = db.Exec(" DELETE FROM t1 WHERE a=" + ii + " ")
+				_res = db.Exec(" DELETE FROM t1 WHERE a=" + sqlLiteral(ii) + " ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE a=" + ii + " ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE a=" + sqlLiteral(ii) + " ")
 				}
 				// incr ii 2
 				{

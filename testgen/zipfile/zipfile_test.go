@@ -243,9 +243,15 @@ func Test_zipfile(t *testing.T) {
 		}
 	}
 	{ // "1.5.1"
-		_res = db.Exec("\n  BEGIN;\n    INSERT INTO zz(name, mode, mtime, data, method)\n    VALUES('i.txt', '-rw-r--r--', 1000000006, 'zxcvb', 0);\n    SELECT name FROM zz;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO zz(name, mode, mtime, data, method)\n    VALUES('i.txt', '-rw-r--r--', 1000000006, 'zxcvb', 0);\n    SELECT name FROM zz;\n  COMMIT;\n")
+		r = db.Query("\n  BEGIN;\n    INSERT INTO zz(name, mode, mtime, data, method)\n    VALUES('i.txt', '-rw-r--r--', 1000000006, 'zxcvb', 0);\n    SELECT name FROM zz;\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    INSERT INTO zz(name, mode, mtime, data, method)\n    VALUES('i.txt', '-rw-r--r--', 1000000006, 'zxcvb', 0);\n    SELECT name FROM zz;\n  COMMIT;\n")
+			return
+		}
+		got := flatten(r)
+		want := "f.txt g.txt h.txt i.txt"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.5.2"
@@ -321,9 +327,9 @@ func Test_zipfile(t *testing.T) {
 		_ = perms // suppress unused warning
 	}
 	{ // "1.6.3"
-		r = db.Query("\n  UPDATE zz SET mode=$modes WHERE name='h.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');\n")
+		r = db.Query("\n  UPDATE zz SET mode=" + sqlLiteral(modes) + " WHERE name='h.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE zz SET mode=$modes WHERE name='h.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE zz SET mode=" + sqlLiteral(modes) + " WHERE name='h.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');\n")
 		}
 	}
 	// do_zip_tests 1.6.3a test.zip (unsupported command, not transpiled)
@@ -508,21 +514,21 @@ func Test_zipfile(t *testing.T) {
 		_ = fname // suppress unused warning
 		_ = _idx0
 			{ // "3.1." + tn + ".0"
-				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES($fname, NULL);\n  ")
+				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", NULL);\n  ")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES($fname, NULL);\n  ")
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", NULL);\n  ")
 				}
 			}
 			{ // "3.1." + tn + ".1"
-				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES($fname || '/', NULL);\n  ")
+				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + " || '/', NULL);\n  ")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES($fname || '/', NULL);\n  ")
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + " || '/', NULL);\n  ")
 				}
 			}
 			{ // "3.1." + tn + ".2"
-				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES($fname, 'abcd');\n  ")
+				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", 'abcd');\n  ")
 				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES($fname, 'abcd');\n  ")
+					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", 'abcd');\n  ")
 				}
 			}
 		}
@@ -565,9 +571,9 @@ func Test_zipfile(t *testing.T) {
 			_ = mode // suppress unused warning
 			_ = _idx1
 				{ // "4.5." + tn
-					_res = db.Exec("\n    WITH m(m) AS ( SELECT $mode)\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
+					_res = db.Exec("\n    WITH m(m) AS ( SELECT " + sqlLiteral(mode) + ")\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
 					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH m(m) AS ( SELECT $mode)\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
+						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH m(m) AS ( SELECT " + sqlLiteral(mode) + ")\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
 					}
 				}
 			}
@@ -623,9 +629,15 @@ func Test_zipfile(t *testing.T) {
 					}
 				}
 				{ // do_test "6.0b"
-					_res = db.Exec("\n      SELECT sum(name LIKE '%/a.txt')\n      FROM (VALUES(1),(2),(3)) CROSS JOIN fsdir('test_unzip')\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT sum(name LIKE '%/a.txt')\n      FROM (VALUES(1),(2),(3)) CROSS JOIN fsdir('test_unzip')\n    ")
+					r = db.Query("\n      SELECT sum(name LIKE '%/a.txt')\n      FROM (VALUES(1),(2),(3)) CROSS JOIN fsdir('test_unzip')\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sum(name LIKE '%/a.txt')\n      FROM (VALUES(1),(2),(3)) CROSS JOIN fsdir('test_unzip')\n    ")
+						return
+					}
+					got := flatten(r)
+					want := "3"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "6.1"
@@ -1169,9 +1181,9 @@ func Test_zipfile(t *testing.T) {
 					_ = strconv.Itoa(len(zip)) // string length result
 				}
 				{ // "24.2"
-					_res = db.Exec("\n  SELECT * FROM zipfile(unhex($zip))\n")
+					_res = db.Exec("\n  SELECT * FROM zipfile(unhex(" + sqlLiteral(zip) + "))\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zip archive is corrupt") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", _res.Error, "\n  SELECT * FROM zipfile(unhex($zip))\n")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zip archive is corrupt", _res.Error, "\n  SELECT * FROM zipfile(unhex(" + sqlLiteral(zip) + "))\n")
 					}
 				}
 				{ // "25.0"

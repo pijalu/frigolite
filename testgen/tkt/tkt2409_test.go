@@ -91,7 +91,7 @@ func Test_tkt2409(t *testing.T) {
 		_ = zShort // suppress unused warning
 		zLong = "0123456789 1500" // TCL namespace variable
 		_ = zLong // suppress unused warning
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(" + zShort + ", " + zLong + ");\n  ")
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(" + sqlLiteral(zShort) + ", " + sqlLiteral(zLong) + ");\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-1.2"
@@ -132,7 +132,7 @@ func Test_tkt2409(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2409-2.2"
-		_res = db.Exec("\n    ROLLBACK;\n    BEGIN;\n    INSERT INTO t1 VALUES(" + zShort + ", " + zLong + ");\n    COMMIT;\n  ")
+		_res = db.Exec("\n    ROLLBACK;\n    BEGIN;\n    INSERT INTO t1 VALUES(" + sqlLiteral(zShort) + ", " + sqlLiteral(zLong) + ");\n    COMMIT;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-2.3"
@@ -153,7 +153,7 @@ func Test_tkt2409(t *testing.T) {
 		_ = zShort // suppress unused warning
 		zLong = "0123456789 1500" // TCL namespace variable
 		_ = zLong // suppress unused warning
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 SELECT " + zShort + ", " + zLong + ";\n  ")
+		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 SELECT " + sqlLiteral(zShort) + ", " + sqlLiteral(zLong) + ";\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-3.2"

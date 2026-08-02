@@ -86,9 +86,9 @@ func Test_atof1(t *testing.T) {
 			if tclBool("!" + y) {
 				_putsMsg := "-nonewline"
 				_ = _putsMsg
-				_res = db.Exec("SELECT " + xf + "+0.0 AS a, " + x + " AS b")
+				_res = db.Exec("SELECT " + xf + "+0.0 AS a, \\$x AS b")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + xf + "+0.0 AS a, " + x + " AS b")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + xf + "+0.0 AS a, \\$x AS b")
 				}
 			}
 		}
@@ -96,9 +96,9 @@ func Test_atof1(t *testing.T) {
 			y = "db eval {SELECT $x=CAST(quote($x) AS real)}"
 			_ = y // suppress unused warning
 			if tclBool("!" + y) {
-				_res = db.Exec("SELECT real2hex(" + x + ") a, real2hex(CAST(quote(" + x + ") AS real)) b")
+				_res = db.Exec("SELECT real2hex(" + sqlLiteral(x) + ") a, real2hex(CAST(quote(" + sqlLiteral(x) + ") AS real)) b")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT real2hex(" + x + ") a, real2hex(CAST(quote(" + x + ") AS real)) b")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT real2hex(" + sqlLiteral(x) + ") a, real2hex(CAST(quote(" + sqlLiteral(x) + ") AS real)) b")
 				}
 				_putsMsg := ""
 				_ = _putsMsg
@@ -113,9 +113,9 @@ func Test_atof1(t *testing.T) {
 				_ = _putsMsg
 				_putsMsg = "format {!QUOTE: %16s %s} {} [db eval {SELECT quote($x)}]"
 				_ = _putsMsg
-				_res = db.Exec("SELECT CAST(quote(" + x + ") AS real) c")
+				_res = db.Exec("SELECT CAST(quote(" + sqlLiteral(x) + ") AS real) c")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(quote(" + x + ") AS real) c")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(quote(" + sqlLiteral(x) + ") AS real) c")
 				}
 				_putsMsg = "!OUT:   " + b + " " + "format %.32e $c"
 				_ = _putsMsg
@@ -181,9 +181,9 @@ func Test_atof1(t *testing.T) {
 		}
 	}
 	{ // "atof-3.1"
-		r = db.Query("\n  WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709[56]*';\n")
+		r = db.Query("\n  WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709" + sqlLiteral("56") + "*';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709[56]*';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709" + sqlLiteral("56") + "*';\n")
 		}
 	}
 	{ // "atof-3.2"

@@ -52,501 +52,903 @@ func Test_tkt2927(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2927-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    INSERT INTO t1 VALUES(4,44);\n    INSERT INTO t1 VALUES(5,55);\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    INSERT INTO t1 VALUES(4,44);\n    INSERT INTO t1 VALUES(5,55);\n    SELECT * FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    INSERT INTO t1 VALUES(4,44);\n    INSERT INTO t1 VALUES(5,55);\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    INSERT INTO t1 VALUES(4,44);\n    INSERT INTO t1 VALUES(5,55);\n    SELECT * FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.1"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.2"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.3"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.4"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.5"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.6"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.7"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.8"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.9"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.10"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.11"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.12"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.13"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.14"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.15"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-2.16"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55 1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.1"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.2"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.3"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.4"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.5"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.6"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.7"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.8"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.9"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.10"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.11"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.12"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.13"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.14"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.15"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-3.16"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    UNION \n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.1"
-		_res = db.Exec("\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.2"
-		_res = db.Exec("\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.3"
-		_res = db.Exec("\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.4"
-		_res = db.Exec("\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, a, b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.5"
-		_res = db.Exec("\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.6"
-		_res = db.Exec("\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.7"
-		_res = db.Exec("\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.8"
-		_res = db.Exec("\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, a, abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.9"
-		_res = db.Exec("\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.10"
-		_res = db.Exec("\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.11"
-		_res = db.Exec("\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.12"
-		_res = db.Exec("\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, abs(a), b FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.13"
-		_res = db.Exec("\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.14"
-		_res = db.Exec("\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, a, abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.15"
-		_res = db.Exec("\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), b FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-4.16"
-		_res = db.Exec("\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n    UNION ALL\n    SELECT a+b, a-b, abs(a), abs(b) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55 12 -10 1 11 24 -20 2 22 36 -30 3 33 48 -40 4 44 60 -50 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-5.1"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.2"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.3"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.4"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.5"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.6"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.7"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.8"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.9"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.10"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.11"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.12"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.13"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, b FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.14"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT a, abs(b) FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.15"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), b FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-5.16"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    EXCEPT\n    SELECT abs(a), abs(b) FROM t1\n  ")
 		}
 	}
 	{ // do_test "tkt2927-6.1"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.2"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.3"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.4"
-		_res = db.Exec("\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.5"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.6"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.7"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.8"
-		_res = db.Exec("\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.9"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.10"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.11"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.12"
-		_res = db.Exec("\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), b FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.13"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.14"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT a, abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.15"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), b FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-6.16"
-		_res = db.Exec("\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT abs(a), abs(b) FROM t1\n    INTERSECT\n    SELECT abs(a), abs(b) FROM t1\n    ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 11 2 22 3 33 4 44 5 55"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-7.1"
-		_res = db.Exec("\n    CREATE TABLE host (\n     hostname text not null primary key,\n     consoleHost text,\n     consolePort text\n    );\n    INSERT INTO \"host\" VALUES('aald04','aalp03','4');\n    INSERT INTO \"host\" VALUES('aald17','aalp01','1');\n    CREATE VIEW consolemap1a as\n      select hostname, consolehost, '/dev/cuaD0.' || (consoleport-1) consoleport\n        from host where consolehost='aalp01';\n    CREATE VIEW consolemap1b as\n      select hostname hostname, consolehost consolehost, '/dev/cuaD' ||\n             substr('01',1+((consoleport-1)/16),1) ||\n             substr('0123456789abcdef',1+((consoleport-1)%16),1) consoleport\n        from host where consolehost='aalp03';\n    CREATE VIEW consolemap1 as\n      select * from consolemap1a\n      union\n      select * from consolemap1b;\n    SELECT * from consolemap1b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE host (\n     hostname text not null primary key,\n     consoleHost text,\n     consolePort text\n    );\n    INSERT INTO \"host\" VALUES('aald04','aalp03','4');\n    INSERT INTO \"host\" VALUES('aald17','aalp01','1');\n    CREATE VIEW consolemap1a as\n      select hostname, consolehost, '/dev/cuaD0.' || (consoleport-1) consoleport\n        from host where consolehost='aalp01';\n    CREATE VIEW consolemap1b as\n      select hostname hostname, consolehost consolehost, '/dev/cuaD' ||\n             substr('01',1+((consoleport-1)/16),1) ||\n             substr('0123456789abcdef',1+((consoleport-1)%16),1) consoleport\n        from host where consolehost='aalp03';\n    CREATE VIEW consolemap1 as\n      select * from consolemap1a\n      union\n      select * from consolemap1b;\n    SELECT * from consolemap1b;\n  ")
+		r = db.Query("\n    CREATE TABLE host (\n     hostname text not null primary key,\n     consoleHost text,\n     consolePort text\n    );\n    INSERT INTO \"host\" VALUES('aald04','aalp03','4');\n    INSERT INTO \"host\" VALUES('aald17','aalp01','1');\n    CREATE VIEW consolemap1a as\n      select hostname, consolehost, '/dev/cuaD0.' || (consoleport-1) consoleport\n        from host where consolehost='aalp01';\n    CREATE VIEW consolemap1b as\n      select hostname hostname, consolehost consolehost, '/dev/cuaD' ||\n             substr('01',1+((consoleport-1)/16),1) ||\n             substr('0123456789abcdef',1+((consoleport-1)%16),1) consoleport\n        from host where consolehost='aalp03';\n    CREATE VIEW consolemap1 as\n      select * from consolemap1a\n      union\n      select * from consolemap1b;\n    SELECT * from consolemap1b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE host (\n     hostname text not null primary key,\n     consoleHost text,\n     consolePort text\n    );\n    INSERT INTO \"host\" VALUES('aald04','aalp03','4');\n    INSERT INTO \"host\" VALUES('aald17','aalp01','1');\n    CREATE VIEW consolemap1a as\n      select hostname, consolehost, '/dev/cuaD0.' || (consoleport-1) consoleport\n        from host where consolehost='aalp01';\n    CREATE VIEW consolemap1b as\n      select hostname hostname, consolehost consolehost, '/dev/cuaD' ||\n             substr('01',1+((consoleport-1)/16),1) ||\n             substr('0123456789abcdef',1+((consoleport-1)%16),1) consoleport\n        from host where consolehost='aalp03';\n    CREATE VIEW consolemap1 as\n      select * from consolemap1a\n      union\n      select * from consolemap1b;\n    SELECT * from consolemap1b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aald04 aalp03 /dev/cuaD03"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt2927-7.2"
-		_res = db.Exec("\n    SELECT * FROM consolemap1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM consolemap1\n  ")
+		r = db.Query("\n    SELECT * FROM consolemap1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM consolemap1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "aald04 aalp03 /dev/cuaD03 aald17 aalp01 /dev/cuaD0.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

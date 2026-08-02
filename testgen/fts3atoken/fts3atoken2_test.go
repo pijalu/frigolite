@@ -79,9 +79,9 @@ func Test_fts3atoken2(t *testing.T) {
 	bound = "simple"
 	_ = bound // suppress unused warning
 	{ // "1.1.2"
-		r = db.Query("\n  SELECT typeof( fts3_tokenizer($bound) );\n")
+		r = db.Query("\n  SELECT typeof( fts3_tokenizer(" + sqlLiteral(bound) + ") );\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( fts3_tokenizer($bound) );\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( fts3_tokenizer(" + sqlLiteral(bound) + ") );\n")
 			return
 		}
 		got := flatten(r)
@@ -107,9 +107,9 @@ func Test_fts3atoken2(t *testing.T) {
 		}
 	}
 	{ // "1.2.3"
-		_res = db.Exec("\n  SELECT fts3_tokenizer('mytok', $blob)\n")
+		_res = db.Exec("\n  SELECT fts3_tokenizer('mytok', " + sqlLiteral(blob) + ")\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT fts3_tokenizer('mytok', $blob)\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT fts3_tokenizer('mytok', " + sqlLiteral(blob) + ")\n")
 		}
 	}
 	{ // "1.2.4"
@@ -134,9 +134,9 @@ func Test_fts3atoken2(t *testing.T) {
 		}
 	}
 	{ // "1.3.2"
-		r = db.Query("\n  SELECT typeof( fts3_tokenizer($bound) );\n")
+		r = db.Query("\n  SELECT typeof( fts3_tokenizer(" + sqlLiteral(bound) + ") );\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( fts3_tokenizer($bound) );\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( fts3_tokenizer(" + sqlLiteral(bound) + ") );\n")
 			return
 		}
 		got := flatten(r)
@@ -168,9 +168,9 @@ func Test_fts3atoken2(t *testing.T) {
 		}
 	}
 	{ // "1.4.3"
-		r = db.Query("\n  SELECT typeof( fts3_tokenizer('mytok3', $blob) );\n")
+		r = db.Query("\n  SELECT typeof( fts3_tokenizer('mytok3', " + sqlLiteral(blob) + ") );\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( fts3_tokenizer('mytok3', $blob) );\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( fts3_tokenizer('mytok3', " + sqlLiteral(blob) + ") );\n")
 			return
 		}
 		got := flatten(r)

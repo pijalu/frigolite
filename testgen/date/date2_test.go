@@ -112,9 +112,9 @@ func Test_date2(t *testing.T) {
 		}
 	}
 	{ // "date2-300"
-		_res = db.Exec("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;\n")
+		r = db.Query("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;\n")
 		}
 	}
 	{ // "date2-310"
@@ -154,9 +154,9 @@ func Test_date2(t *testing.T) {
 		}
 	}
 	{ // "date2-400"
-		_res = db.Exec("\n  CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;\n")
+		r = db.Query("\n  CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;\n")
 		}
 	}
 	{ // "date2-410"
@@ -178,9 +178,9 @@ func Test_date2(t *testing.T) {
 		}
 	}
 	{ // "date2-500"
-		_res = db.Exec("\n  CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;\n")
+		r = db.Query("\n  CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;\n")
 		}
 	}
 	{ // "date2-510"

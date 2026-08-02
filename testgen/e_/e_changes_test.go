@@ -145,9 +145,15 @@ func Test_e_changes(t *testing.T) {
 		// do_changes_test 3.1.2 {\n  UPDATE p1 SET two = two||two;\n} 3 (unsupported command, not transpiled)
 		// do_changes_test 3.1.3 {\n  DELETE FROM p1 WHERE one IN ('a', 'c');\n} 2 (unsupported command, not transpiled)
 		{ // "3.1.4"
-			_res = db.Exec("\n  -- None of the inserts on table log were counted.\n  SELECT count(*) FROM log\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- None of the inserts on table log were counted.\n  SELECT count(*) FROM log\n")
+			r = db.Query("\n  -- None of the inserts on table log were counted.\n  SELECT count(*) FROM log\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  -- None of the inserts on table log were counted.\n  SELECT count(*) FROM log\n")
+				return
+			}
+			got := flatten(r)
+			want := "8"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "3.2.0"
@@ -230,9 +236,9 @@ func Test_e_changes(t *testing.T) {
 		_ = changes // suppress unused warning
 		// proc definition (not transpiled)
 		{ // "5.1.0"
-			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT my_changes('trigger');\n  END;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT my_changes('trigger');\n  END;\n")
+			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT my_changes('trigger');\n  END;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT my_changes('trigger');\n  END;\n")
 			}
 		}
 		{ // "5.1.1"
@@ -299,9 +305,9 @@ func Test_e_changes(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "7.1"
-			_res = db.Exec("\n  CREATE TABLE q1(t);\n  CREATE TABLE q2(u, v);\n  CREATE TABLE q3(w);\n\n  CREATE TRIGGER q2_insert BEFORE INSERT ON q2 BEGIN\n\n    /* changes() returns value from previous I/U/D in callers context */\n    INSERT INTO q1 VALUES('1:' || changes());\n\n    /* changes() returns value of previous I/U/D in this context */\n    INSERT INTO q3 VALUES(changes()), (2), (3);\n    INSERT INTO q1 VALUES('2:' || changes());\n    INSERT INTO q3 VALUES(changes() + 3), (changes()+4);\n    SELECT 'this does not affect things!';\n    INSERT INTO q1 VALUES('3:' || changes());\n    UPDATE q3 SET w = w+10 WHERE w%2;\n    INSERT INTO q1 VALUES('4:' || changes());\n    DELETE FROM q3;\n    INSERT INTO q1 VALUES('5:' || changes());\n  END;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE q1(t);\n  CREATE TABLE q2(u, v);\n  CREATE TABLE q3(w);\n\n  CREATE TRIGGER q2_insert BEFORE INSERT ON q2 BEGIN\n\n    /* changes() returns value from previous I/U/D in callers context */\n    INSERT INTO q1 VALUES('1:' || changes());\n\n    /* changes() returns value of previous I/U/D in this context */\n    INSERT INTO q3 VALUES(changes()), (2), (3);\n    INSERT INTO q1 VALUES('2:' || changes());\n    INSERT INTO q3 VALUES(changes() + 3), (changes()+4);\n    SELECT 'this does not affect things!';\n    INSERT INTO q1 VALUES('3:' || changes());\n    UPDATE q3 SET w = w+10 WHERE w%2;\n    INSERT INTO q1 VALUES('4:' || changes());\n    DELETE FROM q3;\n    INSERT INTO q1 VALUES('5:' || changes());\n  END;\n")
+			r = db.Query("\n  CREATE TABLE q1(t);\n  CREATE TABLE q2(u, v);\n  CREATE TABLE q3(w);\n\n  CREATE TRIGGER q2_insert BEFORE INSERT ON q2 BEGIN\n\n    /* changes() returns value from previous I/U/D in callers context */\n    INSERT INTO q1 VALUES('1:' || changes());\n\n    /* changes() returns value of previous I/U/D in this context */\n    INSERT INTO q3 VALUES(changes()), (2), (3);\n    INSERT INTO q1 VALUES('2:' || changes());\n    INSERT INTO q3 VALUES(changes() + 3), (changes()+4);\n    SELECT 'this does not affect things!';\n    INSERT INTO q1 VALUES('3:' || changes());\n    UPDATE q3 SET w = w+10 WHERE w%2;\n    INSERT INTO q1 VALUES('4:' || changes());\n    DELETE FROM q3;\n    INSERT INTO q1 VALUES('5:' || changes());\n  END;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE q1(t);\n  CREATE TABLE q2(u, v);\n  CREATE TABLE q3(w);\n\n  CREATE TRIGGER q2_insert BEFORE INSERT ON q2 BEGIN\n\n    /* changes() returns value from previous I/U/D in callers context */\n    INSERT INTO q1 VALUES('1:' || changes());\n\n    /* changes() returns value of previous I/U/D in this context */\n    INSERT INTO q3 VALUES(changes()), (2), (3);\n    INSERT INTO q1 VALUES('2:' || changes());\n    INSERT INTO q3 VALUES(changes() + 3), (changes()+4);\n    SELECT 'this does not affect things!';\n    INSERT INTO q1 VALUES('3:' || changes());\n    UPDATE q3 SET w = w+10 WHERE w%2;\n    INSERT INTO q1 VALUES('4:' || changes());\n    DELETE FROM q3;\n    INSERT INTO q1 VALUES('5:' || changes());\n  END;\n")
 			}
 		}
 		{ // "7.2"

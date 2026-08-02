@@ -149,9 +149,15 @@ func Test_without_rowid5(t *testing.T) {
 		}
 	}
 	{ // "without_rowid5-5.1"
-		_res = db.Exec("\n  CREATE TABLE ipk(key INTEGER PRIMARY KEY, val TEXT) WITHOUT ROWID;\n  INSERT INTO ipk VALUES('rival','bonus'); -- ok to insert non-integer key\n  SELECT * FROM ipk;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE ipk(key INTEGER PRIMARY KEY, val TEXT) WITHOUT ROWID;\n  INSERT INTO ipk VALUES('rival','bonus'); -- ok to insert non-integer key\n  SELECT * FROM ipk;\n")
+		r = db.Query("\n  CREATE TABLE ipk(key INTEGER PRIMARY KEY, val TEXT) WITHOUT ROWID;\n  INSERT INTO ipk VALUES('rival','bonus'); -- ok to insert non-integer key\n  SELECT * FROM ipk;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE ipk(key INTEGER PRIMARY KEY, val TEXT) WITHOUT ROWID;\n  INSERT INTO ipk VALUES('rival','bonus'); -- ok to insert non-integer key\n  SELECT * FROM ipk;\n")
+			return
+		}
+		got := flatten(r)
+		want := "rival bonus"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "without_rowid5-5.2a"
@@ -269,15 +275,27 @@ func Test_without_rowid5(t *testing.T) {
 		}
 	}
 	{ // do_test "without_rowid5-5.103"
-		_res = db.Exec("\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT IGNORE,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT IGNORE,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;\n  ")
+		r = db.Query("\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT IGNORE,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT IGNORE,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "without_rowid5-5.104"
-		_res = db.Exec("\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT REPLACE DEFAULT 3,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT REPLACE DEFAULT 3,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;\n  ")
+		r = db.Query("\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT REPLACE DEFAULT 3,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT REPLACE DEFAULT 3,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 3 4 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "without_rowid5-6.1"

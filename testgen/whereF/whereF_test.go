@@ -7,6 +7,7 @@ package whereF
 import (
 "github.com/pijalu/frigolite"
 "regexp"
+"strings"
 "testing"
 )
 
@@ -59,9 +60,9 @@ func Test_whereF(t *testing.T) {
 	testprefix = "whereF"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t2(d);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t2(d);\n")
+		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t2(d);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t2(d);\n")
 		}
 	}
 	// foreach {tn sql} "1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\""
@@ -73,9 +74,15 @@ func Test_whereF(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			{ // do_test "1." + tn
-				_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN " + sql)
+				r = db.Query("EXPLAIN QUERY PLAN " + sql)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN " + sql)
+					return
+				}
+				got := flatten(r)
+				wantPattern := ".*SCAN t2\\\\y.*SEARCH t1\\\\y.*"
+				if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 				}
 			}
 		}
@@ -94,9 +101,15 @@ func Test_whereF(t *testing.T) {
 			_ = sql // suppress unused warning
 			_ = _idx1
 				{ // do_test "2." + tn
-					_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN " + sql)
+					r = db.Query("EXPLAIN QUERY PLAN " + sql)
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN " + sql)
+						return
+					}
+					got := flatten(r)
+					wantPattern := ".*SCAN t2\\\\y.*SEARCH t1\\\\y.*"
+					if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 					}
 				}
 			}
@@ -115,9 +128,15 @@ func Test_whereF(t *testing.T) {
 				_ = sql // suppress unused warning
 				_ = _idx2
 					{ // do_test "3." + tn
-						_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN " + sql)
+						r = db.Query("EXPLAIN QUERY PLAN " + sql)
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN " + sql)
+							return
+						}
+						got := flatten(r)
+						wantPattern := ".*SCAN t2\\\\y.*SEARCH t1\\\\y.*"
+						if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 						}
 					}
 				}
@@ -194,15 +213,9 @@ func Test_whereF(t *testing.T) {
 					}
 				}
 				{ // "6.2"
-					r = db.Query("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
-						return
-					}
-					got := flatten(r)
-					want := "1 {} {{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}}"
-					if got != want {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8", _res.Error, "\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
 					}
 				}
 				{ // "6.3"

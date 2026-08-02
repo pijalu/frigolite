@@ -61,9 +61,15 @@ func Test_tkt_cbd054fa6b(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "tkt-cbd05-1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES (NULL, '');\n    INSERT INTO t1 VALUES (NULL, 'A');\n    INSERT INTO t1 VALUES (NULL, 'B');\n    INSERT INTO t1 VALUES (NULL, 'C');\n    INSERT INTO t1 VALUES (NULL, 'D');\n    INSERT INTO t1 VALUES (NULL, 'E');\n    INSERT INTO t1 VALUES (NULL, 'F');\n    INSERT INTO t1 VALUES (NULL, 'G');\n    INSERT INTO t1 VALUES (NULL, 'H');\n    INSERT INTO t1 VALUES (NULL, 'I');\n    SELECT count(*) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES (NULL, '');\n    INSERT INTO t1 VALUES (NULL, 'A');\n    INSERT INTO t1 VALUES (NULL, 'B');\n    INSERT INTO t1 VALUES (NULL, 'C');\n    INSERT INTO t1 VALUES (NULL, 'D');\n    INSERT INTO t1 VALUES (NULL, 'E');\n    INSERT INTO t1 VALUES (NULL, 'F');\n    INSERT INTO t1 VALUES (NULL, 'G');\n    INSERT INTO t1 VALUES (NULL, 'H');\n    INSERT INTO t1 VALUES (NULL, 'I');\n    SELECT count(*) FROM t1;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES (NULL, '');\n    INSERT INTO t1 VALUES (NULL, 'A');\n    INSERT INTO t1 VALUES (NULL, 'B');\n    INSERT INTO t1 VALUES (NULL, 'C');\n    INSERT INTO t1 VALUES (NULL, 'D');\n    INSERT INTO t1 VALUES (NULL, 'E');\n    INSERT INTO t1 VALUES (NULL, 'F');\n    INSERT INTO t1 VALUES (NULL, 'G');\n    INSERT INTO t1 VALUES (NULL, 'H');\n    INSERT INTO t1 VALUES (NULL, 'I');\n    SELECT count(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES (NULL, '');\n    INSERT INTO t1 VALUES (NULL, 'A');\n    INSERT INTO t1 VALUES (NULL, 'B');\n    INSERT INTO t1 VALUES (NULL, 'C');\n    INSERT INTO t1 VALUES (NULL, 'D');\n    INSERT INTO t1 VALUES (NULL, 'E');\n    INSERT INTO t1 VALUES (NULL, 'F');\n    INSERT INTO t1 VALUES (NULL, 'G');\n    INSERT INTO t1 VALUES (NULL, 'H');\n    INSERT INTO t1 VALUES (NULL, 'I');\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-cbd05-1.2"
@@ -83,9 +89,15 @@ func Test_tkt_cbd054fa6b(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-cbd05-2.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES(NULL, X'');\n    INSERT INTO t1 VALUES(NULL, X'41');\n    INSERT INTO t1 VALUES(NULL, X'42');\n    INSERT INTO t1 VALUES(NULL, X'43');\n    INSERT INTO t1 VALUES(NULL, X'44');\n    INSERT INTO t1 VALUES(NULL, X'45');\n    INSERT INTO t1 VALUES(NULL, X'46');\n    INSERT INTO t1 VALUES(NULL, X'47');\n    INSERT INTO t1 VALUES(NULL, X'48');\n    INSERT INTO t1 VALUES(NULL, X'49');\n    SELECT count(*) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES(NULL, X'');\n    INSERT INTO t1 VALUES(NULL, X'41');\n    INSERT INTO t1 VALUES(NULL, X'42');\n    INSERT INTO t1 VALUES(NULL, X'43');\n    INSERT INTO t1 VALUES(NULL, X'44');\n    INSERT INTO t1 VALUES(NULL, X'45');\n    INSERT INTO t1 VALUES(NULL, X'46');\n    INSERT INTO t1 VALUES(NULL, X'47');\n    INSERT INTO t1 VALUES(NULL, X'48');\n    INSERT INTO t1 VALUES(NULL, X'49');\n    SELECT count(*) FROM t1;\n  ")
+		r = db.Query("\n    DROP TABLE t1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES(NULL, X'');\n    INSERT INTO t1 VALUES(NULL, X'41');\n    INSERT INTO t1 VALUES(NULL, X'42');\n    INSERT INTO t1 VALUES(NULL, X'43');\n    INSERT INTO t1 VALUES(NULL, X'44');\n    INSERT INTO t1 VALUES(NULL, X'45');\n    INSERT INTO t1 VALUES(NULL, X'46');\n    INSERT INTO t1 VALUES(NULL, X'47');\n    INSERT INTO t1 VALUES(NULL, X'48');\n    INSERT INTO t1 VALUES(NULL, X'49');\n    SELECT count(*) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES(NULL, X'');\n    INSERT INTO t1 VALUES(NULL, X'41');\n    INSERT INTO t1 VALUES(NULL, X'42');\n    INSERT INTO t1 VALUES(NULL, X'43');\n    INSERT INTO t1 VALUES(NULL, X'44');\n    INSERT INTO t1 VALUES(NULL, X'45');\n    INSERT INTO t1 VALUES(NULL, X'46');\n    INSERT INTO t1 VALUES(NULL, X'47');\n    INSERT INTO t1 VALUES(NULL, X'48');\n    INSERT INTO t1 VALUES(NULL, X'49');\n    SELECT count(*) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-cbd05-2.2"

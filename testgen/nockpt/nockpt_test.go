@@ -60,9 +60,15 @@ func Test_nockpt(t *testing.T) {
 	testprefix = "nockpt"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE c1(x, y, z);\n  INSERT INTO c1 VALUES(1, 2, 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE c1(x, y, z);\n  INSERT INTO c1 VALUES(1, 2, 3);\n")
+		r = db.Query("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE c1(x, y, z);\n  INSERT INTO c1 VALUES(1, 2, 3);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE c1(x, y, z);\n  INSERT INTO c1 VALUES(1, 2, 3);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.1"
@@ -179,9 +185,15 @@ func Test_nockpt(t *testing.T) {
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "2.1"
-			_res = db.Exec("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE y1(a PRIMARY KEY, b UNIQUE, c);\n  INSERT INTO y1 VALUES('a', 'b', 'c');\n  INSERT INTO y1 VALUES('d', 'e', 'f');\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE y1(a PRIMARY KEY, b UNIQUE, c);\n  INSERT INTO y1 VALUES('a', 'b', 'c');\n  INSERT INTO y1 VALUES('d', 'e', 'f');\n")
+			r = db.Query("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE y1(a PRIMARY KEY, b UNIQUE, c);\n  INSERT INTO y1 VALUES('a', 'b', 'c');\n  INSERT INTO y1 VALUES('d', 'e', 'f');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE y1(a PRIMARY KEY, b UNIQUE, c);\n  INSERT INTO y1 VALUES('a', 'b', 'c');\n  INSERT INTO y1 VALUES('d', 'e', 'f');\n")
+				return
+			}
+			got := flatten(r)
+			want := "wal"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "-db"

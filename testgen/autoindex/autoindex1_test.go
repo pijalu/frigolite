@@ -84,9 +84,15 @@ func Test_autoindex1(t *testing.T) {
 	{ // do_test "autoindex1-102"
 	}
 	{ // do_test "autoindex1-110"
-		_res = db.Exec("\n    PRAGMA automatic_index=ON;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA automatic_index=ON;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;\n  ")
+		r = db.Query("\n    PRAGMA automatic_index=ON;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA automatic_index=ON;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 911 22 922 33 933 44 944 55 955 66 966 77 977 88 988"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoindex1-111"
@@ -103,9 +109,15 @@ func Test_autoindex1(t *testing.T) {
 	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "autoindex1-200"
-		_res = db.Exec("\n    PRAGMA automatic_index=OFF;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA automatic_index=OFF;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA automatic_index=OFF;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA automatic_index=OFF;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 911 22 922 33 933 44 944 55 955 66 966 77 977 88 988"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoindex1-201"
@@ -113,9 +125,15 @@ func Test_autoindex1(t *testing.T) {
 	{ // do_test "autoindex1-202"
 	}
 	{ // do_test "autoindex1-210"
-		_res = db.Exec("\n    PRAGMA automatic_index=ON;\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t1';\n    -- Table t2 actually contains 8 rows.\n    UPDATE sqlite_stat1 SET stat='16' WHERE tbl='t2';\n    ANALYZE sqlite_master;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA automatic_index=ON;\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t1';\n    -- Table t2 actually contains 8 rows.\n    UPDATE sqlite_stat1 SET stat='16' WHERE tbl='t2';\n    ANALYZE sqlite_master;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
+		r = db.Query("\n    PRAGMA automatic_index=ON;\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t1';\n    -- Table t2 actually contains 8 rows.\n    UPDATE sqlite_stat1 SET stat='16' WHERE tbl='t2';\n    ANALYZE sqlite_master;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA automatic_index=ON;\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t1';\n    -- Table t2 actually contains 8 rows.\n    UPDATE sqlite_stat1 SET stat='16' WHERE tbl='t2';\n    ANALYZE sqlite_master;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "11 911 22 922 33 933 44 944 55 955 66 966 77 977 88 988"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoindex1-211"
@@ -143,9 +161,15 @@ func Test_autoindex1(t *testing.T) {
 		}
 	}
 	{ // do_test "autoindex1-310"
-		_res = db.Exec("SELECT d FROM t2 ORDER BY d")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT d FROM t2 ORDER BY d")
+		r = db.Query("SELECT d FROM t2 ORDER BY d")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT d FROM t2 ORDER BY d")
+			return
+		}
+		got := flatten(r)
+		want := "919 930 941 952 963 974 985 996"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "autoindex1-400"
@@ -156,9 +180,9 @@ func Test_autoindex1(t *testing.T) {
 		n = "2"
 		_ = n // suppress unused warning
 		for func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n < 4096 }() {
-			_res = db.Exec("INSERT INTO t4 SELECT a+" + n + ", b+" + n + " FROM t4")
+			_res = db.Exec("INSERT INTO t4 SELECT a+" + sqlLiteral(n) + ", b+" + sqlLiteral(n) + " FROM t4")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 SELECT a+" + n + ", b+" + n + " FROM t4")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 SELECT a+" + sqlLiteral(n) + ", b+" + sqlLiteral(n) + " FROM t4")
 			}
 			n = tclExprWith("$n+$n", map[string]string{"n": n})
 			_ = n // suppress unused warning
@@ -169,9 +193,15 @@ func Test_autoindex1(t *testing.T) {
 		}
 	}
 	{ // do_test "autoindex1-401"
-		_res = db.Exec("\n    SELECT count(*)\n      FROM t4 AS x1\n      JOIN t4 AS x2 ON x2.a=x1.b\n      JOIN t4 AS x3 ON x3.a=x2.b\n      JOIN t4 AS x4 ON x4.a=x3.b\n      JOIN t4 AS x5 ON x5.a=x4.b\n      JOIN t4 AS x6 ON x6.a=x5.b\n      JOIN t4 AS x7 ON x7.a=x6.b\n      JOIN t4 AS x8 ON x8.a=x7.b\n      JOIN t4 AS x9 ON x9.a=x8.b\n      JOIN t4 AS x10 ON x10.a=x9.b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT count(*)\n      FROM t4 AS x1\n      JOIN t4 AS x2 ON x2.a=x1.b\n      JOIN t4 AS x3 ON x3.a=x2.b\n      JOIN t4 AS x4 ON x4.a=x3.b\n      JOIN t4 AS x5 ON x5.a=x4.b\n      JOIN t4 AS x6 ON x6.a=x5.b\n      JOIN t4 AS x7 ON x7.a=x6.b\n      JOIN t4 AS x8 ON x8.a=x7.b\n      JOIN t4 AS x9 ON x9.a=x8.b\n      JOIN t4 AS x10 ON x10.a=x9.b;\n  ")
+		r = db.Query("\n    SELECT count(*)\n      FROM t4 AS x1\n      JOIN t4 AS x2 ON x2.a=x1.b\n      JOIN t4 AS x3 ON x3.a=x2.b\n      JOIN t4 AS x4 ON x4.a=x3.b\n      JOIN t4 AS x5 ON x5.a=x4.b\n      JOIN t4 AS x6 ON x6.a=x5.b\n      JOIN t4 AS x7 ON x7.a=x6.b\n      JOIN t4 AS x8 ON x8.a=x7.b\n      JOIN t4 AS x9 ON x9.a=x8.b\n      JOIN t4 AS x10 ON x10.a=x9.b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*)\n      FROM t4 AS x1\n      JOIN t4 AS x2 ON x2.a=x1.b\n      JOIN t4 AS x3 ON x3.a=x2.b\n      JOIN t4 AS x4 ON x4.a=x3.b\n      JOIN t4 AS x5 ON x5.a=x4.b\n      JOIN t4 AS x6 ON x6.a=x5.b\n      JOIN t4 AS x7 ON x7.a=x6.b\n      JOIN t4 AS x8 ON x8.a=x7.b\n      JOIN t4 AS x9 ON x9.a=x8.b\n      JOIN t4 AS x10 ON x10.a=x9.b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "4087"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "autoindex1-500"

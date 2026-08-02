@@ -57,9 +57,15 @@ func Test_analyze6(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "analyze6-1.0"
-		_res = db.Exec("\n    CREATE TABLE cat(x INT, yz TEXT);\n    CREATE UNIQUE INDEX catx ON cat(x);\n    /* Give cat 16 unique integers */\n    INSERT INTO cat(x) VALUES(1);\n    INSERT INTO cat(x) VALUES(2);\n    INSERT INTO cat(x) SELECT x+2 FROM cat;\n    INSERT INTO cat(x) SELECT x+4 FROM cat;\n    INSERT INTO cat(x) SELECT x+8 FROM cat;\n\n    CREATE TABLE ev(y INT);\n    CREATE INDEX evy ON ev(y);\n    /* ev will hold 32 copies of 16 integers found in cat */\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    ANALYZE;\n    SELECT count(*) FROM cat;\n    SELECT count(*) FROM ev;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE cat(x INT, yz TEXT);\n    CREATE UNIQUE INDEX catx ON cat(x);\n    /* Give cat 16 unique integers */\n    INSERT INTO cat(x) VALUES(1);\n    INSERT INTO cat(x) VALUES(2);\n    INSERT INTO cat(x) SELECT x+2 FROM cat;\n    INSERT INTO cat(x) SELECT x+4 FROM cat;\n    INSERT INTO cat(x) SELECT x+8 FROM cat;\n\n    CREATE TABLE ev(y INT);\n    CREATE INDEX evy ON ev(y);\n    /* ev will hold 32 copies of 16 integers found in cat */\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    ANALYZE;\n    SELECT count(*) FROM cat;\n    SELECT count(*) FROM ev;\n  ")
+		r = db.Query("\n    CREATE TABLE cat(x INT, yz TEXT);\n    CREATE UNIQUE INDEX catx ON cat(x);\n    /* Give cat 16 unique integers */\n    INSERT INTO cat(x) VALUES(1);\n    INSERT INTO cat(x) VALUES(2);\n    INSERT INTO cat(x) SELECT x+2 FROM cat;\n    INSERT INTO cat(x) SELECT x+4 FROM cat;\n    INSERT INTO cat(x) SELECT x+8 FROM cat;\n\n    CREATE TABLE ev(y INT);\n    CREATE INDEX evy ON ev(y);\n    /* ev will hold 32 copies of 16 integers found in cat */\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    ANALYZE;\n    SELECT count(*) FROM cat;\n    SELECT count(*) FROM ev;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE cat(x INT, yz TEXT);\n    CREATE UNIQUE INDEX catx ON cat(x);\n    /* Give cat 16 unique integers */\n    INSERT INTO cat(x) VALUES(1);\n    INSERT INTO cat(x) VALUES(2);\n    INSERT INTO cat(x) SELECT x+2 FROM cat;\n    INSERT INTO cat(x) SELECT x+4 FROM cat;\n    INSERT INTO cat(x) SELECT x+8 FROM cat;\n\n    CREATE TABLE ev(y INT);\n    CREATE INDEX evy ON ev(y);\n    /* ev will hold 32 copies of 16 integers found in cat */\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    ANALYZE;\n    SELECT count(*) FROM cat;\n    SELECT count(*) FROM ev;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "16 512"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze6-1.1"

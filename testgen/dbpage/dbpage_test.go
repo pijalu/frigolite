@@ -299,17 +299,17 @@ func Test_dbpage(t *testing.T) {
 	db2.Exec("\n  BEGIN;\n    SELECT * FROM x1;\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // "620"
-		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;\n")
+		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
 		}
 	}
 	db2.Exec("\n  COMMIT;\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // "630"
-		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;\n")
+		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
 		}
 	}
 	_dbtmp1, err := frigolite.Open("test.db")
@@ -354,9 +354,9 @@ func Test_dbpage(t *testing.T) {
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; max_n, _max_e := strconv.Atoi(max); if _max_e != nil { return false }; return ii_n <= max_n }() {
 			data = "db2 one {SELECT data FROM sqlite_dbpage WHERE pgno=$ii}"
 			_ = data // suppress unused warning
-			_res = db.Exec("\n      UPDATE sqlite_dbpage SET data=" + data + " WHERE pgno=" + ii + "\n    ")
+			_res = db.Exec("\n      UPDATE sqlite_dbpage SET data=" + sqlLiteral(data) + " WHERE pgno=" + sqlLiteral(ii) + "\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE sqlite_dbpage SET data=" + data + " WHERE pgno=" + ii + "\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE sqlite_dbpage SET data=" + sqlLiteral(data) + " WHERE pgno=" + sqlLiteral(ii) + "\n    ")
 			}
 			// incr ii 1
 			{

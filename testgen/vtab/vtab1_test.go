@@ -959,9 +959,9 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1.13-4"
-		r = db.Query(" \n    SELECT * FROM echo_c WHERE b IS " + null + "\n  ")
+		r = db.Query(" \n    SELECT * FROM echo_c WHERE b IS " + sqlLiteral(null) + "\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM echo_c WHERE b IS " + null + "\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM echo_c WHERE b IS " + sqlLiteral(null) + "\n  ")
 		}
 	}
 	{ // do_test "vtab1.13-5"
@@ -1229,13 +1229,13 @@ func Test_vtab1(t *testing.T) {
 			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-				_res = db.Exec("INSERT INTO t7 VALUES(" + i + ", " + i + ")")
+				_res = db.Exec("INSERT INTO t7 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t7 VALUES(" + i + ", " + i + ")")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t7 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
 				}
-				_res = db.Exec("INSERT INTO t8 VALUES(" + i + ", " + i + ")")
+				_res = db.Exec("INSERT INTO t8 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES(" + i + ", " + i + ")")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ")")
 				}
 				// incr i 1
 				{
@@ -1304,9 +1304,9 @@ func Test_vtab1(t *testing.T) {
 		nm = "abcdefghij 100"
 		_ = nm // suppress unused warning
 		{ // "22.1"
-			_res = db.Exec("\n    ATTACH 'test.db2' AS $nm\n  ")
+			_res = db.Exec("\n    ATTACH 'test.db2' AS " + sqlLiteral(nm) + "\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS $nm\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS " + sqlLiteral(nm) + "\n  ")
 			}
 		}
 		r = db.Query("SELECT * FROM sqlite_master")

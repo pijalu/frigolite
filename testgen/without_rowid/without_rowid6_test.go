@@ -59,9 +59,9 @@ func Test_without_rowid6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // "without_rowid6-100"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;\n")
+		r = db.Query("\n  CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;\n")
 		}
 	}
 	// do_execsql_test_if_vtab without_rowid6-101 {\n  SELECT name, key FROM pragma_index_xinfo('t1')...} {a 1 ... (unsupported command, not transpiled)

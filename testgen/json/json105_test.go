@@ -62,9 +62,9 @@ func Test_json105(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "json105"
 	_ = testprefix // suppress unused warning
-	_res = db.Exec("\n  CREATE TABLE t1(j);\n  INSERT INTO t1(j) VALUES('{\"a\":1,\"b\":" + "1,[2,3],4" + ",\"c\":99}');\n")
+	_res = db.Exec("\n  CREATE TABLE t1(j);\n  INSERT INTO t1(j) VALUES('{\"a\":1,\"b\":" + sqlLiteral("1,[2,3],4") + ",\"c\":99}');\n")
 	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(j);\n  INSERT INTO t1(j) VALUES('{\"a\":1,\"b\":" + "1,[2,3],4" + ",\"c\":99}');\n")
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(j);\n  INSERT INTO t1(j) VALUES('{\"a\":1,\"b\":" + sqlLiteral("1,[2,3],4") + ",\"c\":99}');\n")
 	}
 	// proc definition (not transpiled)
 	// json_extract_test 10 {'$.b[#]'} NULL (unsupported command, not transpiled)
@@ -119,33 +119,33 @@ func Test_json105(t *testing.T) {
 	// json_replace_test 70 {'$.b[1][#-1]','AAA','$.b[#-1]','BBB'} {'{"a":1,"b":[1,[2,"AAA"],"BBB"],"c":9... (unsupported command, not transpiled)
 	// json_replace_test 80 {'$.b[#-1]','AAA','$.b[#-1]','BBB'} {'{"a":1,"b":[1,[2,3],"BBB"],"c":99}'} (unsupported command, not transpiled)
 	{ // "json105-6.10"
-		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#-]') FROM t1;\n")
+		_res = db.Exec("\n  SELECT json_extract(j, '$.b" + sqlLiteral("#-") + "') FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#-]'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-]'", _res.Error, "\n  SELECT json_extract(j, '$.b[#-]') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-]'", _res.Error, "\n  SELECT json_extract(j, '$.b" + sqlLiteral("#-") + "') FROM t1;\n")
 		}
 	}
 	{ // "json105-6.20"
-		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#9]') FROM t1;\n")
+		_res = db.Exec("\n  SELECT json_extract(j, '$.b" + sqlLiteral("#9") + "') FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#9]'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#9]'", _res.Error, "\n  SELECT json_extract(j, '$.b[#9]') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#9]'", _res.Error, "\n  SELECT json_extract(j, '$.b" + sqlLiteral("#9") + "') FROM t1;\n")
 		}
 	}
 	{ // "json105-6.30"
-		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#+2]') FROM t1;\n")
+		_res = db.Exec("\n  SELECT json_extract(j, '$.b" + sqlLiteral("#+2") + "') FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#+2]'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#+2]'", _res.Error, "\n  SELECT json_extract(j, '$.b[#+2]') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#+2]'", _res.Error, "\n  SELECT json_extract(j, '$.b" + sqlLiteral("#+2") + "') FROM t1;\n")
 		}
 	}
 	{ // "json105-6.40"
-		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#-1') FROM t1;\n")
+		_res = db.Exec("\n  SELECT json_extract(j, '$.b" + sqlLiteral("#-1') FROM t1;"))
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#-1'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-1'", _res.Error, "\n  SELECT json_extract(j, '$.b[#-1') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-1'", _res.Error, "\n  SELECT json_extract(j, '$.b" + sqlLiteral("#-1') FROM t1;"))
 		}
 	}
 	{ // "json105-6.50"
-		_res = db.Exec("\n  SELECT json_extract(j, '$.b[#-1x]') FROM t1;\n")
+		_res = db.Exec("\n  SELECT json_extract(j, '$.b" + sqlLiteral("#-1x") + "') FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.b[#-1x]'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-1x]'", _res.Error, "\n  SELECT json_extract(j, '$.b[#-1x]') FROM t1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.b[#-1x]'", _res.Error, "\n  SELECT json_extract(j, '$.b" + sqlLiteral("#-1x") + "') FROM t1;\n")
 		}
 	}
 }

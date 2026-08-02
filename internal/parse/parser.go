@@ -491,6 +491,9 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		second := &sql.SelectStmt{Columns: secondCols}
 		if first != nil {
+			if len(first.Columns) != len(secondExprs) {
+				p.SemanticErr = fmt.Errorf("all VALUES must have the same number of terms")
+			}
 			first.AppendUnion(second, sql.SetUnion, true)
 		}
 		return first
@@ -505,6 +508,9 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		last := &sql.SelectStmt{Columns: cols}
 		if acc != nil {
+			if len(acc.Columns) != len(exprs) {
+				p.SemanticErr = fmt.Errorf("all VALUES must have the same number of terms")
+			}
 			acc.AppendUnion(last, sql.SetUnion, true)
 		}
 		return acc
@@ -1509,6 +1515,25 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Select:    sel,
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
 		}
+
+	// Rule 278: expr ::= RAISE LP IGNORE RP — RAISE(IGNORE)
+	case 278:
+		return &sql.RaiseExpr{Kind: "IGNORE"}
+
+	// Rule 279: expr ::= RAISE LP raisetype COMMA expr RP — RAISE(ABORT,msg) etc.
+	case 279:
+		return &sql.RaiseExpr{
+			Kind:    getString(getRHS(p, ruleNo, 3)),
+			Message: getExpr(getRHS(p, ruleNo, 5)),
+		}
+
+	// Rules 280-282: raisetype ::= ROLLBACK | ABORT | FAIL
+	case 280:
+		return "ROLLBACK"
+	case 281:
+		return "ABORT"
+	case 282:
+		return "FAIL"
 
 	// Rule 283: cmd ::= DROP TRIGGER ifexists fullname
 	case 283:

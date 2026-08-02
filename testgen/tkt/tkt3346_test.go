@@ -52,27 +52,51 @@ func Test_tkt3346(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3346-1.1"
-		_res = db.Exec("\n   CREATE TABLE t1(a,b);\n   INSERT INTO t1 VALUES(2,'bob');\n   INSERT INTO t1 VALUES(1,'alice');\n   INSERT INTO t1 VALUES(3,'claire');\n   SELECT *, ( SELECT y FROM (SELECT x.b='alice' AS y) )\n     FROM ( SELECT * FROM t1 ) AS x;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t1(a,b);\n   INSERT INTO t1 VALUES(2,'bob');\n   INSERT INTO t1 VALUES(1,'alice');\n   INSERT INTO t1 VALUES(3,'claire');\n   SELECT *, ( SELECT y FROM (SELECT x.b='alice' AS y) )\n     FROM ( SELECT * FROM t1 ) AS x;\n  ")
+		r = db.Query("\n   CREATE TABLE t1(a,b);\n   INSERT INTO t1 VALUES(2,'bob');\n   INSERT INTO t1 VALUES(1,'alice');\n   INSERT INTO t1 VALUES(3,'claire');\n   SELECT *, ( SELECT y FROM (SELECT x.b='alice' AS y) )\n     FROM ( SELECT * FROM t1 ) AS x;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   CREATE TABLE t1(a,b);\n   INSERT INTO t1 VALUES(2,'bob');\n   INSERT INTO t1 VALUES(1,'alice');\n   INSERT INTO t1 VALUES(3,'claire');\n   SELECT *, ( SELECT y FROM (SELECT x.b='alice' AS y) )\n     FROM ( SELECT * FROM t1 ) AS x;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2 bob 0 1 alice 1 3 claire 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3346-1.2"
-		_res = db.Exec("\n    SELECT b FROM (SELECT * FROM t1) AS x\n     WHERE (SELECT y FROM (SELECT x.b='alice' AS y))=0\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM (SELECT * FROM t1) AS x\n     WHERE (SELECT y FROM (SELECT x.b='alice' AS y))=0\n  ")
+		r = db.Query("\n    SELECT b FROM (SELECT * FROM t1) AS x\n     WHERE (SELECT y FROM (SELECT x.b='alice' AS y))=0\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM (SELECT * FROM t1) AS x\n     WHERE (SELECT y FROM (SELECT x.b='alice' AS y))=0\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "bob claire"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3346-1.3"
-		_res = db.Exec("\n    SELECT b FROM (SELECT * FROM t1 ORDER BY a) AS x\n     WHERE (SELECT y FROM (SELECT a||b y FROM t1 WHERE t1.b=x.b))=(x.a||x.b)\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM (SELECT * FROM t1 ORDER BY a) AS x\n     WHERE (SELECT y FROM (SELECT a||b y FROM t1 WHERE t1.b=x.b))=(x.a||x.b)\n  ")
+		r = db.Query("\n    SELECT b FROM (SELECT * FROM t1 ORDER BY a) AS x\n     WHERE (SELECT y FROM (SELECT a||b y FROM t1 WHERE t1.b=x.b))=(x.a||x.b)\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM (SELECT * FROM t1 ORDER BY a) AS x\n     WHERE (SELECT y FROM (SELECT a||b y FROM t1 WHERE t1.b=x.b))=(x.a||x.b)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "alice bob claire"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3346-1.4"
-		_res = db.Exec("\n    SELECT b FROM (SELECT * FROM t1 ORDER BY a) AS x\n     WHERE (SELECT y FROM (SELECT a||b y FROM t1 WHERE t1.b=x.b))=('2'||x.b)\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM (SELECT * FROM t1 ORDER BY a) AS x\n     WHERE (SELECT y FROM (SELECT a||b y FROM t1 WHERE t1.b=x.b))=('2'||x.b)\n  ")
+		r = db.Query("\n    SELECT b FROM (SELECT * FROM t1 ORDER BY a) AS x\n     WHERE (SELECT y FROM (SELECT a||b y FROM t1 WHERE t1.b=x.b))=('2'||x.b)\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM (SELECT * FROM t1 ORDER BY a) AS x\n     WHERE (SELECT y FROM (SELECT a||b y FROM t1 WHERE t1.b=x.b))=('2'||x.b)\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "bob"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3346-2.1"

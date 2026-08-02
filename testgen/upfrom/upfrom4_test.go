@@ -6,7 +6,6 @@ package upfrom
 
 import (
 "github.com/pijalu/frigolite"
-"strings"
 "testing"
 )
 
@@ -67,15 +66,27 @@ func Test_upfrom4(t *testing.T) {
 		}
 	}
 	{ // "110"
-		_res = db.Exec("\n  BEGIN;\n  UPDATE t5 SET b=y, c=v FROM m1 LEFT JOIN m2 ON (x=u) WHERE x=a;\n  SELECT * FROM t5 ORDER BY a;\n  ROLLBACK;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "i I 2 ii {} 3 iii II 4 four FOUR") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "i I 2 ii {} 3 iii II 4 four FOUR", _res.Error, "\n  BEGIN;\n  UPDATE t5 SET b=y, c=v FROM m1 LEFT JOIN m2 ON (x=u) WHERE x=a;\n  SELECT * FROM t5 ORDER BY a;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  UPDATE t5 SET b=y, c=v FROM m1 LEFT JOIN m2 ON (x=u) WHERE x=a;\n  SELECT * FROM t5 ORDER BY a;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  UPDATE t5 SET b=y, c=v FROM m1 LEFT JOIN m2 ON (x=u) WHERE x=a;\n  SELECT * FROM t5 ORDER BY a;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 i I 2 ii {} 3 iii II 4 four FOUR"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "120"
-		_res = db.Exec("\n  BEGIN;\n  UPDATE t5 SET b=y, c=v FROM m2 RIGHT JOIN m1 ON (x=u) WHERE x=a;\n  SELECT * FROM t5 ORDER BY a;\n  ROLLBACK;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "i I 2 ii {} 3 iii II 4 four FOUR") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "i I 2 ii {} 3 iii II 4 four FOUR", _res.Error, "\n  BEGIN;\n  UPDATE t5 SET b=y, c=v FROM m2 RIGHT JOIN m1 ON (x=u) WHERE x=a;\n  SELECT * FROM t5 ORDER BY a;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  UPDATE t5 SET b=y, c=v FROM m2 RIGHT JOIN m1 ON (x=u) WHERE x=a;\n  SELECT * FROM t5 ORDER BY a;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  UPDATE t5 SET b=y, c=v FROM m2 RIGHT JOIN m1 ON (x=u) WHERE x=a;\n  SELECT * FROM t5 ORDER BY a;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 i I 2 ii {} 3 iii II 4 four FOUR"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
@@ -89,9 +100,15 @@ func Test_upfrom4(t *testing.T) {
 		}
 	}
 	{ // "210"
-		_res = db.Exec("\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  UPDATE t1 SET b=c1.b, c=c2.c\n    FROM dual, c1 NATURAL RIGHT JOIN c2\n   WHERE x=a;\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "- - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "- - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -", _res.Error, "\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  UPDATE t1 SET b=c1.b, c=c2.c\n    FROM dual, c1 NATURAL RIGHT JOIN c2\n   WHERE x=a;\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  UPDATE t1 SET b=c1.b, c=c2.c\n    FROM dual, c1 NATURAL RIGHT JOIN c2\n   WHERE x=a;\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  UPDATE t1 SET b=c1.b, c=c2.c\n    FROM dual, c1 NATURAL RIGHT JOIN c2\n   WHERE x=a;\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 - - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "300"
@@ -101,9 +118,15 @@ func Test_upfrom4(t *testing.T) {
 		}
 	}
 	{ // "310"
-		_res = db.Exec("\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  INSERT INTO t2(x) VALUES(1);\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "- - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "- - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -", _res.Error, "\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  INSERT INTO t2(x) VALUES(1);\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  INSERT INTO t2(x) VALUES(1);\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  INSERT INTO t2(x) VALUES(1);\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 - - 2 - - 8 - - 19 - - 1 - - 2 - 2 8 8 8 19 - -"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()

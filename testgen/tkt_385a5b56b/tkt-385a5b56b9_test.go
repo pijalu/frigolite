@@ -6,6 +6,7 @@ package tkt_385a5b56b
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -60,15 +61,9 @@ func Test_tkt_385a5b56b9(t *testing.T) {
 		}
 	}
 	{ // "1.1"
-		r = db.Query(" SELECT DISTINCT x, y FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT DISTINCT x, y FROM t1 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} 2 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec(" SELECT DISTINCT x, y FROM t1 ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2", _res.Error, " SELECT DISTINCT x, y FROM t1 ")
 		}
 	}
 	{ // "1.2"
@@ -78,15 +73,9 @@ func Test_tkt_385a5b56b9(t *testing.T) {
 		}
 	}
 	{ // "1.3"
-		r = db.Query(" SELECT DISTINCT x, y FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT DISTINCT x, y FROM t1 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} 2 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec(" SELECT DISTINCT x, y FROM t1 ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2", _res.Error, " SELECT DISTINCT x, y FROM t1 ")
 		}
 	}
 	{ // "2.0"

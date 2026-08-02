@@ -124,15 +124,27 @@ func Test_alias(t *testing.T) {
 		_ = tclSort("-integer") // lsort result
 	}
 	{ // do_test "alias-2.1"
-		_res = db.Exec("\n    SELECT 4 UNION SELECT 1 ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 4 UNION SELECT 1 ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT 4 UNION SELECT 1 ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 4 UNION SELECT 1 ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "alias-2.2"
-		_res = db.Exec("\n    SELECT 4 UNION SELECT 1 UNION SELECT 9 ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 4 UNION SELECT 1 UNION SELECT 9 ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT 4 UNION SELECT 1 UNION SELECT 9 ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 4 UNION SELECT 1 UNION SELECT 9 ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 4 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	if false {

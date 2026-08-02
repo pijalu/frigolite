@@ -55,9 +55,9 @@ func Test_vtabK(t *testing.T) {
 	testprefix = "vtabK"
 	_ = testprefix // suppress unused warning
 	{ // "100"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(123);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n  PRAGMA writable_schema=OFF;\n  CREATE VIRTUAL TABLE t3 USING fts5(b);\n  INSERT INTO t3 VALUES('this is a test');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(123);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n  PRAGMA writable_schema=OFF;\n  CREATE VIRTUAL TABLE t3 USING fts5(b);\n  INSERT INTO t3 VALUES('this is a test');\n")
+		r = db.Query("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(123);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n  PRAGMA writable_schema=OFF;\n  CREATE VIRTUAL TABLE t3 USING fts5(b);\n  INSERT INTO t3 VALUES('this is a test');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(123);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n  PRAGMA writable_schema=OFF;\n  CREATE VIRTUAL TABLE t3 USING fts5(b);\n  INSERT INTO t3 VALUES('this is a test');\n")
 		}
 	}
 	{ // "110"
@@ -136,9 +136,9 @@ func Test_vtabK(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "200"
-		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('Ebed-malech');\n  CREATE TABLE x(a);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('Ebed-malech');\n  CREATE TABLE x(a);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n")
+		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('Ebed-malech');\n  CREATE TABLE x(a);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('Ebed-malech');\n  CREATE TABLE x(a);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n")
 		}
 	}
 	{ // "210"

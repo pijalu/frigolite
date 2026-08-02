@@ -105,15 +105,9 @@ func Test_triggerupfrom(t *testing.T) {
 		}
 	}
 	{ // "2.2"
-		r = db.Query("\n  CREATE TEMP TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE a=new.a;\n  END;\n  INSERT INTO t1(a) VALUES(10), (20);\n  SELECT * FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TEMP TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE a=new.a;\n  END;\n  INSERT INTO t1(a) VALUES(10), (20);\n  SELECT * FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {} one 2 {} two 3 {} three 4 {} four 5 {} {} 10 y {} 20 y {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  CREATE TEMP TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE a=new.a;\n  END;\n  INSERT INTO t1(a) VALUES(10), (20);\n  SELECT * FROM t1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "one 2 {} two 3 {} three 4 {} four 5 {} {} 10 y {} 20 y") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "one 2 {} two 3 {} three 4 {} four 5 {} {} 10 y {} 20 y", _res.Error, "\n  CREATE TEMP TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b = y FROM aux.t3 WHERE a=new.a;\n  END;\n  INSERT INTO t1(a) VALUES(10), (20);\n  SELECT * FROM t1;\n")
 		}
 	}
 	{ // "2.3"
@@ -174,15 +168,27 @@ func Test_triggerupfrom(t *testing.T) {
 		}
 	}
 	{ // "4.2"
-		_res = db.Exec("\n  UPDATE v1 SET a='xyz' WHERE k IN ('a', 'c');\n  SELECT * FROM log;\n  DELETE FROM log;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE v1 SET a='xyz' WHERE k IN ('a', 'c');\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		r = db.Query("\n  UPDATE v1 SET a='xyz' WHERE k IN ('a', 'c');\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE v1 SET a='xyz' WHERE k IN ('a', 'c');\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+			return
+		}
+		got := flatten(r)
+		want := "(1,one)->(xyz,one) (3,three)->(xyz,three)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "4.3"
-		_res = db.Exec("\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES('b', 'twelve');\n  INSERT INTO map VALUES('d', 'fourteen');\n  UPDATE v1 SET a=map.v FROM map WHERE v1.k=map.k;\n  SELECT * FROM log;\n  DELETE FROM log;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES('b', 'twelve');\n  INSERT INTO map VALUES('d', 'fourteen');\n  UPDATE v1 SET a=map.v FROM map WHERE v1.k=map.k;\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		r = db.Query("\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES('b', 'twelve');\n  INSERT INTO map VALUES('d', 'fourteen');\n  UPDATE v1 SET a=map.v FROM map WHERE v1.k=map.k;\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES('b', 'twelve');\n  INSERT INTO map VALUES('d', 'fourteen');\n  UPDATE v1 SET a=map.v FROM map WHERE v1.k=map.k;\n  SELECT * FROM log;\n  DELETE FROM log;\n")
+			return
+		}
+		got := flatten(r)
+		want := "(2,two)->(twelve,two) (4,four)->(fourteen,four)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

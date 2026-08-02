@@ -6,6 +6,7 @@ package fts3defer
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -96,9 +97,15 @@ func Test_fts3defer2(t *testing.T) {
 	}
 	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "1.1.4"
-		_res = db.Exec("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments SET block = zeroblob(length(block)) WHERE length(block)>10000;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments SET block = zeroblob(length(block)) WHERE length(block)>10000;\n")
+		r = db.Query("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments SET block = zeroblob(length(block)) WHERE length(block)>10000;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments SET block = zeroblob(length(block)) WHERE length(block)>10000;\n")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.2.0"
@@ -126,9 +133,9 @@ func Test_fts3defer2(t *testing.T) {
 		}
 	}
 	{ // "1.2.2"
-		r = db.Query("\n  SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';\n")
+		r = db.Query("\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';\n")
 			return
 		}
 		got := flatten(r)
@@ -138,9 +145,9 @@ func Test_fts3defer2(t *testing.T) {
 		}
 	}
 	{ // "1.2.3"
-		r = db.Query("\n  SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';\n")
+		r = db.Query("\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';\n")
 			return
 		}
 		got := flatten(r)
@@ -277,15 +284,9 @@ func Test_fts3defer2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
 				{ // "2.4." + tn
-					r = db.Query("\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
-						return
-					}
-					got := flatten(r)
-					want := "1 {1 1 1 4 4 11 912 6} 3 {1 1 1 4 4 11 912 6}"
-					if got != want {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					_res = db.Exec("\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1 1 1 4 4 11 912 6} 3 {1 1 1 4 4 11 912 6") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1 1 1 4 4 11 912 6} 3 {1 1 1 4 4 11 912 6", _res.Error, "\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
 					}
 				}
 			}

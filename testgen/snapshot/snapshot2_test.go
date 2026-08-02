@@ -61,9 +61,15 @@ func Test_snapshot2(t *testing.T) {
 		return
 	}
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.1.1"
@@ -165,9 +171,15 @@ func Test_snapshot2(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
+		r = db.Query("\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.1"
@@ -256,9 +268,15 @@ func Test_snapshot2(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('c', 'd');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('c', 'd');\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('c', 'd');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('c', 'd');\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.1"
@@ -332,9 +350,15 @@ func Test_snapshot2(t *testing.T) {
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
-		_res = db.Exec("\n  CREATE TABLE t2(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t2 VALUES('abc');\n  INSERT INTO t2 VALUES('def');\n  INSERT INTO t2 VALUES('ghi');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t2 VALUES('abc');\n  INSERT INTO t2 VALUES('def');\n  INSERT INTO t2 VALUES('ghi');\n")
+		r = db.Query("\n  CREATE TABLE t2(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t2 VALUES('abc');\n  INSERT INTO t2 VALUES('def');\n  INSERT INTO t2 VALUES('ghi');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t2(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t2 VALUES('abc');\n  INSERT INTO t2 VALUES('def');\n  INSERT INTO t2 VALUES('ghi');\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "5.1"

@@ -140,9 +140,15 @@ func Test_fts4check(t *testing.T) {
 					}
 				}
 				{ // do_test "2.2.3." + tn
-					_res = db.Exec("PRAGMA integrity_check(t2);")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA integrity_check(t2);")
+					r = db.Query("PRAGMA integrity_check(t2);")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check(t2);")
+						return
+					}
+					got := flatten(r)
+					want := "malformed inverted index for FTS4 table main.t2"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "2.2.4." + tn
@@ -163,9 +169,9 @@ func Test_fts4check(t *testing.T) {
 				}
 				for _, docid := range tclSplitList(tclExecSQL(db, "{SELECT docid FROM t1 ORDER BY 1 ASC}")) {
 				_ = docid // suppress unused warning
-					_res = db.Exec("\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + docid + ";\n    ")
+					_res = db.Exec("\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + sqlLiteral(docid) + ";\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + docid + ";\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=" + sqlLiteral(docid) + ";\n    ")
 					}
 				}
 			}
@@ -208,9 +214,9 @@ func Test_fts4check(t *testing.T) {
 				}
 				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 				{ // "4.1"
-					_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';\n")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';\n")
+					r = db.Query("\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';\n")
 					}
 				}
 				{ // do_test "4.2"

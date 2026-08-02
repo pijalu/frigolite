@@ -123,9 +123,9 @@ func Test_analyze5(t *testing.T) {
 				_ = v // suppress unused warning
 			} else if tclBool("set v " + strings.ToUpper(u)) {
 			}
-			_res = db.Exec("INSERT INTO t1 VALUES(" + _t + "," + u + "," + v + "," + w + "," + x + "," + y + "," + z + ")")
+			_res = db.Exec("INSERT INTO t1 VALUES(" + sqlLiteral(_t) + "," + sqlLiteral(u) + "," + sqlLiteral(v) + "," + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + _t + "," + u + "," + v + "," + w + "," + x + "," + y + "," + z + ")")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + sqlLiteral(_t) + "," + sqlLiteral(u) + "," + sqlLiteral(v) + "," + sqlLiteral(w) + "," + sqlLiteral(x) + "," + sqlLiteral(y) + "," + sqlLiteral(z) + ")")
 			}
 			// incr i 1
 			{
@@ -145,15 +145,27 @@ func Test_analyze5(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze5-1.1"
-		_res = db.Exec("\n    SELECT DISTINCT lower(lindex(test_decode(sample), 0)) \n      FROM sqlite_stat4 WHERE idx='t1v' ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT DISTINCT lower(lindex(test_decode(sample), 0)) \n      FROM sqlite_stat4 WHERE idx='t1v' ORDER BY 1\n  ")
+		r = db.Query("\n    SELECT DISTINCT lower(lindex(test_decode(sample), 0)) \n      FROM sqlite_stat4 WHERE idx='t1v' ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT DISTINCT lower(lindex(test_decode(sample), 0)) \n      FROM sqlite_stat4 WHERE idx='t1v' ORDER BY 1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "alpha bravo charlie delta"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze5-1.2"
-		_res = db.Exec("SELECT idx, count(*) FROM sqlite_stat4 GROUP BY 1 ORDER BY 1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT idx, count(*) FROM sqlite_stat4 GROUP BY 1 ORDER BY 1")
+		r = db.Query("SELECT idx, count(*) FROM sqlite_stat4 GROUP BY 1 ORDER BY 1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT idx, count(*) FROM sqlite_stat4 GROUP BY 1 ORDER BY 1")
+			return
+		}
+		got := flatten(r)
+		want := "t1t 8 t1u 8 t1v 8 t1w 8 t1x 8 t1y 9 t1z 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// foreach {testid where index rows} "1  {z>=0 AND z<=0}       t1z  400\n    2  {z>=1 AND z<=1}       t1z  300\n    3  {z>=2 AND z<=2}       t1z  175\n    4  {z>=3 AND z<=3}       t1z  125\n    5  {z>=4 AND z<=4}       t1z    1\n    6  {z>=-1 AND z<=-1}     t1z    1\n    7  {z>1 AND z<3}         t1z  175\n    8  {z>0 AND z<100}       t1z  600\n    9  {z>=1 AND z<100}      t1z  600\n   10  {z>1 AND z<100}       t1z  300\n   11  {z>=2 AND z<100}      t1z  300\n   12  {z>2 AND z<100}       t1z  125\n   13  {z>=3 AND z<100}      t1z  125\n   14  {z>3 AND z<100}       t1z    1\n   15  {z>=4 AND z<100}      t1z    1\n   16  {z>=-100 AND z<=-1}   t1z    1\n   17  {z>=-100 AND z<=0}    t1z  400\n   18  {z>=-100 AND z<0}     t1z    1\n   19  {z>=-100 AND z<=1}    t1z  700\n   20  {z>=-100 AND z<2}     t1z  700\n   21  {z>=-100 AND z<=2}    t1z  875\n   22  {z>=-100 AND z<3}     t1z  875\n  \n   31  {z>=0.0 AND z<=0.0}   t1z  400\n   32  {z>=1.0 AND z<=1.0}   t1z  300\n   33  {z>=2.0 AND z<=2.0}   t1z  175\n   34  {z>=3.0 AND z<=3.0}   t1z  125\n   35  {z>=4.0 AND z<=4.0}   t1z    1\n   36  {z>=-1.0 AND z<=-1.0} t1z    1\n   37  {z>1.5 AND z<3.0}     t1z  174\n   38  {z>0.5 AND z<100}     t1z  599\n   39  {z>=1.0 AND z<100}    t1z  600\n   40  {z>1.5 AND z<100}     t1z  299\n   41  {z>=2.0 AND z<100}    t1z  300\n   42  {z>2.1 AND z<100}     t1z  124\n   43  {z>=3.0 AND z<100}    t1z  125\n   44  {z>3.2 AND z<100}     t1z    1\n   45  {z>=4.0 AND z<100}    t1z    1\n   46  {z>=-100 AND z<=-1.0} t1z    1\n   47  {z>=-100 AND z<=0.0}  t1z  400\n   48  {z>=-100 AND z<0.0}   t1z    1\n   49  {z>=-100 AND z<=1.0}  t1z  700\n   50  {z>=-100 AND z<2.0}   t1z  700\n   51  {z>=-100 AND z<=2.0}  t1z  875\n   52  {z>=-100 AND z<3.0}   t1z  875\n  \n  101  {z=-1}                t1z    1\n  102  {z=0}                 t1z  400\n  103  {z=1}                 t1z  300\n  104  {z=2}                 t1z  175\n  105  {z=3}                 t1z  125\n  106  {z=4}                 t1z    1\n  107  {z=-10.0}             t1z    1\n  108  {z=0.0}               t1z  400\n  109  {z=1.0}               t1z  300\n  110  {z=2.0}               t1z  175\n  111  {z=3.0}               t1z  125\n  112  {z=4.0}               t1z    1\n  113  {z=1.5}               t1z    1\n  114  {z=2.5}               t1z    1\n  \n  201  {z IN (-1)}           t1z    1\n  202  {z IN (0)}            t1z  400\n  203  {z IN (1)}            t1z  300\n  204  {z IN (2)}            t1z  175\n  205  {z IN (3)}            t1z  125\n  206  {z IN (4)}            t1z    1\n  207  {z IN (0.5)}          t1z    1\n  208  {z IN (0,1)}          t1z  700\n  209  {z IN (0,1,2)}        t1z  875\n  210  {z IN (0,1,2,3)}      {}   100\n  211  {z IN (0,1,2,3,4,5)}  {}   100\n  212  {z IN (1,2)}          t1z  475\n  213  {z IN (2,3)}          t1z  300\n  214  {z=3 OR z=2}          t1z  300\n  215  {z IN (-1,3)}         t1z  126\n  216  {z=-1 OR z=3}         t1z  126\n\n  300  {y=0}                 t1y  974\n  301  {y=1}                 t1y   26\n  302  {y=0.1}               t1y    1\n\n  400  {x IS NULL}           t1x  400"

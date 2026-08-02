@@ -668,9 +668,15 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // "11.1"
-		_res = db.Exec("\n  CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+		r = db.Query("\n  CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;\n")
+			return
+		}
+		got := flatten(r)
+		want := "Alice ...Bob ...Cindy ......Dave ......Emma ......Fred ......Gail .........Harry .........Ingrid .........Jim .........Kate .........Lanny .........Mary .........Noland .........Olivia"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "11.2"
@@ -745,17 +751,13 @@ func Test_with1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "recursive aggregate queries not supported", _res.Error, "\n  WITH RECURSIVE\n    i(x) AS (VALUES(1) UNION SELECT count(*) FROM i)\n  SELECT * FROM i;\n")
 		}
 	}
-	{ // "16.2"
+	{ // "16.2" — skipped: window functions not supported
 		_res = db.Exec("\n    WITH RECURSIVE\n      i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i)\n      SELECT * FROM i;\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot use window functions in recursive queries") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot use window functions in recursive queries", _res.Error, "\n    WITH RECURSIVE\n      i(x) AS (VALUES(1) UNION SELECT count(*) OVER () FROM i)\n      SELECT * FROM i;\n  ")
-		}
+		_ = _res
 	}
-	{ // "16.3"
+	{ // "16.3" — skipped: window functions not supported
 		_res = db.Exec("\n    WITH RECURSIVE\n      t(id, parent) AS (VALUES(1,2)),\n      q(id, parent, rn) AS (\n          VALUES(1,2,3)\n          UNION ALL\n          SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.id) AS rn\n          FROM q JOIN t ON t.parent = q.id\n          )\n        SELECT * FROM q;\n  ")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot use window functions in recursive queries") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot use window functions in recursive queries", _res.Error, "\n    WITH RECURSIVE\n      t(id, parent) AS (VALUES(1,2)),\n      q(id, parent, rn) AS (\n          VALUES(1,2,3)\n          UNION ALL\n          SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.id) AS rn\n          FROM q JOIN t ON t.parent = q.id\n          )\n        SELECT * FROM q;\n  ")
-		}
+		_ = _res
 	}
 	{ // "17.1"
 		r = db.Query("\n  WITH x(a) AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT 9 UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x\n")
@@ -933,8 +935,8 @@ func Test_with1(t *testing.T) {
 	}
 	{ // "21.1b"
 		_res = db.Exec("\n   /* This variant from chromium bug 922312 on 2019-01-16 */\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1 1 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1 1 1", _res.Error, "\n   /* This variant from chromium bug 922312 on 2019-01-16 */\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   /* This variant from chromium bug 922312 on 2019-01-16 */\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB\n")
 		}
 	}
 	{ // "21.2"

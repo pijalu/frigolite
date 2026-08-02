@@ -58,15 +58,27 @@ func Test_tkt3581(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3581-1.2"
-		_res = db.Exec("\n    SELECT a FROM t1\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM t1\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;\n  ")
+		r = db.Query("\n    SELECT a FROM t1\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t1\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3581-1.3"
-		_res = db.Exec("\n    SELECT a FROM t2\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM t2\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;\n  ")
+		r = db.Query("\n    SELECT a FROM t2\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2\n     WHERE (b > 45 AND c < 356)\n        OR b <= 733\n        OR b >= 557\n        OR (b >= 614 AND c < 251)\n     ORDER BY b;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

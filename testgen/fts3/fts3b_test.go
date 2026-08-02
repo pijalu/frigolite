@@ -94,9 +94,9 @@ func Test_fts3b(t *testing.T) {
 	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
-		_res = db.Exec("INSERT INTO t2 (c) VALUES (" + text + ")")
+		_res = db.Exec("INSERT INTO t2 (c) VALUES (" + sqlLiteral(text) + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 (c) VALUES (" + text + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 (c) VALUES (" + sqlLiteral(text) + ")")
 		}
 		res = tclListAppend(res, tclExprWith("$ii+1", map[string]string{"ii": ii}))
 		if func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return (ii_n%500) == 0 }() {

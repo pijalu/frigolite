@@ -105,9 +105,9 @@ func Test_ctime(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // "ctime-1.3." + tn
-				r = db.Query("\n      SELECT sqlite_compileoption_used($opt)\n    ")
+				r = db.Query("\n      SELECT sqlite_compileoption_used(" + sqlLiteral(opt) + ")\n    ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sqlite_compileoption_used($opt)\n    ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT sqlite_compileoption_used(" + sqlLiteral(opt) + ")\n    ")
 					return
 				}
 				got := flatten(r)

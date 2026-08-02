@@ -57,9 +57,9 @@ func Test_jsonb01(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "jsonb01-1.1"
-		_res = db.Exec("\n  CREATE TABLE t1(x JSON BLOB);\n  INSERT INTO t1 VALUES(jsonb('{a:5,b:{x:10,y:11},c:[1,2,3,4]}'));\n")
+		_res = db.Exec("\n  CREATE TABLE t1(x JSON BLOB);\n  INSERT INTO t1 VALUES(jsonb('{a:5,b:{x:10,y:11},c:" + sqlLiteral("1,2,3,4") + "}'));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x JSON BLOB);\n  INSERT INTO t1 VALUES(jsonb('{a:5,b:{x:10,y:11},c:[1,2,3,4]}'));\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x JSON BLOB);\n  INSERT INTO t1 VALUES(jsonb('{a:5,b:{x:10,y:11},c:" + sqlLiteral("1,2,3,4") + "}'));\n")
 		}
 	}
 	// foreach {id path res} "1 {$.a}    {{{\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,3,4" + "}}}\n  2 {$.b}    {{{\"a\":5,\"c\":" + "1,2,3,4" + "}}}\n  3 {$.c}    {{{\"a\":5,\"b\":{\"x\":10,\"y\":11}}}}\n  4 {$.d}    {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,3,4" + "}}}\n  5 {$.b.x}  {{{\"a\":5,\"b\":{\"y\":11},\"c\":" + "1,2,3,4" + "}}}\n  6 {$.b.y}  {{{\"a\":5,\"b\":{\"x\":10},\"c\":" + "1,2,3,4" + "}}}\n  7 {$.c" + "0" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "2,3,4" + "}}}\n  8 {$.c" + "1" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,3,4" + "}}}\n  9 {$.c" + "2" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,4" + "}}}\n 10 {$.c" + "3" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,3" + "}}}\n 11 {$.c" + "4" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,3,4" + "}}}\n 12 {$.c" + "#" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,3,4" + "}}}\n 13 {$.c" + "#-1" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,3" + "}}}\n 14 {$.c" + "#-2" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,4" + "}}}\n 15 {$.c" + "#-3" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,3,4" + "}}}\n 16 {$.c" + "#-4" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "2,3,4" + "}}}\n 17 {$.c" + "#-5" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,3,4" + "}}}\n 18 {$.c" + "#-6" + "}  {{{\"a\":5,\"b\":{\"x\":10,\"y\":11},\"c\":" + "1,2,3,4" + "}}}"
@@ -73,9 +73,9 @@ func Test_jsonb01(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // "jsonb01-1.2." + id + ".1"
-				r = db.Query("\n    SELECT json(jsonb_remove(x,$path)) FROM t1;\n  ")
+				r = db.Query("\n    SELECT json(jsonb_remove(x," + sqlLiteral(path) + ")) FROM t1;\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json(jsonb_remove(x,$path)) FROM t1;\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json(jsonb_remove(x," + sqlLiteral(path) + ")) FROM t1;\n  ")
 					return
 				}
 				got := flatten(r)
@@ -85,9 +85,9 @@ func Test_jsonb01(t *testing.T) {
 				}
 			}
 			{ // "jsonb01-1.2." + id + ".2"
-				r = db.Query("\n    SELECT json_remove(x,$path) FROM t1;\n  ")
+				r = db.Query("\n    SELECT json_remove(x," + sqlLiteral(path) + ") FROM t1;\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_remove(x,$path) FROM t1;\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_remove(x," + sqlLiteral(path) + ") FROM t1;\n  ")
 					return
 				}
 				got := flatten(r)

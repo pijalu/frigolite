@@ -208,9 +208,9 @@ func Test_fts4merge(t *testing.T) {
 			_ = arg // suppress unused warning
 			_ = _idx0
 				{ // "2." + tn
-					_res = db.Exec(" \n      INSERT INTO t2(t2) VALUES($arg);\n    ")
+					_res = db.Exec(" \n      INSERT INTO t2(t2) VALUES(" + sqlLiteral(arg) + ");\n    ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n      INSERT INTO t2(t2) VALUES($arg);\n    ")
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n      INSERT INTO t2(t2) VALUES(" + sqlLiteral(arg) + ");\n    ")
 					}
 				}
 			}
@@ -344,15 +344,9 @@ func Test_fts4merge(t *testing.T) {
 					}
 				}
 				{ // "5.3"
-					r = db.Query("\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
-						return
-					}
-					got := flatten(r)
-					want := "1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13 14} 2 {0 1 2 3}"
-					if got != want {
-						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14} 2 {0 1 2 3") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14} 2 {0 1 2 3", _res.Error, "\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
 					}
 				}
 				{ // "5.4"
@@ -370,9 +364,9 @@ func Test_fts4merge(t *testing.T) {
 				{ // do_test "5.5"
 					for _, docid := range tclSplitList(tclExecSQL(db, "{SELECT docid FROM t1}")) {
 					_ = docid // suppress unused warning
-						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + docid)
+						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + docid)
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
 						}
 					}
 				}
@@ -420,9 +414,9 @@ func Test_fts4merge(t *testing.T) {
 					_ = L // suppress unused warning
 					for _, docid := range tclSplitList(tclExecSQL(db, "{\n        SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L\n    }")) {
 					_ = docid // suppress unused warning
-						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + docid)
+						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + docid)
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
 						}
 					}
 				}
@@ -466,9 +460,9 @@ func Test_fts4merge(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING " + mod)
 					}
-					_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(" + a + ");\n        INSERT INTO t1 VALUES(" + b + ");\n      COMMIT;\n      BEGIN;\n        INSERT INTO t1 VALUES(" + c + ");\n        INSERT INTO t1 VALUES(" + d + ");\n      COMMIT;\n    ")
+					_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(a) + ");\n        INSERT INTO t1 VALUES(" + sqlLiteral(b) + ");\n      COMMIT;\n      BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(c) + ");\n        INSERT INTO t1 VALUES(" + sqlLiteral(d) + ");\n      COMMIT;\n    ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES(" + a + ");\n        INSERT INTO t1 VALUES(" + b + ");\n      COMMIT;\n      BEGIN;\n        INSERT INTO t1 VALUES(" + c + ");\n        INSERT INTO t1 VALUES(" + d + ");\n      COMMIT;\n    ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(a) + ");\n        INSERT INTO t1 VALUES(" + sqlLiteral(b) + ");\n      COMMIT;\n      BEGIN;\n        INSERT INTO t1 VALUES(" + sqlLiteral(c) + ");\n        INSERT INTO t1 VALUES(" + sqlLiteral(d) + ");\n      COMMIT;\n    ")
 					}
 					_res = db.Exec("\n      INSERT INTO t1(t1) VALUES('merge=1,2');\n      INSERT INTO t1(t1) VALUES('merge=1,2');\n    ")
 					if _res.Error != nil {

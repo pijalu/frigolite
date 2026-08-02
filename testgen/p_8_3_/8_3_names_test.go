@@ -66,9 +66,15 @@ func Test_t_8_3_names(t *testing.T) {
 		// file exists "test.nal"
 	}
 	{ // do_test "8_3_names-1.2"
-		_res = db.Exec("\n    ROLLBACK;\n    SELECT length(x) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n    SELECT length(x) FROM t1\n  ")
+		r = db.Query("\n    ROLLBACK;\n    SELECT length(x) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT length(x) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "20000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "8_3_names-2.0"
@@ -89,9 +95,15 @@ func Test_t_8_3_names(t *testing.T) {
 	// copy_file test.db test2.db (unsupported command, not transpiled)
 	// copy_file test.nal test2.nal (unsupported command, not transpiled)
 	{ // do_test "8_3_names-2.2"
-		_res = db.Exec("\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
+		r = db.Query("\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "15000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "8_3_names-2.3"
@@ -118,9 +130,15 @@ func Test_t_8_3_names(t *testing.T) {
 	// copy_file test.db test2.db (unsupported command, not transpiled)
 	// copy_file test.db-journal test2.db-journal (unsupported command, not transpiled)
 	{ // do_test "8_3_names-3.2"
-		_res = db.Exec("\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
+		r = db.Query("\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "15000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "8_3_names-3.3"
@@ -168,9 +186,15 @@ func Test_t_8_3_names(t *testing.T) {
 		// file exists "test.shm"
 	}
 	{ // do_test "8_3_names-5.5"
-		_res = db.Exec("\n    COMMIT;\n    SELECT sum(x) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    SELECT sum(x) FROM t1;\n  ")
+		r = db.Query("\n    COMMIT;\n    SELECT sum(x) FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT sum(x) FROM t1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1001000"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "8_3_names-5.6"

@@ -91,9 +91,9 @@ func Test_date5(t *testing.T) {
 			date = "format %04d-%02d-%02d $y $m $d"
 			_ = date // suppress unused warning
 			{ // "date5-jd" + jd
-				r = db.Query("\n    SELECT date($::jd);\n  ")
+				r = db.Query("\n    SELECT date(" + sqlLiteral(jd) + ");\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT date($::jd);\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT date(" + sqlLiteral(jd) + ");\n  ")
 					return
 				}
 				got := flatten(r)
@@ -103,9 +103,9 @@ func Test_date5(t *testing.T) {
 				}
 			}
 			{ // "date5-cal/" + date
-				r = db.Query("\n    SELECT julianday($::date);\n  ")
+				r = db.Query("\n    SELECT julianday(" + sqlLiteral(date) + ");\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT julianday($::date);\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT julianday(" + sqlLiteral(date) + ");\n  ")
 					return
 				}
 				got := flatten(r)
@@ -124,9 +124,9 @@ func Test_date5(t *testing.T) {
 				jd2 = tclExprWith("$jd+146097*$i", map[string]string{"jd": jd, "i": i})
 				_ = jd2 // suppress unused warning
 				{ // "date5-jd" + jd2
-					r = db.Query("\n      SELECT date($::jd2);\n    ")
+					r = db.Query("\n      SELECT date(" + sqlLiteral(jd2) + ");\n    ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT date($::jd2);\n    ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT date(" + sqlLiteral(jd2) + ");\n    ")
 						return
 					}
 					got := flatten(r)
@@ -136,9 +136,9 @@ func Test_date5(t *testing.T) {
 					}
 				}
 				{ // "date5-cal/" + date2
-					r = db.Query("\n      SELECT julianday($::date2);\n    ")
+					r = db.Query("\n      SELECT julianday(" + sqlLiteral(date2) + ");\n    ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT julianday($::date2);\n    ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT julianday(" + sqlLiteral(date2) + ");\n    ")
 						return
 					}
 					got := flatten(r)
@@ -170,9 +170,9 @@ func Test_date5(t *testing.T) {
 				jd2 = tclExprWith("$jd-146097*$i", map[string]string{"jd": jd, "i": i})
 				_ = jd2 // suppress unused warning
 				{ // "date5-jd" + jd2
-					r = db.Query("\n      SELECT date($::jd2);\n    ")
+					r = db.Query("\n      SELECT date(" + sqlLiteral(jd2) + ");\n    ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT date($::jd2);\n    ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT date(" + sqlLiteral(jd2) + ");\n    ")
 						return
 					}
 					got := flatten(r)
@@ -182,9 +182,9 @@ func Test_date5(t *testing.T) {
 					}
 				}
 				{ // "date5-cal/" + date2
-					r = db.Query("\n      SELECT julianday($::date2);\n    ")
+					r = db.Query("\n      SELECT julianday(" + sqlLiteral(date2) + ");\n    ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT julianday($::date2);\n    ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT julianday(" + sqlLiteral(date2) + ");\n    ")
 						return
 					}
 					got := flatten(r)

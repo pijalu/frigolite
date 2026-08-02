@@ -60,9 +60,9 @@ func Test_limit2(t *testing.T) {
 	testprefix = "limit2"
 	_ = testprefix // suppress unused warning
 	{ // "limit2-100"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);\n")
+		r = db.Query("\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);\n")
 		}
 	}
 	sqlite_search_count = "0"

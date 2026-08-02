@@ -60,27 +60,51 @@ func Test_analyze4(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze4-1.1"
-		_res = db.Exec("\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+		r = db.Query("\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1a {128 1} t1b {128 128}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze4-1.2"
-		_res = db.Exec("\n    UPDATE t1 SET b='x' WHERE a%2;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET b='x' WHERE a%2;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+		r = db.Query("\n    UPDATE t1 SET b='x' WHERE a%2;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET b='x' WHERE a%2;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1a {128 1} t1b {128 64}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze4-1.3"
-		_res = db.Exec("\n    UPDATE t1 SET b=NULL;\n    ALTER TABLE t1 ADD COLUMN c;\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET c=a/4, d=a/2;\n    CREATE INDEX t1bcd ON t1(b,c,d);\n    CREATE INDEX t1cdb ON t1(c,d,b);\n    CREATE INDEX t1cbd ON t1(c,b,d);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET b=NULL;\n    ALTER TABLE t1 ADD COLUMN c;\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET c=a/4, d=a/2;\n    CREATE INDEX t1bcd ON t1(b,c,d);\n    CREATE INDEX t1cdb ON t1(c,d,b);\n    CREATE INDEX t1cbd ON t1(c,b,d);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+		r = db.Query("\n    UPDATE t1 SET b=NULL;\n    ALTER TABLE t1 ADD COLUMN c;\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET c=a/4, d=a/2;\n    CREATE INDEX t1bcd ON t1(b,c,d);\n    CREATE INDEX t1cdb ON t1(c,d,b);\n    CREATE INDEX t1cbd ON t1(c,b,d);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET b=NULL;\n    ALTER TABLE t1 ADD COLUMN c;\n    ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET c=a/4, d=a/2;\n    CREATE INDEX t1bcd ON t1(b,c,d);\n    CREATE INDEX t1cdb ON t1(c,d,b);\n    CREATE INDEX t1cbd ON t1(c,b,d);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1a {128 1} t1b {128 128} t1bcd {128 128 4 2} t1cbd {128 4 4 2} t1cdb {128 4 2 2}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "analyze4-2.0"
-		_res = db.Exec("\n    CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      a TEXT COLLATE nocase,\n      b TEXT COLLATE rtrim,\n      c TEXT COLLATE binary\n    );\n    CREATE INDEX t2a ON t2(a);\n    CREATE INDEX t2b ON t2(b);\n    CREATE INDEX t2c ON t2(c);\n    CREATE INDEX t2c2 ON t2(c COLLATE nocase);\n    CREATE INDEX t2c3 ON t2(c COLLATE rtrim);\n    INSERT INTO t2 VALUES(1, 'abc', 'abc', 'abc');\n    INSERT INTO t2 VALUES(2, 'abC', 'abC', 'abC');\n    INSERT INTO t2 VALUES(3, 'abc ', 'abc ', 'abc ');\n    INSERT INTO t2 VALUES(4, 'abC ', 'abC ', 'abC ');\n    INSERT INTO t2 VALUES(5, 'aBc', 'aBc', 'aBc');\n    INSERT INTO t2 VALUES(6, 'aBC', 'aBC', 'aBC');\n    INSERT INTO t2 VALUES(7, 'aBc ', 'aBc ', 'aBc ');\n    INSERT INTO t2 VALUES(8, 'aBC ', 'aBC ', 'aBC ');\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t2' ORDER BY idx;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      a TEXT COLLATE nocase,\n      b TEXT COLLATE rtrim,\n      c TEXT COLLATE binary\n    );\n    CREATE INDEX t2a ON t2(a);\n    CREATE INDEX t2b ON t2(b);\n    CREATE INDEX t2c ON t2(c);\n    CREATE INDEX t2c2 ON t2(c COLLATE nocase);\n    CREATE INDEX t2c3 ON t2(c COLLATE rtrim);\n    INSERT INTO t2 VALUES(1, 'abc', 'abc', 'abc');\n    INSERT INTO t2 VALUES(2, 'abC', 'abC', 'abC');\n    INSERT INTO t2 VALUES(3, 'abc ', 'abc ', 'abc ');\n    INSERT INTO t2 VALUES(4, 'abC ', 'abC ', 'abC ');\n    INSERT INTO t2 VALUES(5, 'aBc', 'aBc', 'aBc');\n    INSERT INTO t2 VALUES(6, 'aBC', 'aBC', 'aBC');\n    INSERT INTO t2 VALUES(7, 'aBc ', 'aBc ', 'aBc ');\n    INSERT INTO t2 VALUES(8, 'aBC ', 'aBC ', 'aBC ');\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t2' ORDER BY idx;\n  ")
+		r = db.Query("\n    CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      a TEXT COLLATE nocase,\n      b TEXT COLLATE rtrim,\n      c TEXT COLLATE binary\n    );\n    CREATE INDEX t2a ON t2(a);\n    CREATE INDEX t2b ON t2(b);\n    CREATE INDEX t2c ON t2(c);\n    CREATE INDEX t2c2 ON t2(c COLLATE nocase);\n    CREATE INDEX t2c3 ON t2(c COLLATE rtrim);\n    INSERT INTO t2 VALUES(1, 'abc', 'abc', 'abc');\n    INSERT INTO t2 VALUES(2, 'abC', 'abC', 'abC');\n    INSERT INTO t2 VALUES(3, 'abc ', 'abc ', 'abc ');\n    INSERT INTO t2 VALUES(4, 'abC ', 'abC ', 'abC ');\n    INSERT INTO t2 VALUES(5, 'aBc', 'aBc', 'aBc');\n    INSERT INTO t2 VALUES(6, 'aBC', 'aBC', 'aBC');\n    INSERT INTO t2 VALUES(7, 'aBc ', 'aBc ', 'aBc ');\n    INSERT INTO t2 VALUES(8, 'aBC ', 'aBC ', 'aBC ');\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t2' ORDER BY idx;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      a TEXT COLLATE nocase,\n      b TEXT COLLATE rtrim,\n      c TEXT COLLATE binary\n    );\n    CREATE INDEX t2a ON t2(a);\n    CREATE INDEX t2b ON t2(b);\n    CREATE INDEX t2c ON t2(c);\n    CREATE INDEX t2c2 ON t2(c COLLATE nocase);\n    CREATE INDEX t2c3 ON t2(c COLLATE rtrim);\n    INSERT INTO t2 VALUES(1, 'abc', 'abc', 'abc');\n    INSERT INTO t2 VALUES(2, 'abC', 'abC', 'abC');\n    INSERT INTO t2 VALUES(3, 'abc ', 'abc ', 'abc ');\n    INSERT INTO t2 VALUES(4, 'abC ', 'abC ', 'abC ');\n    INSERT INTO t2 VALUES(5, 'aBc', 'aBc', 'aBc');\n    INSERT INTO t2 VALUES(6, 'aBC', 'aBC', 'aBC');\n    INSERT INTO t2 VALUES(7, 'aBc ', 'aBc ', 'aBc ');\n    INSERT INTO t2 VALUES(8, 'aBC ', 'aBC ', 'aBC ');\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t2' ORDER BY idx;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t2a {8 4} t2b {8 2} t2c {8 1} t2c2 {8 4} t2c3 {8 2}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

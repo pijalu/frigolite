@@ -109,9 +109,9 @@ func Test_pragma2(t *testing.T) {
 	{ // do_test "pragma2-2.3"
 		val = "0123456789 1000" // TCL namespace variable
 		_ = val // suppress unused warning
-		r = db.Query("\n      INSERT INTO aux.abc VALUES(1, 2, " + val + ");\n      PRAGMA aux.freelist_count;\n    ")
+		r = db.Query("\n      INSERT INTO aux.abc VALUES(1, 2, " + sqlLiteral(val) + ");\n      PRAGMA aux.freelist_count;\n    ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO aux.abc VALUES(1, 2, " + val + ");\n      PRAGMA aux.freelist_count;\n    ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO aux.abc VALUES(1, 2, " + sqlLiteral(val) + ");\n      PRAGMA aux.freelist_count;\n    ")
 		}
 	}
 	{ // do_test "pragma2-2.4"
@@ -178,21 +178,39 @@ func Test_pragma2(t *testing.T) {
 	}
 	// sqlite3_release_memory (unsupported command, not transpiled)
 	{ // do_test "pragma2-4.4"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		r = db.Query("\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "main exclusive temp unknown"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma2-4.5.1"
-		_res = db.Exec("\n    ROLLBACK;\n    PRAGMA cache_spill=OFF;\n    PRAGMA Cache_Spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n    PRAGMA cache_spill=OFF;\n    PRAGMA Cache_Spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		r = db.Query("\n    ROLLBACK;\n    PRAGMA cache_spill=OFF;\n    PRAGMA Cache_Spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    PRAGMA cache_spill=OFF;\n    PRAGMA Cache_Spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0 main reserved temp unknown"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "pragma2-4.5.2"
-		_res = db.Exec("\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		r = db.Query("\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "100000 main reserved temp unknown"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "pragma2-4.6"

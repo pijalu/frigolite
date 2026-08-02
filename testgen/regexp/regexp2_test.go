@@ -219,9 +219,9 @@ func Test_regexp2(t *testing.T) {
 		}
 	}
 	{ // "4.8"
-		r = db.Query("SELECT 'abc' REGEXP '[^a-z]'")
+		r = db.Query("SELECT 'abc' REGEXP '" + sqlLiteral("^a-z") + "'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'abc' REGEXP '[^a-z]'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'abc' REGEXP '" + sqlLiteral("^a-z") + "'")
 			return
 		}
 		got := flatten(r)
@@ -231,9 +231,9 @@ func Test_regexp2(t *testing.T) {
 		}
 	}
 	{ // "4.9"
-		r = db.Query("SELECT 'a c' REGEXP '[^a-z]'")
+		r = db.Query("SELECT 'a c' REGEXP '" + sqlLiteral("^a-z") + "'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'a c' REGEXP '[^a-z]'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'a c' REGEXP '" + sqlLiteral("^a-z") + "'")
 			return
 		}
 		got := flatten(r)
@@ -243,9 +243,9 @@ func Test_regexp2(t *testing.T) {
 		}
 	}
 	{ // "4.10"
-		r = db.Query("SELECT '   ' REGEXP '[^a-z]'")
+		r = db.Query("SELECT '   ' REGEXP '" + sqlLiteral("^a-z") + "'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '   ' REGEXP '[^a-z]'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '   ' REGEXP '" + sqlLiteral("^a-z") + "'")
 			return
 		}
 		got := flatten(r)
@@ -255,9 +255,9 @@ func Test_regexp2(t *testing.T) {
 		}
 	}
 	{ // "4.11"
-		r = db.Query("SELECT 'abc' REGEXP '[a-z]'")
+		r = db.Query("SELECT 'abc' REGEXP '" + sqlLiteral("a-z") + "'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'abc' REGEXP '[a-z]'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'abc' REGEXP '" + sqlLiteral("a-z") + "'")
 			return
 		}
 		got := flatten(r)
@@ -267,9 +267,9 @@ func Test_regexp2(t *testing.T) {
 		}
 	}
 	{ // "4.12"
-		r = db.Query("SELECT 'a c' REGEXP '[a-z]'")
+		r = db.Query("SELECT 'a c' REGEXP '" + sqlLiteral("a-z") + "'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'a c' REGEXP '[a-z]'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'a c' REGEXP '" + sqlLiteral("a-z") + "'")
 			return
 		}
 		got := flatten(r)
@@ -279,9 +279,9 @@ func Test_regexp2(t *testing.T) {
 		}
 	}
 	{ // "4.13"
-		r = db.Query("SELECT '   ' REGEXP '[a-z]'")
+		r = db.Query("SELECT '   ' REGEXP '" + sqlLiteral("a-z") + "'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '   ' REGEXP '[a-z]'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '   ' REGEXP '" + sqlLiteral("a-z") + "'")
 			return
 		}
 		got := flatten(r)
@@ -291,9 +291,9 @@ func Test_regexp2(t *testing.T) {
 		}
 	}
 	{ // "4.14"
-		r = db.Query("SELECT 'abc' REGEXP '[^a-z]{2}'")
+		r = db.Query("SELECT 'abc' REGEXP '" + sqlLiteral("^a-z") + "{2}'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'abc' REGEXP '[^a-z]{2}'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'abc' REGEXP '" + sqlLiteral("^a-z") + "{2}'")
 			return
 		}
 		got := flatten(r)
@@ -303,9 +303,9 @@ func Test_regexp2(t *testing.T) {
 		}
 	}
 	{ // "4.15"
-		r = db.Query("SELECT 'a c' REGEXP '[^a-z]{2}'")
+		r = db.Query("SELECT 'a c' REGEXP '" + sqlLiteral("^a-z") + "{2}'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'a c' REGEXP '[^a-z]{2}'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT 'a c' REGEXP '" + sqlLiteral("^a-z") + "{2}'")
 			return
 		}
 		got := flatten(r)
@@ -315,9 +315,9 @@ func Test_regexp2(t *testing.T) {
 		}
 	}
 	{ // "4.16"
-		r = db.Query("SELECT '   ' REGEXP '[^a-z]{2}'")
+		r = db.Query("SELECT '   ' REGEXP '" + sqlLiteral("^a-z") + "{2}'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '   ' REGEXP '[^a-z]{2}'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT '   ' REGEXP '" + sqlLiteral("^a-z") + "{2}'")
 			return
 		}
 		got := flatten(r)

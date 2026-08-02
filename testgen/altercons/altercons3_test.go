@@ -167,9 +167,9 @@ func Test_altercons3(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "5.0"
-			_res = db.Exec("\n  CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';\n")
+			r = db.Query("\n  CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';\n")
 			}
 		}
 		{ // "5.1"

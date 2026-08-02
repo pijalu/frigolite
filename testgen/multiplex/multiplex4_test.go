@@ -7,6 +7,7 @@ package multiplex
 import (
 "github.com/pijalu/frigolite"
 "os"
+"regexp"
 "testing"
 )
 
@@ -83,57 +84,111 @@ func Test_multiplex4(t *testing.T) {
 		// multiplex_file_list mx4test (unsupported command, not transpiled)
 	}
 	{ // do_test "multiplex4-1.2"
-		_res = db.Exec("PRAGMA multiplex_truncate")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA multiplex_truncate")
+		r = db.Query("PRAGMA multiplex_truncate")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA multiplex_truncate")
+			return
+		}
+		got := flatten(r)
+		want := "on"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex4-1.3"
-		_res = db.Exec("PRAGMA multiplex_truncate=off")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA multiplex_truncate=off")
+		r = db.Query("PRAGMA multiplex_truncate=off")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA multiplex_truncate=off")
+			return
+		}
+		got := flatten(r)
+		want := "off"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex4-1.4"
-		_res = db.Exec("PRAGMA multiplex_truncate")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA multiplex_truncate")
+		r = db.Query("PRAGMA multiplex_truncate")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA multiplex_truncate")
+			return
+		}
+		got := flatten(r)
+		want := "off"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex4-1.5"
-		_res = db.Exec("PRAGMA multiplex_truncate=on")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA multiplex_truncate=on")
+		r = db.Query("PRAGMA multiplex_truncate=on")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA multiplex_truncate=on")
+			return
+		}
+		got := flatten(r)
+		want := "on"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex4-1.6"
-		_res = db.Exec("PRAGMA multiplex_truncate")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA multiplex_truncate")
+		r = db.Query("PRAGMA multiplex_truncate")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA multiplex_truncate")
+			return
+		}
+		got := flatten(r)
+		want := "on"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex4-1.7"
-		_res = db.Exec("PRAGMA multiplex_truncate=0")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA multiplex_truncate=0")
+		r = db.Query("PRAGMA multiplex_truncate=0")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA multiplex_truncate=0")
+			return
+		}
+		got := flatten(r)
+		want := "off"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex4-1.8"
-		_res = db.Exec("PRAGMA multiplex_truncate=1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA multiplex_truncate=1")
+		r = db.Query("PRAGMA multiplex_truncate=1")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA multiplex_truncate=1")
+			return
+		}
+		got := flatten(r)
+		want := "on"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex4-1.9"
-		_res = db.Exec("PRAGMA multiplex_truncate=0")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA multiplex_truncate=0")
+		r = db.Query("PRAGMA multiplex_truncate=0")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA multiplex_truncate=0")
+			return
+		}
+		got := flatten(r)
+		want := "off"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "multiplex4-1.9-explain"
-		_res = db.Exec("EXPLAIN PRAGMA multiplex_truncate=0;")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN PRAGMA multiplex_truncate=0;")
+		r = db.Query("EXPLAIN PRAGMA multiplex_truncate=0;")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN PRAGMA multiplex_truncate=0;")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "String8 \\\\d \\\\d \\\\d off"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "multiplex4-1.10"

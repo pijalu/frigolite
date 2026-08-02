@@ -206,9 +206,20 @@ func Test_func3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "func3-5.20"
-		_res = db.Exec("EXPLAIN SELECT likelihood(min(1.0+'2.0',4*11), 0.5)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN SELECT likelihood(min(1.0+'2.0',4*11), 0.5)")
+		r = db.Query("EXPLAIN SELECT likelihood(min(1.0+'2.0',4*11), 0.5)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN SELECT likelihood(min(1.0+'2.0',4*11), 0.5)")
+			return
+		}
+		got := flatten(r)
+		_want1 := db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
+		if _want1.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "EXPLAIN SELECT min(1.0+'2.0',4*11)")
+			return
+		}
+		want := flatten(_want1)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "func3-5.30"
@@ -284,9 +295,20 @@ func Test_func3(t *testing.T) {
 		}
 	}
 	{ // do_test "func3-5.39"
-		_res = db.Exec("EXPLAIN SELECT unlikely(min(1.0+'2.0',4*11))")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN SELECT unlikely(min(1.0+'2.0',4*11))")
+		r = db.Query("EXPLAIN SELECT unlikely(min(1.0+'2.0',4*11))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN SELECT unlikely(min(1.0+'2.0',4*11))")
+			return
+		}
+		got := flatten(r)
+		_want2 := db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
+		if _want2.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "EXPLAIN SELECT min(1.0+'2.0',4*11)")
+			return
+		}
+		want := flatten(_want2)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "func3-5.40"
@@ -398,9 +420,20 @@ func Test_func3(t *testing.T) {
 		}
 	}
 	{ // do_test "func3-5.59"
-		_res = db.Exec("EXPLAIN SELECT likely(min(1.0+'2.0',4*11))")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN SELECT likely(min(1.0+'2.0',4*11))")
+		r = db.Query("EXPLAIN SELECT likely(min(1.0+'2.0',4*11))")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN SELECT likely(min(1.0+'2.0',4*11))")
+			return
+		}
+		got := flatten(r)
+		_want3 := db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
+		if _want3.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, "EXPLAIN SELECT min(1.0+'2.0',4*11)")
+			return
+		}
+		want := flatten(_want3)
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "func3-6.0"

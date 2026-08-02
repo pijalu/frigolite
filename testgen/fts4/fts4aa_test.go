@@ -91,58 +91,88 @@ func Test_fts4aa(t *testing.T) {
 		}
 	}
 	{ // do_test "fts4aa-1.1"
-		_res = db.Exec("\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
+		r = db.Query("\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
 		}
 	}
 	{ // do_test "fts4aa-1.2"
-		_res = db.Exec("\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
+		r = db.Query("\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
 		}
 	}
 	// proc definition (not transpiled)
 	{ // do_test "fts4aa-1.3"
-		_res = db.Exec("\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1 WHERE t1 MATCH 'melchizedek';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1 WHERE t1 MATCH 'melchizedek';\n  ")
+		r = db.Query("\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1 WHERE t1 MATCH 'melchizedek';\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1 WHERE t1 MATCH 'melchizedek';\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1014018 {1 1 1 1 1 1533 25 20}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts4aa-1.4"
-		_res = db.Exec("\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'spake hebrew'\n     ORDER BY docid;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'spake hebrew'\n     ORDER BY docid;\n  ")
+		r = db.Query("\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'spake hebrew'\n     ORDER BY docid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'spake hebrew'\n     ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1039014 {2 1 1 40 40 1 6 6 1533 25 42} 1039017 {2 1 1 40 40 1 6 6 1533 25 26}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts4aa-1.5"
-		_res = db.Exec("\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'laban overtook jacob'\n     ORDER BY docid;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'laban overtook jacob'\n     ORDER BY docid;\n  ")
+		r = db.Query("\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'laban overtook jacob'\n     ORDER BY docid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'laban overtook jacob'\n     ORDER BY docid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1031025 {3 1 2 54 46 1 3 3 2 181 160 1533 25 24}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts4aa-1.6"
-		_res = db.Exec("\n    DELETE FROM t1 WHERE docid!=1050026;\n    SELECT hex(size) FROM t1_docsize;\n    SELECT hex(value) FROM t1_stat;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE docid!=1050026;\n    SELECT hex(size) FROM t1_docsize;\n    SELECT hex(value) FROM t1_stat;\n  ")
+		r = db.Query("\n    DELETE FROM t1 WHERE docid!=1050026;\n    SELECT hex(size) FROM t1_docsize;\n    SELECT hex(value) FROM t1_stat;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE docid!=1050026;\n    SELECT hex(size) FROM t1_docsize;\n    SELECT hex(value) FROM t1_stat;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "17 01176F"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts4aa-1.7"
-		_res = db.Exec("\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
+		r = db.Query("\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize\n  ")
 		}
 	}
 	{ // do_test "fts4aa-1.8"
-		_res = db.Exec("\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
+		r = db.Query("\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1\n  ")
 		}
 	}
 	{ // do_test "fts4aa-1.9"
-		_res = db.Exec("\n      SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n       WHERE t1 MATCH 'joseph died in egypt'\n       ORDER BY docid;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n       WHERE t1 MATCH 'joseph died in egypt'\n       ORDER BY docid;\n    ")
+		r = db.Query("\n      SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n       WHERE t1 MATCH 'joseph died in egypt'\n       ORDER BY docid;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n       WHERE t1 MATCH 'joseph died in egypt'\n       ORDER BY docid;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "1050026 {4 1 1 1 1 1 1 1 2 1 1 1 1 1 1 23 23}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts4aa-2.0"
@@ -170,9 +200,15 @@ func Test_fts4aa(t *testing.T) {
 				}
 			}
 			{ // do_test "fts4aa-2." + ii
-				_res = db.Exec("SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
+				r = db.Query("SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid")
+					return
+				}
+				got := flatten(r)
+				want := _r
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}
@@ -204,9 +240,15 @@ func Test_fts4aa(t *testing.T) {
 					}
 				}
 				{ // do_test "fts4aa-3." + ii
-					_res = db.Exec("SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
+					r = db.Query("SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid")
+						return
+					}
+					got := flatten(r)
+					want := _r
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 			}
@@ -236,9 +278,15 @@ func Test_fts4aa(t *testing.T) {
 						}
 					}
 					{ // do_test "fts4aa-4." + ii
-						_res = db.Exec("SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT docid FROM t1 WHERE words MATCH " + q + " ORDER BY docid")
+						r = db.Query("SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid")
+							return
+						}
+						got := flatten(r)
+						want := _r
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 				}

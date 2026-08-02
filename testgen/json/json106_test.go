@@ -65,9 +65,9 @@ func Test_json106(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n <= 5000 }() {
 		{ // ii + ".1"
-			r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(j0,j5) VALUES(random_json($ii),random_json5($ii));\n    SELECT json_valid(j0), json_valid(j5,2) FROM t1;\n  ")
+			r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(j0,j5) VALUES(random_json(" + sqlLiteral(ii) + "),random_json5(" + sqlLiteral(ii) + "));\n    SELECT json_valid(j0), json_valid(j5,2) FROM t1;\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(j0,j5) VALUES(random_json($ii),random_json5($ii));\n    SELECT json_valid(j0), json_valid(j5,2) FROM t1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(j0,j5) VALUES(random_json(" + sqlLiteral(ii) + "),random_json5(" + sqlLiteral(ii) + "));\n    SELECT json_valid(j0), json_valid(j5,2) FROM t1;\n  ")
 				return
 			}
 			got := flatten(r)

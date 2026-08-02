@@ -54,9 +54,9 @@ func Test_cachespill(t *testing.T) {
 	testprefix = "cachespill"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
-		_res = db.Exec("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA cache_size = 100;\n  CREATE TABLE t1(a);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA cache_size = 100;\n  CREATE TABLE t1(a);\n")
+		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA cache_size = 100;\n  CREATE TABLE t1(a);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA cache_size = 100;\n  CREATE TABLE t1(a);\n")
 		}
 	}
 	{ // do_test "1.2"

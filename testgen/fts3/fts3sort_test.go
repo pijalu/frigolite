@@ -196,9 +196,15 @@ func Test_fts3sort(t *testing.T) {
 					}
 				}
 				{ // "2.2"
-					_res = db.Exec("\n  BEGIN;\n    CREATE VIRTUAL TABLE t2 USING fts4(order=desc);\n    INSERT INTO t2 VALUES('aa bb');\n    INSERT INTO t2 VALUES('bb cc');\n    INSERT INTO t2 VALUES('cc aa');\n    SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n  END;\n")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE VIRTUAL TABLE t2 USING fts4(order=desc);\n    INSERT INTO t2 VALUES('aa bb');\n    INSERT INTO t2 VALUES('bb cc');\n    INSERT INTO t2 VALUES('cc aa');\n    SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n  END;\n")
+					r = db.Query("\n  BEGIN;\n    CREATE VIRTUAL TABLE t2 USING fts4(order=desc);\n    INSERT INTO t2 VALUES('aa bb');\n    INSERT INTO t2 VALUES('bb cc');\n    INSERT INTO t2 VALUES('cc aa');\n    SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n  END;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    CREATE VIRTUAL TABLE t2 USING fts4(order=desc);\n    INSERT INTO t2 VALUES('aa bb');\n    INSERT INTO t2 VALUES('bb cc');\n    INSERT INTO t2 VALUES('cc aa');\n    SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n  END;\n")
+						return
+					}
+					got := flatten(r)
+					want := "3 1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "2.3"

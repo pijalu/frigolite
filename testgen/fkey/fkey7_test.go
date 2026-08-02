@@ -69,9 +69,9 @@ func Test_fkey7(t *testing.T) {
 	testprefix = "fkey7"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
-		_res = db.Exec("\n  PRAGMA foreign_keys = 1;\n\n  CREATE TABLE s1(a PRIMARY KEY, b);\n  CREATE TABLE par(a, b REFERENCES s1, c UNIQUE, PRIMARY KEY(a));\n\n  CREATE TABLE c1(a, b REFERENCES par);\n  CREATE TABLE c2(a, b REFERENCES par);\n  CREATE TABLE c3(a, b REFERENCES par(c));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = 1;\n\n  CREATE TABLE s1(a PRIMARY KEY, b);\n  CREATE TABLE par(a, b REFERENCES s1, c UNIQUE, PRIMARY KEY(a));\n\n  CREATE TABLE c1(a, b REFERENCES par);\n  CREATE TABLE c2(a, b REFERENCES par);\n  CREATE TABLE c3(a, b REFERENCES par(c));\n")
+		r = db.Query("\n  PRAGMA foreign_keys = 1;\n\n  CREATE TABLE s1(a PRIMARY KEY, b);\n  CREATE TABLE par(a, b REFERENCES s1, c UNIQUE, PRIMARY KEY(a));\n\n  CREATE TABLE c1(a, b REFERENCES par);\n  CREATE TABLE c2(a, b REFERENCES par);\n  CREATE TABLE c3(a, b REFERENCES par(c));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = 1;\n\n  CREATE TABLE s1(a PRIMARY KEY, b);\n  CREATE TABLE par(a, b REFERENCES s1, c UNIQUE, PRIMARY KEY(a));\n\n  CREATE TABLE c1(a, b REFERENCES par);\n  CREATE TABLE c2(a, b REFERENCES par);\n  CREATE TABLE c3(a, b REFERENCES par(c));\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -106,9 +106,9 @@ func Test_fkey7(t *testing.T) {
 		}
 	}
 	{ // "4.0"
-		_res = db.Exec("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c UNIQUE REFERENCES parent(p)\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c UNIQUE REFERENCES parent(p)\n  );\n")
+		r = db.Query("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c UNIQUE REFERENCES parent(p)\n  );\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c UNIQUE REFERENCES parent(p)\n  );\n")
 		}
 	}
 	{ // "4.1"

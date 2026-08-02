@@ -80,15 +80,27 @@ func Test_tkt3824(t *testing.T) {
 		_ = tclSort("execsql_status {\n    SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDER BY b;\n  }") // lsort result
 	}
 	{ // do_test "tkt3824-3.1"
-		_res = db.Exec("\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 SELECT a, b FROM t1;\n    INSERT INTO t3 VALUES(234,567);\n    CREATE UNIQUE INDEX t3y ON t3(y);\n    DELETE FROM t3 WHERE y IS NULL;\n    SELECT * FROM t3;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 SELECT a, b FROM t1;\n    INSERT INTO t3 VALUES(234,567);\n    CREATE UNIQUE INDEX t3y ON t3(y);\n    DELETE FROM t3 WHERE y IS NULL;\n    SELECT * FROM t3;\n  ")
+		r = db.Query("\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 SELECT a, b FROM t1;\n    INSERT INTO t3 VALUES(234,567);\n    CREATE UNIQUE INDEX t3y ON t3(y);\n    DELETE FROM t3 WHERE y IS NULL;\n    SELECT * FROM t3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 SELECT a, b FROM t1;\n    INSERT INTO t3 VALUES(234,567);\n    CREATE UNIQUE INDEX t3y ON t3(y);\n    DELETE FROM t3 WHERE y IS NULL;\n    SELECT * FROM t3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "234 567"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt3824-4.1"
-		_res = db.Exec("\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 SELECT a, b FROM t1;\n    INSERT INTO t4 VALUES(234,567);\n    CREATE UNIQUE INDEX t4y ON t4(y);\n    UPDATE t4 SET rowid=rowid+100 WHERE y IS NULL;\n    SELECT rowid, x FROM t4 ORDER BY rowid;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 SELECT a, b FROM t1;\n    INSERT INTO t4 VALUES(234,567);\n    CREATE UNIQUE INDEX t4y ON t4(y);\n    UPDATE t4 SET rowid=rowid+100 WHERE y IS NULL;\n    SELECT rowid, x FROM t4 ORDER BY rowid;\n  ")
+		r = db.Query("\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 SELECT a, b FROM t1;\n    INSERT INTO t4 VALUES(234,567);\n    CREATE UNIQUE INDEX t4y ON t4(y);\n    UPDATE t4 SET rowid=rowid+100 WHERE y IS NULL;\n    SELECT rowid, x FROM t4 ORDER BY rowid;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 SELECT a, b FROM t1;\n    INSERT INTO t4 VALUES(234,567);\n    CREATE UNIQUE INDEX t4y ON t4(y);\n    UPDATE t4 SET rowid=rowid+100 WHERE y IS NULL;\n    SELECT rowid, x FROM t4 ORDER BY rowid;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6 234 101 1 102 9 103 5 104 123 105 -10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

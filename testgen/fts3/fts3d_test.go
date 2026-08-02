@@ -243,9 +243,15 @@ func Test_fts3d(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3d-6.1"
-		_res = db.Exec("\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
+		r = db.Query("\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "xyz_content xyz_segdir xyz_segments"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3d-6.2"
@@ -258,9 +264,15 @@ func Test_fts3d(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3d-6.3"
-		_res = db.Exec("\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
+		r = db.Query("\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "xyz_content xyz_segdir xyz_segments"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3d-6.4"
@@ -273,9 +285,15 @@ func Test_fts3d(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3d-6.5"
-		_res = db.Exec("\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
+		r = db.Query("\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "xyz_content xyz_segdir xyz_segments"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fts3d-6.6"

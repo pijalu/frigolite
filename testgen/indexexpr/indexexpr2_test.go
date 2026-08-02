@@ -349,9 +349,9 @@ func Test_indexexpr2(t *testing.T) {
 	abc = "0" // TCL namespace variable
 	_ = abc // suppress unused warning
 	{ // "4.900"
-		_res = db.Exec("\n    SELECT * FROM explain WHERE rowid = $abc\n  ")
+		_res = db.Exec("\n    SELECT * FROM explain WHERE rowid = " + sqlLiteral(abc) + "\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM explain WHERE rowid = $abc\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM explain WHERE rowid = " + sqlLiteral(abc) + "\n  ")
 		}
 	}
 	{ // "5.0"
@@ -469,9 +469,15 @@ func Test_indexexpr2(t *testing.T) {
 		}
 	}
 	{ // "7.2"
-		_res = db.Exec("\n  COMMIT;\n  SELECT sql FROM sqlite_master WHERE tbl_name = 't0';\n  CREATE INDEX i0 ON t0(c0);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n  SELECT sql FROM sqlite_master WHERE tbl_name = 't0';\n  CREATE INDEX i0 ON t0(c0);\n")
+		r = db.Query("\n  COMMIT;\n  SELECT sql FROM sqlite_master WHERE tbl_name = 't0';\n  CREATE INDEX i0 ON t0(c0);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  COMMIT;\n  SELECT sql FROM sqlite_master WHERE tbl_name = 't0';\n  CREATE INDEX i0 ON t0(c0);\n")
+			return
+		}
+		got := flatten(r)
+		want := "CREATE TABLE t0(c0)"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "7.3"

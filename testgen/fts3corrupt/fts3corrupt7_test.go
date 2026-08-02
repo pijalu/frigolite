@@ -104,9 +104,9 @@ func Test_fts3corrupt7(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "3.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(content) VALUES ('hello world');\n  DELETE FROM fts_segdir;\n  INSERT INTO fts_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root) VALUES\n  (0, 0, 100, 100 + $DEPTH, 100 + $DEPTH, make_interior_node($DEPTH+1, 100));\n")
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(content) VALUES ('hello world');\n  DELETE FROM fts_segdir;\n  INSERT INTO fts_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root) VALUES\n  (0, 0, 100, 100 + " + sqlLiteral(DEPTH) + ", 100 + " + sqlLiteral(DEPTH) + ", make_interior_node(" + sqlLiteral(DEPTH) + "+1, 100));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(content) VALUES ('hello world');\n  DELETE FROM fts_segdir;\n  INSERT INTO fts_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root) VALUES\n  (0, 0, 100, 100 + $DEPTH, 100 + $DEPTH, make_interior_node($DEPTH+1, 100));\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(content) VALUES ('hello world');\n  DELETE FROM fts_segdir;\n  INSERT INTO fts_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root) VALUES\n  (0, 0, 100, 100 + " + sqlLiteral(DEPTH) + ", 100 + " + sqlLiteral(DEPTH) + ", make_interior_node(" + sqlLiteral(DEPTH) + "+1, 100));\n")
 		}
 	}
 	{ // do_test "3.1"
@@ -117,9 +117,9 @@ func Test_fts3corrupt7(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; DEPTH_n, _DEPTH_e := strconv.Atoi(DEPTH); if _DEPTH_e != nil { return false }; return ii_n < DEPTH_n }() {
-			_res = db.Exec("\n      INSERT INTO fts_segments(blockid, block) \n      VALUES(" + ii + "+100, make_interior_node(" + DEPTH + "-" + ii + ", 101+" + ii + "))\n    ")
+			_res = db.Exec("\n      INSERT INTO fts_segments(blockid, block) \n      VALUES(" + sqlLiteral(ii) + "+100, make_interior_node(" + sqlLiteral(DEPTH) + "-" + sqlLiteral(ii) + ", 101+" + sqlLiteral(ii) + "))\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO fts_segments(blockid, block) \n      VALUES(" + ii + "+100, make_interior_node(" + DEPTH + "-" + ii + ", 101+" + ii + "))\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO fts_segments(blockid, block) \n      VALUES(" + sqlLiteral(ii) + "+100, make_interior_node(" + sqlLiteral(DEPTH) + "-" + sqlLiteral(ii) + ", 101+" + sqlLiteral(ii) + "))\n    ")
 			}
 			// incr ii 1
 			{

@@ -86,16 +86,16 @@ func Test_recover(t *testing.T) {
 	doc = "\n  hello\n  world\n"
 	_ = doc // suppress unused warning
 	{ // "1.1.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, $doc, 8.4);\n")
+		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, " + sqlLiteral(doc) + ", 8.4);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, $doc, 8.4);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, " + sqlLiteral(doc) + ", 8.4);\n")
 		}
 	}
 	// do_recover_test 1.1.2 (unsupported command, not transpiled)
 	{ // "1.2.1"
-		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\r\nworld', 13);\n")
+		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\\r\\nworld', 13);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\r\nworld', 13);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\\r\\nworld', 13);\n")
 		}
 	}
 	// do_recover_test 1.2.2 (unsupported command, not transpiled)
@@ -110,16 +110,16 @@ func Test_recover(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1.0"
-		_res = db.Exec("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
+		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
 		}
 	}
 	// do_recover_test 2.1.1 (unsupported command, not transpiled)
 	{ // "2.2.0"
-		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name='t1';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name='t1';\n")
+		r = db.Query("\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name='t1';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name='t1';\n")
 		}
 	}
 	// do_recover_test 2.2.1 {\n  SELECT name FROM sqlite_master\n} {lost_and_found} (unsupported command, not transpiled)

@@ -103,9 +103,9 @@ func Test_analyze3(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + i + "+100, " + i + ") ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + "+100, " + sqlLiteral(i) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + "+100, " + i + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + "+100, " + sqlLiteral(i) + ") ")
 			}
 			// incr i 1
 			{
@@ -366,9 +366,9 @@ func Test_analyze3(t *testing.T) {
 			_t += tclLIndex("{a", "b")
 			_t += tclLIndex("{a", "b")
 			_t += tclLIndex("{a", "b")
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + i + ", " + _t + ") ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(_t) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + ", " + _t + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(_t) + ") ")
 			}
 			// incr i 1
 			{
@@ -444,9 +444,9 @@ func Test_analyze3(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + i + ", " + i + ", " + i + ") ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + ", " + i + ", " + i + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
 			}
 			// incr i 1
 			{
@@ -639,9 +639,9 @@ func Test_analyze3(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + i + ", " + i + ", " + i + ") ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + i + ", " + i + ", " + i + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(i) + ", " + sqlLiteral(i) + ") ")
 			}
 			// incr i 1
 			{
@@ -820,9 +820,9 @@ func Test_analyze3(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "7.2"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;\n")
+		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;\n")
 		}
 	}
 	db.Close()

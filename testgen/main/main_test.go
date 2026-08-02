@@ -266,7 +266,7 @@ func Test_main(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.4"
-		_res = db.Exec("select " + "abc")
+		_res = db.Exec("select " + sqlLiteral("abc"))
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.5"
@@ -286,21 +286,21 @@ func Test_main(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.9"
-		_res = db.Exec("select " + abc + "(")
+		_res = db.Exec("select " + sqlLiteral(abc) + "(")
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.10"
-		_res = db.Exec("select " + abc + "(x")
+		_res = db.Exec("select " + sqlLiteral(abc) + "(x")
 		_ = _res // catchsql
 	}
 	xyz = "123"
 	_ = xyz // suppress unused warning
 	{ // do_test "main-3.2.11"
-		_res = db.Exec("select " + xyz)
+		_res = db.Exec("select " + sqlLiteral(xyz))
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.12"
-		_res = db.Exec("select " + testnamespace_xyz)
+		_res = db.Exec("select " + sqlLiteral(testnamespace_xyz))
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.13"
@@ -310,13 +310,13 @@ func Test_main(t *testing.T) {
 	{ // do_test "main-3.2.14"
 		hi_u1234x = "987"
 		_ = hi_u1234x // suppress unused warning
-		_res = db.Exec("select " + hiu1234x)
+		_res = db.Exec("select \\$hi\\u1234x")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select " + hiu1234x)
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select \\$hi\\u1234x")
 		}
 	}
 	{ // do_test "main-3.2.15"
-		_res = db.Exec("select 456u1234")
+		_res = db.Exec("select 456\\u1234")
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.16"

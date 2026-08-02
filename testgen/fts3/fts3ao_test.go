@@ -257,9 +257,9 @@ func Test_fts3ao(t *testing.T) {
 		}
 	}
 	{ // "fts3ao-4.8"
-		r = db.Query("\n  SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH 'the'\n")
+		r = db.Query("\n  SELECT snippet(t5, '" + sqlLiteral("', '") + "') FROM t5 WHERE t5 MATCH 'the'\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH 'the'\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t5, '" + sqlLiteral("', '") + "') FROM t5 WHERE t5 MATCH 'the'\n")
 			return
 		}
 		got := flatten(r)

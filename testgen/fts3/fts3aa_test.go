@@ -275,9 +275,9 @@ func Test_fts3aa(t *testing.T) {
 	{ // do_test "fts3aa-5.2"
 		rowid = "db last_insert_rowid"
 		_ = rowid // suppress unused warning
-		r = db.Query("SELECT content FROM t1 WHERE rowid=" + rowid)
+		r = db.Query("SELECT content FROM t1 WHERE rowid=" + sqlLiteral(rowid))
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid=" + rowid)
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid=" + sqlLiteral(rowid))
 		}
 	}
 	{ // do_test "fts3aa-5.3"

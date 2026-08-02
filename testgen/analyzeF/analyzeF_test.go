@@ -6,6 +6,7 @@ package analyzeF
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strings"
 "testing"
 )
@@ -70,9 +71,9 @@ func Test_analyzeF(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;\n")
+		r = db.Query("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;\n")
 		}
 	}
 	// proc definition (not transpiled)
@@ -171,9 +172,15 @@ func Test_analyzeF(t *testing.T) {
 				}
 			}
 			{ // "5.2"
-				_res = db.Exec("\n  explain query plan\n  SELECT * FROM t1 WHERE b='xyz' AND b IS NOT NULL ORDER BY +a;\n  /*                  v---- Should be \"=\", not \">\"  */\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  explain query plan\n  SELECT * FROM t1 WHERE b='xyz' AND b IS NOT NULL ORDER BY +a;\n  /*                  v---- Should be \"=\", not \">\"  */\n")
+				r = db.Query("\n  explain query plan\n  SELECT * FROM t1 WHERE b='xyz' AND b IS NOT NULL ORDER BY +a;\n  /*                  v---- Should be \"=\", not \">\"  */\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  explain query plan\n  SELECT * FROM t1 WHERE b='xyz' AND b IS NOT NULL ORDER BY +a;\n  /*                  v---- Should be \"=\", not \">\"  */\n")
+					return
+				}
+				got := flatten(r)
+				wantPattern := "USING INDEX t1b .b="
+				if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 				}
 			}
 			{ // "5.3"

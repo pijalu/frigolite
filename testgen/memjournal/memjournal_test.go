@@ -59,9 +59,15 @@ func Test_memjournal(t *testing.T) {
 	testprefix = "memjournal"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a);\n")
+		r = db.Query("\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a);\n")
+			return
+		}
+		got := flatten(r)
+		want := "memory"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	nRow = "1"
@@ -84,9 +90,9 @@ func Test_memjournal(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SAVEPOINT abc ")
 			}
-			_res = db.Exec(" UPDATE t1 SET a=randomblob(500) WHERE rowid<=" + i + " AND 0 ")
+			_res = db.Exec(" UPDATE t1 SET a=randomblob(500) WHERE rowid<=" + sqlLiteral(i) + " AND 0 ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a=randomblob(500) WHERE rowid<=" + i + " AND 0 ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a=randomblob(500) WHERE rowid<=" + sqlLiteral(i) + " AND 0 ")
 			}
 			_res = db.Exec(" RELEASE abc ")
 			if _res.Error != nil {

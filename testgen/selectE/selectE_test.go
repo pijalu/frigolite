@@ -51,39 +51,63 @@ func Test_selectE(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "selectE-1.0"
-		_res = db.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc'),('def'),('ghi');\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('DEF'),('abc');\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES('def'),('jkl');\n\n    SELECT a FROM t1 EXCEPT SELECT a FROM t2\n     ORDER BY a COLLATE nocase;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc'),('def'),('ghi');\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('DEF'),('abc');\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES('def'),('jkl');\n\n    SELECT a FROM t1 EXCEPT SELECT a FROM t2\n     ORDER BY a COLLATE nocase;\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc'),('def'),('ghi');\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('DEF'),('abc');\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES('def'),('jkl');\n\n    SELECT a FROM t1 EXCEPT SELECT a FROM t2\n     ORDER BY a COLLATE nocase;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc'),('def'),('ghi');\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('DEF'),('abc');\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES('def'),('jkl');\n\n    SELECT a FROM t1 EXCEPT SELECT a FROM t2\n     ORDER BY a COLLATE nocase;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "def ghi"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectE-1.1"
-		_res = db.Exec("\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a COLLATE nocase;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a COLLATE nocase;\n  ")
+		r = db.Query("\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a COLLATE nocase;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a COLLATE nocase;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc DEF"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectE-1.2"
-		_res = db.Exec("\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a COLLATE binary;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a COLLATE binary;\n  ")
+		r = db.Query("\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a COLLATE binary;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a COLLATE binary;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "DEF abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectE-1.3"
-		_res = db.Exec("\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a;\n  ")
+		r = db.Query("\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "DEF abc"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "selectE-2.1"
-		_res = db.Exec("\n    DELETE FROM t2;\n    DELETE FROM t3;\n    INSERT INTO t2 VALUES('ABC'),('def'),('GHI'),('jkl');\n    INSERT INTO t3 SELECT lower(a) FROM t2;\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t2;\n    DELETE FROM t3;\n    INSERT INTO t2 VALUES('ABC'),('def'),('GHI'),('jkl');\n    INSERT INTO t3 SELECT lower(a) FROM t2;\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1\n  ")
+		r = db.Query("\n    DELETE FROM t2;\n    DELETE FROM t3;\n    INSERT INTO t2 VALUES('ABC'),('def'),('GHI'),('jkl');\n    INSERT INTO t3 SELECT lower(a) FROM t2;\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    DELETE FROM t3;\n    INSERT INTO t2 VALUES('ABC'),('def'),('GHI'),('jkl');\n    INSERT INTO t3 SELECT lower(a) FROM t2;\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1\n  ")
 		}
 	}
 	{ // do_test "selectE-2.2"
-		_res = db.Exec("\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1 COLLATE binary\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1 COLLATE binary\n  ")
+		r = db.Query("\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1 COLLATE binary\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1 COLLATE binary\n  ")
 		}
 	}
 	{ // "selectE-3.1"

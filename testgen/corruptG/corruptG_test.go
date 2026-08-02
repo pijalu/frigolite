@@ -60,9 +60,9 @@ func Test_corruptG(t *testing.T) {
 	}
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "1.1"
-		_res = db.Exec("\n  PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);\n")
+		r = db.Query("\n  PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);\n")
 		}
 	}
 	idxroot = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1abc'}"

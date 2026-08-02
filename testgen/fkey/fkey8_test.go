@@ -105,9 +105,9 @@ func Test_fkey8(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "2.1.0"
-			_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);\n")
+			r = db.Query("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);\n")
 			}
 		}
 		{ // "2.1.2"
@@ -120,9 +120,9 @@ func Test_fkey8(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "2.2.0"
-			_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;\n")
+			r = db.Query("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;\n")
 			}
 		}
 		{ // "2.2.1"
@@ -135,9 +135,9 @@ func Test_fkey8(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "2.3.0"
-			_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN old.a=1 BEGIN\n    INSERT OR REPLACE INTO p3 VALUES(2, 'three');\n  END;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN old.a=1 BEGIN\n    INSERT OR REPLACE INTO p3 VALUES(2, 'three');\n  END;\n")
+			r = db.Query("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN old.a=1 BEGIN\n    INSERT OR REPLACE INTO p3 VALUES(2, 'three');\n  END;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN old.a=1 BEGIN\n    INSERT OR REPLACE INTO p3 VALUES(2, 'three');\n  END;\n")
 			}
 		}
 		{ // "2.3.1"
@@ -147,9 +147,9 @@ func Test_fkey8(t *testing.T) {
 			}
 		}
 		{ // "3.0"
-			_res = db.Exec("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t2(\n    a PRIMARY KEY, b, c, d, e,\n      FOREIGN KEY(b, c) REFERENCES t2(d, e)\n  ) WITHOUT ROWID;\n  CREATE UNIQUE INDEX idx ON t2(d, e);\n\n  INSERT INTO t2 VALUES(1, 'one', 'one', 'one', 'one'); -- row is parent of self\n  INSERT INTO t2 VALUES(2, 'one', 'one', 'one', NULL);  -- parent is row 1\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t2(\n    a PRIMARY KEY, b, c, d, e,\n      FOREIGN KEY(b, c) REFERENCES t2(d, e)\n  ) WITHOUT ROWID;\n  CREATE UNIQUE INDEX idx ON t2(d, e);\n\n  INSERT INTO t2 VALUES(1, 'one', 'one', 'one', 'one'); -- row is parent of self\n  INSERT INTO t2 VALUES(2, 'one', 'one', 'one', NULL);  -- parent is row 1\n")
+			r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t2(\n    a PRIMARY KEY, b, c, d, e,\n      FOREIGN KEY(b, c) REFERENCES t2(d, e)\n  ) WITHOUT ROWID;\n  CREATE UNIQUE INDEX idx ON t2(d, e);\n\n  INSERT INTO t2 VALUES(1, 'one', 'one', 'one', 'one'); -- row is parent of self\n  INSERT INTO t2 VALUES(2, 'one', 'one', 'one', NULL);  -- parent is row 1\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t2(\n    a PRIMARY KEY, b, c, d, e,\n      FOREIGN KEY(b, c) REFERENCES t2(d, e)\n  ) WITHOUT ROWID;\n  CREATE UNIQUE INDEX idx ON t2(d, e);\n\n  INSERT INTO t2 VALUES(1, 'one', 'one', 'one', 'one'); -- row is parent of self\n  INSERT INTO t2 VALUES(2, 'one', 'one', 'one', NULL);  -- parent is row 1\n")
 			}
 		}
 		{ // "3.1"
@@ -180,9 +180,9 @@ func Test_fkey8(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "5.0"
-			_res = db.Exec("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COMMIT;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COMMIT;\n")
+			r = db.Query("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COMMIT;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COMMIT;\n")
 			}
 		}
 		{ // "5.1"
@@ -220,9 +220,9 @@ func Test_fkey8(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		os.Remove("test.db2")
 		{ // "6.1"
-			_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
+			r = db.Query("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
 			}
 		}
 		{ // "6.2"
@@ -241,9 +241,9 @@ func Test_fkey8(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "7.0"
-			_res = db.Exec("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );\n")
+			r = db.Query("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );\n")
 			}
 		}
 		{ // "7.1"

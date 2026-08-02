@@ -97,16 +97,16 @@ func Test_fts3cov(t *testing.T) {
 		root = "db one {SELECT root FROM t1_segdir}"
 		_ = root // suppress unused warning
 		// read_fts3varint [string range $root 1 end] left_child (unsupported command, not transpiled)
-		_res = db.Exec(" DELETE FROM t1_segments WHERE blockid = " + left_child + " ")
+		_res = db.Exec(" DELETE FROM t1_segments WHERE blockid = " + sqlLiteral(left_child) + " ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1_segments WHERE blockid = " + left_child + " ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1_segments WHERE blockid = " + sqlLiteral(left_child) + " ")
 		}
 	}
 	// do_error_test fts3cov-2.3 {\n  SELECT * FROM t1 WHERE t1 MATCH 'c*'\n} {database disk image is... (unsupported command, not transpiled)
 	{ // do_test "fts3cov-2.4"
-		_res = db.Exec(" INSERT INTO t1_segments VALUES(" + left_child + ", NULL) ")
+		_res = db.Exec(" INSERT INTO t1_segments VALUES(" + sqlLiteral(left_child) + ", NULL) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1_segments VALUES(" + left_child + ", NULL) ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1_segments VALUES(" + sqlLiteral(left_child) + ", NULL) ")
 		}
 	}
 	// do_error_test fts3cov-2.5 {\n  SELECT * FROM t1 WHERE t1 MATCH 'cloud'\n} {database disk image... (unsupported command, not transpiled)

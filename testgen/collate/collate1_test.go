@@ -352,9 +352,9 @@ func Test_collate1(t *testing.T) {
 		}
 	}
 	{ // "6.5"
-		_res = db.Exec("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1(a PRIMARY KEY COLLATE '\"\"\"');\n  CREATE TABLE c1(x, y REFERENCES p1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1(a PRIMARY KEY COLLATE '\"\"\"');\n  CREATE TABLE c1(x, y REFERENCES p1);\n")
+		r = db.Query("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1(a PRIMARY KEY COLLATE '\"\"\"');\n  CREATE TABLE c1(x, y REFERENCES p1);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1(a PRIMARY KEY COLLATE '\"\"\"');\n  CREATE TABLE c1(x, y REFERENCES p1);\n")
 		}
 	}
 	{ // "6.6"

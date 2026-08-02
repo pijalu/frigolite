@@ -83,9 +83,9 @@ func Test_sqllog(t *testing.T) {
 	b = "b"
 	_ = b // suppress unused warning
 	{ // "1.0"
-		r = db.Query("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES($a, $b);\n  SELECT * FROM t1;\n")
+		r = db.Query("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ");\n  SELECT * FROM t1;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES($a, $b);\n  SELECT * FROM t1;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ");\n  SELECT * FROM t1;\n")
 			return
 		}
 		got := flatten(r)

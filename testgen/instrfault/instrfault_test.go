@@ -78,9 +78,9 @@ func Test_instrfault(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = " + enc)
 		}
 		{ // "1." + enc + ".1"
-			_res = db.Exec("\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES($::NEEDLE, $::HAYSTACK);\n  ")
+			_res = db.Exec("\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES(" + sqlLiteral(NEEDLE) + ", " + sqlLiteral(HAYSTACK) + ");\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES($::NEEDLE, $::HAYSTACK);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES(" + sqlLiteral(NEEDLE) + ", " + sqlLiteral(HAYSTACK) + ");\n  ")
 			}
 		}
 		// do_faultsim_test 1.$enc.1 -faults oom-t* -prep {\n    execsql { SELECT instr(h, n) FROM t1 }\n  }... (unsupported command, not transpiled)

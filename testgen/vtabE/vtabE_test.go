@@ -75,9 +75,15 @@ func Test_vtabE(t *testing.T) {
 	vtabE2_c = "d"
 	_ = vtabE2_c // suppress unused warning
 	{ // do_test "vtabE-1"
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING tclvar;\n    CREATE VIRTUAL TABLE t2 USING tclvar;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    SELECT t1.name, t1.arrayname, t1.value,\n           t2.name, t2.arrayname, t2.value,\n           abs(t3.b + abs(t2.value + abs(t1.value)))\n      FROM t1 LEFT JOIN t2 ON t2.name = t1.arrayname\n           LEFT JOIN t3 ON t3.a=t2.value\n     WHERE t1.name = 'vtabE'\n     ORDER BY t1.value, t2.value;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING tclvar;\n    CREATE VIRTUAL TABLE t2 USING tclvar;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    SELECT t1.name, t1.arrayname, t1.value,\n           t2.name, t2.arrayname, t2.value,\n           abs(t3.b + abs(t2.value + abs(t1.value)))\n      FROM t1 LEFT JOIN t2 ON t2.name = t1.arrayname\n           LEFT JOIN t3 ON t3.a=t2.value\n     WHERE t1.name = 'vtabE'\n     ORDER BY t1.value, t2.value;\n  ")
+		r = db.Query("\n    CREATE VIRTUAL TABLE t1 USING tclvar;\n    CREATE VIRTUAL TABLE t2 USING tclvar;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    SELECT t1.name, t1.arrayname, t1.value,\n           t2.name, t2.arrayname, t2.value,\n           abs(t3.b + abs(t2.value + abs(t1.value)))\n      FROM t1 LEFT JOIN t2 ON t2.name = t1.arrayname\n           LEFT JOIN t3 ON t3.a=t2.value\n     WHERE t1.name = 'vtabE'\n     ORDER BY t1.value, t2.value;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t1 USING tclvar;\n    CREATE VIRTUAL TABLE t2 USING tclvar;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    SELECT t1.name, t1.arrayname, t1.value,\n           t2.name, t2.arrayname, t2.value,\n           abs(t3.b + abs(t2.value + abs(t1.value)))\n      FROM t1 LEFT JOIN t2 ON t2.name = t1.arrayname\n           LEFT JOIN t3 ON t3.a=t2.value\n     WHERE t1.name = 'vtabE'\n     ORDER BY t1.value, t2.value;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "vtabE vtabE1 11 vtabE1 w x {} vtabE vtabE1 11 vtabE1 y z {} vtabE vtabE2 22 vtabE2 a b {} vtabE vtabE2 22 vtabE2 c d {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

@@ -90,14 +90,20 @@ func Test_enc4(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
+		_res = db.Exec("PRAGMA encoding = \\\"" + enc + "\\\"")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \"" + enc + "\"")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \\\"" + enc + "\\\"")
 		}
 		{ // do_test "enc4-" + i + ".1"
-			_res = db.Exec("PRAGMA encoding")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
+			r = db.Query("PRAGMA encoding")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding")
+				return
+			}
+			got := flatten(r)
+			want := enc
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		j = "1"
@@ -159,9 +165,15 @@ func Test_enc4(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "enc4-4.1"
-		_res = db.Exec("select 1+1.")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select 1+1.")
+		r = db.Query("select 1+1.")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "select 1+1.")
+			return
+		}
+		got := flatten(r)
+		want := "2.0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "enc4-4.2.1"

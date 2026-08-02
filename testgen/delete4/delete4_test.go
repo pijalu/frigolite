@@ -280,9 +280,9 @@ func Test_delete4(t *testing.T) {
 		}
 	}
 	{ // "7.2.0"
-		_res = db.Exec("\n  CREATE TABLE t4(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t4i ON t4(b);\n  INSERT INTO t4 VALUES(1, 'hello');\n  INSERT INTO t4 VALUES(2, 'world');\n\n  CREATE TABLE t5(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t5i ON t5(b);\n  INSERT INTO t5 VALUES(1, 'hello');\n  INSERT INTO t5 VALUES(3, 'world');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name = 't5'\n  ) WHERE name = 't4';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t4i ON t4(b);\n  INSERT INTO t4 VALUES(1, 'hello');\n  INSERT INTO t4 VALUES(2, 'world');\n\n  CREATE TABLE t5(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t5i ON t5(b);\n  INSERT INTO t5 VALUES(1, 'hello');\n  INSERT INTO t5 VALUES(3, 'world');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name = 't5'\n  ) WHERE name = 't4';\n")
+		r = db.Query("\n  CREATE TABLE t4(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t4i ON t4(b);\n  INSERT INTO t4 VALUES(1, 'hello');\n  INSERT INTO t4 VALUES(2, 'world');\n\n  CREATE TABLE t5(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t5i ON t5(b);\n  INSERT INTO t5 VALUES(1, 'hello');\n  INSERT INTO t5 VALUES(3, 'world');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name = 't5'\n  ) WHERE name = 't4';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t4i ON t4(b);\n  INSERT INTO t4 VALUES(1, 'hello');\n  INSERT INTO t4 VALUES(2, 'world');\n\n  CREATE TABLE t5(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t5i ON t5(b);\n  INSERT INTO t5 VALUES(1, 'hello');\n  INSERT INTO t5 VALUES(3, 'world');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name = 't5'\n  ) WHERE name = 't4';\n")
 		}
 	}
 	_dbtmp0, err := frigolite.Open("test.db")

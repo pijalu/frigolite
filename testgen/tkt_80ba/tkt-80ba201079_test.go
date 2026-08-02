@@ -59,15 +59,27 @@ func Test_tkt_80ba201079(t *testing.T) {
 	testprefix = "tkt-80ba201079" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // do_test "tkt-80ba2-100"
-		_res = db.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('A');\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES('B');\n    CREATE TABLE t3(c);\n    INSERT INTO t3 VALUES('C');\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('A');\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES('B');\n    CREATE TABLE t3(c);\n    INSERT INTO t3 VALUES('C');\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
+		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('A');\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES('B');\n    CREATE TABLE t3(c);\n    INSERT INTO t3 VALUES('C');\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('A');\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES('B');\n    CREATE TABLE t3(c);\n    INSERT INTO t3 VALUES('C');\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-80ba2-101"
-		_res = db.Exec("\n    CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
+		r = db.Query("\n    CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-80ba2-102"
@@ -88,15 +100,27 @@ func Test_tkt_80ba201079(t *testing.T) {
 		// expr $x1==$x2 (not evaluated)
 	}
 	{ // do_test "tkt-80ba2-200"
-		_res = db.Exec("\n    CREATE TABLE entry_types (\n                        id     integer primary key,\n                        name   text\n                    );\n    INSERT INTO \"entry_types\" VALUES(100,'cli_command');\n    INSERT INTO \"entry_types\" VALUES(300,'object_change');\n    CREATE TABLE object_changes (\n                        change_id    integer primary key,\n                        system_id    int,\n                        obj_id       int,\n                        obj_context  text,\n                        change_type  int,\n                        command_id   int\n                    );\n    INSERT INTO \"object_changes\" VALUES(1551,1,114608,'exported_pools',1,2114);\n    INSERT INTO \"object_changes\" VALUES(2048,1,114608,'exported_pools',2,2319);\n    CREATE TABLE timeline (\n                        rowid        integer primary key,\n                        timestamp    text,\n                        system_id    int,\n                        entry_type   int,\n                        entry_id     int\n                    );\n    INSERT INTO \"timeline\" VALUES(6735,'2010-11-21 17:08:27.000',1,300,2048);\n    INSERT INTO \"timeline\" VALUES(6825,'2010-11-21 17:09:21.000',1,300,2114);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE entry_types (\n                        id     integer primary key,\n                        name   text\n                    );\n    INSERT INTO \"entry_types\" VALUES(100,'cli_command');\n    INSERT INTO \"entry_types\" VALUES(300,'object_change');\n    CREATE TABLE object_changes (\n                        change_id    integer primary key,\n                        system_id    int,\n                        obj_id       int,\n                        obj_context  text,\n                        change_type  int,\n                        command_id   int\n                    );\n    INSERT INTO \"object_changes\" VALUES(1551,1,114608,'exported_pools',1,2114);\n    INSERT INTO \"object_changes\" VALUES(2048,1,114608,'exported_pools',2,2319);\n    CREATE TABLE timeline (\n                        rowid        integer primary key,\n                        timestamp    text,\n                        system_id    int,\n                        entry_type   int,\n                        entry_id     int\n                    );\n    INSERT INTO \"timeline\" VALUES(6735,'2010-11-21 17:08:27.000',1,300,2048);\n    INSERT INTO \"timeline\" VALUES(6825,'2010-11-21 17:09:21.000',1,300,2114);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
+		r = db.Query("\n    CREATE TABLE entry_types (\n                        id     integer primary key,\n                        name   text\n                    );\n    INSERT INTO \"entry_types\" VALUES(100,'cli_command');\n    INSERT INTO \"entry_types\" VALUES(300,'object_change');\n    CREATE TABLE object_changes (\n                        change_id    integer primary key,\n                        system_id    int,\n                        obj_id       int,\n                        obj_context  text,\n                        change_type  int,\n                        command_id   int\n                    );\n    INSERT INTO \"object_changes\" VALUES(1551,1,114608,'exported_pools',1,2114);\n    INSERT INTO \"object_changes\" VALUES(2048,1,114608,'exported_pools',2,2319);\n    CREATE TABLE timeline (\n                        rowid        integer primary key,\n                        timestamp    text,\n                        system_id    int,\n                        entry_type   int,\n                        entry_id     int\n                    );\n    INSERT INTO \"timeline\" VALUES(6735,'2010-11-21 17:08:27.000',1,300,2048);\n    INSERT INTO \"timeline\" VALUES(6825,'2010-11-21 17:09:21.000',1,300,2114);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE entry_types (\n                        id     integer primary key,\n                        name   text\n                    );\n    INSERT INTO \"entry_types\" VALUES(100,'cli_command');\n    INSERT INTO \"entry_types\" VALUES(300,'object_change');\n    CREATE TABLE object_changes (\n                        change_id    integer primary key,\n                        system_id    int,\n                        obj_id       int,\n                        obj_context  text,\n                        change_type  int,\n                        command_id   int\n                    );\n    INSERT INTO \"object_changes\" VALUES(1551,1,114608,'exported_pools',1,2114);\n    INSERT INTO \"object_changes\" VALUES(2048,1,114608,'exported_pools',2,2319);\n    CREATE TABLE timeline (\n                        rowid        integer primary key,\n                        timestamp    text,\n                        system_id    int,\n                        entry_type   int,\n                        entry_id     int\n                    );\n    INSERT INTO \"timeline\" VALUES(6735,'2010-11-21 17:08:27.000',1,300,2048);\n    INSERT INTO \"timeline\" VALUES(6825,'2010-11-21 17:09:21.000',1,300,2114);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "300 object_change 2048"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-80ba2-201"
-		_res = db.Exec("\n    CREATE INDEX timeline_entry_id_idx on timeline(entry_id);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX timeline_entry_id_idx on timeline(entry_id);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
+		r = db.Query("\n    CREATE INDEX timeline_entry_id_idx on timeline(entry_id);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX timeline_entry_id_idx on timeline(entry_id);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "300 object_change 2048"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "tkt-80ba2-202"

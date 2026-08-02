@@ -68,9 +68,9 @@ func Test_triggerA(t *testing.T) {
 		_ = word // suppress unused warning
 			j = tclExprWith("$i*100 + [string length $word]", map[string]string{"i": i, "word": word})
 			_ = j // suppress unused warning
-			_res = db.Exec("\n       INSERT INTO t1 VALUES(" + i + "," + word + ");\n       INSERT INTO t2 VALUES(20-" + i + "," + j + "," + word + ");\n    ")
+			_res = db.Exec("\n       INSERT INTO t1 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(word) + ");\n       INSERT INTO t2 VALUES(20-" + sqlLiteral(i) + "," + sqlLiteral(j) + "," + sqlLiteral(word) + ");\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       INSERT INTO t1 VALUES(" + i + "," + word + ");\n       INSERT INTO t2 VALUES(20-" + i + "," + j + "," + word + ");\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       INSERT INTO t1 VALUES(" + sqlLiteral(i) + "," + sqlLiteral(word) + ");\n       INSERT INTO t2 VALUES(20-" + sqlLiteral(i) + "," + sqlLiteral(j) + "," + sqlLiteral(word) + ");\n    ")
 			}
 			// incr i 1
 			{
@@ -86,99 +86,195 @@ func Test_triggerA(t *testing.T) {
 		}
 	}
 	{ // do_test "triggerA-1.2"
-		_res = db.Exec("\n     CREATE VIEW v1 AS SELECT y, x FROM t1;\n     SELECT * FROM v1 ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE VIEW v1 AS SELECT y, x FROM t1;\n     SELECT * FROM v1 ORDER BY 1;\n  ")
+		r = db.Query("\n     CREATE VIEW v1 AS SELECT y, x FROM t1;\n     SELECT * FROM v1 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE VIEW v1 AS SELECT y, x FROM t1;\n     SELECT * FROM v1 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "eight 8 five 5 four 4 nine 9 one 1 seven 7 six 6 ten 10 three 3 two 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-1.3"
-		_res = db.Exec("\n     CREATE VIEW v2 AS SELECT x, y FROM t1 WHERE y GLOB '*e*';\n     SELECT * FROM v2 ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE VIEW v2 AS SELECT x, y FROM t1 WHERE y GLOB '*e*';\n     SELECT * FROM v2 ORDER BY 1;\n  ")
+		r = db.Query("\n     CREATE VIEW v2 AS SELECT x, y FROM t1 WHERE y GLOB '*e*';\n     SELECT * FROM v2 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE VIEW v2 AS SELECT x, y FROM t1 WHERE y GLOB '*e*';\n     SELECT * FROM v2 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 one 3 three 5 five 7 seven 8 eight 9 nine 10 ten"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-1.4"
-		_res = db.Exec("\n     CREATE VIEW v3 AS\n       SELECT CAST(x AS TEXT) AS c1 FROM t1 UNION SELECT y FROM t1;\n     SELECT * FROM v3 ORDER BY c1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE VIEW v3 AS\n       SELECT CAST(x AS TEXT) AS c1 FROM t1 UNION SELECT y FROM t1;\n     SELECT * FROM v3 ORDER BY c1;\n  ")
+		r = db.Query("\n     CREATE VIEW v3 AS\n       SELECT CAST(x AS TEXT) AS c1 FROM t1 UNION SELECT y FROM t1;\n     SELECT * FROM v3 ORDER BY c1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE VIEW v3 AS\n       SELECT CAST(x AS TEXT) AS c1 FROM t1 UNION SELECT y FROM t1;\n     SELECT * FROM v3 ORDER BY c1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 10 2 3 4 5 6 7 8 9 eight five four nine one seven six ten three two"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-1.5"
-		_res = db.Exec("\n     CREATE VIEW v4 AS\n        SELECT CAST(x AS TEXT) AS c1 FROM t1\n        UNION SELECT y FROM t1 WHERE x BETWEEN 3 and 5;\n     SELECT * FROM v4 ORDER BY 1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE VIEW v4 AS\n        SELECT CAST(x AS TEXT) AS c1 FROM t1\n        UNION SELECT y FROM t1 WHERE x BETWEEN 3 and 5;\n     SELECT * FROM v4 ORDER BY 1;\n  ")
+		r = db.Query("\n     CREATE VIEW v4 AS\n        SELECT CAST(x AS TEXT) AS c1 FROM t1\n        UNION SELECT y FROM t1 WHERE x BETWEEN 3 and 5;\n     SELECT * FROM v4 ORDER BY 1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE VIEW v4 AS\n        SELECT CAST(x AS TEXT) AS c1 FROM t1\n        UNION SELECT y FROM t1 WHERE x BETWEEN 3 and 5;\n     SELECT * FROM v4 ORDER BY 1;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "1 10 2 3 4 5 6 7 8 9 five four three"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-1.6"
-		_res = db.Exec("\n     CREATE VIEW v5 AS SELECT x, b FROM t1, t2 WHERE y=c;\n     SELECT * FROM v5 ORDER BY x DESC;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE VIEW v5 AS SELECT x, b FROM t1, t2 WHERE y=c;\n     SELECT * FROM v5 ORDER BY x DESC;\n  ")
+		r = db.Query("\n     CREATE VIEW v5 AS SELECT x, b FROM t1, t2 WHERE y=c;\n     SELECT * FROM v5 ORDER BY x DESC;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE VIEW v5 AS SELECT x, b FROM t1, t2 WHERE y=c;\n     SELECT * FROM v5 ORDER BY x DESC;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "10 1003 9 904 8 805 7 705 6 603 5 504 4 404 3 305 2 203 1 103"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.1"
-		_res = db.Exec("\n     CREATE TABLE result2(a,b);\n     CREATE TRIGGER r1d INSTEAD OF DELETE ON v1 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v1 WHERE x=5;\n     SELECT * FROM result2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE result2(a,b);\n     CREATE TRIGGER r1d INSTEAD OF DELETE ON v1 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v1 WHERE x=5;\n     SELECT * FROM result2;\n  ")
+		r = db.Query("\n     CREATE TABLE result2(a,b);\n     CREATE TRIGGER r1d INSTEAD OF DELETE ON v1 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v1 WHERE x=5;\n     SELECT * FROM result2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE TABLE result2(a,b);\n     CREATE TRIGGER r1d INSTEAD OF DELETE ON v1 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v1 WHERE x=5;\n     SELECT * FROM result2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "five 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.2"
-		_res = db.Exec("\n     CREATE TABLE result4(a,b,c,d);\n     CREATE TRIGGER r1u INSTEAD OF UPDATE ON v1 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v1 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE result4(a,b,c,d);\n     CREATE TRIGGER r1u INSTEAD OF UPDATE ON v1 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v1 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+		r = db.Query("\n     CREATE TABLE result4(a,b,c,d);\n     CREATE TRIGGER r1u INSTEAD OF UPDATE ON v1 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v1 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE TABLE result4(a,b,c,d);\n     CREATE TRIGGER r1u INSTEAD OF UPDATE ON v1 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v1 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "five 5 five-extra 5 four 4 four-extra 4 three 3 three-extra 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.3"
-		_res = db.Exec("\n     DELETE FROM result2;\n     CREATE TRIGGER r2d INSTEAD OF DELETE ON v2 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v2 WHERE x=5;\n     SELECT * FROM result2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     DELETE FROM result2;\n     CREATE TRIGGER r2d INSTEAD OF DELETE ON v2 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v2 WHERE x=5;\n     SELECT * FROM result2;\n  ")
+		r = db.Query("\n     DELETE FROM result2;\n     CREATE TRIGGER r2d INSTEAD OF DELETE ON v2 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v2 WHERE x=5;\n     SELECT * FROM result2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     DELETE FROM result2;\n     CREATE TRIGGER r2d INSTEAD OF DELETE ON v2 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v2 WHERE x=5;\n     SELECT * FROM result2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "five 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.4"
-		_res = db.Exec("\n     DELETE FROM result4;\n     CREATE TRIGGER r2u INSTEAD OF UPDATE ON v2 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v2 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     DELETE FROM result4;\n     CREATE TRIGGER r2u INSTEAD OF UPDATE ON v2 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v2 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+		r = db.Query("\n     DELETE FROM result4;\n     CREATE TRIGGER r2u INSTEAD OF UPDATE ON v2 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v2 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     DELETE FROM result4;\n     CREATE TRIGGER r2u INSTEAD OF UPDATE ON v2 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v2 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "five 5 five-extra 5 three 3 three-extra 3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.5"
-		_res = db.Exec("\n     CREATE TABLE result1(a);\n     CREATE TRIGGER r3d INSTEAD OF DELETE ON v3 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v3 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE result1(a);\n     CREATE TRIGGER r3d INSTEAD OF DELETE ON v3 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v3 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;\n  ")
+		r = db.Query("\n     CREATE TABLE result1(a);\n     CREATE TRIGGER r3d INSTEAD OF DELETE ON v3 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v3 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     CREATE TABLE result1(a);\n     CREATE TRIGGER r3d INSTEAD OF DELETE ON v3 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v3 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 9 eight"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.6"
-		_res = db.Exec("\n     DELETE FROM result2;\n     CREATE TRIGGER r3u INSTEAD OF UPDATE ON v3 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v3 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     DELETE FROM result2;\n     CREATE TRIGGER r3u INSTEAD OF UPDATE ON v3 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v3 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;\n  ")
+		r = db.Query("\n     DELETE FROM result2;\n     CREATE TRIGGER r3u INSTEAD OF UPDATE ON v3 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v3 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     DELETE FROM result2;\n     CREATE TRIGGER r3u INSTEAD OF UPDATE ON v3 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v3 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 8-extra 9 9-extra eight eight-extra"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.7"
-		_res = db.Exec("\n     DELETE FROM result1;\n     CREATE TRIGGER r4d INSTEAD OF DELETE ON v4 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v4 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     DELETE FROM result1;\n     CREATE TRIGGER r4d INSTEAD OF DELETE ON v4 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v4 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;\n  ")
+		r = db.Query("\n     DELETE FROM result1;\n     CREATE TRIGGER r4d INSTEAD OF DELETE ON v4 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v4 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     DELETE FROM result1;\n     CREATE TRIGGER r4d INSTEAD OF DELETE ON v4 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v4 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.8"
-		_res = db.Exec("\n     DELETE FROM result2;\n     CREATE TRIGGER r4u INSTEAD OF UPDATE ON v4 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v4 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     DELETE FROM result2;\n     CREATE TRIGGER r4u INSTEAD OF UPDATE ON v4 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v4 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;\n  ")
+		r = db.Query("\n     DELETE FROM result2;\n     CREATE TRIGGER r4u INSTEAD OF UPDATE ON v4 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v4 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     DELETE FROM result2;\n     CREATE TRIGGER r4u INSTEAD OF UPDATE ON v4 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v4 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "8 8-extra 9 9-extra"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.9"
-		_res = db.Exec("\n     DELETE FROM result2;\n     CREATE TRIGGER r5d INSTEAD OF DELETE ON v5 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.x, old.b);\n     END;\n     DELETE FROM v5 WHERE x=5;\n     SELECT * FROM result2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     DELETE FROM result2;\n     CREATE TRIGGER r5d INSTEAD OF DELETE ON v5 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.x, old.b);\n     END;\n     DELETE FROM v5 WHERE x=5;\n     SELECT * FROM result2;\n  ")
+		r = db.Query("\n     DELETE FROM result2;\n     CREATE TRIGGER r5d INSTEAD OF DELETE ON v5 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.x, old.b);\n     END;\n     DELETE FROM v5 WHERE x=5;\n     SELECT * FROM result2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     DELETE FROM result2;\n     CREATE TRIGGER r5d INSTEAD OF DELETE ON v5 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.x, old.b);\n     END;\n     DELETE FROM v5 WHERE x=5;\n     SELECT * FROM result2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "5 504"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.10"
-		_res = db.Exec("\n     DELETE FROM result4;\n     CREATE TRIGGER r5u INSTEAD OF UPDATE ON v5 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.x, old.b, new.x, new.b);\n     END;\n     UPDATE v5 SET b = b+9900000 WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     DELETE FROM result4;\n     CREATE TRIGGER r5u INSTEAD OF UPDATE ON v5 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.x, old.b, new.x, new.b);\n     END;\n     UPDATE v5 SET b = b+9900000 WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+		r = db.Query("\n     DELETE FROM result4;\n     CREATE TRIGGER r5u INSTEAD OF UPDATE ON v5 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.x, old.b, new.x, new.b);\n     END;\n     UPDATE v5 SET b = b+9900000 WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     DELETE FROM result4;\n     CREATE TRIGGER r5u INSTEAD OF UPDATE ON v5 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.x, old.b, new.x, new.b);\n     END;\n     UPDATE v5 SET b = b+9900000 WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 305 3 9900305 4 404 4 9900404 5 504 5 9900504"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "triggerA-2.11"
-		_res = db.Exec("\n     DELETE FROM result4;\n     UPDATE v5 SET b = main.v5.b+9900000 WHERE main.v5.x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     DELETE FROM result4;\n     UPDATE v5 SET b = main.v5.b+9900000 WHERE main.v5.x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+		r = db.Query("\n     DELETE FROM result4;\n     UPDATE v5 SET b = main.v5.b+9900000 WHERE main.v5.x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     DELETE FROM result4;\n     UPDATE v5 SET b = main.v5.b+9900000 WHERE main.v5.x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "3 305 3 9900305 4 404 4 9900404 5 504 5 9900504"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	os.Remove("test.db-triggerA")

@@ -6,6 +6,7 @@ package select9
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strconv"
 "testing"
 )
@@ -270,21 +271,39 @@ func Test_select9(t *testing.T) {
 		}
 	}
 	{ // do_test "select9-5.1"
-		_res = db.Exec("\n    CREATE TABLE t51(x, y);\n    CREATE TABLE t52(x, y);\n    CREATE VIEW v5 as\n       SELECT x, y FROM t51\n       UNION ALL\n       SELECT x, y FROM t52;\n    CREATE INDEX t51x ON t51(x);\n    CREATE INDEX t52x ON t52(x);\n    EXPLAIN QUERY PLAN\n       SELECT * FROM v5 WHERE x='12345' ORDER BY y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t51(x, y);\n    CREATE TABLE t52(x, y);\n    CREATE VIEW v5 as\n       SELECT x, y FROM t51\n       UNION ALL\n       SELECT x, y FROM t52;\n    CREATE INDEX t51x ON t51(x);\n    CREATE INDEX t52x ON t52(x);\n    EXPLAIN QUERY PLAN\n       SELECT * FROM v5 WHERE x='12345' ORDER BY y;\n  ")
+		r = db.Query("\n    CREATE TABLE t51(x, y);\n    CREATE TABLE t52(x, y);\n    CREATE VIEW v5 as\n       SELECT x, y FROM t51\n       UNION ALL\n       SELECT x, y FROM t52;\n    CREATE INDEX t51x ON t51(x);\n    CREATE INDEX t52x ON t52(x);\n    EXPLAIN QUERY PLAN\n       SELECT * FROM v5 WHERE x='12345' ORDER BY y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t51(x, y);\n    CREATE TABLE t52(x, y);\n    CREATE VIEW v5 as\n       SELECT x, y FROM t51\n       UNION ALL\n       SELECT x, y FROM t52;\n    CREATE INDEX t51x ON t51(x);\n    CREATE INDEX t52x ON t52(x);\n    EXPLAIN QUERY PLAN\n       SELECT * FROM v5 WHERE x='12345' ORDER BY y;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "select9-5.2"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE x='12345' ORDER BY y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE x='12345' ORDER BY y;\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE x='12345' ORDER BY y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE x='12345' ORDER BY y;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "select9-5.3"
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE +x='12345' ORDER BY y;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE +x='12345' ORDER BY y;\n  ")
+		r = db.Query("\n    EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE +x='12345' ORDER BY y;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE +x='12345' ORDER BY y;\n  ")
+			return
+		}
+		got := flatten(r)
+		wantPattern := "SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "select9-6.1"

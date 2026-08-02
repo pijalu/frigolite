@@ -72,9 +72,9 @@ func Test_ovfl(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 2000 }() {
 			c1 = ". $i"
 			_ = c1 // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1 VALUES(" + c1 + ", " + c2 + ") ")
+			_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(c1) + ", " + sqlLiteral(c2) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + c1 + ", " + c2 + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(c1) + ", " + sqlLiteral(c2) + ") ")
 			}
 			// incr i 1
 			{

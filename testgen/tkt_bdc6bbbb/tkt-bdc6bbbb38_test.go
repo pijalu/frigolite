@@ -98,9 +98,9 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 				}
 			}
 			{ // tn + ".1.4"
-				r = db.Query("\n    SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b' \n    ORDER BY docid ASC\n  ")
+				r = db.Query("\n    SELECT snippet(t2,'" + sqlLiteral("','") + "') FROM t2 WHERE t2 MATCH 'a AND d OR b' \n    ORDER BY docid ASC\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b' \n    ORDER BY docid ASC\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t2,'" + sqlLiteral("','") + "') FROM t2 WHERE t2 MATCH 'a AND d OR b' \n    ORDER BY docid ASC\n  ")
 					return
 				}
 				got := flatten(r)
@@ -128,9 +128,9 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 				}
 			}
 			{ // tn + ".1.7"
-				r = db.Query("\n    SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b'\n    ORDER BY docid ASC\n  ")
+				r = db.Query("\n    SELECT snippet(t2,'" + sqlLiteral("','") + "') FROM t2 WHERE t2 MATCH 'a AND d OR b'\n    ORDER BY docid ASC\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b'\n    ORDER BY docid ASC\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t2,'" + sqlLiteral("','") + "') FROM t2 WHERE t2 MATCH 'a AND d OR b'\n    ORDER BY docid ASC\n  ")
 					return
 				}
 				got := flatten(r)
@@ -168,9 +168,9 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 				}
 			}
 			{ // tn + ".2.4"
-				r = db.Query("\n    SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC\n  ")
+				r = db.Query("\n    SELECT snippet(t3,'" + sqlLiteral("','") + "') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t3,'" + sqlLiteral("','") + "') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC\n  ")
 					return
 				}
 				got := flatten(r)
@@ -198,9 +198,9 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 				}
 			}
 			{ // tn + ".2.7"
-				r = db.Query("\n    SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC\n  ")
+				r = db.Query("\n    SELECT snippet(t3,'" + sqlLiteral("','") + "') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(t3,'" + sqlLiteral("','") + "') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC\n  ")
 					return
 				}
 				got := flatten(r)

@@ -236,9 +236,15 @@ func Test_e_wal(t *testing.T) {
 		_ = _list
 	}
 	{ // "3.2.1"
-		_res = db.Exec("\n  PRAGMA locking_mode = EXCLUSIVE;\n  PRAGMA locking_mode = NORMAL;\n  PRAGMA locking_mode = EXCLUSIVE;\n  INSERT INTO t1 VALUES(5, 6);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  PRAGMA locking_mode = NORMAL;\n  PRAGMA locking_mode = EXCLUSIVE;\n  INSERT INTO t1 VALUES(5, 6);\n")
+		r = db.Query("\n  PRAGMA locking_mode = EXCLUSIVE;\n  PRAGMA locking_mode = NORMAL;\n  PRAGMA locking_mode = EXCLUSIVE;\n  INSERT INTO t1 VALUES(5, 6);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  PRAGMA locking_mode = NORMAL;\n  PRAGMA locking_mode = EXCLUSIVE;\n  INSERT INTO t1 VALUES(5, 6);\n")
+			return
+		}
+		got := flatten(r)
+		want := "exclusive normal exclusive"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "3.2.2"

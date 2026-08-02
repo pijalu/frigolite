@@ -86,9 +86,15 @@ func Test_utf16align(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "utf16align-2.1"
-		_res = db.Exec("\n    PRAGMA encoding=UTF16be;\n    SELECT hex(ltrim(x'6efcda'));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16be;\n    SELECT hex(ltrim(x'6efcda'));\n  ")
+		r = db.Query("\n    PRAGMA encoding=UTF16be;\n    SELECT hex(ltrim(x'6efcda'));\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding=UTF16be;\n    SELECT hex(ltrim(x'6efcda'));\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "6EFC"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

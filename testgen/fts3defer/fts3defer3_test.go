@@ -83,9 +83,9 @@ func Test_fts3defer3(t *testing.T) {
 				document = "a b"
 				_ = document // suppress unused warning
 			}
-			_res = db.Exec(" INSERT INTO t1 (docid, content) VALUES(" + i + ", " + document + ") ")
+			_res = db.Exec(" INSERT INTO t1 (docid, content) VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(document) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 (docid, content) VALUES(" + i + ", " + document + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 (docid, content) VALUES(" + sqlLiteral(i) + ", " + sqlLiteral(document) + ") ")
 			}
 			// incr i 1
 			{

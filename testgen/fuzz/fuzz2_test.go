@@ -148,9 +148,15 @@ func Test_fuzz2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "fuzz2-6.4b"
-		_res = db.Exec("SELECT quote(t) FROM t0")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT quote(t) FROM t0")
+		r = db.Query("SELECT quote(t) FROM t0")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT quote(t) FROM t0")
+			return
+		}
+		got := flatten(r)
+		want := "NULL"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "fuzz2-7.1"

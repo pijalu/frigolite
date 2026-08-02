@@ -2304,9 +2304,9 @@ func Test_e_expr(t *testing.T) {
 																			}
 																		}
 																		{ // "e_expr-14.6.4"
-																			_res = db.Exec("SELECT 'A' LIKE 'a' ESCAPE 'u00e6'")
+																			_res = db.Exec("SELECT 'A' LIKE 'a' ESCAPE '\\u00e6'")
 																			if _res.Error != nil {
-																				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT 'A' LIKE 'a' ESCAPE 'u00e6'")
+																				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT 'A' LIKE 'a' ESCAPE '\\u00e6'")
 																			}
 																		}
 																		{ // "e_expr-14.7.1"

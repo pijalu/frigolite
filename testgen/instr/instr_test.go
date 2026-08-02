@@ -53,273 +53,543 @@ func Test_instr(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "instr-1.1"
-		_res = db.Exec("SELECT instr('abcdefg','a');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','a');")
+		r = db.Query("SELECT instr('abcdefg','a');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','a');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.2"
-		_res = db.Exec("SELECT instr('abcdefg','b');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','b');")
+		r = db.Query("SELECT instr('abcdefg','b');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','b');")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.3"
-		_res = db.Exec("SELECT instr('abcdefg','c');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','c');")
+		r = db.Query("SELECT instr('abcdefg','c');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','c');")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.4"
-		_res = db.Exec("SELECT instr('abcdefg','d');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','d');")
+		r = db.Query("SELECT instr('abcdefg','d');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','d');")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.5"
-		_res = db.Exec("SELECT instr('abcdefg','e');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','e');")
+		r = db.Query("SELECT instr('abcdefg','e');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','e');")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.6"
-		_res = db.Exec("SELECT instr('abcdefg','f');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','f');")
+		r = db.Query("SELECT instr('abcdefg','f');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','f');")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.7"
-		_res = db.Exec("SELECT instr('abcdefg','g');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','g');")
+		r = db.Query("SELECT instr('abcdefg','g');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','g');")
+			return
+		}
+		got := flatten(r)
+		want := "7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.8"
-		_res = db.Exec("SELECT instr('abcdefg','h');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','h');")
+		r = db.Query("SELECT instr('abcdefg','h');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','h');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.9"
-		_res = db.Exec("SELECT instr('abcdefg','abcdefg');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','abcdefg');")
+		r = db.Query("SELECT instr('abcdefg','abcdefg');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','abcdefg');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.10"
-		_res = db.Exec("SELECT instr('abcdefg','abcdefgh');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','abcdefgh');")
+		r = db.Query("SELECT instr('abcdefg','abcdefgh');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','abcdefgh');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.11"
-		_res = db.Exec("SELECT instr('abcdefg','bcdefg');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','bcdefg');")
+		r = db.Query("SELECT instr('abcdefg','bcdefg');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','bcdefg');")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.12"
-		_res = db.Exec("SELECT instr('abcdefg','bcdefgh');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','bcdefgh');")
+		r = db.Query("SELECT instr('abcdefg','bcdefgh');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','bcdefgh');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.13"
-		_res = db.Exec("SELECT instr('abcdefg','cdefg');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','cdefg');")
+		r = db.Query("SELECT instr('abcdefg','cdefg');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','cdefg');")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.14"
-		_res = db.Exec("SELECT instr('abcdefg','cdefgh');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','cdefgh');")
+		r = db.Query("SELECT instr('abcdefg','cdefgh');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','cdefgh');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.15"
-		_res = db.Exec("SELECT instr('abcdefg','defg');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','defg');")
+		r = db.Query("SELECT instr('abcdefg','defg');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','defg');")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.16"
-		_res = db.Exec("SELECT instr('abcdefg','defgh');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','defgh');")
+		r = db.Query("SELECT instr('abcdefg','defgh');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','defgh');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.17"
-		_res = db.Exec("SELECT instr('abcdefg','efg');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','efg');")
+		r = db.Query("SELECT instr('abcdefg','efg');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','efg');")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.18"
-		_res = db.Exec("SELECT instr('abcdefg','efgh');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','efgh');")
+		r = db.Query("SELECT instr('abcdefg','efgh');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','efgh');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.19"
-		_res = db.Exec("SELECT instr('abcdefg','fg');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','fg');")
+		r = db.Query("SELECT instr('abcdefg','fg');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','fg');")
+			return
+		}
+		got := flatten(r)
+		want := "6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.20"
-		_res = db.Exec("SELECT instr('abcdefg','fgh');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','fgh');")
+		r = db.Query("SELECT instr('abcdefg','fgh');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','fgh');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.21"
-		_res = db.Exec("SELECT coalesce(instr('abcdefg',NULL),'nil');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT coalesce(instr('abcdefg',NULL),'nil');")
+		r = db.Query("SELECT coalesce(instr('abcdefg',NULL),'nil');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT coalesce(instr('abcdefg',NULL),'nil');")
+			return
+		}
+		got := flatten(r)
+		want := "nil"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.22"
-		_res = db.Exec("SELECT coalesce(instr(NULL,'x'),'nil');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT coalesce(instr(NULL,'x'),'nil');")
+		r = db.Query("SELECT coalesce(instr(NULL,'x'),'nil');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT coalesce(instr(NULL,'x'),'nil');")
+			return
+		}
+		got := flatten(r)
+		want := "nil"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.23"
-		_res = db.Exec("SELECT instr(12345,34);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(12345,34);")
+		r = db.Query("SELECT instr(12345,34);")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(12345,34);")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.24"
-		_res = db.Exec("SELECT instr(123456.78,34);")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(123456.78,34);")
+		r = db.Query("SELECT instr(123456.78,34);")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(123456.78,34);")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.25"
-		_res = db.Exec("SELECT instr(123456.78,x'3334');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(123456.78,x'3334');")
+		r = db.Query("SELECT instr(123456.78,x'3334');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(123456.78,x'3334');")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.26"
-		_res = db.Exec("SELECT instr('äbcdefg','efg');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('äbcdefg','efg');")
+		r = db.Query("SELECT instr('äbcdefg','efg');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('äbcdefg','efg');")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.27"
-		_res = db.Exec("SELECT instr('€xyzzy','xyz');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('€xyzzy','xyz');")
+		r = db.Query("SELECT instr('€xyzzy','xyz');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('€xyzzy','xyz');")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.28"
-		_res = db.Exec("SELECT instr('abc€xyzzy','xyz');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abc€xyzzy','xyz');")
+		r = db.Query("SELECT instr('abc€xyzzy','xyz');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abc€xyzzy','xyz');")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.29"
-		_res = db.Exec("SELECT instr('abc€xyzzy','€xyz');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abc€xyzzy','€xyz');")
+		r = db.Query("SELECT instr('abc€xyzzy','€xyz');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abc€xyzzy','€xyz');")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.30"
-		_res = db.Exec("SELECT instr('abc€xyzzy','c€xyz');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abc€xyzzy','c€xyz');")
+		r = db.Query("SELECT instr('abc€xyzzy','c€xyz');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abc€xyzzy','c€xyz');")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.31"
-		_res = db.Exec("SELECT instr(x'0102030405',x'01');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'01');")
+		r = db.Query("SELECT instr(x'0102030405',x'01');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'01');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.32"
-		_res = db.Exec("SELECT instr(x'0102030405',x'02');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'02');")
+		r = db.Query("SELECT instr(x'0102030405',x'02');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'02');")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.33"
-		_res = db.Exec("SELECT instr(x'0102030405',x'03');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'03');")
+		r = db.Query("SELECT instr(x'0102030405',x'03');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'03');")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.34"
-		_res = db.Exec("SELECT instr(x'0102030405',x'04');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'04');")
+		r = db.Query("SELECT instr(x'0102030405',x'04');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'04');")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.35"
-		_res = db.Exec("SELECT instr(x'0102030405',x'05');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'05');")
+		r = db.Query("SELECT instr(x'0102030405',x'05');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'05');")
+			return
+		}
+		got := flatten(r)
+		want := "5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.36"
-		_res = db.Exec("SELECT instr(x'0102030405',x'06');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'06');")
+		r = db.Query("SELECT instr(x'0102030405',x'06');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'06');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.37"
-		_res = db.Exec("SELECT instr(x'0102030405',x'0102030405');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'0102030405');")
+		r = db.Query("SELECT instr(x'0102030405',x'0102030405');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'0102030405');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.38"
-		_res = db.Exec("SELECT instr(x'0102030405',x'02030405');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'02030405');")
+		r = db.Query("SELECT instr(x'0102030405',x'02030405');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'02030405');")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.39"
-		_res = db.Exec("SELECT instr(x'0102030405',x'030405');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'030405');")
+		r = db.Query("SELECT instr(x'0102030405',x'030405');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'030405');")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.40"
-		_res = db.Exec("SELECT instr(x'0102030405',x'0405');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'0405');")
+		r = db.Query("SELECT instr(x'0102030405',x'0405');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'0405');")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.41"
-		_res = db.Exec("SELECT instr(x'0102030405',x'0506');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'0506');")
+		r = db.Query("SELECT instr(x'0102030405',x'0506');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'0506');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.42"
-		_res = db.Exec("SELECT instr(x'0102030405',x'');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'0102030405',x'');")
+		r = db.Query("SELECT instr(x'0102030405',x'');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'0102030405',x'');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.43"
-		_res = db.Exec("SELECT instr(x'',x'');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'',x'');")
+		r = db.Query("SELECT instr(x'',x'');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'',x'');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.44"
-		_res = db.Exec("SELECT instr('','');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('','');")
+		r = db.Query("SELECT instr('','');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('','');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.45"
-		_res = db.Exec("SELECT instr('abcdefg','');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','');")
+		r = db.Query("SELECT instr('abcdefg','');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('abcdefg','');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	longstr = "abcdefghijklmonpqrstuvwxyz"
@@ -338,107 +608,209 @@ func Test_instr(t *testing.T) {
 	longstr += longstr
 	longstr += "Xabcde"
 	{ // do_test "instr-1.46"
-		_res = db.Exec("SELECT instr(" + longstr + ",'X');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'X');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'X');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'X');")
+			return
+		}
+		got := flatten(r)
+		want := "106497"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.47"
-		_res = db.Exec("SELECT instr(" + longstr + ",'Y');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'Y');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'Y');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'Y');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.48"
-		_res = db.Exec("SELECT instr(" + longstr + ",'Xa');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'Xa');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'Xa');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'Xa');")
+			return
+		}
+		got := flatten(r)
+		want := "106497"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.49"
-		_res = db.Exec("SELECT instr(" + longstr + ",'zXa');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'zXa');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'zXa');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'zXa');")
+			return
+		}
+		got := flatten(r)
+		want := "106496"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	longstr = strings.ReplaceAll(longstr, "a", "ä")
 	_ = longstr // suppress unused warning
 	{ // do_test "instr-1.50"
-		_res = db.Exec("SELECT instr(" + longstr + ",'X');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'X');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'X');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'X');")
+			return
+		}
+		got := flatten(r)
+		want := "106497"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.51"
-		_res = db.Exec("SELECT instr(" + longstr + ",'Y');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'Y');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'Y');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'Y');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.52"
-		_res = db.Exec("SELECT instr(" + longstr + ",'XÃ¤');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'XÃ¤');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'XÃ¤');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'XÃ¤');")
+			return
+		}
+		got := flatten(r)
+		want := "106497"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.53"
-		_res = db.Exec("SELECT instr(" + longstr + ",'zXÃ¤');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(" + longstr + ",'zXÃ¤');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'zXÃ¤');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'zXÃ¤');")
+			return
+		}
+		got := flatten(r)
+		want := "106496"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.54"
-		_res = db.Exec("SELECT instr(x'78c3a4e282ac79','x');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'78c3a4e282ac79','x');")
+		r = db.Query("SELECT instr(x'78c3a4e282ac79','x');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'78c3a4e282ac79','x');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.55"
-		_res = db.Exec("SELECT instr(x'78c3a4e282ac79','y');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'78c3a4e282ac79','y');")
+		r = db.Query("SELECT instr(x'78c3a4e282ac79','y');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'78c3a4e282ac79','y');")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.56.1"
-		_res = db.Exec("SELECT instr(x'78c3a4e282ac79',x'79');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'78c3a4e282ac79',x'79');")
+		r = db.Query("SELECT instr(x'78c3a4e282ac79',x'79');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'78c3a4e282ac79',x'79');")
+			return
+		}
+		got := flatten(r)
+		want := "7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.56.2"
-		_res = db.Exec("SELECT instr(x'78c3a4e282ac79',x'7a');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'78c3a4e282ac79',x'7a');")
+		r = db.Query("SELECT instr(x'78c3a4e282ac79',x'7a');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'78c3a4e282ac79',x'7a');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.56.3"
-		_res = db.Exec("SELECT instr(x'78c3a4e282ac79',x'78');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'78c3a4e282ac79',x'78');")
+		r = db.Query("SELECT instr(x'78c3a4e282ac79',x'78');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'78c3a4e282ac79',x'78');")
+			return
+		}
+		got := flatten(r)
+		want := "1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.56.3"
-		_res = db.Exec("SELECT instr(x'78c3a4e282ac79',x'a4');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'78c3a4e282ac79',x'a4');")
+		r = db.Query("SELECT instr(x'78c3a4e282ac79',x'a4');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'78c3a4e282ac79',x'a4');")
+			return
+		}
+		got := flatten(r)
+		want := "3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.57.1"
-		_res = db.Exec("SELECT instr('xä€y',x'79');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('xä€y',x'79');")
+		r = db.Query("SELECT instr('xä€y',x'79');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('xä€y',x'79');")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.57.2"
-		_res = db.Exec("SELECT instr('xä€y',x'a4');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('xä€y',x'a4');")
+		r = db.Query("SELECT instr('xä€y',x'a4');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr('xä€y',x'a4');")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "instr-1.57.3"
-		_res = db.Exec("SELECT instr(x'78c3a4e282ac79','y');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr(x'78c3a4e282ac79','y');")
+		r = db.Query("SELECT instr(x'78c3a4e282ac79','y');")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(x'78c3a4e282ac79','y');")
+			return
+		}
+		got := flatten(r)
+		want := "4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "instr-1.60"

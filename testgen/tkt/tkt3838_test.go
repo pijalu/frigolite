@@ -53,9 +53,15 @@ func Test_tkt3838(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// do_realnum_test tkt3838-1.1 {\n  db eval {\n    PRAGMA encoding=UTF16;\n    CRE...} {2 999 9e+99 xyzzy} (expr test, not transpiled)
 	{ // do_test "tkt3838-1.2"
-		_res = db.Exec("\n      CREATE TABLE log(y);\n      CREATE TRIGGER r1 AFTER INSERT ON T1 BEGIN\n        INSERT INTO log VALUES(new.x);\n      END;\n      INSERT INTO t1(x) VALUES(123);\n      ALTER TABLE T1 RENAME TO XYZ2;\n      INSERT INTO xyz2(x) VALUES(456);\n      ALTER TABLE xyz2 RENAME TO pqr3;\n      INSERT INTO pqr3(x) VALUES(789);\n      SELECT * FROM log;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE log(y);\n      CREATE TRIGGER r1 AFTER INSERT ON T1 BEGIN\n        INSERT INTO log VALUES(new.x);\n      END;\n      INSERT INTO t1(x) VALUES(123);\n      ALTER TABLE T1 RENAME TO XYZ2;\n      INSERT INTO xyz2(x) VALUES(456);\n      ALTER TABLE xyz2 RENAME TO pqr3;\n      INSERT INTO pqr3(x) VALUES(789);\n      SELECT * FROM log;\n    ")
+		r = db.Query("\n      CREATE TABLE log(y);\n      CREATE TRIGGER r1 AFTER INSERT ON T1 BEGIN\n        INSERT INTO log VALUES(new.x);\n      END;\n      INSERT INTO t1(x) VALUES(123);\n      ALTER TABLE T1 RENAME TO XYZ2;\n      INSERT INTO xyz2(x) VALUES(456);\n      ALTER TABLE xyz2 RENAME TO pqr3;\n      INSERT INTO pqr3(x) VALUES(789);\n      SELECT * FROM log;\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE log(y);\n      CREATE TRIGGER r1 AFTER INSERT ON T1 BEGIN\n        INSERT INTO log VALUES(new.x);\n      END;\n      INSERT INTO t1(x) VALUES(123);\n      ALTER TABLE T1 RENAME TO XYZ2;\n      INSERT INTO xyz2(x) VALUES(456);\n      ALTER TABLE xyz2 RENAME TO pqr3;\n      INSERT INTO pqr3(x) VALUES(789);\n      SELECT * FROM log;\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "123 456 789"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

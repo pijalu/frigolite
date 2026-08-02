@@ -82,9 +82,9 @@ func Test_spellfix(t *testing.T) {
 		}
 		for _, word := range tclSplitList(vocab) {
 		_ = word // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1(word) VALUES(" + word + ") ")
+			_res = db.Exec(" INSERT INTO t1(word) VALUES(" + sqlLiteral(word) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(word) VALUES(" + word + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(word) VALUES(" + sqlLiteral(word) + ") ")
 			}
 		}
 	}
@@ -99,9 +99,9 @@ func Test_spellfix(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // "1.2." + tn
-				r = db.Query("\n    SELECT word, matchlen FROM t1 WHERE word MATCH $word \n     ORDER BY score, word LIMIT 5\n  ")
+				r = db.Query("\n    SELECT word, matchlen FROM t1 WHERE word MATCH " + sqlLiteral(word) + " \n     ORDER BY score, word LIMIT 5\n  ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, matchlen FROM t1 WHERE word MATCH $word \n     ORDER BY score, word LIMIT 5\n  ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, matchlen FROM t1 WHERE word MATCH " + sqlLiteral(word) + " \n     ORDER BY score, word LIMIT 5\n  ")
 					return
 				}
 				got := flatten(r)
@@ -292,9 +292,9 @@ func Test_spellfix(t *testing.T) {
 		{ // do_test "3.2"
 			for _, w := range tclSplitList(vocab) {
 			_ = w // suppress unused warning
-				_res = db.Exec(" INSERT INTO t3(word) VALUES(" + w + ") ")
+				_res = db.Exec(" INSERT INTO t3(word) VALUES(" + sqlLiteral(w) + ") ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(word) VALUES(" + w + ") ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(word) VALUES(" + sqlLiteral(w) + ") ")
 				}
 			}
 		}
@@ -309,9 +309,9 @@ func Test_spellfix(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _idx1
 				{ // "3.2." + tn
-					r = db.Query("\n    SELECT word, matchlen FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+					r = db.Query("\n    SELECT word, matchlen FROM t3 WHERE word MATCH " + sqlLiteral(word) + "\n     ORDER BY score, word LIMIT 5\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, matchlen FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, matchlen FROM t3 WHERE word MATCH " + sqlLiteral(word) + "\n     ORDER BY score, word LIMIT 5\n  ")
 						return
 					}
 					got := flatten(r)
@@ -338,9 +338,9 @@ func Test_spellfix(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _idx2
 					{ // "4.1." + tn
-						r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+						r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH " + sqlLiteral(word) + "\n     ORDER BY score, word LIMIT 5\n  ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t3 WHERE word MATCH " + sqlLiteral(word) + "\n     ORDER BY score, word LIMIT 5\n  ")
 							return
 						}
 						got := flatten(r)
@@ -367,9 +367,9 @@ func Test_spellfix(t *testing.T) {
 					_ = res // suppress unused warning
 					_ = _idx3
 						{ // "5.1." + tn
-							r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 1\n  ")
+							r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH " + sqlLiteral(word) + "\n     ORDER BY score, word LIMIT 1\n  ")
 							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 1\n  ")
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t3 WHERE word MATCH " + sqlLiteral(word) + "\n     ORDER BY score, word LIMIT 1\n  ")
 								return
 							}
 							got := flatten(r)

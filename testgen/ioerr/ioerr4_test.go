@@ -74,27 +74,51 @@ func Test_ioerr4(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "ioerr4-1.3"
-		_res = db.Exec("\n    PRAGMA auto_vacuum;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum;\n  ")
+		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ioerr4-1.4"
-		_res = db.Exec("\n    INSERT INTO a VALUES(1, zeroblob(2000));\n    INSERT INTO a VALUES(2, zeroblob(2000));\n    INSERT INTO a SELECT i+2, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+4, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+8, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+16, zeroblob(2000) FROM a;\n    SELECT count(*) FROM a;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO a VALUES(1, zeroblob(2000));\n    INSERT INTO a VALUES(2, zeroblob(2000));\n    INSERT INTO a SELECT i+2, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+4, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+8, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+16, zeroblob(2000) FROM a;\n    SELECT count(*) FROM a;\n  ")
+		r = db.Query("\n    INSERT INTO a VALUES(1, zeroblob(2000));\n    INSERT INTO a VALUES(2, zeroblob(2000));\n    INSERT INTO a SELECT i+2, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+4, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+8, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+16, zeroblob(2000) FROM a;\n    SELECT count(*) FROM a;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO a VALUES(1, zeroblob(2000));\n    INSERT INTO a VALUES(2, zeroblob(2000));\n    INSERT INTO a SELECT i+2, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+4, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+8, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+16, zeroblob(2000) FROM a;\n    SELECT count(*) FROM a;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "32"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ioerr4-1.5"
-		_res = db.Exec("\n    PRAGMA freelist_count\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA freelist_count\n  ")
+		r = db.Query("\n    PRAGMA freelist_count\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA freelist_count\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "ioerr4-1.6"
-		_res = db.Exec("\n    DELETE FROM a;\n    PRAGMA freelist_count;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM a;\n    PRAGMA freelist_count;\n  ")
+		r = db.Query("\n    DELETE FROM a;\n    PRAGMA freelist_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM a;\n    PRAGMA freelist_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "64"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db2.Close()

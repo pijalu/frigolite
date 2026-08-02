@@ -143,9 +143,15 @@ func Test_where(t *testing.T) {
 	{ // do_test "where-1.1.3"
 	}
 	{ // do_test "where-1.1.4"
-		_res = db.Exec("SELECT x, y, w FROM t1 WHERE +w=10")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, y, w FROM t1 WHERE +w=10")
+		r = db.Query("SELECT x, y, w FROM t1 WHERE +w=10")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT x, y, w FROM t1 WHERE +w=10")
+			return
+		}
+		got := flatten(r)
+		want := "3 121 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-1.1.5"
@@ -483,27 +489,51 @@ func Test_where(t *testing.T) {
 		_ = db.Exec("\n      SELECT * FROM t1 WHERE x IN (1,7) AND y IN (9,16) ORDER BY 1;\n    ") // count (search count always 0)
 	}
 	{ // do_test "where-5.100"
-		_res = db.Exec("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y\n    ")
+		r = db.Query("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1 9 54 5 3025 62 5 3969"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-5.101"
-		_res = db.Exec("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y DESC\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y DESC\n    ")
+		r = db.Query("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y DESC\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y DESC\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "62 5 3969 54 5 3025 2 1 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-5.102"
-		_res = db.Exec("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y\n    ")
+		r = db.Query("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "54 5 3025 62 5 3969 2 1 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "where-5.103"
-		_res = db.Exec("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y DESC\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y DESC\n    ")
+		r = db.Query("\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y DESC\n    ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y DESC\n    ")
+			return
+		}
+		got := flatten(r)
+		want := "2 1 9 62 5 3969 54 5 3025"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)
@@ -1220,9 +1250,9 @@ func Test_where(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.0"
-			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
+			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
 		_dbtmp1, err := frigolite.Open("test.db")
@@ -1244,9 +1274,9 @@ func Test_where(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.3"
-			_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
+			r = db.Query("\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
 		_dbtmp2, err := frigolite.Open("test.db")

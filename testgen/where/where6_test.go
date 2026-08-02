@@ -154,9 +154,15 @@ func Test_where6(t *testing.T) {
 		}
 	}
 	{ // do_test "where6-3.1"
-		_res = db.Exec("\n    CREATE TABLE t4(x UNIQUE);\n    INSERT INTO t4 VALUES('abc');\n    INSERT INTO t4 VALUES('def');\n    INSERT INTO t4 VALUES('ghi');\n    CREATE TABLE t5(a, b, c, PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES('abc','def',123);\n    INSERT INTO t5 VALUES('def','ghi',456);\n\n    SELECT t4a.x, t4b.x, t5.c, t6.v\n      FROM t4 AS t4a\n           INNER JOIN t4 AS t4b\n           LEFT JOIN t5 ON t5.a=t4a.x AND t5.b=t4b.x\n           LEFT JOIN (SELECT 1 AS v) AS t6 ON t4a.x=t4b.x\n     ORDER BY 1, 2, 3;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(x UNIQUE);\n    INSERT INTO t4 VALUES('abc');\n    INSERT INTO t4 VALUES('def');\n    INSERT INTO t4 VALUES('ghi');\n    CREATE TABLE t5(a, b, c, PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES('abc','def',123);\n    INSERT INTO t5 VALUES('def','ghi',456);\n\n    SELECT t4a.x, t4b.x, t5.c, t6.v\n      FROM t4 AS t4a\n           INNER JOIN t4 AS t4b\n           LEFT JOIN t5 ON t5.a=t4a.x AND t5.b=t4b.x\n           LEFT JOIN (SELECT 1 AS v) AS t6 ON t4a.x=t4b.x\n     ORDER BY 1, 2, 3;\n  ")
+		r = db.Query("\n    CREATE TABLE t4(x UNIQUE);\n    INSERT INTO t4 VALUES('abc');\n    INSERT INTO t4 VALUES('def');\n    INSERT INTO t4 VALUES('ghi');\n    CREATE TABLE t5(a, b, c, PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES('abc','def',123);\n    INSERT INTO t5 VALUES('def','ghi',456);\n\n    SELECT t4a.x, t4b.x, t5.c, t6.v\n      FROM t4 AS t4a\n           INNER JOIN t4 AS t4b\n           LEFT JOIN t5 ON t5.a=t4a.x AND t5.b=t4b.x\n           LEFT JOIN (SELECT 1 AS v) AS t6 ON t4a.x=t4b.x\n     ORDER BY 1, 2, 3;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4(x UNIQUE);\n    INSERT INTO t4 VALUES('abc');\n    INSERT INTO t4 VALUES('def');\n    INSERT INTO t4 VALUES('ghi');\n    CREATE TABLE t5(a, b, c, PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES('abc','def',123);\n    INSERT INTO t5 VALUES('def','ghi',456);\n\n    SELECT t4a.x, t4b.x, t5.c, t6.v\n      FROM t4 AS t4a\n           INNER JOIN t4 AS t4b\n           LEFT JOIN t5 ON t5.a=t4a.x AND t5.b=t4b.x\n           LEFT JOIN (SELECT 1 AS v) AS t6 ON t4a.x=t4b.x\n     ORDER BY 1, 2, 3;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "abc abc {} 1 abc def 123 {} abc ghi {} {} def abc {} {} def def {} 1 def ghi 456 {} ghi abc {} {} ghi def {} {} ghi ghi {} 1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

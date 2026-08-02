@@ -111,9 +111,9 @@ func Test_walslow(t *testing.T) {
 				_ = w // suppress unused warning
 				x = "0"
 				_ = x // suppress unused warning
-				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(" + w + "), randomblob(" + x + ")) ")
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(" + sqlLiteral(w) + "), randomblob(" + sqlLiteral(x) + ")) ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(" + w + "), randomblob(" + x + ")) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(" + sqlLiteral(w) + "), randomblob(" + sqlLiteral(x) + ")) ")
 				}
 				r = db.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
@@ -232,9 +232,15 @@ func Test_walslow(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
-		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO \"t1\" VALUES('A',0);\n  CREATE TABLE t2(x, y);\n  INSERT INTO \"t2\" VALUES('B',2);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO \"t1\" VALUES('A',0);\n  CREATE TABLE t2(x, y);\n  INSERT INTO \"t2\" VALUES('B',2);\n")
+		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO \"t1\" VALUES('A',0);\n  CREATE TABLE t2(x, y);\n  INSERT INTO \"t2\" VALUES('B',2);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO \"t1\" VALUES('A',0);\n  CREATE TABLE t2(x, y);\n  INSERT INTO \"t2\" VALUES('B',2);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "4.1.1"

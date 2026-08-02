@@ -354,9 +354,9 @@ func Test_fts3misc(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t6 USING fts4;\n\n  BEGIN;\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t6 USING fts4;\n\n  BEGIN;\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n  COMMIT;\n")
+		r = db.Query("\n  CREATE VIRTUAL TABLE t6 USING fts4;\n\n  BEGIN;\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t6 USING fts4;\n\n  BEGIN;\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n  COMMIT;\n")
 		}
 	}
 	{ // "6.1"

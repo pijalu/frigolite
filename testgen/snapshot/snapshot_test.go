@@ -509,9 +509,15 @@ func Test_snapshot(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // tn + ".7.1"
-				_res = db.Exec("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);\n  ")
+				r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test tn + ".7.1.2"

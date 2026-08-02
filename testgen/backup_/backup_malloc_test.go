@@ -61,9 +61,9 @@ func Test_backup_malloc(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
-		_res = db.Exec("\n  PRAGMA page_size = 16384;\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 16384;\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  COMMIT;\n")
+		r = db.Query("\n  PRAGMA page_size = 16384;\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  COMMIT;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 16384;\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  COMMIT;\n")
 		}
 	}
 	// do_faultsim_test 3 -faults oom* -prep {\n  catch { db close }\n  catch { db2 close }\n\n ...} -bo... (unsupported command, not transpiled)

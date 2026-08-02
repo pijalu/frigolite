@@ -556,9 +556,9 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // "3.0"
-		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b[1;31m123\\u001b[0mxyz'));\n")
+		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b" + sqlLiteral("1;31m123\\u001b[0mxyz'));"))
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b[1;31m123\\u001b[0mxyz'));\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b" + sqlLiteral("1;31m123\\u001b[0mxyz'));"))
 		}
 	}
 	{ // do_test "3.1"
@@ -613,9 +613,9 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // "5.0"
-		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":[15,null,1333206973,\"fd8ffe000104a46494600010101\"]}'));\n")
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":" + sqlLiteral("15,null,1333206973,\"fd8ffe000104a46494600010101\"") + "}'));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":[15,null,1333206973,\"fd8ffe000104a46494600010101\"]}'));\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":" + sqlLiteral("15,null,1333206973,\"fd8ffe000104a46494600010101\"") + "}'));\n")
 		}
 	}
 	{ // do_test "5.1"

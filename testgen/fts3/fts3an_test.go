@@ -72,9 +72,9 @@ func Test_fts3an(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	text = "\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n"
 	_ = text // suppress unused warning
-	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n\n  INSERT INTO t1(rowid, c) VALUES(1, " + text + ");\n  INSERT INTO t1(rowid, c) VALUES(2, 'Another lovely row');\n")
+	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n\n  INSERT INTO t1(rowid, c) VALUES(1, " + sqlLiteral(text) + ");\n  INSERT INTO t1(rowid, c) VALUES(2, 'Another lovely row');\n")
 	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n\n  INSERT INTO t1(rowid, c) VALUES(1, " + text + ");\n  INSERT INTO t1(rowid, c) VALUES(2, 'Another lovely row');\n")
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n\n  INSERT INTO t1(rowid, c) VALUES(1, " + sqlLiteral(text) + ");\n  INSERT INTO t1(rowid, c) VALUES(2, 'Another lovely row');\n")
 	}
 	{ // do_test "fts3an-1.1"
 		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'lorem'")
@@ -131,34 +131,34 @@ func Test_fts3an(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3an-1.10"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r*\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"lovely r*\\\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r*\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"lovely r*\\\"'")
 		}
 	}
 	{ // do_test "fts3an-1.11"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"lovely r\\\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"lovely r\\\"'")
 		}
 	}
 	{ // do_test "fts3an-1.12"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l*\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"a* l*\\\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l*\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"a* l*\\\"'")
 		}
 	}
 	{ // do_test "fts3an-1.13"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l* row\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"a* l* row\\\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l* row\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"a* l* row\\\"'")
 		}
 	}
 	ntext = tclRegsubAll("[Ll]orem", text, "''")
 	_ = ntext // suppress unused warning
-	_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts3(c);\n\n  INSERT INTO t2(rowid, c) VALUES(1, " + text + ");\n  INSERT INTO t2(rowid, c) VALUES(2, 'Another lovely row');\n  UPDATE t2 SET c = " + ntext + " WHERE rowid = 1;\n")
+	_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts3(c);\n\n  INSERT INTO t2(rowid, c) VALUES(1, " + sqlLiteral(text) + ");\n  INSERT INTO t2(rowid, c) VALUES(2, 'Another lovely row');\n  UPDATE t2 SET c = " + sqlLiteral(ntext) + " WHERE rowid = 1;\n")
 	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts3(c);\n\n  INSERT INTO t2(rowid, c) VALUES(1, " + text + ");\n  INSERT INTO t2(rowid, c) VALUES(2, 'Another lovely row');\n  UPDATE t2 SET c = " + ntext + " WHERE rowid = 1;\n")
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts3(c);\n\n  INSERT INTO t2(rowid, c) VALUES(1, " + sqlLiteral(text) + ");\n  INSERT INTO t2(rowid, c) VALUES(2, 'Another lovely row');\n  UPDATE t2 SET c = " + sqlLiteral(ntext) + " WHERE rowid = 1;\n")
 	}
 	{ // do_test "fts3an-2.1"
 		r = db.Query("SELECT rowid FROM t2 WHERE t2 MATCH 'lorem'")
@@ -200,16 +200,16 @@ func Test_fts3an(t *testing.T) {
 	}
 	ret = "6 1"
 	_ = ret // suppress unused warning
-	_res = db.Exec("\n  BEGIN;\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n\n  INSERT INTO t3(rowid, c) VALUES(1, " + text + ");\n  INSERT INTO t3(rowid, c) VALUES(2, 'Another lovely row');\n")
+	_res = db.Exec("\n  BEGIN;\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n\n  INSERT INTO t3(rowid, c) VALUES(1, " + sqlLiteral(text) + ");\n  INSERT INTO t3(rowid, c) VALUES(2, 'Another lovely row');\n")
 	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n\n  INSERT INTO t3(rowid, c) VALUES(1, " + text + ");\n  INSERT INTO t3(rowid, c) VALUES(2, 'Another lovely row');\n")
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n\n  INSERT INTO t3(rowid, c) VALUES(1, " + sqlLiteral(text) + ");\n  INSERT INTO t3(rowid, c) VALUES(2, 'Another lovely row');\n")
 	}
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 68 }() {
-		_res = db.Exec("INSERT INTO t3(rowid, c) VALUES(3+" + i + ", " + bigtext + ")")
+		_res = db.Exec("INSERT INTO t3(rowid, c) VALUES(3+" + sqlLiteral(i) + ", " + sqlLiteral(bigtext) + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3(rowid, c) VALUES(3+" + i + ", " + bigtext + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3(rowid, c) VALUES(3+" + sqlLiteral(i) + ", " + sqlLiteral(bigtext) + ")")
 		}
 		ret = tclListAppend(ret, "192")
 		// incr i 1

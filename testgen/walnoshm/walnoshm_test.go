@@ -158,9 +158,15 @@ func Test_walnoshm(t *testing.T) {
 		}
 	}
 	{ // "2.1.2"
-		_res = db.Exec("\n  PRAGMA locking_mode = exclusive;\n  PRAGMA journal_mode = WAL;\n  INSERT INTO t2 VALUES('e', 'f');\n  INSERT INTO t2 VALUES('g', 'h');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA locking_mode = exclusive;\n  PRAGMA journal_mode = WAL;\n  INSERT INTO t2 VALUES('e', 'f');\n  INSERT INTO t2 VALUES('g', 'h');\n")
+		r = db.Query("\n  PRAGMA locking_mode = exclusive;\n  PRAGMA journal_mode = WAL;\n  INSERT INTO t2 VALUES('e', 'f');\n  INSERT INTO t2 VALUES('g', 'h');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA locking_mode = exclusive;\n  PRAGMA journal_mode = WAL;\n  INSERT INTO t2 VALUES('e', 'f');\n  INSERT INTO t2 VALUES('g', 'h');\n")
+			return
+		}
+		got := flatten(r)
+		want := "exclusive wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.1.3"

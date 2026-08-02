@@ -59,26 +59,32 @@ func Test_memjournal2(t *testing.T) {
 	testprefix = "memjournal2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
-		_res = db.Exec("\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n")
+		r = db.Query("\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n")
+			return
+		}
+		got := flatten(r)
+		want := "memory"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	nRow = "2000"
 	_ = nRow // suppress unused warning
 	{ // "1.1"
-		r = db.Query("\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
+		r = db.Query("\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<" + sqlLiteral(nRow) + "\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
 		}
 	}
 	jj = "200"
 	_ = jj // suppress unused warning
 	for func() bool { jj_n, _jj_e := strconv.Atoi(jj); if _jj_e != nil { return false }; return jj_n <= 300 }() {
 		{ // "1.2." + jj + ".1"
-			_res = db.Exec("\n    SAVEPOINT one; \n      UPDATE t1 SET b=randomblob(700) WHERE a<=$jj;\n  ")
+			_res = db.Exec("\n    SAVEPOINT one; \n      UPDATE t1 SET b=randomblob(700) WHERE a<=" + sqlLiteral(jj) + ";\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one; \n      UPDATE t1 SET b=randomblob(700) WHERE a<=$jj;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one; \n      UPDATE t1 SET b=randomblob(700) WHERE a<=" + sqlLiteral(jj) + ";\n  ")
 			}
 		}
 		{ // "1.2." + jj + ".2"
@@ -94,9 +100,15 @@ func Test_memjournal2(t *testing.T) {
 			}
 		}
 		{ // "1.2." + jj + ".4"
-			_res = db.Exec("\n    PRAGMA integrity_check;\n    ROLLBACK TO one;\n    RELEASE one;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA integrity_check;\n    ROLLBACK TO one;\n    RELEASE one;\n  ")
+			r = db.Query("\n    PRAGMA integrity_check;\n    ROLLBACK TO one;\n    RELEASE one;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n    ROLLBACK TO one;\n    RELEASE one;\n  ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// incr jj 1

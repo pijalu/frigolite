@@ -62,9 +62,15 @@ func Test_wal64k(t *testing.T) {
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
-		_res = db.Exec(" \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n")
+		r = db.Query(" \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n")
+			return
+		}
+		got := flatten(r)
+		want := "wal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.1"

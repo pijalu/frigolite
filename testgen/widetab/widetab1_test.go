@@ -135,27 +135,51 @@ func Test_widetab1(t *testing.T) {
 		}
 	}
 	{ // "310"
-		_res = db.Exec("\n  SELECT sum(c65) FROM t1;\n  UPDATE t1 SET c65=c65+1 WHERE c00=1000;\n  SELECT sum(c65) FROM t1;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT sum(c65) FROM t1;\n  UPDATE t1 SET c65=c65+1 WHERE c00=1000;\n  SELECT sum(c65) FROM t1;\n  ROLLBACK;\n")
+		r = db.Query("\n  SELECT sum(c65) FROM t1;\n  UPDATE t1 SET c65=c65+1 WHERE c00=1000;\n  SELECT sum(c65) FROM t1;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(c65) FROM t1;\n  UPDATE t1 SET c65=c65+1 WHERE c00=1000;\n  SELECT sum(c65) FROM t1;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "45650 45651"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "320"
-		_res = db.Exec("\n  BEGIN;\n  SELECT count(*) FROM t1;\n  DELETE FROM t1 WHERE c=3102;\n  SELECT COUNT(*) FROM t1;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  SELECT count(*) FROM t1;\n  DELETE FROM t1 WHERE c=3102;\n  SELECT COUNT(*) FROM t1;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  SELECT count(*) FROM t1;\n  DELETE FROM t1 WHERE c=3102;\n  SELECT COUNT(*) FROM t1;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  SELECT count(*) FROM t1;\n  DELETE FROM t1 WHERE c=3102;\n  SELECT COUNT(*) FROM t1;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "10 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "330"
-		_res = db.Exec("\n  BEGIN;\n  SELECT count(*) FROM t1;\n  DELETE FROM t1 WHERE c=3102 AND d=3103;\n  SELECT COUNT(*) FROM t1;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  SELECT count(*) FROM t1;\n  DELETE FROM t1 WHERE c=3102 AND d=3103;\n  SELECT COUNT(*) FROM t1;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  SELECT count(*) FROM t1;\n  DELETE FROM t1 WHERE c=3102 AND d=3103;\n  SELECT COUNT(*) FROM t1;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  SELECT count(*) FROM t1;\n  DELETE FROM t1 WHERE c=3102 AND d=3103;\n  SELECT COUNT(*) FROM t1;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "10 9"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "340"
-		_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1 WHERE (c,d) IN (VALUES(3102,3103),(4102,4103),(5102,5103),(1,2));\n  SELECT count(*) FROM t1;\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  DELETE FROM t1 WHERE (c,d) IN (VALUES(3102,3103),(4102,4103),(5102,5103),(1,2));\n  SELECT count(*) FROM t1;\n  ROLLBACK;\n")
+		r = db.Query("\n  BEGIN;\n  DELETE FROM t1 WHERE (c,d) IN (VALUES(3102,3103),(4102,4103),(5102,5103),(1,2));\n  SELECT count(*) FROM t1;\n  ROLLBACK;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  DELETE FROM t1 WHERE (c,d) IN (VALUES(3102,3103),(4102,4103),(5102,5103),(1,2));\n  SELECT count(*) FROM t1;\n  ROLLBACK;\n")
+			return
+		}
+		got := flatten(r)
+		want := "7"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "400"

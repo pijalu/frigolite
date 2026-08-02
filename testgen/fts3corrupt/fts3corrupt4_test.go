@@ -115,9 +115,9 @@ func Test_fts3corrupt4(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 12 }() {
-			_res = db.Exec("\n      BEGIN;\n        INSERT INTO ft VALUES('abc' || " + i + ");\n        INSERT INTO ft VALUES('abc' || " + i + " || 'x' );\n        INSERT INTO ft VALUES('abc' || " + i + " || 'xx' );\n      COMMIT\n    ")
+			_res = db.Exec("\n      BEGIN;\n        INSERT INTO ft VALUES('abc' || " + sqlLiteral(i) + ");\n        INSERT INTO ft VALUES('abc' || " + sqlLiteral(i) + " || 'x' );\n        INSERT INTO ft VALUES('abc' || " + sqlLiteral(i) + " || 'xx' );\n      COMMIT\n    ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO ft VALUES('abc' || " + i + ");\n        INSERT INTO ft VALUES('abc' || " + i + " || 'x' );\n        INSERT INTO ft VALUES('abc' || " + i + " || 'xx' );\n      COMMIT\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO ft VALUES('abc' || " + sqlLiteral(i) + ");\n        INSERT INTO ft VALUES('abc' || " + sqlLiteral(i) + " || 'x' );\n        INSERT INTO ft VALUES('abc' || " + sqlLiteral(i) + " || 'xx' );\n      COMMIT\n    ")
 			}
 			// incr i 1
 			{
@@ -210,9 +210,9 @@ func Test_fts3corrupt4(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			_res = db.Exec(" INSERT INTO ft VALUES('abc' || " + i + ") ")
+			_res = db.Exec(" INSERT INTO ft VALUES('abc' || " + sqlLiteral(i) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES('abc' || " + i + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES('abc' || " + sqlLiteral(i) + ") ")
 			}
 			// incr i 1
 			{
@@ -703,9 +703,9 @@ func Test_fts3corrupt4(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "10.1"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;\n")
+		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('" + sqlLiteral("%,d") + "',x*-5844627) FROM c;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('" + sqlLiteral("%,d") + "',x*-5844627) FROM c;\n")
 		}
 	}
 	{ // "10.3"

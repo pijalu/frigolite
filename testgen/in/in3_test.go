@@ -152,9 +152,9 @@ func Test_in3(t *testing.T) {
 		}
 		maxy = tclExecSQL(db, "{select max(y) from t1}")
 		_ = maxy // suppress unused warning
-		_res = db.Exec(" INSERT INTO t2 SELECT 101-w, x, " + maxy + "+1-y, y FROM t1 ")
+		_res = db.Exec(" INSERT INTO t2 SELECT 101-w, x, " + sqlLiteral(maxy) + "+1-y, y FROM t1 ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 SELECT 101-w, x, " + maxy + "+1-y, y FROM t1 ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 SELECT 101-w, x, " + sqlLiteral(maxy) + "+1-y, y FROM t1 ")
 		}
 	}
 	{ // do_test "in3-2.2"

@@ -103,9 +103,9 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20 }() {
-			_res = db.Exec(" INSERT INTO a VALUES(" + ii + ", randstr(800,1500)); ")
+			_res = db.Exec(" INSERT INTO a VALUES(" + sqlLiteral(ii) + ", randstr(800,1500)); ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO a VALUES(" + ii + ", randstr(800,1500)); ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO a VALUES(" + sqlLiteral(ii) + ", randstr(800,1500)); ")
 			}
 			// incr ii 1
 			{

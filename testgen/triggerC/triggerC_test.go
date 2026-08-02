@@ -241,9 +241,9 @@ func Test_triggerC(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "triggerC-3.2.2"
-			_res = db.Exec("SELECT * FROM t3b")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t3b")
+			r = db.Query("SELECT * FROM t3b")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3b")
 			}
 		}
 		{ // do_test "triggerC-3.3.1"
@@ -251,9 +251,15 @@ func Test_triggerC(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "triggerC-3.3.2"
-			_res = db.Exec("SELECT count(*), max(x), min(x) FROM t3b")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+			r = db.Query("SELECT count(*), max(x), min(x) FROM t3b")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+				return
+			}
+			got := flatten(r)
+			want := "list $SQLITE_MAX_TRIGGER_DEPTH [expr $SQLITE_MAX_TRIGGER_DEPTH * 2] [expr $SQLITE_MAX_TRIGGER_DEPTH + 1]"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "triggerC-3.4.1"
@@ -261,9 +267,15 @@ func Test_triggerC(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "triggerC-3.4.2"
-			_res = db.Exec("SELECT count(*), max(x), min(x) FROM t3b")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+			r = db.Query("SELECT count(*), max(x), min(x) FROM t3b")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+				return
+			}
+			got := flatten(r)
+			want := "0 {} {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "triggerC-3.5.1"
@@ -272,9 +284,15 @@ func Test_triggerC(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "triggerC-3.5.2"
-			_res = db.Exec("SELECT count(*), max(x), min(x) FROM t3b")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+			r = db.Query("SELECT count(*), max(x), min(x) FROM t3b")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+				return
+			}
+			got := flatten(r)
+			want := "list [expr $SQLITE_MAX_TRIGGER_DEPTH / 10] [expr $SQLITE_MAX_TRIGGER_DEPTH * 2] [expr ($SQLITE_MAX_TRIGGER_DEPTH * 2) - ($SQLITE_MAX_TRIGGER_DEPTH / 10) + 1]"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "triggerC-3.5.3"
@@ -282,9 +300,15 @@ func Test_triggerC(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "triggerC-3.5.4"
-			_res = db.Exec("SELECT count(*), max(x), min(x) FROM t3b")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+			r = db.Query("SELECT count(*), max(x), min(x) FROM t3b")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+				return
+			}
+			got := flatten(r)
+			want := "0 {} {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "triggerC-3.6.1"
@@ -293,9 +317,15 @@ func Test_triggerC(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "triggerC-3.6.2"
-			_res = db.Exec("SELECT count(*), max(x), min(x) FROM t3b")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+			r = db.Query("SELECT count(*), max(x), min(x) FROM t3b")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+				return
+			}
+			got := flatten(r)
+			want := "list 1 [expr $SQLITE_MAX_TRIGGER_DEPTH * 2] [expr $SQLITE_MAX_TRIGGER_DEPTH * 2]"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // do_test "triggerC-3.6.3"
@@ -303,9 +333,15 @@ func Test_triggerC(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "triggerC-3.6.4"
-			_res = db.Exec("SELECT count(*), max(x), min(x) FROM t3b")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+			r = db.Query("SELECT count(*), max(x), min(x) FROM t3b")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*), max(x), min(x) FROM t3b")
+				return
+			}
+			got := flatten(r)
+			want := "0 {} {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH $SQLITE_MAX_TRIGGER_DEPTH (unsupported command, not transpiled)
@@ -611,9 +647,9 @@ func Test_triggerC(t *testing.T) {
 								}
 							}
 							{ // "triggerC-13.1"
-								_res = db.Exec("\n  PRAGMA recursive_triggers = ON;\n  CREATE TABLE t12(a, b);\n  INSERT INTO t12 VALUES(1, 2);\n  CREATE TRIGGER tr12 AFTER UPDATE ON t12 BEGIN\n    UPDATE t12 SET a=new.a+1, b=new.b+1;\n  END;\n")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA recursive_triggers = ON;\n  CREATE TABLE t12(a, b);\n  INSERT INTO t12 VALUES(1, 2);\n  CREATE TRIGGER tr12 AFTER UPDATE ON t12 BEGIN\n    UPDATE t12 SET a=new.a+1, b=new.b+1;\n  END;\n")
+								r = db.Query("\n  PRAGMA recursive_triggers = ON;\n  CREATE TABLE t12(a, b);\n  INSERT INTO t12 VALUES(1, 2);\n  CREATE TRIGGER tr12 AFTER UPDATE ON t12 BEGIN\n    UPDATE t12 SET a=new.a+1, b=new.b+1;\n  END;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA recursive_triggers = ON;\n  CREATE TABLE t12(a, b);\n  INSERT INTO t12 VALUES(1, 2);\n  CREATE TRIGGER tr12 AFTER UPDATE ON t12 BEGIN\n    UPDATE t12 SET a=new.a+1, b=new.b+1;\n  END;\n")
 								}
 							}
 							{ // "triggerC-13.2"
@@ -629,8 +665,8 @@ func Test_triggerC(t *testing.T) {
 							if err != nil { t.Fatal(err) }
 							{ // "triggerC-14.1"
 								_res = db.Exec(SQL)
-								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3", _res.Error, SQL)
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL)
 								}
 							}
 							db.Close()
@@ -639,14 +675,14 @@ func Test_triggerC(t *testing.T) {
 							// optimization_control db factor-constants 0 (unsupported command, not transpiled)
 							{ // "triggerC-14.2"
 								_res = db.Exec(SQL)
-								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3") {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "2 3", _res.Error, SQL)
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL)
 								}
 							}
 							{ // "15.1.1"
-								_res = db.Exec("\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE node(\n      id int not null primary key, \n      pid int not null default 0 references node,\n      key varchar not null, \n      path varchar default '',\n      unique(pid, key)\n      );\n  CREATE TRIGGER node_delete_referencing AFTER DELETE ON \"node\"\n    BEGIN\n    DELETE FROM \"node\" WHERE pid = old.\"id\";\n  END;\n")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE node(\n      id int not null primary key, \n      pid int not null default 0 references node,\n      key varchar not null, \n      path varchar default '',\n      unique(pid, key)\n      );\n  CREATE TRIGGER node_delete_referencing AFTER DELETE ON \"node\"\n    BEGIN\n    DELETE FROM \"node\" WHERE pid = old.\"id\";\n  END;\n")
+								r = db.Query("\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE node(\n      id int not null primary key, \n      pid int not null default 0 references node,\n      key varchar not null, \n      path varchar default '',\n      unique(pid, key)\n      );\n  CREATE TRIGGER node_delete_referencing AFTER DELETE ON \"node\"\n    BEGIN\n    DELETE FROM \"node\" WHERE pid = old.\"id\";\n  END;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE node(\n      id int not null primary key, \n      pid int not null default 0 references node,\n      key varchar not null, \n      path varchar default '',\n      unique(pid, key)\n      );\n  CREATE TRIGGER node_delete_referencing AFTER DELETE ON \"node\"\n    BEGIN\n    DELETE FROM \"node\" WHERE pid = old.\"id\";\n  END;\n")
 								}
 							}
 							{ // "15.1.2"

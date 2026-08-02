@@ -6,6 +6,7 @@ package subtype
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -173,27 +174,15 @@ func Test_subtype1(t *testing.T) {
 		}
 	}
 	{ // "subtype1-310"
-		r = db.Query("\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {\"1\"}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "\"1\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "\"1\"", _res.Error, "\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y);\n")
 		}
 	}
 	{ // "subtype1-320"
-		r = db.Query("\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y)\n   WHERE json_quote(y)='\"1\"';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y)\n   WHERE json_quote(y)='\"1\"';\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {\"1\"}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		_res = db.Exec("\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y)\n   WHERE json_quote(y)='\"1\"';\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "\"1\"") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "\"1\"", _res.Error, "\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y)\n   WHERE json_quote(y)='\"1\"';\n")
 		}
 	}
 	{ // "subtype1-400"

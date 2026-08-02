@@ -512,9 +512,9 @@ func Test_transitive1(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "1000"
-		_res = db.Exec("\n  PRAGMA automatic_index = 0;\n  \n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n\n  INSERT INTO t1 VALUES ('hello');\n  INSERT INTO t1 VALUES ('Hello');\n  INSERT INTO t1 VALUES ('HELLO');\n  INSERT INTO t1 VALUES ('HeLLo');\n\n  INSERT INTO t2 VALUES ('hello');\n  INSERT INTO t2 VALUES ('Hello');\n  INSERT INTO t2 VALUES ('HELLO');\n  INSERT INTO t2 VALUES ('HeLLo');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = 0;\n  \n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n\n  INSERT INTO t1 VALUES ('hello');\n  INSERT INTO t1 VALUES ('Hello');\n  INSERT INTO t1 VALUES ('HELLO');\n  INSERT INTO t1 VALUES ('HeLLo');\n\n  INSERT INTO t2 VALUES ('hello');\n  INSERT INTO t2 VALUES ('Hello');\n  INSERT INTO t2 VALUES ('HELLO');\n  INSERT INTO t2 VALUES ('HeLLo');\n")
+		r = db.Query("\n  PRAGMA automatic_index = 0;\n  \n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n\n  INSERT INTO t1 VALUES ('hello');\n  INSERT INTO t1 VALUES ('Hello');\n  INSERT INTO t1 VALUES ('HELLO');\n  INSERT INTO t1 VALUES ('HeLLo');\n\n  INSERT INTO t2 VALUES ('hello');\n  INSERT INTO t2 VALUES ('Hello');\n  INSERT INTO t2 VALUES ('HELLO');\n  INSERT INTO t2 VALUES ('HeLLo');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = 0;\n  \n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n\n  INSERT INTO t1 VALUES ('hello');\n  INSERT INTO t1 VALUES ('Hello');\n  INSERT INTO t1 VALUES ('HELLO');\n  INSERT INTO t1 VALUES ('HeLLo');\n\n  INSERT INTO t2 VALUES ('hello');\n  INSERT INTO t2 VALUES ('Hello');\n  INSERT INTO t2 VALUES ('HELLO');\n  INSERT INTO t2 VALUES ('HeLLo');\n")
 		}
 	}
 	// optimization_control db transitive 1 (unsupported command, not transpiled)
@@ -547,9 +547,9 @@ func Test_transitive1(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "1100"
-		_res = db.Exec("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');\n")
+		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');\n")
 		}
 	}
 	{ // "1110"
@@ -562,9 +562,9 @@ func Test_transitive1(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "1200"
-		_res = db.Exec("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('ABC');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('ABC');\n")
+		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('ABC');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('ABC');\n")
 		}
 	}
 	{ // "1210"

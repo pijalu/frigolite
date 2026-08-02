@@ -264,7 +264,7 @@ func Test_loadext(t *testing.T) {
 		}
 	}
 	{ // do_test "loadext-3.3"
-		_res = db.Exec("\n    SELECT load_extension(" + testextension + ",'testloadext_init')\n  ")
+		_res = db.Exec("\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-3.4"
@@ -296,22 +296,22 @@ func Test_loadext(t *testing.T) {
 	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "loadext-4.1"
-		_res = db.Exec("\n    SELECT load_extension(" + testextension + ",'testloadext_init')\n  ")
+		_res = db.Exec("\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-4.2"
 		// sqlite3_enable_load_extension db 1 (unsupported command, not transpiled)
-		_res = db.Exec("\n    SELECT load_extension(" + testextension + ",'testloadext_init')\n  ")
+		_res = db.Exec("\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-4.3"
 		// sqlite3_enable_load_extension db 0 (unsupported command, not transpiled)
-		_res = db.Exec("\n    SELECT load_extension(" + testextension + ",'testloadext_init')\n  ")
+		_res = db.Exec("\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-4.4"
 		// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1 (unsupported command, not transpiled)
-		_res = db.Exec("\n    SELECT load_extension(" + testextension + ",'testloadext_init')\n  ")
+		_res = db.Exec("\n    SELECT load_extension(" + sqlLiteral(testextension) + ",'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	// do_malloc_test loadext-5 -tclprep {\n  sqlite3_reset_auto_extension\n} -tclbody {\n  if {[autoi... (unsupported command, not transpiled)

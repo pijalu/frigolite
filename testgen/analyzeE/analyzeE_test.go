@@ -55,9 +55,9 @@ func Test_analyzeE(t *testing.T) {
 	testprefix = "analyzeE" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	{ // "analyzeE-1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
+		r = db.Query("\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n")
 		}
 	}
 	{ // "analyzeE-1.1"
@@ -331,9 +331,9 @@ func Test_analyzeE(t *testing.T) {
 		}
 	}
 	{ // "analyzeE-3.0"
-		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;\n")
+		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;\n")
 		}
 	}
 	{ // "analyzeE-3.1"
@@ -625,9 +625,9 @@ func Test_analyzeE(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "analyzeE-6.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
+		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
 		}
 	}
 	{ // "analyzeE-6.1"
