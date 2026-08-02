@@ -139,7 +139,7 @@ For each passthrough failure exposed by the extended corpus:
 
 - **Final verify**: `go test ./internal/parse/ -run TestGrammarCoverage -count=1 -v`
 - **Commit**: `G0.3.N: implement <rule> handler — grammar coverage at N%'
-- [ ] Done
+- [x] Done
 
 ---
 
