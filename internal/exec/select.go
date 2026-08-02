@@ -239,7 +239,31 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	// when no expression evaluation, sorting, filtering, or combining is required.
 	needMaps := selectNeedsRowMaps(e, s, tableEntry.Name)
 
+	// WITHOUT ROWID tables need PK-ordered output. We force needMaps to get
+	// row maps with all column data for sorting.
+	isWithoutRowidTable := len(s.Joins) == 0 && len(s.OrderBy) == 0 &&
+		hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	var withoutRowidPKCols []string
+	if isWithoutRowidTable {
+		withoutRowidPKCols = pkColumnNames(tableEntry.SQL, colDefs)
+		if len(withoutRowidPKCols) > 0 {
+			needMaps = true
+		}
+	}
+
 	allRows, allRowMaps := e.scanTableRows(cursor, s, colDefs, needMaps)
+
+	// WITHOUT ROWID tables store data in PK order. Since Frigolite uses
+	// rowid-based storage for all tables, we sort the results by PK columns
+	// to emulate WITHOUT ROWID ordering when there is no explicit ORDER BY
+	// and no JOINs.
+	if len(withoutRowidPKCols) > 0 && len(allRowMaps) > 0 {
+		sortRowMapsByPKNames(allRowMaps, withoutRowidPKCols)
+		// Re-project rows from sorted row maps
+		for i := range allRows {
+			allRows[i] = e.buildOutputRow(s.Columns, colDefs, allRowMaps[i])
+		}
+	}
 
 	// Filter out internal system tables when querying sqlite_master/sqlite_schema.
 	// SQLite hides sqlite_stat1, sqlite_stat4, and similar internal tables from
@@ -4158,5 +4182,70 @@ func walkJoinOnExpr(expr sql.Expr, fn func(sql.Expr)) {
 			walkJoinOnExpr(a, fn)
 		}
 	}
+}
+
+// pkColumnNames extracts the column names for the PRIMARY KEY of a
+// WITHOUT ROWID table from the CREATE TABLE SQL. It supports both
+// column-level PK (e.g., "a INTEGER PRIMARY KEY") and table-level PK
+// (e.g., "PRIMARY KEY(c,a)"). Returns the names in PK order.
+func pkColumnNames(createSQL string, colDefs []sql.ColumnDef) []string {
+	// First check for table-level PRIMARY KEY(col1, col2, ...)
+	upper := strings.ToUpper(createSQL)
+	pkStart := strings.Index(upper, "PRIMARY KEY")
+	if pkStart < 0 {
+		pkStart = strings.Index(upper, "PRIMARY  KEY")
+	}
+	if pkStart >= 0 {
+		// Find the opening parenthesis after PRIMARY KEY
+		parenStart := strings.Index(createSQL[pkStart:], "(")
+		if parenStart >= 0 {
+			parenStart += pkStart
+			parenEnd := strings.Index(createSQL[parenStart:], ")")
+			if parenEnd >= 0 {
+				parenEnd += parenStart
+				colPart := createSQL[parenStart+1 : parenEnd]
+				colNames := strings.Split(colPart, ",")
+				var result []string
+				for _, cn := range colNames {
+					name := strings.TrimSpace(cn)
+					fields := strings.Fields(name)
+					if len(fields) > 0 {
+						result = append(result, fields[0])
+					}
+				}
+				if len(result) > 0 {
+					return result
+				}
+			}
+		}
+	}
+
+	// Fallback: column-level PRIMARY KEY
+	for _, cd := range colDefs {
+		if cd.PrimaryKey {
+			return []string{cd.Name}
+		}
+	}
+
+	return nil
+}
+
+// sortRowMapsByPKNames sorts rowMaps by the PK column values in ascending order.
+// pkColNames is the ordered list of PK column names to sort by.
+func sortRowMapsByPKNames(rowMaps []RowMap, pkColNames []string) {
+	if len(rowMaps) <= 1 {
+		return
+	}
+	sort.SliceStable(rowMaps, func(a, b int) bool {
+		for _, name := range pkColNames {
+			va := util.UnwrapColumnValue(rowMaps[a][name])
+			vb := util.UnwrapColumnValue(rowMaps[b][name])
+			cmp := util.CompareValues(va, vb)
+			if cmp != 0 {
+				return cmp < 0
+			}
+		}
+		return false
+	})
 }
 
