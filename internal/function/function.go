@@ -92,6 +92,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "LIKELY", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLIKELY})
 	r.register(&Func{Name: "UNLIKELY", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNLIKELY})
 	r.register(&Func{Name: "TYPEOF", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTYPEOF})
+	r.register(&Func{Name: "AFFINITY", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnAFFINITY})
 	r.register(&Func{Name: "SUBSTR", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnSUBSTR})
 	r.register(&Func{Name: "REPLACE", Type: TypeScalar, MinArgs: 3, MaxArgs: 3, ScalarFn: fnREPLACE})
 	r.register(&Func{Name: "INSTR", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnINSTR})
@@ -571,6 +572,28 @@ func fnTYPEOF(args []interface{}) (interface{}, error) {
 		return "blob", nil
 	default:
 		return "text", nil
+	}
+}
+
+// fnAFFINITY implements the test-only affinity() function from the SQLite TCL
+// test suite. It reports the storage-class affinity of its argument's value
+// (integer/real/text/blob/none), matching the column-affinity reports the
+// test suite expects for values that survived column affinity conversion.
+func fnAFFINITY(args []interface{}) (interface{}, error) {
+	if args[0] == nil {
+		return "none", nil
+	}
+	switch args[0].(type) {
+	case int64:
+		return "integer", nil
+	case float64:
+		return "real", nil
+	case string:
+		return "text", nil
+	case []byte:
+		return "blob", nil
+	default:
+		return "none", nil
 	}
 }
 

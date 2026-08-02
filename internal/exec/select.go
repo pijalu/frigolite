@@ -714,7 +714,7 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 			if err != nil {
 				return &Result{Error: err}
 			}
-			outRow = append(outRow, v)
+			outRow = append(outRow, unwrapCollatedValue(v))
 		}
 	}
 
@@ -1144,7 +1144,7 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 				if err != nil {
 					return &Result{Error: err}
 				}
-				outRow[i] = val
+				outRow[i] = unwrapCollatedValue(val)
 			}
 			newRows = append(newRows, outRow)
 		}
@@ -1796,14 +1796,86 @@ func (e *Engine) exprHasAggregate(expr sql.Expr) bool {
 		if fn, ok := e.funcs.Find(v.Name); ok && fn.Type == function.TypeAggregate {
 			return true
 		}
+		for _, arg := range v.Args {
+			if e.exprHasAggregate(arg) {
+				return true
+			}
+		}
 		return false
 	case *sql.BinaryOp:
 		return e.exprHasAggregate(v.Left) || e.exprHasAggregate(v.Right)
 	case *sql.UnaryOp:
 		return e.exprHasAggregate(v.Operand)
+	case *sql.ParenExpr:
+		return e.exprHasAggregate(v.Expr)
+	case *sql.CastExpr:
+		return e.exprHasAggregate(v.Operand)
+	case *sql.IsNull:
+		return e.exprHasAggregate(v.Operand)
+	case *sql.IsNotNull:
+		return e.exprHasAggregate(v.Operand)
+	case *sql.IsTrue:
+		return e.exprHasAggregate(v.Operand)
+	case *sql.IsFalse:
+		return e.exprHasAggregate(v.Operand)
+	case *sql.IsDistinctFrom:
+		return e.exprHasAggregate(v.Left) || e.exprHasAggregate(v.Right)
+	case *sql.IsNotDistinctFrom:
+		return e.exprHasAggregate(v.Left) || e.exprHasAggregate(v.Right)
+	case *sql.Between:
+		return e.exprHasAggregate(v.Operand) || e.exprHasAggregate(v.Low) || e.exprHasAggregate(v.High)
+	case *sql.InList:
+		if e.exprHasAggregate(v.Operand) {
+			return true
+		}
+		for _, item := range v.List {
+			if e.exprHasAggregate(item) {
+				return true
+			}
+		}
+		return false
+	case *sql.CaseExpr:
+		if v.Operand != nil && e.exprHasAggregate(v.Operand) {
+			return true
+		}
+		for _, w := range v.Whens {
+			if e.exprHasAggregate(w.When) || e.exprHasAggregate(w.Then) {
+				return true
+			}
+		}
+		if v.Else != nil {
+			return e.exprHasAggregate(v.Else)
+		}
+		return false
+	case *sql.Subquery:
+		return e.selectHasAggregate(v.Select)
+	case *sql.ExistsExpr:
+		return e.selectHasAggregate(v.Select)
+	case *sql.RowValue:
+		for _, sub := range v.Values {
+			if e.exprHasAggregate(sub) {
+				return true
+			}
+		}
+		return false
 	default:
 		return false
 	}
+}
+
+// selectHasAggregate reports whether any SELECT list column of s contains an
+// aggregate function.
+func (e *Engine) selectHasAggregate(s *sql.SelectStmt) bool {
+	if s == nil {
+		return false
+	}
+	if e.hasAggregates(s.Columns) {
+		return true
+	}
+	if s.Union != nil && e.selectHasAggregate(s.Union) {
+		return true
+	}
+	return false
 }
 
 // aggregateName returns the name of the first aggregate function found in the
@@ -2098,7 +2170,7 @@ func (e *Engine) evalAggOverOuterRows(s *sql.SelectStmt, outerRows []RowMap) []i
 		if err != nil {
 			outRow = append(outRow, nil)
 		} else {
-			outRow = append(outRow, v)
+			outRow = append(outRow, unwrapCollatedValue(v))
 		}
 	}
 	return outRow
@@ -2183,14 +2255,14 @@ func (e *Engine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRows, all
 			if err != nil {
 				outRow = append(outRow, nil)
 			} else {
-				outRow = append(outRow, v)
+				outRow = append(outRow, unwrapCollatedValue(v))
 			}
 		} else {
 			v, err := e.evalExpr(col.Expr, nil)
 			if err != nil {
 				outRow = append(outRow, nil)
 			} else {
-				outRow = append(outRow, v)
+				outRow = append(outRow, unwrapCollatedValue(v))
 			}
 		}
 	}
@@ -2202,6 +2274,11 @@ func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []RowMap) *Result {
 	if len(rowMaps) == 0 {
 		return e.evalAggregatesEmpty(s)
 	}
+
+	// Nested aggregate functions inside wrapper expressions (e.g.
+	// round(avg(x),2)) resolve through aggRowMaps instead of per-row.
+	e.aggRowMaps = rowMaps
+	defer func() { e.aggRowMaps = nil }()
 
 	// If any aggregate has ORDER BY, sort rowMaps so bare columns evaluate
 	// from the correct row (the one that provides the aggregate value).
@@ -2312,6 +2389,7 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 		groupRows := groups[key]
 
 		// Evaluate output row for this group
+		e.aggRowMaps = groupRows
 		var outRow []interface{}
 		for _, col := range s.Columns {
 			v, err := e.evalAggregateExpr(col.Expr, groupRows)
@@ -2320,6 +2398,7 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 			}
 			outRow = append(outRow, util.UnwrapColumnValue(v))
 		}
+		e.aggRowMaps = nil
 
 		// Apply HAVING filter
 		if s.Having != nil {
@@ -3674,6 +3753,18 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 	return row
 }
 
+// unwrapRowMap returns a copy of row with all affinity ColumnValue wrappers
+// replaced by their raw values. Trigger bodies and RETURNING projections must
+// receive raw values: the wrappers are only for WHERE-clause affinity
+// comparison and would otherwise leak into trigger logs and result sets.
+func unwrapRowMap(row RowMap) RowMap {
+	out := make(RowMap, len(row))
+	for k, v := range row {
+		out[k] = util.UnwrapColumnValue(v)
+	}
+	return out
+}
+
 // buildStructRow creates a structRow from a record payload, wrapping values with
 // ColumnValue affinity wrappers. Uses a shared column index for fast lookups
 // and avoids per-row map allocation. Decodes values directly from the payload
@@ -3799,7 +3890,7 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 			if err != nil {
 				outRow = append(outRow, nil)
 			} else {
-				outRow = append(outRow, util.UnwrapColumnValue(v))
+				outRow = append(outRow, util.UnwrapColumnValue(unwrapCollatedValue(v)))
 			}
 		}
 	}
@@ -3816,6 +3907,23 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 					continue
 				}
 				names = append(names, cd.Name)
+			}
+		} else if rv, ok := col.Expr.(*sql.RowValue); ok {
+			// Multi-expression RETURNING (RETURNING a, b, *): expand * inline
+			// and name each expression like a SELECT column list.
+			for _, sub := range rv.Values {
+				if ref, ok := sub.(*sql.ColumnRef); ok && ref.Name == "*" {
+					for _, cd := range colDefs {
+						if cd.Dropped {
+							continue
+						}
+						names = append(names, cd.Name)
+					}
+				} else if ref, ok := sub.(*sql.ColumnRef); ok {
+					names = append(names, ref.Name)
+				} else {
+					names = append(names, "")
+				}
 			}
 		} else if col.As != "" {
 			names = append(names, col.As)

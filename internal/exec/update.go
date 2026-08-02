@@ -16,8 +16,9 @@ import (
 // --- UPDATE ---
 
 type updateChange struct {
-	rowID  int64
-	values []interface{}
+	rowID     int64
+	values    []interface{}
+	oldValues []interface{}
 }
 
 func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
@@ -28,7 +29,19 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	if err != nil {
 		return &Result{Error: err}
 	}
+
+	// Protect system and pragma virtual tables from modification.
+	if e.isNonModifiableTable(tableEntry) {
+		return &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}
+	}
+
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+
+	if s.HasReturning {
+		if err := e.validateReturning(s.Returning, colDefs, tableEntry.Name); err != nil {
+			return &Result{Error: err}
+		}
+	}
 
 	colIndex := buildColumnIndex(colDefs)
 
@@ -42,11 +55,20 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	if s.HasReturning {
 		for _, ch := range changes {
 			row := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
-			values, err := e.evalReturningExprs(s.Returning, row, colDefs)
+			values, err := e.evalReturningStrict(s.Returning, row, colDefs, tableEntry.Name)
 			if err != nil {
 				return &Result{Error: err}
 			}
 			returningRows = append(returningRows, values)
+		}
+	}
+
+	// Enforce FOREIGN KEY constraints on the new values (PRAGMA foreign_keys).
+	if e.foreignKeys {
+		for _, ch := range changes {
+			if res := e.checkForeignKeyViolations(tableEntry, colDefs, ch.values); res.Error != nil {
+				return res
+			}
 		}
 	}
 
@@ -61,15 +83,31 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 		if res := e.checkUpdateConflicts(tableEntry, colDefs, changes); res.Error != nil {
 			return res
 		}
+		// Fire BEFORE UPDATE triggers with the new and old row values.
+		if e.hasTriggersForTable(tableEntry.Name) {
+			for _, ch := range changes {
+				newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+				oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+				if trigResult := e.fireBeforeUpdateTriggers(tableEntry.Name, newRow, oldRow); trigResult.Error != nil {
+					return trigResult
+				}
+			}
+		}
 		result = e.applyUpdateChanges(tableEntry.RootPage, changes)
 	}
 	if result.Error != nil {
 		return result
 	}
 
-	// Fire AFTER UPDATE triggers
-	if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name, nil, nil); trigResult.Error != nil {
-		return trigResult
+	// Fire AFTER UPDATE triggers with the new and old row values.
+	if e.hasTriggersForTable(tableEntry.Name) {
+		for _, ch := range changes {
+			newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+			oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+			if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name, newRow, oldRow); trigResult.Error != nil {
+				return trigResult
+			}
+		}
 	}
 
 	// If RETURNING clause was present, return result rows instead of change count
@@ -137,6 +175,9 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 	values := make([]interface{}, maxIdx)
 	copy(values, rec.Values)
 
+	oldValues := make([]interface{}, len(rec.Values))
+	copy(oldValues, rec.Values)
+
 	for _, a := range s.Assignments {
 		idx, ok := colIndex[a.Column]
 		if !ok {
@@ -161,7 +202,7 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 			values[idx] = v
 		}
 	}
-	return &updateChange{cell.RowID, values}, nil
+	return &updateChange{cell.RowID, values, oldValues}, nil
 }
 
 func (e *Engine) rowMatchesWhere(where sql.Expr, row Row) bool {

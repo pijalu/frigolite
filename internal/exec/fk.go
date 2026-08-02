@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -134,6 +135,73 @@ func (e *Engine) cascadeDelete(parentTable *schema.Entry, parentColDefs []sql.Co
 					return trigResult
 				}
 			}
+		}
+	}
+	return &Result{}
+}
+
+// fkRefAnyRe parses "parentTable(parentCol)" (with optional ON DELETE/UPDATE
+// actions) from a column's References string.
+var fkRefAnyRe = regexp.MustCompile(`(?is)^\s*([^\s(]+)\(([^)]+)\)`)
+
+// checkForeignKeyViolations verifies that every non-NULL column value with a
+// FOREIGN KEY clause references an existing parent row. It is only enforced
+// when PRAGMA foreign_keys is ON. Returns an error describing the first
+// violation.
+func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) *Result {
+	if !e.foreignKeys {
+		return &Result{}
+	}
+	for i, cd := range colDefs {
+		if cd.References == "" {
+			continue
+		}
+		m := fkRefAnyRe.FindStringSubmatch(cd.References)
+		if m == nil {
+			continue
+		}
+		parentTableName, parentCol := m[1], strings.TrimSpace(m[2])
+		if i >= len(values) || values[i] == nil {
+			continue
+		}
+		val := values[i]
+
+		parentEntry, err := e.schema.FindTable(parentTableName)
+		if err != nil {
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+		}
+		parentColDefs := e.parseColumnDefs(parentEntry.Name, parentEntry.SQL)
+		parentIndex := buildColumnIndex(parentColDefs)
+		parentIdx, ok := parentIndex[parentCol]
+		if !ok {
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+		}
+		tree := e.tableBTree(parentEntry.Name, parentEntry.RootPage, true)
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+		}
+		found := false
+		for {
+			cell, err := cursor.ReadCell()
+			if err != nil || cell == nil {
+				break
+			}
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil || rec == nil {
+				break
+			}
+			if parentIdx < len(rec.Values) && rec.Values[parentIdx] != nil && util.CompareValues(rec.Values[parentIdx], val) == 0 {
+				found = true
+				break
+			}
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
+		}
+		if !found {
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
 		}
 	}
 	return &Result{}

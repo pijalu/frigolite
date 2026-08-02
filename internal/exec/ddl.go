@@ -547,6 +547,13 @@ func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
 		_ = ctx.Schema.RemoveEntry(t.Name)
 	}
 
+	// Cascade: drop all indexes for this table (SQLite semantics:
+	// DROP TABLE removes all associated indexes)
+	indexes, _ := ctx.Schema.FindIndexesForTable(entry.Name)
+	for _, idx := range indexes {
+		_ = ctx.Schema.RemoveEntry(idx.Name)
+	}
+
 	// Remove from schema
 	if err := ctx.Schema.RemoveEntry(s.Name); err != nil {
 		return &Result{Error: err}

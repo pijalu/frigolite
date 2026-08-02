@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // ParseSQL parses a SQL string using the go-lemon generated LALR(1) parser.
@@ -36,6 +37,20 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	input = strings.TrimRight(input, " \t\r\n")
 	if input != "" && input[len(input)-1] != ';' {
 		input += "\n;"
+	}
+
+	// The LALR grammar accepts RETURNING clauses (SQLite 3.35+ syntax) but its
+	// rule handlers do not carry the clause into the AST — INSERT/UPDATE/DELETE
+	// with RETURNING parse successfully but lose the projection. The hand-written
+	// RD parser implements RETURNING fully, so prefer it whenever the input
+	// contains a RETURNING keyword token.
+	if containsReturningKeyword(input) {
+		rdParser := sql.NewParser(input)
+		rdStmts := rdParser.Parse()
+		if rdParser.Err() == nil && len(rdStmts) > 0 {
+			return rdStmts, nil
+		}
+		// Fall through to the LALR path if the RD parser rejects the input.
 	}
 
 	tables := GetParseTables()
@@ -313,6 +328,70 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 26: typetoken ::=
 	case 26:
 		return ""
+  
+  	// Rule 32: ccons ::= CONSTRAINT nm
+  	case 32:
+  		return sql.ColumnDef{ConstraintName: getString(getRHS(p, ruleNo, 2))}
+  
+  	// Rule 33: ccons ::= DEFAULT scantok term
+  	case 33:
+  		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 3))}
+  
+  	// Rule 34: ccons ::= DEFAULT LP expr RP
+  	case 34:
+  		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 3))}
+  
+  	// Rule 35: ccons ::= DEFAULT PLUS scantok term
+  	case 35:
+  		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 4))}
+  
+  	// Rule 36: ccons ::= DEFAULT MINUS scantok term
+  	case 36:
+  		return sql.ColumnDef{Default: &sql.UnaryOp{Operand: getExpr(getRHS(p, ruleNo, 4)), Operator: "-"}}
+  
+  	// Rule 38: ccons ::= NOT NULL onconf
+  	case 38:
+  		cd := sql.ColumnDef{NotNull: true}
+  		cd.OnConflict = getString(getRHS(p, ruleNo, 3))
+  		return cd
+  
+  	// Rule 39: ccons ::= PRIMARY KEY sortorder onconf autoinc
+  	case 39:
+  		cd := sql.ColumnDef{PrimaryKey: true}
+  		cd.OnConflict = getString(getRHS(p, ruleNo, 4))
+  		if getBool(getRHS(p, ruleNo, 5)) {
+  			cd.AutoInc = true
+  		}
+  		return cd
+  
+  	// Rule 40: ccons ::= UNIQUE onconf
+  	case 40:
+  		cd := sql.ColumnDef{Unique: true}
+  		cd.OnConflict = getString(getRHS(p, ruleNo, 2))
+  		return cd
+  
+  	// Rule 41: ccons ::= CHECK LP expr RP
+  	case 41:
+  		return sql.ColumnDef{Check: getExpr(getRHS(p, ruleNo, 3))}
+  
+  	// Rule 42: ccons ::= REFERENCES nm eidlist_opt refargs
+  	case 42:
+  		cd := sql.ColumnDef{References: getString(getRHS(p, ruleNo, 2))}
+  		if cols := getStringList(getRHS(p, ruleNo, 3)); len(cols) > 0 {
+  			cd.References += "(" + strings.Join(cols, ", ") + ")"
+  		}
+  		if ra := getString(getRHS(p, ruleNo, 4)); ra != "" {
+  			cd.References += " " + ra
+  		}
+  		return cd
+  
+  	// Rule 44: ccons ::= COLLATE ids
+  	case 44:
+  		return sql.ColumnDef{Collate: getString(getRHS(p, ruleNo, 2))}
+  
+  	// Rule 48: autoinc ::= AUTOINCREMENT
+  	case 48:
+  		return true
 
 	// Rule 76: orconf ::= OR resolvetype
 	// (resolvetype: IGNORE, REPLACE, ABORT, FAIL, ROLLBACK)
@@ -829,8 +908,6 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 156:
 		return getExpr(getRHS(p, ruleNo, 2))
 
-	// CTE (WITH clause) rules.
-
 	// Rule 164: cmd ::= with insert_cmd INTO xfullname idlist_opt select upsert
 	case 164:
 		table := getString(getRHS(p, ruleNo, 4))
@@ -845,16 +922,34 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			values = valuesFromSelect(sel)
 			sel = nil
 		}
-		// insert_cmd is "INSERT" or "REPLACE" (rules 173/174).
+		// insert_cmd is "INSERT" or "REPLACE" (rules 173/174); the orconf
+		// resolution type ("IGNORE", "REPLACE", ...) arrives in that string.
 		cmd := getString(getRHS(p, ruleNo, 2))
-		return &sql.InsertStmt{
+		stmt := &sql.InsertStmt{
 			Table:     table,
 			Columns:   columns,
 			Values:    values,
 			Select:    sel,
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
+			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
 			CTEs:      getCTEDefs(getRHS(p, ruleNo, 1)),
 		}
+		// The upsert nonterminal (RHS 7) carries either an ON CONFLICT clause
+		// or a RETURNING-only projection (rule 167).
+		switch v := getRHS(p, ruleNo, 7).(type) {
+		case *sql.OnConflictClause:
+			stmt.OnConflict = v
+		case []sql.SelectColumn:
+			// RETURNING-only upsert (rule 167). ParseSQL routes statements
+			// containing RETURNING to the RD parser, so this path only fires
+			// when the RD parser rejects the input; keep it simple.
+			if len(v) > 0 {
+				stmt.Returning = v[0]
+				stmt.HasReturning = true
+			}
+		}
+
+		return stmt
 
 	// Rule 165: cmd ::= with insert_cmd INTO xfullname idlist_opt DEFAULT VALUES returning
 	case 165:
@@ -865,11 +960,47 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Table:     table,
 			Columns:   columns,
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
+			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
 		}
 
 	// Rule 166: upsert ::=
 	case 166:
 		return nil
+
+	// Rule 167: upsert ::= RETURNING selcollist
+	case 167:
+		return getSelectColumns(getRHS(p, ruleNo, 2))
+
+	// Rule 168: upsert ::= ON CONFLICT LP sortlist RP where_opt
+	//                       DO UPDATE SET setlist where_opt upsert
+	case 168:
+		target := getOrderByList(getRHS(p, ruleNo, 4))
+		oc := &sql.OnConflictClause{
+			Action:         sql.ConflictDoUpdate,
+			ConflictColumn: conflictTargetColumn(target),
+			// The DO UPDATE WHERE (RHS 11) is the update condition; the
+			// conflict-target WHERE (RHS 6) is the partial-index predicate.
+			Where:       getExpr(getRHS(p, ruleNo, 11)),
+			Assignments: getAssignments(getRHS(p, ruleNo, 10)),
+		}
+		// A chained ON CONFLICT clause: SQLite gives the last clause
+		// precedence, so surface it instead of the first.
+		if chained, ok := getRHS(p, ruleNo, 12).(*sql.OnConflictClause); ok && chained != nil {
+			return chained
+		}
+		return oc
+
+	// Rule 169: upsert ::= ON CONFLICT LP sortlist RP where_opt DO NOTHING upsert
+	case 169:
+		target := getOrderByList(getRHS(p, ruleNo, 4))
+		oc := &sql.OnConflictClause{
+			Action:         sql.ConflictDoNothing,
+			ConflictColumn: conflictTargetColumn(target),
+		}
+		if chained, ok := getRHS(p, ruleNo, 9).(*sql.OnConflictClause); ok && chained != nil {
+			return chained
+		}
+		return oc
 
 	// Rule 170: upsert ::= ON CONFLICT DO NOTHING returning
 	case 170:
@@ -877,7 +1008,14 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Action: sql.ConflictDoNothing,
 		}
 
-	// Rule 173: insert_cmd ::= INSERT orconf
+	// Rule 171: upsert ::= ON CONFLICT DO UPDATE SET setlist where_opt returning
+	case 171:
+		return &sql.OnConflictClause{
+			Action:      sql.ConflictDoUpdate,
+			Where:       getExpr(getRHS(p, ruleNo, 7)),
+			Assignments: getAssignments(getRHS(p, ruleNo, 6)),
+		}
+
 	case 173:
 		// Return the orconf resolution type ("", "IGNORE", "REPLACE", ...).
 		return getString(getRHS(p, ruleNo, 2))
@@ -1442,6 +1580,20 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Value: value,
 		}
 
+	// Rule 255: cmd ::= PRAGMA nm dbnm LP pragma_value RP
+	// Rule 257: cmd ::= PRAGMA nm dbnm LP minus_num RP
+	case 255, 257:
+		return &sql.PragmaStmt{
+			Name:  getString(getRHS(p, ruleNo, 2)),
+			Value: getString(getRHS(p, ruleNo, 5)),
+		}
+
+	// Rule 256: cmd ::= PRAGMA nm dbnm LP RP
+	case 256:
+		return &sql.PragmaStmt{
+			Name: getString(getRHS(p, ruleNo, 2)),
+		}
+
 	// Rule 260: cmd ::= createkw trigger_decl BEGIN trigger_cmd_list END
 	case 260:
 		decl, _ := getRHS(p, ruleNo, 2).(*triggerDeclInfo)
@@ -1555,7 +1707,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 303: cmd ::= create_vtab LP vtabarglist RP
 	case 303:
-		return nil
+		vt, _ := getRHS(p, ruleNo, 1).(*sql.CreateVirtualTableStmt)
+		if vt != nil {
+			vt.Args = getStringList(getRHS(p, ruleNo, 3))
+		}
+		return getRHS(p, ruleNo, 1)
 
 	// Rule 304: create_vtab ::= createkw VIRTUAL TABLE ifnotexists nm dbnm USING nm
 	case 304:
@@ -1565,6 +1721,29 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Name:   name,
 			Module: module,
 		}
+
+	// Rule 305: vtabarg ::= (empty) — the base of the token-accumulating
+	// vtabarg nonterminal. Empty so multi-token arguments build up.
+	case 305:
+		return ""
+
+	// Rule 306: token ::= ID (a single virtual-table argument token)
+	case 306:
+		return getString(getRHS(p, ruleNo, 1))
+
+	// Rule 403: vtabarglist ::= vtabarg
+	case 403:
+		return []string{getString(getRHS(p, ruleNo, 1))}
+
+	// Rule 404: vtabarglist ::= vtabarglist COMMA vtabarg
+	case 404:
+		head := getStringList(getRHS(p, ruleNo, 1))
+		arg := getString(getRHS(p, ruleNo, 3))
+		return append(head, arg)
+
+	// Rule 405: vtabarg ::= vtabarg token
+	case 405:
+		return strings.TrimSpace(getString(getRHS(p, ruleNo, 1)) + " " + getString(getRHS(p, ruleNo, 2)))
 
 	// Rule 348: input ::= cmdlist
 	case 348:
@@ -1632,11 +1811,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 361:
 		acc := getColumnList(getRHS(p, ruleNo, 1))
 		col := getColumnDef(getRHS(p, ruleNo, 3))
+		mergeColumnConstraints(&col, getColumnList(getRHS(p, ruleNo, 4)))
 		return append(acc, col)
 
 	// Rule 362: columnlist ::= columnname carglist
 	case 362:
 		col := getColumnDef(getRHS(p, ruleNo, 1))
+		mergeColumnConstraints(&col, getColumnList(getRHS(p, ruleNo, 2)))
 		return []sql.ColumnDef{col}
 
 	// Rule 363: nm ::= ID|INDEXED|JOIN_KW
@@ -1666,7 +1847,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 369: carglist ::= carglist ccons
 	case 369:
-		return nil
+		acc := getColumnList(getRHS(p, ruleNo, 1))
+		if c, ok := getRHS(p, ruleNo, 2).(sql.ColumnDef); ok {
+			acc = append(acc, c)
+		}
+		return acc
 
 	// Rule 370: carglist ::=
 	case 370:
@@ -1965,6 +2150,18 @@ func getString(v interface{}) string {
 	if tok, ok := v.(sql.Token); ok {
 		return tok.Value
 	}
+	if cv, ok := v.(*util.ColumnValue); ok {
+		return getString(util.UnwrapColumnValue(cv))
+	}
+	if cv, ok := v.(util.ColumnValue); ok {
+		return getString(util.UnwrapColumnValue(&cv))
+	}
+	if nl, ok := v.(*sql.NumericLit); ok {
+		return nl.Value
+	}
+	if sl, ok := v.(*sql.StringLit); ok {
+		return sl.Value
+	}
 	return fmt.Sprintf("%v", v)
 }
 
@@ -2095,6 +2292,41 @@ func getColumnDef(v interface{}) sql.ColumnDef {
 		return c
 	}
 	return sql.ColumnDef{}
+}
+
+// mergeColumnConstraints merges per-column constraints (produced by the
+// carglist/ccons rules) into the base column definition.
+func mergeColumnConstraints(dst *sql.ColumnDef, cons []sql.ColumnDef) {
+	if dst == nil {
+		return
+	}
+	for _, c := range cons {
+		dst.NotNull = dst.NotNull || c.NotNull
+		dst.PrimaryKey = dst.PrimaryKey || c.PrimaryKey
+		dst.AutoInc = dst.AutoInc || c.AutoInc
+		dst.Unique = dst.Unique || c.Unique
+		if c.Collate != "" {
+			dst.Collate = c.Collate
+		}
+		if c.ConstraintName != "" {
+			dst.ConstraintName = c.ConstraintName
+		}
+		if c.References != "" {
+			dst.References = c.References
+		}
+		if c.OnConflict != "" {
+			dst.OnConflict = c.OnConflict
+		}
+		if c.Default != nil {
+			dst.Default = c.Default
+		}
+		if c.Check != nil {
+			dst.Check = c.Check
+		}
+		if c.Generated != nil {
+			dst.Generated = c.Generated
+		}
+	}
 }
 
 func getTableRef(v interface{}) sql.TableRef {
@@ -2307,6 +2539,8 @@ func getExprList(v interface{}) []sql.Expr {
 	return nil
 }
 
+// getOrderByList extracts an ORDER BY / ON CONFLICT sortlist value from the
+// parser stack.
 func getOrderByList(v interface{}) []sql.OrderByTerm {
 	if v == nil {
 		return nil
@@ -2315,6 +2549,18 @@ func getOrderByList(v interface{}) []sql.OrderByTerm {
 		return list
 	}
 	return nil
+}
+
+// conflictTargetColumn extracts the single-column conflict target from an
+// ON CONFLICT (...) sortlist, joining multi-column targets with commas.
+func conflictTargetColumn(terms []sql.OrderByTerm) string {
+	var names []string
+	for _, t := range terms {
+		if ref, ok := t.Expr.(*sql.ColumnRef); ok {
+			names = append(names, ref.Name)
+		}
+	}
+	return strings.Join(names, ",")
 }
 
 // windowFilter carries the optional FILTER expression and OVER window
@@ -2489,3 +2735,23 @@ func stripSQLComments(s string) string {
 	return b.String()
 }
 
+// containsReturningKeyword reports whether the SQL input contains a RETURNING
+// keyword token. The lexer maps RETURNING (any case) to TokenKeyword, so a
+// quoted identifier "returning" does not match. This is used to route
+// statements with RETURNING clauses to the RD parser, which preserves the
+// clause in the AST (the LALR grammar accepts but drops it).
+func containsReturningKeyword(input string) bool {
+	if !strings.Contains(strings.ToUpper(input), "RETURNING") {
+		return false
+	}
+	tok := sql.NewTokenizer(input)
+	for {
+		t := tok.Next()
+		if t.Type == sql.TokenEOF {
+			return false
+		}
+		if t.Type == sql.TokenKeyword && strings.EqualFold(t.Value, "RETURNING") {
+			return true
+		}
+	}
+}

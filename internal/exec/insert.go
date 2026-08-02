@@ -23,20 +23,48 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 	}
 	tableEntry, dbCtx, err := e.findTable(s.Table)
 	if err != nil {
-		return &Result{Error: err}
+		// Not a table — fall back to INSTEAD-OF-trigger view insert support.
+		viewEntry, _, viewErr := e.findView(s.Table)
+		if viewErr != nil {
+			return &Result{Error: err}
+		}
+		return e.execInsertView(s, viewEntry)
 	}
 
-	// Protect system tables from modification
-	if strings.EqualFold(tableEntry.Name, "sqlite_master") ||
-		strings.EqualFold(tableEntry.Name, "sqlite_schema") ||
-		strings.EqualFold(tableEntry.Name, "sqlite_temp_master") ||
-		strings.EqualFold(tableEntry.Name, "sqlite_temp_schema") {
+	// Protect system and pragma virtual tables from modification.
+	if e.isNonModifiableTable(tableEntry) {
 		return &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
+	if s.HasReturning {
+		if err := e.validateReturning(s.Returning, colDefs, tableEntry.Name); err != nil {
+			return &Result{Error: err}
+		}
+	}
+
+	// Virtual tables without module-backed storage (rtree, echo, dbstat, ...)
+	// accept INSERT as a no-op success; RETURNING projects NULLs for every
+	// column. FTS tables are handled by their dedicated paths.
+	if e.isStoragelessVirtualTable(tableEntry) {
+		if s.HasReturning {
+			row := make(RowMap, len(colDefs)+1)
+			for _, cd := range colDefs {
+				row[cd.Name] = nil
+			}
+			row["rowid"] = nil
+			vals, err := e.evalReturningStrict(s.Returning, row, colDefs, tableEntry.Name)
+			if err != nil {
+				return &Result{Error: err}
+			}
+			columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+			return &Result{Columns: columns, Rows: [][]interface{}{vals}}
+		}
+		return &Result{Changes: 1, LastInsertRowID: 1}
+	}
+
 	if s.Select != nil {
-		return e.execInsertSelect(tableEntry, colDefs, s.Select, s.Columns, s.IsReplace, s.OrIgnore)
+		return e.execInsertSelect(tableEntry, colDefs, s)
 	}
 	if len(s.Values) == 0 {
 		return e.execInsertDefault(tableEntry, colDefs, s)
@@ -87,6 +115,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 		}
 
 		// Check for ON CONFLICT (UPSERT)
+		var writtenRow []interface{}
 		if s.OnConflict != nil {
 			res := e.execInsertOnConflict(dbCtx.Pager, tableEntry, colDefs, values, s)
 			if res.Error != nil {
@@ -96,6 +125,9 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 			if res.LastInsertRowID > 0 {
 				lastRowID = res.LastInsertRowID
 			}
+			// For a DO UPDATE conflict the written row differs from the
+			// attempted values; DO NOTHING skips the row entirely (Row nil).
+			writtenRow = res.Row
 		} else {
 			var fixed *int64
 			if haveReplaceRowID {
@@ -112,12 +144,16 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 			}
 			totalChanges += res.Changes
 			lastRowID = res.LastInsertRowID
+			// insertRow mutates values in place; it holds the written row.
+			writtenRow = values
 		}
 
-		// Handle RETURNING clause — evaluate RETURNING expression against inserted row
-		if s.HasReturning {
-			row := buildRowMapFromValues(values, colDefs, lastRowID)
-			rowValues, err := e.evalReturningExprs(s.Returning, row, colDefs)
+		// Handle RETURNING clause — evaluate RETURNING expression against the
+		// row that was actually written (upsert DO UPDATE writes a different
+		// row than the attempted VALUES; DO NOTHING writes nothing).
+		if s.HasReturning && writtenRow != nil {
+			row := buildRowMapFromValues(writtenRow, colDefs, lastRowID)
+			rowValues, err := e.evalReturningStrict(s.Returning, row, colDefs, tableEntry.Name)
 			if err != nil {
 				return &Result{Error: err}
 			}
@@ -180,6 +216,11 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 
 	// Compute any generated columns (b AS(expr)) that were not explicitly set.
 	e.computeGeneratedValues(colDefs, values)
+
+	// Enforce FOREIGN KEY constraints (only when PRAGMA foreign_keys is ON).
+	if res := e.checkForeignKeyViolations(tableEntry, colDefs, values); res.Error != nil {
+		return res
+	}
 
 	// Fire BEFORE INSERT triggers — the row is not in the table yet, so
 	// only build the row map when triggers exist for this table.
@@ -719,15 +760,38 @@ func (e *Engine) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.Entry,
 	// Try to find an existing conflicting row by scanning for UNIQUE violations
 	existingRowID, existingValues, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
 
+	// Also check conflicts via UNIQUE indexes (e.g. CREATE UNIQUE INDEX t ON t(a)).
 	if !found {
-		return e.insertRow(pg, tableEntry, colDefs, values, nil)
+		for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
+			if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok {
+				existingRowID, existingValues, found = rid, rv, true
+				break
+			}
+		}
+	}
+
+	if !found {
+		res := e.insertRow(pg, tableEntry, colDefs, values, nil)
+		if res.Error != nil {
+			return res
+		}
+		// insertRow mutates values in place (rowid fill, affinity, generated
+		// columns), so values holds the row that was actually written.
+		res.Row = values
+		return res
 	}
 
 	switch oc.Action {
 	case sql.ConflictDoNothing:
-		return &Result{Changes: 0}
+		// The insert is skipped; RETURNING must not emit a row for it.
+		return &Result{Changes: 0, Row: nil}
 	case sql.ConflictDoUpdate:
-		return e.applyUpsertUpdate(tableEntry, colDefs, colIndex, existingRowID, existingValues, oc)
+		res := e.applyUpsertUpdate(tableEntry, colDefs, colIndex, existingRowID, existingValues, oc)
+		if res.Error != nil {
+			return res
+		}
+		// RETURNING projects against the updated row, not the attempted values.
+		return res
 	}
 	return &Result{Changes: 0}
 }
@@ -736,6 +800,11 @@ func (e *Engine) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.Entry,
 // and writes the updated row back to the table.
 func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, existingRowID int64, existingValues []interface{}, oc *sql.OnConflictClause) *Result {
 	updated := e.buildUpdatedRow(colDefs, colIndex, existingValues, oc)
+
+	// Enforce FOREIGN KEY constraints on the updated row.
+	if res := e.checkForeignKeyViolations(tableEntry, colDefs, updated); res.Error != nil {
+		return res
+	}
 
 	record, err := storage.EncodeRecord(updated)
 	if err != nil {
@@ -761,16 +830,27 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 	}
 	e.bumpRowIDCache(tableEntry.RootPage, existingRowID)
 
-	if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name, nil, nil); trigResult.Error != nil {
-		return trigResult
+	if e.hasTriggersForTable(tableEntry.Name) {
+		newRow := buildRowMapFromValues(updated, colDefs, existingRowID)
+		oldRow := buildRowMapFromValues(existingValues, colDefs, existingRowID)
+		if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name, newRow, oldRow); trigResult.Error != nil {
+			return trigResult
+		}
 	}
-	return &Result{Changes: 1}
+	// Carry the updated row back so RETURNING can project against it.
+	return &Result{Changes: 1, Row: updated}
 }
 
 // buildUpdatedRow applies ON CONFLICT DO UPDATE SET assignments to the
 // existing values and returns the updated row.
 func (e *Engine) buildUpdatedRow(colDefs []sql.ColumnDef, colIndex map[string]int, existingValues []interface{}, oc *sql.OnConflictClause) []interface{} {
-	updated := make([]interface{}, len(existingValues))
+	// Pad to the full column count: storage trims trailing NULLs from records,
+	// so existingValues may be shorter than colDefs.
+	n := len(existingValues)
+	if len(colDefs) > n {
+		n = len(colDefs)
+	}
+	updated := make([]interface{}, n)
 	copy(updated, existingValues)
 
 	row := make(RowMap)
@@ -950,7 +1030,11 @@ func gatherUniqueColIndices(colDefs []sql.ColumnDef, colIndex map[string]int, va
 	return uniqueCols
 }
 
-func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.ColumnDef, selectStmt *sql.SelectStmt, columns []string, isReplace bool, orIgnore bool) (ret *Result) {
+func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt) (ret *Result) {
+	selectStmt := s.Select
+	columns := s.Columns
+	isReplace := s.IsReplace
+	orIgnore := s.OrIgnore
 	selectResult := e.execSelect(selectStmt)
 	if selectResult.Error != nil {
 		return selectResult
@@ -1028,6 +1112,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 	}
 
 	var changes int64
+	var returningRows [][]interface{}
 	for _, row := range selectResult.Rows {
 		var values []interface{}
 		var explicitRowID int64
@@ -1166,6 +1251,20 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		e.bumpRowIDCache(tableEntry.RootPage, rowID)
 		changes++
 		e.lastRowID = rowID
+
+		// Handle RETURNING clause — evaluate against the row that was written.
+		if s.HasReturning {
+			rrow := buildRowMapFromValues(values, colDefs, rowID)
+			rv, err := e.evalReturningStrict(s.Returning, rrow, colDefs, tableEntry.Name)
+			if err != nil {
+				return &Result{Error: err}
+			}
+			returningRows = append(returningRows, rv)
+		}
+	}
+	if s.HasReturning {
+		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+		return &Result{Columns: columns, Rows: returningRows}
 	}
 	return &Result{Changes: changes, LastInsertRowID: e.lastRowID}
 }
@@ -1211,11 +1310,41 @@ func (e *Engine) pkRowID(tableName string, colDefs []sql.ColumnDef, values []int
 }
 
 func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt) *Result {
-	record, err := storage.EncodeRecord(nil)
+	// DEFAULT VALUES: every column takes its default value (NULL if none),
+	// and an INTEGER PRIMARY KEY column receives the auto-assigned rowid.
+	values := make([]interface{}, len(colDefs))
+	for i, cd := range colDefs {
+		if cd.Default != nil {
+			if dv, err := e.evalExpr(cd.Default, nil); err == nil {
+				values[i] = dv
+			}
+		}
+	}
+	nextRowID := e.findNextRowID(tableEntry.Name, tableEntry.RootPage)
+	for i, cd := range colDefs {
+		if cd.PrimaryKey && values[i] == nil {
+			values[i] = nextRowID
+			break
+		}
+	}
+
+	// Fire BEFORE INSERT triggers — the row is not in the table yet.
+	if e.hasTriggersForTable(tableEntry.Name) {
+		newRow := make(RowMap)
+		for i, v := range values {
+			if i < len(colDefs) {
+				newRow[colDefs[i].Name] = v
+			}
+		}
+		if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
+			return trigResult
+		}
+	}
+
+	record, err := storage.EncodeRecord(values)
 	if err != nil {
 		return &Result{Error: err}
 	}
-	nextRowID := e.findNextRowID(tableEntry.Name, tableEntry.RootPage)
 	cell := &storage.Cell{
 		Type:    storage.CellTableLeaf,
 		RowID:   nextRowID,
@@ -1226,23 +1355,33 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.Colum
 		return &Result{Error: err}
 	}
 	e.bumpRowIDCache(tableEntry.RootPage, nextRowID)
+	e.lastRowID = nextRowID
 
-	// Handle RETURNING clause
-	if s.HasReturning {
-		row := make(RowMap)
-		for _, cd := range colDefs {
-			row[cd.Name] = nil
+	// Fire AFTER INSERT triggers.
+	if e.hasTriggersForTable(tableEntry.Name) {
+		newRow := make(RowMap)
+		for i, v := range values {
+			if i < len(colDefs) {
+				newRow[colDefs[i].Name] = v
+			}
 		}
-		row["rowid"] = &util.ColumnValue{Value: nextRowID, Affinity: 'I'}
-		values, err := e.evalReturningExprs(s.Returning, row, colDefs)
+		if trigResult := e.fireAfterInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
+			return trigResult
+		}
+	}
+
+	// Handle RETURNING clause — evaluate against the actual written row.
+	if s.HasReturning {
+		row := buildRowMapFromValues(values, colDefs, nextRowID)
+		vals, err := e.evalReturningStrict(s.Returning, row, colDefs, tableEntry.Name)
 		if err != nil {
 			return &Result{Error: err}
 		}
 		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
-		return &Result{Columns: columns, Rows: [][]interface{}{values}}
+		return &Result{Columns: columns, Rows: [][]interface{}{vals}}
 	}
 
-	return &Result{Changes: 1}
+	return &Result{Changes: 1, LastInsertRowID: nextRowID}
 }
 
 // fireAfterInsertTriggers fires AFTER INSERT triggers for the given table.
@@ -1495,6 +1634,16 @@ func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.Col
 	return values, nil
 }
 
+// evalReturningStrict evaluates RETURNING expressions with strict column
+// resolution: unknown columns and invalid qualifiers produce "no such column"
+// errors (SQLite semantics), and table-qualified wildcards are rejected.
+func (e *Engine) evalReturningStrict(ret sql.SelectColumn, row Row, colDefs []sql.ColumnDef, tableName string) ([]interface{}, error) {
+	prevStrict, prevTable := e.returningStrict, e.returningTable
+	e.returningStrict, e.returningTable = true, tableName
+	defer func() { e.returningStrict, e.returningTable = prevStrict, prevTable }()
+	return e.evalReturningExprs(ret, row, colDefs)
+}
+
 // evalReturningExprs evaluates RETURNING expressions against a row and
 // returns a flat list of values. It handles three cases:
 //   - RETURNING * : expands to all column values
@@ -1554,5 +1703,191 @@ func (e *Engine) evalReturningExprs(ret sql.SelectColumn, row Row, colDefs []sql
 			return nil, err
 		}
 		return []interface{}{util.UnwrapColumnValue(val)}, nil
+	}
+}
+
+// execInsertView handles INSERT statements whose target is a view. SQLite
+// routes such statements through INSTEAD OF triggers; resolving the view's
+// columns (which validates collations in its SELECT) happens first.
+func (e *Engine) execInsertView(s *sql.InsertStmt, viewEntry *schema.Entry) *Result {
+	// Resolve the view definition: parse and validate its SELECT expressions.
+	// This surfaces errors like "no such collation sequence: X" at insert time.
+	parser := sql.NewParser(viewEntry.SQL)
+	stmts := parser.Parse()
+	if parser.Err() != nil {
+		return &Result{Error: parser.Err()}
+	}
+	var viewSelect *sql.SelectStmt
+	for _, st := range stmts {
+		if c, ok := st.(*sql.CreateViewStmt); ok {
+			viewSelect = c.Select
+			break
+		}
+	}
+	if viewSelect != nil {
+		if err := e.validateCollationsInSelect(viewSelect); err != nil {
+			return &Result{Error: err}
+		}
+	}
+
+	// Views only accept INSERT when an INSTEAD OF INSERT trigger exists.
+	if !e.hasTriggersForTable(viewEntry.Name) {
+		return &Result{Error: fmt.Errorf("cannot modify %s because it is a view", viewEntry.Name)}
+	}
+
+	// Fire INSTEAD OF INSERT triggers; their bodies replace the insert.
+	row := make(RowMap)
+	row["rowid"] = nil
+	if res := e.fireTriggers(viewEntry.Name, "INSERT", "BEFORE", row, nil); res != nil && res.Error != nil {
+		return res
+	}
+	if !s.HasReturning {
+		return &Result{Changes: 1}
+	}
+	vals, err := e.evalReturningStrict(s.Returning, row, nil, viewEntry.Name)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	return &Result{Rows: [][]interface{}{vals}}
+}
+
+// validateCollationsInSelect walks every expression in a SELECT statement and
+// verifies that each COLLATE operator names a known collation sequence.
+func (e *Engine) validateCollationsInSelect(s *sql.SelectStmt) error {
+	if s == nil {
+		return nil
+	}
+	for _, col := range s.Columns {
+		if err := e.validateCollationsInExpr(col.Expr); err != nil {
+			return err
+		}
+	}
+	if err := e.validateCollationsInExpr(s.Where); err != nil {
+		return err
+	}
+	if err := e.validateCollationsInExpr(s.Having); err != nil {
+		return err
+	}
+	for _, g := range s.GroupBy {
+		if err := e.validateCollationsInExpr(g); err != nil {
+			return err
+		}
+	}
+	for _, o := range s.OrderBy {
+		if err := e.validateCollationsInExpr(o.Expr); err != nil {
+			return err
+		}
+	}
+	if s.Union != nil {
+		return e.validateCollationsInSelect(s.Union)
+	}
+	return nil
+}
+
+// validateCollationsInExpr verifies COLLATE operators in an expression tree.
+func (e *Engine) validateCollationsInExpr(expr sql.Expr) error {
+	switch v := expr.(type) {
+	case *sql.BinaryOp:
+		if strings.EqualFold(v.Operator, "COLLATE") {
+			return e.checkCollationName(v.Right)
+		}
+		if err := e.validateCollationsInExpr(v.Left); err != nil {
+			return err
+		}
+		return e.validateCollationsInExpr(v.Right)
+	case *sql.UnaryOp:
+		return e.validateCollationsInExpr(v.Operand)
+	case *sql.ParenExpr:
+		return e.validateCollationsInExpr(v.Expr)
+	case *sql.FuncCall:
+		for _, a := range v.Args {
+			if err := e.validateCollationsInExpr(a); err != nil {
+				return err
+			}
+		}
+		return nil
+	case *sql.CastExpr:
+		return e.validateCollationsInExpr(v.Operand)
+	case *sql.CaseExpr:
+		if err := e.validateCollationsInExpr(v.Operand); err != nil {
+			return err
+		}
+		for _, w := range v.Whens {
+			if err := e.validateCollationsInExpr(w.When); err != nil {
+				return err
+			}
+			if err := e.validateCollationsInExpr(w.Then); err != nil {
+				return err
+			}
+		}
+		return e.validateCollationsInExpr(v.Else)
+	case *sql.Between:
+		if err := e.validateCollationsInExpr(v.Operand); err != nil {
+			return err
+		}
+		if err := e.validateCollationsInExpr(v.Low); err != nil {
+			return err
+		}
+		return e.validateCollationsInExpr(v.High)
+	case *sql.InList:
+		if err := e.validateCollationsInExpr(v.Operand); err != nil {
+			return err
+		}
+		for _, item := range v.List {
+			if err := e.validateCollationsInExpr(item); err != nil {
+				return err
+			}
+		}
+		return nil
+	case *sql.IsDistinctFrom:
+		if err := e.validateCollationsInExpr(v.Left); err != nil {
+			return err
+		}
+		return e.validateCollationsInExpr(v.Right)
+	case *sql.IsNotDistinctFrom:
+		if err := e.validateCollationsInExpr(v.Left); err != nil {
+			return err
+		}
+		return e.validateCollationsInExpr(v.Right)
+	case *sql.IsNull:
+		return e.validateCollationsInExpr(v.Operand)
+	case *sql.IsNotNull:
+		return e.validateCollationsInExpr(v.Operand)
+	case *sql.IsTrue:
+		return e.validateCollationsInExpr(v.Operand)
+	case *sql.IsFalse:
+		return e.validateCollationsInExpr(v.Operand)
+	case *sql.Subquery:
+		return e.validateCollationsInSelect(v.Select)
+	case *sql.ExistsExpr:
+		return e.validateCollationsInSelect(v.Select)
+	case *sql.RowValue:
+		for _, sub := range v.Values {
+			if err := e.validateCollationsInExpr(sub); err != nil {
+				return err
+			}
+		}
+		return nil
+	default:
+		return nil
+	}
+}
+
+// checkCollationName verifies that a COLLATE operand names a known collation.
+func (e *Engine) checkCollationName(expr sql.Expr) error {
+	var name string
+	switch v := expr.(type) {
+	case *sql.StringLit:
+		name = v.Value
+	case *sql.ColumnRef:
+		name = v.Name
+	default:
+		return nil
+	}
+	switch strings.ToUpper(name) {
+	case "", "BINARY", "NOCASE", "RTRIM":
+		return nil
+	default:
+		return fmt.Errorf("no such collation sequence: %s", name)
 	}
 }

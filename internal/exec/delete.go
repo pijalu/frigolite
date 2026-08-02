@@ -2,6 +2,8 @@
 package exec
 
 import (
+	"fmt"
+
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -18,7 +20,19 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 	if err != nil {
 		return &Result{Error: err}
 	}
+
+	// Protect system and pragma virtual tables from modification.
+	if e.isNonModifiableTable(tableEntry) {
+		return &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}
+	}
+
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+
+	if s.HasReturning {
+		if err := e.validateReturning(s.Returning, colDefs, tableEntry.Name); err != nil {
+			return &Result{Error: err}
+		}
+	}
 
 	// Route FTS virtual table deletes
 	if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
@@ -54,58 +68,77 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		}
 	}
 
-	// Fire BEFORE DELETE triggers for each matching row.
-	for _, row := range deletedRows {
-		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, row); trigResult.Error != nil {
-			return trigResult
-		}
-	}
-
-	// Delete the matching cells in a single pass. Calling DeleteCellsWhere
-	// per-row is O(n²): each call scans the entire tree for one rowid
-	// (delete3.test deletes 262144 rows this way and hangs).
-	deleted := int64(0)
-	if len(deletedRows) > 0 {
-		rowIDs := make(map[int64]struct{}, len(deletedRows))
+	// Fire BEFORE DELETE triggers, delete the row, evaluate RETURNING
+	// against the post-delete state, and fire AFTER DELETE triggers — one
+	// row at a time (SQLite semantics; RETURNING subqueries must observe
+	// the table without the current row).
+	// Without RETURNING, all BEFORE triggers fire first, rows are deleted
+	// in a single pass (O(n), whereas per-row delete is O(n²)), then all
+	// AFTER triggers fire.
+	if !s.HasReturning {
 		for _, row := range deletedRows {
-			if rid, ok := util.UnwrapColumnValue(row["rowid"]).(int64); ok {
-				rowIDs[rid] = struct{}{}
+			if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, unwrapRowMap(row)); trigResult.Error != nil {
+				return trigResult
 			}
 		}
-		n, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-			_, ok := rowIDs[cell.RowID]
-			return ok
-		})
-		if err != nil {
-			return &Result{Error: err}
-		}
-		deleted = n
-		e.invalidateRowIDCache(tableEntry.RootPage)
-	}
 
-	// Fire AFTER DELETE triggers for each deleted row.
-	for _, row := range deletedRows {
-		if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, row); trigResult.Error != nil {
-			return trigResult
-		}
-	}
-
-	// Handle RETURNING clause — evaluate against deleted rows
-	if s.HasReturning {
-		var returningRows [][]interface{}
-		for _, row := range deletedRows {
-			values, err := e.evalReturningExprs(s.Returning, row, colDefs)
+		deleted := int64(0)
+		if len(deletedRows) > 0 {
+			rowIDs := make(map[int64]struct{}, len(deletedRows))
+			for _, row := range deletedRows {
+				if rid, ok := util.UnwrapColumnValue(row["rowid"]).(int64); ok {
+					rowIDs[rid] = struct{}{}
+				}
+			}
+			n, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+				_, ok := rowIDs[cell.RowID]
+				return ok
+			})
 			if err != nil {
 				return &Result{Error: err}
 			}
-			returningRows = append(returningRows, values)
+			deleted = n
+			e.invalidateRowIDCache(tableEntry.RootPage)
 		}
-		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
-		return &Result{Columns: columns, Rows: returningRows}
+
+		for _, row := range deletedRows {
+			if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, unwrapRowMap(row)); trigResult.Error != nil {
+				return trigResult
+			}
+		}
+		return &Result{Changes: deleted}
 	}
 
-	return &Result{Changes: deleted}
-}
+	// RETURNING path: process one row at a time so RETURNING subqueries
+	// observe the table with the current row already removed.
+	var returningRows [][]interface{}
+	for _, row := range deletedRows {
+		rowID, _ := util.UnwrapColumnValue(row["rowid"]).(int64)
 
+		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, unwrapRowMap(row)); trigResult.Error != nil {
+			return trigResult
+		}
+
+		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			return cell.RowID == rowID
+		}); err != nil {
+			return &Result{Error: err}
+		}
+		e.invalidateRowIDCache(tableEntry.RootPage)
+
+		values, err := e.evalReturningStrict(s.Returning, row, colDefs, tableEntry.Name)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		returningRows = append(returningRows, values)
+
+		if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, unwrapRowMap(row)); trigResult.Error != nil {
+			return trigResult
+		}
+	}
+
+	columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
+	return &Result{Columns: columns, Rows: returningRows}
+}
 
 

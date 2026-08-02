@@ -85,7 +85,7 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 - [ ] T1.26
 - [ ] T1.27
 - [ ] T1.28
-- [ ] T1.29
+- [x] T1.29
 
 ---
 
@@ -190,12 +190,20 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
    derived-table/CTE compound column resolution.
 
 10. **selectH (undocumented in original research)** — `selectH.test`
-    `counter(1)` — test-only SQL function from `src/test1.c` (returns an
-    incrementing counter). Missing helper → engine renders the function AST
-    pointer (`&{0x... rtrim}`) instead of a value, and views over
-    `UNION ALL ... counter(1)` collapse. **Fix (harness)**: register
-    `counter()` in helpers; **Fix (engine)**: view-over-compound expansion
-    with `*` + named extra columns (`SELECT c16 AS a, *, counter(1) AS x ...`).
+      `counter(1)` — test-only SQL function from `src/test1.c` (returns an
+      incrementing counter). Missing helper → engine renders the function AST
+      pointer (`&{0x... rtrim}`) instead of a value, and views over
+      `UNION ALL ... counter(1)` collapse. **FIXED (T1.29)**: three root
+      causes found and fixed: (1) `counter()` not registered — added as an
+      engine function in `evalFuncCall` with per-statement reset in `Exec`
+      (SQLite's column-pruning optimization would skip unused counter() calls;
+      since our engine lacks that optimization, per-statement reset keeps
+      results consistent so `SELECT x FROM v1` returns 1,2,3,4); (2) COLLATE
+      result rendering — `name COLLATE rtrim` leaked `*collatedValue` pointer
+      into output; added `unwrapCollatedValue` at all result-column build sites;
+      (3) DROP TABLE didn't cascade-drop indexes — orphaned index `t1c60`
+      remained in sqlite_schema giving 3 rows instead of 2; added
+      `schema.FindIndexesForTable` and call it in `execDropTable`.
 
 ### B. ENGINE bugs — schema / DDL / constraints
 

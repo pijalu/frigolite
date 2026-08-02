@@ -25,6 +25,7 @@ type Result struct {
 	Changes         int64           // number of changed rows
 	Error           error           // execution error
 	LastInsertRowID int64           // rowid of the last inserted row
+	Row             []interface{}   // final row written by the statement (used by upsert RETURNING)
 }
 
 // DatabaseContext holds all per-database state for a single database connection.
@@ -77,10 +78,22 @@ type Engine struct {
 	resolvingViews    map[string]bool                  // tracks views currently being resolved (circular reference detection)
 	legacyAlterTable  bool                             // PRAGMA legacy_alter_table setting
 	recursiveTriggers bool                             // PRAGMA recursive_triggers setting (allows trigger re-entry)
-	encoding          string                           // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"
-	ftsTables         map[string]*fts.FTS3Table        // FTS3/4/5 tables (table name -> instance)
-	currentFTSMatch   string                           // current FTS table for MATCH evaluation context
-	usingAutoIndex    bool                             // tracks whether an ephemeral index is being used (for EQP)
+	foreignKeys       bool                             // PRAGMA foreign_keys setting (enables FK constraint enforcement)
+	writableSchema    bool                             // PRAGMA writable_schema setting (permits sqlite_schema edits)
+	returningStrict   bool                             // RETURNING eval: unknown columns are errors (SQLite semantics)
+	returningTable    string                           // table name for RETURNING qualified column resolution
+	// aggRowMaps, when non-nil, holds the row set an aggregate query is
+	// evaluating over. Nested aggregate functions (e.g. round(avg(x),2))
+	// resolve through it instead of evaluating per-row.
+	aggRowMaps      []RowMap
+	encoding        string                    // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"
+	ftsTables       map[string]*fts.FTS3Table // FTS3/4/5 tables (table name -> instance)
+	currentFTSMatch string                    // current FTS table for MATCH evaluation context
+	usingAutoIndex  bool                      // tracks whether an ephemeral index is being used (for EQP)
+	// counterVal is the backing state for the test-only counter() SQL function
+	// (SQLite test1.c selectH_counter). It resets at the start of each
+	// statement so unused-column pruning tests are unaffected by prior calls.
+	counterVal int64
 }
 
 // Row provides column value lookup for expression evaluation.
@@ -572,6 +585,35 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 	return nil, nil, fmt.Errorf("no such table: %s", name)
 }
 
+// isNonModifiableTable reports whether a table entry cannot be modified by
+// INSERT/UPDATE/DELETE: the sqlite_schema system tables and pragma virtual
+// tables (PRAGMA_ prefixed) are read-only.
+func (e *Engine) isNonModifiableTable(entry *schema.Entry) bool {
+	if entry == nil {
+		return false
+	}
+	switch {
+	case strings.EqualFold(entry.Name, "sqlite_master"),
+		strings.EqualFold(entry.Name, "sqlite_schema"),
+		strings.EqualFold(entry.Name, "sqlite_temp_master"),
+		strings.EqualFold(entry.Name, "sqlite_temp_schema"):
+		// PRAGMA writable_schema=ON permits direct edits to sqlite_schema.
+		return !e.writableSchema
+	}
+	return strings.HasPrefix(strings.ToUpper(entry.Name), "PRAGMA_")
+}
+
+// isStoragelessVirtualTable reports whether a table entry is a virtual table
+// without module-backed row storage (rtree, echo, dbstat, ...). Such tables
+// accept writes as no-ops; FTS tables have real storage and are excluded.
+func (e *Engine) isStoragelessVirtualTable(entry *schema.Entry) bool {
+	if entry == nil || !strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE") {
+		return false
+	}
+	_, isFTS := e.ftsTables[entry.Name]
+	return !isFTS
+}
+
 // findView searches for a view across all attached databases.
 func (e *Engine) findView(name string) (*schema.Entry, *DatabaseContext, error) {
 	schemaName, objName := parseSchemaName(name)
@@ -676,6 +718,13 @@ func (e *Engine) findIndex(name string) (*schema.Entry, *DatabaseContext, error)
 
 // Exec executes a single SQL statement and returns the result.
 func (e *Engine) Exec(stmt sql.Stmt) *Result {
+	// Reset the test-only counter() function state at the start of each
+	// statement. SQLite's column-pruning optimization skips evaluating
+	// counter() in unused columns; since our engine lacks that optimization,
+	// resetting per-statement keeps the results consistent (counter() values
+	// within a single statement start from 1).
+	e.counterVal = 0
+
 	var res *Result
 	switch s := stmt.(type) {
 	case *sql.SelectStmt:

@@ -797,6 +797,7 @@ func Test_returning1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // TCL test resets the nullvalue before 21.0
 		{ // "21.0"
 			r = db.Query("\n  PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;\n")
 			if r.Error != nil {
@@ -893,12 +894,6 @@ func Test_returning1(t *testing.T) {
 			want := "x"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "-db"
-			_res = db.Exec("db2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 			}
 		}
 		db2.Close()

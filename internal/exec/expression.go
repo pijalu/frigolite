@@ -394,6 +394,10 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 		return int64(0), nil
 	}
 	if v.Name == "*" {
+		// RETURNING rejects table-qualified wildcards ("t1.*").
+		if e.returningStrict && v.Table != "" {
+			return nil, fmt.Errorf("RETURNING may not use \"%s.*\" wildcards", v.Table)
+		}
 		return "*", nil
 	}
 	// Qualified column reference: check qualified name first
@@ -439,6 +443,27 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 				return val, nil
 			}
 		}
+		// RETURNING evaluates expressions against the statement's row with strict
+		// column resolution: unknown columns are errors ("no such column"), and a
+		// qualifier must name the modified table (not NEW/OLD, an alias, or a
+		// different table). Inside a subquery scan (currentScanTable != "") the
+		// scan's own row resolution already succeeded or fell through, so strict
+		// mode only applies at the RETURNING row level.
+		if e.returningStrict && e.currentScanTable == "" {
+			if strings.EqualFold(v.Table, e.returningTable) {
+				if row != nil {
+					if val, ok := row.Get(v.Name); ok {
+						return val, nil
+					}
+					if isRowIDName(v.Name) {
+						if val, ok := row.Get("rowid"); ok {
+							return val, nil
+						}
+					}
+				}
+			}
+			return nil, fmt.Errorf("no such column: %s.%s", v.Table, v.Name)
+		}
 		return nil, nil
 	}
 	// Unqualified: check short name
@@ -456,7 +481,22 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 			return val, nil
 		}
 	}
+	// RETURNING strict resolution: an unqualified reference must name a column
+	// of the modified table (or rowid/oid/_rowid_). Unknown columns are errors.
+	if e.returningStrict && e.currentScanTable == "" {
+		if isRowIDName(v.Name) && row != nil {
+			if val, ok := row.Get("rowid"); ok {
+				return val, nil
+			}
+		}
+		return nil, fmt.Errorf("no such column: %s", v.Name)
+	}
 	return nil, nil
+}
+
+// isRowIDName reports whether a column name is one of the rowid aliases.
+func isRowIDName(name string) bool {
+	return strings.EqualFold(name, "rowid") || strings.EqualFold(name, "_rowid_") || strings.EqualFold(name, "oid")
 }
 
 // outerRowsForResolution returns the correlated-scope rows visible to the
@@ -628,6 +668,18 @@ func extractValue(v interface{}) (interface{}, string) {
 		return cv.value, cv.collation
 	}
 	return v, ""
+}
+
+// unwrapCollatedValue extracts the raw value from a collatedValue wrapper.
+// Used when a value flows to a result column, where the collation marker
+// (a *collatedValue pointer) must not leak into the output. Since a COLLATE
+// expression wraps its operand (which may itself be a *ColumnValue), this
+// also unwraps the inner ColumnValue to produce the raw scalar.
+func unwrapCollatedValue(v interface{}) interface{} {
+	if cv, ok := v.(*collatedValue); ok {
+		return util.UnwrapColumnValue(cv.value)
+	}
+	return v
 }
 
 // compareValuesWithCollate compares two values using the collation from either side.
@@ -1110,11 +1162,30 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 		return e.lastRowID, nil
 	case "RAISE":
 		return e.evalRaiseFuncCall(f, row)
+	case "COUNTER":
+		// Test-only counter(N) function (SQLite test1.c selectH_counter):
+		// increments the engine counter by N and returns the new value.
+		// The counter resets at the start of each statement (see Exec).
+		amt := int64(1)
+		if len(f.Args) > 0 {
+			if v, err := e.evalExpr(f.Args[0], row); err == nil {
+				amt = toIntValue(util.UnwrapColumnValue(v))
+			}
+		}
+		e.counterVal += amt
+		return e.counterVal, nil
 	}
 
 	fn, ok := e.funcs.Find(f.Name)
 	if !ok {
 		return nil, fmt.Errorf("unknown function: %s", f.Name)
+	}
+
+	// Nested aggregate inside a wrapper expression of an aggregate query
+	// (e.g. round(avg(x),2)): evaluate over the aggregate row set rather
+	// than the single per-row context.
+	if fn.Type == function.TypeAggregate && e.aggRowMaps != nil {
+		return e.evalAggFuncCall(f, e.aggRowMaps)
 	}
 
 	// ORDER BY is only allowed for aggregate functions
@@ -1242,6 +1313,16 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		// Cache for future use
 		e.colCache[tableName] = ct.Columns
 		return ct.Columns
+	}
+	// CREATE VIRTUAL TABLE t1 USING module(a, b, c): the module arguments are
+	// the virtual table's column names.
+	if vt, ok := stmts[0].(*sql.CreateVirtualTableStmt); ok && vt != nil {
+		colDefs := make([]sql.ColumnDef, len(vt.Args))
+		for i, arg := range vt.Args {
+			colDefs[i] = sql.ColumnDef{Name: arg, Type: ""}
+		}
+		e.colCache[tableName] = colDefs
+		return colDefs
 	}
 	// For virtual tables, check if we have an FTS table registered
 	if ftsTable, ok := e.ftsTables[tableName]; ok {

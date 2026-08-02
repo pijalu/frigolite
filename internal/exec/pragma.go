@@ -385,8 +385,9 @@ func (e *Engine) clearStatsForIndex(tblName, idxName string) *Result {
 	return &Result{Changes: deleted}
 }
 
-//lint:ignore U1000  Planned for P2 ANALYZE
 // statLookup returns the stat string for a given index, or empty if not available.
+//
+//lint:ignore U1000  Planned for P2 ANALYZE
 func (e *Engine) statLookup(tbl, idx string) string {
 	tableEntry, err := e.schema.FindTable("sqlite_stat1")
 	if err != nil {
@@ -446,6 +447,10 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 			e.legacyAlterTable = s.Value == "1"
 		case "RECURSIVE_TRIGGERS":
 			e.recursiveTriggers = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
+		case "FOREIGN_KEYS":
+			e.foreignKeys = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
+		case "WRITABLE_SCHEMA":
+			e.writableSchema = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
 		case "ENCODING":
 			// Accept UTF-8, UTF-16, UTF-16le, UTF-16be (case-insensitive)
 			switch strings.ToUpper(s.Value) {
@@ -470,24 +475,28 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 }
 
 var pragmaHandlers = map[string]func(e *Engine) *Result{
-	"TABLE_INFO":          func(e *Engine) *Result { return &Result{Columns: []string{"cid", "name", "type", "notnull", "dflt_value", "pk"}} },
-	"INDEX_INFO":          func(e *Engine) *Result { return &Result{Columns: []string{"seqno", "cid", "name"}} },
-	"INDEX_LIST":          func(e *Engine) *Result { return &Result{Columns: []string{"seq", "name", "unique"}} },
-	"FOREIGN_KEY_LIST":    func(e *Engine) *Result { return &Result{Columns: []string{"id", "seq", "table", "from", "to", "on_update", "on_delete", "match"}} },
-	"DATABASE_VERSION":    func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
-	"PAGE_SIZE":           func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(e.pager.PageSize())}}} },
-	"PAGE_COUNT":          func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
-	"FREELIST_COUNT":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"SCHEMA_VERSION":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
-	"USER_VERSION":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"APPLICATION_ID":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"AUTO_VACUUM":         func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"JOURNAL_MODE":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"memory"}}} },
-	"SYNCHRONOUS":         func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
-	"CACHE_SIZE":          func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(2000)}}} },
-	"TEMP_STORE":          func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"LOCKING_MODE":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"normal"}}} },
-	"DATABASE_LIST":       func(e *Engine) *Result {
+	"TABLE_INFO": func(e *Engine) *Result {
+		return &Result{Columns: []string{"cid", "name", "type", "notnull", "dflt_value", "pk"}}
+	},
+	"INDEX_INFO": func(e *Engine) *Result { return &Result{Columns: []string{"seqno", "cid", "name"}} },
+	"INDEX_LIST": func(e *Engine) *Result { return &Result{Columns: []string{"seq", "name", "unique"}} },
+	"FOREIGN_KEY_LIST": func(e *Engine) *Result {
+		return &Result{Columns: []string{"id", "seq", "table", "from", "to", "on_update", "on_delete", "match"}}
+	},
+	"DATABASE_VERSION": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"PAGE_SIZE":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(e.pager.PageSize())}}} },
+	"PAGE_COUNT":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"FREELIST_COUNT":   func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"SCHEMA_VERSION":   func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"USER_VERSION":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"APPLICATION_ID":   func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"AUTO_VACUUM":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"JOURNAL_MODE":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"memory"}}} },
+	"SYNCHRONOUS":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"CACHE_SIZE":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(2000)}}} },
+	"TEMP_STORE":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"LOCKING_MODE":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"normal"}}} },
+	"DATABASE_LIST": func(e *Engine) *Result {
 		var rows [][]interface{}
 		seq := int64(0)
 		// Main database first (seq 0), then attached databases
@@ -503,28 +512,41 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 		}
 		return &Result{Columns: []string{"seq", "name", "file"}, Rows: rows}
 	},
-	"INTEGRITY_CHECK":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"ok"}}} },
-	"LEGACY_ALTER_TABLE":  func(e *Engine) *Result {
+	"INTEGRITY_CHECK": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"ok"}}} },
+	"LEGACY_ALTER_TABLE": func(e *Engine) *Result {
 		val := int64(0)
 		if e.legacyAlterTable {
 			val = 1
 		}
 		return &Result{Rows: [][]interface{}{{val}}}
 	},
-	"TABLE_X":             func(e *Engine) *Result { return &Result{Columns: []string{"oid", "colX"}, Rows: [][]interface{}{{int64(0), ""}}} },
+	"TABLE_X": func(e *Engine) *Result {
+		return &Result{Columns: []string{"oid", "colX"}, Rows: [][]interface{}{{int64(0), ""}}}
+	},
 	"COUNT_CHANGES":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"CASE_SENSITIVE_LIKE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"RECURSIVE_TRIGGERS":  func(e *Engine) *Result {
+	"RECURSIVE_TRIGGERS": func(e *Engine) *Result {
 		val := int64(0)
 		if e.recursiveTriggers {
 			val = 1
 		}
 		return &Result{Rows: [][]interface{}{{val}}}
 	},
-	"READ_UNCOMMITTED":    func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"ENCODING":            func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{e.encoding}}} },
-	"SCHEMA_TABLE":        func(e *Engine) *Result { return &Result{Columns: []string{"type", "name", "tbl_name", "rootpage", "sql"}} },
-	"SOFT_HEAP_LIMIT":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"THREADS":             func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
-	"COMPILE_OPTIONS":     func(e *Engine) *Result { return &Result{Columns: []string{"compile_options"}, Rows: [][]interface{}{{"THREADSAFE=1"}}} },
+	"FOREIGN_KEYS": func(e *Engine) *Result {
+		val := int64(0)
+		if e.foreignKeys {
+			val = 1
+		}
+		return &Result{Rows: [][]interface{}{{val}}}
+	},
+	"READ_UNCOMMITTED": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"ENCODING":         func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{e.encoding}}} },
+	"SCHEMA_TABLE": func(e *Engine) *Result {
+		return &Result{Columns: []string{"type", "name", "tbl_name", "rootpage", "sql"}}
+	},
+	"SOFT_HEAP_LIMIT": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"THREADS":         func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"COMPILE_OPTIONS": func(e *Engine) *Result {
+		return &Result{Columns: []string{"compile_options"}, Rows: [][]interface{}{{"THREADSAFE=1"}}}
+	},
 }

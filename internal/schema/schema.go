@@ -344,6 +344,24 @@ func (m *Manager) FindTriggersForTable(tableName string) ([]*Entry, error) {
 	return result, nil
 }
 
+// FindIndexesForTable returns all indexes associated with a given table.
+// This is used by DROP TABLE to cascade-drop indexes (SQLite semantics:
+// dropping a table removes all its indexes).
+func (m *Manager) FindIndexesForTable(tableName string) ([]*Entry, error) {
+	entries, err := m.GetEntries(TypeIndex)
+	if err != nil {
+		return nil, err
+	}
+	var result []*Entry
+	upper := strings.ToUpper(tableName)
+	for _, e := range entries {
+		if strings.ToUpper(e.TblName) == upper {
+			result = append(result, e)
+		}
+	}
+	return result, nil
+}
+
 // FindIndex returns the schema entry for an index.
 func (m *Manager) FindIndex(name string) (*Entry, error) {
 	entries, err := m.GetEntries(TypeIndex)
