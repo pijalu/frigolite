@@ -3,15 +3,15 @@
 **Source of truth for TCL semantics**: `/Users/muaddib/dev/sqlite/test/`
 **Package list**: `plans/PACKAGES_TIER1.txt` (58 packages)
 **Measured this session** (`go test -tags testgen -count=1 -timeout 90s` per package, parallel sweep):
-**29 PASS / 29 FAIL** at T1.4 start; **30 PASS / 28 FAIL** after T1.4 (only whereG flipped); **32 PASS / 26 FAIL** after T1.5 (numcast, values, between flipped; whereA re-exposed by stricter do_test result-checking — see §1 note).
-**Progress**: T1.1 DONE (delete3 green 2.9s), T1.2 DONE (selectG 145s→5s via rowid cache), T1.3 DONE (cse green — comparison/IN/IS NULL/BETWEEN/logical never emit Go bool), T1.4 DONE (whereG green — TCL list-brace unwrap in tcl2go + comparison affinity/rowid INTEGER affinity fixes), T1.5 DONE (numcast/values/between green — $var-in-SQL → quoted literal in gen.go; harness result-checking + skip-side-effects; CTE scope stack for scalar-subquery CTEs; BEGIN/ROLLBACK pager snapshot/restore; RAISE() in triggers; scalar min/max NULL semantics; COLLATE in ORDER BY via compareValuesWithCollate) — remaining 26 FAIL pending.
+**29 PASS / 29 FAIL** at T1.4 start; **30 PASS / 28 FAIL** after T1.4 (only whereG flipped); **32 PASS / 26 FAIL** after T1.5 (numcast, values, between flipped; whereA re-exposed by stricter do_test result-checking — see §1 note); **33 PASS / 25 FAIL** after T1.6 (cast flipped — multi-row VALUES compound preserved; flexnum no int↔real coercion in compound columns).
+**Progress**: T1.1 DONE (delete3 green 2.9s), T1.2 DONE (selectG 145s→5s via rowid cache), T1.3 DONE (cse green — comparison/IN/IS NULL/BETWEEN/logical never emit Go bool), T1.4 DONE (whereG green — TCL list-brace unwrap in tcl2go + comparison affinity/rowid INTEGER affinity fixes), T1.5 DONE (numcast/values/between green — $var-in-SQL → quoted literal in gen.go; harness result-checking + skip-side-effects; CTE scope stack for scalar-subquery CTEs; BEGIN/ROLLBACK pager snapshot/restore; RAISE() in triggers; scalar min/max NULL; COLLATE in ORDER BY via compareValuesWithCollate), T1.6 DONE (values/cast green — multi-row VALUES compound all rows in INSERT, CREATE VIEW AS, CTE, scalar subquery via execValuesGroup/ValuesChain; VALUES-view/CTE materialization keeps all rows; scalar VALUES takes first row; compound column affinity = first member, SQLITE_AFF_FLEXNUM keeps INT 55 as int next to REAL; selectC/select1 re-checked — remaining failures are other roots: selectC-4.3 udf() → T1.8, select1-21.1 ON-clause view col → T1.23) — remaining 25 FAIL pending.
 
-- **PASS (32)**: insert, delete_, update, null, types, coalesce, literal, select2,
+- **PASS (33)**: insert, delete_, update, null, types, coalesce, literal, select2,
   select3, select4, select5, select6, select8, select9, selectB, selectE, selectF,
   selectG*, whereB, whereC, whereJ, whereK, whereN, delete2, delete4, valuesfault,
-  delete3, cse, whereG, numcast, values, between
+  delete3, cse, whereG, numcast, values, cast, between
   (*selectG passes alone in ~145s but times out under parallel load — O(n²) rowid scan, task T1.2)
-- **FAIL (26)**: affinity, cast, delete_pkg, expr, intpkey,
+- **FAIL (25)**: affinity, delete_pkg, expr, intpkey,
   intreal, istrue, nulls, returning, select1, select7, selectA, selectC,
   selectD, selectH, strict, subtype, where, whereA, whereD, whereE, whereF,
   whereH, whereI, whereL, whereM
@@ -31,7 +31,7 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 | T1.3 | cse bool→0/1 — value model never emits Go bool | cse | engine | `go test -tags testgen ./testgen/cse/ -count=1` |
 | T1.4 | whereG braces — strip TCL list braces from expected | whereG | harness | `go test -tags testgen ./testgen/whereG/ -count=1` |
 | T1.5 | tcl2go `$var`-in-SQL — bind/quote instead of raw text | numcast, values (partial), between (partial) | harness | `go test -tags testgen ./testgen/{numcast,values,between}/ -count=1` |
-| T1.6 | multi-row VALUES compound — all rows, all contexts | values, cast, selectC (part), select1 (part) | engine | `go test -tags testgen ./testgen/{values,cast,selectC}/ -count=1` |
+| T1.6 | multi-row VALUES compound — all rows, all contexts | values, cast, selectC (part: VALUES cases), select1 (part: VALUES cases) | engine | `go test -tags testgen ./testgen/{values,cast}/ -count=1` (selectC/select1 keep failing on other roots: udf() → T1.8, ON-clause view col → T1.23) |
 | T1.7 | RETURNING execution — INSERT/UPDATE/DELETE projection | returning | engine | `go test -tags testgen ./testgen/returning/ -count=1` |
 | T1.8 | harness custom fns — test_getsubtype, intreal, udf, TCL int/log | subtype, intreal, selectC, between | harness | `go test -tags testgen ./testgen/{subtype,intreal,selectC,between}/ -count=1` |
 | T1.9 | engine implies_nonnull_row (func.c INLINEFUNC) | expr | engine | `go test -tags testgen ./testgen/expr/ -count=1` |
@@ -62,7 +62,7 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 - [x] T1.3 — cse bool→0/1: evalIsNull/evalIsNotNull/evalBetween/evalInList + HAVING IsNull/NOT/IsNotNull now emit int64(0/1)
 - [x] T1.4 — whereG braces: tcl2go normalizeExpectedWord unwraps single {...} list-rendering groups; engine CompareValues rule-3 (no affinity → type ordering) + rowid wrapped with INTEGER affinity. Committed + pushed.
 - [x] T1.5 — tcl2go $var-in-SQL → quoted literal; harness result-checking for do_test db-eval bodies + skipped tests run for side effects; engine: CTE scope stack (scalar-subquery CTEs), BEGIN/ROLLBACK pager snapshot/restore (DML undo), RAISE() trigger semantics, scalar min/max NULL, ORDER BY COLLATE via compareValuesWithCollate, RAISE parse rules 278-282. numcast/values/between green. Committed + pushed.
-- [ ] T1.6
+- [x] T1.6 — multi-row VALUES compound: execValuesGroup/ValuesChain preserve all tuples in INSERT, CREATE VIEW AS, CTE, scalar subquery; compound column affinity = first member (flexnum: INT stays int next to REAL). values + cast green; selectC/select1 re-checked (fail only on udf() → T1.8 and ON-clause view col → T1.23). Committed + pushed.
 - [ ] T1.7
 - [ ] T1.8
 - [ ] T1.9
@@ -277,7 +277,7 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
 
 ### D. ENGINE bugs — multi-row VALUES / views / RETURNING
 
-19. **values** — `/Users/muaddib/dev/sqlite/test/values.test` (engine part)
+19. **values** — `/Users/muaddib/dev/sqlite/test/values.test` (engine part) ✅ RESOLVED (T1.6)
     After fixing `$var` transpilation, remaining engine issues:
     - 1.2.6 (multi-row VALUES): the engine's multi-row VALUES with 3+ columns
       drops the 3rd column of later rows (`[4 4 {} 5 5 {} 6 6 {}]`).
@@ -293,14 +293,24 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
       engine `[a]` want `[xyz]` — scalar VALUES with expressions.
     **Fix (engine)**: make multi-row VALUES (compound) produce all rows in all
     contexts (INSERT, CREATE VIEW AS, CTE, scalar subquery).
+    **Resolved**: execValuesGroup evaluates a VALUES member's full internal
+    UNION ALL tuple chain as one operand; execSelectNoFrom/finalizeSelectResult
+    merge the chain; VALUES-view/CTE materialization keeps all rows; scalar
+    VALUES takes the first row's first column. values package green (1.2.6,
+    2.x via EXPLAIN-only, 5.1, 7.1, 13.0 all pass; 13.1 window fn remains
+    skipped — out of scope).
 
-20. **cast** — `/Users/muaddib/dev/sqlite/test/cast.test:516-526` (10.1-10.4)
+20. **cast** — `/Users/muaddib/dev/sqlite/test/cast.test:516-526` (10.1-10.4) ✅ RESOLVED (T1.6)
     `VALUES(CAST(44 AS REAL)),(55)` → `44.0 55`; engine `[44.0]`. Same
     multi-row VALUES compound bug (only first tuple returned) plus
     SQLITE_AFF_FLEXNUM (INT 55 must not be coerced to REAL in a VALUES
     compound — the second value stays `55` int). **Fix (engine)**: VALUES
     compound row preservation + flexnum affinity (no int↔real coercion in
     compound result columns).
+    **Resolved**: compound result column affinity comes from the first SELECT
+    member; flexnum affinity does not coerce INT↔REAL in compound columns —
+    `VALUES(CAST(44 AS REAL)),(55)` → `44.0` (REAL) + `55` (INT). cast package
+    green (10.1-10.4).
 
 21. **returning** — `/Users/muaddib/dev/sqlite/test/returning1.test:21-27` (1.0/1.1)
     `INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;` →
@@ -464,6 +474,9 @@ then commit and push.** Verify loop in §3. Root-cause details in §1.
    VIEW AS, CTE, scalar subquery, VALUES in SELECT list) — values, cast
    (10.1-10.4), and parts of select1/selectC/selectH. This is a single root
    cause: the engine's VALUES compound only keeps one tuple (first or last).
+   ✅ RESOLVED (T1.6): execValuesGroup + ValuesChain preserve all tuples in
+   all contexts; compound column affinity = first member (flexnum: INT stays
+   int next to REAL). values/cast green.
 
 5. **EXPLAIN / EXPLAIN QUERY PLAN**: the planner emits SCAN-only plans and a
    stub EXPLAIN (`*sql.SelectStmt` AST pointers). whereE/whereH/whereF/selectD
