@@ -980,8 +980,11 @@ func (e *Engine) evalUnaryOp(v *sql.UnaryOp, row Row) (interface{}, error) {
 	case "-":
 		return negateValue(operand)
 	case "+":
-		// Unary plus: convert to numeric (like SQLite's + operator)
-		return numericValue(operand)
+		// Unary plus is a no-op in SQLite — it returns the operand value
+		// unchanged (no numeric conversion). This is used in ORDER BY +col
+		// to bypass index-based sorting while preserving the original value
+		// and type.
+		return operand, nil
 	case "NOT":
 		return boolToInt(!toBool(operand)), nil
 	case "~":

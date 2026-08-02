@@ -399,6 +399,15 @@ func (e *Engine) checkUniqueConstraints(tableEntry *schema.Entry, colDefs []sql.
 		}
 	}
 
+	// Check table-level composite PRIMARY KEY / UNIQUE constraints
+	// (e.g. PRIMARY KEY(a,b) or UNIQUE(a,b)). Each group is a set of column
+	// indices that must be unique TOGETHER, not individually.
+	for _, group := range e.compositeUniqueGroups(tableEntry.Name, tableEntry.SQL, colDefs) {
+		if err := e.checkCompositeUnique(tableEntry, colDefs, values, group); err != nil {
+			return err
+		}
+	}
+
 	// Check UNIQUE indexes (CREATE UNIQUE INDEX ... ON t(c1, c2)).
 	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
 		if err := e.checkUniqueIndex(tableEntry, colDefs, values, def); err != nil {
@@ -406,6 +415,90 @@ func (e *Engine) checkUniqueConstraints(tableEntry *schema.Entry, colDefs []sql.
 		}
 	}
 	return nil
+}
+
+// compositeUniqueGroups returns groups of column indices that have table-level
+// PRIMARY KEY or UNIQUE constraints. Each group must be unique together.
+// Single-column PRIMARY KEY (column-level) is excluded since it's handled
+// separately by the column-level check.
+func (e *Engine) compositeUniqueGroups(tableName, createSQL string, colDefs []sql.ColumnDef) [][]int {
+	constraints := e.tableConstraints(tableName, createSQL)
+	colIndex := buildColumnIndex(colDefs)
+	var groups [][]int
+	for _, tc := range constraints {
+		switch tc.Type {
+		case sql.ConstraintPrimaryKey, sql.ConstraintUnique:
+			var indices []int
+			for _, ic := range tc.Columns {
+				if idx, ok := colIndex[ic.Name]; ok && idx >= 0 {
+					indices = append(indices, idx)
+				}
+			}
+			if len(indices) > 0 {
+				groups = append(groups, indices)
+			}
+		}
+	}
+	return groups
+}
+
+// checkCompositeUnique scans for an existing row where ALL columns in the group
+// match the new row's values (composite uniqueness). NULL values never conflict
+// (NULL != NULL in SQL uniqueness semantics).
+func (e *Engine) checkCompositeUnique(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, group []int) error {
+	// Skip if any group value is NULL (composite key with NULL is never a conflict)
+	for _, idx := range group {
+		if idx >= len(values) || values[idx] == nil {
+			return nil
+		}
+	}
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return nil
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil {
+			break
+		}
+		if allMatch(rec.Values, group, values) {
+			// Build error message with all constraint column names
+			var names []string
+			for _, idx := range group {
+				if idx < len(colDefs) {
+					names = append(names, tableEntry.Name+"."+colDefs[idx].Name)
+				}
+			}
+			return fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(names, ", "))
+		}
+		hasNext, err := cursor.Next()
+		if err != nil || !hasNext {
+			break
+		}
+	}
+	return nil
+}
+
+// allMatch returns true if ALL columns in the group match between the existing
+// record and the new values. NULL values never match (NULL != NULL).
+func allMatch(recValues []interface{}, group []int, values []interface{}) bool {
+	for _, idx := range group {
+		if idx >= len(recValues) || idx >= len(values) {
+			return false
+		}
+		if recValues[idx] == nil || values[idx] == nil {
+			return false
+		}
+		if util.CompareValues(recValues[idx], values[idx]) != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // uniqueIndexDef describes a UNIQUE index on a table: the indexed columns and
@@ -884,6 +977,48 @@ func (e *Engine) findRowByUniqueCols(tableName string, rootPage uint32, colDefs 
 			}
 		}
 	}
+
+	// Check table-level composite PRIMARY KEY / UNIQUE constraints for
+	// REPLACE and UPSERT conflict detection. A composite key conflict occurs
+	// when ALL columns in the group match simultaneously.
+	if tableEnt, _, err := e.findTable(tableName); err == nil {
+		for _, group := range e.compositeUniqueGroups(tableName, tableEnt.SQL, colDefs) {
+			// Skip if any group value is NULL (NULL never conflicts)
+			hasNull := false
+			for _, idx := range group {
+				if idx >= len(values) || values[idx] == nil {
+					hasNull = true
+					break
+				}
+			}
+			if hasNull {
+				continue
+			}
+			tree := e.tableBTree(tableName, rootPage, true)
+			cursor, err := tree.OpenCursor()
+			if err != nil {
+				continue
+			}
+			for {
+				cell, err := cursor.ReadCell()
+				if err != nil || cell == nil {
+					break
+				}
+				rec, err := storage.DecodeRecord(cell.Payload)
+				if err != nil || rec == nil {
+					break
+				}
+				if allMatch(rec.Values, group, values) {
+					return cell.RowID, rec.Values, group[0], true
+				}
+				hasNext, err := cursor.Next()
+				if err != nil || !hasNext {
+					break
+				}
+			}
+		}
+	}
+
 	if len(uniqueCols) == 0 {
 		return 0, nil, -1, false
 	}
