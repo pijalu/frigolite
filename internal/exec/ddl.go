@@ -4,6 +4,7 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
@@ -198,6 +199,29 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		return &Result{Error: fmt.Errorf("table %s already exists", tableName)}
 	}
 
+	// STRICT table validation: every column must have a datatype, and the
+	// datatype must be one of the allowed STRICT types (INT, INTEGER, TEXT,
+	// REAL, BLOB, ANY).
+	// The go-lemon parser doesn't propagate the STRICT flag, so we detect it
+	// from the raw SQL text.
+	isStrict := s.Strict || hasStrictKeyword(strings.ToUpper(s.RawSQL))
+	if isStrict {
+		s.Strict = true
+		for _, col := range s.Columns {
+			// Skip generated columns (they don't need a type in STRICT tables)
+			if col.Generated != nil {
+				continue
+			}
+			typeName := strings.TrimSpace(col.Type)
+			if typeName == "" {
+				return &Result{Error: fmt.Errorf("missing datatype for %s.%s", tableName, col.Name)}
+			}
+			if !isValidStrictType(typeName) {
+				return &Result{Error: fmt.Errorf("unknown datatype for %s.%s: %q", tableName, col.Name, typeName)}
+			}
+		}
+	}
+
 	pg := ctx.Pager.AllocatePage()
 	// Initialize a fresh empty leaf: zero the page and set a valid header so
 	// a reused page (from a dropped table) does not retain stale cells.
@@ -312,6 +336,9 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 	buf.WriteString(")")
 	if s.WithoutRowid {
 		buf.WriteString(" WITHOUT ROWID")
+	}
+	if s.Strict {
+		buf.WriteString(", STRICT")
 	}
 	return buf.String()
 }
@@ -1467,4 +1494,112 @@ func caseExprToString(v *sql.CaseExpr) string {
 		result += " ELSE " + exprToString(v.Else)
 	}
 	return result + " END"
+}
+
+// isValidStrictType returns true if the type name is allowed in a STRICT table.
+// Allowed types: INT, INTEGER, TEXT, REAL, BLOB, ANY (case-insensitive).
+func isValidStrictType(typeName string) bool {
+	upper := strings.ToUpper(strings.TrimSpace(typeName))
+	switch upper {
+	case "INT", "INTEGER", "TEXT", "REAL", "BLOB", "ANY":
+		return true
+	}
+	return false
+}
+
+// isStrictTable returns true if the table's CREATE SQL specifies STRICT.
+func isStrictTable(createSQL string) bool {
+	upper := strings.ToUpper(createSQL)
+	return hasStrictKeyword(upper)
+}
+
+// hasStrictKeyword checks if "STRICT" appears as a standalone keyword in the
+// CREATE TABLE SQL (not inside a string literal or column name).
+func hasStrictKeyword(upperSQL string) bool {
+	idx := strings.LastIndex(upperSQL, ")")
+	if idx < 0 {
+		return false
+	}
+	tail := upperSQL[idx:]
+	return strings.Contains(tail, "STRICT")
+}
+
+// enforceStrictType checks if a value is compatible with a STRICT column type.
+// Returns an error if the value's storage class does not match the declared type.
+// STRICT rules (SQLite src/vdbeaux.c):
+//   - TEXT: value must be text (string)
+//   - INTEGER/INT: value must be an integer; numeric strings are accepted
+//   - REAL: value must be real (or integer, converted to real); numeric strings accepted
+//   - BLOB: value must be a blob
+//   - ANY: any value accepted
+func enforceStrictType(tableName, colName, declaredType string, v interface{}) error {
+	if v == nil {
+		return nil // NULL is always allowed
+	}
+	upper := strings.ToUpper(strings.TrimSpace(declaredType))
+	v = util.UnwrapColumnValue(v)
+	switch upper {
+	case "TEXT":
+		switch v.(type) {
+		case string:
+			return nil
+		default:
+			return fmt.Errorf("cannot store %s value in TEXT column %s.%s", strictStorageClass(v), tableName, colName)
+		}
+	case "INT", "INTEGER":
+		switch v.(type) {
+		case int64:
+			return nil
+		case string:
+			// Numeric-looking strings are accepted and converted to integer
+			if _, err := strconv.ParseInt(v.(string), 10, 64); err == nil {
+				return nil
+			}
+			return fmt.Errorf("cannot store %s value in INTEGER column %s.%s", strictStorageClass(v), tableName, colName)
+		default:
+			return fmt.Errorf("cannot store %s value in INTEGER column %s.%s", strictStorageClass(v), tableName, colName)
+		}
+	case "REAL":
+		switch v.(type) {
+		case float64:
+			return nil
+		case int64:
+			return nil // integers are accepted and converted to real
+		case string:
+			// Numeric-looking strings are accepted and converted to real
+			if _, err := strconv.ParseFloat(v.(string), 64); err == nil {
+				return nil
+			}
+			return fmt.Errorf("cannot store %s value in REAL column %s.%s", strictStorageClass(v), tableName, colName)
+		default:
+			return fmt.Errorf("cannot store %s value in REAL column %s.%s", strictStorageClass(v), tableName, colName)
+		}
+	case "BLOB":
+		switch v.(type) {
+		case []byte:
+			return nil
+		default:
+			return fmt.Errorf("cannot store %s value in BLOB column %s.%s", strictStorageClass(v), tableName, colName)
+		}
+	case "ANY":
+		return nil
+	}
+	return nil
+}
+
+// strictStorageClass returns the storage class name for error messages.
+func strictStorageClass(v interface{}) string {
+	v = util.UnwrapColumnValue(v)
+	switch v.(type) {
+	case int64:
+		return "integer"
+	case float64:
+		return "real"
+	case string:
+		return "text"
+	case []byte:
+		return "blob"
+	default:
+		return "unknown"
+	}
 }

@@ -206,11 +206,50 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 		return &Result{Error: err}
 	}
 
+	// STRICT table enforcement: check each value against its column's declared
+	// type BEFORE affinity is applied (affinity would convert the value to
+	// match the column type, defeating the STRICT check). In STRICT tables,
+	// only values compatible with the declared type are allowed.
+	isStrict := isStrictTable(tableEntry.SQL)
+	if isStrict {
+		for i, v := range values {
+			if i >= len(colDefs) {
+				break
+			}
+			cd := colDefs[i]
+			// Skip generated columns (computed separately)
+			if cd.Generated != nil {
+				continue
+			}
+			if err := enforceStrictType(tableEntry.Name, cd.Name, cd.Type, v); err != nil {
+				return &Result{Error: err}
+			}
+		}
+	}
+
 	// Apply type affinity to each value based on column type.
 	// Apply in-place to avoid allocating a separate affValues slice.
 	for i, v := range values {
 		if i < len(colDefs) {
 			values[i] = util.ApplyColumnAffinity(v, colDefs[i].Type)
+		}
+	}
+
+	// In STRICT mode, affinity may have converted the value — re-check that
+	// the converted value still matches the declared type (e.g. integer '42'
+	// was accepted as a string but affinity converted it to int64 42).
+	if isStrict {
+		for i, v := range values {
+			if i >= len(colDefs) {
+				break
+			}
+			cd := colDefs[i]
+			if cd.Generated != nil {
+				continue
+			}
+			if err := enforceStrictType(tableEntry.Name, cd.Name, cd.Type, v); err != nil {
+				return &Result{Error: err}
+			}
 		}
 	}
 

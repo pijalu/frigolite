@@ -280,6 +280,7 @@ type CreateTableStmt struct {
 	AsSelect     *SelectStmt       // CREATE TABLE ... AS SELECT
 	Constraints  []TableConstraint // table-level constraints
 	WithoutRowid bool              // WITHOUT ROWID option
+	Strict       bool              // STRICT tables (type-enforced)
 
 	// RawSQL is the original CREATE TABLE statement text as written by the
 	// user. It is stored verbatim in sqlite_schema (matching SQLite) so that

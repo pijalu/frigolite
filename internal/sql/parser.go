@@ -1837,6 +1837,7 @@ func (p *Parser) parseTableOptions(s *CreateTableStmt) {
 		}
 		if p.cur.Type == TokenKeyword && p.cur.Value == "STRICT" {
 			p.next()
+			s.Strict = true
 			continue
 		}
 		break
