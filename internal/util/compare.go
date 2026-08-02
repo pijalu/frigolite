@@ -502,6 +502,14 @@ func applyTextAffinity(val interface{}) interface{} {
 
 func applyNumericAffinity(val interface{}) interface{} {
 	switch v := val.(type) {
+	case float64:
+		// SQLite NUMERIC affinity: "If a floating point value that can be
+		// represented exactly as an integer is inserted into a column with
+		// NUMERIC affinity, the value is converted into an integer."
+		if v == float64(int64(v)) {
+			return int64(v)
+		}
+		return val
 	case string:
 		// SQLite strips leading/trailing whitespace before numeric coercion.
 		t := strings.TrimSpace(v)
@@ -509,6 +517,10 @@ func applyNumericAffinity(val interface{}) interface{} {
 			return i
 		}
 		if f, err := parseFloat(t); err == nil {
+			// If the float is a whole number, store as integer (NUMERIC affinity)
+			if f == float64(int64(f)) {
+				return int64(f)
+			}
 			return f
 		}
 		return val
