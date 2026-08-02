@@ -1221,6 +1221,13 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		return nil, nil, err
 	}
 	plainNames := map[string]bool{}
+	// SQLite allows output column aliases (e.g., "SELECT (+a)b ... ON z=b")
+	// to be referenced in ON clauses. Collect them so validation passes.
+	for _, col := range s.Columns {
+		if col.As != "" {
+			plainNames[col.As] = true
+		}
+	}
 	for _, d := range baseDefs {
 		plainNames[d.Name] = true
 	}
