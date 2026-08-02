@@ -773,13 +773,17 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 131:
 		return nil
 
-	// Rule 132: on_using ::= USING LP idlist RP
+	// Rule 132: indexed_by ::= INDEXED BY nm
+	// Returns the index name. Consumers currently ignore indexed_by.
 	case 132:
-		return getStringList(getRHS(p, ruleNo, 3))
+		return getString(getRHS(p, ruleNo, 3))
 
-	// Rule 133: on_using ::= ON expr
+	// Rule 133: indexed_by ::= NOT INDEXED
+	// Marks the table reference as NOT INDEXED (no index hints).
+	// Consumers currently ignore indexed_by; this returns a non-nil marker
+	// so the rule does not fall through to a nil passthrough.
 	case 133:
-		return getExpr(getRHS(p, ruleNo, 2))
+		return "NOT INDEXED"
 
 	// Rule 134: orderby_opt ::=
 	case 134:
@@ -1100,6 +1104,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			return &sql.NumericLit{Value: s}
 		}
 		return &sql.NumericLit{}
+
+	// Rule 186: expr ::= VARIABLE
+	// A parameter placeholder (? or $name). Frigolite does not support bound
+	// parameters; treat as NULL to avoid nil propagation (matching the RD
+	// parser's behavior for TCL variable references).
+	case 186:
+		return &sql.NullLit{}
 
 	// Rule 187: expr ::= expr COLLATE ID|STRING
 	case 187:
@@ -1668,7 +1679,19 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
 		}
 
-	// Rule 278: expr ::= RAISE LP IGNORE RP — RAISE(IGNORE)
+	// Rule 276: trigger_cmd ::= DELETE FROM xfullname tridxby where_opt scanpt
+	case 276:
+		return &sql.DeleteStmt{
+			Table: getString(getRHS(p, ruleNo, 3)),
+			Where: getExpr(getRHS(p, ruleNo, 5)),
+		}
+
+	// Rule 277: trigger_cmd ::= scanpt select scanpt
+	// A bare SELECT as a trigger body. scanpt markers are empty (nil).
+	case 277:
+		return getRHS(p, ruleNo, 2)
+
+	// Rule 278: expr ::= RAISE LP IGNORE RP
 	case 278:
 		return &sql.RaiseExpr{Kind: "IGNORE"}
 
@@ -1703,7 +1726,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 302: cmd ::= create_vtab
 	case 302:
-		return nil
+		return getRHS(p, ruleNo, 1)
 
 	// Rule 303: cmd ::= create_vtab LP vtabarglist RP
 	case 303:
@@ -1751,11 +1774,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 349: cmdlist ::= cmdlist ecmd
 	case 349:
-		return nil
+		return getRHS(p, ruleNo, 1)
 
 	// Rule 350: cmdlist ::= ecmd
 	case 350:
-		return nil
+		return getRHS(p, ruleNo, 1)
 
 	// Rule 351: ecmd ::= SEMI
 	case 351:
