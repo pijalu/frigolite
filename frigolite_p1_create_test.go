@@ -215,10 +215,15 @@ func TestP1CreateStrict(t *testing.T) {
 		if res.Error != nil {
 			t.Fatalf("create: %v", res.Error)
 		}
-		// Inserting INTEGER into TEXT column should fail in STRICT mode
-		res = db.Exec("INSERT INTO t VALUES(123)")
+		// BLOB cannot be stored in TEXT column even in STRICT mode with affinity
+		res = db.Exec("INSERT INTO t VALUES(x'414243')")
 		if res.Error == nil {
-			t.Errorf("expected error inserting INTEGER into STRICT TEXT column")
+			t.Errorf("expected error inserting BLOB into STRICT TEXT column")
+		}
+		// INTEGER is accepted: affinity converts it to text '123'
+		res = db.Exec("INSERT INTO t VALUES(123)")
+		if res.Error != nil {
+			t.Errorf("INTEGER in STRICT TEXT should be accepted (affinity): %v", res.Error)
 		}
 		// Correct type should work
 		res = db.Exec("INSERT INTO t VALUES('hello')")
