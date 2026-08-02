@@ -222,6 +222,25 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		}
 	}
 
+	// WITHOUT ROWID validation (SQLite build.c: sqlite3AddPrimaryKey rejects
+	// AUTOINCREMENT on WITHOUT ROWID, and CREATE TABLE requires a PK).
+	// The go-lemon parser doesn't propagate the WithoutRowid flag, so we
+	// detect it from the raw SQL text.
+	isWithoutRowid := s.WithoutRowid || hasWithoutRowidKeyword(strings.ToUpper(s.RawSQL))
+	if isWithoutRowid {
+		s.WithoutRowid = true
+		// AUTOINCREMENT is not allowed on WITHOUT ROWID tables
+		for _, col := range s.Columns {
+			if col.AutoInc {
+				return &Result{Error: fmt.Errorf("AUTOINCREMENT not allowed on WITHOUT ROWID tables")}
+			}
+		}
+		// WITHOUT ROWID tables must have a PRIMARY KEY
+		if !hasPrimaryKey(s) {
+			return &Result{Error: fmt.Errorf("PRIMARY KEY missing on table %s", tableName)}
+		}
+	}
+
 	pg := ctx.Pager.AllocatePage()
 	// Initialize a fresh empty leaf: zero the page and set a valid header so
 	// a reused page (from a dropped table) does not retain stale cells.
@@ -1522,6 +1541,44 @@ func hasStrictKeyword(upperSQL string) bool {
 	}
 	tail := upperSQL[idx:]
 	return strings.Contains(tail, "STRICT")
+}
+
+// hasWithoutRowidKeyword checks if "WITHOUT ROWID" appears after the closing
+// parenthesis in the CREATE TABLE SQL.
+func hasWithoutRowidKeyword(upperSQL string) bool {
+	idx := strings.LastIndex(upperSQL, ")")
+	if idx < 0 {
+		return false
+	}
+	tail := upperSQL[idx:]
+	return strings.Contains(tail, "WITHOUT")
+}
+
+// hasPrimaryKey returns true if the CREATE TABLE statement has any PRIMARY KEY
+// constraint (column-level or table-level).
+// The LALR parser doesn't propagate table-level constraints, so we also
+// check the raw SQL for "PRIMARY KEY".
+func hasPrimaryKey(s *sql.CreateTableStmt) bool {
+	for _, col := range s.Columns {
+		if col.PrimaryKey {
+			return true
+		}
+	}
+	for _, tc := range s.Constraints {
+		if tc.Type == sql.ConstraintPrimaryKey {
+			return true
+		}
+	}
+	// Fallback: check raw SQL for table-level PRIMARY KEY constraint.
+	// The LALR parser may not populate s.Constraints for table-level
+	// constraints like PRIMARY KEY(a,b).
+	if s.RawSQL != "" {
+		upper := strings.ToUpper(s.RawSQL)
+		if strings.Contains(upper, "PRIMARY KEY") || strings.Contains(upper, "PRIMARY  KEY") {
+			return true
+		}
+	}
+	return false
 }
 
 // enforceStrictType checks if a value is compatible with a STRICT column type.
