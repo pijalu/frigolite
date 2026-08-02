@@ -328,6 +328,19 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 26: typetoken ::=
 	case 26:
 		return ""
+
+	// Rule 27: typetoken ::= typename LP signed RP
+	// e.g., TEXT(50), VARCHAR(255), DECIMAL(10)
+	case 27:
+		typeName := getString(getRHS(p, ruleNo, 1))
+		return fmt.Sprintf("%s(%s)", typeName, getString(getRHS(p, ruleNo, 3)))
+
+	// Rule 28: typetoken ::= typename LP signed COMMA signed RP
+	// e.g., DECIMAL(10,2)
+	case 28:
+		typeName := getString(getRHS(p, ruleNo, 1))
+		return fmt.Sprintf("%s(%s, %s)", typeName,
+			getString(getRHS(p, ruleNo, 3)), getString(getRHS(p, ruleNo, 5)))
   
   	// Rule 32: ccons ::= CONSTRAINT nm
   	case 32:

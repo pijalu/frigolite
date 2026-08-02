@@ -49,6 +49,8 @@ func (e *Engine) materializePragmaTable(ref sql.TableRef) ([]sql.ColumnDef, [][]
 	switch pragma {
 	case "table_info", "table_xinfo":
 		return e.materializeTableInfo(ref)
+	case "table_list":
+		return e.materializeTableList(ref)
 	default:
 		return nil, nil, fmt.Errorf("no such table-valued pragma: %s", ref.Name)
 	}
@@ -102,6 +104,66 @@ func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 			pk = 1
 		}
 		rows = append(rows, []interface{}{int64(i), cd.Name, cd.Type, notnull, nil, pk})
+	}
+	return cols, rows, nil
+}
+
+// materializeTableList builds the rows of pragma_table_list. When called with
+// a table name argument, it returns one row for that table. Without an
+// argument, it returns one row for every table in the schema.
+// Columns: schema, name, type, ncol, wr (without rowid), strict.
+func (e *Engine) materializeTableList(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
+	// Note: "strict" is a SQL keyword, so the LALR parser uppercases it to
+	// "STRICT" when used as a column reference. We use the uppercase name
+	// to match what the parser produces.
+	cols := []sql.ColumnDef{
+		{Name: "schema"},
+		{Name: "name"},
+		{Name: "type"},
+		{Name: "ncol"},
+		{Name: "wr"},
+		{Name: "STRICT"},
+	}
+
+	entries, err := e.mainDB.Schema.GetEntries(schema.TypeTable)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// If an argument is provided, filter to that table name
+	var filterName string
+	if len(ref.Args) > 0 {
+		argVal, err := e.evalExpr(ref.Args[0], nil)
+		if err != nil {
+			return nil, nil, err
+		}
+		if s, ok := argVal.(string); ok {
+			filterName = s
+		}
+	}
+
+	var rows [][]interface{}
+	for _, entry := range entries {
+		if entry.Type != schema.TypeTable {
+			continue
+		}
+		if filterName != "" && entry.Name != filterName {
+			continue
+		}
+		colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+		wr := int64(0)
+		if hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+			wr = 1
+		}
+		strict := int64(0)
+		upperSQL := strings.ToUpper(entry.SQL)
+		if hasStrictKeyword(upperSQL) {
+			strict = 1
+		}
+		rows = append(rows, []interface{}{
+			"main", entry.Name, string(entry.Type),
+			int64(len(colDefs)), wr, strict,
+		})
 	}
 	return cols, rows, nil
 }

@@ -1595,11 +1595,17 @@ func enforceStrictType(tableName, colName, declaredType string, v interface{}) e
 	}
 	upper := strings.ToUpper(strings.TrimSpace(declaredType))
 	v = util.UnwrapColumnValue(v)
+	// In STRICT tables, affinity is applied first (e.g., INTEGER → TEXT column
+	// converts the value to text '4', which then passes the type check).
 	switch upper {
 	case "TEXT":
 		switch v.(type) {
 		case string:
 			return nil
+		case int64:
+			return nil // affinity converts int64 → text
+		case float64:
+			return nil // affinity converts float64 → text
 		default:
 			return fmt.Errorf("cannot store %s value in TEXT column %s.%s", strictStorageClass(v), tableName, colName)
 		}
@@ -1607,14 +1613,24 @@ func enforceStrictType(tableName, colName, declaredType string, v interface{}) e
 		switch v.(type) {
 		case int64:
 			return nil
+		case float64:
+			// SQLite accepts whole-number reals and converts to integer
+			if vv := v.(float64); vv == float64(int64(vv)) {
+				return nil
+			}
+			return fmt.Errorf("cannot store %s value in %s column %s.%s", strictStorageClass(v), upper, tableName, colName)
 		case string:
 			// Numeric-looking strings are accepted and converted to integer
 			if _, err := strconv.ParseInt(v.(string), 10, 64); err == nil {
 				return nil
 			}
-			return fmt.Errorf("cannot store %s value in INTEGER column %s.%s", strictStorageClass(v), tableName, colName)
+			// Try float — a whole-number float string is accepted
+			if f, err := strconv.ParseFloat(v.(string), 64); err == nil && f == float64(int64(f)) {
+				return nil
+			}
+			return fmt.Errorf("cannot store %s value in %s column %s.%s", strictStorageClass(v), upper, tableName, colName)
 		default:
-			return fmt.Errorf("cannot store %s value in INTEGER column %s.%s", strictStorageClass(v), tableName, colName)
+			return fmt.Errorf("cannot store %s value in %s column %s.%s", strictStorageClass(v), upper, tableName, colName)
 		}
 	case "REAL":
 		switch v.(type) {
@@ -1649,14 +1665,14 @@ func strictStorageClass(v interface{}) string {
 	v = util.UnwrapColumnValue(v)
 	switch v.(type) {
 	case int64:
-		return "integer"
+		return "INTEGER"
 	case float64:
-		return "real"
+		return "REAL"
 	case string:
-		return "text"
+		return "TEXT"
 	case []byte:
-		return "blob"
+		return "BLOB"
 	default:
-		return "unknown"
+		return "UNKNOWN"
 	}
 }
