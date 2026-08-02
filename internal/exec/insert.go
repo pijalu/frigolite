@@ -256,6 +256,24 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	// Compute any generated columns (b AS(expr)) that were not explicitly set.
 	e.computeGeneratedValues(colDefs, values)
 
+	// In STRICT mode, enforce type checking on generated column values too.
+	// Generated columns compute values from expressions, and those values must
+	// conform to the column's declared type (e.g., REAL column can't have TEXT).
+	if isStrict {
+		for i, v := range values {
+			if i >= len(colDefs) {
+				break
+			}
+			cd := colDefs[i]
+			if cd.Generated == nil {
+				continue // already checked above
+			}
+			if err := enforceStrictType(tableEntry.Name, cd.Name, cd.Type, v); err != nil {
+				return &Result{Error: err}
+			}
+		}
+	}
+
 	// Enforce FOREIGN KEY constraints (only when PRAGMA foreign_keys is ON).
 	if res := e.checkForeignKeyViolations(tableEntry, colDefs, values); res.Error != nil {
 		return res
@@ -1231,10 +1249,17 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 	// Determine the effective number of columns we expect.
 	// If specific columns are given in the INSERT, the SELECT
 	// must produce that many values; otherwise it must produce
-	// one per table column.
+	// one per table column (excluding generated columns).
 	expectedCount := len(colDefs)
 	if len(columns) > 0 {
 		expectedCount = len(columns)
+	} else {
+		// Exclude generated columns from expected count when no column list given
+		for _, cd := range colDefs {
+			if cd.Generated != nil {
+				expectedCount--
+			}
+		}
 	}
 	numSelectCols := len(selectResult.Columns)
 	if expectedCount != numSelectCols {
