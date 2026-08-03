@@ -139,7 +139,14 @@ func flatten(res *frigolite.Result) string {
 					}
 					parts = append(parts, s)
 				case string:
-					parts = append(parts, x)
+					// TCL list representation braces string values containing
+					// spaces (e.g. sqlite_stat1's stat column "4 2 1" renders
+					// as "{4 2 1}").
+					if tclNeedsBracing(x) {
+						parts = append(parts, "{"+x+"}")
+					} else {
+						parts = append(parts, x)
+					}
 				case []byte:
 					parts = append(parts, string(x))
 				default:

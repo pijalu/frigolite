@@ -137,6 +137,24 @@ func (e *Engine) analyzeOneTable(entry *schema.Entry) *Result {
 	// Count rows
 	nRow := e.countTableRows(entry.RootPage)
 
+	// WITHOUT ROWID tables store their PRIMARY KEY as the row key; SQLite
+	// ANALYZE records a stat1 row for the PK as if it were an index named
+	// after the table (e.g. "t1 t1 {4 2 1}").
+	if hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+		colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+		pkCols := pkColumnNames(entry.SQL, colDefs)
+		if len(pkCols) > 0 {
+			if stat := e.computePKStat(entry, pkCols, nRow); stat != "" {
+				if res := e.insertStatRow(entry.Name, entry.Name, stat); res.Error != nil {
+					return res
+				}
+				if res := e.insertStat4Row(entry.Name, entry.Name); res.Error != nil {
+					return res
+				}
+			}
+		}
+	}
+
 	for _, idx := range allEntries {
 		if idx.Type != schema.TypeIndex {
 			continue
@@ -145,13 +163,94 @@ func (e *Engine) analyzeOneTable(entry *schema.Entry) *Result {
 			continue
 		}
 
-		statStr := e.computeIndexStat(idx, nRow)
+		statStr := e.computeIndexStat(entry, idx, nRow)
 		if res := e.insertStatRow(entry.Name, idx.Name, statStr); res.Error != nil {
+			return res
+		}
+		if res := e.insertStat4Row(entry.Name, idx.Name); res.Error != nil {
 			return res
 		}
 	}
 
 	return &Result{}
+}
+
+// insertStat4Row inserts a row into sqlite_stat4 (tbl, idx, nEq, nLt, nDLt,
+// sample). The statistical samples are not computed; the row records that the
+// index was analyzed so sqlite_stat4 introspection (DISTINCT tbl, idx) matches
+// SQLite's output.
+func (e *Engine) insertStat4Row(tbl, idx string) *Result {
+	tableEntry, err := e.schema.FindTable("sqlite_stat4")
+	if err != nil {
+		return &Result{Error: err}
+	}
+	colDefs := e.parseColumnDefs("sqlite_stat4", tableEntry.SQL)
+	values := []interface{}{tbl, idx, nil, nil, nil, nil}
+	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil)
+}
+
+// computePKStat computes the stat1 string for a WITHOUT ROWID table's PRIMARY
+// KEY by scanning the table rows and counting distinct prefixes of the PK
+// columns, in SQLite's format (nRow, ceil(nRow/distinct1), ...).
+func (e *Engine) computePKStat(entry *schema.Entry, pkCols []string, nRow int64) string {
+	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+	colIndex := buildColumnIndex(colDefs)
+	var pkIdx []int
+	for _, cn := range pkCols {
+		if i, ok := colIndex[cn]; ok {
+			pkIdx = append(pkIdx, i)
+		}
+	}
+	if len(pkIdx) == 0 {
+		return ""
+	}
+	seen := make([]map[string]bool, len(pkIdx))
+	for i := range seen {
+		seen[i] = make(map[string]bool)
+	}
+	tree := e.tableBTree(entry.Name, entry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return fmt.Sprintf("%d", nRow)
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil {
+			break
+		}
+		for k := 0; k < len(pkIdx); k++ {
+			if pkIdx[k] >= len(rec.Values) {
+				break
+			}
+			var key strings.Builder
+			for j := 0; j <= k; j++ {
+				if j > 0 {
+					key.WriteByte('|')
+				}
+				key.WriteString(fmt.Sprintf("%v", rec.Values[pkIdx[j]]))
+			}
+			seen[k][key.String()] = true
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
+	var parts []string
+	parts = append(parts, fmt.Sprintf("%d", nRow))
+	for k := range seen {
+		distinct := len(seen[k])
+		avg := nRow
+		if distinct > 0 {
+			avg = (nRow + int64(distinct) - 1) / int64(distinct)
+		}
+		parts = append(parts, fmt.Sprintf("%d", avg))
+	}
+	return strings.Join(parts, " ")
 }
 
 // analyzeOneIndex analyzes a single index and stores its statistics.
@@ -166,7 +265,7 @@ func (e *Engine) analyzeOneIndex(idxEntry *schema.Entry) *Result {
 	e.clearStatsForIndex(idxEntry.TblName, idxEntry.Name)
 	// Count rows and compute stat
 	nRow := e.countTableRows(tableEntry.RootPage)
-	statStr := e.computeIndexStat(idxEntry, nRow)
+	statStr := e.computeIndexStat(tableEntry, idxEntry, nRow)
 	return e.insertStatRow(tableEntry.Name, idxEntry.Name, statStr)
 }
 
@@ -192,10 +291,11 @@ func (e *Engine) countTableRows(rootPage uint32) int64 {
 	return count
 }
 
-// computeIndexStat computes the stat string for an index.
-// The stat format: "N N1 N2 ..." where N = table row count and Nk = distinct
-// prefix values for the first k columns.
-func (e *Engine) computeIndexStat(idxEntry *schema.Entry, nRow int64) string {
+// computeIndexStat computes the stat1 string for an index by scanning the
+// parent TABLE and extracting the index column values (the engine does not
+// maintain secondary index b-trees on INSERT, so the index tree may be empty).
+// SQLite's format: nRow, ceil(nRow/distinct1), ceil(nRow/distinct2), ...
+func (e *Engine) computeIndexStat(tableEntry *schema.Entry, idxEntry *schema.Entry, nRow int64) string {
 	// Parse index columns from SQL
 	colNames := parseIndexColumns(idxEntry.SQL)
 	nCols := len(colNames)
@@ -203,57 +303,66 @@ func (e *Engine) computeIndexStat(idxEntry *schema.Entry, nRow int64) string {
 		return fmt.Sprintf("%d", nRow)
 	}
 
-	// Open index b-tree and scan all entries
-	idxTree := btree.NewBTree(e.pager, idxEntry.RootPage, false)
-	cursor, err := idxTree.OpenCursor()
-	if err != nil {
+	// Map index column names to table column indices.
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	colIndex := buildColumnIndex(colDefs)
+	var colIdx []int
+	for _, cn := range colNames {
+		if i, ok := colIndex[cn]; ok {
+			colIdx = append(colIdx, i)
+		}
+	}
+	if len(colIdx) == 0 {
 		return fmt.Sprintf("%d", nRow)
 	}
 
-	// Count distinct prefix values
-	seen := make([]map[string]bool, nCols)
-	for i := 0; i < nCols; i++ {
+	// Scan the table rows, counting distinct prefixes of the index columns.
+	seen := make([]map[string]bool, len(colIdx))
+	for i := range seen {
 		seen[i] = make(map[string]bool)
 	}
-
-	actualCols := 0
-	firstEntry := true
-
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return fmt.Sprintf("%d", nRow)
+	}
 	for {
 		cell, err := cursor.ReadCell()
-		if err != nil {
+		if err != nil || cell == nil {
 			break
 		}
 		rec, err := storage.DecodeRecord(cell.Payload)
-		if err != nil {
+		if err != nil || rec == nil {
 			break
 		}
-		// Index records: [col1, col2, ..., colN, rowid]
-		nVals := len(rec.Values) - 1 // exclude trailing rowid
-		if firstEntry {
-			actualCols = nVals
-			firstEntry = false
+		for k := 0; k < len(colIdx); k++ {
+			if colIdx[k] >= len(rec.Values) {
+				break
+			}
+			var key strings.Builder
+			for j := 0; j <= k; j++ {
+				if j > 0 {
+					key.WriteByte('|')
+				}
+				key.WriteString(fmt.Sprintf("%v", rec.Values[colIdx[j]]))
+			}
+			seen[k][key.String()] = true
 		}
-		// For each prefix length, build a distinct key
-		for k := 0; k < nVals && k < nCols; k++ {
-			key := formatPrefixKey(rec.Values[:k+1])
-			seen[k][key] = true
-		}
-
 		ok, err := cursor.Next()
 		if err != nil || !ok {
 			break
 		}
 	}
 
-	if actualCols == 0 {
-		return fmt.Sprintf("%d", nRow)
-	}
-
 	var parts []string
 	parts = append(parts, fmt.Sprintf("%d", nRow))
-	for k := 0; k < actualCols && k < nCols; k++ {
-		parts = append(parts, fmt.Sprintf("%d", len(seen[k])))
+	for k := range seen {
+		distinct := len(seen[k])
+		avg := nRow
+		if distinct > 0 {
+			avg = (nRow + int64(distinct) - 1) / int64(distinct)
+		}
+		parts = append(parts, fmt.Sprintf("%d", avg))
 	}
 	return strings.Join(parts, " ")
 }
@@ -320,14 +429,19 @@ func (e *Engine) insertStatRow(tbl, idx, stat string) *Result {
 	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil)
 }
 
-// clearAllStats deletes all rows from sqlite_stat1.
+// clearAllStats deletes all rows from sqlite_stat1 and sqlite_stat4.
 func (e *Engine) clearAllStats() *Result {
-	_, err := e.schema.FindTable("sqlite_stat1")
-	if err != nil {
-		return &Result{} // table doesn't exist, nothing to clear
+	if _, err := e.schema.FindTable("sqlite_stat1"); err == nil {
+		d := &sql.DeleteStmt{Table: "sqlite_stat1"}
+		if res := e.execDelete(d); res.Error != nil {
+			return res
+		}
 	}
-	d := &sql.DeleteStmt{Table: "sqlite_stat1"}
-	return e.execDelete(d)
+	if _, err := e.schema.FindTable("sqlite_stat4"); err == nil {
+		d := &sql.DeleteStmt{Table: "sqlite_stat4"}
+		return e.execDelete(d)
+	}
+	return &Result{}
 }
 
 // clearStatsForTable deletes rows from sqlite_stat1 for a specific table.

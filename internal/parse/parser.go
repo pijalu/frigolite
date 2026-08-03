@@ -11,6 +11,7 @@ package parse
 import (
 	"encoding/hex"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -59,6 +60,7 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 		size := -nrhs
 
 		result := handleRule(ruleNo, p, lookahead, lookaheadToken)
+		if os.Getenv("PARSE_DEBUG") != "" { fmt.Fprintf(os.Stderr, "rule %d nrhs=%d res=%T\n", ruleNo, size, result) }
 
 		// Default: pass through first RHS value if handler returned nil
 		// (Only for non-empty rules - empty rules have no RHS values)
@@ -1888,6 +1890,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 288: cmd ::= REINDEX
 	case 288:
 		return &sql.ReindexStmt{}
+
+	// Rule 290: cmd ::= ANALYZE
+	// (and the ANALYZE nm / ANALYZE nm dbnm variants — the bare form is the
+	// common one; named forms reduce through the same handler with the name
+	// in the RHS).
+	case 290:
+		return &sql.AnalyzeStmt{}
 
 	// Rule 292: cmd ::= ALTER TABLE fullname RENAME TO nm
 	case 292:
