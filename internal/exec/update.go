@@ -106,7 +106,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 			for _, ch := range changes {
 				oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
 				newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
-				if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow); res.Error != nil {
+				if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow, ch.rowID); res.Error != nil {
 					return res
 				}
 			}
@@ -623,7 +623,7 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 			}
 			oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
 			newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
-			if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow); res.Error != nil {
+				if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow, ch.rowID); res.Error != nil {
 				continue
 			}
 		}
@@ -914,7 +914,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 			}
 			oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
 			newRow := buildRowMapFromValues(c.values, colDefs, c.rowID)
-			if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow); res.Error != nil {
+			if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow, c.rowID); res.Error != nil {
 				e.pager.Restore(snap)
 				e.invalidateRowIDCache(tableEntry.RootPage)
 				return res

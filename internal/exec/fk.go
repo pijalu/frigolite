@@ -167,19 +167,22 @@ func (e *Engine) fkChildRefs(parentTable string) []fkRefAction {
 // RESTRICT/NO ACTION children cause an error; CASCADE children are deleted;
 // SET NULL / SET DEFAULT children update their FK column.
 func (e *Engine) fkParentDelete(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow RowMap) *Result {
-	return e.fkParentAction(parentTable, parentColDefs, oldRow, nil, true)
+	return e.fkParentAction(parentTable, parentColDefs, oldRow, nil, true, 0)
 }
 
 // fkParentUpdate enforces FOREIGN KEY actions when a parent row's key changes:
 // the old key value is checked against children (RESTRICT/NO ACTION error,
 // CASCADE propagates the new value, SET NULL/SET DEFAULT update the column).
-func (e *Engine) fkParentUpdate(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap) *Result {
-	return e.fkParentAction(parentTable, parentColDefs, oldRow, newRow, false)
+// skipRowID identifies the parent row being updated; when it is also a child
+// row (self-referential FK) whose FK columns are updated consistently, it is
+// not a conflict.
+func (e *Engine) fkParentUpdate(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, skipRowID int64) *Result {
+	return e.fkParentAction(parentTable, parentColDefs, oldRow, newRow, false, skipRowID)
 }
 
 // fkParentAction is the shared implementation for parent DELETE/UPDATE FK
 // enforcement. newRow is non-nil for UPDATE (CASCADE propagates the new key).
-func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, isDelete bool) *Result {
+func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, isDelete bool, skipRowID int64) *Result {
 	if !e.foreignKeys {
 		return &Result{}
 	}
@@ -254,6 +257,13 @@ func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.C
 			rec, err := storage.DecodeRecord(cell.Payload)
 			if err != nil || rec == nil {
 				break
+			}
+			if cell.RowID == skipRowID {
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+				continue
 			}
 			if childIdx < len(rec.Values) && rec.Values[childIdx] != nil &&
 				util.CompareValuesCollate(rec.Values[childIdx], oldVal, parentColDef.Collate) == 0 {
@@ -622,6 +632,11 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 		if cd.References == "" {
 			continue
 		}
+		// DEFERRABLE INITIALLY DEFERRED constraints are checked at COMMIT,
+		// not per-statement.
+		if isDeferredFK(cd.References) {
+			continue
+		}
 		m := fkRefAnyRe.FindStringSubmatch(cd.References)
 		if m == nil {
 			continue
@@ -637,6 +652,17 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 		}
 		if i >= len(values) || values[i] == nil {
 			continue
+		}
+		// A self-referential column FK (REFERENCES the same table) may be
+		// satisfied by the row itself: the row's parent-key column equals its
+		// FK value (e.g. INSERT INTO self VALUES(13, 13) where b REFERENCES
+		// self(a)).
+		if strings.EqualFold(parentTableName, tableEntry.Name) && parentCol != "" {
+			childIdx, ok := buildColumnIndex(colDefs)[parentCol]
+			if ok && childIdx < len(values) && values[childIdx] != nil &&
+				util.CompareValues(values[childIdx], values[i]) == 0 {
+				continue
+			}
 		}
 		val := values[i]
 		if parentCol == "" {
@@ -689,6 +715,10 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 	// Table-level FOREIGN KEY constraints (FOREIGN KEY (cols) REFERENCES p).
 	for _, tc := range e.tableConstraints(tableEntry.Name, tableEntry.SQL) {
 		if tc.Type != sql.ConstraintForeignKey || tc.RefTable == "" {
+			continue
+		}
+		// DEFERRABLE INITIALLY DEFERRED constraints are checked at COMMIT.
+		if tc.Deferred {
 			continue
 		}
 		// A self-referential FK (REFERENCES the same table) may be satisfied

@@ -52,7 +52,7 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	}
 
 	// Pre-process: apply token-level rename to the table's own CREATE SQL
-	entry, err := e.schema.FindTable(oldName)
+	entry, _, err := e.findTable(oldName)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -215,8 +215,9 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	// Find the table entry
-	tableEntry, err := e.schema.FindTable(tableName)
+	// Find the table entry (searching all attached databases, matching
+	// SQLite's unqualified name resolution).
+	tableEntry, _, err := e.findTable(tableName)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -1196,7 +1197,7 @@ func replaceTableNameInSQL(sql, oldName, newName string) string {
 func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 	// ALTER TABLE ... ADD [COLUMN] column_def
 	tableName := s.Table
-	tableEntry, err := e.schema.FindTable(tableName)
+	tableEntry, _, err := e.findTable(tableName)
 	if err != nil {
 		return &Result{Error: err}
 	}
