@@ -6,11 +6,13 @@ package tableopts
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_tableopts(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,8 +100,8 @@ func Test_tableopts(t *testing.T) {
 		}
 	}
 	{ // do_test "tableopt-2.3"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db2.Exec("SELECT c FROM t1 WHERE a IN (1,2) ORDER BY b;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}

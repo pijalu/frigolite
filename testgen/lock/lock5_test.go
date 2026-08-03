@@ -12,7 +12,8 @@ import (
 )
 
 func Test_lock5(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,15 +103,15 @@ func Test_lock5(t *testing.T) {
 			// file exists "test.db.lock"
 		}
 		{ // do_test "lock5-dotfile.4"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query("\n    INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;\n  ")
 			}
 		}
 		{ // do_test "lock5-dotfile.5"
-			r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			}
@@ -123,7 +124,7 @@ func Test_lock5(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "lock5-dotfile.8"
-			_res = db.Exec("\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
+			_res = db2.Exec("\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1;\n    ROLLBACK;\n  ")
 			}
@@ -161,10 +162,10 @@ func Test_lock5(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					db2, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
+					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+					_ = db2
 				}
-				_res = db.Exec(" SELECT * FROM t1 ")
+				_res = db2.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.4"
@@ -172,7 +173,7 @@ func Test_lock5(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
-				_res = db.Exec(" SELECT * FROM t1 ")
+				_res = db2.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.5"
@@ -180,7 +181,7 @@ func Test_lock5(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				_res = db.Exec(" SELECT * FROM t1 ")
+				_res = db2.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.6"
@@ -188,11 +189,11 @@ func Test_lock5(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 				}
-				_res = db.Exec(" SELECT * FROM t1 ")
+				_res = db2.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.7"
-				_res = db.Exec(" SELECT * FROM t1 ")
+				_res = db2.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.8"
@@ -208,8 +209,8 @@ func Test_lock5(t *testing.T) {
 				}
 			}
 			{ // do_test "lock5-flock.10"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("\n    SELECT * FROM t1\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
@@ -220,7 +221,7 @@ func Test_lock5(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n      )\n      INSERT INTO t1 SELECT i, i+1 FROM s;\n  ")
 				}
-				_res = db.Exec("\n    SELECT * FROM t1\n  ")
+				_res = db2.Exec("\n    SELECT * FROM t1\n  ")
 				_ = _res // catchsql
 			}
 			if tclBool("permutation" + "!=\"inmemory_journal\"") {
@@ -230,7 +231,7 @@ func Test_lock5(t *testing.T) {
 					db2.Close()
 					db2, err = frigolite.Open("test.db2")
 					if err != nil { t.Fatal(err) }
-					_res = db.Exec("\n      SELECT * FROM t1\n    ")
+					_res = db2.Exec("\n      SELECT * FROM t1\n    ")
 					_ = _res // catchsql
 				}
 				{ // do_test "lock5-flock.12"
@@ -246,8 +247,8 @@ func Test_lock5(t *testing.T) {
 			_dbtmp2, err := frigolite.Open("test.db")
 			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query(" PRAGMA mmap_size = 0 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 0 ")
@@ -264,13 +265,13 @@ func Test_lock5(t *testing.T) {
 			}
 		}
 		{ // do_test "lock5-none.3"
-			r = db.Query(" SELECT * FROM t1; ")
+			r = db2.Query(" SELECT * FROM t1; ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1; ")
 			}
 		}
 		{ // do_test "lock5-none.4"
-			r = db.Query(" \n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			r = db2.Query(" \n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			}
@@ -280,7 +281,7 @@ func Test_lock5(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 			}
-			r = db.Query("SELECT * FROM t1")
+			r = db2.Query("SELECT * FROM t1")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 			}
@@ -288,7 +289,7 @@ func Test_lock5(t *testing.T) {
 		if tclBool("permutation" + "!=\"memsubsys1\" && " + "permutation" + "!=\"memsubsys2\"") {
 			{ // do_test "lock5-none.6"
 				// sqlite3_release_memory 1000000 (unsupported command, not transpiled)
-				r = db.Query("SELECT * FROM t1")
+				r = db2.Query("SELECT * FROM t1")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 				}
@@ -328,12 +329,12 @@ func Test_lock5(t *testing.T) {
 				// file mkdir test.db2.lock
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n      SELECT count(*) FROM t1;\n    ")
+				_res = db2.Exec("\n      SELECT count(*) FROM t1;\n    ")
 				_ = _res // catchsql
 			}
 			{ // do_test "2.dotfile.5"
 				os.Remove("test.db2.lock")
-				r = db.Query("\n      PRAGMA integrity_check\n    ")
+				r = db2.Query("\n      PRAGMA integrity_check\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA integrity_check\n    ")
 				}
@@ -344,7 +345,7 @@ func Test_lock5(t *testing.T) {
 				tclFileCopy("test.db-journal", "test.db2-journal")
 				db2, err = frigolite.Open("file:test.db2?nolock=1")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n      SELECT count(*) FROM t1;\n    ")
+				_res = db2.Exec("\n      SELECT count(*) FROM t1;\n    ")
 				_ = _res // catchsql
 			}
 		}

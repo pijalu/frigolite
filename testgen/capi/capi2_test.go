@@ -6,11 +6,13 @@ package capi
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_capi2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -451,15 +453,15 @@ func Test_capi2(t *testing.T) {
 		}
 		VM1 = "sqlite3_prepare $DB {SELECT * FROM t3} -1 TAIL"
 		_ = VM1 // suppress unused warning
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 	}
 	{ // do_test "capi2-6.3"
-		_res = db.Exec("COMMIT")
+		_res = db2.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
@@ -469,7 +471,7 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-6.5"
-		_res = db.Exec("INSERT INTO t3 VALUES(10);")
+		_res = db2.Exec("INSERT INTO t3 VALUES(10);")
 		_ = _res // catchsql
 	}
 	{ // do_test "capi2-6.6"
@@ -477,7 +479,7 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-6.7"
-		r = db.Query("SELECT * FROM t2")
+		r = db2.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
 		}

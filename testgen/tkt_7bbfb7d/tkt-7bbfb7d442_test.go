@@ -6,11 +6,13 @@ package tkt_7bbfb7d
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_tkt_7bbfb7d442(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}

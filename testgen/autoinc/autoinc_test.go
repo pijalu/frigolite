@@ -11,7 +11,8 @@ import (
 )
 
 func Test_autoinc(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -422,7 +423,7 @@ func Test_autoinc(t *testing.T) {
 		os.Remove("test2.db-journal")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n      CREATE TABLE t4(m INTEGER PRIMARY KEY AUTOINCREMENT, n);\n      CREATE TABLE t5(o, p INTEGER PRIMARY KEY AUTOINCREMENT);\n    ")
+		_res = db2.Exec("\n      CREATE TABLE t4(m INTEGER PRIMARY KEY AUTOINCREMENT, n);\n      CREATE TABLE t5(o, p INTEGER PRIMARY KEY AUTOINCREMENT);\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t4(m INTEGER PRIMARY KEY AUTOINCREMENT, n);\n      CREATE TABLE t5(o, p INTEGER PRIMARY KEY AUTOINCREMENT);\n    ")
 		}
@@ -438,7 +439,7 @@ func Test_autoinc(t *testing.T) {
 		}
 	}
 	{ // do_test "autoinc-5.3"
-		r = db.Query("\n      INSERT INTO t5 VALUES(100,200);\n      SELECT * FROM sqlite_sequence\n    ")
+		r = db2.Query("\n      INSERT INTO t5 VALUES(100,200);\n      SELECT * FROM sqlite_sequence\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t5 VALUES(100,200);\n      SELECT * FROM sqlite_sequence\n    ")
 		}

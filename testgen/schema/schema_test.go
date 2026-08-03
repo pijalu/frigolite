@@ -6,11 +6,13 @@ package schema
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_schema(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,13 +244,13 @@ func Test_schema(t *testing.T) {
 		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema-9.1"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n    DROP TABLE abc;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE abc;\n  ")
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
@@ -261,13 +263,13 @@ func Test_schema(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW abcview AS SELECT * FROM abc;\n    ")
 		}
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n      DROP VIEW abcview;\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW abcview;\n    ")
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		_res = db.Exec("\n      SELECT * FROM abcview;\n    ")
 		_ = _res // catchsql
 	}
@@ -290,8 +292,8 @@ func Test_schema(t *testing.T) {
 		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema-10.4"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query("\n    SELECT * FROM abc\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc\n  ")

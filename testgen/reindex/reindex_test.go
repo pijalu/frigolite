@@ -6,11 +6,13 @@ package reindex
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_reindex(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,19 +162,19 @@ func Test_reindex(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "reindex-3.1"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n    REINDEX c1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "reindex-3.2"
 		// proc definition (not transpiled)
 		// db2.collation_needed (db command)
-		_res = db.Exec("\n    REINDEX c1;\n  ")
+		_res = db2.Exec("\n    REINDEX c1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "reindex-3.3"
-		_res = db.Exec("\n    REINDEX;\n  ")
+		_res = db2.Exec("\n    REINDEX;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "reindex-3.99"

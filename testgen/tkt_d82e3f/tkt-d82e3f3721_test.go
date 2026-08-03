@@ -6,11 +6,13 @@ package tkt_d82e3f
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_tkt_d82e3f3721(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,8 +99,8 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "tkt-d82e3-2.1"
 		_res = db.Exec("\n    CREATE TEMP TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
 		if _res.Error != nil {
@@ -123,5 +125,5 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 }

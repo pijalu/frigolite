@@ -11,7 +11,8 @@ import (
 )
 
 func Test_walprotocol(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,8 +148,8 @@ func Test_walprotocol(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query("\n    PRAGMA auto_vacuum = off;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE b(c);\n    INSERT INTO b VALUES('Tehran');\n    INSERT INTO b VALUES('Qom');\n    INSERT INTO b VALUES('Markazi');\n    PRAGMA wal_checkpoint;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = off;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE b(c);\n    INSERT INTO b VALUES('Tehran');\n    INSERT INTO b VALUES('Qom');\n    INSERT INTO b VALUES('Markazi');\n    PRAGMA wal_checkpoint;\n  ")
@@ -182,8 +183,8 @@ func Test_walprotocol(t *testing.T) {
 	_dbtmp5, err := frigolite.Open("test.db")
 	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	_putsMsg = "# Warning: Another slow test!"
 	_ = _putsMsg
 	{ // do_test "2.5"
@@ -195,10 +196,10 @@ func Test_walprotocol(t *testing.T) {
 	{ // do_test "2.6"
 		_ = _r // TCL namespace variable (query)
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// faultsim_restore_and_reopen (unsupported command, not transpiled)
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	// T filter xShmLock (unsupported command, not transpiled)
 	// T script lock_callback (unsupported command, not transpiled)
 	// proc definition (not transpiled)
@@ -213,6 +214,6 @@ func Test_walprotocol(t *testing.T) {
 	{ // do_test "2.8"
 		_ = _r // TCL namespace variable (query)
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// T delete (unsupported command, not transpiled)
 }

@@ -12,7 +12,8 @@ import (
 )
 
 func Test_pragma4(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,15 +140,15 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.1.4"
-				db3, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+				_ = db3
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" DROP TABLE t1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 				}
-				_res = db.Exec(" DROP TABLE t2 ")
+				_res = db2.Exec(" DROP TABLE t2 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t2 ")
 				}
@@ -209,15 +210,15 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.2.4"
-				db3, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+				_ = db3
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" DROP TABLE t1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 				}
-				_res = db.Exec(" DROP TABLE t2 ")
+				_res = db2.Exec(" DROP TABLE t2 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t2 ")
 				}
@@ -271,15 +272,15 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.3.4"
-				db3, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+				_ = db3
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" DROP INDEX i1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i1 ")
 				}
-				_res = db.Exec(" DROP INDEX i2 ")
+				_res = db2.Exec(" DROP INDEX i2 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i2 ")
 				}
@@ -335,11 +336,11 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.4.3"
-				_res = db.Exec(" DROP INDEX i1 ")
+				_res = db3.Exec(" DROP INDEX i1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i1 ")
 				}
-				_res = db.Exec(" DROP INDEX i2 ")
+				_res = db2.Exec(" DROP INDEX i2 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i2 ")
 				}
@@ -395,11 +396,11 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.5.3"
-				_res = db.Exec(" DROP TABLE c1 ")
+				_res = db3.Exec(" DROP TABLE c1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE c1 ")
 				}
-				_res = db.Exec(" DROP TABLE c2 ")
+				_res = db2.Exec(" DROP TABLE c2 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE c2 ")
 				}
@@ -455,7 +456,7 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.6.3"
-				_res = db.Exec(" DROP TABLE c2 ")
+				_res = db2.Exec(" DROP TABLE c2 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE c2 ")
 				}

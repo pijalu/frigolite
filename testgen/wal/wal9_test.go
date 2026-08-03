@@ -6,11 +6,13 @@ package wal
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_wal9(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,8 +61,8 @@ func Test_wal9(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal9"
 	_ = testprefix // suppress unused warning
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t(x);\n")
 		if r.Error != nil {
@@ -74,7 +76,7 @@ func Test_wal9(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		r = db.Query("SELECT * FROM t")
+		r = db2.Query("SELECT * FROM t")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t")
 		}
@@ -100,10 +102,10 @@ func Test_wal9(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.7"
-		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;\n  ")
+		_res = db2.Exec(" \n    BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;\n  ")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 }

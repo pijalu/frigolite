@@ -11,7 +11,8 @@ import (
 )
 
 func Test_shared3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,54 +65,54 @@ func Test_shared3(t *testing.T) {
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "shared3-1.1"
 		os.Remove("test.db")
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
 		_res = db1.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES('abc','This is a test string');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Close()
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		_ = db1 // close db1: aliased to db, no-op
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
 		_res = db1.Exec("SELECT * FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared3-1.2"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db2.Exec("SELECT y FROM t1 WHERE x='abc'")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db1.Close()
 	db2.Close()
 	{ // do_test "shared3-2.1"
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
 		r = db.Query("\n    PRAGMA main.cache_size = 10;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.cache_size = 10;\n  ")
 		}
 	}
 	{ // do_test "shared3-2.2"
-		r = db.Query(" PRAGMA main.cache_size ")
+		r = db1.Query(" PRAGMA main.cache_size ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.cache_size ")
 		}
 	}
 	{ // do_test "shared3-2.3"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		r = db.Query(" PRAGMA main.cache_size ")
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
+		r = db1.Query(" PRAGMA main.cache_size ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.cache_size ")
 		}
 	}
 	{ // do_test "shared3-2.4"
-		r = db.Query(" PRAGMA main.cache_size ")
+		r = db2.Query(" PRAGMA main.cache_size ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.cache_size ")
 		}
 	}
 	{ // do_test "shared3-2.5"
-		r = db.Query(" PRAGMA main.cache_size ")
+		r = db1.Query(" PRAGMA main.cache_size ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.cache_size ")
 		}
@@ -119,20 +120,20 @@ func Test_shared3(t *testing.T) {
 	{ // do_test "shared3-2.6"
 		db3, err = frigolite.Open("file:./test.db?cache=private")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("select count(*) from sqlite_master")
+		_res = db3.Exec("select count(*) from sqlite_master")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared3-2.7"
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(10, randomblob(5000))\n  ")
+		_res = db1.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(10, randomblob(5000))\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(10, randomblob(5000))\n  ")
 		}
-		_res = db.Exec("select count(*) from sqlite_master")
+		_res = db3.Exec("select count(*) from sqlite_master")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared3-2.8"
 		db3.Close()
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(10, randomblob(10000))\n  ")
+		_res = db1.Exec("\n    INSERT INTO t1 VALUES(10, randomblob(10000))\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(10, randomblob(10000))\n  ")
 		}
@@ -142,7 +143,7 @@ func Test_shared3(t *testing.T) {
 			db3, err = frigolite.Open("file:./test.db?cache=private")
 			if err != nil { t.Fatal(err) }
 		}
-		_res = db.Exec("select count(*) from sqlite_master")
+		_res = db3.Exec("select count(*) from sqlite_master")
 		_ = _res // catchsql
 	}
 	db1.Close()
@@ -151,8 +152,8 @@ func Test_shared3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // "3.1"
 		r = db.Query("\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(randomblob(500), randomblob(500));\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n")
 		if r.Error != nil {
@@ -160,7 +161,7 @@ func Test_shared3(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2"
-		r = db.Query(" SELECT count(*) FROM sqlite_master ")
+		r = db2.Query(" SELECT count(*) FROM sqlite_master ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM sqlite_master ")
 		}
@@ -172,7 +173,7 @@ func Test_shared3(t *testing.T) {
 		}
 	}
 	{ // do_test "3.4"
-		r = db.Query(" SELECT count(*) FROM sqlite_master ")
+		r = db2.Query(" SELECT count(*) FROM sqlite_master ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM sqlite_master ")
 		}

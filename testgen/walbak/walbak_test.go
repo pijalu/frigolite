@@ -12,7 +12,8 @@ import (
 )
 
 func Test_walbak(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,13 +80,13 @@ func Test_walbak(t *testing.T) {
 	{ // do_test "walbak-1.2"
 		db2, err = frigolite.Open("bak.db")
 		if err != nil { t.Fatal(err) }
-		r = db.Query(" \n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;\n  ")
+		r = db2.Query(" \n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;\n  ")
 		}
 	}
 	{ // do_test "walbak-1.3"
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
@@ -258,13 +259,13 @@ func Test_walbak(t *testing.T) {
 				// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 				// B step 10000 (unsupported command, not transpiled)
 				// B finish (unsupported command, not transpiled)
-				r = db.Query(" SELECT * FROM t1 ")
+				r = db2.Query(" SELECT * FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 				}
 			}
 			{ // do_test "walbak-3." + tn + ".3"
-				r = db.Query("\n      INSERT INTO t1 VALUES(5, 6);\n      INSERT INTO t1 VALUES(7, 8);\n      SELECT * FROM t1;\n    ")
+				r = db2.Query("\n      INSERT INTO t1 VALUES(5, 6);\n      INSERT INTO t1 VALUES(7, 8);\n      SELECT * FROM t1;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(5, 6);\n      INSERT INTO t1 VALUES(7, 8);\n      SELECT * FROM t1;\n    ")
 				}
@@ -293,7 +294,7 @@ func Test_walbak(t *testing.T) {
 			}
 			if tclBool("file exists test.db2") {
 				{ // do_test "walbak-3." + tn + ".7"
-					r = db.Query(" PRAGMA journal_mode ")
+					r = db2.Query(" PRAGMA journal_mode ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}
@@ -356,7 +357,7 @@ func Test_walbak(t *testing.T) {
 					}
 				}
 				{ // do_test "walbak-4." + tn + ".3"
-					r = db.Query(" PRAGMA journal_mode ")
+					r = db2.Query(" PRAGMA journal_mode ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}
@@ -364,13 +365,13 @@ func Test_walbak(t *testing.T) {
 				{ // do_test "walbak-4." + tn + ".4"
 				}
 				{ // do_test "walbak-4." + tn + ".5"
-					r = db.Query(" SELECT * FROM t1 ")
+					r = db2.Query(" SELECT * FROM t1 ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 					}
 				}
 				{ // do_test "walbak-4." + tn + ".5"
-					r = db.Query(" PRAGMA journal_mode ")
+					r = db2.Query(" PRAGMA journal_mode ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}
@@ -382,7 +383,7 @@ func Test_walbak(t *testing.T) {
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "walbak-4." + tn + ".7"
-					r = db.Query(" PRAGMA journal_mode ")
+					r = db2.Query(" PRAGMA journal_mode ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}

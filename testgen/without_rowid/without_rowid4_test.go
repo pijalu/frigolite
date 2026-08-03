@@ -6,12 +6,14 @@ package without_rowid
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
 
 func Test_without_rowid4(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +169,30 @@ func Test_without_rowid4(t *testing.T) {
 	_ = ii // suppress unused warning
 	for _, tr_program := range tclSplitList("{UPDATE tbl SET b = old.b;}\n  {INSERT INTO log VALUES(new.c, 2, 3);}\n  {DELETE FROM log WHERE a = 1;}\n  {INSERT INTO tbl VALUES(500, new.b * 10, 700); \n    UPDATE tbl SET c = old.c; \n    DELETE FROM log;}\n  {INSERT INTO log select * from tbl;}") {
 	_ = tr_program // suppress unused warning
-		for _, test_varset := range tclSplitList("list \\\n    {\n      set statement {UPDATE tbl SET c = 10 WHERE a = 1;} \n      set prep      {INSERT INTO tbl VALUES(1, 2, 3);}\n      set newC 10\n      set newB 2\n      set newA 1\n      set oldA 1\n      set oldB 2\n      set oldC 3\n    } \\\n    {\n      set statement {DELETE FROM tbl WHERE a = 1;}\n      set prep      {INSERT INTO tbl VALUES(1, 2, 3);}\n      set oldA 1\n      set oldB 2\n      set oldC 3\n    } \\\n    {\n      set statement {INSERT INTO tbl VALUES(1, 2, 3);}\n      set newA 1\n      set newB 2\n      set newC 3\n    }") {
+		type _varset0 struct {
+			statement string
+			statementSet bool
+			prep string
+			prepSet bool
+			newC string
+			newCSet bool
+			newB string
+			newBSet bool
+			newA string
+			newASet bool
+			oldA string
+			oldASet bool
+			oldB string
+			oldBSet bool
+			oldC string
+			oldCSet bool
+		}
+		_varsets0 := []_varset0{
+			{"UPDATE tbl SET c = 10 WHERE a = 1;", true, "INSERT INTO tbl VALUES(1, 2, 3);", true, "10", true, "2", true, "1", true, "1", true, "2", true, "3", true},
+			{"DELETE FROM tbl WHERE a = 1;", true, "INSERT INTO tbl VALUES(1, 2, 3);", true, "", false, "", false, "", false, "1", true, "2", true, "3", true},
+			{"INSERT INTO tbl VALUES(1, 2, 3);", true, "", false, "3", true, "2", true, "1", true, "", false, "", false, "", false},
+		}
+		for _, test_varset := range _varsets0 {
 		_ = test_varset // suppress unused warning
 			statement = ""
 			_ = statement // suppress unused warning
@@ -192,7 +217,31 @@ func Test_without_rowid4(t *testing.T) {
 					ii = strconv.Itoa(_n + 1)
 				}
 			}
-			// eval $test_varset (dynamic, not transpiled)
+			if test_varset.statementSet {
+				statement = test_varset.statement
+			}
+			if test_varset.prepSet {
+				prep = test_varset.prep
+			}
+			if test_varset.newCSet {
+				newC = test_varset.newC
+			}
+			if test_varset.newBSet {
+				newB = test_varset.newB
+			}
+			if test_varset.newASet {
+				newA = test_varset.newA
+			}
+			if test_varset.oldASet {
+				oldA = test_varset.oldA
+			}
+			if test_varset.oldBSet {
+				oldB = test_varset.oldB
+			}
+			if test_varset.oldCSet {
+				oldC = test_varset.oldC
+			}
+			_ = test_varset // suppress unused warning
 			statement_type = tclStringRange(statement, "0", "5")
 			_ = statement_type // suppress unused warning
 			tr_program_fixed = tr_program

@@ -6,12 +6,14 @@ package vacuum
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
 
 func Test_vacuum3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,8 +254,8 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.2"
-					db2, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
+					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+					_ = db2
 					r = db.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
@@ -270,17 +272,17 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.4"
-					r = db.Query(" SELECT * FROM abc ")
+					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 					}
 				}
 				{ // do_test "vacuum3-4.5"
-					_res = db.Exec("\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
+					_res = db2.Exec("\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
 					}
-					r = db.Query(" SELECT * FROM abc ")
+					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 					}
@@ -290,7 +292,7 @@ func Test_vacuum3(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
 					}
-					r = db.Query(" SELECT * FROM abc ")
+					r = db2.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 					}

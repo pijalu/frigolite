@@ -6,12 +6,14 @@ package multiplex
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
 
 func Test_multiplex3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +114,7 @@ func Test_multiplex3(t *testing.T) {
 			}
 			db2, err = frigolite.Open("file:xx_test.db?8_3_names=1")
 			if err != nil { t.Fatal(err) }
-			r = db.Query("SELECT md5sum(a, b) FROM t1 ORDER BY a")
+			r = db2.Query("SELECT md5sum(a, b) FROM t1 ORDER BY a")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(a, b) FROM t1 ORDER BY a")
 			}

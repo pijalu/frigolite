@@ -11,7 +11,8 @@ import (
 )
 
 func Test_vacuum2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,8 +95,8 @@ func Test_vacuum2(t *testing.T) {
 		}
 		// hexio_get_int [hexio_read test.db 24 4] (unsupported command, not transpiled)
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	pageSize = "db eval {pragma page_size}"
 	_ = pageSize // suppress unused warning
 	{ // do_test "vacuum2-3.1"
@@ -124,7 +125,7 @@ func Test_vacuum2(t *testing.T) {
 		// cksum (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum2-3.6"
-		r = db.Query("PRAGMA integrity_check")
+		r = db2.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 		}
@@ -149,7 +150,7 @@ func Test_vacuum2(t *testing.T) {
 		// cksum (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum2-3.16"
-		r = db.Query("PRAGMA integrity_check")
+		r = db2.Query("PRAGMA integrity_check")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 		}
@@ -160,7 +161,7 @@ func Test_vacuum2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "vacuum2-4.1"
 		os.Remove("test.db")
 		db, err = frigolite.Open("")

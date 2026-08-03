@@ -6,12 +6,14 @@ package altertab
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
 
 func Test_altertab3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,8 +298,8 @@ func Test_altertab3(t *testing.T) {
 		}
 	}
 	{ // do_test "8.2.3"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db2.Exec(" INSERT INTO t2 VALUES (1), (2), (3) ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}

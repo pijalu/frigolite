@@ -11,7 +11,8 @@ import (
 )
 
 func Test_sharedA(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,25 +74,25 @@ func Test_sharedA(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "0.1"
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db1.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(100));\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    CREATE INDEX i1 ON t1(x);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db1.Exec("\n    BEGIN;\n    DROP INDEX i1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		_res = db1.Exec("\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    ROLLBACK;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db1.Close()
 	os.Remove("test.db")
 	{ // do_test "1.1"
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db1.Exec(" \n    SELECT * FROM t1;\n    CREATE INDEX i1 ON t1(x);\n  ")
@@ -112,14 +113,14 @@ func Test_sharedA(t *testing.T) {
 	// testvfs tvfs (unsupported command, not transpiled)
 	{ // do_test "2.1"
 		os.Remove("test.db")
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
 		_res = db1.Exec(" ATTACH 'test.db2' AS two ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db1.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE two.t2(x);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}

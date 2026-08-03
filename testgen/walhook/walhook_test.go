@@ -6,11 +6,13 @@ package walhook
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_walhook(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,8 +101,8 @@ func Test_walhook(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "walhook-1.5"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		// proc definition (not transpiled)
 		_res = db.Exec(" CREATE TABLE t3(a PRIMARY KEY, b) ")
 		if _res.Error != nil {

@@ -210,6 +210,12 @@ func tclSplitList(s string) []string {
 		for pos < len(s) && (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n' || s[pos] == '\r') {
 			pos++
 		}
+		// A backslash-newline is a TCL line continuation (semantically a
+		// single space): consume it so list elements split correctly.
+		if pos < len(s) && s[pos] == '\\' && pos+1 < len(s) && (s[pos+1] == '\n' || s[pos+1] == '\r') {
+			pos++
+			continue
+		}
 		if pos >= len(s) { break }
 		switch s[pos] {
 		case '{':

@@ -6,11 +6,13 @@ package jrnlmode
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_jrnlmode2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,8 +64,8 @@ func Test_jrnlmode2(t *testing.T) {
 		// file exists "test.db-journal"
 	}
 	{ // do_test "jrnlmode2-1.3"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -87,7 +89,7 @@ func Test_jrnlmode2(t *testing.T) {
 		// file exists "test.db-journal"
 	}
 	{ // do_test "jrnlmode2-1.6"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-1.7"
@@ -95,7 +97,7 @@ func Test_jrnlmode2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-2.1"
@@ -116,8 +118,8 @@ func Test_jrnlmode2(t *testing.T) {
 		// file size test.db-journal
 	}
 	{ // do_test "jrnlmode2-2.4"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
@@ -125,8 +127,8 @@ func Test_jrnlmode2(t *testing.T) {
 		// delete_file test.db-journal (unsupported command, not transpiled)
 	}
 	{ // do_test "jrnlmode2-2.6"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}

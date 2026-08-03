@@ -225,7 +225,11 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	// WITHOUT ROWID validation (SQLite build.c: sqlite3AddPrimaryKey rejects
 	// AUTOINCREMENT on WITHOUT ROWID, and CREATE TABLE requires a PK).
 	// The go-lemon parser doesn't propagate the WithoutRowid flag, so we
-	// detect it from the raw SQL text.
+	// detect it from the raw SQL text. The only valid table option after the
+	// column list is "WITHOUT ROWID"; anything else is "unknown table option".
+	if err := validateWithoutOption(s.RawSQL); err != nil {
+		return &Result{Error: err}
+	}
 	isWithoutRowid := s.WithoutRowid || hasWithoutRowidKeyword(strings.ToUpper(s.RawSQL))
 	if isWithoutRowid {
 		s.WithoutRowid = true
@@ -255,6 +259,27 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 				for _, col := range tc.Columns {
 					if isRowIDName(col.Name) {
 						return &Result{Error: fmt.Errorf("no such column: %s", col.Name)}
+					}
+				}
+			}
+		}
+		// The go-lemon parser does not populate s.Constraints for table-level
+		// constraints (e.g. PRIMARY KEY(a,rowid,b)); re-parse the raw SQL with
+		// the hand-written parser, which does, to catch rowid references in the
+		// PRIMARY KEY of a WITHOUT ROWID table (SQLite: no such column).
+		if s.RawSQL != "" {
+			pp := sql.NewParser(s.RawSQL)
+			pstmts := pp.Parse()
+			if len(pstmts) > 0 {
+				if ct, ok := pstmts[0].(*sql.CreateTableStmt); ok && ct != nil {
+					for _, tc := range ct.Constraints {
+						if tc.Type == sql.ConstraintPrimaryKey {
+							for _, col := range tc.Columns {
+								if isRowIDName(col.Name) {
+									return &Result{Error: fmt.Errorf("no such column: %s", col.Name)}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -543,6 +568,26 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 
 	// Populate index from existing table data
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+
+	// Resolve each index column's collation from the table definition and
+	// reject unknown collation sequences (SQLite does this at CREATE INDEX
+	// compile time). Index columns may be named or 1-based integer positions.
+	for _, ic := range s.Columns {
+		var coll string
+		if n, err := strconv.Atoi(ic.Name); err == nil && n >= 1 && n <= len(colDefs) {
+			coll = colDefs[n-1].Collate
+		} else {
+			for _, cd := range colDefs {
+				if strings.EqualFold(cd.Name, ic.Name) {
+					coll = cd.Collate
+					break
+				}
+			}
+		}
+		if err := checkCollationString(coll); err != nil {
+			return &Result{Error: err}
+		}
+	}
 
 	tree := e.tableBTreePg(tableCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
@@ -1572,6 +1617,39 @@ func hasWithoutRowidKeyword(upperSQL string) bool {
 	}
 	tail := upperSQL[idx:]
 	return strings.Contains(tail, "WITHOUT")
+}
+
+// validateWithoutOption validates the CREATE TABLE trailing options (SQLite
+// supports "STRICT" and "WITHOUT ROWID"; any other trailing token is an
+// "unknown table option" error).
+func validateWithoutOption(createSQL string) error {
+	idx := strings.LastIndex(createSQL, ")")
+	if idx < 0 {
+		return nil
+	}
+	tail := strings.TrimSpace(createSQL[idx+1:])
+	if tail == "" {
+		return nil
+	}
+	for _, opt := range strings.Split(tail, ",") {
+		opt = strings.TrimSpace(opt)
+		if opt == "" {
+			continue
+		}
+		upper := strings.ToUpper(opt)
+		if upper == "STRICT" {
+			continue
+		}
+		if strings.HasPrefix(upper, "WITHOUT") {
+			rest := strings.TrimSpace(opt[len("WITHOUT"):])
+			if rest != "" && strings.EqualFold(rest, "ROWID") {
+				continue
+			}
+			return fmt.Errorf("unknown table option: %s", rest)
+		}
+		return fmt.Errorf("unknown table option: %s", opt)
+	}
+	return nil
 }
 
 // hasPrimaryKey returns true if the CREATE TABLE statement has any PRIMARY KEY

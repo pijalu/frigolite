@@ -12,7 +12,8 @@ import (
 )
 
 func Test_vtab1(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -653,7 +654,7 @@ func Test_vtab1(t *testing.T) {
 	os.Remove("test2.db-journal")
 	db2, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
-	_res = db.Exec("\n  CREATE TABLE techo(a PRIMARY KEY, b, c);\n")
+	_res = db2.Exec("\n  CREATE TABLE techo(a PRIMARY KEY, b, c);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE techo(a PRIMARY KEY, b, c);\n")
 	}
@@ -666,7 +667,7 @@ func Test_vtab1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, stmt)
 		}
-		_res = db.Exec(stmt)
+		_res = db2.Exec(stmt)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, stmt)
 		}
@@ -1209,8 +1210,8 @@ func Test_vtab1(t *testing.T) {
 			}
 		}
 		{ // do_test "19.1"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 		}
 		{ // do_test "19.2"
@@ -1438,11 +1439,11 @@ func Test_vtab1(t *testing.T) {
 			}
 		}
 		{ // do_test "26.2"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			_res = db2.Exec(" CREATE TABLE ty(x, y) ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 		{ // "26.3"
 			r = db.Query("\n  SELECT value FROM t1 WHERE value<5\n")

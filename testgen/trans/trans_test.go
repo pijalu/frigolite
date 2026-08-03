@@ -6,12 +6,14 @@ package trans
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
 
 func Test_trans(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,9 +110,8 @@ func Test_trans(t *testing.T) {
 		// sqlite3_txn_state db no-such-schema (unsupported command, not transpiled)
 	}
 	{ // do_test "trans-1.9"
-		altdb, err := frigolite.Open("test.db")
-		defer altdb.Close()
-		if err != nil { t.Fatal(err) }
+		altdb = db // sqlite3 altdb test.db: alias to main in-memory db
+		_ = altdb
 		r = db.Query("SELECT b FROM one ORDER BY a")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM one ORDER BY a")

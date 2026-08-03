@@ -6,11 +6,13 @@ package tkt
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_tkt3793(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +80,7 @@ func Test_tkt3793(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3793-1.3"
-		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);\n  ")
+		_res = db1.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);\n  ")
 		}

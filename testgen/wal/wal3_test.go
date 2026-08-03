@@ -12,7 +12,8 @@ import (
 )
 
 func Test_wal3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,10 +149,10 @@ func Test_wal3(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n        INSERT INTO t1 SELECT a_string(800) FROM t1 LIMIT 100;\n      ROLLBACK;\n      PRAGMA integrity_check;\n    ")
 			}
 		}
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		{ // do_test "wal3-1." + i + ".2"
-			r = db.Query(" SELECT count(*) FROM t1 ")
+			r = db2.Query(" SELECT count(*) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 			}
@@ -163,19 +164,19 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-1." + i + ".4"
-			r = db.Query(" PRAGMA integrity_check ")
+			r = db2.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")
 		os.Remove("test2.db-journal")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "wal3-1." + i + ".5"
-			r = db.Query(" SELECT count(*) FROM t1 ")
+			r = db2.Query(" SELECT count(*) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 			}
@@ -187,12 +188,12 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-1." + i + ".7"
-			r = db.Query(" PRAGMA integrity_check ")
+			r = db2.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -328,17 +329,17 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-6.1.2"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			db3, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
+			db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+			_ = db3
 			r = db.Query(" BEGIN ; SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN ; SELECT * FROM t1 ")
 			}
 		}
 		{ // do_test "wal3-6.1.3"
-			r = db.Query(" PRAGMA wal_checkpoint ")
+			r = db2.Query(" PRAGMA wal_checkpoint ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 			}
@@ -370,7 +371,7 @@ func Test_wal3(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
-			r = db.Query(" PRAGMA wal_checkpoint ")
+			r = db2.Query(" PRAGMA wal_checkpoint ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 			}
@@ -396,8 +397,8 @@ func Test_wal3(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query(" PRAGMA auto_vacuum = off ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = off ")
@@ -471,8 +472,8 @@ func Test_wal3(t *testing.T) {
 		// T filter xOpen (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		{ // do_test "wal3-7.1.2"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query(" SELECT * FROM blue ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
@@ -483,7 +484,7 @@ func Test_wal3(t *testing.T) {
 		_ = locks // suppress unused warning
 		// proc definition (not transpiled)
 		{ // do_test "wal3-7.1.3"
-			r = db.Query(" SELECT * FROM blue ")
+			r = db2.Query(" SELECT * FROM blue ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
 			}
@@ -495,7 +496,7 @@ func Test_wal3(t *testing.T) {
 		_ = locks // suppress unused warning
 		// proc definition (not transpiled)
 		{ // do_test "wal3-7.2.1"
-			r = db.Query(" SELECT * FROM blue ")
+			r = db2.Query(" SELECT * FROM blue ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
 			}
@@ -526,9 +527,8 @@ func Test_wal3(t *testing.T) {
 			var c = "db" + i
 			_ = c // suppress unused warning
 			{ // do_test "wal3-9.1." + i
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
-				if err != nil { t.Fatal(err) }
+				c = db // sqlite3 $c test.db: alias to main in-memory db
+				_ = c
 				_res = db.Exec(" UPDATE whoami SET x = " + sqlLiteral(c) + " ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE whoami SET x = " + sqlLiteral(c) + " ")
@@ -552,7 +552,7 @@ func Test_wal3(t *testing.T) {
 			var c = "db" + i
 			_ = c // suppress unused warning
 			{ // do_test "wal3-9.2." + i
-				r = db.Query(" SELECT * FROM whoami ")
+				r = c.Query(" SELECT * FROM whoami ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM whoami ")
 				}

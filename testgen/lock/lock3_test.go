@@ -6,11 +6,13 @@ package lock
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_lock3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +61,7 @@ func Test_lock3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n  ")
 		}
-		r = db.Query("\n    SELECT * FROM t1\n  ")
+		r = db2.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
 		}
@@ -69,7 +71,7 @@ func Test_lock3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN DEFERRED TRANSACTION")
 		}
-		_res = db.Exec("INSERT INTO t1 VALUES(2)")
+		_res = db2.Exec("INSERT INTO t1 VALUES(2)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(2)")
 		}
@@ -87,11 +89,11 @@ func Test_lock3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN IMMEDIATE TRANSACTION")
 		}
-		_res = db.Exec("SELECT * FROM t1")
+		_res = db2.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock3-3.2"
-		_res = db.Exec("INSERT INTO t1 VALUES(3)")
+		_res = db2.Exec("INSERT INTO t1 VALUES(3)")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock3-3.3"
@@ -105,11 +107,11 @@ func Test_lock3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN EXCLUSIVE TRANSACTION")
 		}
-		_res = db.Exec("SELECT * FROM t1")
+		_res = db2.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock3-4.2"
-		_res = db.Exec("INSERT INTO t1 VALUES(3)")
+		_res = db2.Exec("INSERT INTO t1 VALUES(3)")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock3-4.3"

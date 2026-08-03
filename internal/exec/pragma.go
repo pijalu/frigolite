@@ -3,6 +3,7 @@ package exec
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
@@ -441,6 +442,17 @@ func (e *Engine) statLookup(tbl, idx string) string {
 func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 	name := strings.ToUpper(s.Name)
 
+	// PRAGMA index_info(name) / index_xinfo(name) take an argument: an index
+	// name or (for WITHOUT ROWID tables) the table name referring to its
+	// implicit PRIMARY KEY index. Handled before the value-return shortcut
+	// below (which would otherwise swallow any pragma with a value).
+	if name == "INDEX_INFO" || name == "INDEX_XINFO" {
+		return e.execPragmaIndexInfo(s.Value, name == "INDEX_XINFO")
+	}
+	if name == "INDEX_LIST" {
+		return e.execPragmaIndexList(s.Value)
+	}
+
 	// Handle PRAGMA ... = value for known pragmas
 	if s.Value != "" && name != "QUICK_CHECK" && name != "INTEGRITY_CHECK" {
 		switch name {
@@ -478,6 +490,329 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 		return fn(e)
 	}
 	return &Result{}
+}
+
+// autoindexDef describes one implicit autoindex of a WITHOUT ROWID table.
+type autoindexDef struct {
+	name   string
+	cols   []string
+	origin string // "pk" or "u"
+}
+
+// execPragmaIndexList implements PRAGMA index_list(table). Columns:
+// (seq, name, unique, origin, partial). Explicit indexes are listed first in
+// creation order; implicit PRIMARY KEY/UNIQUE autoindexes of a WITHOUT ROWID
+// table follow in reverse order, matching SQLite.
+func (e *Engine) execPragmaIndexList(arg string) *Result {
+	cols := []string{"seq", "name", "unique", "origin", "partial"}
+	arg = strings.TrimSpace(arg)
+	if arg == "" {
+		return &Result{Columns: cols}
+	}
+	tableEntry, ctx, err := e.findTable(arg)
+	if err != nil {
+		return &Result{Columns: cols} // unknown table → zero rows
+	}
+	var rows [][]interface{}
+	seq := 0
+
+	// Explicit indexes on the table.
+	indexes, _ := ctx.Schema.FindIndexesForTable(tableEntry.Name)
+	for _, idx := range indexes {
+		unique := int64(0)
+		if uniqueIndexColsRe.MatchString(idx.SQL) {
+			unique = 1
+		}
+		partial := int64(0)
+		if indexWhereRe.MatchString(idx.SQL) {
+			partial = 1
+		}
+		rows = append(rows, []interface{}{int64(seq), idx.Name, unique, "c", partial})
+		seq++
+	}
+
+	// Implicit autoindexes for WITHOUT ROWID tables, in reverse creation order.
+	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		defs := e.withoutRowidAutoindexes(tableEntry.Name, tableEntry)
+		for i := len(defs) - 1; i >= 0; i-- {
+			rows = append(rows, []interface{}{int64(seq), defs[i].name, int64(1), defs[i].origin, int64(0)})
+			seq++
+		}
+	}
+	return &Result{Columns: cols, Rows: rows}
+}
+
+// withoutRowidAutoindexes computes the implicit UNIQUE/PRIMARY KEY autoindexes
+// of a WITHOUT ROWID table and names them sqlite_autoindex_<table>_<N>.
+// Autoindexes are numbered sequentially in creation order: column-level UNIQUE
+// and PRIMARY KEY constraints first (in column order), then table-level UNIQUE
+// and PRIMARY KEY constraints (in declaration order). An index whose column
+// set already exists is merged into that existing index; a PRIMARY KEY wins
+// the "pk" origin.
+func (e *Engine) withoutRowidAutoindexes(tableName string, tableEntry *schema.Entry) []autoindexDef {
+	colDefs := e.parseColumnDefs(tableName, tableEntry.SQL)
+	colIndex := buildColumnIndex(colDefs)
+	var defs []autoindexDef
+	addIndex := func(cols []string, origin string) {
+		for i := range defs {
+			if sameColumnSet(defs[i].cols, cols) {
+				if origin == "pk" {
+					defs[i].origin = "pk"
+				}
+				return
+			}
+		}
+		defs = append(defs, autoindexDef{cols: cols, origin: origin})
+	}
+	// Column-level constraints, in column order.
+	for _, cd := range colDefs {
+		if cd.Unique {
+			addIndex([]string{cd.Name}, "u")
+		}
+		if cd.PrimaryKey {
+			addIndex([]string{cd.Name}, "pk")
+		}
+	}
+	// Table-level constraints, in declaration order.
+	for _, tc := range e.tableConstraints(tableName, tableEntry.SQL) {
+		var constraintCols []string
+		switch tc.Type {
+		case sql.ConstraintUnique:
+			constraintCols = constraintColumnNames(tc, colIndex, colDefs)
+			addIndex(constraintCols, "u")
+		case sql.ConstraintPrimaryKey:
+			constraintCols = constraintColumnNames(tc, colIndex, colDefs)
+			addIndex(constraintCols, "pk")
+		}
+	}
+	for i := range defs {
+		defs[i].name = fmt.Sprintf("sqlite_autoindex_%s_%d", tableName, i+1)
+	}
+	return defs
+}
+
+// sameColumnSet reports whether two lists name the same columns in the same
+// order (case-insensitively).
+func sameColumnSet(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if !strings.EqualFold(a[i], b[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+// constraintColumnNames resolves a table-level UNIQUE/PRIMARY KEY constraint's
+// indexed columns to their names, honoring integer column positions.
+func constraintColumnNames(tc sql.TableConstraint, colIndex map[string]int, colDefs []sql.ColumnDef) []string {
+	var names []string
+	for _, ic := range tc.Columns {
+		if n, err := strconv.Atoi(ic.Name); err == nil && n >= 1 && n <= len(colDefs) {
+			names = append(names, colDefs[n-1].Name)
+			continue
+		}
+		if idx, ok := colIndex[ic.Name]; ok {
+			names = append(names, colDefs[idx].Name)
+		} else {
+			names = append(names, ic.Name)
+		}
+	}
+	return names
+}
+
+// indexPragmaColumn describes one column of an index for index_info/xinfo.
+type indexPragmaColumn struct {
+	name  string
+	desc  bool
+	coll  string // resolved collation ("" for BINARY)
+	cid   int64  // table column ordinal (-1 for rowid)
+	key   int64  // 1 for key columns, 0 for payload columns
+	rowid bool   // synthetic rowid column
+}
+
+// execPragmaIndexInfo implements PRAGMA index_info(name) and
+// PRAGMA index_xinfo(name). The argument may name an explicit index or, for a
+// WITHOUT ROWID table, the table itself (its implicit PRIMARY KEY index).
+// Mirrors SQLite's output:
+//
+//	index_info:  (seqno, cid, name)
+//	index_xinfo: (seqno, cid, name, desc, coll, key)
+func (e *Engine) execPragmaIndexInfo(arg string, xinfo bool) *Result {
+	cols := []string{"seqno", "cid", "name"}
+	if xinfo {
+		cols = []string{"seqno", "cid", "name", "desc", "coll", "key"}
+	}
+	arg = strings.TrimSpace(arg)
+	if arg == "" {
+		return &Result{Columns: cols}
+	}
+
+	var columns []indexPragmaColumn
+
+	// 1. Named index.
+	if idxEntry, ctx, err := e.findIndex(arg); err == nil {
+		var tableEntry *schema.Entry
+		var colDefs []sql.ColumnDef
+		if te, _, terr := e.findTable(idxEntry.TblName); terr == nil {
+			tableEntry = te
+			colDefs = e.parseColumnDefs(te.Name, te.SQL)
+		}
+		columns = e.indexColumnsFromSQL(idxEntry.SQL, ctx, tableEntry, colDefs)
+	} else if tableEntry, _, terr := e.findTable(arg); terr == nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		// 2. WITHOUT ROWID table name: implicit PRIMARY KEY index.
+		colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+		columns = e.withoutRowidPKColumns(arg, tableEntry, colDefs, xinfo)
+	} else {
+		// Unknown index/table: SQLite returns zero rows.
+		return &Result{Columns: cols}
+	}
+
+	rows := make([][]interface{}, 0, len(columns))
+	for i, c := range columns {
+		if !xinfo && c.rowid {
+			continue // index_info omits the trailing rowid column
+		}
+		if xinfo {
+			var name interface{}
+			if c.name != "" {
+				name = c.name
+			}
+			coll := c.coll
+			if coll == "" {
+				coll = "BINARY"
+			}
+			rows = append(rows, []interface{}{int64(i), c.cid, name, int64(boolToInt(c.desc)), coll, c.key})
+		} else {
+			rows = append(rows, []interface{}{int64(i), c.cid, c.name})
+		}
+	}
+	return &Result{Columns: cols, Rows: rows}
+}
+
+// indexColumnsFromSQL resolves an explicit index's columns from its CREATE
+// INDEX SQL: names and DESC flags from the AST, collations from the table
+// column definitions (or an explicit COLLATE in the index column list).
+func (e *Engine) indexColumnsFromSQL(sqlStr string, ctx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef) []indexPragmaColumn {
+	p := sql.NewParser(sqlStr)
+	stmts := p.Parse()
+	if len(stmts) == 0 {
+		return nil
+	}
+	ci, ok := stmts[0].(*sql.CreateIndexStmt)
+	if !ok {
+		return nil
+	}
+	explicitColls := parseIndexColumnCollations(sqlStr)
+	colIndex := buildColumnIndex(colDefs)
+	var out []indexPragmaColumn
+	for i, ic := range ci.Columns {
+		cid := int64(-1)
+		coll := ""
+		if n, err := strconv.Atoi(ic.Name); err == nil && n >= 1 && n <= len(colDefs) {
+			cid = int64(n - 1)
+			coll = colDefs[n-1].Collate
+		} else if idx, ok := colIndex[ic.Name]; ok {
+			cid = int64(idx)
+			coll = colDefs[idx].Collate
+		}
+		if i < len(explicitColls) && explicitColls[i] != "" {
+			coll = explicitColls[i]
+		}
+		out = append(out, indexPragmaColumn{name: ic.Name, desc: ic.Desc, coll: coll, cid: cid, key: 1})
+	}
+	if tableEntry != nil && !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		// Rowid tables store a trailing rowid in every index record.
+		out = append(out, indexPragmaColumn{cid: -1, key: 0, rowid: true})
+	}
+	return out
+}
+
+// withoutRowidPKColumns builds the implicit PRIMARY KEY index columns of a
+// WITHOUT ROWID table. Key columns come from the PRIMARY KEY constraint; the
+// remaining table columns appear as payload (key=0) columns in index_xinfo.
+func (e *Engine) withoutRowidPKColumns(tableName string, tableEntry *schema.Entry, colDefs []sql.ColumnDef, xinfo bool) []indexPragmaColumn {
+	colIndex := buildColumnIndex(colDefs)
+	inPK := make(map[int]bool)
+	var out []indexPragmaColumn
+
+	// Column-level PRIMARY KEY constraints (e.g. "b PRIMARY KEY") are treated
+	// by SQLite as a PRIMARY KEY constraint on that single column.
+	for i, cd := range colDefs {
+		if !cd.PrimaryKey || inPK[i] {
+			continue
+		}
+		inPK[i] = true
+		out = append(out, indexPragmaColumn{name: cd.Name, cid: int64(i), coll: cd.Collate, key: 1})
+	}
+
+	for _, tc := range e.tableConstraints(tableName, tableEntry.SQL) {
+		if tc.Type != sql.ConstraintPrimaryKey {
+			continue
+		}
+		for _, ic := range tc.Columns {
+			idx := -1
+			if n, err := strconv.Atoi(ic.Name); err == nil && n >= 1 && n <= len(colDefs) {
+				idx = n - 1
+			} else if i, ok := colIndex[ic.Name]; ok {
+				idx = i
+			}
+			if idx < 0 {
+				continue
+			}
+			inPK[idx] = true
+			coll := ic.Collate
+			if coll == "" {
+				coll = colDefs[idx].Collate
+			}
+			out = append(out, indexPragmaColumn{name: colDefs[idx].Name, desc: ic.Desc, coll: coll, cid: int64(idx), key: 1})
+		}
+	}
+	if xinfo {
+		for i, cd := range colDefs {
+			if inPK[i] {
+				continue
+			}
+			out = append(out, indexPragmaColumn{name: cd.Name, cid: int64(i), coll: cd.Collate, key: 0})
+		}
+	}
+	return out
+}
+
+// parseIndexColumnCollations extracts per-column COLLATE names from a CREATE
+// INDEX column list ("CREATE INDEX i ON t(a, b COLLATE rtrim)" -> ["", "rtrim"]).
+func parseIndexColumnCollations(sqlStr string) []string {
+	upper := strings.ToUpper(sqlStr)
+	start := strings.Index(upper, "(")
+	if start < 0 {
+		return nil
+	}
+	end := strings.LastIndex(upper, ")")
+	if end < 0 || end <= start {
+		return nil
+	}
+	colsStr := sqlStr[start+1 : end]
+	var colls []string
+	for _, c := range strings.Split(colsStr, ",") {
+		col := strings.TrimSpace(c)
+		cu := strings.ToUpper(col)
+		if idx := strings.Index(cu, " COLLATE "); idx >= 0 {
+			rest := strings.TrimSpace(col[idx+len(" COLLATE "):])
+			// Strip trailing ASC/DESC.
+			ru := strings.ToUpper(rest)
+			if di := strings.Index(ru, " DESC"); di >= 0 {
+				rest = strings.TrimSpace(rest[:di])
+			} else if ai := strings.Index(ru, " ASC"); ai >= 0 {
+				rest = strings.TrimSpace(rest[:ai])
+			}
+			colls = append(colls, rest)
+		} else {
+			colls = append(colls, "")
+		}
+	}
+	return colls
 }
 
 var pragmaHandlers = map[string]func(e *Engine) *Result{

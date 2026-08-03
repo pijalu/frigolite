@@ -187,8 +187,8 @@ func (e *Engine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
 
 	// Threshold: if estimated rows is less than ~10% of table, use SEARCH
 	threshold := float64(nRow) * 0.10
-	if bestIndex != "" && bestEstimate < threshold {
-		plan := fmt.Sprintf("SEARCH %s USING INDEX %s", tableName, bestIndex)
+	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || bestEstimate < threshold) {
+		plan := fmt.Sprintf("SEARCH %s USING %s", tableName, bestIndex)
 		if conditions != "" {
 			plan += " " + conditions
 		}
@@ -334,11 +334,15 @@ func (e *Engine) joinNodeFor(t queryTable, planned []string, joins []joinRef, s 
 	nRow := e.estimatedRowCount(t.real)
 	est := float64(nRow)
 	idx, conds := e.bestIndexForQuery(t.real, s.Where, &est)
-	if idx != "" && est < float64(nRow)*0.10 {
-		if conds != "" {
-			return fmt.Sprintf("SEARCH %s USING INDEX %s %s", t.display, idx, conds)
+	if idx != "" && (idx == "PRIMARY KEY" || est < float64(nRow)*0.10) {
+		using := "INDEX " + idx
+		if idx == "PRIMARY KEY" {
+			using = "PRIMARY KEY"
 		}
-		return fmt.Sprintf("SEARCH %s USING INDEX %s", t.display, idx)
+		if conds != "" {
+			return fmt.Sprintf("SEARCH %s USING %s %s", t.display, using, conds)
+		}
+		return fmt.Sprintf("SEARCH %s USING %s", t.display, using)
 	}
 	return "SCAN " + t.display
 }
@@ -602,7 +606,30 @@ func extractConst(e sql.Expr) interface{} {
 	}
 }
 
+// isWithoutRowidPKColumn reports whether colName is a PRIMARY KEY column of a
+// WITHOUT ROWID table (whose PK is the implicit storage index). An integer
+// column position in the PK constraint also counts.
+func (e *Engine) isWithoutRowidPKColumn(tableName, colName string) bool {
+	entry, err := e.schema.FindTable(tableName)
+	if err != nil || !hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+		return false
+	}
+	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+	for _, c := range e.withoutRowidPKColumns(entry.Name, entry, colDefs, false) {
+		if strings.EqualFold(c.name, colName) {
+			return true
+		}
+	}
+	return false
+}
+
 func (e *Engine) findIndexOnColumn(tableName, colName string) string {
+	// A WITHOUT ROWID table's PRIMARY KEY is its implicit storage index. A
+	// reference to a PK column uses that index (SQLite reports it as
+	// "USING PRIMARY KEY"), so return the marker the plan formatters render.
+	if e.isWithoutRowidPKColumn(tableName, colName) {
+		return "PRIMARY KEY"
+	}
 	entries, err := e.schema.GetEntries("")
 	if err != nil {
 		return ""

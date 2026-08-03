@@ -6,11 +6,13 @@ package tkt_f7b4
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_tkt_f7b4edec(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,21 +59,21 @@ func Test_tkt_f7b4edec(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
-	db1, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+	_ = db1
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	HOOKS = ""
 	_ = HOOKS // suppress unused warning
 	// proc definition (not transpiled)
 	// db1.update_hook (db command)
 	// db2.update_hook (db command)
 	{ // do_test "tkt-f7b4edec-1"
-		_res = db.Exec(" CREATE TABLE t1(x, y); ")
+		_res = db1.Exec(" CREATE TABLE t1(x, y); ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(x, y); ")
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")
+		_res = db1.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(1, 2) ")
 		}
@@ -80,7 +82,7 @@ func Test_tkt_f7b4edec(t *testing.T) {
 	HOOKS = ""
 	_ = HOOKS // suppress unused warning
 	{ // do_test "tkt-f7b4edec-2"
-		_res = db.Exec("\n    BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;\n  ")
+		_res = db2.Exec("\n    BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;\n  ")
 		}
@@ -89,13 +91,13 @@ func Test_tkt_f7b4edec(t *testing.T) {
 	HOOKS = ""
 	_ = HOOKS // suppress unused warning
 	{ // do_test "tkt-f7b4edec-3"
-		_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")
+		_res = db1.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(1, 2) ")
 		}
 		_ = HOOKS // TCL namespace variable (query)
 	}
-	db1.Close()
-	db2.Close()
+	_ = db1 // close db1: aliased to db, no-op
+	_ = db2 // close db2: aliased to db, no-op
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

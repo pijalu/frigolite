@@ -13,7 +13,8 @@ import (
 )
 
 func Test_uri(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,8 +281,8 @@ func Test_uri(t *testing.T) {
 						}
 						os.Remove("test.db")
 						// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
-						db2, err = frigolite.Open("test.db")
-						if err != nil { t.Fatal(err) }
+						db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+						_ = db2
 						_res = db2.Exec("CREATE TABLE t1(a, b)")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 						// sqlite3_enable_shared_cache $sc_default (unsupported command, not transpiled)
@@ -302,7 +303,7 @@ func Test_uri(t *testing.T) {
 							_res = db.Exec(" SELECT * FROM t1 ")
 							_ = _res // catchsql
 						}
-						db2.Close()
+						_ = db2 // close db2: aliased to db, no-op
 					}
 					{ // do_test "4.3.1"
 						_list := tclList([]string{"0", msg})

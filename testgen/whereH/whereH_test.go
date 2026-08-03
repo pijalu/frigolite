@@ -6,12 +6,14 @@ package whereH
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "regexp"
 "testing"
 )
 
 func Test_whereH(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}

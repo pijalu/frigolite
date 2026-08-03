@@ -10,6 +10,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
 )
@@ -1312,7 +1313,7 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		return nil
 	}
 	ct, ok := stmts[0].(*sql.CreateTableStmt)
-	if ok && ct != nil {
+	if ok && ct != nil && len(ct.Columns) > 0 {
 		// Cache for future use
 		e.colCache[tableName] = ct.Columns
 		return ct.Columns
@@ -1335,6 +1336,16 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		}
 		e.colCache[tableName] = colDefs
 		return colDefs
+	}
+	// The hand-written parser (sql.NewParser) can return a nil/empty
+	// CreateTableStmt for some constructs (e.g. "NOT NULL ON CONFLICT REPLACE
+	// DEFAULT 3"). Fall back to the go-lemon parser, which handles them, so
+	// SELECT/INSERT decode these tables correctly.
+	if pstmts, perr := parse.ParseSQL(createSQL); perr == nil && len(pstmts) > 0 {
+		if ct, ok := pstmts[0].(*sql.CreateTableStmt); ok && ct != nil && len(ct.Columns) > 0 {
+			e.colCache[tableName] = ct.Columns
+			return ct.Columns
+		}
 	}
 	return nil
 }

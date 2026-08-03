@@ -11,7 +11,8 @@ import (
 )
 
 func Test_fts3aj(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +86,7 @@ func Test_fts3aj(t *testing.T) {
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "fts3aj-1.3"
-		_res = db.Exec("\n    ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;\n  ")
+		_res = db2.Exec("\n    ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;\n  ")
 		}

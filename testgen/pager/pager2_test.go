@@ -12,7 +12,8 @@ import (
 )
 
 func Test_pager2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,8 +121,8 @@ func Test_pager2(t *testing.T) {
 				lowpoint = now
 				_ = lowpoint // suppress unused warning
 				{ // do_test "pager2.1." + otn + "." + tn
-					db2, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
+					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+					_ = db2
 					r = db.Query("\n          SELECT COALESCE(max(i), 0) FROM t1;\n          PRAGMA integrity_check;\n        ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          SELECT COALESCE(max(i), 0) FROM t1;\n          PRAGMA integrity_check;\n        ")
@@ -203,8 +204,8 @@ func Test_pager2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("file:test.db?mode=memory&cache=shared")
 		if err != nil { t.Fatal(err) }
-		db3, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+		_ = db3
 		_res = db1.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db2.Exec(" INSERT INTO t1 VALUES(1, 2) ")

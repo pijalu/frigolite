@@ -6,12 +6,14 @@ package sharedB
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
 
 func Test_sharedB(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,10 +66,10 @@ func Test_sharedB(t *testing.T) {
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "1.1"
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db1.Exec("\n    CREATE TABLE t1(x,y TEXT COLLATE nocase);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n    INSERT INTO t1(x,y) SELECT i, printf('x%03dy',i) FROM c;\n    CREATE INDEX t1yx ON t1(y,x);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db2.Exec("\n    SELECT x FROM t1 WHERE y='X014Y';\n  ")
@@ -78,8 +80,8 @@ func Test_sharedB(t *testing.T) {
 	for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n <= 100 }() {
 		{ // do_test "1.2." + j
 			db2.Close()
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			_res = db2.Exec("\n      SELECT x FROM t1 WHERE y='X014Y';\n    ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}

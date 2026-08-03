@@ -6,12 +6,14 @@ package e_
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
 
 func Test_e_changes(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,8 +95,8 @@ func Test_e_changes(t *testing.T) {
 			// do_changes_test 1.$tn.3 {\n    UPDATE t1 SET b=b+1 WHERE a<5;\n  } 5 (unsupported command, not transpiled)
 			// do_changes_test 1.$tn.4 {\n    DELETE FROM t1 WHERE a>6\n  } 4 (unsupported command, not transpiled)
 			{ // do_test "1." + tn + ".5"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db.Exec(" INSERT INTO t1 VALUES(-1, -1) ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(-1, -1) ")

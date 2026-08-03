@@ -12,7 +12,8 @@ import (
 )
 
 func Test_misc7(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +127,7 @@ func Test_misc7(t *testing.T) {
 			// file mkdir mydir-journal
 			db2, err = frigolite.Open("./mydir")
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
+			_res = db2.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
 			_ = _res // catchsql
 		}
 		db2.Close()
@@ -149,8 +150,8 @@ func Test_misc7(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM abc;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INSERT INTO abc VALUES(2, 3, 4);\n  INSERT INTO abc SELECT a+2, b, c FROM abc;\n")
 	}
 	{ // do_test "misc7-7.0"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		// sqlite3_busy_timeout [sqlite3_connection_pointer db] 2000 (unsupported command, not transpiled)
 		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n  ")
 		if _res.Error != nil {

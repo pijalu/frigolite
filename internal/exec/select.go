@@ -200,10 +200,21 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
+	// Resolve collations used by the WHERE clause. SQLite raises
+	// "no such collation sequence: X" at compile time when a comparison
+	// references a column whose declared collation is unknown. Only the
+	// single-table (no JOIN) case is checked here; joins resolve collations
+	// per-table elsewhere.
+	if len(s.Joins) == 0 && s.Where != nil {
+		if err := e.checkWhereCollations(s.Where, colDefs, s.From); err != nil {
+			return &Result{Error: err}
+		}
+	}
+
 	// WITHOUT ROWID tables have no rowid/_rowid_/oid columns. SQLite rejects
 	// any reference to them with "no such column".
 	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
-		if ref := e.findRowIDRef(s); ref != "" {
+		if ref := e.findRowIDRef(s, tableEntry.Name, s.From.As, len(s.Joins) > 0); ref != "" {
 			return &Result{Error: fmt.Errorf("no such column: %s", ref)}
 		}
 	}
@@ -4264,19 +4275,82 @@ func sortRowMapsByPKNames(rowMaps []RowMap, pkColNames []string) {
 	})
 }
 
+// checkWhereCollations walks a WHERE expression and raises "no such collation
+// sequence: X" when a comparison operand is a column reference whose declared
+// collation (from the scanned table) is unknown. Mirrors SQLite's compile-time
+// collation resolution for comparison operators.
+func (e *Engine) checkWhereCollations(where sql.Expr, colDefs []sql.ColumnDef, from sql.TableRef) error {
+	colByName := make(map[string]string, len(colDefs))
+	for _, c := range colDefs {
+		if c.Collate != "" {
+			colByName[strings.ToLower(c.Name)] = c.Collate
+		}
+	}
+	refName := from.Name
+	if from.As != "" {
+		refName = from.As
+	}
+	var checkErr error
+	walkExprFull(where, func(e2 sql.Expr) {
+		if checkErr != nil {
+			return
+		}
+		bop, ok := e2.(*sql.BinaryOp)
+		if !ok {
+			return
+		}
+		switch strings.ToUpper(bop.Operator) {
+		case "=", "<>", "!=", "<", ">", "<=", ">=":
+		default:
+			return
+		}
+		for _, side := range []sql.Expr{bop.Left, bop.Right} {
+			cr, ok := side.(*sql.ColumnRef)
+			if !ok {
+				continue
+			}
+			// A table qualifier must match the scanned table (or its alias);
+			// an empty qualifier resolves by column name in the single-table case.
+			if cr.Table != "" && !strings.EqualFold(cr.Table, refName) && !strings.EqualFold(cr.Table, from.Name) {
+				continue
+			}
+			if coll, ok := colByName[strings.ToLower(cr.Name)]; ok {
+				if err := checkCollationString(coll); err != nil {
+					checkErr = err
+					return
+				}
+			}
+		}
+	})
+	return checkErr
+}
+
 // findRowIDRef returns the first rowid/_rowid_/oid column reference in a
-// SELECT statement, or "" if there is none. Used to reject rowid references
-// on WITHOUT ROWID tables.
-func (e *Engine) findRowIDRef(s *sql.SelectStmt) string {
+// SELECT statement that resolves to the named table, or "" if there is none.
+// Used to reject rowid references on WITHOUT ROWID tables. References
+// qualified to a different table (e.g. t42.rowid in a join) are allowed, as
+// are unqualified references when the query joins other tables that may
+// provide a rowid.
+func (e *Engine) findRowIDRef(s *sql.SelectStmt, tableName, alias string, hasJoins bool) string {
 	check := func(expr sql.Expr) string {
 		var found string
 		walkExprFull(expr, func(e2 sql.Expr) {
 			if found != "" {
 				return
 			}
-			if cr, ok := e2.(*sql.ColumnRef); ok && isRowIDName(cr.Name) {
-				found = cr.Name
+			cr, ok := e2.(*sql.ColumnRef)
+			if !ok || !isRowIDName(cr.Name) {
+				return
 			}
+			// Qualified reference to another table: that table's rowid.
+			if cr.Table != "" && !strings.EqualFold(cr.Table, tableName) && !strings.EqualFold(cr.Table, alias) {
+				return
+			}
+			// Unqualified reference with joins may resolve to another table.
+			if cr.Table == "" && hasJoins {
+				return
+			}
+			found = cr.Name
 		})
 		return found
 	}

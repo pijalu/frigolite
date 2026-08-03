@@ -12,7 +12,8 @@ import (
 )
 
 func Test_walslow(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,17 +137,17 @@ func Test_walslow(t *testing.T) {
 				// copy_file test.db-wal testX.db-wal (unsupported command, not transpiled)
 				db2, err = frigolite.Open("testX.db")
 				if err != nil { t.Fatal(err) }
-				r = db.Query(" PRAGMA journal_mode = WAL ")
+				r = db2.Query(" PRAGMA journal_mode = WAL ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
 				}
-				r = db.Query(" PRAGMA integrity_check ")
+				r = db2.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 				}
 			}
 			{ // do_test "walslow-1.seed=" + seed + "." + iTest + ".4"
-				r = db.Query(" SELECT count(*) FROM t1 WHERE a!=b ")
+				r = db2.Query(" SELECT count(*) FROM t1 WHERE a!=b ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 WHERE a!=b ")
 				}
@@ -183,7 +184,7 @@ func Test_walslow(t *testing.T) {
 		tclFileCopy("test.db", "test2.db")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		r = db.Query(" SELECT a FROM t1 ")
+		r = db2.Query(" SELECT a FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t1 ")
 		}

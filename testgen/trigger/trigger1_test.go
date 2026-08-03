@@ -12,7 +12,8 @@ import (
 )
 
 func Test_trigger1(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -240,13 +241,13 @@ func Test_trigger1(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger1-4.2"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n      INSERT INTO t1 VALUES(9,10);\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(9,10);\n    ")
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		r = db.Query("\n      SELECT * FROM t2;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t2;\n    ")

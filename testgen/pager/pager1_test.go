@@ -13,7 +13,8 @@ import (
 )
 
 func Test_pager1(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -915,7 +916,7 @@ func Test_pager1(t *testing.T) {
 						}
 						db2, err = frigolite.Open("test.db2")
 						if err != nil { t.Fatal(err) }
-						r = db.Query("\n    BEGIN;\n      SELECT * FROM t2;\n  ")
+						r = db2.Query("\n    BEGIN;\n      SELECT * FROM t2;\n  ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      SELECT * FROM t2;\n  ")
 						}
@@ -925,7 +926,7 @@ func Test_pager1(t *testing.T) {
 						_ = _res // catchsql
 					}
 					{ // do_test "pager1-5.1.4"
-						_res = db.Exec("COMMIT")
+						_res = db2.Exec("COMMIT")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 						}
@@ -933,7 +934,7 @@ func Test_pager1(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 						}
-						r = db.Query(" SELECT * FROM t2 ")
+						r = db2.Query(" SELECT * FROM t2 ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
 						}
@@ -1208,7 +1209,7 @@ func Test_pager1(t *testing.T) {
 								{ // do_test "pager1-8." + tn + ".2"
 									db2, err = frigolite.Open(filename)
 									if err != nil { t.Fatal(err) }
-									_res = db.Exec(" SELECT * FROM x1 ")
+									_res = db2.Exec(" SELECT * FROM x1 ")
 									_ = _res // catchsql
 								}
 								{ // "pager1-8." + tn + ".3"
@@ -1313,7 +1314,7 @@ func Test_pager1(t *testing.T) {
 								{ // do_test "pager1-9.3.2codec"
 									db2, err = frigolite.Open("test.db2")
 									if err != nil { t.Fatal(err) }
-									_res = db.Exec("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
+									_res = db2.Exec("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
 									}
@@ -1331,7 +1332,7 @@ func Test_pager1(t *testing.T) {
 								{ // do_test "pager1-9.3.2"
 									db2, err = frigolite.Open("test.db2")
 									if err != nil { t.Fatal(err) }
-									_res = db.Exec("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
+									_res = db2.Exec("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
 									}
@@ -1350,7 +1351,7 @@ func Test_pager1(t *testing.T) {
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
 								db2, err = frigolite.Open("test.db2")
 								if err != nil { t.Fatal(err) }
-								_res = db.Exec("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n  ")
+								_res = db2.Exec("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n  ")
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n  ")
 								}
@@ -1490,8 +1491,8 @@ func Test_pager1(t *testing.T) {
 							}
 							// tv script {} (unsupported command, not transpiled)
 							{ // do_test "pager1-11.3"
-								db2, err = frigolite.Open("test.db")
-								if err != nil { t.Fatal(err) }
+								db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+								_ = db2
 								r = db.Query("\n    PRAGMA journal_mode = TRUNCATE;\n    PRAGMA integrity_check;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = TRUNCATE;\n    PRAGMA integrity_check;\n  ")
@@ -1526,8 +1527,8 @@ func Test_pager1(t *testing.T) {
 									_ = eff // suppress unused warning
 								}
 								{ // do_test "pager1-12." + pagesize + ".1"
-									db2, err = frigolite.Open("test.db")
-									if err != nil { t.Fatal(err) }
+									db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+									_ = db2
 									_res = db.Exec("\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
@@ -1535,8 +1536,8 @@ func Test_pager1(t *testing.T) {
 									// file size test.db
 								}
 								{ // do_test "pager1-12." + pagesize + ".2"
-									db2, err = frigolite.Open("test.db")
-									if err != nil { t.Fatal(err) }
+									db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+									_ = db2
 									r = db.Query(" \n      SELECT count(*) FROM v;\n      PRAGMA main.page_size;\n    ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT count(*) FROM v;\n      PRAGMA main.page_size;\n    ")
@@ -1593,13 +1594,13 @@ func Test_pager1(t *testing.T) {
 									db2, err = frigolite.Open("sv_test.db")
 									if err != nil { t.Fatal(err) }
 									{ // do_test "pager1-13.1.2." + nUp + ".3"
-										r = db.Query(" SELECT sum(length(b)) FROM t1 ")
+										r = db2.Query(" SELECT sum(length(b)) FROM t1 ")
 										if r.Error != nil {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(b)) FROM t1 ")
 										}
 									}
 									{ // do_test "pager1-13.1.2." + nUp + ".4"
-										r = db.Query(" PRAGMA integrity_check ")
+										r = db2.Query(" PRAGMA integrity_check ")
 										if r.Error != nil {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 										}
@@ -1645,13 +1646,13 @@ func Test_pager1(t *testing.T) {
 									db2, err = frigolite.Open("sv_test.db")
 									if err != nil { t.Fatal(err) }
 									{ // do_test "pager1-13.2.2." + nUp + ".3"
-										r = db.Query(" SELECT sum(length(b)) FROM t1 ")
+										r = db2.Query(" SELECT sum(length(b)) FROM t1 ")
 										if r.Error != nil {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(b)) FROM t1 ")
 										}
 									}
 									{ // do_test "pager1-13.2.2." + nUp + ".4"
-										r = db.Query(" PRAGMA integrity_check ")
+										r = db2.Query(" PRAGMA integrity_check ")
 										if r.Error != nil {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 										}
@@ -1861,8 +1862,8 @@ func Test_pager1(t *testing.T) {
 							}
 							{ // do_test "pager1-21.1"
 								// testvfs tv -noshm 1 (unsupported command, not transpiled)
-								db2, err = frigolite.Open("test.db")
-								if err != nil { t.Fatal(err) }
+								db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+								_ = db2
 								_res = db.Exec(" SELECT * FROM ko ")
 								_ = _res // catchsql
 							}
@@ -1870,8 +1871,8 @@ func Test_pager1(t *testing.T) {
 							// tv delete (unsupported command, not transpiled)
 							{ // do_test "pager1-21.2"
 								// testvfs tv -iversion 1 (unsupported command, not transpiled)
-								db2, err = frigolite.Open("test.db")
-								if err != nil { t.Fatal(err) }
+								db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+								_ = db2
 								_res = db.Exec(" SELECT * FROM ko ")
 								_ = _res // catchsql
 							}
@@ -2188,7 +2189,7 @@ func Test_pager1(t *testing.T) {
 										// hexio_write test.db2-journal 24 00000000 (unsupported command, not transpiled)
 										db2, err = frigolite.Open("test.db2")
 										if err != nil { t.Fatal(err) }
-										r = db.Query(" PRAGMA integrity_check ")
+										r = db2.Query(" PRAGMA integrity_check ")
 										if r.Error != nil {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 										}

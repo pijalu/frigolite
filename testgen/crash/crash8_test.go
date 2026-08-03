@@ -12,7 +12,8 @@ import (
 )
 
 func Test_crash8(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -308,7 +309,7 @@ func Test_crash8(t *testing.T) {
 				// crashsql -file test.db -delay [expr ($::i%2) + 1] {\n        SELECT * FROM sqlite_master;... (unsupported command, not transpiled)
 				db2, err = frigolite.Open("testX.db")
 				if err != nil { t.Fatal(err) }
-				r = db.Query(" PRAGMA integrity_check ")
+				r = db2.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 				}

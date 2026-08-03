@@ -6,11 +6,13 @@ package journal
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_journal2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,8 +119,8 @@ func Test_journal2(t *testing.T) {
 	{ // do_test "journal2-1.5"
 		oplog = "list" // TCL namespace variable
 		_ = oplog // suppress unused warning
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query(" PRAGMA journal_mode = delete ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = delete ")
@@ -136,11 +138,11 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.8"
-		r = db.Query(" PRAGMA journal_mode = truncate ")
+		r = db2.Query(" PRAGMA journal_mode = truncate ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = truncate ")
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(5, 6)  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(5, 6)  ")
 		}
@@ -165,8 +167,8 @@ func Test_journal2(t *testing.T) {
 		// expr $sz>120 && $sz<200 (not evaluated)
 	}
 	{ // do_test "journal2-1.12"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128\n  ")
@@ -176,7 +178,7 @@ func Test_journal2(t *testing.T) {
 		// tvfs filter {xOpen xClose xDelete xWrite xTruncate} (unsupported command, not transpiled)
 		tvfs_error_on_write = "1" // TCL namespace variable
 		_ = tvfs_error_on_write // suppress unused warning
-		_res = db.Exec(" COMMIT ")
+		_res = db2.Exec(" COMMIT ")
 		_ = _res // catchsql
 	}
 	db2.Close()

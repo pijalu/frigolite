@@ -12,7 +12,8 @@ import (
 )
 
 func Test_manydb(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,7 +153,7 @@ func Test_manydb(t *testing.T) {
 				dbi, err := frigolite.Open(dbname_i)
 				defer dbi.Close()
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n       CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);\n    ")
+				_res = dbi.Exec("\n       CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);\n    ")
 				}

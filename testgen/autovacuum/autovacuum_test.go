@@ -13,7 +13,8 @@ import (
 )
 
 func Test_autovacuum(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -622,8 +623,8 @@ func Test_autovacuum(t *testing.T) {
 		_dbtmp2, err := frigolite.Open("test.db")
 		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("PRAGMA auto_vacuum")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA auto_vacuum")
@@ -635,7 +636,7 @@ func Test_autovacuum(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN EXCLUSIVE")
 			}
-			_res = db.Exec("PRAGMA auto_vacuum")
+			_res = db2.Exec("PRAGMA auto_vacuum")
 			_ = _res // catchsql
 		}
 		{

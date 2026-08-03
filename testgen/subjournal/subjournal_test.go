@@ -11,7 +11,8 @@ import (
 )
 
 func Test_subjournal(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +113,7 @@ func Test_subjournal(t *testing.T) {
 	}
 	{ // do_test "2.4"
 		// B finish (unsupported command, not transpiled)
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}

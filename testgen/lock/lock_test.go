@@ -6,11 +6,13 @@ package lock
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_lock(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +87,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-1.2"
-		r = db.Query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+		r = db2.Query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
 		}
@@ -101,7 +103,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-1.5"
-		_res = db.Exec("\n     SELECT name FROM sqlite_master WHERE type='table' ORDER BY name\n  ")
+		_res = db2.Exec("\n     SELECT name FROM sqlite_master WHERE type='table' ORDER BY name\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-1.6"
@@ -115,15 +117,15 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-1.7.2"
-		_res = db.Exec("SELECT * FROM t1")
+		_res = db2.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-1.8"
-		_res = db.Exec("UPDATE t1 SET a=b, b=a")
+		_res = db2.Exec("UPDATE t1 SET a=b, b=a")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=b, b=a")
 		}
-		r = db.Query("SELECT * FROM t1")
+		r = db2.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
@@ -149,7 +151,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-1.11"
-		_res = db.Exec("SELECT * FROM t1")
+		_res = db2.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-1.12"
@@ -175,15 +177,15 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-1.14.1"
-		_res = db.Exec("SELECT * FROM t2")
+		_res = db2.Exec("SELECT * FROM t2")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-1.14.2"
-		_res = db.Exec("SELECT * FROM t1")
+		_res = db2.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-1.15"
-		_res = db.Exec("SELECT * FROM t2")
+		_res = db2.Exec("SELECT * FROM t2")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-1.16"
@@ -235,7 +237,7 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a = 0 WHERE 0")
 		}
-		_res = db.Exec("BEGIN TRANSACTION")
+		_res = db2.Exec("BEGIN TRANSACTION")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
@@ -243,7 +245,7 @@ func Test_lock(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("UPDATE t1 SET a = 0 WHERE 0")
+			_res = db2.Exec("UPDATE t1 SET a = 0 WHERE 0")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
@@ -253,14 +255,14 @@ func Test_lock(t *testing.T) {
 				msg = ""
 			}
 		}
-		_res = db.Exec("ROLLBACK")
+		_res = db2.Exec("ROLLBACK")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 		}
 		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "lock-2.2"
-		_res = db.Exec("SELECT * FROM t2")
+		_res = db2.Exec("SELECT * FROM t2")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-2.3.1"
@@ -271,7 +273,7 @@ func Test_lock(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("UPDATE t1 SET a=b, b=a")
+			_res = db2.Exec("UPDATE t1 SET a=b, b=a")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
@@ -287,7 +289,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-2.3.2"
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
-		r = db.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
+		r = db2.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
@@ -295,7 +297,7 @@ func Test_lock(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("UPDATE t1 SET a=b, b=a")
+			_res = db2.Exec("UPDATE t1 SET a=b, b=a")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
@@ -311,7 +313,7 @@ func Test_lock(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_res = db.Exec("ROLLBACK")
+		_res = db2.Exec("ROLLBACK")
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "lock-2.4.1"
@@ -322,7 +324,7 @@ func Test_lock(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("UPDATE t1 SET a=b, b=a")
+			_res = db2.Exec("UPDATE t1 SET a=b, b=a")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
@@ -339,7 +341,7 @@ func Test_lock(t *testing.T) {
 		// proc definition (not transpiled)
 		callback_value = "" // TCL namespace variable
 		_ = callback_value // suppress unused warning
-		r = db.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
+		r = db2.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
@@ -347,7 +349,7 @@ func Test_lock(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			_res = db.Exec("UPDATE t1 SET a=b, b=a")
+			_res = db2.Exec("UPDATE t1 SET a=b, b=a")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
 				_r = "1"
@@ -363,7 +365,7 @@ func Test_lock(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		_res = db.Exec("ROLLBACK")
+		_res = db2.Exec("ROLLBACK")
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "lock-2.5"
@@ -374,7 +376,7 @@ func Test_lock(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			r = db.Query("SELECT * FROM t1")
+			r = db2.Query("SELECT * FROM t1")
 			if r.Error != nil { _catchErr = r.Error }
 			if _catchErr != nil {
 				_r = "1"
@@ -401,7 +403,7 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a = 0 WHERE 0")
 		}
-		_res = db.Exec("BEGIN EXCLUSIVE;")
+		_res = db2.Exec("BEGIN EXCLUSIVE;")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-2.8b"
@@ -432,7 +434,7 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a = 0 WHERE 0")
 		}
-		_res = db.Exec("BEGIN EXCLUSIVE;")
+		_res = db2.Exec("BEGIN EXCLUSIVE;")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-2.11b"
@@ -496,8 +498,8 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=0 WHERE 0")
 		}
-		db2, err = frigolite.Open("./test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 ./test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("UPDATE t1 SET a=0")
 		_ = _res // catchsql
 	}
@@ -601,11 +603,11 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t4 ")
 		}
-		r = db.Query(" SELECT * FROM sqlite_master ")
+		r = db2.Query(" SELECT * FROM sqlite_master ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sqlite_master ")
 		}
-		r = db.Query(" SELECT * FROM t4 ")
+		r = db2.Query(" SELECT * FROM t4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
 		}
@@ -615,19 +617,19 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n    COMMIT;\n  ")
 		}
-		r = db.Query(" SELECT * FROM t4 ")
+		r = db2.Query(" SELECT * FROM t4 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
 		}
 	}
 	{ // do_test "lock-6.3"
-		r = db.Query(" SELECT a FROM t4 ORDER BY a ")
+		r = db2.Query(" SELECT a FROM t4 ORDER BY a ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t4 ORDER BY a ")
 		}
 	}
 	{ // do_test "lock-6.4"
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}

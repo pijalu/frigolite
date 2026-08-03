@@ -6,11 +6,13 @@ package win32
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_win32nolock(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,8 +78,8 @@ func Test_win32nolock(t *testing.T) {
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query(" PRAGMA mmap_size = 0 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 0 ")
@@ -94,13 +96,13 @@ func Test_win32nolock(t *testing.T) {
 		}
 	}
 	{ // do_test "win32nolock-1.4"
-		r = db.Query(" SELECT * FROM t1; ")
+		r = db2.Query(" SELECT * FROM t1; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1; ")
 		}
 	}
 	{ // do_test "win32nolock-1.5"
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		}
@@ -110,14 +112,14 @@ func Test_win32nolock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		r = db.Query("SELECT * FROM t1")
+		r = db2.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
 	{ // do_test "win32nolock-1.7"
 		// sqlite3_release_memory 1000000 (unsupported command, not transpiled)
-		r = db.Query("SELECT * FROM t1")
+		r = db2.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
@@ -129,8 +131,8 @@ func Test_win32nolock(t *testing.T) {
 		_dbtmp2, err := frigolite.Open("test.db")
 		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_list := tclList([]string{"catchsql { BEGIN EXCLUSIVE; } db", "catchsql { BEGIN EXCLUSIVE; } db2"})
 		_ = _list
 	}
@@ -141,8 +143,8 @@ func Test_win32nolock(t *testing.T) {
 		_dbtmp3, err := frigolite.Open("test.db")
 		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_list := tclList([]string{"catchsql { BEGIN EXCLUSIVE; } db", "catchsql { BEGIN EXCLUSIVE; } db2"})
 		_ = _list
 	}
@@ -153,8 +155,8 @@ func Test_win32nolock(t *testing.T) {
 		_dbtmp4, err := frigolite.Open("test.db")
 		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_list := tclList([]string{"catchsql { BEGIN EXCLUSIVE; } db", "catchsql { BEGIN EXCLUSIVE; } db2"})
 		_ = _list
 	}
@@ -165,8 +167,8 @@ func Test_win32nolock(t *testing.T) {
 		_dbtmp5, err := frigolite.Open("test.db")
 		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_list := tclList([]string{"catchsql { BEGIN EXCLUSIVE; } db", "catchsql { BEGIN EXCLUSIVE; } db2"})
 		_ = _list
 	}

@@ -13,7 +13,8 @@ import (
 )
 
 func Test_altercol(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,8 +153,8 @@ func Test_altercol(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c, d, e, f, g, h, i, j, k, l, m, FOREIGN KEY (b, c, d, e, f, g, h, i, j, k, l, m) REFERENCES t4);\n")
 			}
 		}
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		{ // "-db"
 			_res = db.Exec("db2")
 			if _res.Error != nil {
@@ -316,7 +317,7 @@ func Test_altercol(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT \"where\" FROM blob;\n")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

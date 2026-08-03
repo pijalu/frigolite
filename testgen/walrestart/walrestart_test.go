@@ -6,12 +6,14 @@ package walrestart
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "regexp"
 "testing"
 )
 
 func Test_walrestart(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,8 +97,8 @@ func Test_walrestart(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // "1.2"
 		r = db.Query("\n  PRAGMA wal_checkpoint;\n")
 		if r.Error != nil {

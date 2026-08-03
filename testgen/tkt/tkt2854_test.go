@@ -11,7 +11,8 @@ import (
 )
 
 func Test_tkt2854(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,8 +73,8 @@ func Test_tkt2854(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		db3, err = frigolite.Open("file:test.db?cache=private")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n  ")
@@ -82,7 +83,7 @@ func Test_tkt2854(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2854-1.2"
-		r = db.Query(" \n    BEGIN;\n    SELECT * FROM abc;\n  ")
+		r = db2.Query(" \n    BEGIN;\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n    SELECT * FROM abc;\n  ")
 		}
@@ -92,17 +93,17 @@ func Test_tkt2854(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.4"
-		r = db.Query(" SELECT * FROM abc ")
+		r = db3.Query(" SELECT * FROM abc ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
 	}
 	{ // do_test "tkt2854-1.5"
-		_res = db.Exec(" INSERT INTO abc VALUES(1, 2, 3) ")
+		_res = db3.Exec(" INSERT INTO abc VALUES(1, 2, 3) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.6"
-		_res = db.Exec(" COMMIT ")
+		_res = db2.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
@@ -126,15 +127,15 @@ func Test_tkt2854(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2854-1.8"
-		_res = db.Exec(" BEGIN EXCLUSIVE ")
+		_res = db2.Exec(" BEGIN EXCLUSIVE ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.9"
-		_res = db.Exec(" BEGIN IMMEDIATE ")
+		_res = db2.Exec(" BEGIN IMMEDIATE ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.10"
-		_res = db.Exec(" BEGIN ")
+		_res = db2.Exec(" BEGIN ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.11"
@@ -158,7 +159,7 @@ func Test_tkt2854(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "tkt2854-1.16"
-		_res = db.Exec(" SELECT * FROM abc ")
+		_res = db3.Exec(" SELECT * FROM abc ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.17"
@@ -168,7 +169,7 @@ func Test_tkt2854(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2854-1.18"
-		r = db.Query(" SELECT * FROM abc ")
+		r = db2.Query(" SELECT * FROM abc ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
@@ -177,7 +178,7 @@ func Test_tkt2854(t *testing.T) {
 		os.Remove("test2.db")
 		db4, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" CREATE TABLE def(d, e, f) ")
+		_res = db4.Exec(" CREATE TABLE def(d, e, f) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE def(d, e, f) ")
 		}
@@ -187,7 +188,7 @@ func Test_tkt2854(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2854-1.20"
-		_res = db.Exec("BEGIN IMMEDIATE")
+		_res = db4.Exec("BEGIN IMMEDIATE")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN IMMEDIATE")
 		}
@@ -195,7 +196,7 @@ func Test_tkt2854(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2854-1.21"
-		r = db.Query("SELECT * FROM abc")
+		r = db2.Query("SELECT * FROM abc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 		}

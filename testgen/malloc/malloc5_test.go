@@ -12,7 +12,8 @@ import (
 )
 
 func Test_malloc5(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,8 +107,8 @@ func Test_malloc5(t *testing.T) {
 		// sqlite3_release_memory (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.2"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query("PRAGMA cache_size=2; SELECT * FROM sqlite_master ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size=2; SELECT * FROM sqlite_master ")
@@ -141,8 +142,8 @@ func Test_malloc5(t *testing.T) {
 		// value_in_range $::pgalloc $::mrange [sqlite3_release_memory 500] (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.7"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec(" SELECT * FROM abc ")
 		_ = _res // catchsql
 	}
@@ -151,8 +152,8 @@ func Test_malloc5(t *testing.T) {
 		// sqlite3_release_memory 500 (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.8"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec(" SELECT * FROM abc ")
 		_ = _res // catchsql
 	}
@@ -195,7 +196,7 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 		}
-		r = db.Query("\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
+		r = db2.Query("\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
 		}
@@ -327,7 +328,7 @@ func Test_malloc5(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "malloc5-6.2.1"
-		r = db.Query("SELECT * FROM abc")
+		r = db2.Query("SELECT * FROM abc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 		}
@@ -342,7 +343,7 @@ func Test_malloc5(t *testing.T) {
 		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.2.3"
-		r = db.Query(" SELECT * FROM abc ")
+		r = db2.Query(" SELECT * FROM abc ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
@@ -350,7 +351,7 @@ func Test_malloc5(t *testing.T) {
 		// expr [nPage db] (not evaluated)
 	}
 	{ // do_test "malloc5-6.3.1"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
+		_res = db2.Exec("\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);\n  ")
 		}

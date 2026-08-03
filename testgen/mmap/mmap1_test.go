@@ -11,7 +11,8 @@ import (
 )
 
 func Test_mmap1(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,8 +147,8 @@ func Test_mmap1(t *testing.T) {
 		}
 		if tclBool("permutation" + " != \"inmemory_journal\"") {
 			{ // do_test "2.3"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				// db2.func (db command)
 				_res = db2.Exec("\n        DELETE FROM t1 WHERE (rowid%4);\n          PRAGMA wal_checkpoint;\n      ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

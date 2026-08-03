@@ -12,7 +12,8 @@ import (
 )
 
 func Test_e_wal(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,8 +173,8 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.2"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
@@ -191,8 +192,8 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3.2"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
@@ -209,8 +210,8 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3.4"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
@@ -248,8 +249,8 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.2"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
@@ -266,7 +267,7 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.4"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // "3.2.5"

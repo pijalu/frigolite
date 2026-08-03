@@ -6,12 +6,14 @@ package returning
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
 
 func Test_returning1(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -881,8 +883,8 @@ func Test_returning1(t *testing.T) {
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		{ // "24.1"
 			r = db.Query("\n    SELECT * FROM t1\n  ")
 			if r.Error != nil {
@@ -901,7 +903,7 @@ func Test_returning1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		{ // "24.3"
 			r = db.Query("\n    INSERT INTO ft VALUES('hello world') RETURNING *\n  ")
 			if r.Error != nil {

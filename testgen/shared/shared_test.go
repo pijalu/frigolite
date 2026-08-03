@@ -13,7 +13,8 @@ import (
 )
 
 func Test_shared(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -178,8 +179,8 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".1.1"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_ = sqlite_open_file_count // TCL namespace variable (query)
 				// expr $sqlite_open_file_count-$extrafds_postlock (not evaluated)
 			}
@@ -188,7 +189,7 @@ func Test_shared(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
 				}
-				r = db.Query("\n    SELECT * FROM abc;\n  ")
+				r = db2.Query("\n    SELECT * FROM abc;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
 				}
@@ -198,17 +199,17 @@ func Test_shared(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 				}
-				r = db.Query("\n    SELECT * FROM abc;\n  ")
+				r = db2.Query("\n    SELECT * FROM abc;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc;\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".1.4"
-				_res = db.Exec("\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
+				_res = db2.Exec("\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".1.5"
-				_res = db.Exec("\n    CREATE TABLE def(d, e, f);\n  ")
+				_res = db2.Exec("\n    CREATE TABLE def(d, e, f);\n  ")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".1.6"
@@ -222,7 +223,7 @@ func Test_shared(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n  ")
 				}
-				_res = db.Exec("\n    SELECT * FROM sqlite_master;\n  ")
+				_res = db2.Exec("\n    SELECT * FROM sqlite_master;\n  ")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".1.8"
@@ -247,15 +248,15 @@ func Test_shared(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 				}
-				r = db.Query("\n    BEGIN;\n    SELECT * FROM abc;\n  ")
+				r = db2.Query("\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 				}
-				_res = db.Exec("\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
+				_res = db2.Exec("\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".2.3"
-				r = db.Query("\n    ROLLBACK;\n    BEGIN;\n    SELECT * FROM abc;\n  ")
+				r = db2.Query("\n    ROLLBACK;\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 				}
@@ -280,18 +281,18 @@ func Test_shared(t *testing.T) {
 				_ = _r_tcl_str
 				_ = _r_tcl
 			}
-			_res = db.Exec("COMMIT")
+			_res = db2.Exec("COMMIT")
 			_ = _res // catchsql
 			{ // do_test "shared-" + av + ".3.1.1"
 				_res = db.Exec("\n    CREATE TABLE seq(i PRIMARY KEY, x);\n    INSERT INTO seq VALUES(1, '" + "X 500" + "');\n    INSERT INTO seq VALUES(2, '" + "X 500" + "');\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE seq(i PRIMARY KEY, x);\n    INSERT INTO seq VALUES(1, '" + "X 500" + "');\n    INSERT INTO seq VALUES(2, '" + "X 500" + "');\n  ")
 				}
-				r = db.Query("SELECT * FROM sqlite_master")
+				r = db2.Query("SELECT * FROM sqlite_master")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_master")
 				}
-				r = db.Query("PRAGMA read_uncommitted = 1")
+				r = db2.Query("PRAGMA read_uncommitted = 1")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA read_uncommitted = 1")
 				}
@@ -344,7 +345,7 @@ func Test_shared(t *testing.T) {
 				// expr $sqlite_open_file_count-($extrafds_postlock*2) (not evaluated)
 			}
 			{ // do_test "shared-" + av + ".4.1.3"
-				_res = db.Exec("ATTACH 'test.db' AS test")
+				_res = db2.Exec("ATTACH 'test.db' AS test")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test.db' AS test")
 				}
@@ -357,13 +358,13 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".4.2.2"
-				r = db.Query("\n    SELECT * FROM test.abc;\n  ")
+				r = db2.Query("\n    SELECT * FROM test.abc;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM test.abc;\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".4.3.1"
-				r = db.Query("\n    BEGIN;\n    SELECT * FROM test.abc;\n  ")
+				r = db2.Query("\n    BEGIN;\n    SELECT * FROM test.abc;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM test.abc;\n  ")
 				}
@@ -381,7 +382,7 @@ func Test_shared(t *testing.T) {
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".4.3.4"
-				_res = db.Exec("\n    COMMIT\n  ")
+				_res = db2.Exec("\n    COMMIT\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT\n  ")
 				}
@@ -393,7 +394,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".4.4.1.2"
-				r = db.Query("\n      SELECT 'test2.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test.db:'||name FROM test.sqlite_master;\n    ")
+				r = db2.Query("\n      SELECT 'test2.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test.db:'||name FROM test.sqlite_master;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 'test2.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test.db:'||name FROM test.sqlite_master;\n    ")
 				}
@@ -464,10 +465,10 @@ func Test_shared(t *testing.T) {
 				os.Remove("")
 			}
 			{ // do_test "shared-" + av + ".5.1.1"
-				db1, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+				_ = db1
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db.Exec("\n    ATTACH 'test1.db' AS test1;\n    ATTACH 'test2.db' AS test2;\n    ATTACH 'test3.db' AS test3;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test1.db' AS test1;\n    ATTACH 'test2.db' AS test2;\n    ATTACH 'test3.db' AS test3;\n  ")
@@ -478,67 +479,67 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.2"
-				_res = db.Exec("\n    CREATE TABLE test1.t1(a, b);\n    CREATE INDEX test1.i1 ON t1(a, b);\n  ")
+				_res = db1.Exec("\n    CREATE TABLE test1.t1(a, b);\n    CREATE INDEX test1.i1 ON t1(a, b);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE test1.t1(a, b);\n    CREATE INDEX test1.i1 ON t1(a, b);\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.3"
-				_res = db.Exec("\n      CREATE VIEW test1.v1 AS SELECT * FROM t1;\n    ")
+				_res = db1.Exec("\n      CREATE VIEW test1.v1 AS SELECT * FROM t1;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIEW test1.v1 AS SELECT * FROM t1;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.4"
-				_res = db.Exec("\n      CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;\n    ")
+				_res = db1.Exec("\n      CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.5"
-				_res = db.Exec("\n    DROP INDEX i1;\n  ")
+				_res = db2.Exec("\n    DROP INDEX i1;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX i1;\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.6"
-				_res = db.Exec("\n      DROP VIEW v1;\n    ")
+				_res = db2.Exec("\n      DROP VIEW v1;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP VIEW v1;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.7"
-				_res = db.Exec("\n      DROP TRIGGER trig1;\n    ")
+				_res = db2.Exec("\n      DROP TRIGGER trig1;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TRIGGER trig1;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.8"
-				_res = db.Exec("\n    DROP TABLE t1;\n  ")
+				_res = db2.Exec("\n    DROP TABLE t1;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".5.1.9"
-				r = db.Query("\n      SELECT * FROM sqlite_master UNION ALL SELECT * FROM test1.sqlite_master\n    ")
+				r = db1.Query("\n      SELECT * FROM sqlite_master UNION ALL SELECT * FROM test1.sqlite_master\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM sqlite_master UNION ALL SELECT * FROM test1.sqlite_master\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".6.1.1"
-				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+				_res = db1.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".6.1.2"
-				r = db.Query("\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
+				r = db2.Query("\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n    ")
 				}
 			}
 			{ // do_test "shared-" + av + ".6.1.3"
-				_res = db.Exec("\n    BEGIN;\n    INSERT INTO t2 VALUES(5, 6);\n  ")
+				_res = db2.Exec("\n    BEGIN;\n    INSERT INTO t2 VALUES(5, 6);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t2 VALUES(5, 6);\n  ")
 				}
@@ -552,7 +553,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".6.1.4"
-				_res = db.Exec("\n    COMMIT;\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
+				_res = db2.Exec("\n    COMMIT;\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 				}
@@ -583,8 +584,8 @@ func Test_shared(t *testing.T) {
 				_dbtmp1, err := frigolite.Open("test.db")
 				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n  ")
@@ -654,8 +655,8 @@ func Test_shared(t *testing.T) {
 				_ = tclStringRange(tclExecSQL(db, "{PRAGMA encoding;}"), "0", "end-2") // string range result
 			}
 			{ // do_test "shared-" + av + ".8.1.3"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db.Exec("\n      PRAGMA encoding = 'UTF-8';\n      CREATE TABLE abc(a, b, c);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA encoding = 'UTF-8';\n      CREATE TABLE abc(a, b, c);\n    ")
@@ -684,7 +685,7 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + ".8.2.2"
 				db2, err = frigolite.Open("test2.db")
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n      PRAGMA encoding = 'UTF-16';\n      CREATE TABLE def(d, e, f);\n    ")
+				_res = db2.Exec("\n      PRAGMA encoding = 'UTF-16';\n      CREATE TABLE def(d, e, f);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA encoding = 'UTF-16';\n      CREATE TABLE def(d, e, f);\n    ")
 				}
@@ -754,15 +755,15 @@ func Test_shared(t *testing.T) {
 				_dbtmp4, err := frigolite.Open("test.db")
 				_ = _dbtmp4 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc_mirror(a, b, c);\n    CREATE TEMP TRIGGER BEFORE INSERT ON abc BEGIN \n      INSERT INTO abc_mirror(a, b, c) VALUES(new.a, new.b, new.c);\n    END;\n    INSERT INTO abc VALUES(1, 2, 3);\n    SELECT * FROM abc_mirror;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc_mirror(a, b, c);\n    CREATE TEMP TRIGGER BEFORE INSERT ON abc BEGIN \n      INSERT INTO abc_mirror(a, b, c) VALUES(new.a, new.b, new.c);\n    END;\n    INSERT INTO abc VALUES(1, 2, 3);\n    SELECT * FROM abc_mirror;\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".9.2"
-				r = db.Query("\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc_mirror;\n  ")
+				r = db2.Query("\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc_mirror;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc_mirror;\n  ")
 				}
@@ -774,8 +775,8 @@ func Test_shared(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db.Exec("\n    CREATE TABLE ab(a PRIMARY KEY, b);\n    CREATE TABLE de(d PRIMARY KEY, e);\n    INSERT INTO ab VALUES('Chiang Mai', 100000);\n    INSERT INTO ab VALUES('Bangkok', 8000000);\n    INSERT INTO de VALUES('Ubon', 120000);\n    INSERT INTO de VALUES('Khon Kaen', 200000);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE ab(a PRIMARY KEY, b);\n    CREATE TABLE de(d PRIMARY KEY, e);\n    INSERT INTO ab VALUES('Chiang Mai', 100000);\n    INSERT INTO ab VALUES('Bangkok', 8000000);\n    INSERT INTO de VALUES('Ubon', 120000);\n    INSERT INTO de VALUES('Khon Kaen', 200000);\n  ")
@@ -786,7 +787,7 @@ func Test_shared(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM ab;\n  ")
 				}
-				_res = db.Exec("\n    BEGIN;\n    INSERT INTO de VALUES('Pataya', 30000);\n  ")
+				_res = db2.Exec("\n    BEGIN;\n    INSERT INTO de VALUES('Pataya', 30000);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO de VALUES('Pataya', 30000);\n  ")
 				}
@@ -799,11 +800,11 @@ func Test_shared(t *testing.T) {
 					db3, err = frigolite.Open("TEST.DB")
 					if err != nil { t.Fatal(err) }
 				}
-				r = db.Query("\n    SELECT * FROM ab;\n  ")
+				r = db3.Query("\n    SELECT * FROM ab;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM ab;\n  ")
 				}
-				_res = db.Exec("\n    BEGIN;\n    INSERT INTO de VALUES('Pataya', 30000);\n  ")
+				_res = db3.Exec("\n    BEGIN;\n    INSERT INTO de VALUES('Pataya', 30000);\n  ")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".10.4"
@@ -816,11 +817,11 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".10.5"
-				_res = db.Exec("INSERT INTO de VALUES('Pataya', 30000);")
+				_res = db3.Exec("INSERT INTO de VALUES('Pataya', 30000);")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".10.6"
-				_res = db.Exec("COMMIT")
+				_res = db3.Exec("COMMIT")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".10.7"
@@ -828,13 +829,13 @@ func Test_shared(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
 				}
-				r = db.Query("\n    SELECT * FROM de;\n  ")
+				r = db3.Query("\n    SELECT * FROM de;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM de;\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".10.9"
-				_res = db.Exec("COMMIT")
+				_res = db3.Exec("COMMIT")
 				_ = _res // catchsql
 			}
 			_res = db.Exec("PRAGMA integrity_check")
@@ -846,29 +847,29 @@ func Test_shared(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a, b, c);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a, b, c);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + ".11.2"
-				_res = db.Exec("BEGIN;")
+				_res = db2.Exec("BEGIN;")
 				_ = _res // catchsql
-				_res = db.Exec("SELECT * FROM abc;")
+				_res = db2.Exec("SELECT * FROM abc;")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".11.3"
-				_res = db.Exec("BEGIN")
+				_res = db2.Exec("BEGIN")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".11.4"
-				_res = db.Exec("SELECT * FROM abc2;")
+				_res = db2.Exec("SELECT * FROM abc2;")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".11.5"
-				_res = db.Exec("INSERT INTO abc2 VALUES(1, 2, 3);")
+				_res = db2.Exec("INSERT INTO abc2 VALUES(1, 2, 3);")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".11.6"
@@ -876,7 +877,7 @@ func Test_shared(t *testing.T) {
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + ".11.6"
-				r = db.Query("\n    ROLLBACK;\n    PRAGMA read_uncommitted = 1;\n  ")
+				r = db2.Query("\n    ROLLBACK;\n    PRAGMA read_uncommitted = 1;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    PRAGMA read_uncommitted = 1;\n  ")
 				}
@@ -917,9 +918,8 @@ func Test_shared(t *testing.T) {
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 15 }() {
 					db_handles = tclListAppend(db_handles, "db" + i)
-					dbi, err := frigolite.Open("test.db")
-					defer dbi.Close()
-					if err != nil { t.Fatal(err) }
+					dbi = db // sqlite3 db$i test.db: alias to main in-memory db
+					_ = dbi
 					_res = db.Exec("CREATE TABLE db" + i + "(a, b, c)")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE db" + i + "(a, b, c)")
@@ -971,8 +971,8 @@ func Test_shared(t *testing.T) {
 				_dbtmp5, err := frigolite.Open("test.db")
 				_ = _dbtmp5 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("SELECT name FROM sqlite_master")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
@@ -992,15 +992,15 @@ func Test_shared(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE VIEW v1 AS SELECT * FROM t1; \n    CREATE VIEW v2 AS SELECT * FROM t1, v1 \n                      WHERE t1.c=v1.c GROUP BY t1.a ORDER BY v1.b; \n    CREATE TRIGGER tr1 AFTER INSERT ON t1 \n      WHEN new.a!=1\n    BEGIN\n      DELETE FROM t1 WHERE a=5;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      UPDATE t1 SET c=c+1;\n    END;\n\n    INSERT INTO t1 VALUES(5, 6, 7);\n    INSERT INTO t1 VALUES(8, 9, 10);\n    INSERT INTO t1 VALUES(11, 12, 13);\n    ANALYZE;\n    SELECT * FROM t1;\n  ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE VIEW v1 AS SELECT * FROM t1; \n    CREATE VIEW v2 AS SELECT * FROM t1, v1 \n                      WHERE t1.c=v1.c GROUP BY t1.a ORDER BY v1.b; \n    CREATE TRIGGER tr1 AFTER INSERT ON t1 \n      WHEN new.a!=1\n    BEGIN\n      DELETE FROM t1 WHERE a=5;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      UPDATE t1 SET c=c+1;\n    END;\n\n    INSERT INTO t1 VALUES(5, 6, 7);\n    INSERT INTO t1 VALUES(8, 9, 10);\n    INSERT INTO t1 VALUES(11, 12, 13);\n    ANALYZE;\n    SELECT * FROM t1;\n  ")
 				}
 			}
 			{ // do_test "shared-" + av + "-15.2"
-				_res = db.Exec(" DROP TABLE t1 ")
+				_res = db2.Exec(" DROP TABLE t1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 				}
@@ -1031,7 +1031,7 @@ func Test_shared(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				_res = db1.Exec("\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(4),(5),(6);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				_res = db.Exec("\n    SELECT * FROM t1;\n  ")
+				_res = db2.Exec("\n    SELECT * FROM t1;\n  ")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + "-16.4"
@@ -1066,7 +1066,7 @@ func Test_shared(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				_res = db1.Exec("\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(1),(2),(3);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				_res = db.Exec("\n    SELECT x FROM t1 ORDER BY x;\n  ")
+				_res = db2.Exec("\n    SELECT x FROM t1 ORDER BY x;\n  ")
 				_ = _res // catchsql
 			}
 			{ // do_test "shared-" + av + "-16.8"

@@ -11,7 +11,8 @@ import (
 )
 
 func Test_enc3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +124,7 @@ func Test_enc3(t *testing.T) {
 		// dbaux eval {\n      PRAGMA encoding='utf8';\n      CREATE TABL...} (unsupported command, not transpiled)
 	}
 	{ // do_test "enc3-3.2"
-		_res = db.Exec("\n      ATTACH 'test.db' AS utf16;\n      SELECT 1 FROM utf16.sqlite_master LIMIT 1;\n    ")
+		_res = dbaux.Exec("\n      ATTACH 'test.db' AS utf16;\n      SELECT 1 FROM utf16.sqlite_master LIMIT 1;\n    ")
 		_ = _res // catchsql
 	}
 	// dbaux close (unsupported command, not transpiled)

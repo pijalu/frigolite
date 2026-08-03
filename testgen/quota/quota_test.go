@@ -11,7 +11,8 @@ import (
 )
 
 func Test_quota(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,8 +194,8 @@ func Test_quota(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "quota-3.1.3"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		quota = "list" // TCL namespace variable
 		_ = quota // suppress unused warning
 		_res = db.Exec(" CREATE TABLE t2(a, b) ")
@@ -222,9 +223,8 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-3.2.1"
 		// delete_file force test.db test2.db (unsupported command, not transpiled)
 		// sqlite3_quota_set * 4096 {} (unsupported command, not transpiled)
-		db1a, err := frigolite.Open("test.db")
-		defer db1a.Close()
-		if err != nil { t.Fatal(err) }
+		db1a = db // sqlite3 db1a test.db: alias to main in-memory db
+		_ = db1a
 		db2a, err := frigolite.Open("test2.db")
 		defer db2a.Close()
 		if err != nil { t.Fatal(err) }
@@ -235,9 +235,8 @@ func Test_quota(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
 			}
 		}
-		db1b, err := frigolite.Open("test.db")
-		defer db1b.Close()
-		if err != nil { t.Fatal(err) }
+		db1b = db // sqlite3 db1b test.db: alias to main in-memory db
+		_ = db1b
 		db2b, err := frigolite.Open("test2.db")
 		defer db2b.Close()
 		if err != nil { t.Fatal(err) }

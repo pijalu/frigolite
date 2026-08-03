@@ -308,13 +308,19 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 19: create_table_args ::= LP columnlist conslist_opt RP table_option_set
 	case 19:
-		// This rule produces columns from a column definition list.
-		// The create_table value isn't available here; rule 359 combines them.
+		// This rule produces columns from a column definition list plus
+		// table-level constraints (conslist_opt) and table options
+		// (table_option_set). The create_table value isn't available here;
+		// rule 359 combines them into the CreateTableStmt.
 		cols := getColumnList(getRHS(p, ruleNo, 2))
-		if len(cols) > 0 {
-			return cols
+		cons := getTableConstraints(getRHS(p, ruleNo, 3))
+		opts := getTableOptions(getRHS(p, ruleNo, 5))
+		return &createTableArgs{
+			columns:      cols,
+			constraints:  cons,
+			withoutRowid: opts.withoutRowid,
+			strict:       opts.strict,
 		}
-		return nil
 
 	// Rule 20: create_table_args ::= AS select
 	case 20:
@@ -328,7 +334,30 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		return nil
 
-	// Rule 25: columnname ::= nm typetoken
+	// Rule 21: table_option_set ::=
+	case 21:
+		return &createTableArgs{}
+
+	// Rule 22: table_option_set ::= table_option_set COMMA table_option
+	case 22:
+		acc := getTableOptions(getRHS(p, ruleNo, 1))
+		opt := getTableOptions(getRHS(p, ruleNo, 3))
+		acc.withoutRowid = acc.withoutRowid || opt.withoutRowid
+		acc.strict = acc.strict || opt.strict
+		return acc
+
+	// Rule 23: table_option ::= WITHOUT nm
+	case 23:
+		// "WITHOUT ROWID" is the only valid WITHOUT option.
+		return &createTableArgs{withoutRowid: true}
+
+	// Rule 24: table_option ::= nm
+	case 24:
+		// A bare table option name: STRICT is the only one supported.
+		opt := getString(getRHS(p, ruleNo, 1))
+		return &createTableArgs{strict: strings.EqualFold(opt, "STRICT")}
+
+	// Rule 25: columnname :: nm typemod
 	case 25:
 		name := getString(getRHS(p, ruleNo, 1))
 		typeName := getString(getRHS(p, ruleNo, 2))
@@ -350,63 +379,63 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		typeName := getString(getRHS(p, ruleNo, 1))
 		return fmt.Sprintf("%s(%s, %s)", typeName,
 			getString(getRHS(p, ruleNo, 3)), getString(getRHS(p, ruleNo, 5)))
-  
-  	// Rule 32: ccons ::= CONSTRAINT nm
-  	case 32:
-  		return sql.ColumnDef{ConstraintName: getString(getRHS(p, ruleNo, 2))}
-  
-  	// Rule 33: ccons ::= DEFAULT scantok term
-  	case 33:
-  		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 3))}
-  
-  	// Rule 34: ccons ::= DEFAULT LP expr RP
-  	case 34:
-  		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 3))}
-  
-  	// Rule 35: ccons ::= DEFAULT PLUS scantok term
-  	case 35:
-  		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 4))}
-  
-  	// Rule 36: ccons ::= DEFAULT MINUS scantok term
-  	case 36:
-  		return sql.ColumnDef{Default: &sql.UnaryOp{Operand: getExpr(getRHS(p, ruleNo, 4)), Operator: "-"}}
-  
-  	// Rule 38: ccons ::= NOT NULL onconf
-  	case 38:
-  		cd := sql.ColumnDef{NotNull: true}
-  		cd.OnConflict = getString(getRHS(p, ruleNo, 3))
-  		return cd
-  
-  	// Rule 39: ccons ::= PRIMARY KEY sortorder onconf autoinc
-  	case 39:
-  		cd := sql.ColumnDef{PrimaryKey: true}
-  		cd.OnConflict = getString(getRHS(p, ruleNo, 4))
-  		if getBool(getRHS(p, ruleNo, 5)) {
-  			cd.AutoInc = true
-  		}
-  		return cd
-  
-  	// Rule 40: ccons ::= UNIQUE onconf
-  	case 40:
-  		cd := sql.ColumnDef{Unique: true}
-  		cd.OnConflict = getString(getRHS(p, ruleNo, 2))
-  		return cd
-  
-  	// Rule 41: ccons ::= CHECK LP expr RP
-  	case 41:
-  		return sql.ColumnDef{Check: getExpr(getRHS(p, ruleNo, 3))}
-  
-  	// Rule 42: ccons ::= REFERENCES nm eidlist_opt refargs
-  	case 42:
-  		cd := sql.ColumnDef{References: getString(getRHS(p, ruleNo, 2))}
-  		if cols := getStringList(getRHS(p, ruleNo, 3)); len(cols) > 0 {
-  			cd.References += "(" + strings.Join(cols, ", ") + ")"
-  		}
-  		if ra := getString(getRHS(p, ruleNo, 4)); ra != "" {
-  			cd.References += " " + ra
-  		}
-  		return cd
-  
+
+	// Rule 32: ccons ::= CONSTRAINT nm
+	case 32:
+		return sql.ColumnDef{ConstraintName: getString(getRHS(p, ruleNo, 2))}
+
+	// Rule 33: ccons ::= DEFAULT scantok term
+	case 33:
+		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 3))}
+
+	// Rule 34: ccons ::= DEFAULT LP expr RP
+	case 34:
+		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 3))}
+
+	// Rule 35: ccons ::= DEFAULT PLUS scantok term
+	case 35:
+		return sql.ColumnDef{Default: getExpr(getRHS(p, ruleNo, 4))}
+
+	// Rule 36: ccons ::= DEFAULT MINUS scantok term
+	case 36:
+		return sql.ColumnDef{Default: &sql.UnaryOp{Operand: getExpr(getRHS(p, ruleNo, 4)), Operator: "-"}}
+
+	// Rule 38: ccons ::= NOT NULL onconf
+	case 38:
+		cd := sql.ColumnDef{NotNull: true}
+		cd.OnConflict = getString(getRHS(p, ruleNo, 3))
+		return cd
+
+	// Rule 39: ccons ::= PRIMARY KEY sortorder onconf autoinc
+	case 39:
+		cd := sql.ColumnDef{PrimaryKey: true}
+		cd.OnConflict = getString(getRHS(p, ruleNo, 4))
+		if getBool(getRHS(p, ruleNo, 5)) {
+			cd.AutoInc = true
+		}
+		return cd
+
+	// Rule 40: ccons ::= UNIQUE onconf
+	case 40:
+		cd := sql.ColumnDef{Unique: true}
+		cd.OnConflict = getString(getRHS(p, ruleNo, 2))
+		return cd
+
+	// Rule 41: ccons ::= CHECK LP expr RP
+	case 41:
+		return sql.ColumnDef{Check: getExpr(getRHS(p, ruleNo, 3))}
+
+	// Rule 42: ccons ::= REFERENCES nm eidlist_opt refargs
+	case 42:
+		cd := sql.ColumnDef{References: getString(getRHS(p, ruleNo, 2))}
+		if cols := getStringList(getRHS(p, ruleNo, 3)); len(cols) > 0 {
+			cd.References += "(" + strings.Join(cols, ", ") + ")"
+		}
+		if ra := getString(getRHS(p, ruleNo, 4)); ra != "" {
+			cd.References += " " + ra
+		}
+		return cd
+
 	// Rule 44: ccons ::= COLLATE ids
 	case 44:
 		return sql.ColumnDef{Collate: getString(getRHS(p, ruleNo, 2))}
@@ -457,9 +486,51 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 50:
 		return getString(getRHS(p, ruleNo, 1)) + " " + getString(getRHS(p, ruleNo, 2))
 
-	// Rule 76: orconf ::= OR resolvetype
-	// (resolvetype: IGNORE, REPLACE, ABORT, FAIL, ROLLBACK)
-	case 76:
+	// Rule 65: conslist_opt ::= (empty)
+	case 65:
+		return ([]sql.TableConstraint)(nil)
+
+	// Rule 66: tconscomma ::= COMMA
+	case 66:
+		return nil
+
+	// Rule 67: tcons ::= CONSTRAINT nm
+	case 67:
+		return sql.TableConstraint{Type: "", Name: getString(getRHS(p, ruleNo, 2))}
+
+	// Rule 68: tcons ::= PRIMARY KEY LP sortlist autoinc RP onconf
+	case 68:
+		return sql.TableConstraint{
+			Type:    sql.ConstraintPrimaryKey,
+			Columns: indexColumnsFromSortlist(getRHS(p, ruleNo, 4)),
+		}
+
+	// Rule 69: tcons ::= UNIQUE LP sortlist RP onconf
+	case 69:
+		return sql.TableConstraint{
+			Type:    sql.ConstraintUnique,
+			Columns: indexColumnsFromSortlist(getRHS(p, ruleNo, 3)),
+		}
+
+	// Rule 70: tcons ::= CHECK LP expr RP onconf
+	case 70:
+		return sql.TableConstraint{
+			Type: sql.ConstraintCheck,
+			Expr: getExpr(getRHS(p, ruleNo, 3)),
+		}
+
+	// Rule 71: tcons ::= FOREIGN KEY LP eidlist RP REFERENCES nm eidlist_opt refargs defer_subclause_opt
+	case 71:
+		return sql.TableConstraint{
+			Type:    sql.ConstraintForeignKey,
+			Columns: fkColumnsFromEidlist(getRHS(p, ruleNo, 4)),
+		}
+
+	// Rule 72: defer_subclause_opt ::=
+	case 72:
+		return nil
+
+		// Rule 76: orconf ::= OR resolvel
 		return getString(getRHS(p, ruleNo, 2))
 
 	// Rule 79: cmd ::= DROP TABLE ifexists fullname
@@ -1950,9 +2021,12 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		ct, _ := getRHS(p, ruleNo, 1).(*sql.CreateTableStmt)
 		args := getRHS(p, ruleNo, 2)
 		if ct != nil {
-			// create_table_args can be columns ([]sql.ColumnDef) from rule 19
-			// or a *CreateTableStmt with AsSelect from rule 20
-			if cols, ok := args.([]sql.ColumnDef); ok {
+			if cta, ok := args.(*createTableArgs); ok {
+				ct.Columns = cta.columns
+				ct.Constraints = cta.constraints
+				ct.WithoutRowid = cta.withoutRowid
+				ct.Strict = cta.strict
+			} else if cols, ok := args.([]sql.ColumnDef); ok {
 				ct.Columns = cols
 			} else if ct2, ok := args.(*sql.CreateTableStmt); ok && ct2 != nil {
 				ct.Columns = ct2.Columns
@@ -1966,7 +2040,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 360: table_option_set ::= table_option
 	case 360:
-		return nil
+		return getRHS(p, ruleNo, 1)
 
 	// Rule 361: columnlist ::= columnlist COMMA columnname carglist
 	case 361:
@@ -2016,6 +2090,32 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 370: carglist ::=
 	case 370:
+		return nil
+
+	// Rule 374: conslist_opt ::= COMMA conslist
+	case 374:
+		return getConstraintSlice(getRHS(p, ruleNo, 2))
+
+	// Rule 375: conslist ::= conslist tconscomma tcons
+	case 375:
+		acc := getConstraintSlice(getRHS(p, ruleNo, 1))
+		tc, _ := getRHS(p, ruleNo, 3).(sql.TableConstraint)
+		// Attach a preceding CONSTRAINT-name marker.
+		if len(acc) > 0 && acc[len(acc)-1].Type == "" && tc.Type != "" {
+			tc.Name = acc[len(acc)-1].Name
+			acc = acc[:len(acc)-1]
+		}
+		if tc.Type != "" || tc.Name != "" {
+			acc = append(acc, tc)
+		}
+		return acc
+
+	// Rule 376: conslist ::= tcons
+	case 376:
+		return getConstraintSlice(getRHS(p, ruleNo, 1))
+
+	// Rule 377: tconscomma ::= (empty)
+	case 377:
 		return nil
 
 	// Rule 380: selectnowith ::= oneselect (already handled, but keep for pass-through)
@@ -2962,4 +3062,105 @@ func containsReturningKeyword(input string) bool {
 			return true
 		}
 	}
+}
+
+// createTableArgs is the semantic value of the create_table_args nonterminal
+// (rule 19). It carries the column definitions plus any table-level
+// constraints (conslist) and table options (WITHOUT ROWID / STRICT) so that
+// rule 359 can fold them all into the CreateTableStmt.
+type createTableArgs struct {
+	columns      []sql.ColumnDef
+	constraints  []sql.TableConstraint
+	withoutRowid bool
+	strict       bool
+}
+
+// getTableConstraints extracts a []sql.TableConstraint semantic value.
+func getTableConstraints(v interface{}) []sql.TableConstraint {
+	if v == nil {
+		return nil
+	}
+	if list, ok := v.([]sql.TableConstraint); ok {
+		return list
+	}
+	return nil
+}
+
+// getConstraintsCons coerces a single sql.TableConstraint into a one-element
+// slice, for use by rule 376 (conslist ::= tcons).
+func getConstraintsCons(v interface{}) []sql.TableConstraint {
+	if tc, ok := v.(sql.TableConstraint); ok {
+		if tc.Type == "" && tc.Name == "" {
+			return ([]sql.TableConstraint)(nil)
+		}
+		return []sql.TableConstraint{tc}
+	}
+	return ([]sql.TableConstraint)(nil)
+}
+
+// getConsTConstraints coerces a value that may be either a single
+// sql.TableConstraint or a []sql.TableConstraint into a slice.
+func getConstraintSlice(v interface{}) []sql.TableConstraint {
+	if list := getTableConstraints(v); list != nil {
+		return list
+	}
+	return getConstraintsCons(v)
+}
+
+// getTableOptions extracts the *createTableArgs carry value produced by the
+// table_option_set / table_option rules, returning a zero value if absent.
+func getTableOptions(v interface{}) *createTableArgs {
+	if opts, ok := v.(*createTableArgs); ok {
+		return opts
+	}
+	return &createTableArgs{}
+}
+
+// indexColumnsFromSortlist converts a sortlist ([]sql.OrderByTerm) into the
+// []sql.IndexedColumn list for a PRIMARY KEY / UNIQUE table constraint.
+func indexColumnsFromSortlist(v interface{}) []sql.IndexedColumn {
+	terms := getOrderByList(v)
+	if terms == nil {
+		return nil
+	}
+	out := make([]sql.IndexedColumn, 0, len(terms))
+	for _, t := range terms {
+		name, collate := indexedColumnName(t.Expr)
+		out = append(out, sql.IndexedColumn{
+			Name:    name,
+			Collate: collate,
+			Desc:    t.Desc,
+		})
+	}
+	return out
+}
+
+// indexedColumnName extracts the column name (and optional COLLATE) from an
+// expression used in a PRIMARY KEY / UNIQUE constraint column list.
+func indexedColumnName(e sql.Expr) (string, string) {
+	e = sql.UnwrapParenExpr(e)
+	if bo, ok := e.(*sql.BinaryOp); ok && bo.Operator == "COLLATE" {
+		if sl, ok := bo.Right.(*sql.StringLit); ok {
+			n, _ := indexedColumnName(bo.Left)
+			return n, sl.Value
+		}
+	}
+	if ref, ok := e.(*sql.ColumnRef); ok {
+		return ref.Name, ""
+	}
+	return "", ""
+}
+
+// fkColumnsFromEidlist converts an eidlist (FOREIGN KEY column list) into
+// []sql.IndexedColumn. Only the column names are meaningful for FK purposes.
+func fkColumnsFromEidlist(v interface{}) []sql.IndexedColumn {
+	names := getStringList(v)
+	if names == nil {
+		return nil
+	}
+	out := make([]sql.IndexedColumn, 0, len(names))
+	for _, n := range names {
+		out = append(out, sql.IndexedColumn{Name: n})
+	}
+	return out
 }

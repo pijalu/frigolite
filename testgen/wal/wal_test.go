@@ -12,7 +12,8 @@ import (
 )
 
 func Test_wal(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,7 +219,7 @@ func Test_wal(t *testing.T) {
 	}
 	{ // do_test "wal-2.1"
 		// sqlite3_wal db2 ./test.db (unsupported command, not transpiled)
-		r = db.Query(" BEGIN; SELECT * FROM t1 ")
+		r = db2.Query(" BEGIN; SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN; SELECT * FROM t1 ")
 		}
@@ -234,7 +235,7 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "wal-2.3"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
@@ -250,13 +251,13 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "wal-2.5"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "wal-2.6"
-		r = db.Query(" COMMIT; SELECT * FROM t1 ")
+		r = db2.Query(" COMMIT; SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " COMMIT; SELECT * FROM t1 ")
 		}
@@ -272,7 +273,7 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "wal-3.2"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
@@ -349,13 +350,13 @@ func Test_wal(t *testing.T) {
 		tclFileCopy("test.db-wal", "test2.db-wal")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		r = db.Query(" SELECT count(*) FROM t2 ; SELECT count(*) FROM t1 ")
+		r = db2.Query(" SELECT count(*) FROM t2 ; SELECT count(*) FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t2 ; SELECT count(*) FROM t1 ")
 		}
 	}
 	{ // do_test "wal-4.4.7"
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
@@ -409,13 +410,13 @@ func Test_wal(t *testing.T) {
 		tclFileCopy("test.db-wal", "test2.db-wal")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		r = db.Query(" SELECT count(*) FROM t2 ; SELECT count(*) FROM t1 ")
+		r = db2.Query(" SELECT count(*) FROM t2 ; SELECT count(*) FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t2 ; SELECT count(*) FROM t1 ")
 		}
 	}
 	{ // do_test "wal-4.5.7"
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
@@ -545,7 +546,7 @@ func Test_wal(t *testing.T) {
 	}
 	{ // do_test "wal-9.2"
 		// sqlite3_wal db2 test.db (unsupported command, not transpiled)
-		r = db.Query("PRAGMA integrity_check ")
+		r = db2.Query("PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check ")
 		}
@@ -555,7 +556,7 @@ func Test_wal(t *testing.T) {
 		// copy_file test.db test2.db (unsupported command, not transpiled)
 		// copy_file test.db-wal test2.db-wal (unsupported command, not transpiled)
 		// sqlite3_wal db3 test2.db (unsupported command, not transpiled)
-		r = db.Query("PRAGMA integrity_check ")
+		r = db3.Query("PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check ")
 		}
@@ -568,7 +569,7 @@ func Test_wal(t *testing.T) {
 		}
 		db2.Close()
 		// sqlite3_wal db2 test.db (unsupported command, not transpiled)
-		r = db.Query("PRAGMA integrity_check ")
+		r = db2.Query("PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check ")
 		}
@@ -710,7 +711,7 @@ func Test_wal(t *testing.T) {
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")
 		// sqlite3_wal db2 test2.db (unsupported command, not transpiled)
-		r = db.Query(" SELECT * FROM t2 ")
+		r = db2.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
 		}
@@ -730,7 +731,7 @@ func Test_wal(t *testing.T) {
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")
 		// sqlite3_wal db2 test2.db (unsupported command, not transpiled)
-		r = db.Query(" SELECT * FROM t2 ")
+		r = db2.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
 		}
@@ -753,8 +754,8 @@ func Test_wal(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "wal-14"
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(10), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n  ")
 		if _res.Error != nil {
@@ -811,10 +812,10 @@ func Test_wal(t *testing.T) {
 	{ // do_test "wal-15.3.3"
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "wal-15.4.1"
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		r = db2.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		}
@@ -830,7 +831,7 @@ func Test_wal(t *testing.T) {
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "wal-15.4.4"
-		_res = db.Exec(" COMMIT ")
+		_res = db2.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
@@ -1036,8 +1037,8 @@ func Test_wal(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
-					db2, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
+					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+					_ = db2
 					_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")

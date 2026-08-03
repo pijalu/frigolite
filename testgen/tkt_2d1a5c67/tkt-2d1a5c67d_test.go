@@ -12,7 +12,8 @@ import (
 )
 
 func Test_tkt_2d1a5c67d(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +185,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 		// copy_file test.db test.db2 (unsupported command, not transpiled)
 		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
-		r = db.Query(" SELECT * FROM t4 WHERE a = 'xyz' ")
+		r = db2.Query(" SELECT * FROM t4 WHERE a = 'xyz' ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 WHERE a = 'xyz' ")
 		}

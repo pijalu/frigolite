@@ -11,7 +11,8 @@ import (
 )
 
 func Test_backup5(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +170,7 @@ func Test_backup5(t *testing.T) {
 	}
 	{ // do_test "3.2"
 		// sqlite3_backup B db2 aux db main (unsupported command, not transpiled)
-		_res = db.Exec(" DETACH aux ")
+		_res = db2.Exec(" DETACH aux ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DETACH aux ")
 		}

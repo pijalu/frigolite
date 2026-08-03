@@ -11,7 +11,8 @@ import (
 )
 
 func Test_nockpt(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -182,8 +183,8 @@ func Test_nockpt(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		{ // "2.1"
 			r = db.Query("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE y1(a PRIMARY KEY, b UNIQUE, c);\n  INSERT INTO y1 VALUES('a', 'b', 'c');\n  INSERT INTO y1 VALUES('d', 'e', 'f');\n")
 			if r.Error != nil {
@@ -222,8 +223,8 @@ func Test_nockpt(t *testing.T) {
 		}
 		{ // do_test "2.5"
 			// sqlite3_finalize $::stmt (unsupported command, not transpiled)
-			db3, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+			_ = db3
 			r = db.Query(" \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")

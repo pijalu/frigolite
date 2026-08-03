@@ -12,7 +12,8 @@ import (
 )
 
 func Test_hook(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,11 +156,11 @@ func Test_hook(t *testing.T) {
 		_res = db2.Exec("CREATE TABLE t3(x,y)")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		// db2.commit_hook (db command)
-		_res = db.Exec("INSERT INTO t3 VALUES(1,2)")
+		_res = db2.Exec("INSERT INTO t3 VALUES(1,2)")
 		_ = _res // catchsql
-		_res = db.Exec("INSERT INTO t3 VALUES(11,12)")
+		_res = db2.Exec("INSERT INTO t3 VALUES(11,12)")
 		_ = _res // catchsql
-		_res = db.Exec("INSERT INTO t3 VALUES(3,4)")
+		_res = db2.Exec("INSERT INTO t3 VALUES(3,4)")
 		_ = _res // catchsql
 		_res = db2.Exec("\n    SELECT * FROM t3 ORDER BY x;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

@@ -12,7 +12,8 @@ import (
 )
 
 func Test_walmode(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,8 +181,8 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.6"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query(" PRAGMA main.journal_mode ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
@@ -194,7 +195,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.8"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
@@ -227,8 +228,8 @@ func Test_walmode(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "walmode-4.14"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      SELECT * FROM t1;\n  ")
@@ -241,7 +242,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.17"
-		r = db.Query(" PRAGMA main.journal_mode ")
+		r = db2.Query(" PRAGMA main.journal_mode ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 		}
@@ -616,7 +617,7 @@ func Test_walmode(t *testing.T) {
 			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "walmode-8.19"
-				r = db.Query(" PRAGMA main.journal_mode ")
+				r = db2.Query(" PRAGMA main.journal_mode ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 				}

@@ -3,6 +3,7 @@ package exec
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
@@ -133,6 +134,92 @@ func buildColumnIndex(colDefs []sql.ColumnDef) map[string]int {
 	}
 	colIndex["rowid"] = -1
 	return colIndex
+}
+
+// cdIndex returns the column index for name, or -1 if not found.
+func cdIndex(colDefs []sql.ColumnDef, name string) int {
+	for i, cd := range colDefs {
+		if strings.EqualFold(cd.Name, name) {
+			return i
+		}
+	}
+	return -1
+}
+
+// originalColumnName returns the column name as spelled in the CREATE TABLE
+// SQL (preserving original case for error messages), or the uppercased name
+// if it cannot be found.
+func (e *Engine) originalColumnName(createSQL, colName string) string {
+	start := strings.IndexByte(createSQL, '(')
+	end := strings.LastIndexByte(createSQL, ')')
+	if start < 0 || end <= start {
+		return colName
+	}
+	body := createSQL[start+1 : end]
+	for _, part := range splitColumnDefs(body) {
+		fields := strings.FieldsFunc(part, func(r rune) bool {
+			return r == ' ' || r == '\t' || r == '\n' || r == '\r'
+		})
+		if len(fields) == 0 {
+			continue
+		}
+		first := strings.Trim(fields[0], "`\"[]")
+		if strings.EqualFold(first, colName) {
+			return first
+		}
+	}
+	return colName
+}
+
+// splitColumnDefs splits a CREATE TABLE column list on top-level commas
+// (ignoring commas inside parentheses such as CHECK(...) or DEFAULT(...)).
+func splitColumnDefs(body string) []string {
+	var parts []string
+	depth := 0
+	last := 0
+	for i, r := range body {
+		switch r {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case ',':
+			if depth == 0 {
+				parts = append(parts, body[last:i])
+				last = i + 1
+			}
+		}
+	}
+	parts = append(parts, body[last:])
+	return parts
+}
+
+// primaryKeyColIndices returns the set of column indices that are PRIMARY KEY
+// columns: column-level PRIMARY KEY declarations plus table-level PRIMARY KEY
+// constraints (honoring integer column positions).
+func (e *Engine) primaryKeyColIndices(tableName, createSQL string, colDefs []sql.ColumnDef) map[int]bool {
+	idx := make(map[int]bool)
+	colIndex := buildColumnIndex(colDefs)
+	for i, cd := range colDefs {
+		if cd.PrimaryKey {
+			idx[i] = true
+		}
+	}
+	for _, tc := range e.tableConstraints(tableName, createSQL) {
+		if tc.Type != sql.ConstraintPrimaryKey {
+			continue
+		}
+		for _, ic := range tc.Columns {
+			if n, err := strconv.Atoi(ic.Name); err == nil && n >= 1 && n <= len(colDefs) {
+				idx[n-1] = true
+				continue
+			}
+			if i, ok := colIndex[ic.Name]; ok {
+				idx[i] = true
+			}
+		}
+	}
+	return idx
 }
 
 func (e *Engine) collectUpdateChanges(rootPage uint32, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt) ([]updateChange, error) {

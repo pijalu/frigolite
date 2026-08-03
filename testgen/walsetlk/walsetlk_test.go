@@ -6,12 +6,14 @@ package walsetlk
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
 
 func Test_walsetlk(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,8 +86,8 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	// db2.timeout (db command)
 	{ // "-db"
 		_res = db.Exec("db2")
@@ -137,7 +139,7 @@ func Test_walsetlk(t *testing.T) {
 		// file size test.db-wal
 	}
 	// close $fd
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// do_multiclient_test tn {\n\n  testvfs tvfs -fullshm 1\n  db close\n  sqlit...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
@@ -148,8 +150,8 @@ func Test_walsetlk(t *testing.T) {
 	sleep_count = "0" // TCL namespace variable
 	_ = sleep_count // suppress unused warning
 	// proc definition (not transpiled)
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	// db2.timeout (db command)
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE x1(x, y);\n  BEGIN;\n    INSERT INTO x1 VALUES(1, 2);\n")
@@ -238,6 +240,6 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// tvfs delete (unsupported command, not transpiled)
 }

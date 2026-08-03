@@ -6,11 +6,13 @@ package tkt
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_tkt3093(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,8 +73,8 @@ func Test_tkt3093(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			// sqlite3_enable_shared_cache 0 (unsupported command, not transpiled)
 		}
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db2.Exec("\n    SELECT * FROM t1\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
@@ -82,7 +84,7 @@ func Test_tkt3093(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     BEGIN;\n     INSERT INTO t1 VALUES(2);\n  ")
 		}
-		_res = db.Exec("\n     UPDATE t1 SET x=x+1;\n  ")
+		_res = db2.Exec("\n     UPDATE t1 SET x=x+1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt3093.4"

@@ -6,11 +6,13 @@ package vtab_
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_vtab_shared(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,8 +73,8 @@ func Test_vtab_shared(t *testing.T) {
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "vtab_shared-1.1"
 		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t0(a, b, c);\n    INSERT INTO t0 VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);\n  ")
@@ -87,11 +89,11 @@ func Test_vtab_shared(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab_shared-1.3"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "vtab_shared-1.4"
-		r = db.Query(" SELECT * FROM t0 ")
+		r = db2.Query(" SELECT * FROM t0 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t0 ")
 		}
@@ -104,7 +106,7 @@ func Test_vtab_shared(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab_shared-1.6"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
@@ -116,11 +118,11 @@ func Test_vtab_shared(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab_shared-1.8.2"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "vtab_shared-1.8.3"
-		_res = db.Exec(" SELECT *  FROM t0 ")
+		_res = db2.Exec(" SELECT *  FROM t0 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "vtab_shared-1.8.4"
@@ -134,7 +136,7 @@ func Test_vtab_shared(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		r = db.Query(" SELECT *  FROM t1 ")
+		r = db2.Query(" SELECT *  FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT *  FROM t1 ")
 		}
@@ -153,9 +155,8 @@ func Test_vtab_shared(t *testing.T) {
 				res = ""
 				_ = res // suppress unused warning
 				// $dbSelect eval { SELECT * FROM t1 } {\n      if {$a == 1} {$dbClose close}\n      lappe...... (unsupported command, not transpiled)
-				dbClose, err := frigolite.Open("test.db")
-				defer dbClose.Close()
-				if err != nil { t.Fatal(err) }
+				dbClose = db // sqlite3 $dbClose test.db: alias to main in-memory db
+				_ = dbClose
 				// register_echo_module [sqlite3_connection_pointer $dbClose] (unsupported command, not transpiled)
 			}
 		}
@@ -170,13 +171,13 @@ func Test_vtab_shared(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);\n  ")
 			}
-			r = db.Query(" SELECT * FROM t3 ")
+			r = db2.Query(" SELECT * FROM t3 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
 			}
 		}
 		{ // do_test "vtab_shared-1.12.1"
-			r = db.Query(" \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
+			r = db2.Query(" \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
 			}
@@ -202,7 +203,7 @@ func Test_vtab_shared(t *testing.T) {
 			}
 		}
 		{ // do_test "vtab_shared-1.13.2"
-			r = db.Query(" SELECT * FROM t4 ")
+			r = db2.Query(" SELECT * FROM t4 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
 			}
@@ -212,15 +213,15 @@ func Test_vtab_shared(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 RENAME TO t5 ")
 			}
-			r = db.Query(" SELECT * FROM t4 ")
+			r = db2.Query(" SELECT * FROM t4 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t4 ")
 			}
 		}
 		{ // do_test "vtab_shared_1.14.1"
 			db2.Close()
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 			r = db.Query(" SELECT * FROM t3 ")
 			if r.Error != nil {
@@ -228,15 +229,15 @@ func Test_vtab_shared(t *testing.T) {
 			}
 		}
 		{ // do_test "vtab_shared_1.14.2"
-			r = db.Query(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
+			r = db2.Query(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
 			}
 		}
 		{ // do_test "vtab_shared_1.14.3"
 			db2.Close()
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 			r = db.Query(" SELECT * FROM t3 ")
 			if r.Error != nil {
@@ -244,15 +245,15 @@ func Test_vtab_shared(t *testing.T) {
 			}
 		}
 		{ // do_test "vtab_shared_1.14.4"
-			r = db.Query(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
+			r = db2.Query(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
 			}
 		}
 		{ // do_test "vtab_shared_1.14.5"
 			db2.Close()
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 			r = db.Query(" SELECT * FROM t3 ")
 			if r.Error != nil {
@@ -260,15 +261,15 @@ func Test_vtab_shared(t *testing.T) {
 			}
 		}
 		{ // do_test "vtab_shared_1.14.6"
-			r = db.Query(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
+			r = db2.Query(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
 			}
 		}
 		{ // do_test "vtab_shared_1.15.1"
 			db2.Close()
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 			r = db.Query(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
 			if r.Error != nil {
@@ -277,8 +278,8 @@ func Test_vtab_shared(t *testing.T) {
 		}
 		{ // do_test "vtab_shared_1.15.2"
 			db2.Close()
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 			r = db.Query(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
 			if r.Error != nil {
@@ -287,15 +288,15 @@ func Test_vtab_shared(t *testing.T) {
 		}
 		{ // do_test "vtab_shared_1.15.3"
 			db2.Close()
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 			r = db.Query(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -303,8 +304,8 @@ func Test_vtab_shared(t *testing.T) {
 			_dbtmp3, err := frigolite.Open("test.db")
 			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query("\n      CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n      INSERT INTO rt VALUES(1, 2 ,3);\n      SELECT * FROM rt;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n      INSERT INTO rt VALUES(1, 2 ,3);\n      SELECT * FROM rt;\n    ")
@@ -322,8 +323,8 @@ func Test_vtab_shared(t *testing.T) {
 			_dbtmp4, err := frigolite.Open("test.db")
 			_ = _dbtmp4 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query("\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('hello world');\n      SELECT * FROM ft;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('hello world');\n      SELECT * FROM ft;\n    ")

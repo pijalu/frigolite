@@ -11,7 +11,8 @@ import (
 )
 
 func Test_lock4(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +90,7 @@ func Test_lock4(t *testing.T) {
 		}
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    INSERT INTO t2 VALUES(1)\n  ")
+		_res = db2.Exec("\n    INSERT INTO t2 VALUES(1)\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock4-1.3"

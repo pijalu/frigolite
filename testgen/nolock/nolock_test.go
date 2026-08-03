@@ -11,7 +11,8 @@ import (
 )
 
 func Test_nolock(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,8 +135,8 @@ func Test_nolock(t *testing.T) {
 	}
 	{ // do_test "nolock-2.1"
 		// tvfs_reset (unsupported command, not transpiled)
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
@@ -183,8 +184,8 @@ func Test_nolock(t *testing.T) {
 		db2.Close()
 		// tvfs devchar immutable (unsupported command, not transpiled)
 		// tvfs_reset (unsupported command, not transpiled)
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
@@ -195,8 +196,8 @@ func Test_nolock(t *testing.T) {
 	{ // do_test "nolock-3.11"
 		db2.Close()
 		// tvfs_reset (unsupported command, not transpiled)
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}

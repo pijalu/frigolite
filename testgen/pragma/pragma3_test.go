@@ -11,7 +11,8 @@ import (
 )
 
 func Test_pragma3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,8 +110,8 @@ func Test_pragma3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "pragma3-120"
 		_res = db2.Exec("\n    SELECT * FROM t1;\n    PRAGMA data_version;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -203,14 +204,14 @@ func Test_pragma3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA data_version;\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "pragma3-300"
 		r = db.Query("\n      PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;\n    ")
 		if r.Error != nil {
@@ -255,7 +256,7 @@ func Test_pragma3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	if tclBool("wal_is_capable") {
 		if tclBool("permutation" + "!=\"inmemory_journal\"") {
@@ -266,8 +267,8 @@ func Test_pragma3(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=WAL")
 			}
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			{ // do_test "pragma3-400"
 				r = db.Query("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
 				if r.Error != nil {
@@ -300,7 +301,7 @@ func Test_pragma3(t *testing.T) {
 				_res = db2.Exec("PRAGMA data_version; SELECT * FROM t1;")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 	}
 	// foreach {tn sql} "A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }"

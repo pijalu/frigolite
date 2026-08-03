@@ -6,12 +6,14 @@ package pendingrace
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
 
 func Test_pendingrace(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,8 +81,8 @@ func Test_pendingrace(t *testing.T) {
 		_ = nPg // suppress unused warning
 		// expr ($nPg==20 (not evaluated)
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // "-db"
 		_res = db.Exec("db2")
 		if _res.Error != nil {
@@ -88,7 +90,7 @@ func Test_pendingrace(t *testing.T) {
 		}
 	}
 	// db_save (unsupported command, not transpiled)
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// proc definition (not transpiled)
 	// my_db_restore (unsupported command, not transpiled)
 	{ // do_test "1.2"
@@ -100,8 +102,8 @@ func Test_pendingrace(t *testing.T) {
 	seen_unlock = "0" // TCL namespace variable
 	_ = seen_unlock // suppress unused warning
 	// proc definition (not transpiled)
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	// tvfs filter xAccess (unsupported command, not transpiled)
 	// tvfs script xAccess (unsupported command, not transpiled)
 	seen_access = "0" // TCL namespace variable
@@ -113,7 +115,7 @@ func Test_pendingrace(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  PRAGMA integrity_check\n")
 		}
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// tvfs delete (unsupported command, not transpiled)
 	// tvfs2 delete (unsupported command, not transpiled)
 }

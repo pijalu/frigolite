@@ -13,7 +13,8 @@ import (
 )
 
 func Test_attach(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +91,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-1.2"
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		r = db.Query("\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,'x');\n    INSERT INTO t2 VALUES(2,'y');\n    SELECT * FROM t2;\n  ")
+		r = db2.Query("\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,'x');\n    INSERT INTO t2 VALUES(2,'y');\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,'x');\n    INSERT INTO t2 VALUES(2,'y');\n    SELECT * FROM t2;\n  ")
 		}
@@ -255,13 +256,13 @@ func Test_attach(t *testing.T) {
 		// db_list db (unsupported command, not transpiled)
 	}
 	{ // do_test "attach-2.1"
-		r = db.Query("\n    CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;\n  ")
+		r = db2.Query("\n    CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;\n  ")
 		}
 	}
 	{ // do_test "attach-2.2"
-		r = db.Query("\n    UPDATE t2 SET x=x+10;\n    SELECT * FROM tx;\n  ")
+		r = db2.Query("\n    UPDATE t2 SET x=x+10;\n    SELECT * FROM tx;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t2 SET x=x+10;\n    SELECT * FROM tx;\n  ")
 		}
@@ -303,13 +304,13 @@ func Test_attach(t *testing.T) {
 		// db_list db (unsupported command, not transpiled)
 	}
 	{ // do_test "attach-2.9"
-		r = db.Query("\n    CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x>5;\n  ")
+		r = db2.Query("\n    CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x>5;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x>5;\n  ")
 		}
 	}
 	{ // do_test "attach-2.10"
-		r = db.Query("\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
+		r = db2.Query("\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT type, name, tbl_name FROM sqlite_master;\n  ")
 		}
@@ -367,7 +368,7 @@ func Test_attach(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-3.5"
@@ -375,7 +376,7 @@ func Test_attach(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
 		}
-		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-3.6"
@@ -383,7 +384,7 @@ func Test_attach(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t2 SET x=x+1 WHERE x=50;\n  ")
 		}
-		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-3.7"
@@ -391,7 +392,7 @@ func Test_attach(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 		}
-		r = db.Query("SELECT * FROM t2")
+		r = db2.Query("SELECT * FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
 		}
@@ -401,11 +402,11 @@ func Test_attach(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		_res = db.Exec("UPDATE t2 SET x=0 WHERE 0")
+		_res = db2.Exec("UPDATE t2 SET x=0 WHERE 0")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t2 SET x=0 WHERE 0")
 		}
@@ -413,7 +414,7 @@ func Test_attach(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-3.9"
-		_res = db.Exec("SELECT * FROM t2")
+		_res = db2.Exec("SELECT * FROM t2")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-3.10"
@@ -445,7 +446,7 @@ func Test_attach(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-3.15"
-		_res = db.Exec("COMMIT")
+		_res = db2.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
@@ -462,7 +463,7 @@ func Test_attach(t *testing.T) {
 		db2.Close()
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		r = db.Query("\n    CREATE TABLE t3(x,y);\n    CREATE UNIQUE INDEX t3i1 ON t3(x);\n    INSERT INTO t3 VALUES(1,2);\n    SELECT * FROM t3;\n  ")
+		r = db2.Query("\n    CREATE TABLE t3(x,y);\n    CREATE UNIQUE INDEX t3i1 ON t3(x);\n    INSERT INTO t3 VALUES(1,2);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3(x,y);\n    CREATE UNIQUE INDEX t3i1 ON t3(x);\n    INSERT INTO t3 VALUES(1,2);\n    SELECT * FROM t3;\n  ")
 		}
@@ -496,7 +497,7 @@ func Test_attach(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DETACH db2;\n")
 	}
 	{ // do_test "attach-4.6"
-		r = db.Query("\n      CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;\n    ")
+		r = db2.Query("\n      CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;\n    ")
 		}
@@ -524,7 +525,7 @@ func Test_attach(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DETACH DATABASE db2;\n  ")
 		}
-		r = db.Query("\n    CREATE VIEW v3 AS SELECT x*100+y FROM t3;\n    SELECT * FROM v3;\n  ")
+		r = db2.Query("\n    CREATE VIEW v3 AS SELECT x*100+y FROM t3;\n    SELECT * FROM v3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIEW v3 AS SELECT x*100+y FROM t3;\n    SELECT * FROM v3;\n  ")
 		}
@@ -555,43 +556,43 @@ func Test_attach(t *testing.T) {
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    ATTACH DATABASE 'test.db' AS orig;\n    CREATE TRIGGER r1 AFTER INSERT ON orig.t1 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
+		_res = db2.Exec("\n    ATTACH DATABASE 'test.db' AS orig;\n    CREATE TRIGGER r1 AFTER INSERT ON orig.t1 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.2"
-		_res = db.Exec("\n    CREATE TABLE t5(x,y);\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
+		_res = db2.Exec("\n    CREATE TABLE t5(x,y);\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op';\n    END;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.3"
-		_res = db.Exec("\n    DROP TRIGGER r5;\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op' FROM orig.t1;\n    END;\n  ")
+		_res = db2.Exec("\n    DROP TRIGGER r5;\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op' FROM orig.t1;\n    END;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.4"
-		_res = db.Exec("\n      CREATE TEMP TABLE t6(p,q,r);\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM temp.t6;\n      END;\n    ")
+		_res = db2.Exec("\n      CREATE TEMP TABLE t6(p,q,r);\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM temp.t6;\n      END;\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.5"
-		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' || (SELECT * FROM temp.t6);\n      END;\n    ")
+		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' || (SELECT * FROM temp.t6);\n      END;\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.6"
-		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
+		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.7"
-		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 GROUP BY 1 HAVING x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
+		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 GROUP BY 1 HAVING x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.7"
-		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT max(1,x,(SELECT min(x) FROM temp.t6)) FROM t1;\n      END;\n    ")
+		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT max(1,x,(SELECT min(x) FROM temp.t6)) FROM t1;\n      END;\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.8"
-		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        INSERT INTO t1 VALUES((SELECT min(x) FROM temp.t6),5);\n      END;\n    ")
+		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        INSERT INTO t1 VALUES((SELECT min(x) FROM temp.t6),5);\n      END;\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.9"
-		_res = db.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
+		_res = db2.Exec("\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        DELETE FROM t1 WHERE x<(SELECT min(x) FROM temp.t6);\n      END;\n    ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.10"

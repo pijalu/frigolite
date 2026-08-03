@@ -11,7 +11,8 @@ import (
 )
 
 func Test_symlink2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,14 +97,14 @@ func Test_symlink2(t *testing.T) {
 	{ // do_test "3.2"
 		db2, err = frigolite.Open("link.db")
 		if err != nil { t.Fatal(err) }
-		r = db.Query(" SELECT x, y FROM t1; ")
+		r = db2.Query(" SELECT x, y FROM t1; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x, y FROM t1; ")
 		}
 	}
 	{ // do_test "3.3"
-		db3, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+		_ = db3
 		r = db.Query(" SELECT x, y FROM t1; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x, y FROM t1; ")

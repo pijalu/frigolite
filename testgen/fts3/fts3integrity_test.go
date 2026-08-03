@@ -6,11 +6,13 @@ package fts3
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_fts3integrity(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,8 +63,8 @@ func Test_fts3integrity(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1 VALUES('first row');\n  INSERT INTO t1 VALUES('second row');\n\n  CREATE TABLE t2(x PRIMARY KEY);\n  INSERT INTO t2 VALUES('first row');\n  INSERT INTO t2 VALUES('second row');\n")
 		}
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // "-db"
 		_res = db.Exec("db2")
 		if _res.Error != nil {

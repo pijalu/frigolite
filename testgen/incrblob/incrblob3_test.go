@@ -11,7 +11,8 @@ import (
 )
 
 func Test_incrblob3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,8 +290,8 @@ func Test_incrblob3(t *testing.T) {
 			// close $::blob
 		}
 		{ // do_test "incrblob3-7.1"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			// sqlite3_db_config_lookaside db2 0 0 0 (unsupported command, not transpiled)
 			_res = db.Exec(" CREATE TABLE t2(x) ")
 			if _res.Error != nil {

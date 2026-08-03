@@ -12,7 +12,8 @@ import (
 )
 
 func Test_enc2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -482,8 +483,8 @@ func Test_enc2(t *testing.T) {
 		_ = tclStringRange(enc, "0", "end-2") // string range result
 	}
 	{ // do_test "enc2-7.3"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);\n  ")

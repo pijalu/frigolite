@@ -12,7 +12,8 @@ import (
 )
 
 func Test_incrvacuum(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -297,11 +298,11 @@ func Test_incrvacuum(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
-	r = db.Query(" PRAGMA auto_vacuum = 'none' ")
+	r = db1.Query(" PRAGMA auto_vacuum = 'none' ")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 'none' ")
 	}
-	r = db.Query(" PRAGMA auto_vacuum = 'incremental' ")
+	r = db2.Query(" PRAGMA auto_vacuum = 'incremental' ")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 'incremental' ")
 	}
@@ -309,11 +310,11 @@ func Test_incrvacuum(t *testing.T) {
 	_ = tn // suppress unused warning
 	for _, sql := range tclSplitList(TestScriptList) {
 	_ = sql // suppress unused warning
-		_res = db.Exec(sql)
+		_res = db1.Exec(sql)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 		}
-		_res = db.Exec(sql)
+		_res = db2.Exec(sql)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 		}
@@ -522,8 +523,8 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db]>0 (not evaluated)
 	}
 	{ // do_test "incrvacuum-12.2"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec(" BEGIN EXCLUSIVE; ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN EXCLUSIVE; ")
@@ -532,7 +533,7 @@ func Test_incrvacuum(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "incrvacuum-12.3"
-		_res = db.Exec(" ROLLBACK; ")
+		_res = db2.Exec(" ROLLBACK; ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK; ")
 		}
@@ -566,15 +567,15 @@ func Test_incrvacuum(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db" // TCL namespace variable
 	_ = DB // suppress unused warning
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "incrvacuum-13.1"
 		// expr [file size test.db]>1 (not evaluated)
 	}
 	{ // do_test "incrvacuum-13.2"
 		STMT = "sqlite3_prepare $::DB {PRAGMA auto_vacuum = 2} -1 DUMMY" // TCL namespace variable
 		_ = STMT // suppress unused warning
-		r = db.Query("\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
+		r = db2.Query("\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
 		}
@@ -603,7 +604,7 @@ func Test_incrvacuum(t *testing.T) {
 			// close $out
 			db3, err = frigolite.Open("invalid.db")
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n      PRAGMA incremental_vacuum(10);\n    ")
+			_res = db3.Exec("\n      PRAGMA incremental_vacuum(10);\n    ")
 			_ = _res // catchsql
 		}
 		db3.Close()

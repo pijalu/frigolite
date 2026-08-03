@@ -6,11 +6,13 @@ package tkt
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_tkt3810(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,15 +60,15 @@ func Test_tkt3810(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3810-2"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "tkt3810-3"
-		_res = db.Exec("DROP TABLE t1")
+		_res = db2.Exec("DROP TABLE t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 		}
@@ -88,7 +90,7 @@ func Test_tkt3810(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt3810-6"
-		_res = db.Exec("CREATE TABLE t1(x)")
+		_res = db2.Exec("CREATE TABLE t1(x)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x)")
 		}

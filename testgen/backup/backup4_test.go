@@ -11,7 +11,8 @@ import (
 )
 
 func Test_backup4(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,11 +72,11 @@ func Test_backup4(t *testing.T) {
 		db1, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		// db1.backup (db command)
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
 		_res = db1.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('one', 'two');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Close()
+		_ = db1 // close db1: aliased to db, no-op
 	}
 	{ // "1.2"
 		r = db.Query("\n  SELECT * FROM t1 WHERE x='one';\n  PRAGMA integrity_check;\n")

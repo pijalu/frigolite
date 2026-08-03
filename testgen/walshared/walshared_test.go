@@ -6,11 +6,13 @@ package walshared
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_walshared(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,8 +58,8 @@ func Test_walshared(t *testing.T) {
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "walshared-1.0"
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(randomblob(100), randomblob(200));\n  ")
 		if _res.Error != nil {
@@ -75,7 +77,7 @@ func Test_walshared(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "walshared-1.3"
-		_res = db.Exec(" PRAGMA wal_checkpoint ")
+		_res = db2.Exec(" PRAGMA wal_checkpoint ")
 		_ = _res // catchsql
 	}
 	{ // do_test "walshared-1.4"
@@ -83,7 +85,7 @@ func Test_walshared(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		r = db.Query(" PRAGMA integrity_check ")
+		r = db2.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}

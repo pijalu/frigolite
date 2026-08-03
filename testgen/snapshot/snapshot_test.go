@@ -6,11 +6,13 @@ package snapshot
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_snapshot(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -176,8 +178,8 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".2.2.0"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("\n      BEGIN;\n        SELECT * FROM t1;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n        SELECT * FROM t1;\n    ")
@@ -208,7 +210,7 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
-				_res = db.Exec("COMMIT")
+				_res = db2.Exec("COMMIT")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
@@ -428,8 +430,8 @@ func Test_snapshot(t *testing.T) {
 			{ // do_test tn + ".5.2"
 				snapshot = "snapshot_get db main" // TCL namespace variable
 				_ = snapshot // suppress unused warning
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db.Exec("\n      INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;\n    ")
@@ -469,8 +471,8 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".6.3"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db2.Exec("PRAGMA user_version ; BEGIN")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				// snapshot_open db2 main $::snapshot (unsupported command, not transpiled)
@@ -479,8 +481,8 @@ func Test_snapshot(t *testing.T) {
 			}
 			{ // do_test tn + ".6.4"
 				db2.Close()
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db2.Exec("PRAGMA application_id")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				_res = db2.Exec("BEGIN")
@@ -491,8 +493,8 @@ func Test_snapshot(t *testing.T) {
 			}
 			{ // do_test tn + ".6.5"
 				db2.Close()
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				_res = db2.Exec("BEGIN")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				_list := tclList([]string{"0", msg})

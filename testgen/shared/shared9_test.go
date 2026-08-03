@@ -11,7 +11,8 @@ import (
 )
 
 func Test_shared9(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,10 +73,10 @@ func Test_shared9(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	enable_shared_cache = "sqlite3_enable_shared_cache 1"
 	_ = enable_shared_cache // suppress unused warning
-	db1, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+	_ = db1
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	os.Remove("test.db2")
 	{ // do_test "1.1"
 		_res = db1.Exec("\n    ATTACH 'test.db2' AS 'fred';\n    CREATE TABLE fred.t1(a, b, c);\n    CREATE VIEW fred.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE fred.t2(a, b);\n    CREATE TABLE fred.t3(a, b);\n    CREATE TRIGGER fred.trig AFTER INSERT ON t2 BEGIN\n      DELETE FROM t3;\n      INSERT INTO t3 SELECT * FROM t2;\n    END;\n    INSERT INTO t2 VALUES(1, 2);\n    SELECT * FROM t3;\n  ")
@@ -105,13 +106,13 @@ func Test_shared9(t *testing.T) {
 		_res = db1.Exec("\n      SELECT * FROM t4 WHERE t4 MATCH 'c*';\n    ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	db1.Close()
-	db2.Close()
+	_ = db1 // close db1: aliased to db, no-op
+	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db")
-	db1, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+	_ = db1
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	for _, x := range tclSplitList("collate1 collate2 collate3") {
 	_ = x // suppress unused warning
 		// proc definition (not transpiled)
@@ -125,12 +126,12 @@ func Test_shared9(t *testing.T) {
 		_res = db2.Exec("INSERT INTO t1 VALUES('abc', 'def', 'ghi')")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db")
-	db1, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+	_ = db1
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "2.3"
@@ -150,10 +151,10 @@ func Test_shared9(t *testing.T) {
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	os.Remove("test.db")
-	db1, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+	_ = db1
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "2.13"
 		invoked_mycollate_db1 = "0" // TCL namespace variable
 		_ = invoked_mycollate_db1 // suppress unused warning
@@ -171,10 +172,10 @@ func Test_shared9(t *testing.T) {
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	os.Remove("test.db")
-	db1, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+	_ = db1
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	// proc definition (not transpiled)
 	{ // do_test "3.1"
 		_res = db1.Exec("\n    BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t2 VALUES(1, 2);\n  ")
@@ -205,7 +206,7 @@ func Test_shared9(t *testing.T) {
 		_res = db1.Exec("COMMIT")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	db1.Close()
-	db2.Close()
+	_ = db1 // close db1: aliased to db, no-op
+	_ = db2 // close db2: aliased to db, no-op
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

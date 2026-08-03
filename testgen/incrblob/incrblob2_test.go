@@ -6,12 +6,14 @@ package incrblob
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
 
 func Test_incrblob2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -338,30 +340,30 @@ func Test_incrblob2(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n      INSERT INTO t1 VALUES(1, 'abcde');\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(1, 'abcde');\n    ")
 		}
 	}
 	{ // do_test "incrblob2-5.2"
-		_res = db.Exec(" INSERT INTO t1 VALUES(2, 'fghij') ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(2, 'fghij') ")
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-5.3"
 		blob = "db incrblob t1 data 1"
 		_ = blob // suppress unused warning
-		_res = db.Exec(" INSERT INTO t1 VALUES(3, 'klmno') ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(3, 'klmno') ")
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-5.4"
 		// close $blob
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(4, 'pqrst') ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(4, 'pqrst') ")
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-5.5"
@@ -390,7 +392,7 @@ func Test_incrblob2(t *testing.T) {
 		// read $blob (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-5.7"
-		_res = db.Exec(" INSERT INTO t1 VALUES(3, 'klmno') ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(3, 'klmno') ")
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-5.8"

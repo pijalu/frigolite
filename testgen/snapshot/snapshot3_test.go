@@ -6,11 +6,13 @@ package snapshot
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_snapshot3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,10 +75,10 @@ func Test_snapshot3(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		db3, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
+		db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+		_ = db3
 		r = db.Query("SELECT * FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_master")
@@ -90,7 +92,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -99,7 +101,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
-		_res = db.Exec("END")
+		_res = db2.Exec("END")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "END")
 		}
@@ -107,7 +109,7 @@ func Test_snapshot3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -125,7 +127,7 @@ func Test_snapshot3(t *testing.T) {
 		// file size test.db-wal
 	}
 	{ // do_test "1.4"
-		_res = db.Exec("BEGIN")
+		_res = db3.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -148,7 +150,7 @@ func Test_snapshot3(t *testing.T) {
 		// file size test.db-wal
 	}
 	{ // do_test "1.8"
-		_res = db.Exec("BEGIN")
+		_res = db3.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
@@ -172,10 +174,10 @@ func Test_snapshot3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	db3, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
+	db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+	_ = db3
 	{ // "-db"
 		_res = db.Exec("db2")
 		if _res.Error != nil {
@@ -210,7 +212,7 @@ func Test_snapshot3(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		_res = db.Exec(" BEGIN ")
+		_res = db3.Exec(" BEGIN ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}

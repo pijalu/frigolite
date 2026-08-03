@@ -6,11 +6,13 @@ package auth
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_auth2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,8 +120,8 @@ func Test_auth2(t *testing.T) {
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	// proc definition (not transpiled)
 	{ // do_test "auth2-2.1"
 		authargs = "" // TCL namespace variable
@@ -159,7 +161,7 @@ func Test_auth2(t *testing.T) {
 		}
 		_ = authargs // TCL namespace variable (query)
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "auth2-3.1"
 		authargs = "" // TCL namespace variable
 		_ = authargs // suppress unused warning

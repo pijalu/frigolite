@@ -11,7 +11,8 @@ import (
 )
 
 func Test_notify3(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,13 +92,13 @@ func Test_notify3(t *testing.T) {
 		}
 	}
 	{ // do_test "notify3-1.2"
-		_res = db.Exec(" \n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('t2 A', 't2 B');\n  ")
+		_res = db2.Exec(" \n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('t2 A', 't2 B');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('t2 A', 't2 B');\n  ")
 		}
 	}
 	{ // do_test "notify3-1.3"
-		_res = db.Exec(" \n    BEGIN EXCLUSIVE;\n    INSERT INTO t2 VALUES('t2 C', 't2 D');\n  ")
+		_res = db2.Exec(" \n    BEGIN EXCLUSIVE;\n    INSERT INTO t2 VALUES('t2 C', 't2 D');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN EXCLUSIVE;\n    INSERT INTO t2 VALUES('t2 C', 't2 D');\n  ")
 		}
@@ -138,7 +139,7 @@ func Test_notify3(t *testing.T) {
 		_ = when // suppress unused warning
 		when = "2" // TCL namespace variable
 		_ = when // suppress unused warning
-		_res = db.Exec(" COMMIT ")
+		_res = db2.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
@@ -183,8 +184,8 @@ func Test_notify3(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 						db2.Close()
 					}
-					db1, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
+					db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+					_ = db1
 					db2, err = frigolite.Open("test.db2")
 					if err != nil { t.Fatal(err) }
 					// sqlite3_extended_result_codes db1 $enable_extended_errors (unsupported command, not transpiled)

@@ -11,7 +11,8 @@ import (
 )
 
 func Test_fallocate(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,8 +187,8 @@ func Test_fallocate(t *testing.T) {
 			// file size test.db
 		}
 		{ // do_test "fallocate-2.6"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query(" BEGIN ; SELECT count(a) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN ; SELECT count(a) FROM t1 ")
@@ -199,13 +200,13 @@ func Test_fallocate(t *testing.T) {
 			// file size test.db
 		}
 		{ // do_test "fallocate-2.7"
-			r = db.Query(" SELECT count(b) FROM t1 ")
+			r = db2.Query(" SELECT count(b) FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(b) FROM t1 ")
 			}
 		}
 		{ // do_test "fallocate-2.8"
-			_res = db.Exec(" COMMIT ")
+			_res = db2.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}

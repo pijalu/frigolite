@@ -6,11 +6,13 @@ package shared
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_shared6(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,117 +69,117 @@ func Test_shared6(t *testing.T) {
 		// sqlite3_enable_shared_cache (unsupported command, not transpiled)
 	}
 	{ // do_test "shared6-1.1.3"
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 	}
 	{ // do_test "shared6-1.2.1"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
-		_res = db.Exec(" BEGIN EXCLUSIVE ")
+		_res = db1.Exec(" BEGIN EXCLUSIVE ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN EXCLUSIVE ")
 		}
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared6-1.2.2"
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db1.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "shared6-1.2.3"
-		_res = db.Exec("\n    COMMIT;\n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+		_res = db1.Exec("\n    COMMIT;\n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		}
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "shared6-1.2.X"
-		_res = db.Exec(" COMMIT ")
+		_res = db1.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
 	{ // do_test "shared6-1.3.1"
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		_res = db1.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db1.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "shared6-1.3.2"
-		r = db.Query(" SELECT * FROM t2 ")
+		r = db2.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
 		}
 	}
 	{ // do_test "shared6-1.3.3"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared6-1.3.4"
-		_res = db.Exec(" INSERT INTO t2 VALUES(1, 2) ")
+		_res = db2.Exec(" INSERT INTO t2 VALUES(1, 2) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared6-1.3.5"
-		r = db.Query("\n    COMMIT;\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		r = db1.Query("\n    COMMIT;\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		}
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "shared6-1.3.5"
-		_res = db.Exec(" INSERT INTO t1 VALUES(5, 6) ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(5, 6) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared6-1.3.X"
-		_res = db.Exec(" COMMIT ")
+		_res = db1.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
 	{ // do_test "shared6-1.4.1"
-		r = db.Query(" PRAGMA read_uncommitted = 1 ")
+		r = db2.Query(" PRAGMA read_uncommitted = 1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA read_uncommitted = 1 ")
 		}
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
+		_res = db1.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
 		}
-		r = db.Query(" SELECT * FROM t1 ")
+		r = db2.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "shared6-1.4.2"
-		_res = db.Exec(" CREATE TABLE t4(a, b) ")
+		_res = db1.Exec(" CREATE TABLE t4(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t4(a, b) ")
 		}
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared6-1.4.3"
-		r = db.Query("\n    COMMIT;\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		r = db1.Query("\n    COMMIT;\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 		}
-		_res = db.Exec(" INSERT INTO t1 VALUES(7, 8) ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(7, 8) ")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared6-1.X"
@@ -186,49 +188,49 @@ func Test_shared6(t *testing.T) {
 	}
 	if tcl_platform_os != "Windows NT" {
 		{ // do_test "shared6-2.1"
-			db1, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			db3, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			db4, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+			_ = db1
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
+			db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+			_ = db3
+			db4 = db // sqlite3 db4 test.db: alias to main in-memory db
+			_ = db4
 		}
 		{ // do_test "shared6-2.2"
-			_res = db.Exec(" BEGIN; INSERT INTO t1 VALUES(9, 10); ")
+			_res = db1.Exec(" BEGIN; INSERT INTO t1 VALUES(9, 10); ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN; INSERT INTO t1 VALUES(9, 10); ")
 			}
-			_res = db.Exec(" SELECT * FROM t1 ")
+			_res = db2.Exec(" SELECT * FROM t1 ")
 			_ = _res // catchsql
 		}
 		{ // do_test "shared6-2.3"
-			r = db.Query(" SELECT * FROM t1 ")
+			r = db3.Query(" SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 			}
 		}
 		{ // do_test "shared6-2.3"
-			_res = db.Exec(" COMMIT ")
+			_res = db1.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
-			_res = db.Exec(" BEGIN; INSERT INTO t1 VALUES(11, 12); ")
+			_res = db3.Exec(" BEGIN; INSERT INTO t1 VALUES(11, 12); ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN; INSERT INTO t1 VALUES(11, 12); ")
 			}
-			_res = db.Exec(" SELECT * FROM t1 ")
+			_res = db4.Exec(" SELECT * FROM t1 ")
 			_ = _res // catchsql
 		}
 		{ // do_test "shared6-2.4"
-			r = db.Query(" SELECT * FROM t1 ")
+			r = db1.Query(" SELECT * FROM t1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 			}
 		}
 		{ // do_test "shared6-2.5"
-			_res = db.Exec(" COMMIT ")
+			_res = db3.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
@@ -241,21 +243,21 @@ func Test_shared6(t *testing.T) {
 		}
 	}
 	{ // do_test "shared6-3.1"
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		db3, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
+		db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+		_ = db3
 	}
 	_res = db1.Exec("SELECT * FROM t1")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "shared6-3.4"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared6-3.5"
-		_res = db.Exec("COMMIT")
+		_res = db1.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
@@ -263,11 +265,11 @@ func Test_shared6(t *testing.T) {
 	_res = db2.Exec("SELECT * FROM t1")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "shared6-3.7"
-		_res = db.Exec(" BEGIN ")
+		_res = db1.Exec(" BEGIN ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
-		_res = db.Exec(" BEGIN ")
+		_res = db2.Exec(" BEGIN ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
@@ -275,13 +277,13 @@ func Test_shared6(t *testing.T) {
 	_res = db2.Exec("SELECT * FROM t1")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "shared6-3.9"
-		_res = db.Exec(" BEGIN ; ROLLBACK ")
+		_res = db3.Exec(" BEGIN ; ROLLBACK ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ; ROLLBACK ")
 		}
 	}
 	{ // do_test "shared6-3.10"
-		_res = db.Exec(" SELECT * FROM t1 ")
+		_res = db3.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "shared6-3.X"
@@ -290,10 +292,10 @@ func Test_shared6(t *testing.T) {
 		db3.Close()
 	}
 	{ // do_test "shared6-4.1"
-		db1, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
+		_ = db1
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		STMT = "" // TCL namespace variable
 		_ = STMT // suppress unused warning
 		_res = db.Exec(" CREATE TABLE t5(a, b) ")

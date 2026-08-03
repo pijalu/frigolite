@@ -12,7 +12,8 @@ import (
 )
 
 func Test_backup(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,19 +184,19 @@ func Test_backup(t *testing.T) {
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
 								}
-								r = db.Query("PRAGMA " + file_dest + ".page_size = " + pgsz_dest)
+								r = db_dest.Query("PRAGMA " + file_dest + ".page_size = " + pgsz_dest)
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA " + file_dest + ".page_size = " + pgsz_dest)
 								}
 								if func() bool { rows_dest_n, _rows_dest_e := strconv.Atoi(rows_dest); if _rows_dest_e != nil { return false }; return rows_dest_n != 0 }() {
-									_res = db.Exec("\n        BEGIN; \n        CREATE TABLE " + file_dest + ".t1(a, b);\n        CREATE INDEX " + file_dest + ".i1 ON t1(a, b);\n      ")
+									_res = db_dest.Exec("\n        BEGIN; \n        CREATE TABLE " + file_dest + ".t1(a, b);\n        CREATE INDEX " + file_dest + ".i1 ON t1(a, b);\n      ")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        BEGIN; \n        CREATE TABLE " + file_dest + ".t1(a, b);\n        CREATE INDEX " + file_dest + ".i1 ON t1(a, b);\n      ")
 									}
 									ii = "0"
 									_ = ii // suppress unused warning
 									for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; rows_dest_n, _rows_dest_e := strconv.Atoi(rows_dest); if _rows_dest_e != nil { return false }; return ii_n < rows_dest_n }() {
-										_res = db.Exec("\n          INSERT INTO " + file_dest + ".t1 VALUES(1, randstr(1000,1000))\n        ")
+										_res = db_dest.Exec("\n          INSERT INTO " + file_dest + ".t1 VALUES(1, randstr(1000,1000))\n        ")
 										if _res.Error != nil {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n          INSERT INTO " + file_dest + ".t1 VALUES(1, randstr(1000,1000))\n        ")
 										}
@@ -207,7 +208,7 @@ func Test_backup(t *testing.T) {
 											}
 										}
 									}
-									_res = db.Exec("COMMIT")
+									_res = db_dest.Exec("COMMIT")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 									}
@@ -219,7 +220,7 @@ func Test_backup(t *testing.T) {
 									// B finish (unsupported command, not transpiled)
 								}
 								{ // do_test "backup-2." + iTest + ".2"
-									r = db.Query("PRAGMA " + file_dest + ".integrity_check")
+									r = db_dest.Query("PRAGMA " + file_dest + ".integrity_check")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA " + file_dest + ".integrity_check")
 									}
@@ -271,7 +272,7 @@ func Test_backup(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 1024 ")
 				}
-				r = db.Query("PRAGMA page_size = " + nDestPgsz)
+				r = db2.Query("PRAGMA page_size = " + nDestPgsz)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size = " + nDestPgsz)
 				}
@@ -291,7 +292,7 @@ func Test_backup(t *testing.T) {
 				ii = "0"
 				_ = ii // suppress unused warning
 				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDestRow_n, _nDestRow_e := strconv.Atoi(nDestRow); if _nDestRow_e != nil { return false }; return ii_n < nDestRow_n }() {
-					_res = db.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(ii) + ", randstr(1000,1000)) ")
+					_res = db2.Exec(" INSERT INTO t1 VALUES(" + sqlLiteral(ii) + ", randstr(1000,1000)) ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(" + sqlLiteral(ii) + ", randstr(1000,1000)) ")
 					}
@@ -310,7 +311,7 @@ func Test_backup(t *testing.T) {
 					// B finish (unsupported command, not transpiled)
 				}
 				{ // do_test "backup-3." + iTest + ".2"
-					r = db.Query("PRAGMA integrity_check")
+					r = db2.Query("PRAGMA integrity_check")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 					}
@@ -421,14 +422,14 @@ func Test_backup(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ATTACH 'test3.db' AS aux1;\n    CREATE TABLE aux1.t1(a, b);\n  ")
 		}
-		_res = db.Exec(" \n    ATTACH 'test4.db' AS aux2;\n    CREATE TABLE aux2.t2(a, b);\n  ")
+		_res = db2.Exec(" \n    ATTACH 'test4.db' AS aux2;\n    CREATE TABLE aux2.t2(a, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ATTACH 'test4.db' AS aux2;\n    CREATE TABLE aux2.t2(a, b);\n  ")
 		}
 		// sqlite3_backup B db aux1 db2 aux2 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.2.2"
-		_res = db.Exec(" DETACH aux2 ")
+		_res = db2.Exec(" DETACH aux2 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "backup-4.2.3"
@@ -486,7 +487,7 @@ func Test_backup(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
-		_res = db.Exec("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+		_res = db2.Exec("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		}
@@ -546,7 +547,7 @@ func Test_backup(t *testing.T) {
 				// B step 5 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".1.3"
-				_res = db.Exec(" UPDATE t1 SET a = a + 1 ")
+				_res = writer.Exec(" UPDATE t1 SET a = a + 1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a = a + 1 ")
 				}
@@ -569,7 +570,7 @@ func Test_backup(t *testing.T) {
 				// B step 50 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".2.3"
-				_res = db.Exec(" \n      BEGIN;\n      UPDATE t1 SET a = a + 1;\n      ROLLBACK;\n    ")
+				_res = writer.Exec(" \n      BEGIN;\n      UPDATE t1 SET a = a + 1;\n      ROLLBACK;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      BEGIN;\n      UPDATE t1 SET a = a + 1;\n      ROLLBACK;\n    ")
 				}
@@ -592,7 +593,7 @@ func Test_backup(t *testing.T) {
 				// B step 50 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".3.3"
-				_res = db.Exec(" VACUUM ")
+				_res = writer.Exec(" VACUUM ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 				}
@@ -615,7 +616,7 @@ func Test_backup(t *testing.T) {
 				// B step 50 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".4.3"
-				_res = db.Exec(" \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
+				_res = writer.Exec(" \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
 				}
@@ -669,7 +670,7 @@ func Test_backup(t *testing.T) {
 				// B step 8 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".5.3"
-				r = db.Query(" \n      DELETE FROM t1;\n      PRAGMA incremental_vacuum;\n    ")
+				r = writer.Query(" \n      DELETE FROM t1;\n      PRAGMA incremental_vacuum;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      DELETE FROM t1;\n      PRAGMA incremental_vacuum;\n    ")
 				}
@@ -781,8 +782,8 @@ func Test_backup(t *testing.T) {
 			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.1.2"
-			db3, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db3 = db // sqlite3 db3 test.db: alias to main in-memory db
+			_ = db3
 			_res = db.Exec(" BEGIN EXCLUSIVE ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN EXCLUSIVE ")
@@ -790,7 +791,7 @@ func Test_backup(t *testing.T) {
 			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.1.3"
-			_res = db.Exec(" ROLLBACK ")
+			_res = db3.Exec(" ROLLBACK ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
 			}
@@ -827,14 +828,14 @@ func Test_backup(t *testing.T) {
 			db3, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
-			_res = db.Exec(" BEGIN ; CREATE TABLE t2(a, b); ")
+			_res = db3.Exec(" BEGIN ; CREATE TABLE t2(a, b); ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ; CREATE TABLE t2(a, b); ")
 			}
 			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.3.2"
-			_res = db.Exec(" COMMIT ")
+			_res = db3.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
@@ -961,8 +962,8 @@ func Test_backup(t *testing.T) {
 		os.Remove("bak.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		db3, err = frigolite.Open("bak.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "backup-10.1.1"
@@ -989,12 +990,12 @@ func Test_backup(t *testing.T) {
 			// B finish (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-10.1.5"
-			r = db.Query(" PRAGMA integrity_check ")
+			r = db3.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		db3.Close()
 		os.Remove("test.db")
 		// foreach {tn file rc} "1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK"

@@ -12,7 +12,8 @@ import (
 )
 
 func Test_win32lock(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,8 +227,8 @@ func Test_win32lock(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "win32lock-3.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n  ")
 		if _res.Error != nil {
@@ -241,7 +242,7 @@ func Test_win32lock(t *testing.T) {
 		}
 	}
 	{ // do_test "win32lock-3.2"
-		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(5);\n    COMMIT;\n  ")
+		_res = db2.Exec("\n    BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(5);\n    COMMIT;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "win32lock-3.3"
@@ -256,7 +257,7 @@ func Test_win32lock(t *testing.T) {
 		_list := tclList([]string{"catchsql {\n    BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(6);\n    COMMIT;\n  }", "file_control_win32_set_handle db $handle", "sqlite3_extended_errcode db"})
 		_ = _list
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)

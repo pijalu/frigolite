@@ -6,13 +6,15 @@ package select4
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "strings"
 "testing"
 )
 
 func Test_select4(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -785,7 +787,7 @@ func Test_select4(t *testing.T) {
 	{ // do_test "select4-12.1"
 		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    SELECT 1 UNION SELECT 2,3 UNION SELECT 4,5 ORDER BY 1;\n  ")
+		_res = db2.Exec("\n    SELECT 1 UNION SELECT 2,3 UNION SELECT 4,5 ORDER BY 1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "select4-13.1"

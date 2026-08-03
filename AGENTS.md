@@ -82,6 +82,25 @@ go run ./tools/tcl2go/            # generate all test files in testgen/ (~0.5s)
 go test -tags testgen ./testgen/... -count=1    # run all generated tests
 ```
 
+### Diagnosing a failing generated test
+
+A failing testgen assertion may be an engine bug or a transpiler bug. Determine
+which before editing anything:
+
+1. **Write a pure Go test** that drives the engine directly (via `frigolite.Open`
+   / `Exec` / `Query`) and exercises the actual feature the failing assertion
+   covers — not the transpiled wrapper. Run it.
+2. If the pure Go test **fails**, the engine is wrong: fix the engine (then
+   re-run both the pure Go test and the full verify command).
+3. Only if the pure Go test **passes** while the transpiled testgen test fails
+   is the transpiler (`tools/tcl2go/`) the suspect — investigate it then.
+4. SQLite itself is ground truth. To validate expected behavior/error messages,
+   use the `sqlite3` CLI or a throwaway `go-sqlite3` scratch program (e.g.
+   under `/tmp`, never as a project dependency) and mirror its output.
+
+This rule keeps transpiler hunts from hiding real engine bugs: most failing
+assertions in this project are engine gaps, not transpiler defects.
+
 ## Source Cleanup Guidelines
 
 - No unused imports

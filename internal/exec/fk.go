@@ -141,8 +141,25 @@ func (e *Engine) cascadeDelete(parentTable *schema.Entry, parentColDefs []sql.Co
 }
 
 // fkRefAnyRe parses "parentTable(parentCol)" (with optional ON DELETE/UPDATE
-// actions) from a column's References string.
-var fkRefAnyRe = regexp.MustCompile(`(?is)^\s*([^\s(]+)\(([^)]+)\)`)
+// actions) from a column's References string. A bare "parentTable" reference
+// (no parent column) implicitly targets the parent's PRIMARY KEY.
+var fkRefAnyRe = regexp.MustCompile(`(?is)^\s*([^\s(]+)(?:\s*\(([^)]+)\))?`)
+
+// fkParentPKColumn returns the parent's PRIMARY KEY column name (the implicit
+// target of a "REFERENCES parent" clause that names no column).
+func (e *Engine) fkParentPKColumn(parentEntry *schema.Entry, parentColDefs []sql.ColumnDef) string {
+	for _, cd := range parentColDefs {
+		if cd.PrimaryKey {
+			return cd.Name
+		}
+	}
+	for _, c := range e.tableConstraints(parentEntry.Name, parentEntry.SQL) {
+		if c.Type == sql.ConstraintPrimaryKey && len(c.Columns) > 0 {
+			return c.Columns[0].Name
+		}
+	}
+	return ""
+}
 
 // checkForeignKeyViolations verifies that every non-NULL column value with a
 // FOREIGN KEY clause references an existing parent row. It is only enforced
@@ -160,11 +177,22 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 		if m == nil {
 			continue
 		}
-		parentTableName, parentCol := m[1], strings.TrimSpace(m[2])
+		parentTableName := m[1]
+		parentCol := strings.TrimSpace(m[2])
+		if parentCol == "" {
+			// A bare "REFERENCES parent" clause targets the parent's PRIMARY KEY.
+			if parentEntry, err := e.schema.FindTable(parentTableName); err == nil {
+				pcd := e.parseColumnDefs(parentEntry.Name, parentEntry.SQL)
+				parentCol = e.fkParentPKColumn(parentEntry, pcd)
+			}
+		}
 		if i >= len(values) || values[i] == nil {
 			continue
 		}
 		val := values[i]
+		if parentCol == "" {
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+		}
 
 		parentEntry, err := e.schema.FindTable(parentTableName)
 		if err != nil {
@@ -176,6 +204,11 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 		if !ok {
 			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
 		}
+		// The FK comparison applies the parent column's affinity to the child
+		// value (e.g. '35.0' matches an INTEGER parent key 35) and compares
+		// using the parent column's collation (SQLite foreign-key rules).
+		parentColDef := parentColDefs[parentIdx]
+		val = util.ApplyColumnAffinity(val, parentColDef.Type)
 		tree := e.tableBTree(parentEntry.Name, parentEntry.RootPage, true)
 		cursor, err := tree.OpenCursor()
 		if err != nil {
@@ -191,7 +224,7 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 			if err != nil || rec == nil {
 				break
 			}
-			if parentIdx < len(rec.Values) && rec.Values[parentIdx] != nil && util.CompareValues(rec.Values[parentIdx], val) == 0 {
+			if parentIdx < len(rec.Values) && rec.Values[parentIdx] != nil && util.CompareValuesCollate(rec.Values[parentIdx], val, parentColDef.Collate) == 0 {
 				found = true
 				break
 			}

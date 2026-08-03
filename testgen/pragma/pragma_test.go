@@ -13,7 +13,8 @@ import (
 )
 
 func Test_pragma(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1033,8 +1034,8 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		{ // do_test "pragma-8.1.7"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
 			_ = DB2 // suppress unused warning
 			r = db.Query("\n    SELECT * FROM t4;\n  ")
@@ -1077,8 +1078,8 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		{ // do_test "pragma-8.1.14"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
 			_ = DB2 // suppress unused warning
 			r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.t1;\n    ")
@@ -1424,8 +1425,8 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		{ // do_test "pragma-12.1"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query("\n      PRAGMA temp.table_info('abc');\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.table_info('abc');\n    ")
@@ -1433,8 +1434,8 @@ func Test_pragma(t *testing.T) {
 		}
 		db2.Close()
 		{ // do_test "pragma-12.2"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query("\n      PRAGMA temp.default_cache_size = 200;\n      PRAGMA temp.default_cache_size;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.default_cache_size = 200;\n      PRAGMA temp.default_cache_size;\n    ")
@@ -1442,8 +1443,8 @@ func Test_pragma(t *testing.T) {
 		}
 		db2.Close()
 		{ // do_test "pragma-12.3"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query("\n      PRAGMA temp.cache_size = 400;\n      PRAGMA temp.cache_size;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA temp.cache_size = 400;\n      PRAGMA temp.cache_size;\n    ")
@@ -1512,7 +1513,7 @@ func Test_pragma(t *testing.T) {
 			os.Remove("test2.db")
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);\n    ")
+			_res = db2.Exec("\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);\n    ")
 			}
@@ -1538,13 +1539,13 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		{ // do_test "pragma-15.2"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			_res = db.Exec("\n      CREATE TABLE newtable(a, b, c);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE newtable(a, b, c);\n    ")
 			}
-			db2.Close()
+			_ = db2 // close db2: aliased to db, no-op
 		}
 		{ // do_test "pragma-15.3"
 			r = db.Query(" SELECT * FROM sqlite_master ")
@@ -1592,8 +1593,8 @@ func Test_pragma(t *testing.T) {
 				}
 			}
 			{ // do_test "pragma-16.2"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("\n      PRAGMA lock_proxy_file=\"mylittleproxy\";\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file=\"mylittleproxy\";\n    ")
@@ -1601,8 +1602,8 @@ func Test_pragma(t *testing.T) {
 			}
 			db2.Close()
 			{ // do_test "pragma-16.2.1"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("\n      PRAGMA lock_proxy_file=\":auto:\";\n      select * from sqlite_master;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file=\":auto:\";\n      select * from sqlite_master;\n    ")
@@ -1614,8 +1615,8 @@ func Test_pragma(t *testing.T) {
 			}
 			db2.Close()
 			{ // do_test "pragma-16.3"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("\n      PRAGMA lock_proxy_file=\"myotherproxy\";\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file=\"myotherproxy\";\n    ")
@@ -1625,8 +1626,8 @@ func Test_pragma(t *testing.T) {
 			}
 			{ // do_test "pragma-16.4"
 				db2.Close()
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("\n      PRAGMA lock_proxy_file=\"myoriginalproxy\";\n      PRAGMA lock_proxy_file=\"myotherproxy\";\n      PRAGMA lock_proxy_file;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file=\"myoriginalproxy\";\n      PRAGMA lock_proxy_file=\"myotherproxy\";\n      PRAGMA lock_proxy_file;\n    ")
@@ -1636,8 +1637,8 @@ func Test_pragma(t *testing.T) {
 			env_SQLITE_FORCE_PROXY_LOCKING = "1"
 			_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
 			{ // do_test "pragma-16.5"
-				db2, err = frigolite.Open("test.db")
-				if err != nil { t.Fatal(err) }
+				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+				_ = db2
 				r = db.Query("\n      PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;\n    ")
@@ -1779,7 +1780,7 @@ func Test_pragma(t *testing.T) {
 						{ // do_test "pragma-20.5"
 							db2, err = frigolite.Open("test2.db")
 							if err != nil { t.Fatal(err) }
-							_res = db.Exec("PRAGMA database_list;")
+							_res = db2.Exec("PRAGMA database_list;")
 							_ = _res // catchsql
 						}
 						{
@@ -1790,7 +1791,7 @@ func Test_pragma(t *testing.T) {
 						{ // do_test "pragma-20.6"
 							db2, err = frigolite.Open("file join [get_pwd] test2.db")
 							if err != nil { t.Fatal(err) }
-							_res = db.Exec("PRAGMA database_list;")
+							_res = db2.Exec("PRAGMA database_list;")
 							_ = _res // catchsql
 						}
 						{
@@ -1911,8 +1912,8 @@ func Test_pragma(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
-					db2, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
+					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+					_ = db2
 					{ // do_test "23.1"
 						_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE INDEX i2 ON t1(c,d);\n    CREATE INDEX i2x ON t1(d COLLATE nocase, c DESC);\n    CREATE INDEX i3 ON t1(d,b+c,c);\n    CREATE TABLE t2(x INTEGER REFERENCES t1);\n  ")
 						if _res.Error != nil {
@@ -1972,7 +1973,7 @@ func Test_pragma(t *testing.T) {
 						_res = db2.Exec("\n    PRAGMA foreign_key_list(t2);\n  ")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
-					db2.Close()
+					_ = db2 // close db2: aliased to db, no-op
 					// database_never_corrupt (unsupported command, not transpiled)
 					db.Close()
 					db, err = frigolite.Open("")

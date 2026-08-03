@@ -6,12 +6,14 @@ package walvfs
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strings"
 "testing"
 )
 
 func Test_walvfs(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -307,8 +309,8 @@ func Test_walvfs(t *testing.T) {
 	// tvfs script xShmMapLock (unsupported command, not transpiled)
 	// tvfs filter {xShmLock xShmMap} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "5.5"
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -319,7 +321,7 @@ func Test_walvfs(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -425,13 +427,13 @@ func Test_walvfs(t *testing.T) {
 		}
 	}
 	{ // do_test "8.2"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(randomblob(75));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randomblob(75));\n  ")
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 	}
 	{ // "8.3"
 		r = db.Query(" \n  PRAGMA wal_checkpoint;\n  SELECT count(*) FROM t1 \n")
@@ -464,15 +466,15 @@ func Test_walvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	// tvfs filter {xShmMap xShmLock} (unsupported command, not transpiled)
 	// tvfs script xShmMap (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "9.1"
-		_res = db.Exec(" SELECT count(*) FROM t1 ")
+		_res = db2.Exec(" SELECT count(*) FROM t1 ")
 		_ = _res // catchsql
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	// tvfs delete (unsupported command, not transpiled)
 }

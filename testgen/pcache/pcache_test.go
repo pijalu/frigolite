@@ -6,11 +6,13 @@ package pcache
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_pcache(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,8 +82,8 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.5"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query("PRAGMA cache_size; PRAGMA cache_size=10")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size; PRAGMA cache_size=10")
@@ -89,7 +91,7 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.6.1"
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
+		r = db2.Query("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 		}
@@ -110,7 +112,7 @@ func Test_pcache(t *testing.T) {
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.8"
-		_res = db.Exec("ROLLBACK")
+		_res = db2.Exec("ROLLBACK")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 		}

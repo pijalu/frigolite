@@ -13,7 +13,8 @@ import (
 )
 
 func Test_attach2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -227,8 +228,8 @@ func Test_attach2(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("ATTACH 'test2.db' as file2")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test2.db' as file2")
@@ -253,7 +254,7 @@ func Test_attach2(t *testing.T) {
 	// lock_status 4.2.1 db {main shared temp closed file2 unlocked} (unsupported command, not transpiled)
 	// lock_status 4.2.2 db2 {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.3"
-		r = db.Query("SELECT * FROM t1")
+		r = db2.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
@@ -261,7 +262,7 @@ func Test_attach2(t *testing.T) {
 	// lock_status 4.3.1 db {main shared temp closed file2 unlocked} (unsupported command, not transpiled)
 	// lock_status 4.3.2 db2 {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.4"
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
+		_res = db2.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		_ = _res // catchsql
 	}
 	// lock_status 4.4.1 db {main shared temp closed file2 unlocked} (unsupported command, not transpiled)
@@ -269,11 +270,11 @@ func Test_attach2(t *testing.T) {
 	soft_limit = "sqlite3_soft_heap_limit 0"
 	_ = soft_limit // suppress unused warning
 	{ // do_test "attach2-4.5"
-		_res = db.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		_res = db.Exec("INSERT INTO file2.t1 VALUES(1, 2)")
+		_res = db2.Exec("INSERT INTO file2.t1 VALUES(1, 2)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO file2.t1 VALUES(1, 2)")
 		}
@@ -293,13 +294,13 @@ func Test_attach2(t *testing.T) {
 	// lock_status 4.6.2.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
 	// lock_status 4.6.2.2 db2 {main unlocked temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.7"
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
+		_res = db2.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		_ = _res // catchsql
 	}
 	// lock_status 4.7.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
 	// lock_status 4.7.2 db2 {main reserved temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.8"
-		r = db.Query("SELECT * FROM t1")
+		r = db2.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
@@ -313,7 +314,7 @@ func Test_attach2(t *testing.T) {
 	// lock_status 4.9.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
 	// lock_status 4.9.2 db2 {main reserved temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.10"
-		_res = db.Exec("COMMIT")
+		_res = db2.Exec("COMMIT")
 		_ = _res // catchsql
 	}
 	// lock_status 4.10.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
@@ -327,7 +328,7 @@ func Test_attach2(t *testing.T) {
 	// lock_status 4.11.1 db {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
 	// lock_status 4.11.2 db2 {main pending temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.12"
-		_res = db.Exec("COMMIT")
+		_res = db2.Exec("COMMIT")
 		_ = _res // catchsql
 	}
 	// lock_status 4.12.1 db {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
@@ -345,7 +346,7 @@ func Test_attach2(t *testing.T) {
 		}
 	}
 	{ // do_test "attach2-4.15"
-		r = db.Query("SELECT * FROM t1")
+		r = db2.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}

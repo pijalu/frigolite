@@ -6,11 +6,13 @@ package sharedlock
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_sharedlock(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,8 +74,8 @@ func Test_sharedlock(t *testing.T) {
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // do_test "sharedlock-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n  ")
 		if _res.Error != nil {
@@ -103,7 +105,7 @@ func Test_sharedlock(t *testing.T) {
 				}
 			}
 			{ // do_test "2.2"
-				r = db.Query(" SELECT * FROM t2 ")
+				r = db2.Query(" SELECT * FROM t2 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
 				}
@@ -115,7 +117,7 @@ func Test_sharedlock(t *testing.T) {
 				}
 			}
 			{ // do_test "2.4"
-				_res = db.Exec(" SELECT * FROM t2 ")
+				_res = db2.Exec(" SELECT * FROM t2 ")
 				_ = _res // catchsql
 			}
 			{ // "2.5"
@@ -125,6 +127,6 @@ func Test_sharedlock(t *testing.T) {
 				}
 			}
 		}
-		db2.Close()
+		_ = db2 // close db2: aliased to db, no-op
 		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

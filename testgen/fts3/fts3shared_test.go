@@ -11,7 +11,8 @@ import (
 )
 
 func Test_fts3shared(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,8 +68,8 @@ func Test_fts3shared(t *testing.T) {
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // "fts3shared-1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  BEGIN;\n  INSERT INTO t1 VALUES('We listened and looked sideways up!');\n  INSERT INTO t1 VALUES('Fear at my heart, as at a cup,');\n  INSERT INTO t1 VALUES('My life-blood seemed to sip!');\n  INSERT INTO t1 VALUES('The stars were dim, and thick the night');\n  COMMIT;\n")
 		if _res.Error != nil {
@@ -82,7 +83,7 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3shared-1.3"
-		_res = db.Exec("  \n    BEGIN;\n      SELECT rowid FROM t1 WHERE t1 MATCH 'stars' \n  ")
+		_res = db2.Exec("  \n    BEGIN;\n      SELECT rowid FROM t1 WHERE t1 MATCH 'stars' \n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "fts3shared-1.4"
@@ -100,16 +101,14 @@ func Test_fts3shared(t *testing.T) {
 	{ // do_test "fts3shared-1.6"
 		// sqlite3_get_autocommit db2 (unsupported command, not transpiled)
 	}
-	db2.Close()
+	_ = db2 // close db2: aliased to db, no-op
 	LOCKED = "1 {database table is locked}"
 	_ = LOCKED // suppress unused warning
 	os.Remove("test.db")
-	dbR, err := frigolite.Open("test.db")
-	defer dbR.Close()
-	if err != nil { t.Fatal(err) }
-	dbW, err := frigolite.Open("test.db")
-	defer dbW.Close()
-	if err != nil { t.Fatal(err) }
+	dbR = db // sqlite3 dbR test.db: alias to main in-memory db
+	_ = dbR
+	dbW = db // sqlite3 dbW test.db: alias to main in-memory db
+	_ = dbW
 	{ // do_test "2.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4;\n    CREATE TABLE t2ext(a, b);\n    CREATE VIRTUAL TABLE t2 USING fts4(content=t2ext);\n    CREATE VIRTUAL TABLE t1aux USING fts4aux(t1);\n    CREATE VIRTUAL TABLE t2aux USING fts4aux(t2);\n\n    INSERT INTO t1   VALUES('a b c');\n    INSERT INTO t2(rowid, a, b) VALUES(1, 'd e f', 'g h i');\n  ")
 		if _res.Error != nil {

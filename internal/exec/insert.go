@@ -192,9 +192,11 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	// SQLite behavior: inserting NULL into an INTEGER PRIMARY KEY column causes
 	// the column to contain the auto-generated rowid. This does NOT apply to
 	// non-INTEGER PRIMARY KEY columns (e.g. "ANY PRIMARY KEY"), which may
-	// legally contain NULL in rowid tables.
+	// legally contain NULL in rowid tables, nor to WITHOUT ROWID tables (whose
+	// keys are never auto-generated).
+	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
 	for i, cd := range colDefs {
-		if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") &&
+		if !withoutRowid && cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") &&
 			i < len(values) && values[i] == nil {
 			values[i] = nextRowID
 			break
@@ -206,7 +208,25 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 		if isIgnoreableConflict(err, colDefs) {
 			return &Result{Changes: 0}
 		}
-		return &Result{Error: err}
+		// Column-level ON CONFLICT REPLACE on a NOT NULL column: substitute the
+		// column's DEFAULT value for the NULL and re-validate (SQLite conflate.c
+		// OP_IsNull + ON CONFLICT REPLACE resolution). Without a DEFAULT the
+		// constraint error stands.
+		if cd := notNullReplaceColumn(err, colDefs); cd != nil && cd.Default != nil {
+			dv, derr := e.evalExpr(cd.Default, nil)
+			if derr != nil {
+				return &Result{Error: derr}
+			}
+			idx := cdIndex(colDefs, cd.Name)
+			if idx >= 0 && idx < len(values) {
+				values[idx] = dv
+				if err := e.checkConstraints(tableEntry, colDefs, values, nextRowID); err != nil {
+					return &Result{Error: err}
+				}
+			}
+		} else {
+			return &Result{Error: err}
+		}
 	}
 
 	// STRICT table enforcement: check each value against its column's declared
@@ -395,13 +415,23 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 
 	row := buildRowMapFromValues(values, colDefs, rowID)
 
+	// In WITHOUT ROWID tables every PRIMARY KEY column is implicitly NOT NULL
+	// (the PK is the storage key; no rowid auto-generation exists to fill it).
+	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	var pkCols map[int]bool
+	if withoutRowid {
+		pkCols = e.primaryKeyColIndices(tableEntry.Name, tableEntry.SQL, colDefs)
+	}
+
 	for _, cd := range colDefs {
 		val := columnValue(values, colDefs, cd.Name)
 
-		// NOT NULL constraint — skip for INTEGER PRIMARY KEY columns
-		// since they get their value from the auto-generated rowid.
-		if cd.NotNull && val == nil && !(cd.PrimaryKey && cd.Type == "INTEGER") {
-			return fmt.Errorf("NOT NULL constraint failed: %s.%s", tableEntry.Name, cd.Name)
+		// NOT NULL constraint — skip for INTEGER PRIMARY KEY columns of rowid
+		// tables, since they get their value from the auto-generated rowid.
+		pkAutoRowID := cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") && !withoutRowid
+		implicitNotNull := cd.NotNull || (withoutRowid && pkCols[cdIndex(colDefs, cd.Name)])
+		if implicitNotNull && val == nil && !pkAutoRowID {
+			return fmt.Errorf("NOT NULL constraint failed: %s.%s", tableEntry.Name, e.originalColumnName(tableEntry.SQL, cd.Name))
 		}
 
 		// CHECK constraint: only fails when result is explicitly false.
@@ -526,12 +556,17 @@ func (e *Engine) checkCompositeUnique(tableEntry *schema.Entry, colDefs []sql.Co
 		if err != nil || rec == nil {
 			break
 		}
-		if allMatch(rec.Values, group, values) {
+		if allMatch(colDefs, rec.Values, group, values) {
 			// Build error message with all constraint column names
 			var names []string
+			seen := make(map[string]bool)
 			for _, idx := range group {
 				if idx < len(colDefs) {
-					names = append(names, tableEntry.Name+"."+colDefs[idx].Name)
+					n := tableEntry.Name + "." + colDefs[idx].Name
+					if !seen[n] {
+						seen[n] = true
+						names = append(names, n)
+					}
 				}
 			}
 			return fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(names, ", "))
@@ -545,8 +580,9 @@ func (e *Engine) checkCompositeUnique(tableEntry *schema.Entry, colDefs []sql.Co
 }
 
 // allMatch returns true if ALL columns in the group match between the existing
-// record and the new values. NULL values never match (NULL != NULL).
-func allMatch(recValues []interface{}, group []int, values []interface{}) bool {
+// record and the new values. NULL values never match (NULL != NULL). Each
+// column's declared collation is applied to its comparison.
+func allMatch(colDefs []sql.ColumnDef, recValues []interface{}, group []int, values []interface{}) bool {
 	for _, idx := range group {
 		if idx >= len(recValues) || idx >= len(values) {
 			return false
@@ -554,7 +590,11 @@ func allMatch(recValues []interface{}, group []int, values []interface{}) bool {
 		if recValues[idx] == nil || values[idx] == nil {
 			return false
 		}
-		if util.CompareValues(recValues[idx], values[idx]) != 0 {
+		coll := ""
+		if idx < len(colDefs) {
+			coll = colDefs[idx].Collate
+		}
+		if util.CompareValuesCollate(recValues[idx], values[idx], coll) != 0 {
 			return false
 		}
 	}
@@ -1068,7 +1108,7 @@ func (e *Engine) findRowByUniqueCols(tableName string, rootPage uint32, colDefs 
 				if err != nil || rec == nil {
 					break
 				}
-				if allMatch(rec.Values, group, values) {
+				if allMatch(colDefs, rec.Values, group, values) {
 					return cell.RowID, rec.Values, group[0], true
 				}
 				hasNext, err := cursor.Next()
@@ -1177,6 +1217,16 @@ func isIgnoreableConflict(err error, colDefs []sql.ColumnDef) bool {
 		return false
 	}
 	errStr := err.Error()
+	// A NOT NULL violation on a column with ON CONFLICT IGNORE is skipped.
+	// The message is "NOT NULL constraint failed: <table>.<column>".
+	if strings.Contains(errStr, "NOT NULL constraint failed") {
+		for _, cd := range colDefs {
+			if cd.OnConflict == "IGNORE" && strings.HasSuffix(errStr, "."+cd.Name) {
+				return true
+			}
+		}
+		return false
+	}
 	if !strings.Contains(errStr, "UNIQUE constraint failed") {
 		return false
 	}
@@ -1188,8 +1238,26 @@ func isIgnoreableConflict(err error, colDefs []sql.ColumnDef) bool {
 	return false
 }
 
+// notNullReplaceColumn returns the column (with ON CONFLICT REPLACE) whose NOT
+// NULL constraint was violated, or nil. Used to substitute the column DEFAULT.
+func notNullReplaceColumn(err error, colDefs []sql.ColumnDef) *sql.ColumnDef {
+	if err == nil {
+		return nil
+	}
+	errStr := err.Error()
+	if !strings.Contains(errStr, "NOT NULL constraint failed") {
+		return nil
+	}
+	for i := range colDefs {
+		cd := &colDefs[i]
+		if cd.OnConflict == "REPLACE" && strings.HasSuffix(errStr, "."+cd.Name) {
+			return cd
+		}
+	}
+	return nil
+}
+
 // isReplaceableConflict checks if a UNIQUE/PRIMARY KEY constraint error should
-// be resolved by deleting the conflicting row (column-level ON CONFLICT REPLACE).
 func isReplaceableConflict(err error, colDefs []sql.ColumnDef) bool {
 	if err == nil {
 		return false
@@ -2117,6 +2185,11 @@ func (e *Engine) checkCollationName(expr sql.Expr) error {
 	default:
 		return nil
 	}
+	return checkCollationString(name)
+}
+
+// checkCollationString verifies that a collation name is a known sequence.
+func checkCollationString(name string) error {
 	switch strings.ToUpper(name) {
 	case "", "BINARY", "NOCASE", "RTRIM":
 		return nil

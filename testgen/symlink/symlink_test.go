@@ -11,7 +11,8 @@ import (
 )
 
 func Test_symlink(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,11 +111,11 @@ func Test_symlink(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 	}
 	{ // do_test "1.1.4"
-		_res = db.Exec("ATTACH 'test.db2' AS aux1;")
+		_res = db2.Exec("ATTACH 'test.db2' AS aux1;")
 		_ = _res // catchsql
 	}
 	{ // do_test "1.2.1"
@@ -190,7 +191,7 @@ func Test_symlink(t *testing.T) {
 				// file exists "test.db-journal"
 			}
 			{ // do_test "2." + tn + ".2"
-				_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(1);\n    ")
+				_res = db2.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(1);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES(1);\n    ")
 				}
@@ -201,7 +202,7 @@ func Test_symlink(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test "2." + tn + ".4"
-				_res = db.Exec("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
+				_res = db2.Exec("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
 				}

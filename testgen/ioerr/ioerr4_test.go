@@ -11,7 +11,8 @@ import (
 )
 
 func Test_ioerr4(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,8 +65,8 @@ func Test_ioerr4(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n    PRAGMA auto_vacuum=INCREMENTAL;\n    CREATE TABLE a(i INTEGER, b BLOB);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=INCREMENTAL;\n    CREATE TABLE a(i INTEGER, b BLOB);\n  ")

@@ -11,7 +11,8 @@ import (
 )
 
 func Test_temptable(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,8 +58,8 @@ func Test_temptable(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "temptable-1.0"
-		db2, err = frigolite.Open("./test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 ./test.db: alias to main in-memory db
+		_ = db2
 		dummy = ""
 		_ = dummy // suppress unused warning
 	}
@@ -229,7 +230,7 @@ func Test_temptable(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.1"
-		r = db.Query("\n    CREATE TEMP TABLE t2(x,y);\n    INSERT INTO t2 VALUES(10,20);\n    SELECT * FROM t2;\n  ")
+		r = db2.Query("\n    CREATE TEMP TABLE t2(x,y);\n    INSERT INTO t2 VALUES(10,20);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE t2(x,y);\n    INSERT INTO t2 VALUES(10,20);\n    SELECT * FROM t2;\n  ")
 		}
@@ -241,37 +242,37 @@ func Test_temptable(t *testing.T) {
 		}
 	}
 	{ // do_test "temptable-4.3"
-		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.4.1"
-		_res = db.Exec("\n    SELECT * FROM temp.t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM temp.t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.4.2"
-		_res = db.Exec("\n    SELECT * FROM main.t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM main.t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.4.4"
-		_res = db.Exec("\n    SELECT name FROM main.sqlite_master WHERE type='table';\n  ")
+		_res = db2.Exec("\n    SELECT name FROM main.sqlite_master WHERE type='table';\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.4.5"
-		_res = db.Exec("\n    SELECT * FROM main.t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM main.t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.4.6"
-		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.5"
-		_res = db.Exec("\n    DROP TABLE t2;     -- should drop TEMP\n    SELECT * FROM t2;  -- data should be from MAIN\n  ")
+		_res = db2.Exec("\n    DROP TABLE t2;     -- should drop TEMP\n    SELECT * FROM t2;  -- data should be from MAIN\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.6"
 		db2.Close()
-		db2, err = frigolite.Open("./test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 ./test.db: alias to main in-memory db
+		_ = db2
 		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
@@ -281,8 +282,8 @@ func Test_temptable(t *testing.T) {
 	}
 	{ // do_test "temptable-4.8"
 		db2.Close()
-		db2, err = frigolite.Open("./test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 ./test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query("\n    CREATE TEMP TABLE t2(x unique,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE t2(x unique,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
@@ -295,15 +296,15 @@ func Test_temptable(t *testing.T) {
 		}
 	}
 	{ // do_test "temptable-4.10.1"
-		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.10.3"
-		_res = db.Exec("\n    SELECT name FROM sqlite_master WHERE type='table'\n  ")
+		_res = db2.Exec("\n    SELECT name FROM sqlite_master WHERE type='table'\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.11"
-		r = db.Query("\n    SELECT * FROM t2;\n  ")
+		r = db2.Query("\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
 		}
@@ -315,7 +316,7 @@ func Test_temptable(t *testing.T) {
 		}
 	}
 	{ // do_test "temptable-4.13"
-		_res = db.Exec("\n    DROP TABLE t2;     -- drops TEMP.T2\n    SELECT * FROM t2;  -- uses MAIN.T2\n  ")
+		_res = db2.Exec("\n    DROP TABLE t2;     -- drops TEMP.T2\n    SELECT * FROM t2;  -- uses MAIN.T2\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-4.14"
@@ -326,15 +327,15 @@ func Test_temptable(t *testing.T) {
 	}
 	{ // do_test "temptable-4.15"
 		db2.Close()
-		db2, err = frigolite.Open("./test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 ./test.db: alias to main in-memory db
+		_ = db2
 		r = db.Query("\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2;\n  ")
 		}
 	}
 	{ // do_test "temptable-5.1"
-		_res = db.Exec("\n    CREATE TEMP TABLE mask(a,b,c)\n  ")
+		_res = db2.Exec("\n    CREATE TEMP TABLE mask(a,b,c)\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE mask(a,b,c)\n  ")
 		}
@@ -346,7 +347,7 @@ func Test_temptable(t *testing.T) {
 		}
 	}
 	{ // do_test "temptable-5.3"
-		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-5.4"
@@ -356,19 +357,19 @@ func Test_temptable(t *testing.T) {
 		}
 	}
 	{ // do_test "temptable-5.5"
-		r = db.Query("\n    SELECT y FROM t2 WHERE x=3\n  ")
+		r = db2.Query("\n    SELECT y FROM t2 WHERE x=3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM t2 WHERE x=3\n  ")
 		}
 	}
 	{ // do_test "temptable-5.6"
-		r = db.Query("\n    INSERT INTO t2 VALUES(1,2);\n    SELECT y FROM t2 WHERE x=1;\n  ")
+		r = db2.Query("\n    INSERT INTO t2 VALUES(1,2);\n    SELECT y FROM t2 WHERE x=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(1,2);\n    SELECT y FROM t2 WHERE x=1;\n  ")
 		}
 	}
 	{ // do_test "temptable-5.7"
-		r = db.Query("\n    SELECT y FROM t2 WHERE x=3\n  ")
+		r = db2.Query("\n    SELECT y FROM t2 WHERE x=3\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT y FROM t2 WHERE x=3\n  ")
 		}

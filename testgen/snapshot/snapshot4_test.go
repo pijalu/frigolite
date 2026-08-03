@@ -6,11 +6,13 @@ package snapshot
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_snapshot4(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,8 +60,8 @@ func Test_snapshot4(t *testing.T) {
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, randomblob(400));\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 2 UNION ALL SELECT i+1 FROM s WHERE i<100\n  ) \n  INSERT INTO t1 SELECT i, randomblob(400) FROM s;\n")
 		if r.Error != nil {

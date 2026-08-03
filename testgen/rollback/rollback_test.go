@@ -6,12 +6,14 @@ package rollback
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "strconv"
 "testing"
 )
 
 func Test_rollback(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,7 +161,7 @@ func Test_rollback(t *testing.T) {
 		{ // do_test "rollback-2.2"
 			db2, err = frigolite.Open("testA.db")
 			if err != nil { t.Fatal(err) }
-			r = db.Query("\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
+			r = db2.Query("\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
 			}
@@ -170,7 +172,7 @@ func Test_rollback(t *testing.T) {
 			}
 		}
 		{ // do_test "rollback-2.4"
-			r = db.Query("\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
+			r = db2.Query("\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT distinct tbl_name FROM sqlite_master;\n    ")
 			}

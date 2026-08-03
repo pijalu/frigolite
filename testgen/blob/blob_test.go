@@ -6,11 +6,13 @@ package blob
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_blob(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -192,8 +194,8 @@ func Test_blob(t *testing.T) {
 		}
 	}
 	{ // do_test "blob-3.0"
-		db2, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
+		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+		_ = db2
 		DB = "sqlite3_connection_pointer db2"
 		_ = DB // suppress unused warning
 		STMT = "sqlite3_prepare $DB \"DELETE FROM t1 WHERE a = ?\" -1 DUMMY"

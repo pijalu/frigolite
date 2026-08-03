@@ -12,7 +12,8 @@ import (
 )
 
 func Test_incrblob(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -628,8 +629,8 @@ func Test_incrblob(t *testing.T) {
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	if tclBool("permutation" + " != \"memsubsys1\"") {
 		{ // do_test "incrblob-6.1"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			_res = db.Exec("\n      BEGIN;\n      INSERT INTO blobs(k, v, i) VALUES('a', 'different', 'connection');\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO blobs(k, v, i) VALUES('a', 'different', 'connection');\n    ")
@@ -695,7 +696,7 @@ func Test_incrblob(t *testing.T) {
 			_ = _putsMsg
 		}
 		{ // do_test "incrblob-6.11"
-			_res = db.Exec("\n      COMMIT;\n    ")
+			_res = db2.Exec("\n      COMMIT;\n    ")
 			_ = _res // catchsql
 		}
 		{ // do_test "incrblob-6.12"
@@ -708,7 +709,7 @@ func Test_incrblob(t *testing.T) {
 			// close $::blob
 		}
 		{ // do_test "incrblob-6.14"
-			_res = db.Exec("\n      COMMIT;\n    ")
+			_res = db2.Exec("\n      COMMIT;\n    ")
 			_ = _res // catchsql
 		}
 		{ // do_test "incrblob-6.15"

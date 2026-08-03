@@ -12,7 +12,8 @@ import (
 )
 
 func Test_backup_ioerr(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,9 +149,8 @@ func Test_backup_ioerr(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 						os.Remove("bak.db")
 					}
-					sdb, err := frigolite.Open("test.db")
-					defer sdb.Close()
-					if err != nil { t.Fatal(err) }
+					sdb = db // sqlite3 sdb test.db: alias to main in-memory db
+					_ = sdb
 					ddb, err := frigolite.Open("bak.db")
 					defer ddb.Close()
 					if err != nil { t.Fatal(err) }
@@ -271,11 +271,10 @@ func Test_backup_ioerr(t *testing.T) {
 						_ = _list
 					}
 					// clear_ioerr_simulation (unsupported command, not transpiled)
-					_dbtmp0, err := frigolite.Open("test.db")
+					sdb = db // sqlite3 sdb test.db: alias to main in-memory db
+					_ = sdb
+					_dbtmp0, err := frigolite.Open("bak.db")
 					_ = _dbtmp0 // sqlite3 db connection
-					if err != nil { t.Fatal(err) }
-					_dbtmp1, err := frigolite.Open("bak.db")
-					_ = _dbtmp1 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					// test_contents backup_ioerr-$iTest.$iError.18 ddb main sdb main (unsupported command, not transpiled)
 					_res = db.Exec("PRAGMA integrity_check")

@@ -13,7 +13,8 @@ import (
 )
 
 func Test_waloverwrite(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +150,7 @@ func Test_waloverwrite(t *testing.T) {
 				tclFileCopy("test.db", "test.db2")
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
-				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
+				r = db2.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
 				}
@@ -160,13 +161,13 @@ func Test_waloverwrite(t *testing.T) {
 				tclFileCopy("test.db-wal", "test.db2-wal")
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
-				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
+				r = db2.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
 				}
 			}
 			{ // do_test "1." + tn + ".6"
-				r = db.Query(" PRAGMA integrity_check ")
+				r = db2.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 				}
@@ -246,7 +247,7 @@ func Test_waloverwrite(t *testing.T) {
 				tclFileCopy("test.db", "test.db2")
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
-				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
+				r = db2.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
 				}
@@ -256,13 +257,13 @@ func Test_waloverwrite(t *testing.T) {
 				tclFileCopy("test.db-wal", "test.db2-wal")
 				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
-				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
+				r = db2.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
 				}
 			}
 			{ // do_test "1." + tn + ".10"
-				r = db.Query(" PRAGMA integrity_check ")
+				r = db2.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 				}

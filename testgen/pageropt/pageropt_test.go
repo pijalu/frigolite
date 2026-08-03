@@ -6,11 +6,13 @@ package pageropt
 
 import (
 "github.com/pijalu/frigolite"
+"os"
 "testing"
 )
 
 func Test_pageropt(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,8 +90,8 @@ func Test_pageropt(t *testing.T) {
 	{ // do_test "pageropt-1.3"
 		// pagercount_sql {\n    SELECT length(x) FROM t1\n  } (unsupported command, not transpiled)
 	}
-	db2, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
+	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+	_ = db2
 	blobcontent = "db2 one {SELECT hex(x) FROM t1}"
 	_ = blobcontent // suppress unused warning
 	{ // do_test "pageropt-1.4"

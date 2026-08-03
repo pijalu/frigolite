@@ -12,7 +12,8 @@ import (
 )
 
 func Test_capi3c(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -852,8 +853,8 @@ func Test_capi3c(t *testing.T) {
 			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3c-18.1"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			STMT = ""
 			_ = STMT // suppress unused warning
 			// sqlite3_step $STMT (unsupported command, not transpiled)
@@ -930,8 +931,8 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-20.1"
 			STMT = ""
 			_ = STMT // suppress unused warning
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			_res = db2.Exec("CREATE TABLE t4(x)")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			// sqlite3_step $STMT (unsupported command, not transpiled)

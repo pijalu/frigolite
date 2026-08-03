@@ -11,7 +11,8 @@ import (
 )
 
 func Test_corrupt2(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +137,7 @@ func Test_corrupt2(t *testing.T) {
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
+		_res = db2.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt2-1.3"
@@ -153,7 +154,7 @@ func Test_corrupt2(t *testing.T) {
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
+		_res = db2.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt2-1.4"
@@ -170,7 +171,7 @@ func Test_corrupt2(t *testing.T) {
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("PRAGMA quick_check")
+		_res = db2.Exec("PRAGMA quick_check")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt2-1.5"
@@ -192,7 +193,7 @@ func Test_corrupt2(t *testing.T) {
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("PRAGMA quick_check")
+		_res = db2.Exec("PRAGMA quick_check")
 		_ = _res // catchsql
 	}
 	db2.Close()
@@ -203,14 +204,14 @@ func Test_corrupt2(t *testing.T) {
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config db2 DEFENSIVE 0 (unsupported command, not transpiled)
-		r = db.Query("\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
+		r = db2.Query("\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
 		}
 		db2.Close()
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
+		_res = db2.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
 	}
 	db2.Close()
@@ -219,7 +220,7 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db-journal")
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
 		}
@@ -237,11 +238,11 @@ func Test_corrupt2(t *testing.T) {
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + presql + "\n    DROP TABLE t1;\n  ")
+		_res = db2.Exec("\n    " + presql + "\n    DROP TABLE t1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt2-4.1"
-		_res = db.Exec("\n    SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
 	db2.Close()
@@ -250,7 +251,7 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db-journal")
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
+		_res = db2.Exec("\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		}

@@ -12,7 +12,8 @@ import (
 )
 
 func Test_walcksum(t *testing.T) {
-	db, err := frigolite.Open("")
+	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,15 +184,15 @@ func Test_walcksum(t *testing.T) {
 			}
 		}
 		{ // do_test "walcksum-1." + endian + ".6"
-			db2, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
+			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
+			_ = db2
 			r = db.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			}
 		}
 		{ // do_test "walcksum-1." + endian + ".7.0"
-			_res = db.Exec(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
+			_res = db2.Exec(" \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');\n    ")
 			}
@@ -217,7 +218,7 @@ func Test_walcksum(t *testing.T) {
 		{ // do_test "walcksum-1." + endian + ".7.11"
 			db3, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
-			r = db.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
+			r = db3.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			}
@@ -237,7 +238,7 @@ func Test_walcksum(t *testing.T) {
 			// log_checksum_verify test.db-wal 3 $native (unsupported command, not transpiled)
 		}
 		{ // do_test "walcksum-1." + endian + ".9"
-			r = db.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
+			r = db2.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
 			}
@@ -264,7 +265,7 @@ func Test_walcksum(t *testing.T) {
 		tclFileCopy("test.db-wal", "test2.db-wal")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		r = db.Query("\n    PRAGMA integrity_check;\n    SELECT count(*) FROM t1;\n  ")
+		r = db2.Query("\n    PRAGMA integrity_check;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n    SELECT count(*) FROM t1;\n  ")
 		}
@@ -316,7 +317,7 @@ func Test_walcksum(t *testing.T) {
 	db2, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.3"
-		r = db.Query("\n    SELECT i, t FROM t1\n  ")
+		r = db2.Query("\n    SELECT i, t FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT i, t FROM t1\n  ")
 		}
@@ -370,7 +371,7 @@ func Test_walcksum(t *testing.T) {
 	db2, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.3"
-		r = db.Query("\n    SELECT i, t FROM t1\n  ")
+		r = db2.Query("\n    SELECT i, t FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT i, t FROM t1\n  ")
 		}
@@ -412,7 +413,7 @@ func Test_walcksum(t *testing.T) {
 	db2, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "5.2"
-		r = db.Query("\n    SELECT i, t FROM t1\n  ")
+		r = db2.Query("\n    SELECT i, t FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT i, t FROM t1\n  ")
 		}
