@@ -137,25 +137,9 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 
 	parser.Finalize()
 	if parser.SemanticErr != nil {
-		// The LALR parser understands the statement but rejected it on a
-		// semantic level. Only fall back to the RD parser if it produces a
-		// result for the whole input (e.g. ALTER TABLE DROP CONSTRAINT).
-		rdParser := sql.NewParser(input)
-		rdStmts := rdParser.Parse()
-		if rdParser.Err() == nil && len(rdStmts) > 0 {
-			return rdStmts, nil
-		}
 		return nil, parser.SemanticErr
 	}
 	if lalrErr != nil || len(stmts) == 0 {
-		// The LALR grammar does not cover every statement (e.g. ALTER TABLE
-		// DROP CONSTRAINT). Fall back to the hand-written RD parser, which
-		// handles the full DDL surface.
-		rdParser := sql.NewParser(input)
-		rdStmts := rdParser.Parse()
-		if rdParser.Err() == nil && len(rdStmts) > 0 {
-			return rdStmts, nil
-		}
 		if lalrErr != nil {
 			if len(stmts) > 0 {
 				// SQLite prepares/executes statements incrementally: the
@@ -174,52 +158,10 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 			return nil, fmt.Errorf("no statements parsed")
 		}
 	}
-	// WITH-clause (CTE) merge: the LALR grammar currently drops the WITH
-	// prefix, so re-parse the input with the hand-written RD parser (which
-	// fully handles WITH ... AS (...)) and copy the CTE definitions onto the
-	// LALR-parsed statements, matched by position. The WITH may appear on any
-	// statement in multi-statement input.
-	if len(stmts) > 0 {
-		rdParser := sql.NewParser(input)
-		rdStmts := rdParser.Parse()
-		if rdParser.Err() == nil && len(rdStmts) > 0 {
-			for i := range stmts {
-				if i < len(rdStmts) {
-					rdCTEs := stmtCTEs(rdStmts[i])
-					if len(rdCTEs) > 0 {
-						setStmtCTEs(stmts[i], rdCTEs)
-					}
-				}
-			}
-		}
-	}
+	// WITH-clause (CTE) definitions are carried directly by the LALR grammar:
+	// SELECT (rules 85/86), INSERT (rule 164), and CREATE VIEW bodies all
+	// populate the AST's CTEs field. No RD re-parse merge is needed.
 	return stmts, nil
-}
-
-// stmtCTEs returns the WITH-clause CTE definitions from a statement.
-func stmtCTEs(s sql.Stmt) []sql.CTEDef {
-	switch t := s.(type) {
-	case *sql.SelectStmt:
-		return t.CTEs
-	case *sql.InsertStmt:
-		return t.CTEs
-	}
-	return nil
-}
-
-// setStmtCTEs attaches WITH-clause CTE definitions to a statement.
-func setStmtCTEs(s sql.Stmt, ctes []sql.CTEDef) {
-	switch t := s.(type) {
-	case *sql.SelectStmt:
-		t.CTEs = ctes
-	case *sql.InsertStmt:
-		t.CTEs = ctes
-		// The inner SELECT of INSERT ... SELECT needs the CTEs too, since
-		// the engine resolves CTE references (FROM c) at the SELECT level.
-		if t.Select != nil {
-			t.Select.CTEs = ctes
-		}
-	}
 }
 
 // getRHS returns the Nth RHS symbol value (1-indexed) for the current rule.
