@@ -1493,11 +1493,24 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 			tp.emitLine("// %s (expr test, not transpiled)", cmdName)
 		}
 	case "drop_all_tables":
-		// Drop every user table so later CREATE TABLE statements start fresh
-		// (matches the TCL helper used throughout the SQLite test suite).
+		// Drop every user table in every attached database so later CREATE
+		// TABLE statements start fresh (matches the TCL helper, which turns
+		// foreign_keys OFF and iterates PRAGMA database_list).
+		tp.emitLine("_res = db.Exec(\"PRAGMA foreign_keys = OFF\")")
 		tp.emitLine("for _, _t := range db.Query(\"SELECT name FROM sqlite_master WHERE type='table'\").Rows {")
 		tp.emitLine("\tdb.Exec(\"DROP TABLE \" + fmt.Sprint(_t[0]))")
 		tp.emitLine("}")
+		tp.emitLine("for _, _t := range db.Query(\"PRAGMA database_list\").Rows {")
+		tp.emitLine("\tif len(_t) > 1 {")
+		tp.emitLine("\t\tdbname := fmt.Sprint(_t[1])")
+		tp.emitLine("\t\tif dbname != \"main\" && dbname != \"temp\" {")
+		tp.emitLine("\t\t\tfor _, _u := range db.Query(\"SELECT name FROM \" + dbname + \".sqlite_master WHERE type='table'\").Rows {")
+		tp.emitLine("\t\t\t\tdb.Exec(\"DROP TABLE \" + dbname + \".\" + fmt.Sprint(_u[0]))")
+		tp.emitLine("\t\t\t}")
+		tp.emitLine("\t\t}")
+		tp.emitLine("\t}")
+		tp.emitLine("}")
+		tp.emitLine("_res = db.Exec(\"PRAGMA foreign_keys = ON\")")
 	default:
 		// Check for dbN pattern (secondary db connections like db2, db3)
 		if len(cmdName) > 2 && cmdName[:2] == "db" && cmdName[2] >= '0' && cmdName[2] <= '9' {

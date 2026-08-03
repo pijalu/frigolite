@@ -573,7 +573,7 @@ func (e *Engine) checkCompositeUnique(tableEntry *schema.Entry, colDefs []sql.Co
 			return nil
 		}
 	}
-	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil
@@ -741,7 +741,7 @@ func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.Column
 		}
 		key[i] = values[idx]
 	}
-	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil
@@ -800,7 +800,7 @@ func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.Colu
 		}
 		key[i] = values[idx]
 	}
-	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 0, nil, false
@@ -850,7 +850,7 @@ func (e *Engine) rowIDConflictError(tableEntry *schema.Entry, colDefs []sql.Colu
 
 // rowIDExists reports whether the table already has a row with the given rowid.
 func (e *Engine) rowIDExists(tableName string, rootPage uint32, rowID int64) bool {
-	tree := e.tableBTree(tableName, rootPage, true)
+	tree := e.tableBTreeForName(tableName, rootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false
@@ -1041,7 +1041,7 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 		return &Result{Error: err}
 	}
 
-	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	deleted, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		return cell.RowID == existingRowID
 	})
@@ -1131,7 +1131,7 @@ func (e *Engine) findRowByUniqueCols(tableName string, rootPage uint32, colDefs 
 			if hasNull {
 				continue
 			}
-			tree := e.tableBTree(tableName, rootPage, true)
+			tree := e.tableBTreeForName(tableName, rootPage, true)
 			cursor, err := tree.OpenCursor()
 			if err != nil {
 				continue
@@ -1170,7 +1170,7 @@ func (e *Engine) findRowByUniqueCols(tableName string, rootPage uint32, colDefs 
 		cd := colDefs[idx]
 		if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
 			if v, ok := values[idx].(int64); ok {
-				tree := e.tableBTree(tableName, rootPage, true)
+				tree := e.tableBTreeForName(tableName, rootPage, true)
 				cursor, err := tree.OpenCursor()
 				if err != nil {
 					return 0, nil, -1, false
@@ -1192,7 +1192,7 @@ func (e *Engine) findRowByUniqueCols(tableName string, rootPage uint32, colDefs 
 		}
 	}
 
-	tree := e.tableBTree(tableName, rootPage, true)
+	tree := e.tableBTreeForName(tableName, rootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 0, nil, -1, false
@@ -1522,7 +1522,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 				colIndex := buildColumnIndex(colDefs)
 				conflictRowID, _, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
 				if found {
-					tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+					tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 					if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 						return cell.RowID == conflictRowID
 					}); derr != nil {
@@ -1554,7 +1554,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			RowID:   rowID,
 			Payload: record,
 		}
-		tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+		tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 		if err := tree.InsertCell(cell); err != nil {
 			return &Result{Error: err}
 		}
@@ -1684,7 +1684,7 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.Colum
 		RowID:   nextRowID,
 		Payload: record,
 	}
-	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}

@@ -495,7 +495,7 @@ func formatConditions(refs []indexedRef) string {
 
 type indexedRef struct {
 	indexName   string
-	colName     string   // column name for condition formatting
+	colName     string // column name for condition formatting
 	constant    interface{}
 	op          string
 	selectivity float64 // pre-computed selectivity (for non-standard ops)
@@ -512,10 +512,10 @@ func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef
 				idxName := e.findIndexOnColumn(tableName, colRef.Name)
 				if idxName != "" {
 					refs = append(refs, indexedRef{
-						indexName:  idxName,
-						colName:    colRef.Name,
-						constant:   constVal,
-						op:         binop.Operator,
+						indexName: idxName,
+						colName:   colRef.Name,
+						constant:  constVal,
+						op:        binop.Operator,
 					})
 				}
 			}
@@ -839,4 +839,3 @@ func parseStatSZ(stat string) int {
 	}
 	return val
 }
-

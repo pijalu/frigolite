@@ -201,5 +201,3 @@ func (e *Engine) execDeleteView(s *sql.DeleteStmt, viewEntry *schema.Entry) *Res
 	}
 	return &Result{Changes: changed}
 }
-
-

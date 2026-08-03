@@ -52,7 +52,7 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	}
 
 	// Pre-process: apply token-level rename to the table's own CREATE SQL
-	entry, _, err := e.findTable(oldName)
+	entry, entryCtx, err := e.findTable(oldName)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -62,7 +62,7 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		// changes; internal references like CHECK constraints are NOT updated).
 		// The validateRename function above catches cases where this would cause
 		// inconsistencies and rejects the rename.
-		if err := e.schema.RenameEntryWithSQL(oldName, newName, entry.SQL); err != nil {
+		if err := entryCtx.Schema.RenameEntryWithSQL(oldName, newName, entry.SQL); err != nil {
 			return &Result{Error: err}
 		}
 	} else {
@@ -91,7 +91,7 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 			newSQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
 		}
 
-		if err := e.schema.RenameEntryWithSQL(oldName, newName, newSQL); err != nil {
+		if err := entryCtx.Schema.RenameEntryWithSQL(oldName, newName, newSQL); err != nil {
 			return &Result{Error: err}
 		}
 	}
@@ -123,7 +123,7 @@ func (e *Engine) renameSQLiteSequence(oldName, newName string) {
 	if entry.RootPage == 1 && strings.Contains(entry.SQL, "seq INTEGER") {
 		return // synthetic fallback, not a real table
 	}
-	tree := e.tableBTree(entry.Name, entry.RootPage, true)
+	tree := e.tableBTreeForName(entry.Name, entry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return
@@ -544,7 +544,7 @@ func refTableInTrigger(sqlStr, tableName string) bool {
 // no CHECK constraints or index WHERE clauses reference the old table name,
 // and that no views have circular references.
 func (e *Engine) validateRename(oldName, newName string) error {
-	tableEntry, err := e.schema.FindTable(oldName)
+	tableEntry, _, err := e.findTable(oldName)
 	if err != nil {
 		return err
 	}

@@ -24,13 +24,13 @@ type fkCascadeRef struct {
 // fkRefAction describes a column-level FOREIGN KEY with its ON DELETE and
 // ON UPDATE actions ("" = NO ACTION).
 type fkRefAction struct {
-	childTable    string
-	childCol      string
-	parentTable   string
-	parentCol     string
-	onDelete      string // "", "CASCADE", "SET NULL", "SET DEFAULT", "RESTRICT"
-	onUpdate      string
-	deferred      bool // DEFERRABLE INITIALLY DEFERRED (checked at COMMIT)
+	childTable  string
+	childCol    string
+	parentTable string
+	parentCol   string
+	onDelete    string // "", "CASCADE", "SET NULL", "SET DEFAULT", "RESTRICT"
+	onUpdate    string
+	deferred    bool // DEFERRABLE INITIALLY DEFERRED (checked at COMMIT)
 }
 
 // fkRefFullRe parses "parentTable(parentCol) ON DELETE X ON UPDATE Y" (any
@@ -167,7 +167,14 @@ func (e *Engine) fkChildRefs(parentTable string) []fkRefAction {
 // RESTRICT/NO ACTION children cause an error; CASCADE children are deleted;
 // SET NULL / SET DEFAULT children update their FK column.
 func (e *Engine) fkParentDelete(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow RowMap) *Result {
-	return e.fkParentAction(parentTable, parentColDefs, oldRow, nil, true, 0)
+	return e.fkParentAction(parentTable, parentColDefs, oldRow, nil, true, 0, true)
+}
+
+// fkParentDropTable enforces FOREIGN KEY actions when a table is dropped.
+// Unlike a DELETE statement, no trigger can re-insert the parent rows, so the
+// trigger-reinsert check is disabled.
+func (e *Engine) fkParentDropTable(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow RowMap) *Result {
+	return e.fkParentAction(parentTable, parentColDefs, oldRow, nil, true, 0, false)
 }
 
 // fkParentUpdate enforces FOREIGN KEY actions when a parent row's key changes:
@@ -177,12 +184,12 @@ func (e *Engine) fkParentDelete(parentTable *schema.Entry, parentColDefs []sql.C
 // row (self-referential FK) whose FK columns are updated consistently, it is
 // not a conflict.
 func (e *Engine) fkParentUpdate(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, skipRowID int64) *Result {
-	return e.fkParentAction(parentTable, parentColDefs, oldRow, newRow, false, skipRowID)
+	return e.fkParentAction(parentTable, parentColDefs, oldRow, newRow, false, skipRowID, true)
 }
 
 // fkParentAction is the shared implementation for parent DELETE/UPDATE FK
 // enforcement. newRow is non-nil for UPDATE (CASCADE propagates the new key).
-func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, isDelete bool, skipRowID int64) *Result {
+func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow, newRow RowMap, isDelete bool, skipRowID int64, checkTriggerReinsert bool) *Result {
 	if !e.foreignKeys {
 		return &Result{}
 	}
@@ -198,6 +205,12 @@ func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.C
 		if ref.deferred {
 			continue
 		}
+		// When dropping a table, self-referential FKs (child == parent) are
+		// dropped with the table and do not block the DROP (SQLite allows
+		// DROP TABLE on a table with self-referencing rows).
+		if !checkTriggerReinsert && isDelete && strings.EqualFold(ref.childTable, parentTable.Name) {
+			continue
+		}
 		action := ref.onDelete
 		if !isDelete {
 			action = ref.onUpdate
@@ -211,6 +224,9 @@ func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.C
 		oldVal := unwrapRowValue(oldValRaw)
 		if parentIdx < 0 {
 			parentIdx = cdIndex(parentColDefs, ref.parentCol)
+		}
+		if parentIdx < 0 || parentIdx >= len(parentColDefs) {
+			continue
 		}
 		if oldVal == nil {
 			continue
@@ -239,7 +255,7 @@ func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.C
 		// Match children using the parent column's collation and affinity.
 		oldVal = util.ApplyColumnAffinity(oldVal, parentColDef.Type)
 
-		tree := e.tableBTree(childEntry.Name, childEntry.RootPage, true)
+		tree := e.tableBTreeForName(childEntry.Name, childEntry.RootPage, true)
 		cursor, err := tree.OpenCursor()
 		if err != nil {
 			continue
@@ -277,11 +293,12 @@ func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.C
 		if len(matches) == 0 {
 			continue
 		}
-		// For DELETE, a trigger may have re-inserted the parent key (e.g. an
-		// AFTER DELETE trigger restoring the row), making the references
-		// valid again — then no action is needed.
-		if isDelete {
-			parentTree := e.tableBTree(parentTable.Name, parentTable.RootPage, true)
+		// For DELETE statements, a trigger may have re-inserted the parent key
+		// (e.g. an AFTER DELETE trigger restoring the row), making the
+		// references valid again — then no action is needed. This does not
+		// apply when the table itself is being dropped (fkParentDropTable).
+		if checkTriggerReinsert && isDelete {
+			parentTree := e.tableBTreeForName(parentTable.Name, parentTable.RootPage, true)
 			if e.tableHasValue(parentTree, parentIdx, oldVal, parentColDef.Collate) {
 				continue
 			}
@@ -498,7 +515,7 @@ func (e *Engine) cascadeDelete(parentTable *schema.Entry, parentColDefs []sql.Co
 		if !ok {
 			continue
 		}
-		tree := e.tableBTree(childEntry.Name, childEntry.RootPage, true)
+		tree := e.tableBTreeForName(childEntry.Name, childEntry.RootPage, true)
 		cursor, err := tree.OpenCursor()
 		if err != nil {
 			continue
@@ -645,7 +662,8 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 		parentCol := strings.TrimSpace(m[2])
 		if parentCol == "" {
 			// A bare "REFERENCES parent" clause targets the parent's PRIMARY KEY.
-			if parentEntry, err := e.schema.FindTable(parentTableName); err == nil {
+			// Search all databases (the parent may be in an ATTACHed database).
+			if parentEntry, _, err := e.findTable(parentTableName); err == nil {
 				pcd := e.parseColumnDefs(parentEntry.Name, parentEntry.SQL)
 				parentCol = e.fkParentPKColumn(parentEntry, pcd)
 			}
@@ -669,7 +687,7 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
 		}
 
-		parentEntry, err := e.schema.FindTable(parentTableName)
+		parentEntry, _, err := e.findTable(parentTableName)
 		if err != nil {
 			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
 		}
@@ -684,7 +702,7 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 		// using the parent column's collation (SQLite foreign-key rules).
 		parentColDef := parentColDefs[parentIdx]
 		val = util.ApplyColumnAffinity(val, parentColDef.Type)
-		tree := e.tableBTree(parentEntry.Name, parentEntry.RootPage, true)
+		tree := e.tableBTreeForName(parentEntry.Name, parentEntry.RootPage, true)
 		cursor, err := tree.OpenCursor()
 		if err != nil {
 			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
@@ -776,7 +794,7 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 		for i := range childKey {
 			childKey[i] = util.ApplyColumnAffinity(childKey[i], parentDefs[i].Type)
 		}
-		tree := e.tableBTree(parentEntry.Name, parentEntry.RootPage, true)
+		tree := e.tableBTreeForName(parentEntry.Name, parentEntry.RootPage, true)
 		cursor, err := tree.OpenCursor()
 		if err != nil {
 			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}

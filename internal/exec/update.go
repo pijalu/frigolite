@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
-	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -26,7 +25,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	if err := e.authorize(auth.ActionUpdate, s.Table, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
-	tableEntry, err := e.schema.FindTable(s.Table)
+	tableEntry, _, err := e.findTable(s.Table)
 	if err != nil {
 		// Not a table — route through INSTEAD OF UPDATE triggers on a view.
 		viewEntry, _, viewErr := e.findView(s.Table)
@@ -51,7 +50,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 
 	colIndex := buildColumnIndex(colDefs)
 
-	changes, err := e.collectUpdateChanges(tableEntry.RootPage, colIndex, colDefs, s)
+	changes, err := e.collectUpdateChanges(tableEntry.Name, tableEntry.RootPage, colIndex, colDefs, s)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -111,7 +110,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 				}
 			}
 		}
-		result = e.applyUpdateChanges(tableEntry.RootPage, changes)
+		result = e.applyUpdateChanges(tableEntry.Name, tableEntry.RootPage, changes)
 	}
 	if result.Error != nil {
 		return result
@@ -304,8 +303,8 @@ func (e *Engine) primaryKeyColIndices(tableName, createSQL string, colDefs []sql
 	return idx
 }
 
-func (e *Engine) collectUpdateChanges(rootPage uint32, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt) ([]updateChange, error) {
-	tree := btree.NewBTree(e.pager, rootPage, true)
+func (e *Engine) collectUpdateChanges(tableName string, rootPage uint32, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt) ([]updateChange, error) {
+	tree := e.tableBTreeForName(tableName, rootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, fmt.Errorf("exec: cursor error: %w", err)
@@ -389,7 +388,7 @@ func (e *Engine) rowMatchesWhere(where sql.Expr, row Row) bool {
 	return err == nil && match
 }
 
-func (e *Engine) applyUpdateChanges(rootPage uint32, changes []updateChange) *Result {
+func (e *Engine) applyUpdateChanges(tableName string, rootPage uint32, changes []updateChange) *Result {
 	if len(changes) == 0 {
 		return &Result{}
 	}
@@ -401,7 +400,7 @@ func (e *Engine) applyUpdateChanges(rootPage uint32, changes []updateChange) *Re
 		toUpdate[c.rowID] = true
 	}
 
-	tree := btree.NewBTree(e.pager, rootPage, true)
+	tree := e.tableBTreeForName(tableName, rootPage, true)
 
 	// Step 1: Delete all existing rows in a single pass
 	_, delErr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
@@ -463,7 +462,7 @@ func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql
 			return trigResult
 		}
 		// If a BEFORE trigger deleted the row being updated, skip the write.
-		stillExists, err := e.rowExists(rootPage, ch.rowID)
+		stillExists, err := e.rowExists(tableName, rootPage, ch.rowID)
 		if err != nil {
 			return &Result{Error: err}
 		}
@@ -572,7 +571,7 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 			if trigResult := e.fireBeforeUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
 				return trigResult
 			}
-			stillExists, err := e.rowExists(rootPage, ch.rowID)
+			stillExists, err := e.rowExists(tableName, rootPage, ch.rowID)
 			if err != nil {
 				return &Result{Error: err}
 			}
@@ -623,7 +622,7 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 			}
 			oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
 			newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
-				if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow, ch.rowID); res.Error != nil {
+			if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow, ch.rowID); res.Error != nil {
 				continue
 			}
 		}
@@ -660,8 +659,8 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 }
 
 // rowExists reports whether a table contains a cell with the given rowID.
-func (e *Engine) rowExists(rootPage uint32, rowID int64) (bool, error) {
-	tree := btree.NewBTree(e.pager, rootPage, true)
+func (e *Engine) rowExists(tableName string, rootPage uint32, rowID int64) (bool, error) {
+	tree := e.tableBTreeForName(tableName, rootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false, err
@@ -700,7 +699,7 @@ func (e *Engine) resolveUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.
 		values []interface{}
 	}
 	conflicts := make(map[int64]conflictInfo)
-	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return &Result{Error: err}
@@ -805,7 +804,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 		}
 	}
 	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
-	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	hasTriggers := e.hasTriggersForTable(tableEntry.Name)
 	changesMade := int64(0)
 	// Snapshot so a FOREIGN KEY violation mid-statement rolls back any
@@ -1004,7 +1003,7 @@ func (e *Engine) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.Co
 	for _, c := range changes {
 		changed[c.rowID] = true
 	}
-	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	for _, c := range changes {
 		cursor, err := tree.OpenCursor()
 		if err != nil {

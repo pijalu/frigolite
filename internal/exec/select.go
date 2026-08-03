@@ -1377,7 +1377,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			}
 
 			// Scan all rows from the right table
-			tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+			tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 			cursor, err := tree.OpenCursor()
 			if err != nil {
 				return nil, nil, err

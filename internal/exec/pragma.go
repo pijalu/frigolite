@@ -208,7 +208,7 @@ func (e *Engine) computePKStat(entry *schema.Entry, pkCols []string, nRow int64)
 	for i := range seen {
 		seen[i] = make(map[string]bool)
 	}
-	tree := e.tableBTree(entry.Name, entry.RootPage, true)
+	tree := e.tableBTreeForName(entry.Name, entry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return fmt.Sprintf("%d", nRow)
@@ -321,7 +321,7 @@ func (e *Engine) computeIndexStat(tableEntry *schema.Entry, idxEntry *schema.Ent
 	for i := range seen {
 		seen[i] = make(map[string]bool)
 	}
-	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return fmt.Sprintf("%d", nRow)

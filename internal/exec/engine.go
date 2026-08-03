@@ -206,6 +206,23 @@ func (e *Engine) tableBTree(tableName string, schemaRoot uint32, isTable bool) *
 	return btree.NewBTree(e.pager, e.rootPage(tableName, schemaRoot), isTable)
 }
 
+// tableBTreeForName resolves the table's owning database context and builds a
+// BTree over that context's pager (a table in an ATTACHed database lives on
+// the attached pager, not the main pager).
+func (e *Engine) tableBTreeForName(tableName string, schemaRoot uint32, isTable bool) *btree.BTree {
+	return btree.NewBTree(e.tablePager(tableName), e.rootPage(tableName, schemaRoot), isTable)
+}
+
+// tablePager returns the pager that owns the given table: the attached
+// database's pager for tables in ATTACHed databases, else the main pager.
+func (e *Engine) tablePager(tableName string) *pager.Pager {
+	pg := e.pager
+	if _, ctx, err := e.findTable(tableName); err == nil && ctx != nil && ctx.Pager != nil {
+		pg = ctx.Pager
+	}
+	return pg
+}
+
 // tableBTreePg creates a BTree for a table using a specific pager.
 func (e *Engine) tableBTreePg(pg *pager.Pager, tableName string, schemaRoot uint32, isTable bool) *btree.BTree {
 	return btree.NewBTree(pg, e.rootPage(tableName, schemaRoot), isTable)

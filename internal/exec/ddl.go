@@ -740,6 +740,35 @@ func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// Enforce FOREIGN KEY constraints: DROP TABLE fails if a child table
+	// references this table's rows and the FK is immediate (SQLite
+	// "FOREIGN KEY constraint failed"). Deferred FKs are checked at COMMIT.
+	if e.foreignKeys {
+		colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+		tree := e.tableBTreeForName(entry.Name, entry.RootPage, true)
+		cursor, err := tree.OpenCursor()
+		if err == nil {
+			for {
+				cell, rerr := cursor.ReadCell()
+				if rerr != nil || cell == nil {
+					break
+				}
+				rec, derr := storage.DecodeRecord(cell.Payload)
+				if derr != nil || rec == nil {
+					break
+				}
+				row := e.buildRowMap(rec, colDefs, cell.RowID)
+				if res := e.fkParentDropTable(entry, colDefs, row); res.Error != nil {
+					return res
+				}
+				ok, nerr := cursor.Next()
+				if nerr != nil || !ok {
+					break
+				}
+			}
+		}
+	}
+
 	// Cascade: drop all triggers for this table
 	triggers, _ := ctx.Schema.FindTriggersForTable(entry.Name)
 	for _, t := range triggers {
