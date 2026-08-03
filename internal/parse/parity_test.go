@@ -15,8 +15,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-
-	"github.com/pijalu/frigolite/internal/sql"
 )
 
 // extractSQLStatements pulls SQL string literals from generated test files.
@@ -61,13 +59,16 @@ func extractSQLStatements(path string) []string {
 	return stmts
 }
 
-// TestParseParitySelectPackages verifies the LALR parser and the RD parser
-// agree on accept/reject for SQL statements used by the select1, select4,
-// selectE, values, and cse test packages.
-func TestParseParitySelectPackages(t *testing.T) {
+// TestParseLALRSelectPackages verifies the LALR parser accepts/rejects SQL
+// statements used by the select1, select4, selectE, values, and cse test
+// packages. It logs statements that fail to parse (extraction artifacts may
+// remain) and reports the acceptance rate. Originally a parity check against
+// the hand-written RD parser; the RD parser is removed, so this is now a pure
+// LALR smoke test.
+func TestParseLALRSelectPackages(t *testing.T) {
 	pkgs := []string{"select1", "select4", "selectE", "values", "cse"}
 	total := 0
-	mismatches := 0
+	rejected := 0
 	for _, pkg := range pkgs {
 		dir := "../../testgen/" + pkg
 		files, err := filepath.Glob(filepath.Join(dir, "*_test.go"))
@@ -87,31 +88,23 @@ func TestParseParitySelectPackages(t *testing.T) {
 			}
 			seen[s] = true
 			total++
-			lalrOK := parseOKLALR(s)
-			rdOK := parseOKRD(s)
-			if lalrOK != rdOK {
-				mismatches++
-				t.Logf("%s: LALR=%v RD=%v SQL=%q", pkg, lalrOK, rdOK, truncate(s, 80))
+			if !parseOKLALR(s) {
+				rejected++
+				t.Logf("%s: rejected SQL=%q", pkg, truncate(s, 80))
 			}
 		}
 	}
-	t.Logf("total statements compared: %d, mismatches: %d", total, mismatches)
-	// Extraction artifacts may remain (e.g. truncated literals); report them
-	// but treat only real SQL statements as the parity gate.
-	if mismatches > 0 {
-		t.Logf("mismatches are extraction artifacts or engine semantic differences; %d real statements matched", total-mismatches)
+	t.Logf("total statements: %d, rejected: %d", total, rejected)
+	// Extraction artifacts (truncated string literals) are expected to be
+	// rejected; the acceptance rate is informational, not a gate.
+	if rejected > 0 {
+		t.Logf("%d statements rejected by LALR (may be extraction artifacts)", rejected)
 	}
 }
 
 func parseOKLALR(s string) bool {
 	_, err := ParseSQL(s)
 	return err == nil
-}
-
-func parseOKRD(s string) bool {
-	p := sql.NewParser(s)
-	p.Parse()
-	return p.Err() == nil
 }
 
 func truncate(s string, n int) string {

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/pijalu/frigolite/internal/pager"
-	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/parse"
 )
 
 func TestExecCreateTable(t *testing.T) {
@@ -14,10 +14,9 @@ func TestExecCreateTable(t *testing.T) {
 		t.Fatalf("Init: %v", err)
 	}
 
-	parser := sql.NewParser("CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT)")
-	stmts := parser.Parse()
-	if len(stmts) == 0 {
-		t.Fatal("empty parse result")
+	stmts, err := parse.ParseSQL("CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT)")
+	if err != nil || len(stmts) == 0 {
+		t.Fatalf("empty parse result: %v", err)
 	}
 
 	res := e.Exec(stmts[0])
@@ -26,16 +25,20 @@ func TestExecCreateTable(t *testing.T) {
 	}
 
 	// Insert a row
-	parser = sql.NewParser("INSERT INTO t VALUES (1, 'Alice')")
-	stmts = parser.Parse()
+	stmts, err = parse.ParseSQL("INSERT INTO t VALUES (1, 'Alice')")
+	if err != nil || len(stmts) == 0 {
+		t.Fatalf("empty parse result: %v", err)
+	}
 	res = e.Exec(stmts[0])
 	if res.Error != nil {
 		t.Fatalf("Insert: %v", res.Error)
 	}
 
 	// Query
-	parser = sql.NewParser("SELECT * FROM t")
-	stmts = parser.Parse()
+	stmts, err = parse.ParseSQL("SELECT * FROM t")
+	if err != nil || len(stmts) == 0 {
+		t.Fatalf("empty parse result: %v", err)
+	}
 	res = e.Exec(stmts[0])
 	if res.Error != nil {
 		t.Fatalf("Select: %v", res.Error)

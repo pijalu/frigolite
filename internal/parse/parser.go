@@ -3059,27 +3059,6 @@ func stripSQLComments(s string) string {
 	return b.String()
 }
 
-// containsReturningKeyword reports whether the SQL input contains a RETURNING
-// keyword token. The lexer maps RETURNING (any case) to TokenKeyword, so a
-// quoted identifier "returning" does not match. This is used to route
-// statements with RETURNING clauses to the RD parser, which preserves the
-// clause in the AST (the LALR grammar accepts but drops it).
-func containsReturningKeyword(input string) bool {
-	if !strings.Contains(strings.ToUpper(input), "RETURNING") {
-		return false
-	}
-	tok := sql.NewTokenizer(input)
-	for {
-		t := tok.Next()
-		if t.Type == sql.TokenEOF {
-			return false
-		}
-		if t.Type == sql.TokenKeyword && strings.EqualFold(t.Value, "RETURNING") {
-			return true
-		}
-	}
-}
-
 // createTableArgs is the semantic value of the create_table_args nonterminal
 // (rule 19). It carries the column definitions plus any table-level
 // constraints (conslist) and table options (WITHOUT ROWID / STRICT) so that

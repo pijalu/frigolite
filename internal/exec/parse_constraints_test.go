@@ -12,7 +12,7 @@ import (
 // with optional names, multi-constraint lists, and WITHOUT ROWID PK columns)
 // onto sql.CreateTableStmt. That was the gap that forced engine call sites
 // (parseColumnDefs, tableConstraints, etc.) to fall back to the hand-written
-// parser via sql.NewParser.
+// parser via sql.NewParser (now removed).
 func TestParseTableLevelConstraints(t *testing.T) {
 	type want struct {
 		cols     int
