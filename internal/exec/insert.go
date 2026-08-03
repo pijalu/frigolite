@@ -335,6 +335,14 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 		}
 	}
 
+	// Unwrap collation wrappers (a trigger body may pass a column value
+	// wrapped with its collation) so only raw values are stored.
+	for i := range values {
+		if values[i] != nil {
+			values[i] = unwrapCollatedValue(values[i])
+		}
+	}
+
 	record, err := storage.EncodeRecord(values)
 	if err != nil {
 		return &Result{Error: err}
@@ -937,7 +945,14 @@ func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID 
 	row := make(RowMap)
 	for i, v := range values {
 		if i < len(colDefs) {
-			row[colDefs[i].Name] = v
+			// Wrap values whose column declares a collation (e.g. NOCASE) so
+			// comparisons against them use that collation (SQLite column
+			// collation rules). Only non-BINARY collations are wrapped.
+			if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+				row[colDefs[i].Name] = &collatedValue{value: v, collation: strings.ToUpper(coll)}
+			} else {
+				row[colDefs[i].Name] = v
+			}
 		}
 	}
 	row["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}

@@ -3800,7 +3800,15 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 			// Wrap all column values with their affinity so comparison logic
 			// can correctly apply SQLite affinity rules.
 			aff := util.Affinity(colDefs[i].Type)
-			row[colDefs[i].Name] = &util.ColumnValue{Value: v, Affinity: aff}
+			cv := &util.ColumnValue{Value: v, Affinity: aff}
+			// Wrap with the declared collation so comparisons use it (SQLite
+			// column collation rules). compareValuesWithCollate extracts the
+			// collation from collatedValue wrappers.
+			if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+				row[colDefs[i].Name] = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
+			} else {
+				row[colDefs[i].Name] = cv
+			}
 		} else {
 			row[fmt.Sprintf("c%d", i)] = v
 		}
