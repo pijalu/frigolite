@@ -31,11 +31,14 @@ Fresh context: true
 | Platform | win32, utf16, enc, badutf, basexx, symlink | Platform-specific tests (Windows, UTF-16 encoding) |
 
 ### Steps
-1. **Write `plans/NOT_APPLICABLE.md`** with full categorized list.
-   Commit: `G6.NA.1: document not-applicable test packages`
-2. **Update skipFiles in main.go** — repurpose to explicitly document exclusions
-   with reasons (not hide bugs). Each entry has a comment explaining why.
-   Commit: `G6.NA.2: repurpose skipFiles as documented exclusion list`
+- [x] **1. Write `plans/NOT_APPLICABLE.md`** with full categorized list.
+      Commit: `G6.NA.1: document not-applicable test packages`
+- [x] **2. Update the harness exclusion map (`unsupportedTestFiles` in
+      `frigolite_harness_test.go`)** — the "skipFiles" mechanism in this codebase.
+      Repurposed to explicitly document exclusions with reasons (not hide bugs);
+      entries are grouped by category with comments. 4 stale entries removed
+      (bigrow2, fts3defer3, fts3expr, fts4merge2); 252 N/A testdata packages added.
+      Commit: `G6.NA.2: repurpose skipFiles as documented exclusion list`
 
 ---
 
