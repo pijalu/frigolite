@@ -59,7 +59,13 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	var body strings.Builder
 
 	body.WriteString(fmt.Sprintf("func Test_%s(t *testing.T) {\n", safeTestName(base)))
-	body.WriteString("\tdb, err := frigolite.Open(\"\")\n")
+	// Mirror the TCL framework: each test runs in its own working directory
+	// (the framework's per-file testdir), and the main "db" connection opens
+	// the real "./test.db" file. Close/reopen of test.db therefore persists
+	// data (matching `db close; sqlite3 db test.db`), while connection state
+	// (collations, user functions) is NOT preserved across reopen.
+	body.WriteString("\tif err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }\n")
+	body.WriteString("\tdb, err := frigolite.Open(\"test.db\")\n")
 	body.WriteString("\tif err != nil {\n")
 	body.WriteString("\t\tt.Fatal(err)\n")
 	body.WriteString("\t}\n")
@@ -492,10 +498,11 @@ type transpiler struct {
 	t                string
 	varCount         int
 	vars             []string
-	catchMode        bool              // true when transpiling inside a catch {} block
-	forIncrs         [][][]tcl.RawWord // stack of for-loop increment clauses (empty for while/foreach)
-	pendingFileReset map[string]bool   // file removed by forcedelete; next sqlite3 open resets the db
+	catchMode        bool                  // true when transpiling inside a catch {} block
+	forIncrs         [][][]tcl.RawWord     // stack of for-loop increment clauses (empty for while/foreach)
+	pendingFileReset map[string]bool       // file removed by forcedelete; next sqlite3 open resets the db
 	varsetLoopVars   map[string]varsetInfo // loop vars that iterate over varset structs
+	dbAliases        map[string]string     // secondary connection name -> main db var it aliases (same file)
 }
 
 // varsetInfo describes a foreach loop variable whose elements are TCL "varset"
@@ -533,6 +540,15 @@ func isPreDeclaredDB(name string) bool {
 		return false
 	}
 	return name[2] >= '1' && name[2] <= '9'
+}
+
+// isMainTestFile reports whether path refers to the main test database file
+// (the file that reset_db opens as the primary "db" connection). The TCL
+// framework uses "./test.db" (or "test.db") for the main database; secondary
+// connections opened on this same file share the primary database.
+func isMainTestFile(path string) bool {
+	p := strings.TrimSpace(path)
+	return p == "test.db" || p == "./test.db" || p == `"test.db"` || p == `"./test.db"`
 }
 
 // isValidGoIdent returns true if s is a valid Go identifier (letters, digits,
@@ -681,6 +697,12 @@ func tclSplitList(s string) []string {
 	for pos < len(s) {
 		for pos < len(s) && (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n' || s[pos] == '\r') {
 			pos++
+		}
+		// A backslash-newline is a TCL line continuation (semantically a
+		// single space): consume it so list elements split correctly.
+		if pos < len(s) && s[pos] == '\\' && pos+1 < len(s) && (s[pos+1] == '\n' || s[pos+1] == '\r') {
+			pos++
+			continue
 		}
 		if pos >= len(s) {
 			break
@@ -1959,8 +1981,24 @@ func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
 		return
 	}
 
+	// execsql {SQL} db2 runs the SQL on the named connection (default db).
+	// Route through the alias map: a secondary connection on the main test
+	// file ("sqlite3 db2 test.db") is aliased to db, so execute on the
+	// underlying handle.
+	dbConn := "db"
+	if len(args) >= 2 {
+		h := tclVarToGo(args[1].Text)
+		if h != "" && h != "db" && (isPreDeclaredDB(h) || tp.isVarDeclared(h)) {
+			if target, ok := tp.dbAliases[h]; ok {
+				dbConn = target
+			} else {
+				dbConn = h
+			}
+		}
+	}
+
 	if sqlType == "catch" {
-		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 		if tp.catchMode {
 			tp.emitLine("if _res.Error != nil { _catchErr = _res.Error }")
 		} else {
@@ -1975,7 +2013,7 @@ func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
 		}
 		lastStmt := lastStatementSQL(sqlText)
 		if isQueryStmt(lastStmt) {
-			tp.emitLine("r = db.Query(%s)", sqlExpr)
+			tp.emitLine("r = %s.Query(%s)", dbConn, sqlExpr)
 			if tp.catchMode {
 				tp.emitLine("if r.Error != nil { _catchErr = r.Error }")
 			} else {
@@ -1984,7 +2022,7 @@ func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
 				tp.emitLine("}")
 			}
 		} else {
-			tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+			tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
 			if tp.catchMode {
 				tp.emitLine("if _res.Error != nil { _catchErr = _res.Error }")
 			} else {
@@ -2074,7 +2112,13 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 
 	switch sub {
 	case "close":
-		tp.emitLine("%s.Close()", goName)
+		if target, ok := tp.dbAliases[goName]; ok {
+			// Aliased connection shares the main in-memory db; closing it
+			// must not close the shared handle.
+			tp.emitLine("_ = %s // close %s: aliased to %s, no-op", goName, dbName, target)
+		} else {
+			tp.emitLine("%s.Close()", goName)
+		}
 	case "eval":
 		sqlExpr := tp.collectSQLExpression(rest)
 		if sqlExpr != `""` {
@@ -2173,9 +2217,13 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	varNames := tp.parseVarList(args[0])
 	rawList := strings.TrimSpace(args[1].Text)
 	// A literal "[list ...]" or "list ..." carries the TCL list command as the
-	// first word; strip it so tclSplitList returns only the list elements.
+	// first word; strip it (with or without the space after "[") so
+	// tclSplitList returns only the list elements.
 	if strings.HasPrefix(rawList, "[list ") {
 		rawList = rawList[len("[list "):]
+		rawList = strings.TrimSuffix(rawList, "]")
+	} else if strings.HasPrefix(rawList, "[ list ") {
+		rawList = rawList[len("[ list "):]
 		rawList = strings.TrimSuffix(rawList, "]")
 	} else if strings.HasPrefix(rawList, "list ") {
 		rawList = rawList[len("list "):]
@@ -2337,7 +2385,10 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 // `eval $v` becomes field assignments. Returns ok=false when the list is not a
 // literal varset list; the caller falls back to the generic list loop.
 func (tp *transpiler) emitVarsetForeach(args []tcl.RawWord, rawList, varName string) (varsetInfo, bool, error) {
-	rawList = strings.TrimSpace(rawList)
+	// Do not TrimSpace: the list often ends with a backslash-newline TCL
+	// continuation, and trimming the trailing newline would orphan the
+	// backslash into a bogus element. tclSplitList handles leading/trailing
+	// whitespace and backslash-newline continuations itself.
 	elements := tclSplitList(rawList)
 	if len(elements) == 0 {
 		return varsetInfo{}, false, nil
@@ -2351,10 +2402,10 @@ func (tp *transpiler) emitVarsetForeach(args []tcl.RawWord, rawList, varName str
 	rows := make([][]fieldVal, 0, len(elements))
 	for _, el := range elements {
 		el = strings.TrimSpace(el)
-		if !strings.HasPrefix(el, "{") || !strings.HasSuffix(el, "}") {
-			return varsetInfo{}, false, nil
-		}
-		cmds := parseCommands(el[1 : len(el)-1])
+		// tclSplitList strips the outer braces of braced elements, so the
+		// element is already the bare script text (it may still contain
+		// inner braced values). Parse it directly as commands.
+		cmds := parseCommands(el)
 		if len(cmds) == 0 {
 			return varsetInfo{}, false, nil
 		}
@@ -2388,6 +2439,7 @@ func (tp *transpiler) emitVarsetForeach(args []tcl.RawWord, rawList, varName str
 	tp.indent++
 	for _, f := range allFields {
 		tp.emitLine("%s string", f)
+		tp.emitLine("%sSet bool", f)
 	}
 	tp.indent--
 	tp.emitLine("}")
@@ -2398,9 +2450,13 @@ func (tp *transpiler) emitVarsetForeach(args []tcl.RawWord, rawList, varName str
 		for _, fv := range row {
 			m[fv.name] = fv.value
 		}
-		parts := make([]string, len(allFields))
-		for i, f := range allFields {
-			parts[i] = fmt.Sprintf("%q", m[f])
+		parts := make([]string, 0, len(allFields)*2)
+		for _, f := range allFields {
+			if _, ok := m[f]; ok {
+				parts = append(parts, fmt.Sprintf("%q, true", m[f]))
+			} else {
+				parts = append(parts, `"", false`)
+			}
 		}
 		tp.emitLine("{%s},", strings.Join(parts, ", "))
 	}
@@ -3802,7 +3858,13 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 		vn := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
 		if info, ok := tp.varsetLoopVars[vn]; ok {
 			for _, f := range info.fields {
+				// Only assign fields the varset script actually set; fields
+				// that stay unset keep the loop's reset default (e.g. "''").
+				tp.emitLine("if %s.%sSet {", vn, f)
+				tp.indent++
 				tp.emitLine("%s = %s.%s", f, vn, f)
+				tp.indent--
+				tp.emitLine("}")
 			}
 			tp.emitLine("_ = %s // suppress unused warning", vn)
 			return
@@ -3839,6 +3901,23 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	}
 
 	goName := tclVarToGo(dbName)
+
+	// Secondary connections opened on the main test database file
+	// ("sqlite3 db2 test.db") share the same database as the main "db"
+	// connection in the real TCL framework. The compat suite runs
+	// in-memory, so alias db2 to db instead of opening a separate (and
+	// empty) file connection. Closing an aliased connection is a no-op
+	// (handled in processDBForName "close").
+	if goName != "db" && len(args) >= 2 && isMainTestFile(args[1].Text) {
+		if tp.dbAliases == nil {
+			tp.dbAliases = make(map[string]string)
+		}
+		tp.dbAliases[goName] = "db"
+		tp.emitLine("%s = db // sqlite3 %s %s: alias to main in-memory db", goName, dbName, args[1].Text)
+		tp.emitLine("_ = %s", goName)
+		return // no err to check; alias assignment cannot fail
+	}
+
 	// db1-db9 are pre-declared at function level; always use = for them
 	if isPreDeclaredDB(goName) {
 		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)

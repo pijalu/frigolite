@@ -1395,7 +1395,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		for _, d := range rightDefs {
 			plainNames[d.Name] = true
 		}
-		if (join.JoinType == "LEFT" || join.JoinType == "RIGHT") {
+		if join.JoinType == "LEFT" || join.JoinType == "RIGHT" {
 			if err := validateOnColumnRefs(effectiveOn, plainNames); err != nil {
 				return nil, nil, err
 			}
@@ -4263,7 +4263,6 @@ func sortRowMapsByPKNames(rowMaps []RowMap, pkColNames []string) {
 		return false
 	})
 }
-
 
 // findRowIDRef returns the first rowid/_rowid_/oid column reference in a
 // SELECT statement, or "" if there is none. Used to reject rowid references

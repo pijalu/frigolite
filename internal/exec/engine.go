@@ -40,6 +40,7 @@ type DatabaseContext struct {
 
 // Engine executes SQL statements.
 type Engine struct {
+
 	// Authorization
 	authorizer auth.Authorizer // authorization callback (nil = allow all)
 

@@ -1674,39 +1674,18 @@ func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow Ro
 // Returns a Result with an error if execution fails, or nil on success
 // (including when the trigger does not match or its WHEN clause is false).
 func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldRow RowMap) *Result {
-	upper := strings.ToUpper(t.SQL)
-	// Check the trigger's declared timing. Triggers without an explicit
-	// timing default to BEFORE.
-	hasBefore := strings.Contains(upper, " BEFORE ")
-	hasAfter := strings.Contains(upper, " AFTER ")
-	if hasBefore && timing != "BEFORE" {
+	// Extract the declared timing and event from the trigger header. This is
+	// whitespace-robust (the declaration can have arbitrary spaces between
+	// the timing, event and ON keywords) unlike a naive " BEFORE INSERT ON "
+	// substring match. Triggers without an explicit timing default to BEFORE.
+	declTiming, declEvent := parseTriggerHeader(t.SQL)
+	if declTiming == "" {
+		declTiming = "BEFORE"
+	}
+	if declTiming != timing {
 		return nil
 	}
-	if hasAfter && timing != "AFTER" {
-		return nil
-	}
-	if !hasBefore && !hasAfter && timing != "BEFORE" {
-		return nil
-	}
-	// Check event matches: the declaration is "BEFORE|AFTER <event> ON <table>"
-	// (or "<event> ON <table>" which defaults to BEFORE). Match against the
-	// declaration only — the trigger BODY may contain the event keyword too
-	// (e.g. an AFTER DELETE trigger whose body says "INSERT INTO ...").
-	patterns := []string{
-		" " + timing + " " + event + " ON ",
-	}
-	if timing == "BEFORE" {
-		// Triggers with no explicit timing default to BEFORE.
-		patterns = append(patterns, " "+event+" ON ")
-	}
-	matched := false
-	for _, p := range patterns {
-		if strings.Contains(upper, p) {
-			matched = true
-			break
-		}
-	}
-	if !matched {
+	if declEvent != event {
 		return nil
 	}
 
@@ -1737,6 +1716,7 @@ func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldR
 	}
 
 	// Extract statements between BEGIN and END
+	upper := strings.ToUpper(t.SQL)
 	beginIdx := strings.Index(upper, "BEGIN")
 	if beginIdx < 0 {
 		return nil
@@ -1810,6 +1790,37 @@ func (e *Engine) parseTriggerWhen(triggerSQL string) sql.Expr {
 		return nil
 	}
 	return sel.Columns[0].Expr
+}
+
+// parseTriggerHeader extracts the declared timing ("BEFORE", "AFTER",
+// "INSTEAD OF") and event ("INSERT", "UPDATE", "DELETE") from a trigger's
+// CREATE TRIGGER SQL text. It is whitespace-robust: the declaration may have
+// any number of spaces/newlines between the timing, event and ON keywords.
+// Returns ("", "") when the header cannot be parsed.
+func parseTriggerHeader(triggerSQL string) (timing, event string) {
+	upper := strings.ToUpper(triggerSQL)
+	// Only look at the declaration header, before the body's BEGIN keyword.
+	header := upper
+	if beginIdx := strings.Index(upper, "BEGIN"); beginIdx >= 0 {
+		header = upper[:beginIdx]
+	}
+	if strings.Contains(header, "INSTEAD OF") {
+		timing = "BEFORE"
+	} else if strings.Contains(header, "AFTER") {
+		timing = "AFTER"
+	} else if strings.Contains(header, "BEFORE") {
+		timing = "BEFORE"
+	}
+	// The event is the first standalone INSERT/UPDATE/DELETE word in the
+	// header (the table name appears after "ON", so the first event word is
+	// always the declared event).
+	for _, ev := range []string{"INSERT", "UPDATE", "DELETE"} {
+		if regexp.MustCompile(`\b` + ev + `\b`).MatchString(header) {
+			event = ev
+			break
+		}
+	}
+	return timing, event
 }
 
 func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) ([]interface{}, error) {
