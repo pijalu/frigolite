@@ -7,10 +7,12 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/fts"
-	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/parse"
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 )
 
 // --- ALTER TABLE ---
@@ -100,10 +102,101 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		delete(e.colCache, oldName)
 	}
 
+	// SQLite's ALTER TABLE RENAME updates sqlite_sequence: any row whose
+	// name matches the old table name is rewritten to the new name.
+	e.renameSQLiteSequence(oldName, newName)
+
 	// Update views, triggers, and indexes that reference the renamed table
 	e.renameUpdateRelatedEntries(oldName, newName)
 
 	return &Result{}
+}
+
+// renameSQLiteSequence updates the sqlite_sequence table after ALTER TABLE
+// RENAME, matching SQLite: rows with name == oldName become newName. Missing
+// or synthetic sqlite_sequence tables are ignored.
+func (e *Engine) renameSQLiteSequence(oldName, newName string) {
+	entry, err := e.schema.FindTable("sqlite_sequence")
+	if err != nil {
+		return
+	}
+	if entry.RootPage == 1 && strings.Contains(entry.SQL, "seq INTEGER") {
+		return // synthetic fallback, not a real table
+	}
+	tree := e.tableBTree(entry.Name, entry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return
+	}
+	var toRename []int64
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil {
+			break
+		}
+		if len(rec.Values) > 0 {
+			if name, ok := rec.Values[0].(string); ok && name == oldName {
+				toRename = append(toRename, cell.RowID)
+			}
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
+	for _, rowID := range toRename {
+		cell, err := e.readCellByRowID(tree, rowID)
+		if err != nil || cell == nil {
+			continue
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil {
+			continue
+		}
+		values := make([]interface{}, len(rec.Values))
+		copy(values, rec.Values)
+		if len(values) > 0 {
+			values[0] = newName
+		}
+		newRecord, err := storage.EncodeRecord(values)
+		if err != nil {
+			continue
+		}
+		if _, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+			return c.RowID == rowID
+		}); err != nil {
+			continue
+		}
+		e.invalidateRowIDCache(entry.RootPage)
+		newCell := &storage.Cell{Type: storage.CellTableLeaf, RowID: rowID, Payload: newRecord}
+		_ = tree.InsertCell(newCell)
+		e.bumpRowIDCache(entry.RootPage, rowID)
+	}
+}
+
+// readCellByRowID scans a tree for the cell with the given rowID.
+func (e *Engine) readCellByRowID(tree *btree.BTree, rowID int64) (*storage.Cell, error) {
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return nil, err
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			return nil, nil
+		}
+		if cell.RowID == rowID {
+			return cell, nil
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			return nil, nil
+		}
+	}
 }
 
 // execAlterTableRenameColumn handles ALTER TABLE ... RENAME [COLUMN] old_name TO new_name.
@@ -1147,14 +1240,14 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 			tableEntry.SQL = newSQL
 			_ = e.schema.RemoveEntry(tableEntry.Name)
 			if err := e.schema.AddEntry(tableEntry); err != nil {
-			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
-		}
-		// Verify the entry was re-added
-		if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
-			if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
-				return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
+				return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
 			}
-		}
+			// Verify the entry was re-added
+			if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
+				if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+					return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
+				}
+			}
 		}
 	}
 
@@ -1181,19 +1274,19 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 			// Invalidate cached column/constraint info for this table.
 			delete(e.colCache, tableName)
 			delete(e.tcCache, tableName)
-	_ = e.schema.RemoveEntry(tableEntry.Name)
-	if err := e.schema.AddEntry(tableEntry); err != nil {
-		return &Result{Error: fmt.Errorf("failed to re-add entry after DROP CONSTRAINT: %w", err)}
-	}
-	// Verify the entry was re-added
-	if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
-		if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
-			return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DROP CONSTRAINT", tableEntry.Name)}
+			_ = e.schema.RemoveEntry(tableEntry.Name)
+			if err := e.schema.AddEntry(tableEntry); err != nil {
+				return &Result{Error: fmt.Errorf("failed to re-add entry after DROP CONSTRAINT: %w", err)}
+			}
+			// Verify the entry was re-added
+			if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
+				if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+					return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DROP CONSTRAINT", tableEntry.Name)}
+				}
+			}
 		}
+		return &Result{}
 	}
-}
-return &Result{}
-}
 
 	// Find the table entry first
 	tableEntry, err := e.schema.FindTable(tableName)
@@ -1211,7 +1304,7 @@ return &Result{}
 		return &Result{Error: fmt.Errorf("cannot drop column from virtual table %q", tableName)}
 	}
 
-// Check if the table's SQL is malformed (doesn't look like a CREATE TABLE)
+	// Check if the table's SQL is malformed (doesn't look like a CREATE TABLE)
 	upperSQL := strings.ToUpper(strings.TrimSpace(tableEntry.SQL))
 	if !strings.HasPrefix(upperSQL, "CREATE TABLE") {
 		return &Result{Error: fmt.Errorf("database disk image is malformed")}
@@ -1869,9 +1962,10 @@ func (e *Engine) checkViewDropDependencies(tableName, columnName string) *Result
 	return nil
 }
 
-//lint:ignore U1000  Planned for P1 ALTER TABLE
 // validateViewSQL checks if a view's SQL references a valid table and columns.
 // Returns an error message if the view has issues, empty string otherwise.
+//
+//lint:ignore U1000  Planned for P1 ALTER TABLE
 func (e *Engine) validateViewSQL(viewSQL, tableName, columnName string) string {
 	stmts, perr := parse.ParseSQL(viewSQL)
 	if perr != nil || len(stmts) == 0 {
@@ -1912,6 +2006,7 @@ func (e *Engine) validateViewSQL(viewSQL, tableName, columnName string) string {
 }
 
 // collectColumnRefs collects column references from a SELECT statement.
+//
 //lint:ignore U1000  Utility for future use
 func collectColumnRefs(sel *sql.SelectStmt) []string {
 	var refs []string
@@ -1925,6 +2020,7 @@ func collectColumnRefs(sel *sql.SelectStmt) []string {
 }
 
 // collectExprRefs collects column references from an expression.
+//
 //lint:ignore U1000  Utility for future use
 func collectExprRefs(expr sql.Expr, refs *[]string) {
 	if expr == nil {
@@ -2091,6 +2187,7 @@ func (e *Engine) validateTriggerSQL(triggerSQL string) string {
 func isAlpha(b byte) bool {
 	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || b == '_'
 }
+
 // reference the given column and returns an error if so.
 func (e *Engine) checkTableConstraintDependencies(createSQL, tableName, columnName string) *Result {
 	stmts, perr := parse.ParseSQL(createSQL)
@@ -2220,8 +2317,8 @@ func indexReferencesColumn(sqlStr, columnName string) bool {
 	for _, w := range words {
 		w = strings.Trim(w, `"`)
 		if strings.EqualFold(w, columnName) {
-				return true
-			}
+			return true
 		}
-		return false
 	}
+	return false
+}

@@ -233,8 +233,19 @@ func (m *Manager) FindTable(name string) (*Entry, error) {
 			}, nil
 		}
 
-		// sqlite_sequence is a system table for AUTOINCREMENT tracking
+		// sqlite_sequence is a system table for AUTOINCREMENT tracking. It
+		// only exists as a real table when a user creates it (SQLite allows
+		// CREATE TABLE sqlite_sequence via PRAGMA writable_schema); prefer a
+		// real schema entry over the synthetic fallback.
 		if searchUpper == "SQLITE_SEQUENCE" {
+			entries, gerr := m.GetEntries(TypeTable)
+			if gerr == nil {
+				for _, e := range entries {
+					if strings.ToUpper(e.Name) == searchUpper || strings.ToUpper(e.TblName) == searchUpper {
+						return e, nil
+					}
+				}
+			}
 			return &Entry{
 				Type:     TypeTable,
 				Name:     name,

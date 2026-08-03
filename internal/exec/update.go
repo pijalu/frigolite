@@ -78,21 +78,22 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 		// UPDATE OR REPLACE: apply each change incrementally, deleting
 		// conflicting rows (with DELETE triggers) as we go.
 		result = e.applyUpdateReplace(tableEntry, colDefs, changes)
+	} else if strings.EqualFold(s.OnConflict, "IGNORE") {
+		// UPDATE OR IGNORE: rows whose new values conflict with a
+		// UNIQUE/PK constraint are skipped without error.
+		result = e.applyUpdateIgnore(tableEntry, colDefs, changes)
+	} else if e.hasTriggersForTable(tableEntry.Name) {
+		// Plain UPDATE with triggers: SQLite fires BEFORE UPDATE triggers
+		// per-row before the row is written. A BEFORE trigger may delete the
+		// row being updated (or other rows); SQLite then skips writing rows
+		// that no longer exist and checks UNIQUE/PK constraints against the
+		// live table state. Process changes one row at a time.
+		result = e.applyUpdateWithTriggers(tableEntry, colDefs, changes)
 	} else {
 		// Plain UPDATE: check UNIQUE/PK constraints on the new values
 		// (SQLite errors on conflicts; there is no REPLACE resolution).
 		if res := e.checkUpdateConflicts(tableEntry, colDefs, changes); res.Error != nil {
 			return res
-		}
-		// Fire BEFORE UPDATE triggers with the new and old row values.
-		if e.hasTriggersForTable(tableEntry.Name) {
-			for _, ch := range changes {
-				newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
-				oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
-				if trigResult := e.fireBeforeUpdateTriggers(tableEntry.Name, newRow, oldRow); trigResult.Error != nil {
-					return trigResult
-				}
-			}
 		}
 		result = e.applyUpdateChanges(tableEntry.RootPage, changes)
 	}
@@ -100,8 +101,16 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 		return result
 	}
 
-	// Fire AFTER UPDATE triggers with the new and old row values.
-	if e.hasTriggersForTable(tableEntry.Name) {
+	// Fire AFTER UPDATE triggers with the new and old row values. The
+	// applyUpdateWithTriggers and applyUpdateIgnore paths fire AFTER
+	// triggers themselves, so skip this block there.
+	afterTriggersFired := false
+	if strings.EqualFold(s.OnConflict, "REPLACE") {
+		afterTriggersFired = false // applyUpdateReplace fires DELETE triggers, not UPDATE
+	} else if e.hasTriggersForTable(tableEntry.Name) {
+		afterTriggersFired = true // applyUpdateWithTriggers / applyUpdateIgnore fired them
+	}
+	if e.hasTriggersForTable(tableEntry.Name) && !afterTriggersFired {
 		for _, ch := range changes {
 			newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
 			oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
@@ -348,6 +357,242 @@ func (e *Engine) applyUpdateChanges(rootPage uint32, changes []updateChange) *Re
 	}
 
 	return &Result{Changes: int64(len(changes))}
+}
+
+// applyUpdateWithTriggers processes a plain UPDATE with triggers, matching
+// SQLite's ordering: BEFORE UPDATE triggers fire per-row before the row is
+// written, and a BEFORE trigger may delete the row being updated — SQLite then
+// skips writing rows that no longer exist and checks UNIQUE/PK constraints
+// against the live table state. AFTER UPDATE triggers fire phase-based after
+// the writes (matching the engine's existing behavior for non-trigger rows).
+func (e *Engine) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
+	if len(changes) == 0 {
+		return &Result{}
+	}
+	colIndex := buildColumnIndex(colDefs)
+	var uniqueCols []int
+	for i, cd := range colDefs {
+		if cd.Unique || cd.PrimaryKey {
+			uniqueCols = append(uniqueCols, i)
+		}
+	}
+	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	rootPage := tableEntry.RootPage
+	tableName := tableEntry.Name
+	tree := e.tableBTree(tableName, rootPage, true)
+	var changesMade int64
+	var applied []updateChange
+
+	for _, ch := range changes {
+		newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+		if trigResult := e.fireBeforeUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
+			return trigResult
+		}
+		// If a BEFORE trigger deleted the row being updated, skip the write.
+		stillExists, err := e.rowExists(rootPage, ch.rowID)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		if !stillExists {
+			continue
+		}
+		// Check UNIQUE/PK conflicts against the live table state. The row
+		// being updated is not a conflict; every other live row (including
+		// rows already written by earlier changes, which now hold their new
+		// values) is.
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return &Result{Error: err}
+		}
+		conflict := false
+		for {
+			cell, err := cursor.ReadCell()
+			if err != nil || cell == nil {
+				break
+			}
+			if cell.RowID == ch.rowID {
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+				continue
+			}
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil || rec == nil {
+				break
+			}
+			if e.valuesConflict(rec.Values, ch.values, colDefs, colIndex, uniqueCols, idxColsList) {
+				conflict = true
+				break
+			}
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
+		}
+		if conflict {
+			return &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, nil, ch.values, uniqueCols, idxColsList)}
+		}
+		// Write the row: delete the old cell and insert the new record.
+		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			return cell.RowID == ch.rowID
+		}); err != nil {
+			return &Result{Error: err}
+		}
+		e.invalidateRowIDCache(rootPage)
+		newRecord, err := storage.EncodeRecord(ch.values)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		newCell := &storage.Cell{
+			Type:    storage.CellTableLeaf,
+			RowID:   ch.rowID,
+			Payload: newRecord,
+		}
+		if err := tree.InsertCell(newCell); err != nil {
+			return &Result{Error: err}
+		}
+		e.bumpRowIDCache(rootPage, ch.rowID)
+		changesMade++
+		applied = append(applied, ch)
+	}
+
+	// Fire AFTER UPDATE triggers phase-based (after all writes), matching the
+	// engine's behavior for UPDATEs without this per-row path.
+	for _, ch := range applied {
+		newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+		if trigResult := e.fireAfterUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
+			return trigResult
+		}
+	}
+	return &Result{Changes: changesMade}
+}
+
+// applyUpdateIgnore implements UPDATE OR IGNORE: each change is applied only
+// if its new values do not conflict with a UNIQUE/PK constraint or UNIQUE
+// index. Conflicting rows are skipped without error. BEFORE/AFTER UPDATE
+// triggers fire per row for the rows that are written.
+func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
+	if len(changes) == 0 {
+		return &Result{}
+	}
+	colIndex := buildColumnIndex(colDefs)
+	var uniqueCols []int
+	for i, cd := range colDefs {
+		if cd.Unique || cd.PrimaryKey {
+			uniqueCols = append(uniqueCols, i)
+		}
+	}
+	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	rootPage := tableEntry.RootPage
+	tableName := tableEntry.Name
+	tree := e.tableBTree(tableName, rootPage, true)
+	hasTriggers := e.hasTriggersForTable(tableName)
+	var changesMade int64
+
+	for _, ch := range changes {
+		if hasTriggers {
+			newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+			oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+			if trigResult := e.fireBeforeUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
+				return trigResult
+			}
+			stillExists, err := e.rowExists(rootPage, ch.rowID)
+			if err != nil {
+				return &Result{Error: err}
+			}
+			if !stillExists {
+				continue
+			}
+		}
+		// Check conflicts against the live table state; skip on conflict.
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return &Result{Error: err}
+		}
+		conflict := false
+		for {
+			cell, err := cursor.ReadCell()
+			if err != nil || cell == nil {
+				break
+			}
+			if cell.RowID == ch.rowID {
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+				continue
+			}
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil || rec == nil {
+				break
+			}
+			if e.valuesConflict(rec.Values, ch.values, colDefs, colIndex, uniqueCols, idxColsList) {
+				conflict = true
+				break
+			}
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
+		}
+		if conflict {
+			continue
+		}
+		// Write the row.
+		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			return cell.RowID == ch.rowID
+		}); err != nil {
+			return &Result{Error: err}
+		}
+		e.invalidateRowIDCache(rootPage)
+		newRecord, err := storage.EncodeRecord(ch.values)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		newCell := &storage.Cell{
+			Type:    storage.CellTableLeaf,
+			RowID:   ch.rowID,
+			Payload: newRecord,
+		}
+		if err := tree.InsertCell(newCell); err != nil {
+			return &Result{Error: err}
+		}
+		e.bumpRowIDCache(rootPage, ch.rowID)
+		changesMade++
+		if hasTriggers {
+			newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+			oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+			if trigResult := e.fireAfterUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
+				return trigResult
+			}
+		}
+	}
+	return &Result{Changes: changesMade}
+}
+
+// rowExists reports whether a table contains a cell with the given rowID.
+func (e *Engine) rowExists(rootPage uint32, rowID int64) (bool, error) {
+	tree := btree.NewBTree(e.pager, rootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return false, err
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil {
+			return false, nil
+		}
+		if cell.RowID == rowID {
+			return true, nil
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			return false, nil
+		}
+	}
 }
 
 // resolveUpdateConflicts implements UPDATE OR REPLACE: for each row being

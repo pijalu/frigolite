@@ -435,11 +435,29 @@ func (e *Engine) bestIndexForQuery(tableName string, where sql.Expr, estimate *f
 			}
 		}
 	}
-	// Collect all refs for the best index to build conditions
+	// Collect all refs for the best index to build conditions. Also include
+	// column-to-constant predicates on columns without an index: SQLite's
+	// older plans (and the without_rowid1 14.2 test) list every WHERE
+	// constraint that narrows the search, e.g. SEARCH ... (a=? AND b=?).
 	if bestName != "" {
 		for _, ref := range refs {
 			if ref.indexName == bestName {
 				bestRefs = append(bestRefs, ref)
+			}
+		}
+		// Add non-indexed column predicates as well (colName non-empty but
+		// not covered by the chosen index).
+		all := collectAllColumnRefs(where, tableName)
+		for _, ar := range all {
+			found := false
+			for _, br := range bestRefs {
+				if br.colName == ar.colName && br.op == ar.op {
+					found = true
+					break
+				}
+			}
+			if !found {
+				bestRefs = append(bestRefs, ar)
 			}
 		}
 	}
@@ -518,6 +536,27 @@ func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef
 						selectivity: sel,
 					})
 				}
+			}
+		}
+	})
+	return refs
+}
+
+// collectAllColumnRefs walks a WHERE expression and returns an indexedRef for
+// every column-to-constant predicate, regardless of whether the column has an
+// index. Used to render the full set of search constraints in EXPLAIN output.
+func collectAllColumnRefs(expr sql.Expr, tableName string) []indexedRef {
+	var refs []indexedRef
+	_, _ = walkExpr, walkExpr(expr, func(e2 sql.Expr) {
+		if binop, ok := e2.(*sql.BinaryOp); ok {
+			colRef, constVal := findColAndConst(binop)
+			if colRef != nil && constVal != nil {
+				refs = append(refs, indexedRef{
+					indexName: "",
+					colName:   colRef.Name,
+					constant:  constVal,
+					op:        binop.Operator,
+				})
 			}
 		}
 	})

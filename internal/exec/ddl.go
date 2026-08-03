@@ -190,7 +190,7 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	}
 
 	existing, err := ctx.Schema.FindTable(tableName)
-	if err == nil && existing != nil {
+	if err == nil && existing != nil && !e.isSyntheticSystemEntry(existing, tableName) {
 		// Table already exists. Only IF NOT EXISTS silently succeeds;
 		// otherwise SQLite raises "table t already exists".
 		if s.IfNotExists {
@@ -301,6 +301,27 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	}
 
 	return &Result{Changes: 0}
+}
+
+// isSyntheticSystemEntry reports whether entry is the schema manager's
+// synthetic fallback for a system table (sqlite_sequence, pragma_*), which is
+// returned when no real schema row exists. Such entries must not block CREATE
+// TABLE: SQLite allows creating sqlite_sequence via PRAGMA writable_schema.
+func (e *Engine) isSyntheticSystemEntry(entry *schema.Entry, name string) bool {
+	if entry == nil {
+		return false
+	}
+	if entry.RootPage != 1 {
+		return false
+	}
+	upper := strings.ToUpper(name)
+	switch upper {
+	case "SQLITE_SEQUENCE":
+		return strings.Contains(entry.SQL, "seq INTEGER")
+	case "SQLITE_SCHEMA", "SQLITE_MASTER", "SQLITE_TEMP_SCHEMA", "SQLITE_TEMP_MASTER":
+		return strings.Contains(entry.SQL, "rootpage INTEGER")
+	}
+	return strings.HasPrefix(upper, "PRAGMA_")
 }
 
 // createTableSQL returns the SQL text to store in sqlite_schema for a table.

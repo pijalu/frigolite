@@ -1894,7 +1894,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return &sql.AlterTableStmt{
 			Table:   getString(getRHS(p, ruleNo, 3)),
 			Action:  "RENAME",
-			NewName: getString(getRHS(p, ruleNo, 5)),
+			NewName: getString(getRHS(p, ruleNo, 6)),
 		}
 
 	// Rule 293: cmd ::= alter_add carglist
