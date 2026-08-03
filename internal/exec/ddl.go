@@ -295,12 +295,100 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// Create UNIQUE autoindex entries for column-level and table-level
+	// UNIQUE constraints (deduplicated; redundant with the PK on WITHOUT
+	// ROWID tables are dropped), matching SQLite's sqlite_autoindex_* names.
+	if res := e.createAutoIndexes(ctx, tableName, s, entry); res.Error != nil {
+		return res
+	}
+
 	// Handle CREATE TABLE ... AS SELECT
 	if s.AsSelect != nil {
 		return e.execCreateTableAsSelect(s)
 	}
 
 	return &Result{Changes: 0}
+}
+
+// createAutoIndexes creates schema entries for UNIQUE constraints on a table,
+// named sqlite_autoindex_<table>_N in SQLite's numbering. Identical UNIQUE
+// constraints are deduplicated; on WITHOUT ROWID tables an autoindex whose
+// columns exactly match the PRIMARY KEY is redundant and dropped.
+func (e *Engine) createAutoIndexes(ctx *DatabaseContext, tableName string, s *sql.CreateTableStmt, tableEntry *schema.Entry) *Result {
+	type uniqDef struct {
+		cols []string
+	}
+	var uniq []uniqDef
+	// Column-level UNIQUE constraints (in column order).
+	for _, cd := range s.Columns {
+		if cd.Unique {
+			uniq = append(uniq, uniqDef{cols: []string{cd.Name}})
+		}
+	}
+	// Table-level UNIQUE constraints.
+	for _, tc := range s.Constraints {
+		if tc.Type != sql.ConstraintUnique {
+			continue
+		}
+		var cols []string
+		for _, ic := range tc.Columns {
+			cols = append(cols, ic.Name)
+		}
+		uniq = append(uniq, uniqDef{cols: cols})
+	}
+	if len(uniq) == 0 {
+		return &Result{}
+	}
+
+	isWithoutRowid := hasWithoutRowidKeyword(strings.ToUpper(s.RawSQL))
+	// PK columns (for redundancy dropping on WITHOUT ROWID).
+	var pkList []string
+	for _, cd := range s.Columns {
+		if cd.PrimaryKey {
+			pkList = append(pkList, cd.Name)
+		}
+	}
+	for _, tc := range s.Constraints {
+		if tc.Type == sql.ConstraintPrimaryKey {
+			for _, ic := range tc.Columns {
+				if n, err := strconv.Atoi(ic.Name); err == nil && n >= 1 && n <= len(s.Columns) {
+					pkList = append(pkList, s.Columns[n-1].Name)
+				} else {
+					pkList = append(pkList, ic.Name)
+				}
+			}
+		}
+	}
+
+	seen := map[string]bool{}
+	seq := 0
+	for _, u := range uniq {
+		seq++
+		key := strings.Join(u.cols, ",")
+		if seen[key] {
+			continue // duplicate UNIQUE constraint
+		}
+		seen[key] = true
+		// On WITHOUT ROWID, a UNIQUE constraint on exactly the PK columns is
+		// redundant (the PK already enforces uniqueness) and is dropped.
+		if isWithoutRowid && sameColumnSet(u.cols, pkList) {
+			continue
+		}
+		idxName := fmt.Sprintf("sqlite_autoindex_%s_%d", tableName, seq)
+		cols := u.cols
+		idxSQL := fmt.Sprintf("CREATE UNIQUE INDEX %s ON %s(%s)", idxName, tableName, strings.Join(cols, ", "))
+		idxEntry := &schema.Entry{
+			Type:     schema.TypeIndex,
+			Name:     idxName,
+			TblName:  tableName,
+			RootPage: 0, // no backing b-tree; uniqueness is enforced by scan
+			SQL:      idxSQL,
+		}
+		if err := ctx.Schema.AddEntry(idxEntry); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	return &Result{}
 }
 
 // isSyntheticSystemEntry reports whether entry is the schema manager's

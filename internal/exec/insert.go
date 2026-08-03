@@ -93,6 +93,22 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 		if evalErr != nil {
 			return &Result{Error: evalErr}
 		}
+		// An explicit rowid/_rowid_/oid column in the INSERT list sets the
+		// new row's rowid (SQLite allows INSERT INTO t(rowid, ...) VALUES).
+		var explicitRowID *int64
+		for i, col := range s.Columns {
+			if isRowIDName(col) && i < len(tuple) {
+				v, err := e.evalExpr(tuple[i], nil)
+				if err != nil {
+					return &Result{Error: err}
+				}
+				if v != nil {
+					if iv, ok := util.UnwrapColumnValue(v).(int64); ok {
+						explicitRowID = &iv
+					}
+				}
+			}
+		}
 
 		// Handle REPLACE (INSERT OR REPLACE): delete conflicting rows before
 		// inserting. The new row's rowid is computed BEFORE the deletes
@@ -133,6 +149,8 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 			var fixed *int64
 			if haveReplaceRowID {
 				fixed = &replaceRowID
+			} else if explicitRowID != nil {
+				fixed = explicitRowID
 			}
 			res := e.insertRow(dbCtx.Pager, tableEntry, colDefs, values, fixed)
 			if res.Error != nil {
@@ -440,7 +458,11 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 		if cd.Check != nil {
 			checkVal, err := e.evalExpr(cd.Check, row)
 			if err == nil && checkVal != nil && !toBool(checkVal) {
-				return fmt.Errorf("CHECK constraint failed: %s", sql.ExprString(cd.Check))
+				// Prefer the original CHECK expression text from the CREATE
+				// TABLE SQL (SQLite reports the expression verbatim, e.g.
+				// "rowid!=33" not the re-rendered "rowid <> 33").
+				checkText := e.checkConstraintText(tableEntry.SQL, cd.Name, cd.Check)
+				return fmt.Errorf("CHECK constraint failed: %s", checkText)
 			}
 		}
 	}
@@ -1894,6 +1916,47 @@ func parseTriggerHeader(triggerSQL string) (timing, event string) {
 		}
 	}
 	return timing, event
+}
+
+// checkConstraintText extracts the original CHECK constraint expression text
+// from a CREATE TABLE SQL for the given column. Falls back to the re-rendered
+// expression when the raw text cannot be located.
+func (e *Engine) checkConstraintText(createSQL, colName string, check sql.Expr) string {
+	upper := strings.ToUpper(createSQL)
+	start := strings.Index(upper, "(")
+	end := strings.LastIndex(upper, ")")
+	if start < 0 || end <= start {
+		return sql.ExprString(check)
+	}
+	body := createSQL[start+1 : end]
+	for _, part := range splitColumnDefs(body) {
+		if !strings.HasPrefix(strings.TrimSpace(part), colName) {
+			continue
+		}
+		pUpper := strings.ToUpper(part)
+		ci := strings.Index(pUpper, "CHECK")
+		if ci < 0 {
+			continue
+		}
+		lp := strings.Index(part[ci:], "(")
+		if lp < 0 {
+			continue
+		}
+		lp += ci
+		depth := 0
+		for i := lp; i < len(part); i++ {
+			switch part[i] {
+			case '(':
+				depth++
+			case ')':
+				depth--
+				if depth == 0 {
+					return strings.TrimSpace(part[lp+1 : i])
+				}
+			}
+		}
+	}
+	return sql.ExprString(check)
 }
 
 func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) ([]interface{}, error) {
