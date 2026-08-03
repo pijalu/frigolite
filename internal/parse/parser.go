@@ -1688,10 +1688,18 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		// uniqueflag is RHS[2]: empty or "UNIQUE".
 		unique := strings.EqualFold(strings.TrimSpace(getString(getRHS(p, ruleNo, 2))), "UNIQUE")
 		// The sortlist is []OrderByTerm; convert to []IndexColumn.
+		// A plain identifier becomes a column reference. A numeric literal
+		// is a 1-based column position (SQLite allows "CREATE INDEX ON
+		// t1(1)" meaning "on the first column"); record it by its numeric
+		// text so the engine can resolve it against the table columns.
+		// Other expressions (e.g. "a+b") are not supported as index keys.
 		var cols []sql.IndexColumn
 		for _, term := range sortlist {
-			if ref, ok := term.Expr.(*sql.ColumnRef); ok {
-				cols = append(cols, sql.IndexColumn{Name: ref.Name, Desc: term.Desc})
+			switch ex := term.Expr.(type) {
+			case *sql.ColumnRef:
+				cols = append(cols, sql.IndexColumn{Name: ex.Name, Desc: term.Desc})
+			case *sql.NumericLit:
+				cols = append(cols, sql.IndexColumn{Name: ex.Value, Desc: term.Desc})
 			}
 		}
 		return &sql.CreateIndexStmt{
