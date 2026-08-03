@@ -100,6 +100,17 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 		if res := e.checkUpdateConflicts(tableEntry, colDefs, changes); res.Error != nil {
 			return res
 		}
+		// Enforce FOREIGN KEY parent actions: children referencing the old
+		// key values are restricted (error) or cascaded/updated.
+		if e.foreignKeys {
+			for _, ch := range changes {
+				oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+				newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+				if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow); res.Error != nil {
+					return res
+				}
+			}
+		}
 		result = e.applyUpdateChanges(tableEntry.RootPage, changes)
 	}
 	if result.Error != nil {

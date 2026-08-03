@@ -11,7 +11,6 @@ package parse
 import (
 	"encoding/hex"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -60,7 +59,6 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 		size := -nrhs
 
 		result := handleRule(ruleNo, p, lookahead, lookaheadToken)
-		if os.Getenv("PARSE_DEBUG") != "" { fmt.Fprintf(os.Stderr, "rule %d nrhs=%d res=%T\n", ruleNo, size, result) }
 
 		// Default: pass through first RHS value if handler returned nil
 		// (Only for non-empty rules - empty rules have no RHS values)
@@ -370,6 +368,15 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		return cd
 
+	// Rule 43: ccons ::= defer_subclause
+	// Produces a References marker carrying the DEFERRABLE clause so the
+	// merge can append it to a preceding REFERENCES constraint.
+	case 43:
+		if d, ok := getRHS(p, ruleNo, 1).(string); ok {
+			return sql.ColumnDef{References: " " + d}
+		}
+		return sql.ColumnDef{}
+
 	// Rule 44: ccons ::= COLLATE ids
 	case 44:
 		return sql.ColumnDef{Collate: getString(getRHS(p, ruleNo, 2))}
@@ -377,6 +384,26 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 45: generated ::= LP expr RP
 	case 45:
 		return getExpr(getRHS(p, ruleNo, 2))
+
+	// Rule 61: defer_subclause ::= DEFERRABLE init_deferred_pred_opt
+	case 61:
+		suffix := ""
+		if d, ok := getRHS(p, ruleNo, 2).(string); ok {
+			suffix = d
+		}
+		return "DEFERRABLE" + suffix
+
+	// Rule 62: init_deferred_pred_opt ::= (empty)
+	case 62:
+		return ""
+
+	// Rule 63: init_deferred_pred_opt ::= INITIALLY DEFERRED
+	case 63:
+		return " INITIALLY DEFERRED"
+
+	// Rule 64: init_deferred_pred_opt ::= INITIALLY IMMEDIATE
+	case 64:
+		return " INITIALLY IMMEDIATE"
 
 	// Rule 46: generated ::= LP expr RP ID
 	case 46:
@@ -467,14 +494,28 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 71: tcons ::= FOREIGN KEY LP eidlist RP REFERENCES nm eidlist_opt refargs defer_subclause_opt
 	case 71:
+		refTable := getString(getRHS(p, ruleNo, 7))
+		refCols := getStringList(getRHS(p, ruleNo, 8))
+		refAction := ""
+		if ra := getString(getRHS(p, ruleNo, 9)); ra != "" {
+			refAction = strings.TrimSpace(ra)
+		}
+		deferred := false
+		if d, ok := getRHS(p, ruleNo, 10).(string); ok {
+			deferred = strings.Contains(strings.ToUpper(d), "DEFERRABLE") && strings.Contains(strings.ToUpper(d), "INITIALLY DEFERRED")
+		}
 		return sql.TableConstraint{
-			Type:    sql.ConstraintForeignKey,
-			Columns: fkColumnsFromEidlist(getRHS(p, ruleNo, 4)),
+			Type:      sql.ConstraintForeignKey,
+			Columns:   fkColumnsFromEidlist(getRHS(p, ruleNo, 4)),
+			RefTable:  refTable,
+			RefCols:   refCols,
+			RefAction: refAction,
+			Deferred:  deferred,
 		}
 
 	// Rule 72: defer_subclause_opt ::=
 	case 72:
-		return nil
+		return ""
 
 	// Rule 73: onconf ::=
 	case 73:
@@ -839,6 +880,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			return joinOp{Comma: true}
 		}
 		return joinOp{Kind: "INNER"}
+
+	// Rule 121: xfullname ::= nm DOT nm (schema-qualified table name used by
+	// INSERT/UPDATE/DELETE, e.g. "temp.t2"). Produces "schema.table".
+	case 121:
+		a := getString(getRHS(p, ruleNo, 1))
+		b := getString(getRHS(p, ruleNo, 3))
+		return a + "." + b
 
 	// Rule 122: fullname ::= nm AS nm — table alias. The value is the
 	// TABLE NAME (the alias is consumed); the join-op productions are
@@ -1887,6 +1935,23 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		name := getString(getRHS(p, ruleNo, 4))
 		return &sql.DropTriggerStmt{Name: name, IfExists: ifExists}
 
+	// Rule 284: cmd ::= ATTACH database_kw_opt expr AS expr key_opt
+	// (also handles DETACH when the schema/expr arrangement matches).
+	case 284:
+		pathExpr := getExpr(getRHS(p, ruleNo, 3))
+		schemaExpr := getExpr(getRHS(p, ruleNo, 5))
+		path := ""
+		if lit, ok := pathExpr.(*sql.StringLit); ok {
+			path = lit.Value
+		}
+		schema := ""
+		if lit, ok := schemaExpr.(*sql.StringLit); ok {
+			schema = lit.Value
+		} else if ref, ok := schemaExpr.(*sql.ColumnRef); ok {
+			schema = ref.Name
+		}
+		return &sql.AttachStmt{Path: path, PathExpr: pathExpr, Schema: schema}
+
 	// Rule 288: cmd ::= REINDEX
 	case 288:
 		return &sql.ReindexStmt{}
@@ -2710,7 +2775,13 @@ func mergeColumnConstraints(dst *sql.ColumnDef, cons []sql.ColumnDef) {
 			dst.ConstraintName = c.ConstraintName
 		}
 		if c.References != "" {
-			dst.References = c.References
+			if strings.HasPrefix(c.References, " ") && dst.References != "" {
+				// A defer_subclause marker (leading space) appends to the
+				// preceding REFERENCES constraint.
+				dst.References += c.References
+			} else {
+				dst.References = c.References
+			}
 		}
 		if c.OnConflict != "" {
 			dst.OnConflict = c.OnConflict

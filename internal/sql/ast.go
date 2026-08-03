@@ -270,6 +270,12 @@ type TableConstraint struct {
 	Name    string          // optional constraint name
 	Expr    Expr            // for CHECK: the check expression
 	Columns []IndexedColumn // for PRIMARY KEY/UNIQUE: indexed columns with options
+
+	// FOREIGN KEY reference info (Type == ConstraintForeignKey):
+	RefTable  string   // referenced (parent) table name
+	RefCols   []string // referenced parent columns (empty = parent's PK)
+	RefAction string   // "ON DELETE X ON UPDATE Y" action text
+	Deferred  bool     // DEFERRABLE INITIALLY DEFERRED
 }
 
 type CreateTableStmt struct {

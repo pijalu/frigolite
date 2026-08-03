@@ -112,6 +112,19 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 				return trigResult
 			}
 		}
+
+		// Enforce FOREIGN KEY actions against the post-trigger state: a
+		// child referencing a parent key that no longer exists triggers
+		// RESTRICT/NO ACTION (error), CASCADE (delete), or SET NULL /
+		// SET DEFAULT. The check runs after AFTER triggers because a trigger
+		// may re-insert a parent row (restoring the referenced key).
+		if e.foreignKeys {
+			for _, row := range deletedRows {
+				if res := e.fkParentDelete(tableEntry, colDefs, row); res.Error != nil {
+					return res
+				}
+			}
+		}
 		return &Result{Changes: deleted}
 	}
 
