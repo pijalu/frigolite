@@ -212,6 +212,15 @@ func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.C
 		if oldVal == nil {
 			continue
 		}
+		// For UPDATE, if the parent key value did not actually change there
+		// is no FK impact (children still reference the same key).
+		if !isDelete && newRow != nil {
+			newValRaw, _ := newRow.Get(ref.parentCol)
+			newVal := unwrapRowValue(newValRaw)
+			if newVal != nil && util.CompareValues(newVal, oldVal) == 0 {
+				continue
+			}
+		}
 		childEntry, err := e.schema.FindTable(ref.childTable)
 		if err != nil {
 			continue

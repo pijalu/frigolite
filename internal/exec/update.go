@@ -614,6 +614,19 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 		if conflict {
 			continue
 		}
+		// OR IGNORE also skips rows that would violate a FOREIGN KEY
+		// constraint (child direction: the new child value has no parent;
+		// parent direction: a child references the old key value).
+		if e.foreignKeys {
+			if res := e.checkForeignKeyViolations(tableEntry, colDefs, ch.values); res.Error != nil {
+				continue
+			}
+			oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+			newRow := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+			if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow); res.Error != nil {
+				continue
+			}
+		}
 		// Write the row.
 		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 			return cell.RowID == ch.rowID
@@ -795,6 +808,9 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
 	hasTriggers := e.hasTriggersForTable(tableEntry.Name)
 	changesMade := int64(0)
+	// Snapshot so a FOREIGN KEY violation mid-statement rolls back any
+	// conflict rows already deleted.
+	snap := e.pager.Snapshot()
 
 	for _, c := range changes {
 		type conflictInfo struct {
@@ -884,6 +900,24 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 				if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
 					return trigResult
 				}
+			}
+		}
+
+		// UPDATE OR REPLACE still enforces FOREIGN KEY constraints: a new
+		// value that orphans a child (or a child value with no parent) is an
+		// error, matching SQLite.
+		if e.foreignKeys {
+			if res := e.checkForeignKeyViolations(tableEntry, colDefs, c.values); res.Error != nil {
+				e.pager.Restore(snap)
+				e.invalidateRowIDCache(tableEntry.RootPage)
+				return res
+			}
+			oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
+			newRow := buildRowMapFromValues(c.values, colDefs, c.rowID)
+			if res := e.fkParentUpdate(tableEntry, colDefs, oldRow, newRow); res.Error != nil {
+				e.pager.Restore(snap)
+				e.invalidateRowIDCache(tableEntry.RootPage)
+				return res
 			}
 		}
 
