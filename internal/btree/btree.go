@@ -279,7 +279,7 @@ func (c *Cursor) seekInInteriorTable(pg *pager.Page, page *storage.BTreePage, ro
 
 	for lo <= hi {
 		mid := (lo + hi) / 2
-		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), mid))
+		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, mid))
 		// Interior table cells: 4-byte left child + rowID varint
 		midRowID, _ := util.GetVarint(pg.Data[cellOff+4:])
 		if int64(midRowID) < rowID {
@@ -290,7 +290,7 @@ func (c *Cursor) seekInInteriorTable(pg *pager.Page, page *storage.BTreePage, ro
 		}
 	}
 	if lo < int(page.CellCount) {
-		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), lo))
+		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, lo))
 		childPage = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
 	}
 	return c.seekInPage(childPage, rowID)
@@ -1283,9 +1283,16 @@ func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChi
 	}
 
 	// If the new key is the largest, the new child becomes the rightmost;
-	// otherwise the rightmost pointer is unchanged.
+	// otherwise the cell that follows the new separator (the old pointer to
+	// the split leaf) must be repointed to the new sibling. The separator
+	// {leftChild, key} routes keys < key to leftChild and keys >= key to
+	// the NEXT cell's left child (or the rightmost pointer for the last
+	// cell), so the sibling becomes the next cell's left child.
 	if insertIdx == int(page.CellCount)-1 {
 		binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], rightChild)
+	} else {
+		nextOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+(insertIdx+1)*2 : ptrBase+(insertIdx+1)*2+2]))
+		binary.BigEndian.PutUint32(pg.Data[nextOff:nextOff+4], rightChild)
 	}
 
 	return t.pager.WritePage(pg)
