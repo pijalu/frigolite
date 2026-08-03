@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
@@ -40,10 +41,9 @@ type RenameRange struct {
 //   - Finds all ColumnRef nodes where Name matches OldName AND
 //     (Table qualifier is empty or matches ctx.TableName)
 func FindRenameTokens(sqlText string, ctx *RenameContext) ([]RenameRange, error) {
-	parser := sql.NewParser(sqlText)
-	stmts := parser.Parse()
-	if parser.Err() != nil {
-		return nil, fmt.Errorf("error parsing SQL: %w", parser.Err())
+	stmts, perr := parse.ParseSQL(sqlText)
+	if perr != nil {
+		return nil, fmt.Errorf("error parsing SQL: %w", perr)
 	}
 
 	var ranges []RenameRange

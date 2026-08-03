@@ -1307,9 +1307,8 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		return cached
 	}
 	// Fall back to re-parsing
-	parser := sql.NewParser(createSQL)
-	stmts := parser.Parse()
-	if len(stmts) == 0 {
+	stmts, perr := parse.ParseSQL(createSQL)
+	if perr != nil || len(stmts) == 0 {
 		return nil
 	}
 	ct, ok := stmts[0].(*sql.CreateTableStmt)
@@ -1337,16 +1336,6 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		e.colCache[tableName] = colDefs
 		return colDefs
 	}
-	// The hand-written parser (sql.NewParser) can return a nil/empty
-	// CreateTableStmt for some constructs (e.g. "NOT NULL ON CONFLICT REPLACE
-	// DEFAULT 3"). Fall back to the go-lemon parser, which handles them, so
-	// SELECT/INSERT decode these tables correctly.
-	if pstmts, perr := parse.ParseSQL(createSQL); perr == nil && len(pstmts) > 0 {
-		if ct, ok := pstmts[0].(*sql.CreateTableStmt); ok && ct != nil && len(ct.Columns) > 0 {
-			e.colCache[tableName] = ct.Columns
-			return ct.Columns
-		}
-	}
 	return nil
 }
 
@@ -1359,9 +1348,8 @@ func (e *Engine) tableConstraints(tableName, createSQL string) []sql.TableConstr
 	if cached, ok := e.tcCache[tableName]; ok {
 		return cached
 	}
-	parser := sql.NewParser(createSQL)
-	stmts := parser.Parse()
-	if len(stmts) == 0 {
+	stmts, perr := parse.ParseSQL(createSQL)
+	if perr != nil || len(stmts) == 0 {
 		return nil
 	}
 	ct, ok := stmts[0].(*sql.CreateTableStmt)

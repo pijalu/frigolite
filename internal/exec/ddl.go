@@ -263,27 +263,6 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 				}
 			}
 		}
-		// The go-lemon parser does not populate s.Constraints for table-level
-		// constraints (e.g. PRIMARY KEY(a,rowid,b)); re-parse the raw SQL with
-		// the hand-written parser, which does, to catch rowid references in the
-		// PRIMARY KEY of a WITHOUT ROWID table (SQLite: no such column).
-		if s.RawSQL != "" {
-			pp := sql.NewParser(s.RawSQL)
-			pstmts := pp.Parse()
-			if len(pstmts) > 0 {
-				if ct, ok := pstmts[0].(*sql.CreateTableStmt); ok && ct != nil {
-					for _, tc := range ct.Constraints {
-						if tc.Type == sql.ConstraintPrimaryKey {
-							for _, col := range tc.Columns {
-								if isRowIDName(col.Name) {
-									return &Result{Error: fmt.Errorf("no such column: %s", col.Name)}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 
 	pg := ctx.Pager.AllocatePage()

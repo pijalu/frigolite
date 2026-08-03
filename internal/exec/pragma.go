@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -696,9 +697,8 @@ func (e *Engine) execPragmaIndexInfo(arg string, xinfo bool) *Result {
 // INDEX SQL: names and DESC flags from the AST, collations from the table
 // column definitions (or an explicit COLLATE in the index column list).
 func (e *Engine) indexColumnsFromSQL(sqlStr string, ctx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef) []indexPragmaColumn {
-	p := sql.NewParser(sqlStr)
-	stmts := p.Parse()
-	if len(stmts) == 0 {
+	stmts, perr := parse.ParseSQL(sqlStr)
+	if perr != nil || len(stmts) == 0 {
 		return nil
 	}
 	ci, ok := stmts[0].(*sql.CreateIndexStmt)

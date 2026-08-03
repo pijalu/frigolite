@@ -39,20 +39,10 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 		input += "\n;"
 	}
 
-	// The LALR grammar accepts RETURNING clauses (SQLite 3.35+ syntax) but its
-	// rule handlers do not carry the clause into the AST — INSERT/UPDATE/DELETE
-	// with RETURNING parse successfully but lose the projection. The hand-written
-	// RD parser implements RETURNING fully, so prefer it whenever the input
-	// contains a RETURNING keyword token.
-	if containsReturningKeyword(input) {
-		rdParser := sql.NewParser(input)
-		rdStmts := rdParser.Parse()
-		if rdParser.Err() == nil && len(rdStmts) > 0 {
-			return rdStmts, nil
-		}
-		// Fall through to the LALR path if the RD parser rejects the input.
-	}
-
+	// The LALR grammar handles RETURNING clauses (SQLite 3.35+ syntax) with
+	// full projection fidelity: INSERT/UPDATE/DELETE RETURNING populates the
+	// AST's Returning/HasReturning fields (multi-expression RETURNING folds
+	// into a RowValue). No RD fallback is needed for RETURNING.
 	tables := GetParseTables()
 	parser := NewParser(tables)
 
@@ -448,6 +438,18 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 46:
 		return getExpr(getRHS(p, ruleNo, 2))
 
+	// Rule 371: ccons ::= AS generated
+	case 371:
+		return sql.ColumnDef{Generated: getExpr(getRHS(p, ruleNo, 2))}
+
+	// Rule 372: ccons ::= GENERATED ALWAYS AS generated
+	case 372:
+		return sql.ColumnDef{Generated: getExpr(getRHS(p, ruleNo, 4))}
+
+	// Rule 373: ccons ::= AS generated
+	case 373:
+		return sql.ColumnDef{Generated: getExpr(getRHS(p, ruleNo, 2))}
+
 	// Rule 47: autoinc ::=
 	case 47:
 		return false
@@ -530,8 +532,33 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 72:
 		return nil
 
-		// Rule 76: orconf ::= OR resolvel
+	// Rule 73: onconf ::=
+	case 73:
+		return ""
+
+	// Rule 74: onconf ::= ON CONFLICT orconf
+	case 74:
+		return getString(getRHS(p, ruleNo, 3))
+
+	// Rule 75: orconf ::=
+	case 75:
+		return ""
+
+	// Rule 76: orconf ::= OR resolvel
+	case 76:
 		return getString(getRHS(p, ruleNo, 2))
+
+	// Rule 77: resolvel ::= IGNORE
+	case 77:
+		return getString(getRHS(p, ruleNo, 1))
+
+	// Rule 78: resolvel ::= REPLACE
+	case 78:
+		return getString(getRHS(p, ruleNo, 1))
+
+	// Rule 379: resolvel ::= ROLLBACK|ABORT|FAIL
+	case 379:
+		return getString(getRHS(p, ruleNo, 1))
 
 	// Rule 79: cmd ::= DROP TABLE ifexists fullname
 	case 79:
@@ -1000,23 +1027,35 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 152: cmd ::= with DELETE FROM xfullname indexed_opt where_opt_ret
 	case 152:
 		tbl := getString(getRHS(p, ruleNo, 4))
-		where := getExpr(getRHS(p, ruleNo, 6))
-		return &sql.DeleteStmt{
-			Table: tbl,
-			Where: where,
+		wr := getWhereRet(getRHS(p, ruleNo, 6))
+		stmt := &sql.DeleteStmt{Table: tbl}
+		if wr != nil {
+			stmt.Where = wr.where
+			if len(wr.returning) > 0 {
+				stmt.Returning = foldReturning(wr.returning)
+				stmt.HasReturning = true
+			}
 		}
+		return stmt
 
-	// Rule 159: cmd ::= with UPDATE orconf xfullname indexed_opt SET setlist from where_opt
+	// Rule 159: cmd ::= with UPDATE orconf xfullname indexed_opt SET setlist from where_opt_ret
 	case 159:
 		tbl := getString(getRHS(p, ruleNo, 4))
 		setlist := getAssignments(getRHS(p, ruleNo, 7))
-		where := getExpr(getRHS(p, ruleNo, 9))
-		return &sql.UpdateStmt{
+		wr := getWhereRet(getRHS(p, ruleNo, 9))
+		stmt := &sql.UpdateStmt{
 			Table:       tbl,
 			OnConflict:  getString(getRHS(p, ruleNo, 3)),
 			Assignments: setlist,
-			Where:       where,
 		}
+		if wr != nil {
+			stmt.Where = wr.where
+			if len(wr.returning) > 0 {
+				stmt.Returning = foldReturning(wr.returning)
+				stmt.HasReturning = true
+			}
+		}
+		return stmt
 
 	// Rule 160: setlist ::= setlist COMMA nm EQ expr
 	case 160:
@@ -1041,11 +1080,22 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 155: where_opt_ret ::=
 	case 155:
-		return nil
+		return &whereRet{}
 
 	// Rule 156: where_opt_ret ::= WHERE expr
 	case 156:
-		return getExpr(getRHS(p, ruleNo, 2))
+		return &whereRet{where: getExpr(getRHS(p, ruleNo, 2))}
+
+	// Rule 157: where_opt_ret ::= RETURNING selcollist
+	case 157:
+		return &whereRet{returning: getSelectColumns(getRHS(p, ruleNo, 2))}
+
+	// Rule 158: where_opt_ret ::= WHERE expr RETURNING selcollist
+	case 158:
+		return &whereRet{
+			where:     getExpr(getRHS(p, ruleNo, 2)),
+			returning: getSelectColumns(getRHS(p, ruleNo, 4)),
+		}
 
 	// Rule 164: cmd ::= with insert_cmd INTO xfullname idlist_opt select upsert
 	case 164:
@@ -1073,17 +1123,12 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
 			CTEs:      getCTEDefs(getRHS(p, ruleNo, 1)),
 		}
-		// The upsert nonterminal (RHS 7) carries either an ON CONFLICT clause
-		// or a RETURNING-only projection (rule 167).
-		switch v := getRHS(p, ruleNo, 7).(type) {
-		case *sql.OnConflictClause:
-			stmt.OnConflict = v
-		case []sql.SelectColumn:
-			// RETURNING-only upsert (rule 167). ParseSQL routes statements
-			// containing RETURNING to the RD parser, so this path only fires
-			// when the RD parser rejects the input; keep it simple.
-			if len(v) > 0 {
-				stmt.Returning = v[0]
+		// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause and/or
+		// a RETURNING projection.
+		if uv := getUpsertVal(getRHS(p, ruleNo, 7)); uv != nil {
+			stmt.OnConflict = uv.onConflict
+			if len(uv.returning) > 0 {
+				stmt.Returning = foldReturning(uv.returning)
 				stmt.HasReturning = true
 			}
 		}
@@ -1095,20 +1140,35 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		table := getString(getRHS(p, ruleNo, 4))
 		columns := getStringList(getRHS(p, ruleNo, 5))
 		cmd := getString(getRHS(p, ruleNo, 2))
-		return &sql.InsertStmt{
+		stmt := &sql.InsertStmt{
 			Table:     table,
 			Columns:   columns,
 			IsReplace: strings.EqualFold(cmd, "REPLACE"),
 			OrIgnore:  strings.EqualFold(cmd, "IGNORE"),
 		}
+		// The returning nonterminal (RHS 8) is either nil (rule 166) or a
+		// []sql.SelectColumn from `RETURNING selcollist` (rule 167).
+		if cols, ok := getRHS(p, ruleNo, 8).([]sql.SelectColumn); ok && len(cols) > 0 {
+			stmt.Returning = foldReturning(cols)
+			stmt.HasReturning = true
+		}
+		return stmt
 
 	// Rule 166: upsert ::=
 	case 166:
-		return nil
+		return &upsertVal{}
 
 	// Rule 167: upsert ::= RETURNING selcollist
 	case 167:
+		return &upsertVal{returning: getSelectColumns(getRHS(p, ruleNo, 2))}
+
+	// Rule 172: returning ::= RETURNING selcollist
+	case 172:
 		return getSelectColumns(getRHS(p, ruleNo, 2))
+
+	// Rule 385: returning ::=
+	case 385:
+		return nil
 
 	// Rule 168: upsert ::= ON CONFLICT LP sortlist RP where_opt
 	//                       DO UPDATE SET setlist where_opt upsert
@@ -1124,10 +1184,14 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		// A chained ON CONFLICT clause: SQLite gives the last clause
 		// precedence, so surface it instead of the first.
-		if chained, ok := getRHS(p, ruleNo, 12).(*sql.OnConflictClause); ok && chained != nil {
+		if chained, ok := getRHS(p, ruleNo, 12).(*upsertVal); ok && chained != nil && chained.onConflict != nil {
 			return chained
 		}
-		return oc
+		uv := &upsertVal{onConflict: oc}
+		if chained, ok := getRHS(p, ruleNo, 12).(*upsertVal); ok && chained != nil {
+			uv.returning = chained.returning
+		}
+		return uv
 
 	// Rule 169: upsert ::= ON CONFLICT LP sortlist RP where_opt DO NOTHING upsert
 	case 169:
@@ -1136,23 +1200,33 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Action:         sql.ConflictDoNothing,
 			ConflictColumn: conflictTargetColumn(target),
 		}
-		if chained, ok := getRHS(p, ruleNo, 9).(*sql.OnConflictClause); ok && chained != nil {
+		if chained, ok := getRHS(p, ruleNo, 9).(*upsertVal); ok && chained != nil && chained.onConflict != nil {
 			return chained
 		}
-		return oc
+		uv := &upsertVal{onConflict: oc}
+		if chained, ok := getRHS(p, ruleNo, 9).(*upsertVal); ok && chained != nil {
+			uv.returning = chained.returning
+		}
+		return uv
 
 	// Rule 170: upsert ::= ON CONFLICT DO NOTHING returning
 	case 170:
-		return &sql.OnConflictClause{
-			Action: sql.ConflictDoNothing,
+		return &upsertVal{
+			onConflict: &sql.OnConflictClause{
+				Action: sql.ConflictDoNothing,
+			},
+			returning: getSelectColumns(getRHS(p, ruleNo, 5)),
 		}
 
 	// Rule 171: upsert ::= ON CONFLICT DO UPDATE SET setlist where_opt returning
 	case 171:
-		return &sql.OnConflictClause{
-			Action:      sql.ConflictDoUpdate,
-			Where:       getExpr(getRHS(p, ruleNo, 7)),
-			Assignments: getAssignments(getRHS(p, ruleNo, 6)),
+		return &upsertVal{
+			onConflict: &sql.OnConflictClause{
+				Action:      sql.ConflictDoUpdate,
+				Where:       getExpr(getRHS(p, ruleNo, 7)),
+				Assignments: getAssignments(getRHS(p, ruleNo, 6)),
+			},
+			returning: getSelectColumns(getRHS(p, ruleNo, 8)),
 		}
 
 	case 173:
@@ -3073,6 +3147,64 @@ type createTableArgs struct {
 	constraints  []sql.TableConstraint
 	withoutRowid bool
 	strict       bool
+}
+
+// whereRet carries the WHERE expression and optional RETURNING projection for
+// DELETE and UPDATE statements. The where_opt_ret nonterminal (rules 155-158)
+// produces this value, and the DELETE/UPDATE cmd rules (152, 159) consume it.
+// RETURNING columns are folded into a single sql.SelectColumn (multi-expression
+// RETURNING becomes a RowValue), matching the AST's single-Returning field.
+type whereRet struct {
+	where     sql.Expr
+	returning []sql.SelectColumn
+}
+
+// upsertVal carries the ON CONFLICT clause and/or RETURNING projection that an
+// INSERT ... upsert nonterminal (rules 166-171) produces. INSERT statements can
+// have both ON CONFLICT ... DO ... and RETURNING (e.g.
+// "INSERT ... ON CONFLICT DO UPDATE SET ... RETURNING *"), so the upsert value
+// carries both into rule 164's cmd handler.
+type upsertVal struct {
+	onConflict *sql.OnConflictClause
+	returning  []sql.SelectColumn
+}
+
+// getUpsertVal extracts an *upsertVal semantic value.
+func getUpsertVal(v interface{}) *upsertVal {
+	if v == nil {
+		return nil
+	}
+	if u, ok := v.(*upsertVal); ok {
+		return u
+	}
+	return nil
+}
+
+// getWhereRet extracts a *whereRet semantic value.
+func getWhereRet(v interface{}) *whereRet {
+	if v == nil {
+		return nil
+	}
+	if w, ok := v.(*whereRet); ok {
+		return w
+	}
+	return nil
+}
+
+// foldReturning folds a slice of SELECT columns into a single sql.SelectColumn
+// with a RowValue for multi-expression RETURNING, or nil when empty.
+func foldReturning(cols []sql.SelectColumn) sql.SelectColumn {
+	if len(cols) == 0 {
+		return sql.SelectColumn{}
+	}
+	if len(cols) == 1 {
+		return cols[0]
+	}
+	exprs := make([]sql.Expr, len(cols))
+	for i, c := range cols {
+		exprs[i] = c.Expr
+	}
+	return sql.SelectColumn{Expr: &sql.RowValue{Values: exprs}}
 }
 
 // getTableConstraints extracts a []sql.TableConstraint semantic value.

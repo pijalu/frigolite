@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -672,9 +673,8 @@ func (e *Engine) evalIndexWhere(whereSQL string, row RowMap) (bool, error) {
 	if strings.TrimSpace(whereSQL) == "" {
 		return true, nil
 	}
-	p := sql.NewParser("SELECT " + whereSQL)
-	stmts := p.Parse()
-	if len(stmts) == 0 {
+	stmts, perr := parse.ParseSQL("SELECT " + whereSQL)
+	if perr != nil || len(stmts) == 0 {
 		return true, nil
 	}
 	sel, ok := stmts[0].(*sql.SelectStmt)
@@ -1798,9 +1798,8 @@ func (e *Engine) fireTrigger(t *schema.Entry, event, timing string, newRow, oldR
 	if body == "" {
 		return nil
 	}
-	parser := sql.NewParser(body)
-	stmts := parser.Parse()
-	if parser.Err() != nil {
+	stmts, perr := parse.ParseSQL(body)
+	if perr != nil {
 		return nil
 	}
 
@@ -1848,9 +1847,8 @@ func (e *Engine) parseTriggerWhen(triggerSQL string) sql.Expr {
 	if exprText == "" {
 		return nil
 	}
-	parser := sql.NewParser("SELECT " + exprText)
-	stmts := parser.Parse()
-	if parser.Err() != nil || len(stmts) == 0 {
+	stmts, perr := parse.ParseSQL("SELECT " + exprText)
+	if perr != nil || len(stmts) == 0 {
 		return nil
 	}
 	sel, ok := stmts[0].(*sql.SelectStmt)
@@ -2013,10 +2011,9 @@ func (e *Engine) evalReturningExprs(ret sql.SelectColumn, row Row, colDefs []sql
 func (e *Engine) execInsertView(s *sql.InsertStmt, viewEntry *schema.Entry) *Result {
 	// Resolve the view definition: parse and validate its SELECT expressions.
 	// This surfaces errors like "no such collation sequence: X" at insert time.
-	parser := sql.NewParser(viewEntry.SQL)
-	stmts := parser.Parse()
-	if parser.Err() != nil {
-		return &Result{Error: parser.Err()}
+	stmts, perr := parse.ParseSQL(viewEntry.SQL)
+	if perr != nil {
+		return &Result{Error: perr}
 	}
 	var viewSelect *sql.SelectStmt
 	for _, st := range stmts {

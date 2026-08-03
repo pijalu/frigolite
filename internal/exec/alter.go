@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/schema"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
@@ -550,9 +551,8 @@ func (e *Engine) validateRename(oldName, newName string) error {
 // Returns an error formatted to match SQLite's "error in trigger %s: ..." pattern.
 func (e *Engine) checkTriggerColRefs(entry *schema.Entry) error {
 	// Parse the trigger SQL to get its AST
-	parser := sql.NewParser(entry.SQL)
-	stmts := parser.Parse()
-	if parser.Err() != nil || len(stmts) == 0 {
+	stmts, perr := parse.ParseSQL(entry.SQL)
+	if perr != nil || len(stmts) == 0 {
 		return nil // Can't validate if we can't parse
 	}
 
@@ -905,9 +905,8 @@ func hasViewCircularRef(viewSQL, viewName string) bool {
 	bodySQL := viewSQL[idx+4:]
 
 	// Parse the SELECT to check for circular references
-	parser := sql.NewParser(bodySQL)
-	stmts := parser.Parse()
-	if parser.Err() != nil || len(stmts) == 0 {
+	stmts, perr := parse.ParseSQL(bodySQL)
+	if perr != nil || len(stmts) == 0 {
 		return false
 	}
 	sel, ok := stmts[0].(*sql.SelectStmt)
@@ -1874,9 +1873,8 @@ func (e *Engine) checkViewDropDependencies(tableName, columnName string) *Result
 // validateViewSQL checks if a view's SQL references a valid table and columns.
 // Returns an error message if the view has issues, empty string otherwise.
 func (e *Engine) validateViewSQL(viewSQL, tableName, columnName string) string {
-	parser := sql.NewParser(viewSQL)
-	stmts := parser.Parse()
-	if parser.Err() != nil || len(stmts) == 0 {
+	stmts, perr := parse.ParseSQL(viewSQL)
+	if perr != nil || len(stmts) == 0 {
 		return ""
 	}
 	sel, ok := stmts[0].(*sql.SelectStmt)
@@ -2091,9 +2089,8 @@ func isAlpha(b byte) bool {
 }
 // reference the given column and returns an error if so.
 func (e *Engine) checkTableConstraintDependencies(createSQL, tableName, columnName string) *Result {
-	parser := sql.NewParser(createSQL)
-	stmts := parser.Parse()
-	if parser.Err() != nil || len(stmts) == 0 {
+	stmts, perr := parse.ParseSQL(createSQL)
+	if perr != nil || len(stmts) == 0 {
 		return nil
 	}
 	ct, ok := stmts[0].(*sql.CreateTableStmt)
