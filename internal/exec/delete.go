@@ -82,6 +82,9 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 	// in a single pass (O(n), whereas per-row delete is O(n²)), then all
 	// AFTER triggers fire.
 	if !s.HasReturning {
+		// Snapshot the pager before any modification so a FOREIGN KEY
+		// violation (or trigger error) can roll the statement back.
+		snap := dbCtx.Pager.Snapshot()
 		for _, row := range deletedRows {
 			if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, unwrapRowMap(row)); trigResult.Error != nil {
 				return trigResult
@@ -118,9 +121,13 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		// RESTRICT/NO ACTION (error), CASCADE (delete), or SET NULL /
 		// SET DEFAULT. The check runs after AFTER triggers because a trigger
 		// may re-insert a parent row (restoring the referenced key).
+		// On a RESTRICT/NO ACTION error the whole statement is rolled back
+		// (SQLite statement journal), restoring the deleted rows.
 		if e.foreignKeys {
 			for _, row := range deletedRows {
 				if res := e.fkParentDelete(tableEntry, colDefs, row); res.Error != nil {
+					dbCtx.Pager.Restore(snap)
+					e.invalidateRowIDCache(tableEntry.RootPage)
 					return res
 				}
 			}

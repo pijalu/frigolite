@@ -535,6 +535,40 @@ func (e *Engine) cascadeDelete(parentTable *schema.Entry, parentColDefs []sql.Co
 // (no parent column) implicitly targets the parent's PRIMARY KEY.
 var fkRefAnyRe = regexp.MustCompile(`(?is)^\s*([^\s(]+)(?:\s*\(([^)]+)\))?`)
 
+// selfFKMatch reports whether a row satisfies a self-referential table-level
+// FOREIGN KEY constraint on its own: the row's parent-key column values equal
+// its FK column values (so the reference is valid even before the row is
+// inserted).
+func (e *Engine) selfFKMatch(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, tc sql.TableConstraint) bool {
+	colIndex := buildColumnIndex(colDefs)
+	var parentCols []string
+	if len(tc.RefCols) > 0 {
+		parentCols = tc.RefCols
+	} else if parentEntry, err := e.schema.FindTable(tc.RefTable); err == nil {
+		pcd := e.parseColumnDefs(parentEntry.Name, parentEntry.SQL)
+		parentCols = e.fkParentPKColumns(parentEntry, pcd)
+	}
+	for i, ic := range tc.Columns {
+		childIdx, ok := colIndex[ic.Name]
+		if !ok || childIdx >= len(values) {
+			return false
+		}
+		parentCol := ""
+		if i < len(parentCols) {
+			parentCol = parentCols[i]
+		}
+		parentIdx, ok := colIndex[parentCol]
+		if !ok || parentIdx >= len(values) {
+			return false
+		}
+		if values[childIdx] == nil || values[parentIdx] == nil ||
+			util.CompareValues(values[childIdx], values[parentIdx]) != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 // fkParentPKColumn returns the parent's PRIMARY KEY column name (the implicit
 // target of a "REFERENCES parent" clause that names no column).
 func (e *Engine) fkParentPKColumn(parentEntry *schema.Entry, parentColDefs []sql.ColumnDef) string {
@@ -631,6 +665,103 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 				break
 			}
 			if parentIdx < len(rec.Values) && rec.Values[parentIdx] != nil && util.CompareValuesCollate(rec.Values[parentIdx], val, parentColDef.Collate) == 0 {
+				found = true
+				break
+			}
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
+		}
+		if !found {
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+		}
+	}
+	// Table-level FOREIGN KEY constraints (FOREIGN KEY (cols) REFERENCES p).
+	for _, tc := range e.tableConstraints(tableEntry.Name, tableEntry.SQL) {
+		if tc.Type != sql.ConstraintForeignKey || tc.RefTable == "" {
+			continue
+		}
+		// A self-referential FK (REFERENCES the same table) may be satisfied
+		// by the row being inserted itself: if the row's parent-key columns
+		// equal its FK values, the reference is valid.
+		if strings.EqualFold(tc.RefTable, tableEntry.Name) {
+			if selfRef := e.selfFKMatch(tableEntry, colDefs, values, tc); selfRef {
+				continue
+			}
+		}
+		// Parent columns: explicit list, or the parent's PK columns in order.
+		var parentCols []string
+		if len(tc.RefCols) > 0 {
+			parentCols = tc.RefCols
+		} else if parentEntry, err := e.schema.FindTable(tc.RefTable); err == nil {
+			pcd := e.parseColumnDefs(parentEntry.Name, parentEntry.SQL)
+			parentCols = e.fkParentPKColumns(parentEntry, pcd)
+		}
+		parentEntry, err := e.schema.FindTable(tc.RefTable)
+		if err != nil {
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+		}
+		parentColDefs := e.parseColumnDefs(parentEntry.Name, parentEntry.SQL)
+		parentIndex := buildColumnIndex(parentColDefs)
+		colIndex := buildColumnIndex(colDefs)
+		// Build the child key values; skip if any is NULL (NULL FK values
+		// are always valid).
+		var childKey []interface{}
+		hasNull := false
+		parentDefs := make([]sql.ColumnDef, 0, len(tc.Columns))
+		for i, ic := range tc.Columns {
+			childIdx, ok := colIndex[ic.Name]
+			if !ok || childIdx >= len(values) {
+				return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+			}
+			if values[childIdx] == nil {
+				hasNull = true
+				break
+			}
+			childKey = append(childKey, values[childIdx])
+			parentCol := ""
+			if i < len(parentCols) {
+				parentCol = parentCols[i]
+			}
+			parentIdx, ok := parentIndex[parentCol]
+			if !ok || parentIdx < 0 || parentIdx >= len(parentColDefs) {
+				return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+			}
+			parentDefs = append(parentDefs, parentColDefs[parentIdx])
+		}
+		if hasNull {
+			continue
+		}
+		// Apply parent column affinity to child values and scan the parent.
+		for i := range childKey {
+			childKey[i] = util.ApplyColumnAffinity(childKey[i], parentDefs[i].Type)
+		}
+		tree := e.tableBTree(parentEntry.Name, parentEntry.RootPage, true)
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+		}
+		found := false
+		for {
+			cell, err := cursor.ReadCell()
+			if err != nil || cell == nil {
+				break
+			}
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil || rec == nil {
+				break
+			}
+			allMatch := true
+			for i, pd := range parentDefs {
+				pIdx, ok := parentIndex[parentCols[i]]
+				if !ok || pIdx >= len(rec.Values) || rec.Values[pIdx] == nil ||
+					util.CompareValuesCollate(rec.Values[pIdx], childKey[i], pd.Collate) != 0 {
+					allMatch = false
+					break
+				}
+			}
+			if allMatch {
 				found = true
 				break
 			}
