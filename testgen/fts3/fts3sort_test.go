@@ -115,13 +115,13 @@ func Test_fts3sort(t *testing.T) {
 				query := _items1[_idx1+1]
 				_ = query // suppress unused warning
 				_ = _idx1
-					A_list = "list"
+					A_list = ""
 					_ = A_list // suppress unused warning
-					B_list = "list"
+					B_list = ""
 					_ = B_list // suppress unused warning
-					C_list = "list"
+					C_list = ""
 					_ = C_list // suppress unused warning
-					D_list = "list"
+					D_list = ""
 					_ = D_list // suppress unused warning
 					_res = db.Exec(query + " ORDER BY rowid ASC")
 					if _res.Error != nil {

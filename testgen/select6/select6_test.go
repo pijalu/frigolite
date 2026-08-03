@@ -471,7 +471,7 @@ func Test_select6(t *testing.T) {
 		}
 	}
 	var _err_tcl string
-	_err_tcl = "list 1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+	_err_tcl = "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
 	_ = _err_tcl // suppress unused warning
 	{ // "10.2"
 		r = db.Query("\n  SELECT * FROM (SELECT * FROM t), j;\n")

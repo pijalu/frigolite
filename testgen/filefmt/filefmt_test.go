@@ -276,7 +276,7 @@ func Test_filefmt(t *testing.T) {
 	{ // do_test "filefmt-4.4"
 		db2, err = frigolite.Open("bak.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec(" PRAGMA integrity_check ")
+		_res = db2.Exec(" PRAGMA integrity_check ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()

@@ -246,11 +246,11 @@ func Test_wal2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 		}
 	}
-	RECOVER = "list                                      \\\n  {0 1 lock exclusive}   {1 2 lock exclusive}          \\\n  {4 1 lock exclusive}   {4 1 unlock exclusive}        \\\n  {5 1 lock exclusive}   {5 1 unlock exclusive}        \\\n  {6 1 lock exclusive}   {6 1 unlock exclusive}        \\\n  {7 1 lock exclusive}   {7 1 unlock exclusive}        \\\n  {1 2 unlock exclusive} {0 1 unlock exclusive}        \\"
+	RECOVER = "{0 1 lock exclusive}   {1 2 lock exclusive}             {4 1 lock exclusive}   {4 1 unlock exclusive}           {5 1 lock exclusive}   {5 1 unlock exclusive}           {6 1 lock exclusive}   {6 1 unlock exclusive}           {7 1 lock exclusive}   {7 1 unlock exclusive}           {1 2 unlock exclusive} {0 1 unlock exclusive}"
 	_ = RECOVER // suppress unused warning
-	READ = "list                                         \\\n  {4 1 lock shared}    {4 1 unlock shared}             \\"
+	READ = "{4 1 lock shared}    {4 1 unlock shared}"
 	_ = READ // suppress unused warning
-	INITSLOT = "list                                     \\\n  {4 1 lock exclusive} {4 1 unlock exclusive}          \\"
+	INITSLOT = "{4 1 lock exclusive} {4 1 unlock exclusive}"
 	_ = INITSLOT // suppress unused warning
 	// foreach {tn iInsert res wal_index_hdr_mod wal_locks} "2    5   {5 15}    0             {" + RECOVER + " " + READ + "}\n         3    6   {6 21}    1             {" + RECOVER + " " + READ + "}\n         4    7   {7 28}    2             {" + RECOVER + " " + READ + "}\n         5    8   {8 36}    3             {" + RECOVER + " " + READ + "}\n         6    9   {9 45}    4             {" + RECOVER + " " + READ + "}\n         7   10   {10 55}   5             {" + RECOVER + " " + READ + "}\n         8   11   {11 66}   6             {" + RECOVER + " " + READ + "}\n         9   12   {12 78}   7             {" + RECOVER + " " + READ + "}\n        10   13   {13 91}   8             {" + RECOVER + " " + READ + "}\n        11   14   {14 105}  9             {" + RECOVER + " " + READ + "}\n        12   15   {15 120}  -1            {" + INITSLOT + " " + READ + "}"
 	_items1 := tclSplitList("2    5   {5 15}    0             {" + RECOVER + " " + READ + "}\n         3    6   {6 21}    1             {" + RECOVER + " " + READ + "}\n         4    7   {7 28}    2             {" + RECOVER + " " + READ + "}\n         5    8   {8 36}    3             {" + RECOVER + " " + READ + "}\n         6    9   {9 45}    4             {" + RECOVER + " " + READ + "}\n         7   10   {10 55}   5             {" + RECOVER + " " + READ + "}\n         8   11   {11 66}   6             {" + RECOVER + " " + READ + "}\n         9   12   {12 78}   7             {" + RECOVER + " " + READ + "}\n        10   13   {13 91}   8             {" + RECOVER + " " + READ + "}\n        11   14   {14 105}  9             {" + RECOVER + " " + READ + "}\n        12   15   {15 120}  -1            {" + INITSLOT + " " + READ + "}")
@@ -290,9 +290,9 @@ func Test_wal2(t *testing.T) {
 		db2.Close()
 		// tvfs delete (unsupported command, not transpiled)
 		os.Remove("test.db")
-		WRITER = "list 0 1 lock exclusive"
+		WRITER = "0 1 lock exclusive"
 		_ = WRITER // suppress unused warning
-		LOCKS = "list \\\n  {0 1 lock exclusive} {0 1 unlock exclusive} \\\n  {4 1 lock exclusive} {4 1 unlock exclusive} \\\n  {4 1 lock shared}    {4 1 unlock shared}    \\"
+		LOCKS = "{0 1 lock exclusive} {0 1 unlock exclusive}    {4 1 lock exclusive} {4 1 unlock exclusive}    {4 1 lock shared}    {4 1 unlock shared}"
 		_ = LOCKS // suppress unused warning
 		{ // do_test "wal2-2.0"
 			// testvfs tvfs (unsupported command, not transpiled)
@@ -449,7 +449,7 @@ func Test_wal2(t *testing.T) {
 				_ = _res // catchsql
 			}
 			// tvfs delete (unsupported command, not transpiled)
-			expected_locks = "list"
+			expected_locks = ""
 			_ = expected_locks // suppress unused warning
 			expected_locks = tclListAppend(expected_locks, "1 1 lock exclusive")
 			expected_locks = tclListAppend(expected_locks, "0 1 lock exclusive")
@@ -694,7 +694,7 @@ func Test_wal2(t *testing.T) {
 				expected_locks := _items9[_idx9+3]
 				_ = expected_locks // suppress unused warning
 				_ = _idx9
-					L = "list"
+					L = ""
 					_ = L // suppress unused warning
 					for _, el := range tclSplitList(expected_locks) {
 					_ = el // suppress unused warning
@@ -980,12 +980,12 @@ func Test_wal2(t *testing.T) {
 						}
 					}
 					if tcl_version >= "8.5" {
-						blob = "[tvfs shm $::filename] 0 16383"
+						blob = tclStringRange("tvfs", "shm", filename + "]")
 						_ = blob // suppress unused warning
-						I = "[tvfs shm $::filename] 16384 end"
+						I = tclStringRange("tvfs", "shm", filename + "]")
 						_ = I // suppress unused warning
 						// binary scan $I t* L (test infra, not transpiled)
-						I = "list"
+						I = ""
 						_ = I // suppress unused warning
 						for _, p := range tclSplitList(L) {
 						_ = p // suppress unused warning
@@ -997,7 +997,7 @@ func Test_wal2(t *testing.T) {
 							_res = db.Exec(" INSERT INTO t1 VALUES(10, 11, 12) ")
 							_ = _res // catchsql
 						}
-						blob = "[tvfs shm $::filename] 0 16383"
+						blob = tclStringRange("tvfs", "shm", filename + "]")
 						_ = blob // suppress unused warning
 						blob += "[binary format c 55] 16384"
 						// tvfs shm $::filename $blob (unsupported command, not transpiled)
@@ -1058,7 +1058,7 @@ func Test_wal2(t *testing.T) {
 									_ = _list
 								}
 								{ // do_test "wal2-12.2." + tn + ".4"
-									x = "list [file attr test.db-wal -perm] [file attr test.db-shm -perm]"
+									x = "file attr test.db-wal -perm" + " " + "file attr test.db-shm -perm"
 									_ = x // suppress unused warning
 									// string map {o 0} $x
 								}

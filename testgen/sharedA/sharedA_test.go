@@ -77,12 +77,12 @@ func Test_sharedA(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db1.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(100));\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    CREATE INDEX i1 ON t1(x);\n  ")
+		_res = db1.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(100));\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    CREATE INDEX i1 ON t1(x);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Exec("\n    BEGIN;\n    DROP INDEX i1;\n  ")
+		_res = db1.Exec("\n    BEGIN;\n    DROP INDEX i1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
-		db1.Exec("\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    ROLLBACK;\n    PRAGMA integrity_check;\n  ")
+		_res = db1.Exec("\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    ROLLBACK;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db1.Close()
@@ -92,18 +92,18 @@ func Test_sharedA(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n  ")
+		_res = db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Exec(" \n    SELECT * FROM t1;\n    CREATE INDEX i1 ON t1(x);\n  ")
+		_res = db1.Exec(" \n    SELECT * FROM t1;\n    CREATE INDEX i1 ON t1(x);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
-		db2.Exec(" SELECT * FROM t1 ORDER BY x; ")
+		_res = db2.Exec(" SELECT * FROM t1 ORDER BY x; ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Exec("\n    BEGIN; DROP INDEX i1;\n  ")
+		_res = db1.Exec("\n    BEGIN; DROP INDEX i1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db1.Close()
-		db2.Exec(" SELECT * FROM t1 ORDER BY x; ")
+		_res = db2.Exec(" SELECT * FROM t1 ORDER BY x; ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.3"
@@ -114,26 +114,26 @@ func Test_sharedA(t *testing.T) {
 		os.Remove("test.db")
 		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db1.Exec(" ATTACH 'test.db2' AS two ")
+		_res = db1.Exec(" ATTACH 'test.db2' AS two ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE two.t2(x);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
+		_res = db1.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE two.t2(x);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "2.2"
 		STMT = "sqlite3_prepare db2 \"CREATE INDEX i1 ON t1(x)\" -1 tail" // TCL namespace variable
 		_ = STMT // suppress unused warning
-		db1.Exec("\n    BEGIN;\n      CREATE INDEX i1 ON t1(x);\n      INSERT INTO t2 VALUES('value!');\n  ")
+		_res = db1.Exec("\n    BEGIN;\n      CREATE INDEX i1 ON t1(x);\n      INSERT INTO t2 VALUES('value!');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	// tvfs filter xRead (unsupported command, not transpiled)
 	// tvfs script read_callback (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "2.3"
-		db1.Exec("ROLLBACK")
+		_res = db1.Exec("ROLLBACK")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	if tclBool("info exists ::thread_result" + "==0") {

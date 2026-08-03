@@ -75,7 +75,7 @@ func Test_tkt2332(t *testing.T) {
 		{ // do_test "tkt2332." + Len + ".1"
 			val = "6.099e-320"
 			_ = val // suppress unused warning
-			blobstr = "\\\n      [string repeat $val [expr ($Len/[string length $val])+1]] 0 [expr $Len-1]" // TCL namespace variable
+			blobstr = tclStringRange("\\", "", "repeat") // TCL namespace variable
 			_ = blobstr // suppress unused warning
 			_res = db.Exec(" INSERT INTO blobs VALUES(" + sqlLiteral(iKey) + ", zeroblob(" + sqlLiteral(Len) + ")) ")
 			if _res.Error != nil {
@@ -102,7 +102,7 @@ func Test_tkt2332(t *testing.T) {
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".5"
-			_ = tclLIndex(tclExecSQL(db, "{SELECT v FROM blobs WHERE k = $::iKey}"), "0") // lindex result
+			_ = tclLIndex(tclExecSQL(db, "{SELECT v FROM blobs WHERE k = " + iKey + "}"), "0") // lindex result
 		}
 		// incr iKey 1
 		{

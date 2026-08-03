@@ -830,7 +830,7 @@ func Test_incrblob(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rootpage FROM sqlite_master;\n  ")
 			}
 		}
-		otherdata = "$::data 0 1000" + "$::data 1001 end" // TCL namespace variable
+		otherdata = tclStringRange(data, "0", "1000") + tclStringRange(data, "1001", "end") // TCL namespace variable
 		_ = otherdata // suppress unused warning
 		{ // do_test "incrblob-7.3.1"
 			_res = db.Exec("\n    INSERT INTO t2 VALUES(456, " + sqlLiteral(otherdata) + ");\n  ")

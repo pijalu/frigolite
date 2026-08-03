@@ -149,7 +149,7 @@ func Test_auth2(t *testing.T) {
 		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth2-2.4"
-		db2.Exec("\n    CREATE TABLE t3(p,q,r);\n  ")
+		_res = db2.Exec("\n    CREATE TABLE t3(p,q,r);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		authargs = "" // TCL namespace variable
 		_ = authargs // suppress unused warning

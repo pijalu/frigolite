@@ -67,7 +67,7 @@ func Test_fts3f(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		ret = "list"
+		ret = ""
 		_ = ret // suppress unused warning
 		_res = db.Exec(" SELECT docid FROM ft WHERE ft MATCH 'one' ")
 		if _res.Error != nil {

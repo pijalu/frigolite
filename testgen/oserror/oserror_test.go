@@ -93,7 +93,7 @@ func Test_oserror(t *testing.T) {
 				x = "ok"
 				_ = x // suppress unused warning
 			} else {
-				x = "list $::rc $msg"
+				x = rc + " " + msg
 				_ = x // suppress unused warning
 			}
 		}

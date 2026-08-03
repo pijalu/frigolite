@@ -78,31 +78,31 @@ func Test_shared9(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // do_test "1.1"
-		db1.Exec("\n    ATTACH 'test.db2' AS 'fred';\n    CREATE TABLE fred.t1(a, b, c);\n    CREATE VIEW fred.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE fred.t2(a, b);\n    CREATE TABLE fred.t3(a, b);\n    CREATE TRIGGER fred.trig AFTER INSERT ON t2 BEGIN\n      DELETE FROM t3;\n      INSERT INTO t3 SELECT * FROM t2;\n    END;\n    INSERT INTO t2 VALUES(1, 2);\n    SELECT * FROM t3;\n  ")
+		_res = db1.Exec("\n    ATTACH 'test.db2' AS 'fred';\n    CREATE TABLE fred.t1(a, b, c);\n    CREATE VIEW fred.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE fred.t2(a, b);\n    CREATE TABLE fred.t3(a, b);\n    CREATE TRIGGER fred.trig AFTER INSERT ON t2 BEGIN\n      DELETE FROM t3;\n      INSERT INTO t3 SELECT * FROM t2;\n    END;\n    INSERT INTO t2 VALUES(1, 2);\n    SELECT * FROM t3;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
-		db2.Exec("ATTACH 'test.db2' AS 'jones'")
+		_res = db2.Exec("ATTACH 'test.db2' AS 'jones'")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.3"
-		db2.Exec("SELECT * FROM v1")
+		_res = db2.Exec("SELECT * FROM v1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.4"
-		db2.Exec("INSERT INTO t2 VALUES(3, 4)")
+		_res = db2.Exec("INSERT INTO t2 VALUES(3, 4)")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.5"
-		db1.Exec("\n      CREATE VIRTUAL TABLE fred.t4 USING fts4;\n      INSERT INTO t4 VALUES('hello world');\n    ")
+		_res = db1.Exec("\n      CREATE VIRTUAL TABLE fred.t4 USING fts4;\n      INSERT INTO t4 VALUES('hello world');\n    ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.6"
-		db2.Exec("\n      INSERT INTO t4 VALUES('shared cache');\n      SELECT * FROM t4 WHERE t4 MATCH 'hello';\n    ")
+		_res = db2.Exec("\n      INSERT INTO t4 VALUES('shared cache');\n      SELECT * FROM t4 WHERE t4 MATCH 'hello';\n    ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.7"
-		db1.Exec("\n      SELECT * FROM t4 WHERE t4 MATCH 'c*';\n    ")
+		_res = db1.Exec("\n      SELECT * FROM t4 WHERE t4 MATCH 'c*';\n    ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db1.Close()
@@ -117,12 +117,12 @@ func Test_shared9(t *testing.T) {
 		// proc definition (not transpiled)
 	}
 	{ // do_test "2.1"
-		db1.Exec("\n    CREATE TABLE t1(a, b, c COLLATE collate1);\n    CREATE INDEX i1 ON t1(a COLLATE collate2, c, b);\n  ")
+		_res = db1.Exec("\n    CREATE TABLE t1(a, b, c COLLATE collate1);\n    CREATE INDEX i1 ON t1(a COLLATE collate2, c, b);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "2.2"
 		db1.Close()
-		db2.Exec("INSERT INTO t1 VALUES('abc', 'def', 'ghi')")
+		_res = db2.Exec("INSERT INTO t1 VALUES('abc', 'def', 'ghi')")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()
@@ -136,7 +136,7 @@ func Test_shared9(t *testing.T) {
 	{ // do_test "2.3"
 		invoked_mycollate_db1 = "0" // TCL namespace variable
 		_ = invoked_mycollate_db1 // suppress unused warning
-		db1.Exec("\n    CREATE TABLE t1(a COLLATE mycollate, CHECK (a IN ('one', 'two', 'three')));\n    INSERT INTO t1 VALUES('one');\n  ")
+		_res = db1.Exec("\n    CREATE TABLE t1(a COLLATE mycollate, CHECK (a IN ('one', 'two', 'three')));\n    INSERT INTO t1 VALUES('one');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db1.Close()
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
@@ -144,7 +144,7 @@ func Test_shared9(t *testing.T) {
 	{ // do_test "2.4"
 		invoked_mycollate_db1 = "0" // TCL namespace variable
 		_ = invoked_mycollate_db1 // suppress unused warning
-		db2.Exec("\n    INSERT INTO t1 VALUES('two');\n  ")
+		_res = db2.Exec("\n    INSERT INTO t1 VALUES('two');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
@@ -157,7 +157,7 @@ func Test_shared9(t *testing.T) {
 	{ // do_test "2.13"
 		invoked_mycollate_db1 = "0" // TCL namespace variable
 		_ = invoked_mycollate_db1 // suppress unused warning
-		db1.Exec("\n    CREATE TABLE t1(a, CHECK (a COLLATE mycollate IN ('one', 'two', 'three')));\n    INSERT INTO t1 VALUES('one');\n  ")
+		_res = db1.Exec("\n    CREATE TABLE t1(a, CHECK (a COLLATE mycollate IN ('one', 'two', 'three')));\n    INSERT INTO t1 VALUES('one');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db1.Close()
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
@@ -165,7 +165,7 @@ func Test_shared9(t *testing.T) {
 	{ // do_test "2.14"
 		invoked_mycollate_db1 = "0" // TCL namespace variable
 		_ = invoked_mycollate_db1 // suppress unused warning
-		db2.Exec("\n    INSERT INTO t1 VALUES('two');\n  ")
+		_res = db2.Exec("\n    INSERT INTO t1 VALUES('two');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
 		_ = invoked_mycollate_db1 // TCL namespace variable (query)
@@ -177,11 +177,11 @@ func Test_shared9(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // do_test "3.1"
-		db1.Exec("\n    BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t2 VALUES(1, 2);\n  ")
+		_res = db1.Exec("\n    BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t2 VALUES(1, 2);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Exec("COMMIT")
+		_res = db1.Exec("COMMIT")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
+		_res = db1.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "3.2"
@@ -190,7 +190,7 @@ func Test_shared9(t *testing.T) {
 		// testfixture $::tf {\n    sqlite3 db test.db\n    db eval {\n      BEG...} (unsupported command, not transpiled)
 	}
 	{ // do_test "3.3"
-		db2.Exec(" SELECT * FROM t2 ")
+		_res = db2.Exec(" SELECT * FROM t2 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "3.4"
@@ -202,7 +202,7 @@ func Test_shared9(t *testing.T) {
 	}
 	{ // do_test "3.6"
 		// close $::tf
-		db1.Exec("COMMIT")
+		_res = db1.Exec("COMMIT")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db1.Close()

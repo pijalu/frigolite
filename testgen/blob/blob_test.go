@@ -140,7 +140,7 @@ func Test_blob(t *testing.T) {
 		}
 		blobs = tclExecSQL(db, "{SELECT * FROM t1}")
 		_ = blobs // suppress unused warning
-		blobs2 = "list"
+		blobs2 = ""
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -154,7 +154,7 @@ func Test_blob(t *testing.T) {
 		}
 		blobs = tclExecSQL(db, "{SELECT * FROM t1}")
 		_ = blobs // suppress unused warning
-		blobs2 = "list"
+		blobs2 = ""
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -164,7 +164,7 @@ func Test_blob(t *testing.T) {
 	{ // do_test "blob-2.2"
 		blobs = tclExecSQL(db, "{SELECT * FROM t1 where a = X'123456'}")
 		_ = blobs // suppress unused warning
-		blobs2 = "list"
+		blobs2 = ""
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -174,7 +174,7 @@ func Test_blob(t *testing.T) {
 	{ // do_test "blob-2.3"
 		blobs = tclExecSQL(db, "{SELECT * FROM t1 where a = X'CDEF12'}")
 		_ = blobs // suppress unused warning
-		blobs2 = "list"
+		blobs2 = ""
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -184,7 +184,7 @@ func Test_blob(t *testing.T) {
 	{ // do_test "blob-2.4"
 		blobs = tclExecSQL(db, "{SELECT * FROM t1 where a = X'CD12'}")
 		_ = blobs // suppress unused warning
-		blobs2 = "list"
+		blobs2 = ""
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -208,7 +208,7 @@ func Test_blob(t *testing.T) {
 	{ // do_test "blob-3.2"
 		blobs = tclExecSQL(db, "{SELECT * FROM t1}")
 		_ = blobs // suppress unused warning
-		blobs2 = "list"
+		blobs2 = ""
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning

@@ -112,7 +112,7 @@ func Test_corrupt(t *testing.T) {
 	for func() bool { l_n, l_e := strconv.Atoi(strconv.Itoa(len(junk))); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("256"); if r_e != nil { return false }; return l_n < r_n }() {
 		junk += junk
 	}
-	junk = "$junk 0 255"
+	junk = tclStringRange(junk, "0", "255")
 	_ = junk // suppress unused warning
 	i = "256"
 	_ = i // suppress unused warning

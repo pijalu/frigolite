@@ -261,7 +261,7 @@ func Test_pager1(t *testing.T) {
 		_ = tcl // suppress unused warning
 		_ = _idx0
 			{ // do_test "pager1-3." + tn + ".1"
-				// eval (dynamic, not transpiled)
+				// eval $tcl (dynamic, not transpiled)
 				// faultsim_delete_and_reopen (unsupported command, not transpiled)
 				_res = db.Exec(sql)
 				if _res.Error != nil {
@@ -454,7 +454,7 @@ func Test_pager1(t *testing.T) {
 				tcl := _items2[_idx2+1]
 				_ = tcl // suppress unused warning
 				_ = _idx2
-					// eval (dynamic, not transpiled)
+					// eval $tcl (dynamic, not transpiled)
 					// foreach {tn2 sql usesMJ} "o { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    o512 { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA main.page_size = 512;\n      PRAGMA aux.page_size = 512;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    n { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    f { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=FULL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    w1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = WAL;\n    } 0\n    w2 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode=WAL;\n    } 0\n    o1a { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    o1b { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    m1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = MEMORY;\n    } 0\n    t1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = TRUNCATE;\n    } 1\n    p1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = PERSIST;\n    } 1"
 					_items3 := tclSplitList("o { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    o512 { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA main.page_size = 512;\n      PRAGMA aux.page_size = 512;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    n { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    f { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=FULL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    w1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = WAL;\n    } 0\n    w2 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode=WAL;\n    } 0\n    o1a { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    o1b { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    m1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = MEMORY;\n    } 0\n    t1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = TRUNCATE;\n    } 1\n    p1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = PERSIST;\n    } 1")
 					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
@@ -1228,7 +1228,7 @@ func Test_pager1(t *testing.T) {
 							{ // do_test "pager1-9.0.2"
 								db2, err = frigolite.Open("test.db2")
 								if err != nil { t.Fatal(err) }
-								db2.Exec(" PRAGMA cache_size = 10 ")
+								_res = db2.Exec(" PRAGMA cache_size = 10 ")
 								if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 								// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 								_list := tclList([]string{"B step 10000", "B finish"})

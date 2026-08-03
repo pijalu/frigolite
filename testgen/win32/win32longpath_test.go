@@ -161,29 +161,29 @@ func Test_win32longpath(t *testing.T) {
 	db3, err = frigolite.Open(fileName)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.4"
-		db3.Exec("\n    BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(5);\n    INSERT INTO t1 VALUES(6);\n    INSERT INTO t1 VALUES(7);\n    INSERT INTO t1 VALUES(8);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;\n  ")
+		_res = db3.Exec("\n    BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(5);\n    INSERT INTO t1 VALUES(6);\n    INSERT INTO t1 VALUES(7);\n    INSERT INTO t1 VALUES(8);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db3.Close()
 	db3, err = frigolite.Open(fileName)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.5"
-		db3.Exec("\n    PRAGMA journal_mode = WAL;\n  ")
+		_res = db3.Exec("\n    PRAGMA journal_mode = WAL;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.6"
-		db3.Exec("\n    BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(10);\n    INSERT INTO t1 VALUES(11);\n    INSERT INTO t1 VALUES(12);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;\n  ")
+		_res = db3.Exec("\n    BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(10);\n    INSERT INTO t1 VALUES(11);\n    INSERT INTO t1 VALUES(12);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db3.Close()
-	lUri = "list 1a 1b 1c 1d 1e 1f"
+	lUri = "1a 1b 1c 1d 1e 1f"
 	_ = lUri // suppress unused warning
 	for _, tn := range tclSplitList(lUri) {
 	_ = tn // suppress unused warning
 		db3, err = frigolite.Open(uri_tn)
 		if err != nil { t.Fatal(err) }
 		{ // do_test "1.7." + tn
-			db3.Exec("\n      SELECT x FROM t1 ORDER BY x;\n    ")
+			_res = db3.Exec("\n      SELECT x FROM t1 ORDER BY x;\n    ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		db3.Close()

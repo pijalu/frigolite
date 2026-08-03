@@ -110,7 +110,7 @@ func Test_savepoint6(t *testing.T) {
 		G_savepoint6_iterations = "1000" // TCL namespace variable
 		_ = G_savepoint6_iterations // suppress unused warning
 	}
-	lSavepoint = "list"
+	lSavepoint = ""
 	_ = lSavepoint // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -156,7 +156,7 @@ func Test_savepoint6(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		// eval (dynamic, not transpiled)
+		// eval $zSetup (dynamic, not transpiled)
 		// sql $DATABASE_SCHEMA (unsupported command, not transpiled)
 		// wal_set_journal_mode (unsupported command, not transpiled)
 		{ // do_test "savepoint6-" + testname + ".setup"

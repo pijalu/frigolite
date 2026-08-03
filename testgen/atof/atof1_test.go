@@ -86,9 +86,9 @@ func Test_atof1(t *testing.T) {
 			if tclBool("!" + y) {
 				_putsMsg := "-nonewline"
 				_ = _putsMsg
-				_res = db.Exec("SELECT " + xf + "+0.0 AS a, \\$x AS b")
+				_res = db.Exec("SELECT " + xf + "+0.0 AS a, " + x + " AS b")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + xf + "+0.0 AS a, \\$x AS b")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + xf + "+0.0 AS a, " + x + " AS b")
 				}
 			}
 		}

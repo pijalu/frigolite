@@ -368,7 +368,7 @@ func Test_snapshot2(t *testing.T) {
 		}
 		snap = "sqlite3_snapshot_get_blob db2 main"
 		_ = snap // suppress unused warning
-		db2.Exec("END")
+		_res = db2.Exec("END")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "5.2"
@@ -377,7 +377,7 @@ func Test_snapshot2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 		// sqlite3_snapshot_open_blob db2 main $snap (unsupported command, not transpiled)
-		db2.Exec(" SELECT * FROM t2 ; END ")
+		_res = db2.Exec(" SELECT * FROM t2 ; END ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "5.3"
@@ -390,7 +390,7 @@ func Test_snapshot2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 		// sqlite3_snapshot_open_blob db2 main $snap (unsupported command, not transpiled)
-		db2.Exec(" SELECT * FROM t2 ; END ")
+		_res = db2.Exec(" SELECT * FROM t2 ; END ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "5.4"

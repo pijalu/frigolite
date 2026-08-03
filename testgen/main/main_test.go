@@ -310,13 +310,13 @@ func Test_main(t *testing.T) {
 	{ // do_test "main-3.2.14"
 		hi_u1234x = "987"
 		_ = hi_u1234x // suppress unused warning
-		_res = db.Exec("select \\$hi\\u1234x")
+		_res = db.Exec("select " + hiu1234x)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select \\$hi\\u1234x")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select " + hiu1234x)
 		}
 	}
 	{ // do_test "main-3.2.15"
-		_res = db.Exec("select 456\\u1234")
+		_res = db.Exec("select 456u1234")
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.16"

@@ -76,7 +76,7 @@ func Test_parser1(t *testing.T) {
 	{ // do_test "parser1-1.3"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t1 ORDER BY 1")
+		_res = db2.Exec("SELECT * FROM t1 ORDER BY 1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()
@@ -97,7 +97,7 @@ func Test_parser1(t *testing.T) {
 	{ // do_test "parser1-1.5"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t1 ORDER BY 1")
+		_res = db2.Exec("SELECT * FROM t1 ORDER BY 1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()

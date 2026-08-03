@@ -503,7 +503,7 @@ func Test_like3(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = '" + enc + "'")
 				}
-				tn = "utf" + "$enc 4 end" + "." + tn
+				tn = "utf" + tclStringRange(enc, "4", "end") + "." + tn
 				_ = tn // suppress unused warning
 				{ // "like3-8." + tn + ".1"
 					_res = db.Exec("\n      CREATE TABLE t1(x);\n    ")

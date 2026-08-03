@@ -150,7 +150,7 @@ func Test_interrupt2(t *testing.T) {
 	{ // do_test "2.1"
 		i = "10"
 		_ = i // suppress unused warning
-		res = "list [catch {\n    set i 10\n    db eval {SELECT * FROM z1} {\n      incr i -1\n      if {$i==0} {\n        set ::trigger_interrupt 10\n        set cres [catch { sqlite3_wal_checkpoint_v2 db truncate } msg] \n        lappend cres $msg\n      }\n    }\n  } msg] $msg"
+		res = "0" + " " + msg
 		_ = res // suppress unused warning
 		_list := tclList([]string{cres, res})
 		_ = _list

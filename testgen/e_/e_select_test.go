@@ -90,9 +90,9 @@ func Test_e_select(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES('a', 'one');\n  INSERT INTO t1 VALUES('b', 'two');\n  INSERT INTO t1 VALUES('c', 'three');\n\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES('a', 'I');\n  INSERT INTO t2 VALUES('b', 'II');\n  INSERT INTO t2 VALUES('c', 'III');\n\n  CREATE TABLE t3(a, c);\n  INSERT INTO t3 VALUES('a', 1);\n  INSERT INTO t3 VALUES('b', 2);\n\n  CREATE TABLE t4(a, c);\n  INSERT INTO t4 VALUES('a', NULL);\n  INSERT INTO t4 VALUES('b', 2);\n")
 		}
 	}
-	t1_cross_t2 = "list                \\\n   a one   a I      a one   b II     \\\n   a one   c III    b two   a I      \\\n   b two   b II     b two   c III    \\\n   c three a I      c three b II     \\\n   c three c III                     \\"
+	t1_cross_t2 = "a one   a I      a one   b II         a one   c III    b two   a I          b two   b II     b two   c III        c three a I      c three b II         c three c III"
 	_ = t1_cross_t2 // suppress unused warning
-	t1_cross_t1 = "list                  \\\n   a one   a one      a one   b two    \\\n   a one   c three    b two   a one    \\\n   b two   b two      b two   c three  \\\n   c three a one      c three b two    \\\n   c three c three                     \\"
+	t1_cross_t1 = "a one   a one      a one   b two        a one   c three    b two   a one        b two   b two      b two   c three      c three a one      c three b two        c three c three"
 	_ = t1_cross_t1 // suppress unused warning
 	// proc definition (not transpiled)
 	// do_join_test e_select-0.1.1 {\n  SELECT count(*) FROM t1 %JOIN% t2 ON (t1.a=t2....} {3} (unsupported command, not transpiled)

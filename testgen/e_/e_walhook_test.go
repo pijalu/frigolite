@@ -117,7 +117,7 @@ func Test_e_walhook(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.1"
-		wal_hook_args = "list"
+		wal_hook_args = ""
 		_ = wal_hook_args // suppress unused warning
 		_res = db.Exec(" INSERT INTO t2 VALUES('a') ")
 		if _res.Error != nil {
@@ -127,7 +127,7 @@ func Test_e_walhook(t *testing.T) {
 	{ // do_test "3.1.2"
 	}
 	{ // do_test "3.2.1"
-		wal_hook_args = "list"
+		wal_hook_args = ""
 		_ = wal_hook_args // suppress unused warning
 		_res = db.Exec(" INSERT INTO t1 VALUES(6) ")
 		if _res.Error != nil {

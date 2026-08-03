@@ -286,7 +286,7 @@ func Test_wal6(t *testing.T) {
 		}
 	}
 	{ // do_test "5.2"
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		if _res.Error != nil {

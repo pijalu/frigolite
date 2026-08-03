@@ -128,7 +128,7 @@ func Test_fts4incr(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t2 USING fts4(order=DESC);\n  ")
 			}
-			num = "list one two three four five six seven eight nine ten"
+			num = "one two three four five six seven eight nine ten"
 			_ = num // suppress unused warning
 			_res = db.Exec("BEGIN")
 			if _res.Error != nil {

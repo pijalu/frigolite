@@ -802,13 +802,13 @@ func Test_table(t *testing.T) {
 		{ // do_test "table-14.1"
 			rc = "0"
 			_ = rc // suppress unused warning
-			result = "list $rc $msg"
+			result = rc + " " + msg
 			_ = result // suppress unused warning
 		}
 		{ // do_test "table-14.2"
 			rc = "0"
 			_ = rc // suppress unused warning
-			result = "list $rc $msg"
+			result = rc + " " + msg
 			_ = result // suppress unused warning
 		}
 		{ // do_test "table-14.3"
@@ -826,7 +826,7 @@ func Test_table(t *testing.T) {
 		{ // do_test "table-14.4"
 			rc = "0"
 			_ = rc // suppress unused warning
-			result = "list $rc $msg"
+			result = rc + " " + msg
 			_ = result // suppress unused warning
 		}
 		{ // do_test "table-15.1"

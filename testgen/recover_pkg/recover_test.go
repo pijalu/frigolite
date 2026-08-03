@@ -93,9 +93,9 @@ func Test_recover(t *testing.T) {
 	}
 	// do_recover_test 1.1.2 (unsupported command, not transpiled)
 	{ // "1.2.1"
-		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\\r\\nworld', 13);\n")
+		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\r\nworld', 13);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\\r\\nworld', 13);\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\r\nworld', 13);\n")
 		}
 	}
 	// do_recover_test 1.2.2 (unsupported command, not transpiled)

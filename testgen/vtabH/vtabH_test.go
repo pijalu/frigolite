@@ -197,7 +197,7 @@ func Test_vtabH(t *testing.T) {
 			}
 		}
 		if tcl_platform_platform == "windows" {
-			drive = "[pwd] 0 1"
+			drive = tclStringRange("pwd", "0", "1")
 			_ = drive // suppress unused warning
 			env_fstreeDrive = drive // TCL namespace variable
 			_ = env_fstreeDrive // suppress unused warning
@@ -222,7 +222,7 @@ func Test_vtabH(t *testing.T) {
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
-			res = "list"
+			res = ""
 			_ = res // suppress unused warning
 			root_files = "list_root_files"
 			_ = root_files // suppress unused warning

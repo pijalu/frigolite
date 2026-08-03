@@ -86,7 +86,7 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.11.3"
-		result = "\n" + "db format -text relaxed -blob sql -border off \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -text relaxed -blob sql -border off                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.11.4"
@@ -234,19 +234,19 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.33"
-		result = "\n" + "db format -style table -border off \n                 -screenwidth 15 \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -style table -border off                  -screenwidth 15                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.34.0"
-		result = "\n" + "db format -style box -border off \n                 -screenwidth 30 \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -style box -border off                  -screenwidth 30                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.34.1"
-		result = "\n" + "db format -style box -border off \n                 -screenwidth 30 -title always \n                 {SELECT * FROM t1 WHERE a=2}"
+		result = "\n" + "db format -style box -border off                  -screenwidth 30 -title always                  {SELECT * FROM t1 WHERE a=2}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.35"
-		result = "\n" + "db format -style box -border off \n                 -screenwidth 15 \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -style box -border off                  -screenwidth 15                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.40"
@@ -315,15 +315,15 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.82"
-		result = "\n" + "db format -style insert -tablename t1 -title auto \n      {SELECT * FROM t1}"
+		result = "\n" + "db format -style insert -tablename t1 -title auto       {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.83.0"
-		result = "\n" + "db format -style insert -tablename drop -title on \n      {SELECT a AS"
+		result = "\n" + "db format -style insert -tablename drop -title on       {SELECT a AS"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.83.1"
-		result = "\n" + "db format -style insert -tablename drop -title always \n      {SELECT a AS"
+		result = "\n" + "db format -style insert -tablename drop -title always       {SELECT a AS"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.84"
@@ -335,7 +335,7 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.86"
-		result = "\n" + "db format -style insert -tablename drop -title on \n      -rowcount on {SELECT a AS"
+		result = "\n" + "db format -style insert -tablename drop -title on       -rowcount on {SELECT a AS"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.90"
@@ -363,7 +363,7 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.102"
-		result = "\n" + "db format -style line -null (NULL) -columnsep { = } \n                 -text sql {SELECT * FROM t1}"
+		result = "\n" + "db format -style line -null (NULL) -columnsep { = }                  -text sql {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.103"
@@ -383,7 +383,7 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.112"
-		result = "\n" + "db format -style list -title on -text sql -null NULL \n                 -title plain {SELECT * FROM t1}"
+		result = "\n" + "db format -style list -title on -text sql -null NULL                  -title plain {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.113"
@@ -446,7 +446,7 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.133"
-		result = "\n" + "db format -style quote -rowcount off -title always \n                 {SELECT * FROM t1 WHERE a=2}"
+		result = "\n" + "db format -style quote -rowcount off -title always                  {SELECT * FROM t1 WHERE a=2}"
 		_ = result // suppress unused warning
 	}
 	{ // "2.0"
@@ -456,35 +456,35 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		result = "\n" + "db format -widths {5 -5 19} -wordwrap on \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 -5 19} -wordwrap on                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "2.2"
-		result = "\n" + "db format -widths {5 -5 19} -wordwrap off \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 -5 19} -wordwrap off                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "2.3"
-		result = "\n" + "db format -widths {5 -5 18} -wordwrap on \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 -5 18} -wordwrap on                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "2.4"
-		result = "\n" + "db format -widths {5 -5 -18} -wordwrap on \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 -5 -18} -wordwrap on                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "2.5"
-		result = "\n" + "db format -widths {5 -5 19} -wordwrap off \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 -5 19} -wordwrap off                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "2.6"
-		result = "\n" + "db format -widths {5 -5 18} -wordwrap off \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 -5 18} -wordwrap off                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "2.7"
-		result = "\n" + "db format -widths {5 5 18} -wordwrap yes \n                 -align {left center right} -titlealign right \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 5 18} -wordwrap yes                  -align {left center right} -titlealign right                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "2.8"
-		result = "\n" + "db format -widths {5 8 11} -wordwrap yes \n                 -align {auto auto center} -titlealign left \n                 -defaultalign right \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 8 11} -wordwrap yes                  -align {auto auto center} -titlealign left                  -defaultalign right                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "2.9"
@@ -548,11 +548,11 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "2.31"
-		result = "\n" + "db format -widths {5 -5 18} -wordwrap on \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 -5 18} -wordwrap on                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "2.32"
-		result = "\n" + "db format -widths {5 5 18} -align {left center center} -wordwrap on \n                 {SELECT * FROM t1}"
+		result = "\n" + "db format -widths {5 5 18} -align {left center center} -wordwrap on                  {SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // "3.0"
@@ -609,7 +609,7 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "4.3"
-		result = "\n" + "db format -text plain -textjsonb on -wrap 11 \n              {SELECT a AS json, b AS jsonb, c AS num FROM t1}"
+		result = "\n" + "db format -text plain -textjsonb on -wrap 11               {SELECT a AS json, b AS jsonb, c AS num FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // "5.0"
@@ -621,37 +621,37 @@ func Test_qrf01(t *testing.T) {
 	{ // do_test "5.1"
 		sql = "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,\n                        value FROM t1 ORDER BY mtime"
 		_ = sql // suppress unused warning
-		result = "\n" + "db format -style line -screenwidth 60 -blob sql \n                   -text sql -wordwrap off -linelimit 77 \n                   -columnsep { = } $sql"
+		result = "\n" + "db format -style line -screenwidth 60 -blob sql                    -text sql -wordwrap off -linelimit 77                    -columnsep { = } $sql"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "5.2a"
 		sql = "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,\n                        value FROM t1 ORDER BY mtime"
 		_ = sql // suppress unused warning
-		result = "\n" + "db format -style line -screenwidth 60 -blob sql \n                   -text plain -esc off -textjsonb yes -columnsep { = }\n                   -wordwrap yes -linelimit 3 $sql"
+		result = "\n" + "db format -style line -screenwidth 60 -blob sql                    -text plain -esc off -textjsonb yes -columnsep { = }                   -wordwrap yes -linelimit 3 $sql"
 		_ = result // suppress unused warning
 	}
-	sqlnolabel = "SELECT name, mtime, datetime(mtime,'unixepoch'),\n                      value FROM t1 ORDER BY mtime"
+	sqlnolabel = "SELECT name, mtime, datetime(mtime,'unixepoch'),                      value FROM t1 ORDER BY mtime"
 	_ = sqlnolabel // suppress unused warning
 	{ // do_test "5.2b"
-		result = "\n" + "db format -style line -screenwidth 60 -blob sql \n                   -text plain -esc off -textjsonb no -titlelimit 12 \n                   -wordwrap yes -linelimit 3 $sqlnolabel"
+		result = "\n" + "db format -style line -screenwidth 60 -blob sql                    -text plain -esc off -textjsonb no -titlelimit 12                    -wordwrap yes -linelimit 3 $sqlnolabel"
 		_ = result // suppress unused warning
 	}
-	sql = "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,\n                      value FROM t1 ORDER BY mtime"
+	sql = "SELECT name, mtime, datetime(mtime,'unixepoch') AS time,                      value FROM t1 ORDER BY mtime"
 	_ = sql // suppress unused warning
 	{ // do_test "5.3a"
-		result = "\n" + "db format -style box -widths {0 10 10 14}\n                 -align {left right right center} \n                 -blob sql \n                 -text plain -esc off -textjsonb no \n                   -wordwrap yes -linelimit 2 $sql"
+		result = "\n" + "db format -style box -widths {0 10 10 14}                 -align {left right right center}                  -blob sql                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sql"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "5.3b"
-		result = "\n" + "db format -style box -widths {0 10 0 14} \n                 -align {left right right center} \n                 -blob sql -titlelimit 12 \n                 -text plain -esc off -textjsonb no \n                   -wordwrap yes -linelimit 2 $sqlnolabel"
+		result = "\n" + "db format -style box -widths {0 10 0 14}                  -align {left right right center}                  -blob sql -titlelimit 12                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sqlnolabel"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "5.3c"
-		result = "\n" + "db format -style table -widths {0 10 10 14}\n                 -align {center right right right} \n                 -blob sql \n                 -text plain -esc off -textjsonb no \n                   -wordwrap yes -linelimit 2 $sql"
+		result = "\n" + "db format -style table -widths {0 10 10 14}                 -align {center right right right}                  -blob sql                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sql"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "5.3c"
-		result = "\n" + "db format -style column -widths {0 10 10 14}\n                 -align {center right right right} \n                 -blob sql \n                 -text plain -esc off -textjsonb no \n                   -wordwrap yes -linelimit 2 $sql"
+		result = "\n" + "db format -style column -widths {0 10 10 14}                 -align {center right right right}                  -blob sql                  -text plain -esc off -textjsonb no                    -wordwrap yes -linelimit 2 $sql"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "5.4"
@@ -661,7 +661,7 @@ func Test_qrf01(t *testing.T) {
 		}
 		sql = "SELECT char(0x61,0xa,0x62,0xa,0x63,0xa,0x64) a,\n           mtime b, mtime c, mtime d, mtime e FROM t1"
 		_ = sql // suppress unused warning
-		result = "\n" + "db format -style box -widths {1 2 3 4 5}\n                -linelimit 3 -wordwrap off {SELECT *, 'x' AS x FROM t2}"
+		result = "\n" + "db format -style box -widths {1 2 3 4 5}                -linelimit 3 -wordwrap off {SELECT *, 'x' AS x FROM t2}"
 		_ = result // suppress unused warning
 	}
 	{ // "6.0"
@@ -671,7 +671,7 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "6.1a"
-		result = "\n" + "db format -style list -null NULL \n                 -text tcl -columnsep , \n                 {SELECT * FROM t2}"
+		result = "\n" + "db format -style list -null NULL                  -text tcl -columnsep ,                  {SELECT * FROM t2}"
 		_ = result // suppress unused warning
 	}
 	{ // "7.0"
@@ -681,19 +681,19 @@ func Test_qrf01(t *testing.T) {
 		}
 	}
 	{ // do_test "7.1"
-		result = "\n" + "db format -style list -charlimit 13 \n                 {SELECT * FROM t7}"
+		result = "\n" + "db format -style list -charlimit 13                  {SELECT * FROM t7}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "7.2"
-		result = "\n" + "db format -style list -charlimit 14 \n                 {SELECT * FROM t7}"
+		result = "\n" + "db format -style list -charlimit 14                  {SELECT * FROM t7}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "7.3"
-		result = "\n" + "db format -style list -charlimit 15 \n                 {SELECT * FROM t7}"
+		result = "\n" + "db format -style list -charlimit 15                  {SELECT * FROM t7}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "7.4"
-		result = "\n" + "db format -style list -charlimit 16 \n                 {SELECT * FROM t7}"
+		result = "\n" + "db format -style list -charlimit 16                  {SELECT * FROM t7}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "8.0"
@@ -729,23 +729,23 @@ func Test_qrf01(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');\n  ")
 		}
-		result = "\n" + "db format -style column -title off -screenwidth 41 -splitcolumn on \n                    {SELECT x FROM t1}"
+		result = "\n" + "db format -style column -title off -screenwidth 41 -splitcolumn on                     {SELECT x FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "10.2"
-		result = "\n" + "db format -style column -title off -screenwidth 42 -splitcolumn on \n                    {SELECT x FROM t1}"
+		result = "\n" + "db format -style column -title off -screenwidth 42 -splitcolumn on                     {SELECT x FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "10.3"
-		result = "\n" + "db format -style column -title off -screenwidth 51 -splitcolumn on \n                    {SELECT x FROM t1}"
+		result = "\n" + "db format -style column -title off -screenwidth 51 -splitcolumn on                     {SELECT x FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "10.4"
-		result = "\n" + "db format -style column -title off -screenwidth 61 -splitcolumn on \n                    {SELECT x FROM t1}"
+		result = "\n" + "db format -style column -title off -screenwidth 61 -splitcolumn on                     {SELECT x FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "10.5"
-		result = "\n" + "db format -style column -title off -screenwidth 74 -splitcolumn on \n                    {SELECT x FROM t1}"
+		result = "\n" + "db format -style column -title off -screenwidth 74 -splitcolumn on                     {SELECT x FROM t1}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "11.1"
@@ -753,7 +753,7 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "12.1"
-		result = "\n" + "db format -style box -text html \n                  {SELECT 'abc','','xyz'}"
+		result = "\n" + "db format -style box -text html                   {SELECT 'abc','','xyz'}"
 		_ = result // suppress unused warning
 	}
 	{ // do_test "13.2"

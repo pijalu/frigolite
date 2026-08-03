@@ -430,7 +430,7 @@ func Test_misc1(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2.Exec("SELECT count(*) FROM t1")
+			_res = db2.Exec("SELECT count(*) FROM t1")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			if _catchErr != nil {
 				rc = "1"
@@ -451,7 +451,7 @@ func Test_misc1(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2.Exec("SELECT count(*) FROM t1")
+			_res = db2.Exec("SELECT count(*) FROM t1")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			if _catchErr != nil {
 				rc = "1"

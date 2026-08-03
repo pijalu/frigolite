@@ -157,7 +157,7 @@ func Test_backup_ioerr(t *testing.T) {
 					// populate_database sdb (unsupported command, not transpiled)
 					// ddb eval PRAGMA page_size = $iDestPagesize (unsupported command, not transpiled)
 					// ddb eval PRAGMA cache_size = 10 (unsupported command, not transpiled)
-					// eval (dynamic, not transpiled)
+					// eval $zSetupBak (dynamic, not transpiled)
 					// sqlite3_backup B ddb main sdb main (unsupported command, not transpiled)
 					sqlite_io_error_pending = iError // TCL namespace variable
 					_ = sqlite_io_error_pending // suppress unused warning

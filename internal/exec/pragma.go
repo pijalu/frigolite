@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // --- ANALYZE ---
@@ -441,7 +442,7 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 	name := strings.ToUpper(s.Name)
 
 	// Handle PRAGMA ... = value for known pragmas
-	if s.Value != "" {
+	if s.Value != "" && name != "QUICK_CHECK" && name != "INTEGRITY_CHECK" {
 		switch name {
 		case "LEGACY_ALTER_TABLE":
 			e.legacyAlterTable = s.Value == "1"
@@ -466,6 +467,11 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 		}
 		// When setting a PRAGMA value, don't also return the value
 		return &Result{}
+	}
+
+	// Handle quick_check / integrity_check
+	if name == "QUICK_CHECK" || name == "INTEGRITY_CHECK" {
+		return e.execQuickCheck(s.Value)
 	}
 
 	if fn, ok := pragmaHandlers[name]; ok {
@@ -549,4 +555,149 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"COMPILE_OPTIONS": func(e *Engine) *Result {
 		return &Result{Columns: []string{"compile_options"}, Rows: [][]interface{}{{"THREADSAFE=1"}}}
 	},
+}
+
+// execQuickCheck implements PRAGMA quick_check('table_name') and
+// PRAGMA integrity_check('table_name'). For STRICT tables, it scans all rows
+// and validates that each value's type matches the column's declared type.
+// Returns "ok" if no violations, or a description of the first violation.
+func (e *Engine) execQuickCheck(tableName string) *Result {
+	if tableName == "" {
+		// No table name: check all tables
+		return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
+	}
+
+	// Strip quotes from table name
+	tableName = strings.Trim(tableName, "'\"")
+
+	te, dbCtx, err := e.findTable(tableName)
+	if err != nil {
+		return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
+	}
+
+	// Only STRICT tables need checking
+	if !hasStrictKeyword(strings.ToUpper(te.SQL)) {
+		return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
+	}
+
+	colDefs := e.parseColumnDefs(te.Name, te.SQL)
+
+	// Scan all rows and check STRICT types
+	tree := e.tableBTreePg(dbCtx.Pager, te.Name, te.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
+	}
+
+	for {
+		payload, _, err := cursor.ReadCellData()
+		if err != nil {
+			break
+		}
+		// Decode the record
+		rec, err := storage.DecodeRecord(payload)
+		if err != nil {
+			break
+		}
+		// Check each column value against STRICT type
+		for i, val := range rec.Values {
+			if i >= len(colDefs) {
+				break
+			}
+			cd := colDefs[i]
+			if cd.Generated != nil {
+				continue
+			}
+			if val == nil {
+				// Check NOT NULL. PRIMARY KEY columns are implicitly NOT NULL
+				// in STRICT tables (matches sqlite3AddPrimaryKey setting
+				// pCol->notNull; quick_check reports "NULL value in t.c").
+				if cd.NotNull || cd.PrimaryKey {
+					return &Result{
+						Columns: []string{"integrity_check"},
+						Rows:    [][]interface{}{{fmt.Sprintf("NULL value in %s.%s", te.Name, cd.Name)}},
+					}
+				}
+				continue
+			}
+			if err := checkStrictValueForQuickCheck(te.Name, cd.Name, cd.Type, val); err != nil {
+				return &Result{
+					Columns: []string{"integrity_check"},
+					Rows:    [][]interface{}{{err.Error()}},
+				}
+			}
+		}
+
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
+
+	return &Result{Columns: []string{"integrity_check"}, Rows: [][]interface{}{{"ok"}}}
+}
+
+// checkStrictValueForQuickCheck validates a value against a STRICT column type
+// using SQLite's quick_check error format: "non-DECLARED value in table.column".
+// The "non-X" is the DECLARED type name (sqlite3StdType[eCType-1]), not the
+// actual value type. Allowed actual types follow pragma.c's aStdTypeMask:
+//
+//	ANY:     any type
+//	BLOB:    BLOB only
+//	INT:     INT only
+//	INTEGER: INT only
+//	REAL:    INT or REAL
+//	TEXT:    TEXT only
+//
+// Unlike enforceStrictType, this does NOT apply affinity — it checks the raw
+// stored value type (used for detecting corruption).
+func checkStrictValueForQuickCheck(tableName, colName, declaredType string, v interface{}) error {
+	if v == nil {
+		return nil
+	}
+	upper := strings.ToUpper(strings.TrimSpace(declaredType))
+	// The declared type in the error message uses the canonical STRICT name
+	// (e.g. "INT", "INTEGER", "REAL", "TEXT", "BLOB"). sqlite3StdType is
+	// {"ANY","BLOB","INT","INTEGER","REAL","TEXT"} indexed by eCType-1.
+	declaredName := upper
+	if declaredName != "INT" && declaredName != "INTEGER" &&
+		declaredName != "REAL" && declaredName != "TEXT" &&
+		declaredName != "BLOB" && declaredName != "ANY" {
+		return nil
+	}
+	v = util.UnwrapColumnValue(v)
+	var actualType string
+	switch v.(type) {
+	case int64:
+		actualType = "INT"
+	case float64:
+		actualType = "REAL"
+	case string:
+		actualType = "TEXT"
+	case []byte:
+		actualType = "BLOB"
+	default:
+		return nil
+	}
+	switch upper {
+	case "TEXT":
+		if actualType != "TEXT" {
+			return fmt.Errorf("non-%s value in %s.%s", declaredName, tableName, colName)
+		}
+	case "INT", "INTEGER":
+		if actualType != "INT" {
+			return fmt.Errorf("non-%s value in %s.%s", declaredName, tableName, colName)
+		}
+	case "REAL":
+		if actualType != "REAL" && actualType != "INT" {
+			return fmt.Errorf("non-%s value in %s.%s", declaredName, tableName, colName)
+		}
+	case "BLOB":
+		if actualType != "BLOB" {
+			return fmt.Errorf("non-%s value in %s.%s", declaredName, tableName, colName)
+		}
+	case "ANY":
+		// any type is OK
+	}
+	return nil
 }

@@ -79,7 +79,7 @@ func Test_badutf(t *testing.T) {
 	db2, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "badutf-1.10"
-		db2.Exec("PRAGMA encoding=UTF16be")
+		_res = db2.Exec("PRAGMA encoding=UTF16be")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		// sqlite3_exec db2 {SELECT hex('%80') AS x} (unsupported command, not transpiled)
 	}

@@ -84,7 +84,7 @@ func Test_pager4(t *testing.T) {
 	}
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2.Exec("CREATE TABLE t2(x,y,z)")
+	_res = db2.Exec("CREATE TABLE t2(x,y,z)")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // "pager4-1.4"
 		_res = db.Exec("\n  UPDATE t1 SET a=948;\n")

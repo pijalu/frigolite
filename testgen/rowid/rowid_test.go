@@ -185,21 +185,21 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.8"
 		v = tclExecSQL(db, "{SELECT x, oid FROM t1 order by x}")
 		_ = v // suppress unused warning
-		v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
+		v2 = "1 " + x2rowid_1 + " 3 " + x2rowid_3
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 (not evaluated)
 	}
 	{ // do_test "rowid-1.9"
 		v = tclExecSQL(db, "{SELECT x, RowID FROM t1 order by x}")
 		_ = v // suppress unused warning
-		v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
+		v2 = "1 " + x2rowid_1 + " 3 " + x2rowid_3
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 (not evaluated)
 	}
 	{ // do_test "rowid-1.10"
 		v = tclExecSQL(db, "{SELECT x, _rowid_ FROM t1 order by x}")
 		_ = v // suppress unused warning
-		v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
+		v2 = "1 " + x2rowid_1 + " 3 " + x2rowid_3
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 (not evaluated)
 	}
@@ -518,7 +518,7 @@ func Test_rowid(t *testing.T) {
 		norow = "1" // TCL namespace variable
 		_ = norow // suppress unused warning
 		for true {
-			if tclExecSQL(db, "\"SELECT x FROM t1 WHERE rowid=$::norow\"") == "" {
+			if tclExecSQL(db, "SELECT x FROM t1 WHERE rowid=" + norow) == "" {
 			}
 			// incr norow 1
 			{

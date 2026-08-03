@@ -536,7 +536,7 @@ func Test_fts3matchinfo(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			r2 = "list"
+			r2 = ""
 			_ = r2 // suppress unused warning
 			// foreach {rowid L} res
 			_items1 := tclSplitList(res)
@@ -547,7 +547,7 @@ func Test_fts3matchinfo(t *testing.T) {
 				_ = L // suppress unused warning
 				_ = _idx1
 					r2 = tclListAppend(r2, rowid)
-					M = "list"
+					M = ""
 					_ = M // suppress unused warning
 					// foreach {a b} L
 					_items2 := tclSplitList(L)
@@ -594,7 +594,7 @@ func Test_fts3matchinfo(t *testing.T) {
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "12.0"
-					cols = "list"
+					cols = ""
 					_ = cols // suppress unused warning
 					i = "0"
 					_ = i // suppress unused warning

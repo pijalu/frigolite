@@ -1122,6 +1122,22 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 			}
 		}
 
+		// STRICT tables only allow the standard datatypes (INT, INTEGER,
+		// REAL, TEXT, BLOB, ANY). Reject custom or missing datatypes with
+		// SQLite's "error in table ... after add column:" message.
+		if hasStrictKeyword(strings.ToUpper(tableEntry.SQL)) {
+			switch strings.ToUpper(strings.TrimSpace(s.ColDef.Type)) {
+			case "INT", "INTEGER", "REAL", "TEXT", "BLOB", "ANY":
+				// valid STRICT datatype
+			case "":
+				return &Result{Error: fmt.Errorf("error in table %s after add column: missing datatype for %s.%s",
+					tableEntry.Name, tableEntry.Name, s.ColDef.Name)}
+			default:
+				return &Result{Error: fmt.Errorf("error in table %s after add column: unknown datatype for %s.%s: %q",
+					tableEntry.Name, tableEntry.Name, s.ColDef.Name, s.ColDef.Type)}
+			}
+		}
+
 		// Add column to cached column definitions
 		colDefs = append(colDefs, s.ColDef)
 		e.colCache[tableName] = colDefs

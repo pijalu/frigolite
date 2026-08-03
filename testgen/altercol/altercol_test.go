@@ -130,7 +130,7 @@ func Test_altercol(t *testing.T) {
 				res = after
 				_ = res // suppress unused warning
 			} else {
-				res = "list $after"
+				res = after
 				_ = res // suppress unused warning
 			}
 			{ // "1." + tn + ".4"

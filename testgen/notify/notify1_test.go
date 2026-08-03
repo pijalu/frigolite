@@ -110,7 +110,7 @@ func Test_notify1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		// eval (dynamic, not transpiled)
+		// eval $zScript (dynamic, not transpiled)
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -147,7 +147,7 @@ func Test_notify1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		// eval (dynamic, not transpiled)
+		// eval $zScript (dynamic, not transpiled)
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -239,7 +239,7 @@ func Test_notify1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-2.3.6"
-		lUnlock = "list"
+		lUnlock = ""
 		_ = lUnlock // suppress unused warning
 		// db2.unlock_notify (db command)
 	}
@@ -312,9 +312,9 @@ func Test_notify1(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n    ")
 				}
 			}
-			lUnlock = "list"
+			lUnlock = ""
 			_ = lUnlock // suppress unused warning
-			lUnlockFinal = "list"
+			lUnlockFinal = ""
 			_ = lUnlockFinal // suppress unused warning
 			ii = "1"
 			_ = ii // suppress unused warning

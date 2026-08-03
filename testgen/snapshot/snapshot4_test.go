@@ -79,13 +79,13 @@ func Test_snapshot4(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		db2.Exec(" \n    SELECT count(*) FROM t1;\n    CREATE TABLE t2(x); \n  ")
+		_res = db2.Exec(" \n    SELECT count(*) FROM t1;\n    CREATE TABLE t2(x); \n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.3"
 		snap = "sqlite3_snapshot_get_blob db main" // TCL namespace variable
 		_ = snap // suppress unused warning
-		db2.Exec(" PRAGMA wal_checkpoint ")
+		_res = db2.Exec(" PRAGMA wal_checkpoint ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.4"

@@ -130,7 +130,7 @@ func Test_fts3defer(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 		}
 	}
-	data = "list"
+	data = ""
 	_ = data // suppress unused warning
 	data = tclListAppend(data, "\"zm \" 100000")
 	data = tclListAppend(data, "\"jk \" 100000")
@@ -150,7 +150,7 @@ func Test_fts3defer(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t1 ")
 			}
-			// eval (dynamic, not transpiled)
+			// eval $setup (dynamic, not transpiled)
 			testprefix = "fts3defer-2." + tn // TCL namespace variable
 			_ = testprefix // suppress unused warning
 			DO_MALLOC_TEST = "0"
@@ -311,7 +311,7 @@ func Test_fts3defer(t *testing.T) {
 				}
 			}
 			{ // do_test "6.2"
-				L = "list"
+				L = ""
 				_ = L // suppress unused warning
 				x = "0"
 				_ = x // suppress unused warning

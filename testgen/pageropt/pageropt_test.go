@@ -98,7 +98,7 @@ func Test_pageropt(t *testing.T) {
 	x = tclExpr("[permutation]==\"mmap\" ? 1 : 6")
 	_ = x // suppress unused warning
 	{ // do_test "pageropt-1.5"
-		db2.Exec("CREATE TABLE t2(y)")
+		_res = db2.Exec("CREATE TABLE t2(y)")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		// pagercount_sql {\n    SELECT hex(x) FROM t1\n  } (unsupported command, not transpiled)
 	}

@@ -112,7 +112,7 @@ func Test_pragma3(t *testing.T) {
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "pragma3-120"
-		db2.Exec("\n    SELECT * FROM t1;\n    PRAGMA data_version;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t1;\n    PRAGMA data_version;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // "pragma3-130"
@@ -128,7 +128,7 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma3-140"
-		db2.Exec("\n    SELECT * FROM t1;\n    PRAGMA data_version;\n    BEGIN IMMEDIATE;\n    PRAGMA data_version;\n    UPDATE t1 SET a=a+1;\n    COMMIT;\n    SELECT * FROM t1;\n    PRAGMA data_version;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t1;\n    PRAGMA data_version;\n    BEGIN IMMEDIATE;\n    PRAGMA data_version;\n    UPDATE t1 SET a=a+1;\n    COMMIT;\n    SELECT * FROM t1;\n    PRAGMA data_version;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // "pragma3-150"
@@ -156,7 +156,7 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma3-170"
-		db2.Exec("\n    PRAGMA data_version;\n  ")
+		_res = db2.Exec("\n    PRAGMA data_version;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "pragma3-180"
@@ -172,7 +172,7 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma3-190"
-		db2.Exec("\n    PRAGMA data_version;\n  ")
+		_res = db2.Exec("\n    PRAGMA data_version;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "pragma3-195"
@@ -224,7 +224,7 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma3-310"
-		db2.Exec("\n      PRAGMA data_version;\n      BEGIN;\n      INSERT INTO t3(a,b,c) VALUES('abc','def','ghi');\n      SELECT * FROM t3;\n      PRAGMA data_version;\n    ")
+		_res = db2.Exec("\n      PRAGMA data_version;\n      BEGIN;\n      INSERT INTO t3(a,b,c) VALUES('abc','def','ghi');\n      SELECT * FROM t3;\n      PRAGMA data_version;\n    ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "pragma3-320"
@@ -240,7 +240,7 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma3-330"
-		db2.Exec("\n      COMMIT;\n      PRAGMA data_version;\n      SELECT * FROM t4;\n    ")
+		_res = db2.Exec("\n      COMMIT;\n      PRAGMA data_version;\n      SELECT * FROM t4;\n    ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "pragma3-340"
@@ -281,7 +281,7 @@ func Test_pragma3(t *testing.T) {
 				}
 			}
 			{ // do_test "pragma3-410"
-				db2.Exec("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
+				_res = db2.Exec("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test "pragma3-420"
@@ -297,7 +297,7 @@ func Test_pragma3(t *testing.T) {
 				}
 			}
 			{ // do_test "pragma3-430"
-				db2.Exec("PRAGMA data_version; SELECT * FROM t1;")
+				_res = db2.Exec("PRAGMA data_version; SELECT * FROM t1;")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			db2.Close()

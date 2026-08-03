@@ -83,7 +83,7 @@ func Test_round1(t *testing.T) {
 		_ = x2 // suppress unused warning
 		n = "1"
 		_ = n // suppress unused warning
-		x3 = "[format %09d $x2] [expr {9-$n}] end"
+		x3 = tclStringRange("format", "%09d", x2 + "]")
 		_ = x3 // suppress unused warning
 		_r = x1 + "." + x3
 		_ = _r // suppress unused warning
@@ -96,7 +96,7 @@ func Test_round1(t *testing.T) {
 		{ // do_test iTest + "/" + n + "/$"
 			// r (unsupported command, not transpiled)
 		}
-		x4 = "[format %09d [expr {$x2+1}]] [expr {9-$n}] end"
+		x4 = tclStringRange("format", "%09d", "")
 		_ = x4 // suppress unused warning
 		if strings.TrimSpace(x3 + " 9") == "" {
 			// incr x1 1

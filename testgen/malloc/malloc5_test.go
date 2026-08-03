@@ -176,7 +176,7 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n    SELECT * FROM def;\n  ")
 		}
-		data = "list"
+		data = ""
 		_ = data // suppress unused warning
 		_res = db.Exec("SELECT * FROM abc")
 		if _res.Error != nil {
@@ -317,7 +317,7 @@ func Test_malloc5(t *testing.T) {
 		tclFileCopy("test.db", "test2.db")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("PRAGMA cache_size=2")
+		_res = db2.Exec("PRAGMA cache_size=2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_list := tclList([]string{tclExpr("([file size test.db]/1024)>20"), tclExpr("([file size test2.db]/1024)>20")})
 		_ = _list

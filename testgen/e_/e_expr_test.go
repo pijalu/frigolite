@@ -259,7 +259,7 @@ func Test_e_expr(t *testing.T) {
 			opname_op = opn // TCL namespace variable
 			_ = opname_op // suppress unused warning
 		}
-		oplist = "list"
+		oplist = ""
 		_ = oplist // suppress unused warning
 		// foreach {prec opl} "1   ||\n  2   {* / %}\n  3   {+ -}\n  4   {<< >> & |}\n  5   {< <= > >=}\n  6   {= == != <> IS {IS NOT} LIKE GLOB MATCH REGEXP}\n  7   AND\n  8   OR"
 		_items1 := tclSplitList("1   ||\n  2   {* / %}\n  3   {+ -}\n  4   {<< >> & |}\n  5   {< <= > >=}\n  6   {= == != <> IS {IS NOT} LIKE GLOB MATCH REGEXP}\n  7   AND\n  8   OR")
@@ -813,10 +813,10 @@ func Test_e_expr(t *testing.T) {
 												_ = lhs // suppress unused warning
 												_ = _idx9
 													if tclBool(rhs + "!=\"NULL\" && " + lhs + "!=\"NULL\"") {
-														eq = tclExecSQL(db, "\"SELECT $lhs = $rhs, $lhs != $rhs\"")
+														eq = tclExecSQL(db, "SELECT " + lhs + " = " + rhs + ", " + lhs + " != " + rhs)
 														_ = eq // suppress unused warning
 													} else {
-														eq = "list [expr {$lhs==\"NULL\" && $rhs==\"NULL\"}] \\\n                   [expr {$lhs!=\"NULL\" || $rhs!=\"NULL\"}]"
+														eq = tclExprWith("$lhs==\"NULL\" && $rhs==\"NULL\"", map[string]string{"lhs": lhs, "rhs": rhs}) + "                     " + tclExprWith("$lhs!=\"NULL\" || $rhs!=\"NULL\"", map[string]string{"lhs": lhs, "rhs": rhs})
 														_ = eq // suppress unused warning
 													}
 													test = "e_expr-8.2." + n1 + "." + n2
@@ -1684,10 +1684,10 @@ func Test_e_expr(t *testing.T) {
 															expr := _items13[_idx13+1]
 															_ = expr // suppress unused warning
 															_ = _idx13
-																elist = "list $expr"
+																elist = expr
 																_ = elist // suppress unused warning
 																if tclBool("*EXPR2* $expr") {
-																	elist = "list"
+																	elist = ""
 																	_ = elist // suppress unused warning
 																	// foreach {e1 e2} "cname \"34+22\""
 																	_items0 := tclSplitList("cname \"34+22\"")
@@ -1701,7 +1701,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																	}
 																	if tclBool("*EXPR* $expr") {
-																		elist2 = "list"
+																		elist2 = ""
 																		_ = elist2 // suppress unused warning
 																		for _, el := range tclSplitList(elist) {
 																		_ = el // suppress unused warning
@@ -1775,7 +1775,7 @@ func Test_e_expr(t *testing.T) {
 																			{ // do_test "e_expr-13.1." + tn
 																				xcount = "0" // TCL namespace variable
 																				_ = xcount // suppress unused warning
-																				a = tclExecSQL(db, "\"SELECT $expr\"")
+																				a = tclExecSQL(db, "SELECT " + expr)
 																				_ = a // suppress unused warning
 																				_list := tclList([]string{xcount, a})
 																				_ = _list
@@ -2304,9 +2304,9 @@ func Test_e_expr(t *testing.T) {
 																			}
 																		}
 																		{ // "e_expr-14.6.4"
-																			_res = db.Exec("SELECT 'A' LIKE 'a' ESCAPE '\\u00e6'")
+																			_res = db.Exec("SELECT 'A' LIKE 'a' ESCAPE 'u00e6'")
 																			if _res.Error != nil {
-																				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT 'A' LIKE 'a' ESCAPE '\\u00e6'")
+																				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "SELECT 'A' LIKE 'a' ESCAPE 'u00e6'")
 																			}
 																		}
 																		{ // "e_expr-14.7.1"
@@ -2985,7 +2985,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// proc definition (not transpiled)
 																		// foreach a,b,c "0 0 0" (no body)
-																		varlist = "list"
+																		varlist = ""
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-21.1.1"
 																			r = db.Query("\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C' END\n")
@@ -3001,7 +3001,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		{ // do_test "e_expr-21.1.2"
 																		}
-																		varlist = "list"
+																		varlist = ""
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-21.1.3"
 																			r = db.Query("\n  SELECT CASE WHEN var('c') THEN 'C' \n              WHEN var('b') THEN 'B' \n              WHEN var('a') THEN 'A' \n              ELSE 'no result'\n  END\n")
@@ -3339,7 +3339,7 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
-																		varlist = "list"
+																		varlist = ""
 																		_ = varlist // suppress unused warning
 																		// foreach a,b,c "0 1 0" (no body)
 																		{ // "e_expr-25.1.1"
@@ -3357,7 +3357,7 @@ func Test_e_expr(t *testing.T) {
 																		{ // do_test "e_expr-25.1.2"
 																			_ = varlist // TCL namespace variable (query)
 																		}
-																		varlist = "list"
+																		varlist = ""
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-25.1.3"
 																			r = db.Query("\n  SELECT CASE '0' WHEN var('a') THEN 'A' \n                  WHEN var('b') THEN 'B' \n                  WHEN var('c') THEN 'C' \n  END\n")
@@ -3621,15 +3621,15 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		db1, err = frigolite.Open(":memory:")
 																		if err != nil { t.Fatal(err) }
-																		db1.Exec(" PRAGMA encoding = 'utf-8' ")
+																		_res = db1.Exec(" PRAGMA encoding = 'utf-8' ")
 																		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 																		db2, err = frigolite.Open(":memory:")
 																		if err != nil { t.Fatal(err) }
-																		db2.Exec(" PRAGMA encoding = 'utf-16le' ")
+																		_res = db2.Exec(" PRAGMA encoding = 'utf-16le' ")
 																		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 																		db3, err = frigolite.Open(":memory:")
 																		if err != nil { t.Fatal(err) }
-																		db3.Exec(" PRAGMA encoding = 'utf-16be' ")
+																		_res = db3.Exec(" PRAGMA encoding = 'utf-16be' ")
 																		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 																		// foreach {tn castexpr differs} "1 { CAST(123 AS BLOB)    } 1\n  2 { CAST('' AS BLOB)     } 0\n  3 { CAST('abcd' AS BLOB) } 1\n\n  4 { CAST(X'abcd' AS TEXT) } 1\n  5 { CAST(X'' AS TEXT)     } 0"
 																		_items20 := tclSplitList("1 { CAST(123 AS BLOB)    } 1\n  2 { CAST('' AS BLOB)     } 0\n  3 { CAST('abcd' AS BLOB) } 1\n\n  4 { CAST(X'abcd' AS TEXT) } 1\n  5 { CAST(X'' AS TEXT)     } 0")

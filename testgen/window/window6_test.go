@@ -110,7 +110,7 @@ func Test_window6(t *testing.T) {
 			_ = A__pct_alias // suppress unused warning
 			A__pct_typename = "integer"
 			_ = A__pct_typename // suppress unused warning
-			// eval (dynamic, not transpiled)
+			// eval $vars (dynamic, not transpiled)
 			MAP = "array get A"
 			_ = MAP // suppress unused warning
 			setup_sql = ""

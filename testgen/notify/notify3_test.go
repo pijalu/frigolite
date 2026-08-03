@@ -190,14 +190,14 @@ func Test_notify3(t *testing.T) {
 					// sqlite3_extended_result_codes db1 $enable_extended_errors (unsupported command, not transpiled)
 					// sqlite3_extended_result_codes db2 $enable_extended_errors (unsupported command, not transpiled)
 					if tclBool(db1_loaded) {
-						db1.Exec("SELECT * FROM sqlite_master")
+						_res = db1.Exec("SELECT * FROM sqlite_master")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					if tclBool(db2_loaded) {
-						db2.Exec("SELECT * FROM sqlite_master")
+						_res = db2.Exec("SELECT * FROM sqlite_master")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
-					db2.Exec("BEGIN EXCLUSIVE")
+					_res = db2.Exec("BEGIN EXCLUSIVE")
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					_res = db.Exec("ATTACH 'test.db2' AS two")
 					_ = _res // catchsql
@@ -210,7 +210,7 @@ func Test_notify3(t *testing.T) {
 					// db1.unlock_notify (db command)
 					invoked = "0"
 					_ = invoked // suppress unused warning
-					db2.Exec("commit")
+					_res = db2.Exec("commit")
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				}
 			}

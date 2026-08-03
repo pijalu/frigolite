@@ -118,7 +118,7 @@ func Test_delete2(t *testing.T) {
 		}
 	}
 	{ // do_test "delete2-2.2"
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    SELECT CASE WHEN c = 5 THEN b ELSE NULL END AS b, c, d FROM t1, t2\n  ")
 		if _res.Error != nil {

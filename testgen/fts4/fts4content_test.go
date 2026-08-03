@@ -358,7 +358,7 @@ func Test_fts4content(t *testing.T) {
 						rowidlist := _items4[_idx4+2]
 						_ = rowidlist // suppress unused warning
 						_ = _idx4
-							res = "list"
+							res = ""
 							_ = res // suppress unused warning
 							for _, rowid := range tclSplitList(rowidlist) {
 							_ = rowid // suppress unused warning
@@ -405,7 +405,7 @@ func Test_fts4content(t *testing.T) {
 							rowidlist := _items5[_idx5+2]
 							_ = rowidlist // suppress unused warning
 							_ = _idx5
-								res = "list"
+								res = ""
 								_ = res // suppress unused warning
 								for _, rowid := range tclSplitList(rowidlist) {
 								_ = rowid // suppress unused warning
@@ -452,7 +452,7 @@ func Test_fts4content(t *testing.T) {
 								rowidlist := _items6[_idx6+2]
 								_ = rowidlist // suppress unused warning
 								_ = _idx6
-									res = "list"
+									res = ""
 									_ = res // suppress unused warning
 									for _, rowid := range tclSplitList(rowidlist) {
 									_ = rowid // suppress unused warning

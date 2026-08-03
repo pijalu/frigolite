@@ -492,7 +492,7 @@ func Test_capi3(t *testing.T) {
 	}
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
-	code2english = "list \\\nSQLITE_OK         {not an error} \\\nSQLITE_ERROR      {SQL logic error} \\\nSQLITE_PERM       {access permission denied} \\\nSQLITE_ABORT      {query aborted} \\\nSQLITE_BUSY       {database is locked} \\\nSQLITE_LOCKED     {database table is locked} \\\nSQLITE_NOMEM      {out of memory} \\\nSQLITE_READONLY   {attempt to write a readonly database} \\\nSQLITE_INTERRUPT  {interrupted} \\\nSQLITE_IOERR      {disk I/O error} \\\nSQLITE_CORRUPT    {database disk image is malformed} \\\nSQLITE_FULL       {database or disk is full} \\\nSQLITE_CANTOPEN   {unable to open database file} \\\nSQLITE_SCHEMA     {database schema has changed} \\\nSQLITE_CONSTRAINT {constraint failed} \\\nSQLITE_MISMATCH   {datatype mismatch} \\\nSQLITE_MISUSE     {bad parameter or other API misuse} \\\nSQLITE_AUTH       {authorization denied} \\\nSQLITE_RANGE      {column index out of range} \\\nSQLITE_NOTADB     {file is not a database} \\\nunknownerror      {unknown error} \\"
+	code2english = "SQLITE_OK         {not an error}  SQLITE_ERROR      {SQL logic error}  SQLITE_PERM       {access permission denied}  SQLITE_ABORT      {query aborted}  SQLITE_BUSY       {database is locked}  SQLITE_LOCKED     {database table is locked}  SQLITE_NOMEM      {out of memory}  SQLITE_READONLY   {attempt to write a readonly database}  SQLITE_INTERRUPT  {interrupted}  SQLITE_IOERR      {disk I/O error}  SQLITE_CORRUPT    {database disk image is malformed}  SQLITE_FULL       {database or disk is full}  SQLITE_CANTOPEN   {unable to open database file}  SQLITE_SCHEMA     {database schema has changed}  SQLITE_CONSTRAINT {constraint failed}  SQLITE_MISMATCH   {datatype mismatch}  SQLITE_MISUSE     {bad parameter or other API misuse}  SQLITE_AUTH       {authorization denied}  SQLITE_RANGE      {column index out of range}  SQLITE_NOTADB     {file is not a database}  unknownerror      {unknown error}"
 	_ = code2english // suppress unused warning
 	test_number = "1"
 	_ = test_number // suppress unused warning
@@ -893,7 +893,7 @@ func Test_capi3(t *testing.T) {
 			_ = STMT // suppress unused warning
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			db2.Exec("CREATE TABLE t3(x)")
+			_res = db2.Exec("CREATE TABLE t3(x)")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			db2.Close()
 			// sqlite3_step $STMT (unsupported command, not transpiled)

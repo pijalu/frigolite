@@ -674,7 +674,7 @@ func Test_view(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP VIEW x1;")
 		}
 	}
-	res = "list {SQLITE_DELETE sqlite_stat1 {} main {}}"
+	res = "{SQLITE_DELETE sqlite_stat1 {} main {}}"
 	_ = res // suppress unused warning
 	res = tclListAppend(res, "SQLITE_DELETE sqlite_stat4 {} main {}")
 	{ // do_test "view-25.2"

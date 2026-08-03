@@ -91,7 +91,7 @@ func Test_btreefault(t *testing.T) {
 	}
 	// faultsim_save (unsupported command, not transpiled)
 	{ // do_test "2.2"
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    SELECT x, y FROM t1 CROSS JOIN t2 WHERE t2.x=t1.i AND +t1.i=25 ORDER BY b\n  ")
 		if _res.Error != nil {

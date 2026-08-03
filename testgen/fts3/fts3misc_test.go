@@ -86,7 +86,7 @@ func Test_fts3misc(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "2.0"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning

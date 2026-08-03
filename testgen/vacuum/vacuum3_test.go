@@ -299,11 +299,11 @@ func Test_vacuum3(t *testing.T) {
 				db2, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "vacuum3-5.1"
-					db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1234);\n    PRAGMA page_size=4096;\n    VACUUM;\n    SELECT * FROM t1;\n  ")
+					_res = db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1234);\n    PRAGMA page_size=4096;\n    VACUUM;\n    SELECT * FROM t1;\n  ")
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				}
 				{ // do_test "vacuum3-5.2"
-					db2.Exec("\n    PRAGMA page_size\n  ")
+					_res = db2.Exec("\n    PRAGMA page_size\n  ")
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				}
 				create_database_sql = "\n  BEGIN; \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, randstr(50,50), randstr(50,50)); \n  INSERT INTO t1 SELECT a+2, b||'-'||rowid, c||'-'||rowid FROM t1; \n  INSERT INTO t1 SELECT a+4, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+8, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+16, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+32, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+64, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+128, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 VALUES(1, randstr(600,600), randstr(600,600));\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE TABLE t3 AS SELECT * FROM t1;\n  COMMIT;\n  DROP TABLE t2;\n"

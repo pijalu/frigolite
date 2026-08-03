@@ -98,14 +98,14 @@ func Test_dataversion1(t *testing.T) {
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "dataversion1-130"
-		db2.Exec("\n    SELECT * FROM t1\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t1\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "dataversion1-131"
 		// file_control_data_version db (unsupported command, not transpiled)
 	}
 	{ // do_test "dataversion1-132"
-		db2.Exec("\n    UPDATE t1 SET x=x+1;\n  ")
+		_res = db2.Exec("\n    UPDATE t1 SET x=x+1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		dv2 = "file_control_data_version db"
 		_ = dv2 // suppress unused warning

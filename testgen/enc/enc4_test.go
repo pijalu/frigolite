@@ -77,9 +77,9 @@ func Test_enc4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	encodings = "list UTF-8 UTF-16le UTF-16be"
+	encodings = "UTF-8 UTF-16le UTF-16be"
 	_ = encodings // suppress unused warning
-	inits = "list 1 1.0 1. 1e0"
+	inits = "1 1.0 1. 1e0"
 	_ = inits // suppress unused warning
 	vals = "list\\\n\"922337203685477580792233720368547758079223372036854775807\"\\\n\"100000000000000000000000000000000000000000000000000000000\"\\\n\"1.0000000000000000000000000000000000000000000000000000000\"\\"
 	_ = vals // suppress unused warning
@@ -90,9 +90,9 @@ func Test_enc4(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("PRAGMA encoding = \\\"" + enc + "\\\"")
+		_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \\\"" + enc + "\\\"")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \"" + enc + "\"")
 		}
 		{ // do_test "enc4-" + i + ".1"
 			r = db.Query("PRAGMA encoding")

@@ -68,9 +68,9 @@ func Test_sharedB(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db1.Exec("\n    CREATE TABLE t1(x,y TEXT COLLATE nocase);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n    INSERT INTO t1(x,y) SELECT i, printf('x%03dy',i) FROM c;\n    CREATE INDEX t1yx ON t1(y,x);\n  ")
+		_res = db1.Exec("\n    CREATE TABLE t1(x,y TEXT COLLATE nocase);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n    INSERT INTO t1(x,y) SELECT i, printf('x%03dy',i) FROM c;\n    CREATE INDEX t1yx ON t1(y,x);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("\n    SELECT x FROM t1 WHERE y='X014Y';\n  ")
+		_res = db2.Exec("\n    SELECT x FROM t1 WHERE y='X014Y';\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	j = "1"
@@ -80,7 +80,7 @@ func Test_sharedB(t *testing.T) {
 			db2.Close()
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			db2.Exec("\n      SELECT x FROM t1 WHERE y='X014Y';\n    ")
+			_res = db2.Exec("\n      SELECT x FROM t1 WHERE y='X014Y';\n    ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		// incr j 1

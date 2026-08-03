@@ -181,7 +181,7 @@ func Test_mutex1(t *testing.T) {
 			}
 			{ // do_test "mutex1.2." + mode + ".4"
 				// mutex_counters counters (unsupported command, not transpiled)
-				res = "list"
+				res = ""
 				_ = res // suppress unused warning
 				// foreach {key value} "array get counters"
 				_items2 := tclSplitList("array get counters")

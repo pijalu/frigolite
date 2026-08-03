@@ -760,11 +760,11 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(10), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n  ")
 		}
-		db2.Exec(" \n    INSERT INTO t1 SELECT randomblob(10), randomblob(100);\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100);\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100);\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100);\n  ")
+		_res = db2.Exec(" \n    INSERT INTO t1 SELECT randomblob(10), randomblob(100);\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100);\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100);\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec(" \n    PRAGMA wal_checkpoint;\n    CREATE INDEX i1 on t1(b);\n  ")
 		_ = _res // catchsql
-		db2.Exec(" PRAGMA integrity_check ")
+		_res = db2.Exec(" PRAGMA integrity_check ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{

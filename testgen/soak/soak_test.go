@@ -89,7 +89,7 @@ func Test_soak(t *testing.T) {
 				// switch -- $name {\n      -timeout {\n        set TIMEOUT $value\n  ...} (test infra, not transpiled)
 			}
 		}
-		var argv = "list"
+		var argv = ""
 		_ = argv // suppress unused warning
 		SOAKTESTS = "\n  fuzz.test\n  fuzz_malloc.test\n  trans.test\n  corruptC.test\n"
 		_ = SOAKTESTS // suppress unused warning

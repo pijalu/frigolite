@@ -97,9 +97,9 @@ func Test_win32lock(t *testing.T) {
 	}
 	old_pending_byte = "sqlite3_test_control_pending_byte 0x40000000"
 	_ = old_pending_byte // suppress unused warning
-	win32_lock_ok = "list"
+	win32_lock_ok = ""
 	_ = win32_lock_ok // suppress unused warning
-	win32_lock_error = "list"
+	win32_lock_error = ""
 	_ = win32_lock_error // suppress unused warning
 	delay1 = "25"
 	_ = delay1 // suppress unused warning
@@ -162,9 +162,9 @@ func Test_win32lock(t *testing.T) {
 	{ // do_test "win32lock-2.1"
 		// file_control_win32_av_retry db 1 1 (unsupported command, not transpiled)
 	}
-	win32_lock_ok = "list"
+	win32_lock_ok = ""
 	_ = win32_lock_ok // suppress unused warning
-	win32_lock_error = "list"
+	win32_lock_error = ""
 	_ = win32_lock_error // suppress unused warning
 	delay1 = "1"
 	_ = delay1 // suppress unused warning

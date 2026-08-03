@@ -193,7 +193,7 @@ func Test_walsetlk(t *testing.T) {
 	// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
 	// db2.timeout (db command)
 	{ // do_test "3.4"
-		db2.Exec(" BEGIN EXCLUSIVE ")
+		_res = db2.Exec(" BEGIN EXCLUSIVE ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_t = "0"
 		_ = _t // suppress unused warning
@@ -217,7 +217,7 @@ func Test_walsetlk(t *testing.T) {
 	// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
 	// db2.timeout (db command)
 	{ // do_test "3.7"
-		db2.Exec(" BEGIN EXCLUSIVE ")
+		_res = db2.Exec(" BEGIN EXCLUSIVE ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_t = "0"
 		_ = _t // suppress unused warning

@@ -81,7 +81,7 @@ func Test_sharedlock(t *testing.T) {
 		}
 	}
 	{ // do_test "sharedlock-1.2"
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY rowid ")
 		if _res.Error != nil {

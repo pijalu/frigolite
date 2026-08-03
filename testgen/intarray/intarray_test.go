@@ -172,7 +172,7 @@ func Test_intarray(t *testing.T) {
 				}
 			}
 		}
-		// eval (dynamic, not transpiled)
+		// eval $cmd (dynamic, not transpiled)
 		_res = db.Exec("\n    REPLACE INTO t1 SELECT * FROM t2;\n    DELETE FROM t1 WHERE a NOT IN ia1;\n    SELECT count(*) FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    REPLACE INTO t1 SELECT * FROM t2;\n    DELETE FROM t1 WHERE a NOT IN ia1;\n    SELECT count(*) FROM t1;\n  ")

@@ -200,6 +200,14 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
+	// WITHOUT ROWID tables have no rowid/_rowid_/oid columns. SQLite rejects
+	// any reference to them with "no such column".
+	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		if ref := e.findRowIDRef(s); ref != "" {
+			return &Result{Error: fmt.Errorf("no such column: %s", ref)}
+		}
+	}
+
 	// Check if this is a virtual table (RootPage = 0)
 	if tableEntry.RootPage == 0 {
 		// For FTS virtual tables, use full SELECT processing (WHERE, ORDER BY, LIMIT)
@@ -4256,3 +4264,112 @@ func sortRowMapsByPKNames(rowMaps []RowMap, pkColNames []string) {
 	})
 }
 
+
+// findRowIDRef returns the first rowid/_rowid_/oid column reference in a
+// SELECT statement, or "" if there is none. Used to reject rowid references
+// on WITHOUT ROWID tables.
+func (e *Engine) findRowIDRef(s *sql.SelectStmt) string {
+	check := func(expr sql.Expr) string {
+		var found string
+		walkExprFull(expr, func(e2 sql.Expr) {
+			if found != "" {
+				return
+			}
+			if cr, ok := e2.(*sql.ColumnRef); ok && isRowIDName(cr.Name) {
+				found = cr.Name
+			}
+		})
+		return found
+	}
+	for _, col := range s.Columns {
+		if ref := check(col.Expr); ref != "" {
+			return ref
+		}
+	}
+	if s.Where != nil {
+		if ref := check(s.Where); ref != "" {
+			return ref
+		}
+	}
+	for _, ob := range s.OrderBy {
+		if ref := check(ob.Expr); ref != "" {
+			return ref
+		}
+	}
+	for _, gb := range s.GroupBy {
+		if ref := check(gb); ref != "" {
+			return ref
+		}
+	}
+	if s.Having != nil {
+		if ref := check(s.Having); ref != "" {
+			return ref
+		}
+	}
+	return ""
+}
+
+// walkExprFull visits every node in an expression tree, descending into all
+// expression node types.
+func walkExprFull(expr sql.Expr, fn func(sql.Expr)) {
+	if expr == nil {
+		return
+	}
+	fn(expr)
+	switch e := expr.(type) {
+	case *sql.ParenExpr:
+		walkExprFull(e.Expr, fn)
+	case *sql.BinaryOp:
+		walkExprFull(e.Left, fn)
+		walkExprFull(e.Right, fn)
+	case *sql.UnaryOp:
+		walkExprFull(e.Operand, fn)
+	case *sql.FuncCall:
+		for _, arg := range e.Args {
+			walkExprFull(arg, fn)
+		}
+	case *sql.CaseExpr:
+		walkExprFull(e.Operand, fn)
+		for _, w := range e.Whens {
+			walkExprFull(w.When, fn)
+			walkExprFull(w.Then, fn)
+		}
+		walkExprFull(e.Else, fn)
+	case *sql.CastExpr:
+		walkExprFull(e.Operand, fn)
+	case *sql.InList:
+		walkExprFull(e.Operand, fn)
+	case *sql.IsNull:
+		walkExprFull(e.Operand, fn)
+	case *sql.IsNotNull:
+		walkExprFull(e.Operand, fn)
+	case *sql.IsTrue:
+		walkExprFull(e.Operand, fn)
+	case *sql.IsFalse:
+		walkExprFull(e.Operand, fn)
+	case *sql.IsDistinctFrom:
+		walkExprFull(e.Left, fn)
+		walkExprFull(e.Right, fn)
+	case *sql.IsNotDistinctFrom:
+		walkExprFull(e.Left, fn)
+		walkExprFull(e.Right, fn)
+	case *sql.Between:
+		walkExprFull(e.Operand, fn)
+		walkExprFull(e.Low, fn)
+		walkExprFull(e.High, fn)
+	}
+}
+
+// hasRowIDRef reports whether expr references rowid, _rowid_, or oid.
+func hasRowIDRef(expr sql.Expr) bool {
+	found := false
+	walkExprFull(expr, func(e2 sql.Expr) {
+		if found {
+			return
+		}
+		if cr, ok := e2.(*sql.ColumnRef); ok && isRowIDName(cr.Name) {
+			found = true
+		}
+	})
+	return found
+}

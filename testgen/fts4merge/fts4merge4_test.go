@@ -229,7 +229,7 @@ func Test_fts4merge4(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES(" + sqlLiteral(am) + ") ")
 						}
-						// eval (dynamic, not transpiled)
+						// eval $openclose (dynamic, not transpiled)
 						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {

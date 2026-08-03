@@ -239,6 +239,26 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		if !hasPrimaryKey(s) {
 			return &Result{Error: fmt.Errorf("PRIMARY KEY missing on table %s", tableName)}
 		}
+		// WITHOUT ROWID tables have no rowid/_rowid_/oid columns; any
+		// reference to them in a CHECK constraint or PRIMARY KEY is an error
+		// (SQLite build.c: sqlite3AddPrimaryKey / sqlite3AddCheckConstraint).
+		for _, col := range s.Columns {
+			if col.Check != nil && hasRowIDRef(col.Check) {
+				return &Result{Error: fmt.Errorf("no such column: rowid")}
+			}
+		}
+		for _, tc := range s.Constraints {
+			if tc.Type == sql.ConstraintCheck && tc.Expr != nil && hasRowIDRef(tc.Expr) {
+				return &Result{Error: fmt.Errorf("no such column: rowid")}
+			}
+			if tc.Type == sql.ConstraintPrimaryKey {
+				for _, col := range tc.Columns {
+					if isRowIDName(col.Name) {
+						return &Result{Error: fmt.Errorf("no such column: %s", col.Name)}
+					}
+				}
+			}
+		}
 	}
 
 	pg := ctx.Pager.AllocatePage()

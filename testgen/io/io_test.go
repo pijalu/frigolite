@@ -99,7 +99,7 @@ func Test_io(t *testing.T) {
 		// nWrite db (unsupported command, not transpiled)
 	}
 	{ // do_test "io-1.2"
-		ret = "list"
+		ret = ""
 		_ = ret // suppress unused warning
 		_res = db.Exec(" INSERT INTO abc VALUES(1,randstr(230,230)); ")
 		if _res.Error != nil {
@@ -130,7 +130,7 @@ func Test_io(t *testing.T) {
 		// nWrite db (unsupported command, not transpiled)
 	}
 	{ // do_test "io-1.4"
-		ret = "list"
+		ret = ""
 		_ = ret // suppress unused warning
 		_res = db.Exec(" INSERT INTO abc VALUES(6,randstr(230,230)); ")
 		if _res.Error != nil {

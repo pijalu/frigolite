@@ -104,7 +104,7 @@ func Test_windowfault(t *testing.T) {
 	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
-	FAULTSIM_tmpread = "list                \\\n  -injectstart   tmpread_injectstart       \\\n  -injectstop    tmpread_injectstop        \\\n  -injecterrlist {{1 {disk I/O error}}}    \\"
+	FAULTSIM_tmpread = "-injectstart   tmpread_injectstart          -injectstop    tmpread_injectstop           -injecterrlist {{1 {disk I/O error}}}"
 	_ = FAULTSIM_tmpread // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -156,7 +156,7 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');\n")
 		}
 	}
-	queryres = "list {*}{\n  1b22\n  1b22c333\n  22c333dddd4444 \n  333dddd4444e55555 \n  4444e55555f666666\n  55555f666666gggggggggg7777777 \n  666666gggggggggg7777777\n}"
+	queryres = "{*}{\n  1b22\n  1b22c333\n  22c333dddd4444 \n  333dddd4444e55555 \n  4444e55555f666666\n  55555f666666gggggggggg7777777 \n  666666gggggggggg7777777\n}"
 	_ = queryres // suppress unused warning
 	{ // "13.1" — skipped: window functions not supported
 		_res = db.Exec("\n  SELECT group_concat(a, b) OVER (\n    ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1\n")

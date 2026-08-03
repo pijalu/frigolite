@@ -104,7 +104,7 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
 		}
-		db2.Exec("\n    CREATE TABLE t3(y,z);\n    INSERT INTO t3 VALUES(8,9);\n  ")
+		_res = db2.Exec("\n    CREATE TABLE t3(y,z);\n    INSERT INTO t3 VALUES(8,9);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
 		if _res.Error != nil {

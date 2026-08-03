@@ -110,6 +110,13 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 		}
 	}
 
+	// Direct edits to sqlite_schema (PRAGMA writable_schema=ON) are schema
+	// changes: re-read the schema btree on the next table lookup.
+	if isSchemaTable(tableEntry.Name) {
+		e.schema.InvalidateCache()
+		e.tableCache = make(map[string]*cachedTableEntry)
+	}
+
 	// If RETURNING clause was present, return result rows instead of change count
 	if s.HasReturning {
 		columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)

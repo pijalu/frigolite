@@ -249,7 +249,7 @@ func Test_where8(t *testing.T) {
 			_ = sql // suppress unused warning
 			_ = _idx0
 				{ // do_test "where8-4." + A + "." + B + ".1"
-					R = tclExecSQL(db, "$sql")
+					R = tclExecSQL(db, sql)
 					_ = R // suppress unused warning
 					if tclBool("!" + "info exists results($B)") {
 						results_B = R

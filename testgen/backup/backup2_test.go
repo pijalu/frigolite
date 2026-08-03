@@ -85,7 +85,7 @@ func Test_backup2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("BEGIN EXCLUSIVE")
+		_res = db2.Exec("BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	_ = rc // suppress unused warning
 	_ = res // suppress unused warning
@@ -100,7 +100,7 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		rc = tclListAppend(rc, res)
-		db2.Exec("ROLLBACK")
+		_res = db2.Exec("ROLLBACK")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "backup2-3.2"

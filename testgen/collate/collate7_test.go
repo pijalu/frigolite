@@ -64,7 +64,7 @@ func Test_collate7(t *testing.T) {
 	_ = caseless_del // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "collate7-1.1"
-		cmd = "list incr ::caseless_del"
+		cmd = "incr ::caseless_del"
 		_ = cmd // suppress unused warning
 		// sqlite3_create_collation_v2 db CASELESS caseless_cmp $cmd (unsupported command, not transpiled)
 		_ = caseless_del // TCL namespace variable (query)

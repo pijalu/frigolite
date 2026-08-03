@@ -247,7 +247,7 @@ func Test_walbak(t *testing.T) {
 			_ = f // suppress unused warning
 				os.Remove(f)
 			}
-			// eval (dynamic, not transpiled)
+			// eval $setup (dynamic, not transpiled)
 			{ // do_test "walbak-3." + tn + ".1"
 				r = db.Query("\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT * FROM t1;\n    ")
 				if r.Error != nil {
@@ -344,9 +344,9 @@ func Test_walbak(t *testing.T) {
 					}
 					db2, err = frigolite.Open("test.db2")
 					if err != nil { t.Fatal(err) }
-					db2.Exec("PRAGMA journal_mode = " + dest)
+					_res = db2.Exec("PRAGMA journal_mode = " + dest)
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-					db2.Exec("\n      CREATE TABLE t2(x, y);\n      INSERT INTO t2 VALUES('1', '2');\n      INSERT INTO t2 VALUES('3', '4');\n    ")
+					_res = db2.Exec("\n      CREATE TABLE t2(x, y);\n      INSERT INTO t2 VALUES('1', '2');\n      INSERT INTO t2 VALUES('3', '4');\n    ")
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				}
 				{ // do_test "walbak-4." + tn + ".2"

@@ -53,3 +53,6 @@ testgen/misc/mydir
 testgen/misc/file join*
 tools/tcl2go/testgen/
 testgen/swarmvtab/remote_test.db*
+
+# Local build artifacts
+/tcl2go

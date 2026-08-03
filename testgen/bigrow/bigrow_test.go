@@ -96,7 +96,7 @@ func Test_bigrow(t *testing.T) {
 		}
 	}
 	{ // do_test "bigrow-1.2"
-		big1 = "$::bigstr 0 65519" // TCL namespace variable
+		big1 = tclStringRange(bigstr, "0", "65519") // TCL namespace variable
 		_ = big1 // suppress unused warning
 		sql = "INSERT INTO t1 VALUES('abc',"
 		_ = sql // suppress unused warning
@@ -117,7 +117,7 @@ func Test_bigrow(t *testing.T) {
 		}
 	}
 	{ // do_test "bigrow-1.4"
-		big2 = "$::bigstr 0 65520" // TCL namespace variable
+		big2 = tclStringRange(bigstr, "0", "65520") // TCL namespace variable
 		_ = big2 // suppress unused warning
 		sql = "INSERT INTO t1 VALUES('abc2',"
 		_ = sql // suppress unused warning

@@ -229,7 +229,7 @@ func Test_bestindex1(t *testing.T) {
 				}
 			}
 		}
-		G_collist = "list PrimaryKey flagA columnA"
+		G_collist = "PrimaryKey flagA columnA"
 		_ = G_collist // suppress unused warning
 		G_cols = strings.Join(tclSplitList(G_collist), ",")
 		_ = G_cols // suppress unused warning

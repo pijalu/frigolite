@@ -150,7 +150,7 @@ func Test_vtab_shared(t *testing.T) {
 		_ = dbClose // suppress unused warning
 		_ = _idx1
 			{ // do_test "vtab_shared-1.9." + iTest
-				res = "list"
+				res = ""
 				_ = res // suppress unused warning
 				// $dbSelect eval { SELECT * FROM t1 } {\n      if {$a == 1} {$dbClose close}\n      lappe...... (unsupported command, not transpiled)
 				dbClose, err := frigolite.Open("test.db")

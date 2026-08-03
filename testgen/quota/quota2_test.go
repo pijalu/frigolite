@@ -149,7 +149,7 @@ func Test_quota2(t *testing.T) {
 		_ = strconv.Itoa(len(x)) // string length result
 	}
 	{ // do_test "quota2-1.4"
-		tclStringMatch(x, "$::bigtext 0 3002")
+		tclStringMatch(x, tclStringRange(bigtext, "0", "3002"))
 	}
 	{ // do_test "quota2-1.5"
 		// sqlite3_quota_fseek $::h1 0 SEEK_END (unsupported command, not transpiled)
@@ -236,7 +236,7 @@ func Test_quota2(t *testing.T) {
 		// sqlite3_quota_file_available $::h1 (unsupported command, not transpiled)
 	}
 	{ // do_test "quota2-2.4"
-		tclStringMatch(x, "$::bigtext 0 6005")
+		tclStringMatch(x, tclStringRange(bigtext, "0", "6005"))
 	}
 	{ // do_test "quota2-2.5"
 		// sqlite3_quota_fseek $::h1 0 SEEK_END (unsupported command, not transpiled)

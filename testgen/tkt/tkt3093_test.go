@@ -73,7 +73,7 @@ func Test_tkt3093(t *testing.T) {
 		}
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    SELECT * FROM t1\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t1\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "tkt3093.3"
@@ -98,7 +98,7 @@ func Test_tkt3093(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3093.5"
-		db2.Exec("SELECT * FROM t1")
+		_res = db2.Exec("SELECT * FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()

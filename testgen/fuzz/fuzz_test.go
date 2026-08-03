@@ -282,7 +282,7 @@ func Test_fuzz(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	E = "list table view duplicate {no such col} {ambiguous column name} {use DROP}"
+	E = "table view duplicate {no such col} {ambiguous column name} {use DROP}"
 	_ = E // suppress unused warning
 	// do_fuzzy_test fuzz-8.1 -template {[CreateOrDropTableOrView]} -errorlist $E (unsupported command, not transpiled)
 	// close $::log

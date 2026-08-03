@@ -248,7 +248,7 @@ func Test_shared6(t *testing.T) {
 		db3, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
-	db1.Exec("SELECT * FROM t1")
+	_res = db1.Exec("SELECT * FROM t1")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "shared6-3.4"
 		_res = db.Exec(" SELECT * FROM t1 ")
@@ -260,7 +260,7 @@ func Test_shared6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
-	db2.Exec("SELECT * FROM t1")
+	_res = db2.Exec("SELECT * FROM t1")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "shared6-3.7"
 		_res = db.Exec(" BEGIN ")
@@ -272,7 +272,7 @@ func Test_shared6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
 	}
-	db2.Exec("SELECT * FROM t1")
+	_res = db2.Exec("SELECT * FROM t1")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "shared6-3.9"
 		_res = db.Exec(" BEGIN ; ROLLBACK ")

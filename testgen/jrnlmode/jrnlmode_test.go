@@ -853,7 +853,7 @@ func Test_jrnlmode(t *testing.T) {
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("CREATE TEMP TABLE t(l); PRAGMA journal_mode=off;")
+		_res = db2.Exec("CREATE TEMP TABLE t(l); PRAGMA journal_mode=off;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
 	}

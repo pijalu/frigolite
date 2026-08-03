@@ -122,7 +122,7 @@ func Test_shell8(t *testing.T) {
 		tcl := _items0[_idx0+1]
 		_ = tcl // suppress unused warning
 		_ = _idx0
-			// eval (dynamic, not transpiled)
+			// eval $tcl (dynamic, not transpiled)
 			// populate_dir ar1 {\n    file1 "abcd" \n    file2 "efgh"\n    dir1/fi...} (unsupported command, not transpiled)
 			expected = "dir_to_list ar1"
 			_ = expected // suppress unused warning

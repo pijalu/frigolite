@@ -98,7 +98,7 @@ func Test_collate5(t *testing.T) {
 	{ // do_test "collate5-1.12"
 		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    PRAGMA encoding=UTF16le;\n    CREATE TABLE tkt3376(a COLLATE nocase PRIMARY KEY);\n    INSERT INTO tkt3376 VALUES('abc');\n    INSERT INTO tkt3376 VALUES('ABX');\n    SELECT DISTINCT a FROM tkt3376;\n  ")
+		_res = db2.Exec("\n    PRAGMA encoding=UTF16le;\n    CREATE TABLE tkt3376(a COLLATE nocase PRIMARY KEY);\n    INSERT INTO tkt3376 VALUES('abc');\n    INSERT INTO tkt3376 VALUES('ABX');\n    SELECT DISTINCT a FROM tkt3376;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{

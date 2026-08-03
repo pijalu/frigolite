@@ -83,9 +83,9 @@ func Test_sysfault(t *testing.T) {
 	}
 	testprefix = "sysfault"
 	_ = testprefix // suppress unused warning
-	FAULTSIM_vfsfault_transient = "list             \\\n  -injectinstall   vfsfault_install                \\\n  -injectstart     vfsfault_injectstart_t          \\\n  -injectstop      vfsfault_injectstop             \\\n  -injecterrlist   {}                              \\\n  -injectuninstall {test_syscall uninstall}        \\"
+	FAULTSIM_vfsfault_transient = "-injectinstall   vfsfault_install                   -injectstart     vfsfault_injectstart_t             -injectstop      vfsfault_injectstop                -injecterrlist   {}                                 -injectuninstall {test_syscall uninstall}"
 	_ = FAULTSIM_vfsfault_transient // suppress unused warning
-	FAULTSIM_vfsfault_persistent = "list            \\\n  -injectinstall   vfsfault_install                \\\n  -injectstart     vfsfault_injectstart_p          \\\n  -injectstop      vfsfault_injectstop             \\\n  -injecterrlist   {}                              \\\n  -injectuninstall {test_syscall uninstall}        \\"
+	FAULTSIM_vfsfault_persistent = "-injectinstall   vfsfault_install                   -injectstart     vfsfault_injectstart_p             -injectstop      vfsfault_injectstop                -injecterrlist   {}                                 -injectuninstall {test_syscall uninstall}"
 	_ = FAULTSIM_vfsfault_persistent // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -106,7 +106,7 @@ func Test_sysfault(t *testing.T) {
 		_ = errlist // suppress unused warning
 		_ = _idx0
 			// proc definition (not transpiled)
-			errs = "list"
+			errs = ""
 			_ = errs // suppress unused warning
 			for _, e := range tclSplitList(errlist) {
 			_ = e // suppress unused warning
@@ -127,7 +127,7 @@ func Test_sysfault(t *testing.T) {
 				_ = errlist // suppress unused warning
 				_ = _idx1
 					// proc definition (not transpiled)
-					errs = "list"
+					errs = ""
 					_ = errs // suppress unused warning
 					for _, e := range tclSplitList(errlist) {
 					_ = e // suppress unused warning

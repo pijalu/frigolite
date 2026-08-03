@@ -108,7 +108,7 @@ func Test_types2(t *testing.T) {
 	// test_bool types2-1.26 {o1='500'} {'500' = o1} 1 (unsupported command, not transpiled)
 	// test_bool types2-1.27 {o1='500'} {500.0 = o1} 0 (unsupported command, not transpiled)
 	// test_bool types2-1.28 {o1='500'} {'500.0' = o1} 0 (unsupported command, not transpiled)
-	vals = "list 10 10.0 '10' '10.0' 20 20.0 '20' '20.0' 30 30.0 '30' '30.0'"
+	vals = "10 10.0 '10' '10.0' 20 20.0 '20' '20.0' 30 30.0 '30' '30.0'"
 	_ = vals // suppress unused warning
 	_res = db.Exec("\n  CREATE TABLE t2(i INTEGER, n NUMERIC, t TEXT, o XBLOBY);\n  CREATE INDEX t2i1 ON t2(i);\n  CREATE INDEX t2i2 ON t2(n);\n  CREATE INDEX t2i3 ON t2(t);\n  CREATE INDEX t2i4 ON t2(o);\n")
 	if _res.Error != nil {

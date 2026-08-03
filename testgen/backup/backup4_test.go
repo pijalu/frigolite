@@ -73,7 +73,7 @@ func Test_backup4(t *testing.T) {
 		// db1.backup (db command)
 		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db1.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('one', 'two');\n  ")
+		_res = db1.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('one', 'two');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db1.Close()
 	}

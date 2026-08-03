@@ -69,91 +69,91 @@ func Test_shared4(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db4, err = frigolite.Open("test4.db")
 		if err != nil { t.Fatal(err) }
-		db1.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(111);\n  ")
+		_res = db1.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(111);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES(222);\n  ")
+		_res = db2.Exec("\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES(222);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db3.Exec("\n    CREATE TABLE t3(c);\n    INSERT INTO t3 VALUES(333);\n  ")
+		_res = db3.Exec("\n    CREATE TABLE t3(c);\n    INSERT INTO t3 VALUES(333);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db4.Exec("\n    CREATE TABLE t4(d);\n    INSERT INTO t4 VALUES(444);\n  ")
+		_res = db4.Exec("\n    CREATE TABLE t4(d);\n    INSERT INTO t4 VALUES(444);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Exec("\n    ATTACH DATABASE 'test2.db' AS two;\n    ATTACH DATABASE 'test3.db' AS three;\n    ATTACH DATABASE 'test4.db' AS four;\n  ")
+		_res = db1.Exec("\n    ATTACH DATABASE 'test2.db' AS two;\n    ATTACH DATABASE 'test3.db' AS three;\n    ATTACH DATABASE 'test4.db' AS four;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("\n    ATTACH DATABASE 'test4.db' AS four;\n    ATTACH DATABASE 'test3.db' AS three;\n    ATTACH DATABASE 'test1.db' AS one;\n  ")
+		_res = db2.Exec("\n    ATTACH DATABASE 'test4.db' AS four;\n    ATTACH DATABASE 'test3.db' AS three;\n    ATTACH DATABASE 'test1.db' AS one;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db3.Exec("\n    ATTACH DATABASE 'test1.db' AS one;\n    ATTACH DATABASE 'test2.db' AS two;\n    ATTACH DATABASE 'test4.db' AS four;\n  ")
+		_res = db3.Exec("\n    ATTACH DATABASE 'test1.db' AS one;\n    ATTACH DATABASE 'test2.db' AS two;\n    ATTACH DATABASE 'test4.db' AS four;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db4.Exec("\n    ATTACH DATABASE 'test3.db' AS three;\n    ATTACH DATABASE 'test2.db' AS two;\n    ATTACH DATABASE 'test1.db' AS one;\n  ")
+		_res = db4.Exec("\n    ATTACH DATABASE 'test3.db' AS three;\n    ATTACH DATABASE 'test2.db' AS two;\n    ATTACH DATABASE 'test1.db' AS one;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4;\n  ")
+		_res = db1.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.2"
-		db2.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT c FROM t3;\n  ")
+		_res = db2.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT c FROM t3;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.3"
-		db3.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4;\n  ")
+		_res = db3.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.4"
-		db4.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT b FROM t2;\n  ")
+		_res = db4.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT b FROM t2;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.5"
-		db3.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3;\n  ")
+		_res = db3.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.6"
-		db4.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT b FROM t2;\n  ")
+		_res = db4.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT b FROM t2;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.7"
-		db1.Exec("\n     SELECT b FROM t2 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4;\n  ")
+		_res = db1.Exec("\n     SELECT b FROM t2 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.8"
-		db2.Exec("\n     SELECT b FROM t2 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT c FROM t3;\n  ")
+		_res = db2.Exec("\n     SELECT b FROM t2 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT c FROM t3;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.9"
-		db3.Exec("\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4;\n  ")
+		_res = db3.Exec("\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.10"
-		db4.Exec("\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT a FROM t1;\n  ")
+		_res = db4.Exec("\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT a FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.11"
-		db1.Exec("\n     SELECT c FROM t3 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4;\n  ")
+		_res = db1.Exec("\n     SELECT c FROM t3 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-1.12"
-		db2.Exec("\n     SELECT c FROM t3 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT b FROM t2;\n  ")
+		_res = db2.Exec("\n     SELECT c FROM t3 UNION ALL\n     SELECT a FROM t1 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT b FROM t2;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-2.1"
-		db1.Exec("\n    UPDATE t1 SET a=a+1000;\n    UPDATE t2 SET b=b+2000;\n    UPDATE t3 SET c=c+3000;\n    UPDATE t4 SET d=d+4000;\n  ")
+		_res = db1.Exec("\n    UPDATE t1 SET a=a+1000;\n    UPDATE t2 SET b=b+2000;\n    UPDATE t3 SET c=c+3000;\n    UPDATE t4 SET d=d+4000;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("\n    UPDATE t1 SET a=a+10000;\n    UPDATE t2 SET b=b+20000;\n    UPDATE t3 SET c=c+30000;\n    UPDATE t4 SET d=d+40000;\n  ")
+		_res = db2.Exec("\n    UPDATE t1 SET a=a+10000;\n    UPDATE t2 SET b=b+20000;\n    UPDATE t3 SET c=c+30000;\n    UPDATE t4 SET d=d+40000;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db3.Exec("\n    UPDATE t1 SET a=a+100000;\n    UPDATE t2 SET b=b+200000;\n    UPDATE t3 SET c=c+300000;\n    UPDATE t4 SET d=d+400000;\n  ")
+		_res = db3.Exec("\n    UPDATE t1 SET a=a+100000;\n    UPDATE t2 SET b=b+200000;\n    UPDATE t3 SET c=c+300000;\n    UPDATE t4 SET d=d+400000;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db4.Exec("\n    UPDATE t1 SET a=a+1000000;\n    UPDATE t2 SET b=b+2000000;\n    UPDATE t3 SET c=c+3000000;\n    UPDATE t4 SET d=d+4000000;\n  ")
+		_res = db4.Exec("\n    UPDATE t1 SET a=a+1000000;\n    UPDATE t2 SET b=b+2000000;\n    UPDATE t3 SET c=c+3000000;\n    UPDATE t4 SET d=d+4000000;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db1.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4;\n  ")
+		_res = db1.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-2.2"
-		db2.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT c FROM t3;\n  ")
+		_res = db2.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT c FROM t3;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-2.3"
-		db3.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4;\n  ")
+		_res = db3.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT b FROM t2 UNION ALL\n     SELECT d FROM t4;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared4-2.4"
-		db4.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT b FROM t2;\n  ")
+		_res = db4.Exec("\n     SELECT a FROM t1 UNION ALL\n     SELECT c FROM t3 UNION ALL\n     SELECT d FROM t4 UNION ALL\n     SELECT b FROM t2;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db1.Close()

@@ -361,7 +361,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-4.1.8"
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t2")
+		_res = db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "quota-4.1.9"

@@ -437,7 +437,7 @@ func Test_pagerfault(t *testing.T) {
 	// faultsim_restore_and_reopen (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2.Exec("SELECT count(*) FROM t2")
+	_res = db2.Exec("SELECT count(*) FROM t2")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	// do_faultsim_test pagerfault-28b -faults oom* -prep {\n  sqlite3 db test.db\n} -body {\n  execsql ... (unsupported command, not transpiled)
 	db2.Close()

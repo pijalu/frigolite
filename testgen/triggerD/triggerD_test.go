@@ -170,7 +170,7 @@ func Test_triggerD(t *testing.T) {
 	{ // do_test "triggerD-4.2"
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    INSERT INTO t2 VALUES(234);\n    SELECT * FROM log;\n  ")
+		_res = db2.Exec("\n    INSERT INTO t2 VALUES(234);\n    SELECT * FROM log;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()

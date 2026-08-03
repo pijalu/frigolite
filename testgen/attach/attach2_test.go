@@ -93,7 +93,7 @@ func Test_attach2(t *testing.T) {
 		os.Remove("test2.db-journal")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);\n  ")
+		_res = db2.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("\n    ATTACH 'test2.db' AS t2;\n  ")
 		_ = _res // catchsql
@@ -104,9 +104,9 @@ func Test_attach2(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH t2")
 	}
 	{ // do_test "attach2-2.1"
-		db2.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("UPDATE t1 SET a = 0 WHERE 0")
+		_res = db2.Exec("UPDATE t1 SET a = 0 WHERE 0")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("\n    ATTACH 'test2.db' AS t2;\n  ")
 		_ = _res // catchsql
@@ -114,16 +114,16 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-2.2"
 		// db_list db (unsupported command, not transpiled)
 	}
-	db2.Exec("COMMIT")
+	_res = db2.Exec("COMMIT")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "attach2-2.5"
 		_res = db.Exec("\n    SELECT name FROM t2.sqlite_master;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "attach2-2.6"
-		db2.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("UPDATE t1 SET a = 0 WHERE 0")
+		_res = db2.Exec("UPDATE t1 SET a = 0 WHERE 0")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("\n    SELECT name FROM t2.sqlite_master;\n  ")
 		_ = _res // catchsql
@@ -151,7 +151,7 @@ func Test_attach2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "rollback")
 		}
-		db2.Exec("ROLLBACK")
+		_res = db2.Exec("ROLLBACK")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {

@@ -241,11 +241,11 @@ func Test_rowvalue(t *testing.T) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
-						map_0 = "list"
+						map_0 = ""
 						_ = map_0 // suppress unused warning
-						_map_arr = "list"
+						_map_arr = ""
 						_ = _map_arr // suppress unused warning
-						map_1 = "list 1"
+						map_1 = "1"
 						_ = map_1 // suppress unused warning
 						{ // tn2 + ".where1"
 							r = db.Query("SELECT * FROM one WHERE " + expr)
@@ -259,11 +259,11 @@ func Test_rowvalue(t *testing.T) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
-						map_0 = "list 1"
+						map_0 = "1"
 						_ = map_0 // suppress unused warning
-						_map_arr = "list"
+						_map_arr = ""
 						_ = _map_arr // suppress unused warning
-						map_1 = "list"
+						map_1 = ""
 						_ = map_1 // suppress unused warning
 						{ // tn2 + ".where2"
 							r = db.Query("SELECT * FROM one WHERE NOT " + expr)

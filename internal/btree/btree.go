@@ -1011,6 +1011,13 @@ func abs(x int) int {
 
 // createInteriorRoot creates an interior page pointing to two children.
 func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChild uint32) (*pager.Page, error) {
+	// The schema b-tree (sqlite_schema) is permanently rooted at page 1:
+	// page 1 is the database file header page and cannot be demoted to a
+	// child. When its root splits, page 1 becomes an interior page and the
+	// split halves are moved to newly allocated pages (SQLite semantics).
+	if t.rootPage == 1 {
+		return t.createInteriorRootAtPage1(medianKey, rightChild)
+	}
 	rootPg := t.pager.AllocatePage()
 	rootCoff := contentOffset(rootPg.PageNum)
 
@@ -1033,6 +1040,53 @@ func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChil
 		return nil, err
 	}
 	return rootPg, nil
+}
+
+// createInteriorRootAtPage1 converts page 1 (the schema b-tree root, which
+// must remain the root because it is the file header page) into an interior
+// page after a split. The split's lower half currently stored in page 1 is
+// moved to a newly allocated leaf so page 1 becomes a pure interior page
+// pointing to both halves.
+func (t *BTree) createInteriorRootAtPage1(medianKey uint64, rightChild uint32) (*pager.Page, error) {
+	pg1, err := t.pager.ReadPage(1)
+	if err != nil {
+		return nil, err
+	}
+
+	// Move the split's lower half (currently the leaf content of page 1)
+	// to a fresh leaf page. Page 1's b-tree content lives at offset 100
+	// (after the file header) while a normal page's content starts at
+	// offset 0, so relocate the leaf header and cell pointer array.
+	// The cell data offsets are absolute positions in the 4096-byte page,
+	// so the payload region copies verbatim.
+	newLeft := t.pager.AllocatePage()
+	copy(newLeft.Data, pg1.Data)
+	copy(newLeft.Data[0:8], pg1.Data[100:108]) // leaf header (type..fragfree)
+	n := int(binary.BigEndian.Uint16(pg1.Data[103:105]))
+	copy(newLeft.Data[8:8+2*n], pg1.Data[108:108+2*n]) // cell pointer array
+	if err := t.pager.WritePage(newLeft); err != nil {
+		return nil, err
+	}
+
+	// Convert page 1 into an interior page: one cell {newLeft, medianKey}
+	// and rightmostChild = rightChild. Keep the 100-byte file header.
+	rootCoff := contentOffset(1)
+	pg1.Data[rootCoff] = storage.PageTypeInteriorTable
+	for i := rootCoff + 1; i < int(t.pageSize); i++ {
+		pg1.Data[i] = 0
+	}
+	cellData := t.encodeInteriorCell(newLeft.PageNum, medianKey)
+	cellStart := int(t.pageSize) - len(cellData)
+	copy(pg1.Data[cellStart:], cellData)
+	binary.BigEndian.PutUint16(pg1.Data[rootCoff+cellPtrOffset(pg1.Data[rootCoff]):], uint16(cellStart))
+	binary.BigEndian.PutUint16(pg1.Data[rootCoff+3:rootCoff+5], 1)
+	binary.BigEndian.PutUint16(pg1.Data[rootCoff+5:rootCoff+7], uint16(cellStart))
+	binary.BigEndian.PutUint32(pg1.Data[rootCoff+8:rootCoff+12], rightChild) // rightmostPtr
+
+	if err := t.pager.WritePage(pg1); err != nil {
+		return nil, err
+	}
+	return pg1, nil
 }
 
 // cellPtrOffset returns the cell pointer array offset for a given page type.

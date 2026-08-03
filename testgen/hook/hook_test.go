@@ -152,7 +152,7 @@ func Test_hook(t *testing.T) {
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		// proc definition (not transpiled)
-		db2.Exec("CREATE TABLE t3(x,y)")
+		_res = db2.Exec("CREATE TABLE t3(x,y)")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		// db2.commit_hook (db command)
 		_res = db.Exec("INSERT INTO t3 VALUES(1,2)")
@@ -161,7 +161,7 @@ func Test_hook(t *testing.T) {
 		_ = _res // catchsql
 		_res = db.Exec("INSERT INTO t3 VALUES(3,4)")
 		_ = _res // catchsql
-		db2.Exec("\n    SELECT * FROM t3 ORDER BY x;\n  ")
+		_res = db2.Exec("\n    SELECT * FROM t3 ORDER BY x;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()

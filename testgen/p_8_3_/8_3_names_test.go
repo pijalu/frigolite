@@ -109,7 +109,7 @@ func Test_t_8_3_names(t *testing.T) {
 	{ // do_test "8_3_names-2.3"
 		db2, err = frigolite.Open("file:./test2.db?8_3_names=1")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    PRAGMA integrity_check;\n    SELECT length(x) FROM t1;\n  ")
+		_res = db2.Exec("\n    PRAGMA integrity_check;\n    SELECT length(x) FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "8_3_names-3.0"
@@ -144,7 +144,7 @@ func Test_t_8_3_names(t *testing.T) {
 	{ // do_test "8_3_names-3.3"
 		db2, err = frigolite.Open("file:./test2.db?8_3_names=0")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    PRAGMA integrity_check;\n    SELECT length(x) FROM t1;\n  ")
+		_res = db2.Exec("\n    PRAGMA integrity_check;\n    SELECT length(x) FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	os.Remove("test.db")
@@ -170,7 +170,7 @@ func Test_t_8_3_names(t *testing.T) {
 		db2, err = frigolite.Open("file:./test.db?8_3_names=1")
 		if err != nil { t.Fatal(err) }
 		// load_static_extension db2 wholenumber (unsupported command, not transpiled)
-		db2.Exec("\n    BEGIN;\n    SELECT sum(x) FROM t1;\n  ")
+		_res = db2.Exec("\n    BEGIN;\n    SELECT sum(x) FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "8_3_names-5.1"
@@ -198,7 +198,7 @@ func Test_t_8_3_names(t *testing.T) {
 		}
 	}
 	{ // do_test "8_3_names-5.6"
-		db2.Exec("\n    SELECT sum(x) FROM t1;\n  ")
+		_res = db2.Exec("\n    SELECT sum(x) FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 }

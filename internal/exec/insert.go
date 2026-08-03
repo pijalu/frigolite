@@ -99,7 +99,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 		var replaceRowID int64
 		var haveReplaceRowID bool
 		if s.IsReplace {
-			replaceRowID = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage)
+			replaceRowID = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
 			haveReplaceRowID = true
 			if res := e.replaceDeleteConflicts(dbCtx.Pager, tableEntry, colDefs, values); res.Error != nil {
 				return res
@@ -182,7 +182,7 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	// value, use that value as the rowid (the column IS the rowid). Otherwise
 	// auto-assign the next available rowid. REPLACE passes a rowid computed
 	// before its conflict deletes (SQLite keeps it through the retry).
-	nextRowID := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage)
+	nextRowID := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
 	if fixedRowID != nil {
 		nextRowID = *fixedRowID
 	}
@@ -190,9 +190,12 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 
 	// If INTEGER PRIMARY KEY column value is nil, set it to the auto-assigned rowid.
 	// SQLite behavior: inserting NULL into an INTEGER PRIMARY KEY column causes
-	// the column to contain the auto-generated rowid.
+	// the column to contain the auto-generated rowid. This does NOT apply to
+	// non-INTEGER PRIMARY KEY columns (e.g. "ANY PRIMARY KEY"), which may
+	// legally contain NULL in rowid tables.
 	for i, cd := range colDefs {
-		if cd.PrimaryKey && i < len(values) && values[i] == nil {
+		if cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") &&
+			i < len(values) && values[i] == nil {
 			values[i] = nextRowID
 			break
 		}
@@ -254,7 +257,7 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	}
 
 	// Compute any generated columns (b AS(expr)) that were not explicitly set.
-	e.computeGeneratedValues(colDefs, values)
+	values = e.computeGeneratedValues(colDefs, values)
 
 	// In STRICT mode, enforce type checking on generated column values too.
 	// Generated columns compute values from expressions, and those values must
@@ -1354,14 +1357,14 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		}
 
 		// Compute any generated columns (b AS(expr)) that were not explicitly set.
-		e.computeGeneratedValues(colDefs, values)
+		values = e.computeGeneratedValues(colDefs, values)
 
 		// Handle REPLACE: delete conflicting rows before inserting. The new
 		// row's rowid is computed BEFORE the deletes (SQLite keeps the rowid
 		// through the REPLACE retry, so a trigger may grab it and conflict).
 		var replaceRowID int64
 		if isReplace {
-			replaceRowID = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage)
+			replaceRowID = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
 			if res := e.replaceDeleteConflicts(e.pager, tableEntry, colDefs, values); res.Error != nil {
 				return res
 			}
@@ -1381,7 +1384,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 				}
 			}
 		} else {
-			rowID = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage)
+			rowID = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
 			// If INTEGER PRIMARY KEY column is nil, set it to the auto-assigned rowid
 			for i, cd := range colDefs {
 				if cd.PrimaryKey && i < len(values) && values[i] == nil {
@@ -1469,38 +1472,58 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 }
 
 // computeGeneratedValues fills in values for generated columns (b AS(expr))
-// that are still nil. Generated expressions may reference other columns of
-// the same row, so evaluation uses a RowMap of the values built so far.
-func (e *Engine) computeGeneratedValues(colDefs []sql.ColumnDef, values []interface{}) {
-	var rowMap RowMap
-	for i, cd := range colDefs {
-		if cd.Generated == nil {
-			continue
-		}
-		if i >= len(values) || values[i] != nil {
-			continue // explicit value provided (or out of range)
-		}
-		if rowMap == nil {
-			rowMap = make(RowMap)
-			for j, v := range values {
-				if j < len(colDefs) {
-					rowMap[colDefs[j].Name] = v
-				}
+// that are still nil, and returns the (possibly extended) values slice.
+// Generated expressions may reference other columns of the same row —
+// including other generated columns — so evaluation iterates to a fixpoint:
+// a VIRTUAL column defined before the STORED column it references (e.g.
+// "a INT AS (b*2) VIRTUAL, b INT AS (c*2) STORED") computes on a later pass
+// once b is filled. The slice may need to grow when an INSERT...SELECT maps
+// fewer columns than the table has (the trailing generated columns are nil).
+func (e *Engine) computeGeneratedValues(colDefs []sql.ColumnDef, values []interface{}) []interface{} {
+	for pass := 0; pass < len(colDefs); pass++ {
+		progress := false
+		rowMap := make(RowMap)
+		for j, v := range values {
+			if j < len(colDefs) {
+				rowMap[colDefs[j].Name] = v
 			}
 		}
-		if v, err := e.evalExpr(cd.Generated, rowMap); err == nil {
-			values[i] = v
+		for i, cd := range colDefs {
+			if cd.Generated == nil {
+				continue
+			}
+			if i < len(values) && values[i] != nil {
+				continue // explicit value provided
+			}
+			if v, err := e.evalExpr(cd.Generated, rowMap); err == nil {
+				for len(values) <= i {
+					values = append(values, nil)
+				}
+				values[i] = v
+				rowMap[cd.Name] = v
+				progress = true
+			}
+		}
+		if !progress {
+			break
 		}
 	}
+	return values
 }
 
-// pkRowID returns the rowid for a new row, using the INTEGER PRIMARY KEY value
-// if one is explicitly provided, or auto-assigning the next available rowid.
-func (e *Engine) pkRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32) int64 {
+// pkRowID determines the cell rowid for an insert. In SQLite, only an
+// INTEGER PRIMARY KEY column in a rowid table is a rowid alias (its value IS
+// the rowid); other PRIMARY KEY columns are ordinary columns and get an
+// auto-assigned rowid. WITHOUT ROWID tables are emulated with rowid-based
+// storage, so their PRIMARY KEY integer value is used as the rowid to keep
+// PK-ordered storage.
+func (e *Engine) pkRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) int64 {
 	for i, cd := range colDefs {
 		if cd.PrimaryKey && i < len(values) && values[i] != nil {
 			if v, ok := values[i].(int64); ok {
-				return v
+				if withoutRowid || strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
+					return v
+				}
 			}
 			break
 		}

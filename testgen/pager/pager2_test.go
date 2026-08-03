@@ -84,7 +84,7 @@ func Test_pager2(t *testing.T) {
 		sql = ""
 		_ = sql // suppress unused warning
 		// tv devchar {} (unsupported command, not transpiled)
-		// eval (dynamic, not transpiled)
+		// eval $code (dynamic, not transpiled)
 		// tv sectorsize $s (unsupported command, not transpiled)
 		{ // do_test "pager2-1." + otn + ".0"
 			// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -205,9 +205,9 @@ func Test_pager2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db3, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db1.Exec(" CREATE TABLE t1(a, b) ")
+		_res = db1.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec(" INSERT INTO t1 VALUES(1, 2) ")
+		_res = db2.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_list := tclList([]string{"0", msg})
 		_ = _list

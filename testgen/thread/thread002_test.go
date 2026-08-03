@@ -112,7 +112,7 @@ func Test_thread002(t *testing.T) {
 	}
 	thread_program = "\n  set ::DB [sqlite3_open test.db]\n  for {set ii 1} {$ii <= 3} {incr ii} {\n    set T [lindex $order [expr $ii-1]]\n    execsql \"ATTACH 'test${T}.db' AS aux${ii}\"\n  }\n\n  for {set ii 0} {$ii < 100} {incr ii} {\n    execsql { SELECT * FROM aux1.t1 }\n    execsql { INSERT INTO aux1.t1(v) SELECT sum(v) FROM aux2.t1 }\n  \n    execsql { SELECT * FROM aux2.t1 }\n    execsql { INSERT INTO aux2.t1(v) SELECT sum(v) FROM aux3.t1 }\n  \n    execsql { SELECT * FROM aux3.t1 }\n    execsql { INSERT INTO aux3.t1(v) SELECT sum(v) FROM aux1.t1 }\n\n    execsql { CREATE TABLE IF NOT EXISTS aux1.t2(a,b) }\n    execsql { DROP TABLE IF EXISTS aux1.t2 }\n\n    # if {($ii%10)==0} {puts -nonewline . ; flush stdout}\n    puts -nonewline . ; flush stdout\n  }\n\n  sqlite3_close $::DB\n  list OK\n"
 	_ = thread_program // suppress unused warning
-	order_list = "list {0 1 2} {0 2 1} {1 0 2} {1 2 0} {2 0 1} {2 1 0}"
+	order_list = "{0 1 2} {0 2 1} {1 0 2} {1 2 0} {2 0 1} {2 1 0}"
 	_ = order_list // suppress unused warning
 	ii = "0"
 	_ = ii // suppress unused warning
@@ -151,7 +151,7 @@ func Test_thread002(t *testing.T) {
 			_dbtmp0, err := frigolite.Open("test$")
 			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			res = "list                         \\\n      [execsql {SELECT count(*) FROM t1}] \\\n      [execsql {PRAGMA integrity_check}]  \\"
+			res = tclExecSQL(db, "{SELECT count(*) FROM t1}") + "        " + tclExecSQL(db, "{PRAGMA integrity_check}")
 			_ = res // suppress unused warning
 		}
 		// incr ii 1

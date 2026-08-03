@@ -141,7 +141,7 @@ func Test_e_uri(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	if tcl_platform_platform == "unix" {
-		flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE"
+		flags = "SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE"
 		_ = flags // suppress unused warning
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_uri 0 (unsupported command, not transpiled)
@@ -219,7 +219,7 @@ func Test_e_uri(t *testing.T) {
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	if tcl_platform_platform == "unix" {
-		flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
+		flags = "SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 		_ = flags // suppress unused warning
 		// foreach {tn uri error} "1  {file://localhost" + "test_pwd /" + "test.db}   {not an error}\n    2  {file://" + "test_pwd /" + "test.db}            {not an error}\n    3  {file://x" + "test_pwd /" + "test.db}           {invalid uri authority: x}\n    4  {file://invalid" + "test_pwd /" + "test.db}     {invalid uri authority: invalid}"
 		_items0 := tclSplitList("1  {file://localhost" + "test_pwd /" + "test.db}   {not an error}\n    2  {file://" + "test_pwd /" + "test.db}            {not an error}\n    3  {file://x" + "test_pwd /" + "test.db}           {invalid uri authority: x}\n    4  {file://invalid" + "test_pwd /" + "test.db}     {invalid uri authority: invalid}")
@@ -290,7 +290,7 @@ func Test_e_uri(t *testing.T) {
 						_ = vfs // suppress unused warning
 						_ = _idx3
 							{ // do_test "5." + tn
-								flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
+								flags = "SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 								_ = flags // suppress unused warning
 								// sqlite3_close [\n      sqlite3_open_v2 $uri $flags $defvfs\n    ... (unsupported command, not transpiled)
 								_ = vfs // TCL namespace variable (query)
@@ -299,7 +299,7 @@ func Test_e_uri(t *testing.T) {
 						// vfs1 delete (unsupported command, not transpiled)
 						// vfs2 delete (unsupported command, not transpiled)
 						// vfs3 delete (unsupported command, not transpiled)
-						flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
+						flags = "SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 						_ = flags // suppress unused warning
 						{ // do_test "6.1"
 							DB = ""
@@ -400,11 +400,11 @@ func Test_e_uri(t *testing.T) {
 									_error := _items9[_idx9+3]
 									_ = _error // suppress unused warning
 									_ = _idx9
-										f_ro = "list SQLITE_OPEN_READONLY SQLITE_OPEN_URI"
+										f_ro = "SQLITE_OPEN_READONLY SQLITE_OPEN_URI"
 										_ = f_ro // suppress unused warning
-										f_rw = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_URI"
+										f_rw = "SQLITE_OPEN_READWRITE SQLITE_OPEN_URI"
 										_ = f_rw // suppress unused warning
-										f_rwc = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
+										f_rwc = "SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 										_ = f_rwc // suppress unused warning
 										DB = ""
 										_ = DB // suppress unused warning

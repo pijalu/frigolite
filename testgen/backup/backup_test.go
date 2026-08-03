@@ -165,7 +165,7 @@ func Test_backup(t *testing.T) {
 								_ = _catchErr // suppress unused warning
 								// delete_file test2.db (unsupported command, not transpiled)
 							}
-							// eval (dynamic, not transpiled)
+							// eval $zOpenScript (dynamic, not transpiled)
 							isMemDest = tclExprWith(" $zDestFile eq \":memory:\" || $file_dest eq \"temp\" ", map[string]string{"zDestFile": zDestFile, "file_dest": file_dest})
 							_ = isMemDest // suppress unused warning
 							if false {
@@ -362,10 +362,10 @@ func Test_backup(t *testing.T) {
 		}
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec(" PRAGMA page_size = 4096 ")
+		_res = db2.Exec(" PRAGMA page_size = 4096 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		for tclBool("file size test2.db" + " < " + sqlite_pending_byte) {
-			db2.Exec("CREATE TABLE t" + iTab + "(a, b, c)")
+			_res = db2.Exec("CREATE TABLE t" + iTab + "(a, b, c)")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			// incr iTab 1
 			{
@@ -1057,9 +1057,9 @@ func Test_backup(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
-				db1.Exec("\n    PRAGMA page_size = 8192;\n    CREATE TABLE t1(x);\n  ")
+				_res = db1.Exec("\n    PRAGMA page_size = 8192;\n    CREATE TABLE t1(x);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				db2.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t2(x);\n  ")
+				_res = db2.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t2(x);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				// sqlite3_backup B db1 main db2 temp (unsupported command, not transpiled)
 				// B step 100 (unsupported command, not transpiled)

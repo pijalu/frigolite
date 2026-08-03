@@ -63,7 +63,7 @@ func Test_exec(t *testing.T) {
 	{ // do_test "exec-1.3"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("CREATE TABLE t2(x, y);")
+		_res = db2.Exec("CREATE TABLE t2(x, y);")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
 		// sqlite3_exec db {SELECT * FROM t1} (unsupported command, not transpiled)

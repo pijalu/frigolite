@@ -359,7 +359,7 @@ func Test_fts3expr(t *testing.T) {
 		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 32 }() {
-			v = "list"
+			v = ""
 			_ = v // suppress unused warning
 			if tclBool(ii + " & 1") {
 				v = tclListAppend(v, "one")

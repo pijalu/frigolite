@@ -80,10 +80,10 @@ func Test_temptable(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			db2.Exec("SELECT * FROM sqlite_master")
+			_res = db2.Exec("SELECT * FROM sqlite_master")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
-		db2.Exec("SELECT * FROM t1")
+		_res = db2.Exec("SELECT * FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "temptable-1.3"
@@ -93,13 +93,13 @@ func Test_temptable(t *testing.T) {
 		}
 	}
 	{ // do_test "temptable-1.4"
-		db2.Exec("SELECT name FROM sqlite_master")
+		_res = db2.Exec("SELECT name FROM sqlite_master")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "temptable-1.5"
-		db2.Exec("\n    CREATE TEMP TABLE t2(x,y,z);\n    INSERT INTO t2 VALUES(4,5,6);\n  ")
+		_res = db2.Exec("\n    CREATE TEMP TABLE t2(x,y,z);\n    INSERT INTO t2 VALUES(4,5,6);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("SELECT * FROM t2")
+		_res = db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "temptable-1.6"
@@ -117,35 +117,35 @@ func Test_temptable(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-1.8"
-		db2.Exec("INSERT INTO t2 VALUES(8,9,0);")
+		_res = db2.Exec("INSERT INTO t2 VALUES(8,9,0);")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("SELECT * FROM t2 ORDER BY x")
+		_res = db2.Exec("SELECT * FROM t2 ORDER BY x")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "temptable-1.9"
-		db2.Exec("DELETE FROM t2 WHERE x==8")
+		_res = db2.Exec("DELETE FROM t2 WHERE x==8")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("SELECT * FROM t2 ORDER BY x")
+		_res = db2.Exec("SELECT * FROM t2 ORDER BY x")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "temptable-1.10"
-		db2.Exec("DELETE FROM t2")
+		_res = db2.Exec("DELETE FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("SELECT * FROM t2")
+		_res = db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "temptable-1.11"
-		db2.Exec("\n     INSERT INTO t2 VALUES(7,6,5);\n     INSERT INTO t2 VALUES(4,3,2);\n     SELECT * FROM t2 ORDER BY x;\n  ")
+		_res = db2.Exec("\n     INSERT INTO t2 VALUES(7,6,5);\n     INSERT INTO t2 VALUES(4,3,2);\n     SELECT * FROM t2 ORDER BY x;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "temptable-1.12"
-		db2.Exec("DROP TABLE t2;")
+		_res = db2.Exec("DROP TABLE t2;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2.Exec("SELECT * FROM t2")
+			_res = db2.Exec("SELECT * FROM t2")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			if _catchErr != nil {
 				_r = "1"
@@ -190,7 +190,7 @@ func Test_temptable(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2.Exec("SELECT * FROM t2")
+			_res = db2.Exec("SELECT * FROM t2")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			if _catchErr != nil {
 				_r = "1"

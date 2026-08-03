@@ -298,7 +298,7 @@ func Test_fts3auto(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
-					doc = "list"
+					doc = ""
 					_ = doc // suppress unused warning
 					if tclBool(i + "&0x01") {
 						doc = tclListAppend(doc, "one")

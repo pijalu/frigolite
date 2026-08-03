@@ -131,27 +131,27 @@ func Test_fts3an(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3an-1.10"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"lovely r*\\\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r*\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"lovely r*\\\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r*\"'")
 		}
 	}
 	{ // do_test "fts3an-1.11"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"lovely r\\\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"lovely r\\\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r\"'")
 		}
 	}
 	{ // do_test "fts3an-1.12"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"a* l*\\\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l*\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"a* l*\\\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l*\"'")
 		}
 	}
 	{ // do_test "fts3an-1.13"
-		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\\\"a* l* row\\\"'")
+		r = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l* row\"'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"a* l* row\\\"'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l* row\"'")
 		}
 	}
 	ntext = tclRegsubAll("[Ll]orem", text, "''")

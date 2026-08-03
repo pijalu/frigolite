@@ -96,7 +96,7 @@ func Test_autovacuum(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	delete_orders = "list"
+	delete_orders = ""
 	_ = delete_orders // suppress unused warning
 	delete_orders = tclListAppend(delete_orders, "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20")
 	delete_orders = tclListAppend(delete_orders, "20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1")
@@ -299,7 +299,7 @@ func Test_autovacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av3 VALUES ('" + "make_str abcde [expr 1020*520 + 500]" + "');\n    DELETE FROM av3;\n  ")
 		}
 	}
-	root_page_list = "list"
+	root_page_list = ""
 	_ = root_page_list // suppress unused warning
 	pending_byte_page = tclExprWith("($::sqlite_pending_byte / 1024) + 1", map[string]string{"::sqlite_pending_byte": sqlite_pending_byte})
 	_ = pending_byte_page // suppress unused warning

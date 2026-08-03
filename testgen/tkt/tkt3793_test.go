@@ -87,7 +87,7 @@ func Test_tkt3793(t *testing.T) {
 	_ = x // suppress unused warning
 	busyconnection = "db1" // TCL namespace variable
 	_ = busyconnection // suppress unused warning
-	db1.Exec("SELECT * FROM t2 ORDER BY a LIMIT 20")
+	_res = db1.Exec("SELECT * FROM t2 ORDER BY a LIMIT 20")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // do_test "tkt3793-3"
 		db1.Close()

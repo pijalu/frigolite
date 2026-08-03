@@ -136,7 +136,7 @@ func Test_nolock(t *testing.T) {
 		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t1, t2")
+		_res = db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-2.2"
@@ -148,7 +148,7 @@ func Test_nolock(t *testing.T) {
 		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("file:test.db?immutable=0")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t1, t2")
+		_res = db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-2.12"
@@ -160,7 +160,7 @@ func Test_nolock(t *testing.T) {
 		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("file:test.db?immutable=1")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t1, t2")
+		_res = db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-2.22"
@@ -172,7 +172,7 @@ func Test_nolock(t *testing.T) {
 		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("file:test.db?immutable=1")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t1, t2")
+		_res = db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-2.32"
@@ -185,7 +185,7 @@ func Test_nolock(t *testing.T) {
 		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t1, t2")
+		_res = db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-3.2"
@@ -197,7 +197,7 @@ func Test_nolock(t *testing.T) {
 		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t1, t2")
+		_res = db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-3.12"

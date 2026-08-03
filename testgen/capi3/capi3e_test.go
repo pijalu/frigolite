@@ -134,11 +134,11 @@ func Test_capi3e(t *testing.T) {
 			}
 		}
 		{ // do_test "capi3e-3.2." + i
-			db2.Exec("ATTACH DATABASE '" + name + "' AS db" + i + ";")
+			_res = db2.Exec("ATTACH DATABASE '" + name + "' AS db" + i + ";")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		{ // do_test "capi3e-3.3." + i
-			db2.Exec("DETACH DATABASE db" + i + ";")
+			_res = db2.Exec("DETACH DATABASE db" + i + ";")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 	}

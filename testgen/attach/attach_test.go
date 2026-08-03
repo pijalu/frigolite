@@ -611,7 +611,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-5.11"
 		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n      CREATE TABLE t3(y);\n      ATTACH 'test.db' AS aux;\n      INSERT INTO aux.t1(x) VALUES('{\"b\":2}');\n      SELECT * FROM aux.t2;\n    ")
+		_res = db2.Exec("\n      CREATE TABLE t3(y);\n      ATTACH 'test.db' AS aux;\n      INSERT INTO aux.t1(x) VALUES('{\"b\":2}');\n      SELECT * FROM aux.t2;\n    ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "attach-6.1"
@@ -682,7 +682,7 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-8.3"
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("CREATE TABLE t1(x); BEGIN EXCLUSIVE")
+		_res = db2.Exec("CREATE TABLE t1(x); BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("\n    ATTACH 'test2.db' AS t2;\n  ")
 		_ = _res // catchsql

@@ -111,9 +111,9 @@ func Test_fts3cov(t *testing.T) {
 	}
 	// do_error_test fts3cov-2.5 {\n  SELECT * FROM t1 WHERE t1 MATCH 'cloud'\n} {database disk image... (unsupported command, not transpiled)
 	{ // do_test "fts3cov-3.1"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
-		vals = "list"
+		vals = ""
 		_ = vals // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning

@@ -86,7 +86,7 @@ func Test_snapshot3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM sqlite_master")
 		}
 		// db2.trans (db command)
-		db2.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
@@ -95,7 +95,7 @@ func Test_snapshot3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 		// sqlite3_snapshot_open_blob db2 main $snap (unsupported command, not transpiled)
-		db2.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.2"
@@ -112,7 +112,7 @@ func Test_snapshot3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 		// sqlite3_snapshot_open_blob db2 main $snap (unsupported command, not transpiled)
-		db2.Exec(" SELECT * FROM t1 ")
+		_res = db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	sz = "file size test.db-wal"
@@ -133,11 +133,11 @@ func Test_snapshot3(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.5"
-		db3.Exec(" SELECT * FROM t1; END ")
+		_res = db3.Exec(" SELECT * FROM t1; END ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.6"
-		db2.Exec(" SELECT * FROM t1; END ")
+		_res = db2.Exec(" SELECT * FROM t1; END ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.7"

@@ -238,7 +238,7 @@ func Test_dbpage(t *testing.T) {
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
-	db2.Exec("\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(x, y);\n")
+	_res = db2.Exec("\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(x, y);\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // "500"
 		r = db.Query("\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  PRAGMA page_count;\n")
@@ -257,9 +257,9 @@ func Test_dbpage(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		db2.Exec(" PRAGMA page_count ")
+		_res = db2.Exec(" PRAGMA page_count ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec(" SELECT pgno, data FROM sqlite_dbpage ")
+		_res = db2.Exec(" SELECT pgno, data FROM sqlite_dbpage ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
@@ -296,7 +296,7 @@ func Test_dbpage(t *testing.T) {
 	_ = pgno // suppress unused warning
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
-	db2.Exec("\n  BEGIN;\n    SELECT * FROM x1;\n")
+	_res = db2.Exec("\n  BEGIN;\n    SELECT * FROM x1;\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // "620"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
@@ -304,7 +304,7 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
 		}
 	}
-	db2.Exec("\n  COMMIT;\n")
+	_res = db2.Exec("\n  COMMIT;\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	{ // "630"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
@@ -340,7 +340,7 @@ func Test_dbpage(t *testing.T) {
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
-	db2.Exec("\n  CREATE TABLE y1(y);\n  INSERT INTO y1 VALUES( hex(randomblob(1000)) );\n")
+	_res = db2.Exec("\n  CREATE TABLE y1(y);\n  INSERT INTO y1 VALUES( hex(randomblob(1000)) );\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	max = "db2 one {PRAGMA page_count}"
 	_ = max // suppress unused warning

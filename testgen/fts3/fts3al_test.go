@@ -60,24 +60,24 @@ func Test_fts3al(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "fts3al-1.1"
-		_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(content, \\x80)")
+		_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(content, x80)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING fts3(content, \\x80)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING fts3(content, x80)")
 		}
 	}
 	{ // do_test "fts3al-1.2"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts3(content, tokenize \\x80)")
+			_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts3(content, tokenize x80)")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
 		// sqlite3_errmsg $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "fts3al-1.3"
-		_res = db.Exec("CREATE VIRTUAL TABLE t3 USING fts3(content, tokenize\\x80)")
+		_res = db.Exec("CREATE VIRTUAL TABLE t3 USING fts3(content, tokenizex80)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t3 USING fts3(content, tokenize\\x80)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t3 USING fts3(content, tokenizex80)")
 		}
 	}
 	word = "x80xxxxxx80xxxxxx80xxxxxx80xxxxxx80xxxxxx80xxxxxx80"

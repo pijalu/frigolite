@@ -124,7 +124,7 @@ func Test_fts4onepass(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
 						}
 					}
-					// eval (dynamic, not transpiled)
+					// eval $tcl1 (dynamic, not transpiled)
 					// foreach {tn2 sql content} "1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }"
 					_items3 := tclSplitList("1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }")
 					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
@@ -160,7 +160,7 @@ func Test_fts4onepass(t *testing.T) {
 								}
 							}
 						}
-						// eval (dynamic, not transpiled)
+						// eval $tcl2 (dynamic, not transpiled)
 					}
 					{ // "4.0"
 						r = db.Query("\n  CREATE VIRTUAL TABLE zt USING fts4(a, b);\n  INSERT INTO zt(rowid, a, b) VALUES(1, 'unus duo', NULL);\n  INSERT INTO zt(rowid, a, b) VALUES(2, NULL, NULL);\n\n  BEGIN;\n    UPDATE zt SET b='septum' WHERE rowid = 1;\n    UPDATE zt SET b='octo' WHERE rowid = 1;\n  COMMIT;\n\n  SELECT count(*) FROM zt_segdir;\n")

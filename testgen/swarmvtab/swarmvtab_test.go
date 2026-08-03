@@ -166,7 +166,7 @@ func Test_swarmvtab(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 			db2, err = frigolite.Open("test.db" + i)
 			if err != nil { t.Fatal(err) }
-			db2.Exec(" DELETE FROM t" + i + " ")
+			_res = db2.Exec(" DELETE FROM t" + i + " ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			db2.Close()
 			// incr i 1
@@ -246,12 +246,12 @@ func Test_swarmvtab(t *testing.T) {
 		os.Remove("test.db5")
 		db2, err = frigolite.Open("test.db15")
 		if err != nil { t.Fatal(err) }
-		db2.Exec(" DROP TABLE t15 ")
+		_res = db2.Exec(" DROP TABLE t15 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
 		db2, err = frigolite.Open("test.db25")
 		if err != nil { t.Fatal(err) }
-		db2.Exec(" \n    DROP TABLE t25;\n    CREATE TABLE t25(x, y, z PRIMARY KEY);\n  ")
+		_res = db2.Exec(" \n    DROP TABLE t25;\n    CREATE TABLE t25(x, y, z PRIMARY KEY);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
 	}

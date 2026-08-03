@@ -1918,7 +1918,7 @@ func Test_pragma(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE INDEX i2 ON t1(c,d);\n    CREATE INDEX i2x ON t1(d COLLATE nocase, c DESC);\n    CREATE INDEX i3 ON t1(d,b+c,c);\n    CREATE TABLE t2(x INTEGER REFERENCES t1);\n  ")
 						}
-						db2.Exec("SELECT name FROM sqlite_master")
+						_res = db2.Exec("SELECT name FROM sqlite_master")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					{ // do_test "23.2a"
@@ -1927,24 +1927,24 @@ func Test_pragma(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX i2;\n    CREATE INDEX i2 ON t1(c,d,b);\n  ")
 						}
 						// capture_pragma db2 out {PRAGMA index_info(i2)} (unsupported command, not transpiled)
-						db2.Exec("SELECT cid, name, '|' FROM out ORDER BY seqno")
+						_res = db2.Exec("SELECT cid, name, '|' FROM out ORDER BY seqno")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					{ // do_test "23.2b"
 						// capture_pragma db2 out {PRAGMA index_xinfo(i2)} (unsupported command, not transpiled)
-						db2.Exec("SELECT cid, name, \"desc\", coll, \"key\", '|' FROM out ORDER BY seqno")
+						_res = db2.Exec("SELECT cid, name, \"desc\", coll, \"key\", '|' FROM out ORDER BY seqno")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					{ // do_test "23.2c"
-						db2.Exec("PRAGMA index_xinfo(i2)")
+						_res = db2.Exec("PRAGMA index_xinfo(i2)")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					{ // do_test "23.2d"
-						db2.Exec("PRAGMA index_xinfo(i2x)")
+						_res = db2.Exec("PRAGMA index_xinfo(i2x)")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					{ // do_test "23.2e"
-						db2.Exec("PRAGMA index_xinfo(i3)")
+						_res = db2.Exec("PRAGMA index_xinfo(i3)")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					{ // do_test "23.3"
@@ -1953,7 +1953,7 @@ func Test_pragma(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX IF EXISTS i3;\n    CREATE INDEX i3 ON t1(d,b,c);\n  ")
 						}
 						// capture_pragma db2 out {PRAGMA index_list(t1)} (unsupported command, not transpiled)
-						db2.Exec("SELECT seq, name, \"unique\", origin, '|' FROM out ORDER BY seq")
+						_res = db2.Exec("SELECT seq, name, \"unique\", origin, '|' FROM out ORDER BY seq")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					{ // do_test "23.4"
@@ -1961,7 +1961,7 @@ func Test_pragma(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ALTER TABLE t1 ADD COLUMN e;\n    ")
 						}
-						db2.Exec("\n      PRAGMA table_info(t1);\n    ")
+						_res = db2.Exec("\n      PRAGMA table_info(t1);\n    ")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					{ // do_test "23.5"
@@ -1969,7 +1969,7 @@ func Test_pragma(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(x, y INTEGER REFERENCES t1);\n  ")
 						}
-						db2.Exec("\n    PRAGMA foreign_key_list(t2);\n  ")
+						_res = db2.Exec("\n    PRAGMA foreign_key_list(t2);\n  ")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					}
 					db2.Close()

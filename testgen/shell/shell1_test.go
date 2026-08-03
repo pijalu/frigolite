@@ -789,13 +789,13 @@ func Test_shell1(t *testing.T) {
 				_ = char // suppress unused warning
 				oldChar = char
 				_ = oldChar // suppress unused warning
-				escapes = "list"
+				escapes = ""
 				_ = escapes // suppress unused warning
 				if tcl_platform_platform == "windows" {
-					escapes = "list \\\n          \\a \\\\a \\b \\\\b \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\r \\\\r \\\n          \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
+					escapes = "\\a \\\\a \\b \\\\b \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\r \\\\r            \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
 					_ = escapes // suppress unused warning
 				} else {
-					escapes = "list \\\n          \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\\n          \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
+					escapes = "\\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f            \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
 					_ = escapes // suppress unused warning
 				}
 				char = ""

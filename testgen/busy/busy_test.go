@@ -71,7 +71,7 @@ func Test_busy(t *testing.T) {
 	busyargs = ""
 	_ = busyargs // suppress unused warning
 	{ // do_test "busy-1.2"
-		db2.Exec("BEGIN EXCLUSIVE")
+		_res = db2.Exec("BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("BEGIN IMMEDIATE")
 		_ = _res // catchsql
@@ -85,13 +85,13 @@ func Test_busy(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "busy-2.1"
-		db2.Exec("COMMIT")
+		_res = db2.Exec("COMMIT")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("BEGIN; INSERT INTO t1 VALUES(5)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN; INSERT INTO t1 VALUES(5)")
 		}
-		db2.Exec("BEGIN; SELECT * FROM t1")
+		_res = db2.Exec("BEGIN; SELECT * FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		busyargs = ""
 		_ = busyargs // suppress unused warning

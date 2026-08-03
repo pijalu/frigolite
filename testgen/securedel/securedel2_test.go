@@ -75,7 +75,7 @@ func Test_securedel2(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
-		aBlob_i = "[db one {SELECT quote(randomblob(8))}] 2 end-1"
+		aBlob_i = tclStringRange("db", "one", "{SELECT")
 		_ = aBlob_i // suppress unused warning
 		// incr i 1
 		{

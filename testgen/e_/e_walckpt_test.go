@@ -168,7 +168,7 @@ func Test_e_walckpt(t *testing.T) {
 			// file size test.db-wal
 		}
 		{ // do_test "6.2"
-			db2.Exec(" BEGIN; SELECT * FROM t1; ")
+			_res = db2.Exec(" BEGIN; SELECT * FROM t1; ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
 			if _res.Error != nil {
@@ -180,7 +180,7 @@ func Test_e_walckpt(t *testing.T) {
 			_ = tclLRange("wal_checkpoint_v2 db passive", "1", "2") // lrange result
 		}
 		{ // do_test "6.5"
-			db2.Exec("COMMIT")
+			_res = db2.Exec("COMMIT")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			// wal_checkpoint_v2 db truncate (unsupported command, not transpiled)
 		}

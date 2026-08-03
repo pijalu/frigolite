@@ -66,18 +66,18 @@ func Test_shared3(t *testing.T) {
 		os.Remove("test.db")
 		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db1.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES('abc','This is a test string');\n  ")
+		_res = db1.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES('abc','This is a test string');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db1.Close()
 		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db1.Exec("SELECT * FROM t1")
+		_res = db1.Exec("SELECT * FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared3-1.2"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT y FROM t1 WHERE x='abc'")
+		_res = db2.Exec("SELECT y FROM t1 WHERE x='abc'")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db1.Close()

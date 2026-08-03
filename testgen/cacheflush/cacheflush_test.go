@@ -119,7 +119,7 @@ func Test_cacheflush(t *testing.T) {
 	{ // do_test "1.4.1"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
+		_res = db2.Exec("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		// diskquery test.db { \n    SELECT * FROM t1;\n  } (unsupported command, not transpiled)
 	}

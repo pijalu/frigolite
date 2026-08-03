@@ -80,7 +80,7 @@ func Test_walseh1(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	FAULTSIM_seh = "list                   \\\n  -injectinstall   seh_injectinstall   \\\n  -injectstart     seh_injectstart     \\\n  -injectstop      seh_injectstop      \\\n  -injecterrlist   {{1 {disk I/O error}}} \\\n  -injectuninstall seh_injectuninstall \\"
+	FAULTSIM_seh = "-injectinstall   seh_injectinstall      -injectstart     seh_injectstart        -injectstop      seh_injectstop         -injecterrlist   {{1 {disk I/O error}}}    -injectuninstall seh_injectuninstall"
 	_ = FAULTSIM_seh // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"

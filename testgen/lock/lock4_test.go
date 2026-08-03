@@ -66,7 +66,7 @@ func Test_lock4(t *testing.T) {
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n     PRAGMA auto_vacuum=OFF;\n     CREATE TABLE t2(x)\n  ")
+		_res = db2.Exec("\n     PRAGMA auto_vacuum=OFF;\n     CREATE TABLE t2(x)\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
 		_list := tclList([]string{"file size test.db", "file size test2.db"})
@@ -99,7 +99,7 @@ func Test_lock4(t *testing.T) {
 		}
 		for tclBool("file exists test2.db-journal") {
 		}
-		db2.Exec("\n     SELECT * FROM t2\n  ")
+		_res = db2.Exec("\n     SELECT * FROM t2\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "lock4-999.1"

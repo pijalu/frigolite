@@ -100,7 +100,7 @@ func Test_tableopts(t *testing.T) {
 	{ // do_test "tableopt-2.3"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT c FROM t1 WHERE a IN (1,2) ORDER BY b;")
+		_res = db2.Exec("SELECT c FROM t1 WHERE a IN (1,2) ORDER BY b;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()

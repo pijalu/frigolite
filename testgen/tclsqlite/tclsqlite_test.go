@@ -580,25 +580,25 @@ func Test_tclsqlite(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	{ // do_test "tcl-2.1"
-		_res = db.Exec("CREATE TABLE t\\u0123x(a int, b\\u1235 float)")
+		_res = db.Exec("CREATE TABLE tu0123x(a int, bu1235 float)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t\\u0123x(a int, b\\u1235 float)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tu0123x(a int, bu1235 float)")
 		}
 	}
 	{ // do_test "tcl-2.2"
-		r = db.Query("PRAGMA table_info(t\\u0123x)")
+		r = db.Query("PRAGMA table_info(tu0123x)")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA table_info(t\\u0123x)")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA table_info(tu0123x)")
 		}
 	}
 	{ // do_test "tcl-2.3"
-		_res = db.Exec("INSERT INTO t\\u0123x VALUES(1,2.3)")
+		_res = db.Exec("INSERT INTO tu0123x VALUES(1,2.3)")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t\\u0123x VALUES(1,2.3)")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tu0123x VALUES(1,2.3)")
 		}
-		_res = db.Exec("SELECT * FROM t\\u0123x")
+		_res = db.Exec("SELECT * FROM tu0123x")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t\\u0123x")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM tu0123x")
 		}
 	}
 	{ // do_test "tcl-3.1"
@@ -1148,7 +1148,7 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "tcl-10.18"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
+		_res = db2.Exec("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
@@ -1176,7 +1176,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-10.20"
-		db2.Exec("\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
+		_res = db2.Exec("\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning

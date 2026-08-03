@@ -83,7 +83,7 @@ func Test_vacuum_into(t *testing.T) {
 	db2, err = frigolite.Open("out.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "vacuum-into-120"
-		db2.Exec("SELECT count(*), sum(a), sum(length(b)) FROM t1")
+		_res = db2.Exec("SELECT count(*), sum(a), sum(length(b)) FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // "vacuum-into-130"
@@ -179,7 +179,7 @@ func Test_vacuum_into(t *testing.T) {
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "vacuum-into-510"
-		db2.Exec("SELECT name FROM sqlite_master ORDER BY 1")
+		_res = db2.Exec("SELECT name FROM sqlite_master ORDER BY 1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()

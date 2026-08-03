@@ -149,9 +149,9 @@ func Test_mmap1(t *testing.T) {
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// db2.func (db command)
-				db2.Exec("\n        DELETE FROM t1 WHERE (rowid%4);\n          PRAGMA wal_checkpoint;\n      ")
+				_res = db2.Exec("\n        DELETE FROM t1 WHERE (rowid%4);\n          PRAGMA wal_checkpoint;\n      ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				db2.Exec("\n        INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    16\n        SELECT count(*) FROM t1;\n      ")
+				_res = db2.Exec("\n        INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    16\n        SELECT count(*) FROM t1;\n      ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // "2.4"
@@ -233,7 +233,7 @@ func Test_mmap1(t *testing.T) {
 				_ = _putsMsg
 				// close $fd
 			}
-			res = "list"
+			res = ""
 			_ = res // suppress unused warning
 			for "SQLITE_ROW" == "SQLITE_ROW" {
 				res = tclListAppend(res, "")
@@ -290,29 +290,29 @@ func Test_mmap1(t *testing.T) {
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "6.0"
-			db2.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 4096;\n  ")
+			_res = db2.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 4096;\n  ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		{ // do_test "6.1"
-			db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(randomblob(1000000));\n  ")
+			_res = db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(randomblob(1000000));\n  ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		{ // do_test "6.2"
-			db2.Exec("\n    PRAGMA mmap_size = 1048576;\n  ")
+			_res = db2.Exec("\n    PRAGMA mmap_size = 1048576;\n  ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		{ // do_test "6.3"
 			// expr [file size test2.db] > 1000000 (not evaluated)
 		}
 		{ // do_test "6.4"
-			db2.Exec("\n    DELETE FROM t1;\n  ")
+			_res = db2.Exec("\n    DELETE FROM t1;\n  ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		{ // do_test "6.5"
 			// expr [file size test2.db] > 1000000 (not evaluated)
 		}
 		{ // do_test "6.6"
-			db2.Exec("\n    VACUUM;\n  ")
+			_res = db2.Exec("\n    VACUUM;\n  ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		{ // do_test "6.7"

@@ -79,7 +79,7 @@ func Test_shared2(t *testing.T) {
 		}
 		count = tclExecSQL(db, "{SELECT count(*) FROM numbers} db2")
 		_ = count // suppress unused warning
-		db2.Exec("SELECT a FROM numbers ORDER BY oid")
+		_res = db2.Exec("SELECT a FROM numbers ORDER BY oid")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_list := tclList([]string{a, count})
 		_ = _list
@@ -91,7 +91,7 @@ func Test_shared2(t *testing.T) {
 		}
 		count = tclExecSQL(db, "{SELECT count(*) FROM numbers} db2")
 		_ = count // suppress unused warning
-		db2.Exec("SELECT a, b FROM numbers ORDER BY a")
+		_res = db2.Exec("SELECT a, b FROM numbers ORDER BY a")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_list := tclList([]string{a, count})
 		_ = _list

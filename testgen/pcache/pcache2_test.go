@@ -77,7 +77,7 @@ func Test_pcache2(t *testing.T) {
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("PRAGMA cache_size=50; SELECT 1 FROM sqlite_master;")
+		_res = db2.Exec("PRAGMA cache_size=50; SELECT 1 FROM sqlite_master;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_ = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "1") // lindex result
 	}

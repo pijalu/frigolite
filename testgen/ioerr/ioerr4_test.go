@@ -70,7 +70,7 @@ func Test_ioerr4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=INCREMENTAL;\n    CREATE TABLE a(i INTEGER, b BLOB);\n  ")
 		}
-		db2.Exec("\n    SELECT name FROM sqlite_master\n  ")
+		_res = db2.Exec("\n    SELECT name FROM sqlite_master\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "ioerr4-1.3"

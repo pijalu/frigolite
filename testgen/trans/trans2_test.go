@@ -109,7 +109,7 @@ func Test_trans2(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 400 }() {
-		rec = "list $i [random_uuid] [expr {int(rand()*5000)+1000}] [random_uuid]"
+		rec = i + " " + "random_uuid" + " " + "1000" + " " + "random_uuid"
 		_ = rec // suppress unused warning
 		data = tclListAppend(data, rec)
 		// incr i 1
@@ -166,7 +166,7 @@ func Test_trans2(t *testing.T) {
 				_ = max1 // suppress unused warning
 			}
 		}
-		origres = "list [hash1] [hash2]"
+		origres = "hash1" + " " + "hash2"
 		_ = origres // suppress unused warning
 		{ // do_test "trans2-" + i + ".1"
 			_res = db.Exec("DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ")")
@@ -184,7 +184,7 @@ func Test_trans2(t *testing.T) {
 		_ = newdata // suppress unused warning
 		for _, id := range tclSplitList(todel) {
 		_ = id // suppress unused warning
-			rec = "list $id [random_uuid] \\\n                      [expr {int(rand()*5000)+1000}] [random_uuid]"
+			rec = id + " " + "random_uuid" + "                        " + "1000" + " " + "random_uuid"
 			_ = rec // suppress unused warning
 			newdata = tclListAppend(newdata, rec)
 			data = tclListAppend(data, rec)
@@ -195,7 +195,7 @@ func Test_trans2(t *testing.T) {
 			id = tclExprWith("$max_rowid+$j", map[string]string{"max_rowid": max_rowid, "j": j})
 			_ = id // suppress unused warning
 			todel = tclListAppend(todel, id)
-			rec = "list $id [random_uuid] \\\n                      [expr {int(rand()*5000)+1000}] [random_uuid]"
+			rec = id + " " + "random_uuid" + "                        " + "1000" + " " + "random_uuid"
 			_ = rec // suppress unused warning
 			newdata = tclListAppend(newdata, rec)
 			data = tclListAppend(data, rec)
@@ -213,7 +213,7 @@ func Test_trans2(t *testing.T) {
 		_ = modsql // suppress unused warning
 		inssql = ""
 		_ = inssql // suppress unused warning
-		newres = "list [hash1] [hash2]"
+		newres = "hash1" + " " + "hash2"
 		_ = newres // suppress unused warning
 		{ // do_test "trans2-" + i + ".3"
 			_res = db.Exec("BEGIN")

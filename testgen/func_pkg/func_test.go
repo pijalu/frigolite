@@ -1046,7 +1046,7 @@ func Test_func(t *testing.T) {
 		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
 		_ = STMT // suppress unused warning
 		// sqlite3_bind_text $STMT 1 hello\000 -1 (unsupported command, not transpiled)
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
 		for "SQLITE_ROW" == "SQLITE_ROW" {
 			res = tclListAppend(res, "")

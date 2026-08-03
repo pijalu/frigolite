@@ -275,9 +275,9 @@ func Test_corrupt2(t *testing.T) {
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec(presql)
+		_res = db2.Exec(presql)
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("SELECT rowid FROM t1")
+		_res = db2.Exec("SELECT rowid FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()

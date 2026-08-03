@@ -166,7 +166,7 @@ func Test_bestindexC(t *testing.T) {
 				tbl := _items1[_idx1+1]
 				_ = tbl // suppress unused warning
 				_ = _idx1
-					expect = tclExecSQL(db, "\"SELECT * FROM $tbl $limit\"")
+					expect = tclExecSQL(db, "SELECT * FROM " + tbl + " " + limit)
 					_ = expect // suppress unused warning
 					{ // "1.2." + tbl + "." + tn
 						r = db.Query("SELECT * FROM (\n      SELECT * FROM x1 " + op + " SELECT * FROM x2\n    ) " + limit)

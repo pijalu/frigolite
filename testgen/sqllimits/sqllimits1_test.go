@@ -608,7 +608,7 @@ func Test_sqllimits1(t *testing.T) {
 		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000 (unsupported command, not transpiled)
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
-		tail = " /* A comment to take up space in order to make the string\n                longer without increasing the expression depth */\n                AND   1  ==  1"
+		tail = " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1"
 		_ = tail // suppress unused warning
 		N = tclExprWith("(50000 / [string length $tail])+1", map[string]string{"tail": tail})
 		_ = N // suppress unused warning
@@ -620,7 +620,7 @@ func Test_sqllimits1(t *testing.T) {
 		// sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000 (unsupported command, not transpiled)
 		sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
-		tail = " /* A comment to take up space in order to make the string\n                longer without increasing the expression depth */\n                AND   1  ==  1"
+		tail = " /* A comment to take up space in order to make the string                longer without increasing the expression depth */                AND   1  ==  1"
 		_ = tail // suppress unused warning
 		N = tclExprWith("(50000 / [string length $tail])+1", map[string]string{"tail": tail})
 		_ = N // suppress unused warning
@@ -725,7 +725,7 @@ func Test_sqllimits1(t *testing.T) {
 	_ = SQLITE_LIMIT_COLUMN // suppress unused warning
 	// sqlite3_limit db SQLITE_LIMIT_COLUMN $SQLITE_LIMIT_COLUMN (unsupported command, not transpiled)
 	{ // do_test "sqllimits1-8.1"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
@@ -743,7 +743,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-8.2"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
@@ -761,7 +761,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-8.3"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
@@ -779,7 +779,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-8.4"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
@@ -809,7 +809,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-8.7"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
@@ -827,7 +827,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-8.8"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
@@ -849,7 +849,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-8.9"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
@@ -875,7 +875,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-8.10"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
@@ -895,7 +895,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-8.11"
-		cols = "list"
+		cols = ""
 		_ = cols // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
@@ -984,7 +984,7 @@ func Test_sqllimits1(t *testing.T) {
 	_ = max // suppress unused warning
 	for func() bool { max_n, _max_e := strconv.Atoi(max); if _max_e != nil { return false }; SQLITE_MAX_FUNCTION_ARG_n, _SQLITE_MAX_FUNCTION_ARG_e := strconv.Atoi(SQLITE_MAX_FUNCTION_ARG); if _SQLITE_MAX_FUNCTION_ARG_e != nil { return false }; return max_n <= SQLITE_MAX_FUNCTION_ARG_n }() {
 		{ // do_test "sqllimits1-11." + max + ".1"
-			vals = "list"
+			vals = ""
 			_ = vals // suppress unused warning
 			// sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG $::max (unsupported command, not transpiled)
 			i = "0"
@@ -1003,7 +1003,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "sqllimits1-11." + max + ".2"
-			vals = "list"
+			vals = ""
 			_ = vals // suppress unused warning
 			i = "0"
 			_ = i // suppress unused warning
@@ -1022,7 +1022,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		{ // do_test "sqllimits1-11." + max + ".2"
-			vals = "list"
+			vals = ""
 			_ = vals // suppress unused warning
 			i = "0"
 			_ = i // suppress unused warning
@@ -1108,7 +1108,7 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-13.2"
 		max = SQLITE_MAX_VARIABLE_NUMBER
 		_ = max // suppress unused warning
-		vals = "list"
+		vals = ""
 		_ = vals // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning

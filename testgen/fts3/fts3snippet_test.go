@@ -138,9 +138,9 @@ func Test_fts3snippet(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
-			_res = db.Exec("PRAGMA encoding = \\\"" + enc + "\\\"")
+			_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \\\"" + enc + "\\\"")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \"" + enc + "\"")
 			}
 			T = "fts3snippet-1." + enc
 			_ = T // suppress unused warning
@@ -243,7 +243,7 @@ func Test_fts3snippet(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        DROP TABLE IF EXISTS ft;\n        CREATE VIRTUAL TABLE ft USING fts3(x);\n    ")
 				}
-				testresults = "list"
+				testresults = ""
 				_ = testresults // suppress unused warning
 				i = "1"
 				_ = i // suppress unused warning

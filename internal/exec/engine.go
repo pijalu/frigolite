@@ -112,8 +112,8 @@ type structRow struct {
 }
 
 func (r *structRow) Get(name string) (interface{}, bool) {
-	if name == "rowid" {
-		// rowid is an implicit INTEGER-affinity column. Wrap it so
+	if isRowIDName(name) {
+		// rowid/_rowid_/oid are implicit INTEGER-affinity columns. Wrap them so
 		// comparisons apply SQLite affinity rules (e.g. rowid <= '0'
 		// converts '0' to 0), matching how buildRowMap wraps real columns.
 		return &util.ColumnValue{Value: r.rowID, Affinity: 'I'}, true

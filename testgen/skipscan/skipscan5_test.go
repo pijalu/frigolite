@@ -163,7 +163,7 @@ func Test_skipscan5(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				// eval (dynamic, not transpiled)
+				// eval $coll (dynamic, not transpiled)
 				{ // "2." + tn + ".1"
 					r = db.Query(" PRAGMA encoding = '" + dbenc + "' ")
 					if r.Error != nil {

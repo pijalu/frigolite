@@ -480,7 +480,7 @@ func Test_memdb1(t *testing.T) {
 		_ = seen // suppress unused warning
 		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 		// B step 2 (unsupported command, not transpiled)
-		res = "list [catch {\n    db deserialize main $blob\n  } msg] $msg"
+		res = "0" + " " + msg
 		_ = res // suppress unused warning
 		// B finish (unsupported command, not transpiled)
 	}

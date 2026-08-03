@@ -104,7 +104,7 @@ func Test_crash4(t *testing.T) {
 			if tclBool(c + "==" + "list 0 {}") {
 				fin = "1" // TCL namespace variable
 				_ = fin // suppress unused warning
-				c = "list 1 {child process exited abnormally}"
+				c = "1 {child process exited abnormally}"
 				_ = c // suppress unused warning
 			}
 		}

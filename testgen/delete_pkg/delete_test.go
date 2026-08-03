@@ -669,7 +669,7 @@ func Test_delete(t *testing.T) {
 		}
 	}
 	{ // do_test "delete-9.2"
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
 		if _res.Error != nil {
@@ -681,7 +681,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t5 VALUES(1, 2);\n    INSERT INTO t5 VALUES(3, 4);\n    INSERT INTO t5 VALUES(5, 6);\n  ")
 		}
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
 		if _res.Error != nil {
@@ -693,7 +693,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t5;\n    INSERT INTO t5 VALUES(1, 2);\n    INSERT INTO t5 VALUES(3, 4);\n    INSERT INTO t5 VALUES(5, 6);\n  ")
 		}
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
 		if _res.Error != nil {
@@ -705,7 +705,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t5;\n    INSERT INTO t5 VALUES(1, 2);\n    INSERT INTO t5 VALUES(3, 4);\n    INSERT INTO t5 VALUES(5, 6);\n  ")
 		}
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
 		if _res.Error != nil {

@@ -705,7 +705,7 @@ func Test_multiplex(t *testing.T) {
 	{ // do_test "multiplex-4.1.6a"
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT * FROM t2")
+		_res = db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "multiplex-4.1.7"
@@ -717,17 +717,17 @@ func Test_multiplex(t *testing.T) {
 	{ // do_test "multiplex-4.1.8"
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT count(*) FROM t2")
+		_res = db2.Exec("SELECT count(*) FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "multiplex-4.1.8a"
-		db2.Exec(" DELETE FROM t2 WHERE x = 'tab-t2' ")
+		_res = db2.Exec(" DELETE FROM t2 WHERE x = 'tab-t2' ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "multiplex-4.1.8b"
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("SELECT count(*) FROM t2")
+		_res = db2.Exec("SELECT count(*) FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "multiplex-4.1.9"

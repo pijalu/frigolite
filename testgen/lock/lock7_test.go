@@ -58,9 +58,9 @@ func Test_lock7(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db1.Exec("BEGIN")
+		_res = db1.Exec("BEGIN")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec("BEGIN")
+		_res = db2.Exec("BEGIN")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "lock7-1.2"

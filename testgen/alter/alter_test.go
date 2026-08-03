@@ -467,9 +467,9 @@ func Test_alter(t *testing.T) {
 	}
 	for _, tblname := range tclSplitList(tclExecSQL(db, "{\n  SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'\n}")) {
 	_ = tblname // suppress unused warning
-		_res = db.Exec("DROP TABLE \\\"" + tblname + "\\\"")
+		_res = db.Exec("DROP TABLE \"" + tblname + "\"")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE \\\"" + tblname + "\\\"")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE \"" + tblname + "\"")
 		}
 	}
 	tbl_name = "abcuABCDdef" // TCL namespace variable
@@ -597,9 +597,9 @@ func Test_alter(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE xyz(x UNIQUE)")
 			}
-			_res = db.Exec("ALTER TABLE xyz RENAME TO xyz\\u1234abc")
+			_res = db.Exec("ALTER TABLE xyz RENAME TO xyzu1234abc")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE xyz RENAME TO xyz\\u1234abc")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE xyz RENAME TO xyzu1234abc")
 			}
 			r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
 			if r.Error != nil {
@@ -613,9 +613,9 @@ func Test_alter(t *testing.T) {
 			}
 		}
 		{ // do_test "alter-10.3"
-			_res = db.Exec("ALTER TABLE xyz\\u1234abc RENAME TO xyzabc")
+			_res = db.Exec("ALTER TABLE xyzu1234abc RENAME TO xyzabc")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE xyz\\u1234abc RENAME TO xyzabc")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE xyzu1234abc RENAME TO xyzabc")
 			}
 			r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
 			if r.Error != nil {

@@ -100,9 +100,9 @@ func Test_fts3malloc(t *testing.T) {
 		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 32 }() {
-			a = "list"
+			a = ""
 			_ = a // suppress unused warning
-			b = "list"
+			b = ""
 			_ = b // suppress unused warning
 			if tclBool(ii + " & 0x01") {
 				a = tclListAppend(a, "one")
@@ -159,9 +159,9 @@ func Test_fts3malloc(t *testing.T) {
 			ii = "32"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 1024 }() {
-				a = "list"
+				a = ""
 				_ = a // suppress unused warning
-				b = "list"
+				b = ""
 				_ = b // suppress unused warning
 				if tclBool(ii + " & 0x0001") {
 					a = tclListAppend(a, "one")

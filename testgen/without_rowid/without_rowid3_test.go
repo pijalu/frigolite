@@ -1722,7 +1722,7 @@ func Test_without_rowid3(t *testing.T) {
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO cross VALUES(0, 1, 0) ")
 								}
-								authargs = "list"
+								authargs = ""
 								_ = authargs // suppress unused warning
 								_res = db.Exec(" UPDATE nought SET b = 5 ")
 								if _res.Error != nil {
@@ -1740,7 +1740,7 @@ func Test_without_rowid3(t *testing.T) {
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE one(a INT PRIMARY KEY, b) WITHOUT rowid;\n      CREATE TABLE two(b, c REFERENCES one);\n      INSERT INTO one VALUES(101, 102);\n    ")
 								}
-								authargs = "list"
+								authargs = ""
 								_ = authargs // suppress unused warning
 								_res = db.Exec(" INSERT INTO two VALUES(100, 101); ")
 								if _res.Error != nil {

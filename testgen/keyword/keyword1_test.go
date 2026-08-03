@@ -69,9 +69,9 @@ func Test_keyword1(t *testing.T) {
 	_ = kw // suppress unused warning
 		{ // do_test "keyword1-" + kw + ".1"
 			if kw == "if" {
-				_res = db.Exec("CREATE TABLE \\\"" + kw + "\\\"(" + kw + " " + kw + ")")
+				_res = db.Exec("CREATE TABLE \"" + kw + "\"(" + kw + " " + kw + ")")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE \\\"" + kw + "\\\"(" + kw + " " + kw + ")")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE \"" + kw + "\"(" + kw + " " + kw + ")")
 				}
 			} else {
 				_res = db.Exec("CREATE TABLE " + kw + "(" + kw + " " + kw + ")")
@@ -93,21 +93,21 @@ func Test_keyword1(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM " + kw + " ORDER BY " + kw + " ASC")
 				}
 			} else {
-				_res = db.Exec("SELECT * FROM " + kw + " ORDER BY \\\"" + kw + "\\\" ASC")
+				_res = db.Exec("SELECT * FROM " + kw + " ORDER BY \"" + kw + "\" ASC")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM " + kw + " ORDER BY \\\"" + kw + "\\\" ASC")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM " + kw + " ORDER BY \"" + kw + "\" ASC")
 				}
 			}
 		}
 		{ // do_test "keyword1-" + kw + ".2"
 			if kw == "if" {
-				_res = db.Exec("DROP TABLE \\\"" + kw + "\\\"")
+				_res = db.Exec("DROP TABLE \"" + kw + "\"")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE \\\"" + kw + "\\\"")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE \"" + kw + "\"")
 				}
-				_res = db.Exec("CREATE INDEX \\\"" + kw + "\\\" ON t1(a)")
+				_res = db.Exec("CREATE INDEX \"" + kw + "\" ON t1(a)")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX \\\"" + kw + "\\\" ON t1(a)")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX \"" + kw + "\" ON t1(a)")
 				}
 			} else {
 				_res = db.Exec("DROP TABLE " + kw)

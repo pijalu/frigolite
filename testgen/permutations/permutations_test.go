@@ -193,7 +193,7 @@ func Test_permutations(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	alltests = "list"
+	alltests = ""
 	_ = alltests // suppress unused warning
 	for _, f := range tclSplitList("glob $testdir/*.test") {
 	_ = f // suppress unused warning
@@ -220,7 +220,7 @@ func Test_permutations(t *testing.T) {
 		_ = allquicktests // suppress unused warning
 	}
 	if tclBool("info exists ::env(QUICKTEST_OMIT)") {
-		all = "list"
+		all = ""
 		_ = all // suppress unused warning
 		for _, a := range tclSplitList(allquicktests) {
 		_ = a // suppress unused warning

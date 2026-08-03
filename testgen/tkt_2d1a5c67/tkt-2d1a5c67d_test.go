@@ -141,7 +141,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 		}
 	}
 	{ // do_test "3.4"
-		blobs = "list"
+		blobs = ""
 		_ = blobs // suppress unused warning
 		i = "1"
 		_ = i // suppress unused warning

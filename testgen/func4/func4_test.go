@@ -72,7 +72,7 @@ func Test_func4(t *testing.T) {
 	highPrecision_3 = tclExpr("\\\n    {[db eval {SELECT toreal(9007199254740992 + 1);}] eq {{}}}")
 	_ = highPrecision_3 // suppress unused warning
 	if tclBool("!" + highPrecision_1 + " || !" + highPrecision_2 + " || !" + highPrecision_3) {
-		_putsMsg := "NOTICE:\n        highPrecision: " + highPrecision_1 + " " + highPrecision_2 + " " + highPrecision_3
+		_putsMsg := "NOTICE:        highPrecision: " + highPrecision_1 + " " + highPrecision_2 + " " + highPrecision_3
 		_ = _putsMsg
 	}
 	{ // "func4-1.1"

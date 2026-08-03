@@ -154,7 +154,7 @@ func Test_enc(t *testing.T) {
 	{ // do_test "enc-12.1"
 		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
-		db2.Exec("\n    PRAGMA encoding = 'UTF-16le';\n    CREATE TABLE t2(d, e, f);\n    INSERT INTO t2 VALUES('d', 'e', 'f');\n    PRAGMA encoding;\n  ")
+		_res = db2.Exec("\n    PRAGMA encoding = 'UTF-16le';\n    CREATE TABLE t2(d, e, f);\n    INSERT INTO t2 VALUES('d', 'e', 'f');\n    PRAGMA encoding;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "enc-12.2"

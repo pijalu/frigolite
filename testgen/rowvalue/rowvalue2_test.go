@@ -227,11 +227,11 @@ func Test_rowvalue2(t *testing.T) {
 		}
 		for _, w := range tclSplitList(words) {
 		_ = w // suppress unused warning
-			a = "$w 0 2"
+			a = tclStringRange(w, "0", "2")
 			_ = a // suppress unused warning
-			b = "$w 3 5"
+			b = tclStringRange(w, "3", "5")
 			_ = b // suppress unused warning
-			c = "$w 6 end"
+			c = tclStringRange(w, "6", "end")
 			_ = c // suppress unused warning
 			_res = db.Exec(" INSERT INTO t3 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(w) + ") ")
 			if _res.Error != nil {
@@ -257,11 +257,11 @@ func Test_rowvalue2(t *testing.T) {
 			}
 			for _, w := range tclSplitList(words) {
 			_ = w // suppress unused warning
-				a = "$w 0 2"
+				a = tclStringRange(w, "0", "2")
 				_ = a // suppress unused warning
-				b = "$w 3 5"
+				b = tclStringRange(w, "3", "5")
 				_ = b // suppress unused warning
-				c = "$w 6 end"
+				c = tclStringRange(w, "6", "end")
 				_ = c // suppress unused warning
 				for _, op := range tclSplitList("> >= < <= == IS") {
 				_ = op // suppress unused warning

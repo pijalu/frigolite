@@ -1214,7 +1214,7 @@ func Test_where(t *testing.T) {
 		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
 		_ = _idx0
-			rev = "list"
+			rev = ""
 			_ = rev // suppress unused warning
 			for _, _r := range tclSplitList(res) {
 			_ = _r // suppress unused warning

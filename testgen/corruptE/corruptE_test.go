@@ -115,7 +115,7 @@ func Test_corruptE(t *testing.T) {
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res // catchsql
 	}
-	tests = "list {10233 0xd0} \\\n                {941 0x42} \\\n                {2041 0xd0} \\\n                {2042 0x1f} \\\n                {2274 0x75} \\\n                {3267 0xf2} \\\n                {5113 0x36} \\\n                {10233 0x84} \\\n                {10234 0x74} \\\n                {10239 0x41} \\\n                {11273 0x28} \\\n                {11461 0xe6} \\\n                {12297 0xd7} \\\n                {13303 0x53}"
+	tests = "{10233 0xd0}                  {941 0x42}                  {2041 0xd0}                  {2042 0x1f}                  {2274 0x75}                  {3267 0xf2}                  {5113 0x36}                  {10233 0x84}                  {10234 0x74}                  {10239 0x41}                  {11273 0x28}                  {11461 0xe6}                  {12297 0xd7}                  {13303 0x53}"
 	_ = tests // suppress unused warning
 	tc = "1"
 	_ = tc // suppress unused warning

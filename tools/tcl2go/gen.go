@@ -495,6 +495,16 @@ type transpiler struct {
 	catchMode        bool              // true when transpiling inside a catch {} block
 	forIncrs         [][][]tcl.RawWord // stack of for-loop increment clauses (empty for while/foreach)
 	pendingFileReset map[string]bool   // file removed by forcedelete; next sqlite3 open resets the db
+	varsetLoopVars   map[string]varsetInfo // loop vars that iterate over varset structs
+}
+
+// varsetInfo describes a foreach loop variable whose elements are TCL "varset"
+// scripts (a sequence of `set name {value}` commands). The transpiler turns
+// such loops into Go struct slices and rewrites `eval $var` into field
+// assignments.
+type varsetInfo struct {
+	fields     []string // TCL variable names set by the varsets (struct field order)
+	structName string
 }
 
 func (tp *transpiler) emit(format string, args ...interface{}) {
@@ -626,6 +636,16 @@ func tclUnescapeQuoted(s string) string {
 			b.WriteByte(s[i])
 			continue
 		}
+		// TCL line continuation: backslash-newline (and backslash-CR-newline)
+		// is removed entirely.
+		if s[i+1] == '\n' {
+			i++
+			continue
+		}
+		if s[i+1] == '\r' && i+2 < len(s) && s[i+2] == '\n' {
+			i += 2
+			continue
+		}
 		i++
 		switch s[i] {
 		case 'n':
@@ -650,6 +670,60 @@ func tclUnescapeQuoted(s string) string {
 		}
 	}
 	return b.String()
+}
+
+// tclSplitList splits a TCL-format list string into elements. It mirrors the
+// runtime helper of the same name embedded in generated tests, but runs at
+// generation time in the transpiler (e.g. to classify foreach loop lists).
+func tclSplitList(s string) []string {
+	var result []string
+	pos := 0
+	for pos < len(s) {
+		for pos < len(s) && (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n' || s[pos] == '\r') {
+			pos++
+		}
+		if pos >= len(s) {
+			break
+		}
+		switch s[pos] {
+		case '{':
+			depth := 1
+			start := pos + 1
+			pos++
+			for pos < len(s) && depth > 0 {
+				if s[pos] == '{' {
+					depth++
+				}
+				if s[pos] == '}' {
+					depth--
+				}
+				if depth > 0 {
+					pos++
+				}
+			}
+			result = append(result, s[start:pos])
+			if pos < len(s) {
+				pos++
+			}
+		case '"':
+			start := pos + 1
+			pos++
+			for pos < len(s) && s[pos] != '"' {
+				pos++
+			}
+			result = append(result, s[start:pos])
+			if pos < len(s) {
+				pos++
+			}
+		default:
+			start := pos
+			for pos < len(s) && s[pos] != ' ' && s[pos] != '\t' && s[pos] != '\n' && s[pos] != '\r' {
+				pos++
+			}
+			result = append(result, s[start:pos])
+		}
+	}
+	return result
 }
 
 // tclExprToGo converts a TCL expression string into a form the runtime tclExpr
@@ -1114,6 +1188,14 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 					return fmt.Sprintf("strings.TrimSpace(%s)", strExpr)
 				}
 				return `""`
+			case "range":
+				if len(args) >= 4 {
+					strExpr := tp.buildStringExpr(args[1])
+					startExpr := tp.buildStringExpr(args[2])
+					endExpr := tp.buildStringExpr(args[3])
+					return fmt.Sprintf("tclStringRange(%s, %s, %s)", strExpr, startExpr, endExpr)
+				}
+				return `""`
 			default:
 				str := strings.TrimSpace(cmdText[len("string "+sub):])
 				return fmt.Sprintf("%q", str)
@@ -1176,8 +1258,14 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 	case "execsql", "execsql2":
 		// [execsql {SQL}] — execute SQL and return the joined result values
 		// as a space-separated string (for string-equal comparisons in tests).
+		// The argument may be a double-quoted word (strip quotes, resolve
+		// backslash escapes and line continuations) with $var/[cmd] refs.
 		sqlText := strings.TrimSpace(cmdText[len(cmdName):])
-		return fmt.Sprintf("tclExecSQL(db, %q)", strings.TrimSpace(sqlText))
+		if len(sqlText) >= 2 && sqlText[0] == '"' && sqlText[len(sqlText)-1] == '"' {
+			sqlText = sqlText[1 : len(sqlText)-1]
+		}
+		sqlText = tclUnescapeQuoted(sqlText)
+		return fmt.Sprintf("tclExecSQL(db, %s)", tp.buildStringExpr(sqlText))
 
 	default:
 		return fmt.Sprintf("%q", cmdText)
@@ -1796,6 +1884,30 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		tp.varCount = bodyTP.varCount
 		tp.indent = bodyTP.indent
 	} else {
+		// String-bodied do_test: the body is a TCL script string, most
+		// commonly `execsql {SQL}`. Execute the SQL (with $var substitution)
+		// and compare its joined result values with the expected argument.
+		bodyText := strings.TrimSpace(args[1].Text)
+		if strings.HasPrefix(bodyText, "execsql ") || strings.HasPrefix(bodyText, "execsql2 ") {
+			rest := strings.TrimSpace(strings.TrimPrefix(bodyText, "execsql"))
+			rest = strings.TrimSpace(strings.TrimPrefix(rest, "2"))
+			// Strip one layer of braces: "execsql {$stmt $q}" → "$stmt $q"
+			if len(rest) >= 2 && rest[0] == '{' && rest[len(rest)-1] == '}' {
+				rest = strings.TrimSpace(rest[1 : len(rest)-1])
+			}
+			sqlExpr := tp.buildStringExpr(rest)
+			tp.emitLine("_r = tclExecSQL(db, %s)", sqlExpr)
+			if expectedExpr != `""` {
+				tp.emitLine("if _r != %s {", expectedExpr)
+				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", _r, %s)", expectedExpr)
+				tp.emitLine("}")
+			} else {
+				tp.emitLine("_ = _r // suppress unused warning")
+			}
+			tp.indent--
+			tp.emitLine("}")
+			return
+		}
 		sqlExpr := tp.goStringLiteral(args[1])
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 		tp.emitLine("if _res.Error != nil {")
@@ -1966,7 +2078,7 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 	case "eval":
 		sqlExpr := tp.collectSQLExpression(rest)
 		if sqlExpr != `""` {
-			tp.emitLine("%s.Exec(%s)", goName, sqlExpr)
+			tp.emitLine("_res = %s.Exec(%s)", goName, sqlExpr)
 			tp.emitLine("if _res.Error != nil { t.Errorf(\"exec error: %%v\", _res.Error) }")
 		}
 	case "onecolumn":
@@ -2037,7 +2149,7 @@ func (tp *transpiler) collectSQLExpression(args []tcl.RawWord) string {
 		}
 		return fmt.Sprintf("%q", text)
 	}
-	return tp.goStringLiteral(tcl.RawWord{Text: sanitizeSQL(args[0].Text)})
+	return tp.goStringLiteral(tcl.RawWord{Text: sanitizeSQL(args[0].Text), Quoted: args[0].Quoted})
 }
 
 func hasVarRef(s string) bool {
@@ -2069,6 +2181,19 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		rawList = rawList[len("list "):]
 	}
 	listExpr := tp.goStringLiteral(tcl.RawWord{Text: rawList})
+
+	// foreach over a literal list of TCL "varset" scripts:
+	//   foreach v [list {set a 1 set b 2} {set a 3}] { eval $v ... }
+	// Each element is a braced script of `set name {value}` commands. Emit a Go
+	// struct slice so the later `eval $v` can be rewritten as field assignments.
+	if len(varNames) == 1 {
+		if _, ok, err := tp.emitVarsetForeach(args, rawList, varNames[0]); ok {
+			if err != nil {
+				tp.emitLine("// foreach %s (varset: %v)", varNames[0], err)
+			}
+			return
+		}
+	}
 
 	// foreach over [db eval ...]: the transpiler can't execute TCL at
 	// generation time, but the common cleanup pattern
@@ -2201,6 +2326,123 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 	tp.indent--
 	tp.emitLine("}")
 	return true
+}
+
+// emitVarsetForeach transpiles a foreach whose list elements are TCL "varset"
+// scripts — braced sequences of `set name {value}` commands, commonly used as
+//
+//	foreach v [list {set a 1 set b 2} {set a 3}] { eval $v ... }
+//
+// It emits a Go struct slice and records the loop variable so a later
+// `eval $v` becomes field assignments. Returns ok=false when the list is not a
+// literal varset list; the caller falls back to the generic list loop.
+func (tp *transpiler) emitVarsetForeach(args []tcl.RawWord, rawList, varName string) (varsetInfo, bool, error) {
+	rawList = strings.TrimSpace(rawList)
+	elements := tclSplitList(rawList)
+	if len(elements) == 0 {
+		return varsetInfo{}, false, nil
+	}
+	type fieldVal struct {
+		name  string
+		value string
+	}
+	var allFields []string
+	seen := map[string]bool{}
+	rows := make([][]fieldVal, 0, len(elements))
+	for _, el := range elements {
+		el = strings.TrimSpace(el)
+		if !strings.HasPrefix(el, "{") || !strings.HasSuffix(el, "}") {
+			return varsetInfo{}, false, nil
+		}
+		cmds := parseCommands(el[1 : len(el)-1])
+		if len(cmds) == 0 {
+			return varsetInfo{}, false, nil
+		}
+		row := []fieldVal{}
+		for _, cmdArgs := range cmds {
+			if len(cmdArgs) < 3 || cmdArgs[0].Text != "set" {
+				return varsetInfo{}, false, nil
+			}
+			vn := tclVarToGo(cmdArgs[1].Text)
+			val := rawValueText(cmdArgs[2])
+			if strings.Contains(val, "$") || strings.Contains(val, "[") {
+				// Dynamic values cannot be represented as static struct fields.
+				return varsetInfo{}, false, nil
+			}
+			row = append(row, fieldVal{vn, val})
+			if !seen[vn] {
+				seen[vn] = true
+				allFields = append(allFields, vn)
+			}
+		}
+		rows = append(rows, row)
+	}
+	goVN := tclVarToGo(varName)
+	if goVN == tp.dbVar {
+		goVN = goVN + "_iter"
+	}
+	structName := fmt.Sprintf("_varset%d", tp.varCount)
+	sliceVar := fmt.Sprintf("_varsets%d", tp.varCount)
+	tp.varCount++
+	tp.emitLine("type %s struct {", structName)
+	tp.indent++
+	for _, f := range allFields {
+		tp.emitLine("%s string", f)
+	}
+	tp.indent--
+	tp.emitLine("}")
+	tp.emitLine("%s := []%s{", sliceVar, structName)
+	tp.indent++
+	for _, row := range rows {
+		m := map[string]string{}
+		for _, fv := range row {
+			m[fv.name] = fv.value
+		}
+		parts := make([]string, len(allFields))
+		for i, f := range allFields {
+			parts[i] = fmt.Sprintf("%q", m[f])
+		}
+		tp.emitLine("{%s},", strings.Join(parts, ", "))
+	}
+	tp.indent--
+	tp.emitLine("}")
+	tp.emitLine("for _, %s := range %s {", goVN, sliceVar)
+	tp.emitLine("_ = %s // suppress unused warning", goVN)
+	tp.indent++
+	bodyCmds := tp.parseBracedBody(args, 2)
+	if bodyCmds != nil {
+		vsetMap := map[string]varsetInfo{}
+		for k, v := range tp.varsetLoopVars {
+			vsetMap[k] = v
+		}
+		vsetMap[goVN] = varsetInfo{fields: allFields, structName: structName}
+		bodyTP := &transpiler{
+			sb:             tp.sb,
+			indent:         tp.indent,
+			dbVar:          tp.dbVar,
+			t:              tp.t,
+			varCount:       tp.varCount,
+			vars:           tp.vars,
+			forIncrs:       append(tp.forIncrs, nil),
+			varsetLoopVars: vsetMap,
+		}
+		bodyTP.processCommands(bodyCmds)
+		tp.varCount = bodyTP.varCount
+		tp.indent = bodyTP.indent
+	}
+	tp.indent--
+	tp.emitLine("}")
+	return varsetInfo{fields: allFields, structName: structName}, true, nil
+}
+
+// rawValueText returns the effective text of a TCL word: braced and quoted
+// words drop their delimiters (the parser already stripped them from Text),
+// quoted words still need their backslash escapes resolved.
+func rawValueText(w tcl.RawWord) string {
+	if w.Quoted {
+		return tclUnescapeQuoted(w.Text)
+	}
+	return w.Text
 }
 
 func (tp *transpiler) parseVarList(w tcl.RawWord) []string {
@@ -2887,6 +3129,25 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 		cmdText = strings.TrimPrefix(cmdText, "[")
 		cmdText = strings.TrimSuffix(cmdText, "]")
 		cmdParts := strings.Fields(cmdText)
+		if len(cmdParts) > 0 && cmdParts[0] == "list" {
+			// set var [list a b c] — build a TCL-list string without the
+			// "list" command word so tclSplitList at Go runtime returns
+			// exactly the list elements. TCL backslash-newline continuations
+			// are removed (they are not part of the list value).
+			listText := strings.TrimPrefix(cmdText, "list")
+			listText = strings.ReplaceAll(listText, "\\\r\n", " ")
+			listText = strings.ReplaceAll(listText, "\\\n", " ")
+			listText = strings.TrimSpace(listText)
+			valExpr := tp.goStringLiteral(tcl.RawWord{Text: listText})
+			if tp.isVarDeclared(goName) {
+				tp.emitLine("%s = %s", goName, valExpr)
+			} else {
+				tp.emitLine("var %s = %s", goName, valExpr)
+				tp.vars = append(tp.vars, goName)
+			}
+			tp.emitLine("_ = %s // suppress unused warning", goName)
+			return
+		}
 		if len(cmdParts) > 0 && cmdParts[0] == "expr" {
 			exprStr := strings.TrimSpace(strings.TrimPrefix(cmdText, "expr"))
 			if len(exprStr) >= 2 && exprStr[0] == '{' && exprStr[len(exprStr)-1] == '}' {
@@ -3535,6 +3796,18 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs}
 		bodyTP.processCommands(bodyCmds)
 		tp.indent = bodyTP.indent
+	} else if strings.HasPrefix(args[0].Text, "$") && len(args) == 1 {
+		// eval $varsetVar — rewrite into struct field assignments when the
+		// variable iterates over a transpiled varset list.
+		vn := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
+		if info, ok := tp.varsetLoopVars[vn]; ok {
+			for _, f := range info.fields {
+				tp.emitLine("%s = %s.%s", f, vn, f)
+			}
+			tp.emitLine("_ = %s // suppress unused warning", vn)
+			return
+		}
+		tp.emitLine("// eval %s (dynamic, not transpiled)", args[0].Text)
 	} else {
 		// Non-braced eval (e.g., eval [string map ...]) — cannot transpile,
 		// emit as a sanitized comment to avoid breaking Go syntax.

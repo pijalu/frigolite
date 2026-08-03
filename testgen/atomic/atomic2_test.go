@@ -81,7 +81,7 @@ func Test_atomic2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1x ON t1(x);\n  CREATE INDEX i2x ON t1(y);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100 )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;\n")
 		}
 	}
-	setup = "list \\\n  -injectstart at_injectstart \\\n  -injectstop  at_injectstop  \\"
+	setup = "-injectstart at_injectstart    -injectstop  at_injectstop"
 	_ = setup // suppress unused warning
 	at_fail = "0" // TCL namespace variable
 	_ = at_fail // suppress unused warning

@@ -405,7 +405,7 @@ func Test_lock(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-2.8b"
-		db2.Exec("PRAGMA busy_timeout")
+		_res = db2.Exec("PRAGMA busy_timeout")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "lock-2.9"
@@ -416,13 +416,13 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-2.9b"
-		db2.Exec("PRAGMA busy_timeout")
+		_res = db2.Exec("PRAGMA busy_timeout")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "lock-2.11"
-		db2.Exec("PRAGMA busy_timeout(400)")
+		_res = db2.Exec("PRAGMA busy_timeout(400)")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
@@ -436,11 +436,11 @@ func Test_lock(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-2.11b"
-		db2.Exec("PRAGMA busy_timeout")
+		_res = db2.Exec("PRAGMA busy_timeout")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "lock-2.12"
-		db2.Exec("PRAGMA busy_timeout(0)")
+		_res = db2.Exec("PRAGMA busy_timeout(0)")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
@@ -448,7 +448,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-2.12b"
-		db2.Exec("PRAGMA busy_timeout")
+		_res = db2.Exec("PRAGMA busy_timeout")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -508,7 +508,7 @@ func Test_lock(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2.Exec("UPDATE t1 SET a=0")
+			_res = db2.Exec("UPDATE t1 SET a=0")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			if _catchErr != nil {
 				rc = "1"
@@ -526,7 +526,7 @@ func Test_lock(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2.Exec("UPDATE t1 SET a=0")
+			_res = db2.Exec("UPDATE t1 SET a=0")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			if _catchErr != nil {
 				rc = "1"

@@ -216,7 +216,7 @@ func Test_e_fts3(t *testing.T) {
 				_ = body // suppress unused warning
 				_ = _idx1
 					// write_test 1.4.1.$tn docs_content { INSERT INTO docs VALUES($title,$body) } (unsupported command, not transpiled)
-					R_tn = "list $title $body"
+					R_tn = title + " " + body
 					_ = R_tn // suppress unused warning
 				}
 				// read_test 1.4.1.11 { \n  SELECT * FROM docs WHERE docs MATCH 'linux'\n} [concat $R(2) $R(4... (unsupported command, not transpiled)

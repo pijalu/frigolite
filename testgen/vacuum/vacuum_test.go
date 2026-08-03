@@ -151,7 +151,7 @@ func Test_vacuum(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			db2.Exec("SELECT count(*) FROM sqlite_master")
+			_res = db2.Exec("SELECT count(*) FROM sqlite_master")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		// cksum db2 (unsupported command, not transpiled)

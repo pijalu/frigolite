@@ -54,6 +54,7 @@ type ColumnDef struct {
 // Manager manages the database schema.
 type Manager struct {
 	pager *pager.Pager
+	debug bool
 
 	// entriesCache caches GetEntries results to avoid repeated schema scans.
 	// Invalidated by AddEntry. Not thread-safe — callers must ensure single-
@@ -99,6 +100,15 @@ func (m *Manager) Init() error {
 	}
 
 	return m.pager.WritePage(pg)
+}
+
+// InvalidateCache clears the schema entries cache so the next GetEntries
+// call re-reads the sqlite_schema btree. Used after direct edits to
+// sqlite_schema (PRAGMA writable_schema=ON), which SQLite treats as a schema
+// change: subsequent table lookups must see the updated rootpages/SQL.
+func (m *Manager) InvalidateCache() {
+	m.cacheValid = false
+	m.entriesCache = nil
 }
 
 // AddEntry adds a new entry to the schema.

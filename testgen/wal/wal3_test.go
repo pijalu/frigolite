@@ -353,13 +353,13 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-6.1.5"
-			db3.Exec("COMMIT")
+			_res = db3.Exec("COMMIT")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			db2.Exec(" PRAGMA wal_checkpoint ")
+			_res = db2.Exec(" PRAGMA wal_checkpoint ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			sz1 = "file size test.db-wal"
 			_ = sz1 // suppress unused warning
-			db2.Exec(" INSERT INTO t1 VALUES('s', 'e') ")
+			_res = db2.Exec(" INSERT INTO t1 VALUES('s', 'e') ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			sz2 = "file size test.db-wal"
 			_ = sz2 // suppress unused warning
@@ -380,11 +380,11 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		{ // do_test "wal3-6.1.7"
-			db2.Exec(" PRAGMA wal_checkpoint ")
+			_res = db2.Exec(" PRAGMA wal_checkpoint ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			sz1 = "file size test.db-wal"
 			_ = sz1 // suppress unused warning
-			db2.Exec(" INSERT INTO t1 VALUES('n', 't') ")
+			_res = db2.Exec(" INSERT INTO t1 VALUES('n', 't') ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			sz2 = "file size test.db-wal"
 			_ = sz2 // suppress unused warning
@@ -435,7 +435,7 @@ func Test_wal3(t *testing.T) {
 			// expr $sz2 > $sz1 (not evaluated)
 		}
 		{ // do_test "wal3-6.2.5"
-			db2.Exec(" COMMIT ")
+			_res = db2.Exec(" COMMIT ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			r = db.Query(" PRAGMA wal_checkpoint ")
 			if r.Error != nil {

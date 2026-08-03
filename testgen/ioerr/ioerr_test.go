@@ -74,7 +74,7 @@ func Test_ioerr(t *testing.T) {
 	ex = ""
 	_ = ex // suppress unused warning
 	if tclBool("[execsql {pragma auto_vacuum}] 1") {
-		ex = "list 4 17"
+		ex = "4 17"
 		_ = ex // suppress unused warning
 	}
 	// do_ioerr_test ioerr-5 -restoreprng 0 -ckrefcount true -sqlprep {\n    ATTACH 'test2.db' AS tes... (unsupported command, not transpiled)

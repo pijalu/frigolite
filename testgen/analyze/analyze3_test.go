@@ -192,9 +192,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>200 AND x<300 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.1.5"
-		l = "\"200\" 0 end"
+		l = tclStringRange("\"200\"", "0", "end")
 		_ = l // suppress unused warning
-		u = "\"300\" 0 end"
+		u = tclStringRange("\"300\"", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
@@ -209,9 +209,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>0 AND x<1100 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.1.8"
-		l = "\"0\" 0 end"
+		l = tclStringRange("\"0\"", "0", "end")
 		_ = l // suppress unused warning
-		u = "\"1100\" 0 end"
+		u = tclStringRange("\"1100\"", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
@@ -256,9 +256,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t2 WHERE x>12 AND x<20 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.5"
-		l = "\"12\" 0 end"
+		l = tclStringRange("\"12\"", "0", "end")
 		_ = l // suppress unused warning
-		u = "\"20\" 0 end"
+		u = tclStringRange("\"20\"", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
 	}
@@ -273,9 +273,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t2 WHERE x>0 AND x<99 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.8"
-		l = "\"0\" 0 end"
+		l = tclStringRange("\"0\"", "0", "end")
 		_ = l // suppress unused warning
-		u = "\"99\" 0 end"
+		u = tclStringRange("\"99\"", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
 	}
@@ -320,9 +320,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>200 AND x<300 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.5"
-		l = "\"200\" 0 end"
+		l = tclStringRange("\"200\"", "0", "end")
 		_ = l // suppress unused warning
-		u = "\"300\" 0 end"
+		u = tclStringRange("\"300\"", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
@@ -337,9 +337,9 @@ func Test_analyze3(t *testing.T) {
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>0 AND x<1100 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.8"
-		l = "\"0\" 0 end"
+		l = tclStringRange("\"0\"", "0", "end")
 		_ = l // suppress unused warning
-		u = "\"1100\" 0 end"
+		u = tclStringRange("\"1100\"", "0", "end")
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
@@ -695,7 +695,7 @@ func Test_analyze3(t *testing.T) {
 		S = ""
 		_ = S // suppress unused warning
 		// sqlite3_bind_text $S 1 a% 2 (unsupported command, not transpiled)
-		R = "list"
+		R = ""
 		_ = R // suppress unused warning
 		for "SQLITE_ROW" == "SQLITE_ROW" {
 			R = tclListAppend(R, "")
@@ -708,7 +708,7 @@ func Test_analyze3(t *testing.T) {
 	}
 	{ // do_test "analyze3-5.1.2"
 		// sqlite3_clear_bindings $S (unsupported command, not transpiled)
-		R = "list"
+		R = ""
 		_ = R // suppress unused warning
 		for "SQLITE_ROW" == "SQLITE_ROW" {
 			R = tclListAppend(R, "")
@@ -726,7 +726,7 @@ func Test_analyze3(t *testing.T) {
 		S1 = ""
 		_ = S1 // suppress unused warning
 		// sqlite3_bind_text $S1 1 b% 2 (unsupported command, not transpiled)
-		R = "list"
+		R = ""
 		_ = R // suppress unused warning
 		for "SQLITE_ROW" == "SQLITE_ROW" {
 			R = tclListAppend(R, "")
@@ -742,7 +742,7 @@ func Test_analyze3(t *testing.T) {
 		_ = S2 // suppress unused warning
 		// sqlite3_bind_text $S2 1 a% 2 (unsupported command, not transpiled)
 		// sqlite3_transfer_bindings $S2 $S1 (unsupported command, not transpiled)
-		R = "list"
+		R = ""
 		_ = R // suppress unused warning
 		for "SQLITE_ROW" == "SQLITE_ROW" {
 			R = tclListAppend(R, "")

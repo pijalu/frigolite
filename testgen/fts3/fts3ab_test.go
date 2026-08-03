@@ -139,7 +139,7 @@ func Test_fts3ab(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
-		vset = "list [wordset $i] [wordset [expr {$i+1}]] [wordset [expr {~$i}]]"
+		vset = "wordset $i" + " " + "wordset [expr {$i+1}]" + " " + "wordset [expr {~$i}]"
 		_ = vset // suppress unused warning
 		_res = db.Exec("INSERT INTO t4(norm,plusone,invert) VALUES(" + strings.Join(tclSplitList(vset), ",") + ");")
 		if _res.Error != nil {

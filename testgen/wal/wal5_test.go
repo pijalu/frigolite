@@ -110,7 +110,7 @@ func Test_wal5(t *testing.T) {
 		do_wal_checkpoint := _items0[_idx0+1]
 		_ = do_wal_checkpoint // suppress unused warning
 		_ = _idx0
-			// eval (dynamic, not transpiled)
+			// eval $do_wal_checkpoint (dynamic, not transpiled)
 			// do_multiclient_test tn {\n\n    set ::nBusyHandler 0\n    set ::busy_handl...} (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)

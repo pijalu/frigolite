@@ -193,9 +193,9 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	{ // do_test "620"
-		res = "list"
+		res = ""
 		_ = res // suppress unused warning
-		db2.Exec("SELECT a FROM t1")
+		_res = db2.Exec("SELECT a FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // "-db"

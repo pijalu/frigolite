@@ -158,7 +158,7 @@ func Test_attach4(t *testing.T) {
 					}
 				}
 				{ // do_test "1.4"
-					L = "list"
+					L = ""
 					_ = L // suppress unused warning
 					// foreach {name f} files
 					_items4 := tclSplitList(files)
@@ -168,10 +168,10 @@ func Test_attach4(t *testing.T) {
 						f := _items4[_idx4+1]
 						_ = f // suppress unused warning
 						_ = _idx4
-							L = tclListAppend(L, name, tclExecSQL(db, "\"SELECT x FROM $name.tbl\""))
+							L = tclListAppend(L, name, tclExecSQL(db, "SELECT x FROM " + name + ".tbl"))
 						}
 					}
-					L = "list"
+					L = ""
 					_ = L // suppress unused warning
 					S = ""
 					_ = S // suppress unused warning
@@ -200,7 +200,7 @@ func Test_attach4(t *testing.T) {
 							}
 						}
 						{ // do_test "1.6"
-							L = "list"
+							L = ""
 							_ = L // suppress unused warning
 							// foreach {name f} files
 							_items6 := tclSplitList(files)
@@ -210,7 +210,7 @@ func Test_attach4(t *testing.T) {
 								f := _items6[_idx6+1]
 								_ = f // suppress unused warning
 								_ = _idx6
-									L = tclListAppend(L, tclExecSQL(db, "\"SELECT x FROM $name.tbl\""), f)
+									L = tclListAppend(L, tclExecSQL(db, "SELECT x FROM " + name + ".tbl"), f)
 								}
 							}
 							{ // do_test "1.7"
@@ -237,7 +237,7 @@ func Test_attach4(t *testing.T) {
 									}
 								}
 								{ // do_test "1.8"
-									L = "list"
+									L = ""
 									_ = L // suppress unused warning
 									// foreach {name f} files
 									_items8 := tclSplitList(files)
@@ -247,7 +247,7 @@ func Test_attach4(t *testing.T) {
 										f := _items8[_idx8+1]
 										_ = f // suppress unused warning
 										_ = _idx8
-											L = tclListAppend(L, name, tclExecSQL(db, "\"SELECT x FROM $name.tbl\""))
+											L = tclListAppend(L, name, tclExecSQL(db, "SELECT x FROM " + name + ".tbl"))
 										}
 									}
 									// foreach {name f} files

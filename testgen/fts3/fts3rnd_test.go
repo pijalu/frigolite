@@ -223,7 +223,7 @@ func Test_fts3rnd(t *testing.T) {
 	_ = G_nVocab // suppress unused warning
 	nVocab = "100"
 	_ = nVocab // suppress unused warning
-	lVocab = "list"
+	lVocab = ""
 	_ = lVocab // suppress unused warning
 	// expr srand(0) (not evaluated)
 	lChar = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
@@ -372,7 +372,7 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					var prefix = "[random_term] 0 end-1"
+					var prefix = tclStringRange("random_term", "0", "end-1")
 					_ = prefix // suppress unused warning
 					match = prefix + "*"
 					_ = match // suppress unused warning
@@ -388,7 +388,7 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					term = "list [random_term] [random_term]"
+					term = "random_term" + " " + "random_term"
 					_ = term // suppress unused warning
 					match = "\"" + term + "\""
 					_ = match // suppress unused warning
@@ -404,7 +404,7 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					term = "list [random_term] [random_term] [random_term]"
+					term = "random_term" + " " + "random_term" + " " + "random_term"
 					_ = term // suppress unused warning
 					match = "\"" + term + "\""
 					_ = match // suppress unused warning
@@ -420,10 +420,10 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					query = "[random_term] 0 end-1" + "* "
+					query = tclStringRange("random_term", "0", "end-1") + "* "
 					_ = query // suppress unused warning
-					query += "[random_term] 0 end-1" + "* "
-					query += "[random_term] 0 end-1" + "*"
+					query += tclStringRange("random_term", "0", "end-1") + "* "
+					query += tclStringRange("random_term", "0", "end-1") + "*"
 					match = "\"" + query + "\""
 					_ = match // suppress unused warning
 					// do_orderbydocid_test 5.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $mat...} [simple_phrase $que... (unsupported command, not transpiled)
@@ -438,7 +438,7 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					terms = "list [random_term] [random_term]"
+					terms = "random_term" + " " + "random_term"
 					_ = terms // suppress unused warning
 					match = strings.Join(tclSplitList(terms), "\"")
 					_ = match // suppress unused warning
@@ -454,7 +454,7 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					terms = "list [random_term] [random_term] [random_term]"
+					terms = "random_term" + " " + "random_term" + " " + "random_term"
 					_ = terms // suppress unused warning
 					nNear = "11"
 					_ = nNear // suppress unused warning

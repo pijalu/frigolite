@@ -95,7 +95,7 @@ func Test_snapshot(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			// eval (dynamic, not transpiled)
+			// eval $tcl (dynamic, not transpiled)
 			{ // tn + ".1.0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 				if _res.Error != nil {
@@ -440,7 +440,7 @@ func Test_snapshot(t *testing.T) {
 			// proc definition (not transpiled)
 			// tvfs filter xWrite (unsupported command, not transpiled)
 			// tvfs script write_callback (unsupported command, not transpiled)
-			db2.Exec(" PRAGMA wal_checkpoint ")
+			_res = db2.Exec(" PRAGMA wal_checkpoint ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			db2.Close()
 			// tvfs delete (unsupported command, not transpiled)
@@ -471,29 +471,29 @@ func Test_snapshot(t *testing.T) {
 			{ // do_test tn + ".6.3"
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				db2.Exec("PRAGMA user_version ; BEGIN")
+				_res = db2.Exec("PRAGMA user_version ; BEGIN")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				// snapshot_open db2 main $::snapshot (unsupported command, not transpiled)
-				db2.Exec(" SELECT * FROM x1 ")
+				_res = db2.Exec(" SELECT * FROM x1 ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test tn + ".6.4"
 				db2.Close()
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				db2.Exec("PRAGMA application_id")
+				_res = db2.Exec("PRAGMA application_id")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				db2.Exec("BEGIN")
+				_res = db2.Exec("BEGIN")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				// snapshot_open db2 main $::snapshot (unsupported command, not transpiled)
-				db2.Exec(" SELECT * FROM x1 ")
+				_res = db2.Exec(" SELECT * FROM x1 ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test tn + ".6.5"
 				db2.Close()
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				db2.Exec("BEGIN")
+				_res = db2.Exec("BEGIN")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				_list := tclList([]string{"0", msg})
 				_ = _list

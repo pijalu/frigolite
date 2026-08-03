@@ -63,7 +63,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-1.2"
-		echo_module = "list"
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO techo VALUES(1, 2, 3);\n  ")
 		if _res.Error != nil {
@@ -71,7 +71,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-1.3"
-		echo_module = "list"
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    UPDATE techo SET a = 2;\n  ")
 		if _res.Error != nil {
@@ -79,7 +79,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-1.4"
-		echo_module = "list"
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    DELETE FROM techo;\n  ")
 		if _res.Error != nil {
@@ -87,7 +87,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-2.1"
-		echo_module = "list"
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO techo VALUES(1, 2, 3);\n    INSERT INTO techo VALUES(4, 5, 6);\n    INSERT INTO techo VALUES(7, 8, 9);\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -99,7 +99,7 @@ func Test_vtab4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE sreal(a, b, c UNIQUE);\n    CREATE VIRTUAL TABLE secho USING echo(sreal);\n  ")
 		}
-		echo_module = "list"
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO secho SELECT * FROM techo;\n    DELETE FROM techo;\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -119,7 +119,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-2.5"
-		echo_module = "list"
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO techo SELECT * FROM secho;\n    DELETE FROM secho;\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
@@ -139,7 +139,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-3.1"
-		echo_module = "list"
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		echo_module_sync_fail = "treal"
 		_ = echo_module_sync_fail // suppress unused warning
@@ -149,7 +149,7 @@ func Test_vtab4(t *testing.T) {
 	{ // do_test "vtab4-3.2"
 	}
 	{ // do_test "vtab4-3.3"
-		echo_module = "list"
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		echo_module_sync_fail = "sreal"
 		_ = echo_module_sync_fail // suppress unused warning

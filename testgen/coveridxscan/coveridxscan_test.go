@@ -213,7 +213,7 @@ func Test_coveridxscan(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	L = "list"
+	L = ""
 	_ = L // suppress unused warning
 	i = "1"
 	_ = i // suppress unused warning

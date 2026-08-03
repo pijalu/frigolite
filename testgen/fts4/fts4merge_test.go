@@ -412,7 +412,7 @@ func Test_fts4merge(t *testing.T) {
 				{ // do_test "5.9"
 					L = "1852"
 					_ = L // suppress unused warning
-					for _, docid := range tclSplitList(tclExecSQL(db, "{\n        SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L\n    }")) {
+					for _, docid := range tclSplitList(tclExecSQL(db, "{\n        SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT " + L + "\n    }")) {
 					_ = docid // suppress unused warning
 						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=" + sqlLiteral(docid))
 						if _res.Error != nil {

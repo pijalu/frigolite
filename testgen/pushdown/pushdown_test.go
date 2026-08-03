@@ -65,7 +65,7 @@ func Test_pushdown(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		L = "list"
+		L = ""
 		_ = L // suppress unused warning
 		r = db.Query(" SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c) ")
 		if r.Error != nil {
@@ -73,7 +73,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		L = "list"
+		L = ""
 		_ = L // suppress unused warning
 		r = db.Query(" SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b) ")
 		if r.Error != nil {
@@ -87,7 +87,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4"
-		L = "list"
+		L = ""
 		_ = L // suppress unused warning
 		r = db.Query(" SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c) ")
 		if r.Error != nil {
@@ -95,7 +95,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "1.5"
-		L = "list"
+		L = ""
 		_ = L // suppress unused warning
 		r = db.Query(" SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b) ")
 		if r.Error != nil {
@@ -109,7 +109,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		L = "list"
+		L = ""
 		_ = L // suppress unused warning
 		r = db.Query("\n    SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )\n  ")
 		if r.Error != nil {
@@ -117,7 +117,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		L = "list"
+		L = ""
 		_ = L // suppress unused warning
 		r = db.Query("\n    SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123\n  ")
 		if r.Error != nil {

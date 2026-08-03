@@ -145,25 +145,25 @@ func Test_fts4unicode(t *testing.T) {
 	// do_unicode_token_test2 1.9 x\uC4x x\uD6x x\uDCx 0 xax x\uC4x 1 xox x\uD6x 2 xux x\uDCx (unsupported command, not transpiled)
 	// do_unicode_token_test2 1.10 xx\u0301xx 0 xxxx xx\u301xx (unsupported command, not transpiled)
 	// do_unicode_token_test 1.11 \u01c5 0 \u01c6 \u01c5 (unsupported command, not transpiled)
-	docs = "list {\n  Enhance the INSERT syntax to allow multiple rows to be inserted via the\n  VALUES clause.\n} {\n  Enhance the CREATE VIRTUAL TABLE command to support the IF NOT EXISTS clause.\n} {\n  Added the sqlite3_stricmp() interface as a counterpart to sqlite3_strnicmp().\n} {\n  Added the sqlite3_db_readonly() interface.\n} {\n  Added the SQLITE_FCNTL_PRAGMA file control, giving VFS implementations the\n  ability to add new PRAGMA statements or to override built-in PRAGMAs.  \n} {\n  Queries of the form: \"SELECT max(x), y FROM table\" returns the value of y on\n  the same row that contains the maximum x value.\n} {\n  Added support for the FTS4 languageid option.\n} {\n  Documented support for the FTS4 content option. This feature has actually\n  been in the code since version 3.7.9 but is only now considered to be\n  officially supported.  \n} {\n  Pending statements no longer block ROLLBACK. Instead, the pending statement\n  will return SQLITE_ABORT upon next access after the ROLLBACK.  \n} {\n  Improvements to the handling of CSV inputs in the command-line shell\n} {\n  Fix a bug introduced in version 3.7.10 that might cause a LEFT JOIN to be\n  incorrectly converted into an INNER JOIN if the WHERE clause indexable terms\n  connected by OR.  \n}"
+	docs = "{\n  Enhance the INSERT syntax to allow multiple rows to be inserted via the\n  VALUES clause.\n} {\n  Enhance the CREATE VIRTUAL TABLE command to support the IF NOT EXISTS clause.\n} {\n  Added the sqlite3_stricmp() interface as a counterpart to sqlite3_strnicmp().\n} {\n  Added the sqlite3_db_readonly() interface.\n} {\n  Added the SQLITE_FCNTL_PRAGMA file control, giving VFS implementations the\n  ability to add new PRAGMA statements or to override built-in PRAGMAs.  \n} {\n  Queries of the form: \"SELECT max(x), y FROM table\" returns the value of y on\n  the same row that contains the maximum x value.\n} {\n  Added support for the FTS4 languageid option.\n} {\n  Documented support for the FTS4 content option. This feature has actually\n  been in the code since version 3.7.9 but is only now considered to be\n  officially supported.  \n} {\n  Pending statements no longer block ROLLBACK. Instead, the pending statement\n  will return SQLITE_ABORT upon next access after the ROLLBACK.  \n} {\n  Improvements to the handling of CSV inputs in the command-line shell\n} {\n  Fix a bug introduced in version 3.7.10 that might cause a LEFT JOIN to be\n  incorrectly converted into an INNER JOIN if the WHERE clause indexable terms\n  connected by OR.  \n}"
 	_ = docs // suppress unused warning
-	map_a = "list \"\\u00C4\" \"\\u00E4\""
+	map_a = "\"\\u00C4\" \"\\u00E4\""
 	_ = map_a // suppress unused warning
-	map_e = "list \"\\u00CB\" \"\\u00EB\""
+	map_e = "\"\\u00CB\" \"\\u00EB\""
 	_ = map_e // suppress unused warning
-	map_i = "list \"\\u00CF\" \"\\u00EF\""
+	map_i = "\"\\u00CF\" \"\\u00EF\""
 	_ = map_i // suppress unused warning
-	map_o = "list \"\\u00D6\" \"\\u00F6\""
+	map_o = "\"\\u00D6\" \"\\u00F6\""
 	_ = map_o // suppress unused warning
-	map_u = "list \"\\u00DC\" \"\\u00FC\""
+	map_u = "\"\\u00DC\" \"\\u00FC\""
 	_ = map_u // suppress unused warning
-	map_y = "list \"\\u0178\" \"\\u00FF\""
+	map_y = "\"\\u0178\" \"\\u00FF\""
 	_ = map_y // suppress unused warning
-	map_h = "list \"\\u1E26\" \"\\u1E27\""
+	map_h = "\"\\u1E26\" \"\\u1E27\""
 	_ = map_h // suppress unused warning
-	map_w = "list \"\\u1E84\" \"\\u1E85\""
+	map_w = "\"\\u1E84\" \"\\u1E85\""
 	_ = map_w // suppress unused warning
-	map_x = "list \"\\u1E8C\" \"\\u1E8D\""
+	map_x = "\"\\u1E8C\" \"\\u1E8D\""
 	_ = map_x // suppress unused warning
 	for _, k := range tclSplitList("array names map") {
 	_ = k // suppress unused warning
@@ -310,7 +310,7 @@ func Test_fts4unicode(t *testing.T) {
 		// do_unicode_token_test3 5.11 tokenchars=\u0301 remove_diacritics=0 hello\u0301world \u0301helloworld 0 h... (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
-		tokenizers = "list unicode61"
+		tokenizers = "unicode61"
 		_ = tokenizers // suppress unused warning
 		tokenizers = tclListAppend(tokenizers, "icu")
 		for _, T := range tclSplitList(tokenizers) {
@@ -375,9 +375,9 @@ func Test_fts4unicode(t *testing.T) {
 					}
 				}
 				{ // "8.1.1"
-					_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('\\xD6');\n  INSERT INTO t3 VALUES('\\xC4');\n  INSERT INTO t3 VALUES('\\xF6');\n  INSERT INTO t3 VALUES('\\xE4');\n")
+					_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('xD6');\n  INSERT INTO t3 VALUES('xC4');\n  INSERT INTO t3 VALUES('xF6');\n  INSERT INTO t3 VALUES('xE4');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('\\xD6');\n  INSERT INTO t3 VALUES('\\xC4');\n  INSERT INTO t3 VALUES('\\xF6');\n  INSERT INTO t3 VALUES('\\xE4');\n")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('xD6');\n  INSERT INTO t3 VALUES('xC4');\n  INSERT INTO t3 VALUES('xF6');\n  INSERT INTO t3 VALUES('xE4');\n")
 					}
 				}
 				{ // "8.1.2"
