@@ -28,6 +28,11 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	}
 	tableEntry, err := e.schema.FindTable(s.Table)
 	if err != nil {
+		// Not a table — route through INSTEAD OF UPDATE triggers on a view.
+		viewEntry, _, viewErr := e.findView(s.Table)
+		if viewErr == nil {
+			return e.execUpdateView(s, viewEntry)
+		}
 		return &Result{Error: err}
 	}
 
@@ -134,6 +139,63 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	}
 
 	return result
+}
+
+// execUpdateView routes UPDATE on a view through INSTEAD OF UPDATE triggers.
+// The view's SELECT is executed (with the UPDATE's WHERE applied) to find
+// matching rows; for each, the trigger fires with OLD.* and NEW.* values
+// where NEW reflects the SET clause applied to the view's output columns.
+func (e *Engine) execUpdateView(s *sql.UpdateStmt, viewEntry *schema.Entry) *Result {
+	if !e.hasTriggersForTable(viewEntry.Name) {
+		return &Result{Error: fmt.Errorf("cannot modify %s because it is a view", viewEntry.Name)}
+	}
+	viewResult := e.execSelectView(viewEntry)
+	if viewResult.Error != nil {
+		return viewResult
+	}
+	viewCols := viewResult.Columns
+	if len(viewCols) == 0 {
+		return &Result{}
+	}
+	// Convert each view row into a RowMap keyed by the view's column names.
+	var changed int64
+	colDefs := make([]sql.ColumnDef, len(viewCols))
+	for i, c := range viewCols {
+		colDefs[i] = sql.ColumnDef{Name: c}
+	}
+	for _, rowVals := range viewResult.Rows {
+		oldRow := make(RowMap)
+		for i, v := range rowVals {
+			if i < len(viewCols) {
+				oldRow[viewCols[i]] = v
+			}
+		}
+		oldRow["rowid"] = nil
+		// Apply the WHERE clause against the view row.
+		if s.Where != nil {
+			pass, err := e.evalBool(s.Where, oldRow)
+			if err != nil || !pass {
+				continue
+			}
+		}
+		// Build the NEW row by applying SET assignments to the old values.
+		newRow := make(RowMap, len(oldRow))
+		for k, v := range oldRow {
+			newRow[k] = v
+		}
+		for _, a := range s.Assignments {
+			v, err := e.evalExpr(a.Value, oldRow)
+			if err != nil {
+				return &Result{Error: fmt.Errorf("exec: failed to evaluate SET expression for %s: %w", a.Column, err)}
+			}
+			newRow[a.Column] = util.UnwrapColumnValue(v)
+		}
+		if res := e.fireTriggers(viewEntry.Name, "UPDATE", "BEFORE", newRow, oldRow); res != nil && res.Error != nil {
+			return res
+		}
+		changed++
+	}
+	return &Result{Changes: changed}
 }
 
 func buildColumnIndex(colDefs []sql.ColumnDef) map[string]int {

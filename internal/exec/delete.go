@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
@@ -18,6 +19,11 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 	}
 	tableEntry, dbCtx, err := e.findTable(s.Table)
 	if err != nil {
+		// Not a table — route through INSTEAD OF DELETE triggers on a view.
+		viewEntry, _, viewErr := e.findView(s.Table)
+		if viewErr == nil {
+			return e.execDeleteView(s, viewEntry)
+		}
 		return &Result{Error: err}
 	}
 
@@ -139,6 +145,41 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 
 	columns := e.buildColumnNames([]sql.SelectColumn{s.Returning}, colDefs)
 	return &Result{Columns: columns, Rows: returningRows}
+}
+
+// execDeleteView routes DELETE on a view through INSTEAD OF DELETE triggers.
+// The view's SELECT is executed (with the DELETE's WHERE applied) to find
+// matching rows; for each, the trigger fires with OLD.* values.
+func (e *Engine) execDeleteView(s *sql.DeleteStmt, viewEntry *schema.Entry) *Result {
+	if !e.hasTriggersForTable(viewEntry.Name) {
+		return &Result{Error: fmt.Errorf("cannot modify %s because it is a view", viewEntry.Name)}
+	}
+	viewResult := e.execSelectView(viewEntry)
+	if viewResult.Error != nil {
+		return viewResult
+	}
+	viewCols := viewResult.Columns
+	var changed int64
+	for _, rowVals := range viewResult.Rows {
+		oldRow := make(RowMap)
+		for i, v := range rowVals {
+			if i < len(viewCols) {
+				oldRow[viewCols[i]] = v
+			}
+		}
+		oldRow["rowid"] = nil
+		if s.Where != nil {
+			pass, err := e.evalBool(s.Where, oldRow)
+			if err != nil || !pass {
+				continue
+			}
+		}
+		if res := e.fireTriggers(viewEntry.Name, "DELETE", "BEFORE", nil, oldRow); res != nil && res.Error != nil {
+			return res
+		}
+		changed++
+	}
+	return &Result{Changes: changed}
 }
 
 

@@ -2040,9 +2040,31 @@ func (e *Engine) execInsertView(s *sql.InsertStmt, viewEntry *schema.Entry) *Res
 		return &Result{Error: fmt.Errorf("cannot modify %s because it is a view", viewEntry.Name)}
 	}
 
-	// Fire INSTEAD OF INSERT triggers; their bodies replace the insert.
+	// Build the NEW row: map the INSERTed values to the view's output column
+	// names so trigger bodies can reference NEW.col. Column names come from
+	// the view's SELECT (aliases when present, else expression text).
 	row := make(RowMap)
 	row["rowid"] = nil
+	viewCols := e.viewColumnNames(viewSelect)
+	var values []interface{}
+	if len(s.Values) > 0 {
+		values, _ = e.evalTuple(s.Values[0], s.Columns, nil)
+	}
+	if len(s.Columns) > 0 {
+		for i, col := range s.Columns {
+			if i < len(values) {
+				row[col] = values[i]
+			}
+		}
+	} else {
+		for i, val := range values {
+			if i < len(viewCols) {
+				row[viewCols[i]] = val
+			}
+		}
+	}
+
+	// Fire INSTEAD OF INSERT triggers; their bodies replace the insert.
 	if res := e.fireTriggers(viewEntry.Name, "INSERT", "BEFORE", row, nil); res != nil && res.Error != nil {
 		return res
 	}
@@ -2054,6 +2076,46 @@ func (e *Engine) execInsertView(s *sql.InsertStmt, viewEntry *schema.Entry) *Res
 		return &Result{Error: err}
 	}
 	return &Result{Rows: [][]interface{}{vals}}
+}
+
+// viewColumnNames returns the output column names of a view's SELECT: the
+// explicit alias when present, otherwise the column reference name or the
+// expression text.
+func (e *Engine) viewColumnNames(sel *sql.SelectStmt) []string {
+	if sel == nil {
+		return nil
+	}
+	var names []string
+	for _, col := range sel.Columns {
+		if col.As != "" {
+			names = append(names, col.As)
+			continue
+		}
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+			names = append(names, ref.Name)
+			continue
+		}
+		names = append(names, e.exprName(col.Expr))
+	}
+	return names
+}
+
+// exprName returns a human-readable name for an expression (fallback for view
+// columns without an alias).
+func (e *Engine) exprName(expr sql.Expr) string {
+	switch v := expr.(type) {
+	case *sql.ColumnRef:
+		return v.Name
+	case *sql.BinaryOp:
+		return e.exprName(v.Left) + v.Operator + e.exprName(v.Right)
+	case *sql.NumericLit:
+		return v.Value
+	case *sql.StringLit:
+		return v.Value
+	case *sql.FuncCall:
+		return v.Name
+	}
+	return "col"
 }
 
 // validateCollationsInSelect walks every expression in a SELECT statement and
