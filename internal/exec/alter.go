@@ -1953,6 +1953,10 @@ func collectExprRefs(expr sql.Expr, refs *[]string) {
 		if e.Else != nil {
 			collectExprRefs(e.Else, refs)
 		}
+	case *sql.RowValue:
+		for _, v := range e.Values {
+			collectExprRefs(v, refs)
+		}
 	case *sql.CastExpr:
 		collectExprRefs(e.Operand, refs)
 	case *sql.InList:

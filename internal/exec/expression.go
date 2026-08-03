@@ -43,6 +43,10 @@ func (e *Engine) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
+			// Unwrap ColumnValue affinity wrappers so the joined string uses
+			// the raw value (a row's column values are wrapped for comparison
+			// logic; formatting them directly would print the wrapper).
+			ev = util.UnwrapColumnValue(ev)
 			if ev == nil {
 				parts = append(parts, "{}")
 			} else {

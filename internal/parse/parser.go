@@ -1373,6 +1373,16 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Over:   over,
 		}
 
+	// Rule 196: expr ::= LP exprlist COMMA expr RP (row value / vector)
+	// A parenthesized list of two or more expressions is a row value used
+	// in comparisons like (a, b) = ('x', 'y'). The grammar splits the list
+	// as (exprlist, expr) with exprlist holding all but the last element.
+	case 196:
+		exprs := getExprList(getRHS(p, ruleNo, 2))
+		last := getExpr(getRHS(p, ruleNo, 4))
+		exprs = append(exprs, last)
+		return &sql.RowValue{Values: exprs}
+
 	// Rule 197: expr ::= expr AND expr
 	case 197:
 		return &sql.BinaryOp{
