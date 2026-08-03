@@ -15,11 +15,11 @@ import (
 // parser via sql.NewParser (now removed).
 func TestParseTableLevelConstraints(t *testing.T) {
 	type want struct {
-		cols     int
-		cons     int
-		rowid    bool
-		strict   bool
-		firstTyp string
+		cols      int
+		cons      int
+		rowid     bool
+		strict    bool
+		firstTyp  string
 		firstName string
 	}
 	cases := []struct {

@@ -259,7 +259,6 @@ func selectStmtToString(s *SelectStmt) string {
 	return b.String()
 }
 
-
 // formatBetween renders a BETWEEN expression.
 func formatBetween(v *Between) string {
 	s := ExprString(v.Operand) + " BETWEEN " + ExprString(v.Low) + " AND " + ExprString(v.High)
