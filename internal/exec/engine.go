@@ -75,6 +75,7 @@ type Engine struct {
 	outerRowStack     []Row                            // stack of enclosing outer rows for multi-level correlation
 	outerRows         []RowMap                         // all outer rows for correlated aggregate evaluation
 	cteScopes         [][]sql.CTEDef                   // CTE scopes from enclosing statements (innermost last)
+	resolvingCTEs     map[string]bool                  // CTEs currently being resolved (circular reference detection)
 	currentScanTable  string                           // table name being scanned (for qualified column resolution)
 	resolvingViews    map[string]bool                  // tracks views currently being resolved (circular reference detection)
 	legacyAlterTable  bool                             // PRAGMA legacy_alter_table setting

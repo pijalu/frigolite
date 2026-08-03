@@ -2183,6 +2183,53 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		return getRHS(p, ruleNo, 1)
 
+	// Rule 309: with ::= WITH wqlist
+	// The wqlist value is []sql.CTEDef; propagate it as the with value so
+	// INSERT (rule 164) can attach the CTEs.
+	case 309:
+		return getCTEDefs(getRHS(p, ruleNo, 2))
+
+	// Rule 310: with ::= WITH RECURSIVE wqlist
+	// Mark every CTE as recursive (WITH RECURSIVE applies to the whole list).
+	case 310:
+		defs := getCTEDefs(getRHS(p, ruleNo, 3))
+		for i := range defs {
+			defs[i].Recursive = true
+		}
+		return defs
+
+	// Rule 311: wqas ::= AS
+	// The materialization hint (MATERIALIZED / NOT MATERIALIZED) is not
+	// modeled; pass through a marker value.
+	case 311:
+		return true
+
+	// Rule 314: wqitem ::= withnm eidlist_opt wqas LP select RP
+	case 314:
+		name := getString(getRHS(p, ruleNo, 1))
+		cols := getStringList(getRHS(p, ruleNo, 2))
+		sel := getSelectStmt(getRHS(p, ruleNo, 5))
+		return sql.CTEDef{Name: name, Columns: cols, Select: sel}
+
+	// Rule 315: withnm ::= nm
+	case 315:
+		return getRHS(p, ruleNo, 1)
+
+	// Rule 316: wqlist ::= wqitem
+	case 316:
+		if d, ok := getRHS(p, ruleNo, 1).(sql.CTEDef); ok {
+			return []sql.CTEDef{d}
+		}
+		return nil
+
+	// Rule 317: wqlist ::= wqlist COMMA wqitem
+	case 317:
+		defs := getCTEDefs(getRHS(p, ruleNo, 1))
+		if d, ok := getRHS(p, ruleNo, 3).(sql.CTEDef); ok {
+			return append(defs, d)
+		}
+		return defs
+
 	// Rule 409: with ::=
 	case 409:
 		return nil

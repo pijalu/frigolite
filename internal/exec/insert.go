@@ -1298,6 +1298,13 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 	columns := s.Columns
 	isReplace := s.IsReplace
 	orIgnore := s.OrIgnore
+	// The INSERT's WITH clause (CTEs) applies to its SELECT body. Push the
+	// CTEs onto the scope stack so findCTE can resolve references like
+	// "INSERT INTO t SELECT ... FROM c" where c is a WITH RECURSIVE CTE.
+	if len(s.CTEs) > 0 {
+		e.cteScopes = append(e.cteScopes, s.CTEs)
+		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
+	}
 	selectResult := e.execSelect(selectStmt)
 	if selectResult.Error != nil {
 		return selectResult

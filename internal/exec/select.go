@@ -1001,6 +1001,17 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 
 // execSelectCTE executes a query that references a CTE definition.
 func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
+	// Detect circular CTE references (e.g. WITH a AS (SELECT * FROM b),
+	// b AS (SELECT * FROM a)). SQLite reports "circular reference: NAME".
+	if e.resolvingCTEs == nil {
+		e.resolvingCTEs = make(map[string]bool)
+	}
+	if e.resolvingCTEs[cte.Name] {
+		return &Result{Error: fmt.Errorf("circular reference: %s", cte.Name)}
+	}
+	e.resolvingCTEs[cte.Name] = true
+	defer delete(e.resolvingCTEs, cte.Name)
+
 	// Handle recursive CTE. A CTE is recursive when declared WITH RECURSIVE
 	// or when its body references the CTE name in a FROM position (SQLite
 	// accepts self-referencing CTEs regardless of the keyword, e.g.
