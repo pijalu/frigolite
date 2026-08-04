@@ -962,7 +962,7 @@ func substNovarBody(text string) (string, bool) {
 }
 
 func (tp *transpiler) buildStringExpr(s string) string {
-	parts := parseStringParts(s)
+	parts := parseStringParts(s, false)
 	return tp.renderStringExpr(parts, false)
 }
 
@@ -973,7 +973,7 @@ func (tp *transpiler) buildStringExpr(s string) string {
 // `db eval {SELECT CAST($str AS real)}` must become
 // `CAST(' 876xyz' AS real)`, not `CAST( 876xyz AS real)` (a parse error).
 func (tp *transpiler) buildSQLStringExpr(s string) string {
-	parts := parseStringParts(s)
+	parts := parseStringParts(s, true)
 	return tp.renderStringExpr(parts, true)
 }
 
@@ -1041,7 +1041,7 @@ func (tp *transpiler) renderStringExpr(parts []stringPart, sqlMode bool) string 
 // as raw SQL text — the command typically yields SQL syntax, e.g.
 // `[set op]` produces a comparison operator.
 func (tp *transpiler) renderSubstNovarSQL(s string) string {
-	parts := parseStringParts(s)
+	parts := parseStringParts(s, true)
 	if len(parts) == 0 {
 		return `""`
 	}
@@ -1089,7 +1089,10 @@ type stringPart struct {
 }
 
 // parseStringParts splits a TCL string into literal / $var / [cmd] parts.
-func parseStringParts(s string) []stringPart {
+// When sqlQuoted is true, text inside single-quoted SQL string literals is
+// treated literally (a regex/glob class like '[Aa]' or '$' must not become a
+// $var or [cmd] substitution), matching how TCL passes braced SQL to db eval.
+func parseStringParts(s string, sqlQuoted bool) []stringPart {
 	// Quick scan: if no $ or [ or \, just quote it
 	simple := true
 	for i := 0; i < len(s); i++ {
@@ -1104,8 +1107,21 @@ func parseStringParts(s string) []stringPart {
 
 	var parts []stringPart
 	pos := 0
+	inSQL := false // inside a single-quoted SQL string literal
 	for pos < len(s) {
 		ch := s[pos]
+
+		if sqlQuoted && ch == '\'' {
+			// Toggle single-quote state. SQL escapes '' as two adjacent
+			// quotes, so toggling twice (IN→OUT→IN) keeps us inside.
+			inSQL = !inSQL
+			if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
+				parts = append(parts, stringPart{})
+			}
+			parts[len(parts)-1].literal += "'"
+			pos++
+			continue
+		}
 
 		if ch == '\\' && pos+1 < len(s) {
 			// Escape: keep in current literal
@@ -1119,7 +1135,7 @@ func parseStringParts(s string) []stringPart {
 			continue
 		}
 
-		if ch == '$' && pos+1 < len(s) {
+		if ch == '$' && pos+1 < len(s) && !inSQL {
 			pos++
 			varStart := pos
 			if s[pos] == '{' {
@@ -1162,7 +1178,7 @@ func parseStringParts(s string) []stringPart {
 			continue
 		}
 
-		if ch == '[' {
+		if ch == '[' && !inSQL {
 			depth := 1
 			start := pos + 1
 			pos++

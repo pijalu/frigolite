@@ -48,9 +48,13 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 	tree := e.tableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 
 	// Collect the rows that match the WHERE clause (needed for trigger firing
-	// and RETURNING) before deleting them.
+	// and RETURNING) before deleting them. Set the current scan table so
+	// table-qualified column references ("t6.x") resolve to the row map.
 	var deletedRows []RowMap
 	{
+		prevScan := e.currentScanTable
+		e.currentScanTable = tableEntry.Name
+		defer func() { e.currentScanTable = prevScan }()
 		cursor, err := tree.OpenCursor()
 		if err == nil {
 			for {
@@ -63,7 +67,11 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 					break
 				}
 				row := e.buildRowMap(rec, colDefs, cell.RowID)
-				if e.rowMatchesWhere(s.Where, row) {
+				match, err := e.rowMatchesWhere(s.Where, row)
+				if err != nil {
+					return &Result{Error: err}
+				}
+				if match {
 					deletedRows = append(deletedRows, row)
 				}
 				ok, err := cursor.Next()

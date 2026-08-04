@@ -1759,10 +1759,16 @@ func (e *Engine) fireBeforeDeleteTriggers(tableName string, oldRow RowMap) *Resu
 
 // fireTriggers fires triggers matching the given event and timing for the table.
 func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow RowMap) *Result {
-	// Prevent recursive trigger firing unless PRAGMA recursive_triggers is
-	// enabled (matches SQLite's default of OFF).
+	// SQLite (recursive_triggers OFF by default) does not allow a trigger to
+	// re-fire on a table that is already in the current trigger invocation
+	// chain (that would be recursion). Chained triggers on OTHER tables fire
+	// normally. With recursive_triggers ON, recursion is allowed.
 	if e.triggerDepth > 0 && !e.recursiveTriggers {
-		return &Result{}
+		for _, t := range e.triggerTables {
+			if t == tableName {
+				return &Result{}
+			}
+		}
 	}
 
 	// Search for triggers across all databases. TEMP may alias MAIN, so
@@ -1783,6 +1789,8 @@ func (e *Engine) fireTriggers(tableName, event, timing string, newRow, oldRow Ro
 	if len(triggers) == 0 {
 		return &Result{}
 	}
+	e.triggerTables = append(e.triggerTables, tableName)
+	defer func() { e.triggerTables = e.triggerTables[:len(e.triggerTables)-1] }()
 	for _, t := range triggers {
 		if res := e.fireTrigger(t, event, timing, newRow, oldRow); res != nil {
 			return res

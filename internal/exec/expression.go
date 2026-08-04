@@ -4,7 +4,6 @@ package exec
 import (
 	"fmt"
 	"math"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -954,13 +953,21 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 	case "GLOB":
 		return boolToInt(globValues(left, right)), nil
 	case "REGEXP":
-		return boolToInt(regexpValues(left, right)), nil
+		b, err := regexpValues(left, right)
+		if err != nil {
+			return nil, err
+		}
+		return boolToInt(b), nil
 	case "NOT LIKE":
 		return boolToInt(!likeValues(left, right)), nil
 	case "NOT GLOB":
 		return boolToInt(!globValues(left, right)), nil
 	case "NOT REGEXP":
-		return boolToInt(!regexpValues(left, right)), nil
+		b, err := regexpValues(left, right)
+		if err != nil {
+			return nil, err
+		}
+		return boolToInt(!b), nil
 	case "MATCH":
 		// FTS not supported — MATCH always returns 0
 		return int64(0), nil
@@ -1045,14 +1052,14 @@ func globValues(str, pattern interface{}) bool {
 	return function.GlobMatch(s, p)
 }
 
-func regexpValues(str, pattern interface{}) bool {
+func regexpValues(str, pattern interface{}) (bool, error) {
 	s := fmt.Sprintf("%v", util.UnwrapColumnValue(str))
 	p := fmt.Sprintf("%v", util.UnwrapColumnValue(pattern))
-	re, err := regexp.Compile(p)
+	re, err := util.CompileRegexp(p)
 	if err != nil {
-		return false
+		return false, err
 	}
-	return re.MatchString(s)
+	return re.MatchString(s), nil
 }
 
 func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {

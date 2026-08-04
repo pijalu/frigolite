@@ -310,6 +310,12 @@ func (e *Engine) collectUpdateChanges(tableName string, rootPage uint32, colInde
 		return nil, fmt.Errorf("exec: cursor error: %w", err)
 	}
 
+	// Set the current scan table so table-qualified column references
+	// ("t1.a") in the WHERE clause resolve to the row map.
+	prevScan := e.currentScanTable
+	e.currentScanTable = tableName
+	defer func() { e.currentScanTable = prevScan }()
+
 	var changes []updateChange
 	for {
 		cell, err := cursor.ReadCell()
@@ -322,7 +328,11 @@ func (e *Engine) collectUpdateChanges(tableName string, rootPage uint32, colInde
 		}
 
 		row := e.buildRowMap(rec, colDefs, cell.RowID)
-		if e.rowMatchesWhere(s.Where, row) {
+		match, err := e.rowMatchesWhere(s.Where, row)
+		if err != nil {
+			return nil, err
+		}
+		if match {
 			ch, err := e.buildUpdateChange(cell, rec, colIndex, colDefs, s, row)
 			if err != nil {
 				return nil, err
@@ -380,12 +390,15 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 	return &updateChange{cell.RowID, values, oldValues}, nil
 }
 
-func (e *Engine) rowMatchesWhere(where sql.Expr, row Row) bool {
+func (e *Engine) rowMatchesWhere(where sql.Expr, row Row) (bool, error) {
 	if where == nil {
-		return true
+		return true, nil
 	}
 	match, err := e.evalBool(where, row)
-	return err == nil && match
+	if err != nil {
+		return false, err
+	}
+	return match, nil
 }
 
 func (e *Engine) applyUpdateChanges(tableName string, rootPage uint32, changes []updateChange) *Result {

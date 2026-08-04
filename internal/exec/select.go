@@ -270,7 +270,10 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		}
 	}
 
-	allRows, allRowMaps := e.scanTableRows(cursor, s, colDefs, needMaps)
+	allRows, allRowMaps, err := e.scanTableRows(cursor, s, colDefs, needMaps)
+	if err != nil {
+		return &Result{Error: err}
+	}
 
 	// WITHOUT ROWID tables store data in PK order. Since Frigolite uses
 	// rowid-based storage for all tables, we sort the results by PK columns
@@ -347,7 +350,11 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		if s.Where != nil {
 			filtered := allRowMaps[:0]
 			for _, rowMap := range allRowMaps {
-				if e.rowPassesWhere(s.Where, rowMap, nil) {
+				pass, err := e.rowPassesWhere(s.Where, rowMap, nil)
+				if err != nil {
+					return &Result{Error: err}
+				}
+				if pass {
 					filtered = append(filtered, rowMap)
 				}
 			}
@@ -692,7 +699,11 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 		if s.Where != nil {
 			filtered := rowMaps[:0]
 			for _, rowMap := range rowMaps {
-				if e.rowPassesWhere(s.Where, rowMap, nil) {
+				pass, err := e.rowPassesWhere(s.Where, rowMap, nil)
+				if err != nil {
+					return &Result{Error: err}
+				}
+				if pass {
 					filtered = append(filtered, rowMap)
 				}
 			}
@@ -737,7 +748,10 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 	// Apply WHERE filter for FROM-less SELECT
 	if s.Where != nil {
 		// Use nil row since there are no columns to reference
-		pass := e.rowPassesWhere(s.Where, nil, nil)
+		pass, err := e.rowPassesWhere(s.Where, nil, nil)
+		if err != nil {
+			return &Result{Error: err}
+		}
 		if !pass {
 			return &Result{Columns: columns, Rows: nil}
 		}
@@ -940,7 +954,11 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 	// joined tables (e.g. t2.a=t3.a), so it cannot be applied before the
 	// join — the post-join filter below handles it.
 	if len(s.Joins) == 0 {
-		_, allRowMaps = e.filterSubqueryRows(allRows, allRowMaps, s.Where)
+		var err error
+		_, allRowMaps, err = e.filterSubqueryRows(allRows, allRowMaps, s.Where)
+		if err != nil {
+			return &Result{Error: err}
+		}
 	}
 
 	// Handle outer JOINs: the outer query may join the subquery against other
@@ -954,7 +972,11 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 		if s.Where != nil {
 			filtered := allRowMaps[:0]
 			for _, rowMap := range allRowMaps {
-				if e.rowPassesWhere(s.Where, rowMap, nil) {
+				pass, err := e.rowPassesWhere(s.Where, rowMap, nil)
+				if err != nil {
+					return &Result{Error: err}
+				}
+				if pass {
 					filtered = append(filtered, rowMap)
 				}
 			}
@@ -1050,7 +1072,11 @@ func (e *Engine) execSelectCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 		if s.Where != nil {
 			filtered := allRowMaps[:0]
 			for _, rowMap := range allRowMaps {
-				if e.rowPassesWhere(s.Where, rowMap, nil) {
+				pass, err := e.rowPassesWhere(s.Where, rowMap, nil)
+				if err != nil {
+					return &Result{Error: err}
+				}
+				if pass {
 					filtered = append(filtered, rowMap)
 				}
 			}
@@ -1188,7 +1214,10 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 
 			// Evaluate WHERE clause if present
 			if recursiveSelect.Where != nil {
-				pass := e.rowPassesWhere(recursiveSelect.Where, rowMap, nil)
+				pass, err := e.rowPassesWhere(recursiveSelect.Where, rowMap, nil)
+				if err != nil {
+					return &Result{Error: err}
+				}
 				if !pass {
 					continue
 				}
@@ -1234,19 +1263,23 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 // colDefs.
 
 // filterSubqueryRows applies a WHERE expression to filter rows from a subquery result.
-func (e *Engine) filterSubqueryRows(allRows [][]interface{}, allRowMaps []RowMap, where sql.Expr) ([][]interface{}, []RowMap) {
+func (e *Engine) filterSubqueryRows(allRows [][]interface{}, allRowMaps []RowMap, where sql.Expr) ([][]interface{}, []RowMap, error) {
 	if where == nil {
-		return allRows, allRowMaps
+		return allRows, allRowMaps, nil
 	}
 	var filteredRows [][]interface{}
 	var filteredMaps []RowMap
 	for i, rowMap := range allRowMaps {
-		if e.rowPassesWhere(where, rowMap, nil) {
+		pass, err := e.rowPassesWhere(where, rowMap, nil)
+		if err != nil {
+			return nil, nil, err
+		}
+		if pass {
 			filteredRows = append(filteredRows, allRows[i])
 			filteredMaps = append(filteredMaps, rowMap)
 		}
 	}
-	return filteredRows, filteredMaps
+	return filteredRows, filteredMaps, nil
 }
 
 func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.ColumnDef) ([]RowMap, []sql.ColumnDef, error) {
@@ -3638,7 +3671,7 @@ func exprHasSubquery(expr sql.Expr) bool {
 }
 
 // scanTableRows iterates over all cells, applies WHERE, builds output rows.
-func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap) {
+func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap, error) {
 	var allRowMaps []RowMap
 	hasJoins := len(s.Joins) > 0
 
@@ -3782,7 +3815,11 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 			// Phase 1: decode only WHERE-referenced columns using stack-allocated types
 			e.fillStructRowFromTypes(reuseSRow, payload, dataStart, colDefs, rowID, affinityCols, serialTypes, whereDecodeIndices)
 			if !hasJoins && s.Where != nil {
-				passesWhere = e.rowPassesWhere(s.Where, reuseSRow, cursor)
+				var whereErr error
+				passesWhere, whereErr = e.rowPassesWhere(s.Where, reuseSRow, cursor)
+				if whereErr != nil {
+					return nil, nil, whereErr
+				}
 			}
 			if !passesWhere {
 				// Row filtered out — skip decoding remaining columns
@@ -3812,7 +3849,11 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 			}
 			e.fillStructRowFromTypes(reuseSRow, payload, dataStart, colDefs, rowID, affinityCols, serialTypes, nil)
 			if !hasJoins && s.Where != nil {
-				passesWhere = e.rowPassesWhere(s.Where, reuseSRow, cursor)
+				var whereErr error
+				passesWhere, whereErr = e.rowPassesWhere(s.Where, reuseSRow, cursor)
+				if whereErr != nil {
+					return nil, nil, whereErr
+				}
 			}
 		}
 
@@ -3865,24 +3906,24 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 		allRows[i] = outValues[start : start+activeColCount : start+activeColCount]
 	}
 	copy(allRows[totalStarRows:], nonStarRows)
-	return allRows, allRowMaps
+	return allRows, allRowMaps, nil
 }
 
-func (e *Engine) rowPassesWhere(where sql.Expr, row Row, cursor *btree.Cursor) bool {
+func (e *Engine) rowPassesWhere(where sql.Expr, row Row, cursor *btree.Cursor) (bool, error) {
 	if where == nil {
-		return true
+		return true, nil
 	}
 	// Fast path: simple comparison ColumnRef OP Literal
 	if bop, ok := where.(*sql.BinaryOp); ok && row != nil {
 		if result, ok := e.fastEvalComparison(bop, row); ok {
-			return result
+			return result, nil
 		}
 	}
 	match, err := e.evalBool(where, row)
 	if err != nil {
-		return false
+		return false, err
 	}
-	return match
+	return match, nil
 }
 
 // fastEvalComparison attempts to evaluate a simple BinaryOp comparison

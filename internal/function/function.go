@@ -8,6 +8,7 @@ import (
 	"hash/crc32"
 	"math"
 	"math/rand"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -20,17 +21,17 @@ import (
 type Type int
 
 const (
-	TypeScalar   Type = iota
+	TypeScalar Type = iota
 	TypeAggregate
 )
 
 // Func is a registered SQL function.
 type Func struct {
-	Name      string
-	Type      Type
-	MinArgs   int
-	MaxArgs   int
-	ScalarFn  func(args []interface{}) (interface{}, error)
+	Name        string
+	Type        Type
+	MinArgs     int
+	MaxArgs     int
+	ScalarFn    func(args []interface{}) (interface{}, error)
 	AggregateFn func() Aggregator
 }
 
@@ -105,6 +106,9 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "NULLIF", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnNULLIF})
 	r.register(&Func{Name: "PRINTF", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnPRINTF})
 	r.register(&Func{Name: "GLOB", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnGLOB})
+	r.register(&Func{Name: "REGEXP", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREGEXP})
+	r.register(&Func{Name: "REGEXPI", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREGEXPI})
+	r.register(&Func{Name: "ERROR", Type: TypeScalar, MinArgs: 0, MaxArgs: 1, ScalarFn: fnERROR})
 
 	// Date/time functions
 	r.register(&Func{Name: "DATE", Type: TypeScalar, MinArgs: 1, MaxArgs: 3, ScalarFn: fnDATE})
@@ -176,7 +180,6 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "UNISTR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNISTR})
 	r.register(&Func{Name: "NEXT_CHAR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnNEXTCHAR})
 	r.register(&Func{Name: "INT2HEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnINT2HEX})
-	r.register(&Func{Name: "REGEXPI", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREGEXPI})
 	r.register(&Func{Name: "PREFIX_LENGTH", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnPREFIXLENGTH})
 	r.register(&Func{Name: "DECIMAL_MUL", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnDECIMALMUL})
 	r.register(&Func{Name: "DECIMAL_ADD", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnDECIMALMUL})
@@ -339,8 +342,8 @@ func (m *maxAgg) Final() (interface{}, error) {
 }
 
 type groupConcatAgg struct {
-	values  []string
-	sep     string
+	values []string
+	sep    string
 }
 
 func (g *groupConcatAgg) Step(args []interface{}) error {
@@ -747,7 +750,7 @@ func fnINSTR(args []interface{}) (interface{}, error) {
 	if len(needle) == 0 {
 		return int64(1), nil
 	}
-	n := 1                     // characters/bytes consumed (1-based)
+	n := 1 // characters/bytes consumed (1-based)
 	charMode := !(hayIsBlob && needleIsBlob)
 	for len(needle) <= len(hay) && !bytes.HasPrefix(hay, needle) {
 		n++
@@ -1220,89 +1223,119 @@ func fnJSONIDENTITY(args []interface{}) (interface{}, error) {
 
 func fnACOS(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Acos(f), nil
 }
 
 func fnACOSH(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Acosh(f), nil
 }
 
 func fnASIN(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Asin(f), nil
 }
 
 func fnASINH(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Asinh(f), nil
 }
 
 func fnATAN(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Atan(f), nil
 }
 
 func fnATAN2(args []interface{}) (interface{}, error) {
 	f1, err1 := toFloat64(args[0])
 	f2, err2 := toFloat64(args[1])
-	if err1 != nil || err2 != nil { return nil, nil }
+	if err1 != nil || err2 != nil {
+		return nil, nil
+	}
 	return math.Atan2(f1, f2), nil
 }
 
 func fnCEIL(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Ceil(f), nil
 }
 
 func fnCOS(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Cos(f), nil
 }
 
 func fnCOSH(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Cosh(f), nil
 }
 
 func fnDEGREES(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return f * 180.0 / math.Pi, nil
 }
 
 func fnEXP(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Exp(f), nil
 }
 
 func fnFLOOR(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Floor(f), nil
 }
 
 func fnLN(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Log(f), nil
 }
 
 func fnLOG(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	if len(args) >= 2 {
 		base, err2 := toFloat64(args[1])
-		if err2 != nil { return nil, nil }
+		if err2 != nil {
+			return nil, nil
+		}
 		return math.Log(f) / math.Log(base), nil
 	}
 	return math.Log10(f), nil
@@ -1310,21 +1343,29 @@ func fnLOG(args []interface{}) (interface{}, error) {
 
 func fnLOG10(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Log10(f), nil
 }
 
 func fnLOG2(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Log2(f), nil
 }
 
 func fnMOD(args []interface{}) (interface{}, error) {
-	if args[0] == nil || args[1] == nil { return nil, nil }
+	if args[0] == nil || args[1] == nil {
+		return nil, nil
+	}
 	a, err1 := toFloat64(args[0])
 	b, err2 := toFloat64(args[1])
-	if err1 != nil || err2 != nil || b == 0 { return nil, nil }
+	if err1 != nil || err2 != nil || b == 0 {
+		return nil, nil
+	}
 	return math.Mod(a, b), nil
 }
 
@@ -1335,26 +1376,40 @@ func fnPI(args []interface{}) (interface{}, error) {
 func fnPOW(args []interface{}) (interface{}, error) {
 	f1, err1 := toFloat64(args[0])
 	f2, err2 := toFloat64(args[1])
-	if err1 != nil || err2 != nil { return nil, nil }
+	if err1 != nil || err2 != nil {
+		return nil, nil
+	}
 	return math.Pow(f1, f2), nil
 }
 
 func fnRADIANS(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return f * math.Pi / 180.0, nil
 }
 
 func fnSIGN(args []interface{}) (interface{}, error) {
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	switch v := args[0].(type) {
 	case int64:
-		if v > 0 { return int64(1), nil }
-		if v < 0 { return int64(-1), nil }
+		if v > 0 {
+			return int64(1), nil
+		}
+		if v < 0 {
+			return int64(-1), nil
+		}
 		return int64(0), nil
 	case float64:
-		if v > 0 { return float64(1), nil }
-		if v < 0 { return float64(-1), nil }
+		if v > 0 {
+			return float64(1), nil
+		}
+		if v < 0 {
+			return float64(-1), nil
+		}
 		return float64(0), nil
 	default:
 		return nil, nil
@@ -1363,40 +1418,54 @@ func fnSIGN(args []interface{}) (interface{}, error) {
 
 func fnSIN(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Sin(f), nil
 }
 
 func fnSINH(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Sinh(f), nil
 }
 
 func fnSQRT(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Sqrt(f), nil
 }
 
 func fnTAN(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Tan(f), nil
 }
 
 func fnTANH(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	return math.Tanh(f), nil
 }
 
 func fnTRUNC(args []interface{}) (interface{}, error) {
 	f, err := toFloat64(args[0])
-	if err != nil { return nil, nil }
+	if err != nil {
+		return nil, nil
+	}
 	if len(args) >= 2 {
 		digits, err2 := toFloat64(args[1])
-		if err2 != nil { return nil, nil }
+		if err2 != nil {
+			return nil, nil
+		}
 		pow := math.Pow(10, digits)
 		return math.Trunc(f*pow) / pow, nil
 	}
@@ -1409,14 +1478,20 @@ func fnTRUNC(args []interface{}) (interface{}, error) {
 // --- More extension functions ---
 
 func fnTOREAL(args []interface{}) (interface{}, error) {
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	f, err := toFloat64(args[0])
-	if err != nil { return int64(0), nil }
+	if err != nil {
+		return int64(0), nil
+	}
 	return int64(f), nil
 }
 
 func fnTOCHAR(args []interface{}) (interface{}, error) {
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	switch v := args[0].(type) {
 	case int64:
 		if v >= 0 && v < 256 {
@@ -1431,12 +1506,16 @@ func fnTOCHAR(args []interface{}) (interface{}, error) {
 }
 
 func fnTOBLOB(args []interface{}) (interface{}, error) {
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	return args[0], nil
 }
 
 func fnTOHEX(args []interface{}) (interface{}, error) {
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	switch v := args[0].(type) {
 	case int64:
 		return fmt.Sprintf("%X", v), nil
@@ -1496,13 +1575,17 @@ func fnCONCAT(args []interface{}) (interface{}, error) {
 
 func fnUNISTR(args []interface{}) (interface{}, error) {
 	// Stub: return input as-is
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	return args[0], nil
 }
 
 func fnNEXTCHAR(args []interface{}) (interface{}, error) {
 	// Stub: return input character + 1
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	s := fmt.Sprintf("%v", args[0])
 	if len(s) > 0 {
 		return string([]byte{byte(s[0] + 1)}), nil
@@ -1511,7 +1594,9 @@ func fnNEXTCHAR(args []interface{}) (interface{}, error) {
 }
 
 func fnINT2HEX(args []interface{}) (interface{}, error) {
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	switch v := args[0].(type) {
 	case int64:
 		return fmt.Sprintf("%x", v), nil
@@ -1522,9 +1607,54 @@ func fnINT2HEX(args []interface{}) (interface{}, error) {
 	}
 }
 
+// fnERROR raises a "SQL error!" exception. Registered to support the test
+// harness's `error()` user-defined function (regexp2.test).
+func fnERROR(args []interface{}) (interface{}, error) {
+	return nil, fmt.Errorf("SQL error!")
+}
+
+func fnREGEXP(args []interface{}) (interface{}, error) {
+	// regexp(P,X) — true if string X matches pattern P (SQLite's regexp
+	// extension, case-sensitive). Returns integer 1/0.
+	if args[0] == nil || args[1] == nil {
+		return nil, nil
+	}
+	pattern := toString(args[0])
+	s := toString(args[1])
+	re, err := compileSQLiteRegexp(pattern)
+	if err != nil {
+		return int64(0), nil
+	}
+	if re.MatchString(s) {
+		return int64(1), nil
+	}
+	return int64(0), nil
+}
+
 func fnREGEXPI(args []interface{}) (interface{}, error) {
-	// Case-insensitive regexp: reuse GLOB logic
-	return fnGLOB(args)
+	// regexpi(P,X) — true if string X matches pattern P case-insensitively
+	// (SQLite's regexp extension). Returns integer 1/0.
+	if args[0] == nil || args[1] == nil {
+		return nil, nil
+	}
+	pattern := toString(args[0])
+	s := toString(args[1])
+	re, err := compileSQLiteRegexp("(?i)" + pattern)
+	if err != nil {
+		return int64(0), nil
+	}
+	if re.MatchString(s) {
+		return int64(1), nil
+	}
+	return int64(0), nil
+}
+
+// compileSQLiteRegexp compiles a pattern written for SQLite's regexp
+// extension using Go's regexp engine, translating escapes Go does not
+// support (\uXXXX and \UXXXXXXXX) into \x{...} form and mirroring the
+// extension's "pattern too big" / "unclosed '['" errors.
+func compileSQLiteRegexp(pattern string) (*regexp.Regexp, error) {
+	return util.CompileRegexp(pattern)
 }
 
 func fnPREFIXLENGTH(args []interface{}) (interface{}, error) {
@@ -1534,13 +1664,17 @@ func fnPREFIXLENGTH(args []interface{}) (interface{}, error) {
 
 func fnDECIMALMUL(args []interface{}) (interface{}, error) {
 	// Stub: return first argument
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	return args[0], nil
 }
 
 func fnFIRSTVALUE(args []interface{}) (interface{}, error) {
 	// Stub: return first argument
-	if len(args) == 0 || args[0] == nil { return nil, nil }
+	if len(args) == 0 || args[0] == nil {
+		return nil, nil
+	}
 	return args[0], nil
 }
 
@@ -1654,7 +1788,9 @@ func unwrap(v interface{}) interface{} {
 
 func fnIeee754(args []interface{}) (interface{}, error) {
 	// Stub: return first argument
-	if args[0] == nil { return nil, nil }
+	if args[0] == nil {
+		return nil, nil
+	}
 	return args[0], nil
 }
 

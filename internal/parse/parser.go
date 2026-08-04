@@ -1561,20 +1561,17 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Right:    getExpr(getRHS(p, ruleNo, 3)),
 		}
 
-	// Rule 206: expr ::= expr likeop expr (LIKE/MATCH)
+		// Rule 206: expr ::= expr likeop expr (LIKE/GLOB/REGEXP/MATCH)
 	case 206:
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
 		op := "LIKE"
-		if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok {
-			u := strings.ToUpper(tok.Value)
-			if u == "MATCH" {
-				op = "MATCH"
-			}
+		if s, ok := getRHS(p, ruleNo, 2).(string); ok && s != "" {
+			op = s
 		}
 		return &sql.BinaryOp{Left: left, Operator: op, Right: right}
 
-	// Rule 207: expr ::= expr likeop expr ESCAPE expr
+		// Rule 207: expr ::= expr likeop expr ESCAPE expr
 	case 207:
 		left := getExpr(getRHS(p, ruleNo, 1))
 		right := getExpr(getRHS(p, ruleNo, 3))
@@ -2315,10 +2312,17 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 386:
 		return getRHS(p, ruleNo, 1)
 
-	// Rule 387: likeop ::= LIKE_KW|MATCH
+		// Rule 387: likeop ::= LIKE_KW|MATCH
 	case 387:
-		if lookahead == TK_MATCH {
-			return "MATCH"
+		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
+			switch strings.ToUpper(tok.Value) {
+			case "MATCH":
+				return "MATCH"
+			case "GLOB":
+				return "GLOB"
+			case "REGEXP":
+				return "REGEXP"
+			}
 		}
 		return "LIKE"
 

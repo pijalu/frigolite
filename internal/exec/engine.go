@@ -63,7 +63,8 @@ type Engine struct {
 	nextRowIDCache    map[uint32]int64                 // cached next rowid per root page (keyed by rootPage)
 	autoIncSeq        map[uint32]int64                 // AUTOINCREMENT sequence: largest rowid ever used per root page
 	templateCache     map[string]*sqlTemplateEntry     // normalized SQL → cached AST template
-	triggerDepth      int                              // prevents recursive trigger firing
+	triggerDepth      int                              // depth of trigger execution
+	triggerTables     []string                         // chain of tables currently in trigger programs
 	triggerNewRow     Row                              // new row values for trigger execution (keyed as "new.colname")
 	triggerOldRow     Row                              // old row values for trigger execution (keyed as "old.colname")
 	hasTriggersCache  map[string]bool                  // cached trigger existence per table name
@@ -751,20 +752,30 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// within a single statement start from 1).
 	e.counterVal = 0
 
-	var res *Result
+	// SQLite guarantees statement atomicity: when a statement fails (a
+	// constraint violation, a trigger error, etc.) every change it made is
+	// rolled back. We emulate that by snapshotting all pagers before DML and
+	// restoring them on error. Nested Exec calls (trigger bodies) snapshot
+	// again, so a failure inside a trigger rolls back the inner statement and
+	// then propagates to the outer statement's restore.
+	var snaps []*pager.PagerState
 	isDML := false
+	switch stmt.(type) {
+	case *sql.InsertStmt, *sql.UpdateStmt, *sql.DeleteStmt:
+		isDML = true
+		snaps = e.snapshotAllPagers()
+	}
+
+	var res *Result
 	switch s := stmt.(type) {
 	case *sql.SelectStmt:
 		res = e.execSelect(s)
 	case *sql.InsertStmt:
 		res = e.execInsert(s)
-		isDML = true
 	case *sql.UpdateStmt:
 		res = e.execUpdate(s)
-		isDML = true
 	case *sql.DeleteStmt:
 		res = e.execDelete(s)
-		isDML = true
 	case *sql.CommitStmt:
 		res = e.execCommit()
 	case *sql.BeginStmt:
@@ -774,6 +785,17 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	default:
 		res = e.execOtherDDL(stmt)
 	}
+
+	// Roll back the whole statement on error, restoring all pagers and
+	// dropping row-id caches that may reference restored pages.
+	if isDML && res != nil && res.Error != nil {
+		e.restoreAllPagers(snaps)
+		e.nextRowIDCache = make(map[uint32]int64)
+		e.autoIncSeq = make(map[uint32]int64)
+		res.Changes = 0
+		res.LastInsertRowID = 0
+	}
+
 	// Track changes and last rowid for CHANGES() / LAST_INSERT_ROWID() functions.
 	// SQLite: sqlite3_changes() reflects the last INSERT/UPDATE/DELETE only;
 	// SELECT/DDL statements do not reset the counter.
@@ -786,6 +808,40 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		}
 	}
 	return res
+}
+
+// snapshotAllPagers captures the in-memory state of every database pager.
+func (e *Engine) snapshotAllPagers() []*pager.PagerState {
+	var snaps []*pager.PagerState
+	seen := make(map[*pager.Pager]bool)
+	for _, ctx := range e.databases {
+		if ctx == nil || ctx.Pager == nil || seen[ctx.Pager] {
+			continue
+		}
+		seen[ctx.Pager] = true
+		snaps = append(snaps, ctx.Pager.Snapshot())
+	}
+	return snaps
+}
+
+// restoreAllPagers restores pager states captured by snapshotAllPagers.
+func (e *Engine) restoreAllPagers(snaps []*pager.PagerState) {
+	if len(snaps) == 0 {
+		return
+	}
+	// Re-find each pager by identity; a PagerState does not reference its pager.
+	i := 0
+	seen := make(map[*pager.Pager]bool)
+	for _, ctx := range e.databases {
+		if ctx == nil || ctx.Pager == nil || seen[ctx.Pager] {
+			continue
+		}
+		seen[ctx.Pager] = true
+		if i < len(snaps) && snaps[i] != nil {
+			ctx.Pager.Restore(snaps[i])
+		}
+		i++
+	}
 }
 
 func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
