@@ -339,6 +339,13 @@ func formatNumeric(v interface{}) string {
 	case int64:
 		return strconv.FormatInt(x, 10)
 	case float64:
+		// SQLite converts a REAL to text with its full representation,
+		// keeping ".0" for whole values (2.0 -> "2.0", not "2"). %g drops
+		// the trailing ".0", which would make 2.0 == '2' in TEXT affinity
+		// comparisons. Whole floats beyond int64 range keep %g precision.
+		if x == float64(int64(x)) && x >= -9.223372036854776e18 && x <= 9.223372036854776e18 {
+			return strconv.FormatFloat(x, 'f', 1, 64)
+		}
 		return strconv.FormatFloat(x, 'g', -1, 64)
 	default:
 		return toString(v)

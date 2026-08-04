@@ -153,3 +153,31 @@ func TestP6_ChangesRecursiveCTE(t *testing.T) {
 		t.Errorf("changes(): got [%s], want [5000]", got)
 	}
 }
+
+// TestP6_TextAffinityFloatCompare covers formatNumeric: comparing a TEXT
+// column value with a whole-number REAL literal must use the REAL's full
+// text form ("2.0"), so '2' != 2.0 but '2.0' == 2.0 (indexA tests).
+func TestP6_TextAffinityFloatCompare(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec(`
+		CREATE TABLE x1(a TEXT, b, c);
+		INSERT INTO x1 VALUES('2', 'two', 'ii');
+		INSERT INTO x1 VALUES('2.0', 'twopointoh', 'ii.0');
+	`).Error; err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	// a=2.0 with TEXT affinity: '2.0' matches, '2' does not.
+	if got := flattenQuery(t, db, "SELECT *, typeof(a) FROM x1 WHERE a=2.0"); got != "2.0 twopointoh ii.0 text" {
+		t.Errorf("a=2.0: got [%s], want [2.0 twopointoh ii.0 text]", got)
+	}
+	// a=2: TEXT '2' matches (TEXT affinity converts 2 to '2').
+	if got := flattenQuery(t, db, "SELECT *, typeof(a) FROM x1 WHERE a=2"); got != "2 two ii text" {
+		t.Errorf("a=2: got [%s], want [2 two ii text]", got)
+	}
+	// a='2.0' string literal matches the second row.
+	if got := flattenQuery(t, db, "SELECT *, typeof(a) FROM x1 WHERE a='2.0'"); got != "2.0 twopointoh ii.0 text" {
+		t.Errorf("a='2.0': got [%s], want [2.0 twopointoh ii.0 text]", got)
+	}
+}

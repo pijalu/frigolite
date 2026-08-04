@@ -147,7 +147,19 @@ remaining randexpr mismatches are separate expression-evaluation bugs.
 **Pre-test**: `TestP6_ChangesRecursiveCTE`.
 **No regressions**: internal/exec suite green.
 
-### G6.MISC.4 — (next root cause)
+### G6.MISC.4 — REAL-to-text affinity comparison (2026-08-XX)
+**Fixes**:
+- `internal/util/compare.go` `formatNumeric`: whole REAL values format with
+  ".0" (2.0 → "2.0", not "2") matching SQLite. Previously 2.0 == '2' under
+  TEXT affinity comparisons, so `WHERE a=2.0` matched the row with a='2'.
+
+**Packages flipped**: indexA affinity mismatches gone (1 remaining validation
+error: partial-index COLLATE), seekscan PASS, affinity/coveridxscan/skipscan/
+descidx/numindex/expridx reduced to fewer distinct failures.
+**Pre-test**: `TestP6_TextAffinityFloatCompare`.
+**No regressions**: internal/util, exec suites green; types/literal/select1/insert pass.
+
+### G6.MISC.5 — (next root cause)
 
 ## Verify
 
