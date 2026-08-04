@@ -29,6 +29,9 @@ const (
 	TokenSlash     // /
 	TokenMod       // %
 	TokenBitAnd    // &
+	TokenBitOr     // |
+	TokenLShift    // <<
+	TokenRShift    // >>
 	TokenTilde     // ~
 	TokenLParen    // (
 	TokenRParen    // )
@@ -301,6 +304,10 @@ func (t *Tokenizer) readLtOp(pos int) Token {
 		t.pos++
 		return Token{Type: TokenNeq, Value: "<>", Pos: pos}
 	}
+	if t.pos < len(t.input) && t.input[t.pos] == '<' {
+		t.pos++
+		return Token{Type: TokenLShift, Value: "<<", Pos: pos}
+	}
 	return Token{Type: TokenLt, Value: "<", Pos: pos}
 }
 
@@ -308,6 +315,10 @@ func (t *Tokenizer) readGtOp(pos int) Token {
 	if t.pos < len(t.input) && t.input[t.pos] == '=' {
 		t.pos++
 		return Token{Type: TokenGe, Value: ">=", Pos: pos}
+	}
+	if t.pos < len(t.input) && t.input[t.pos] == '>' {
+		t.pos++
+		return Token{Type: TokenRShift, Value: ">>", Pos: pos}
 	}
 	return Token{Type: TokenGt, Value: ">", Pos: pos}
 }
@@ -325,7 +336,7 @@ func (t *Tokenizer) readPipeOp(pos int) Token {
 		t.pos++
 		return Token{Type: TokenConcat, Value: "||", Pos: pos}
 	}
-	return Token{Type: TokenError, Value: "|", Pos: pos}
+	return Token{Type: TokenBitOr, Value: "|", Pos: pos}
 }
 
 // Peek returns the next token without consuming it.

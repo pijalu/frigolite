@@ -189,9 +189,9 @@ const (
 //   TokenNeq=8, TokenLt=9, TokenGt=10, TokenArrow=11,
 //   TokenDoubleArrow=12, TokenLe=13, TokenGe=14, TokenPlus=15,
 //   TokenMinus=16, TokenStar=17, TokenSlash=18, TokenMod=19,
-//   TokenBitAnd=20, TokenTilde=21, TokenLParen=22, TokenRParen=23,
-//   TokenComma=24, TokenSemicolon=25, TokenDot=26, TokenConcat=27,
-//   TokenParam=28
+//   TokenBitAnd=20, TokenBitOr=21, TokenLShift=22, TokenRShift=23,
+//   TokenTilde=24, TokenLParen=25, TokenRParen=26, TokenComma=27,
+//   TokenSemicolon=28, TokenDot=29, TokenConcat=30, TokenParam=31
 func tokenCode(tokenType int, tokenValue string) int {
 	switch {
 	case tokenType == 0: // TokenEOF
@@ -233,21 +233,27 @@ func tokenCode(tokenType int, tokenValue string) int {
 		return TK_REM
 	case tokenType == 20: // TokenBitAnd
 		return TK_BITAND
-	case tokenType == 21: // TokenTilde
+	case tokenType == 21: // TokenBitOr
+		return TK_BITOR
+	case tokenType == 22: // TokenLShift
+		return TK_LSHIFT
+	case tokenType == 23: // TokenRShift
+		return TK_RSHIFT
+	case tokenType == 24: // TokenTilde
 		return TK_BITNOT
-	case tokenType == 22: // TokenLParen
+	case tokenType == 25: // TokenLParen
 		return TK_LP
-	case tokenType == 23: // TokenRParen
+	case tokenType == 26: // TokenRParen
 		return TK_RP
-	case tokenType == 24: // TokenComma
+	case tokenType == 27: // TokenComma
 		return TK_COMMA
-	case tokenType == 25: // TokenSemicolon
+	case tokenType == 28: // TokenSemicolon
 		return TK_SEMI
-	case tokenType == 26: // TokenDot
+	case tokenType == 29: // TokenDot
 		return TK_DOT
-	case tokenType == 27: // TokenConcat
+	case tokenType == 30: // TokenConcat
 		return TK_CONCAT
-	case tokenType == 28: // TokenParam
+	case tokenType == 31: // TokenParam
 		return TK_VARIABLE
 	case tokenType == 11: // TokenArrow
 		return TK_PTR

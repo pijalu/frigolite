@@ -85,3 +85,39 @@ func flattenQuery(t *testing.T, db *DB, sql string) string {
 	}
 	return strings.Join(parts, " ")
 }
+
+// TestP6_BitwiseOperators covers the lexer/parser/evaluator support for the
+// bitwise operators |, <<, >> (randexpr package failed to parse "|" before).
+func TestP6_BitwiseOperators(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	cases := []struct {
+		sql  string
+		want string
+	}{
+		{"SELECT 5|3", "7"},
+		{"SELECT 5&3", "1"},
+		{"SELECT 1<<4", "16"},
+		{"SELECT 256>>4", "16"},
+		{"SELECT 6|3", "7"},
+		{"SELECT 1|2|4", "7"},
+		{"SELECT 8<<1", "16"},
+		{"SELECT 16>>2", "4"},
+		{"SELECT ~0", "-1"},
+	}
+	for _, c := range cases {
+		got := flattenQuery(t, db, c.sql)
+		if got != c.want {
+			t.Errorf("%s: got [%s], want [%s]", c.sql, got, c.want)
+		}
+	}
+
+	// Column values in bitwise expressions.
+	if err := db.Exec("CREATE TABLE t1(a,b); INSERT INTO t1 VALUES(6,3);").Error; err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if got := flattenQuery(t, db, "SELECT a|b, a&b, a<<1, a>>1 FROM t1"); got != "7 2 12 3" {
+		t.Errorf("column bitwise: got [%s], want [7 2 12 3]", got)
+	}
+}

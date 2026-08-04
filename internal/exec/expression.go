@@ -879,6 +879,21 @@ func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
 			return nil, nil
 		}
 		return bitwiseAnd(left, right)
+	case "|":
+		if left == nil || right == nil {
+			return nil, nil
+		}
+		return bitwiseOr(left, right)
+	case "<<":
+		if left == nil || right == nil {
+			return nil, nil
+		}
+		return shiftLeft(left, right)
+	case ">>":
+		if left == nil || right == nil {
+			return nil, nil
+		}
+		return shiftRight(left, right)
 	case "||":
 		return evalConcat(left, right)
 	case "AND":
@@ -1463,6 +1478,29 @@ func toIntValue(v interface{}) int64 {
 	return 0
 }
 
+// toInt64 converts a value to int64 with an ok flag, matching SQLite's
+// integer conversion for bitwise operators: int64 stays, float64 truncates
+// toward zero, numeric strings parse, everything else fails.
+func toInt64(v interface{}) (int64, bool) {
+	switch x := util.UnwrapColumnValue(v).(type) {
+	case int64:
+		return x, true
+	case float64:
+		return int64(x), true
+	case string:
+		s := strings.TrimSpace(x)
+		if i, err := strconv.ParseInt(s, 10, 64); err == nil {
+			return i, true
+		}
+		if f, err := strconv.ParseFloat(s, 64); err == nil {
+			return int64(f), true
+		}
+		return 0, false
+	default:
+		return 0, false
+	}
+}
+
 func mulValues(a, b interface{}) (interface{}, error) {
 	af, aok := toFloat(a)
 	bf, bok := toFloat(b)
@@ -1513,6 +1551,48 @@ func bitwiseAnd(a, b interface{}) (interface{}, error) {
 		return ai & bi, nil
 	}
 	return nil, fmt.Errorf("cannot bitwise-AND non-integer values")
+}
+
+func bitwiseOr(a, b interface{}) (interface{}, error) {
+	ai, aok := toInt64(a)
+	bi, bok := toInt64(b)
+	if aok && bok {
+		return ai | bi, nil
+	}
+	return nil, fmt.Errorf("cannot bitwise-OR non-integer values")
+}
+
+func shiftLeft(a, b interface{}) (interface{}, error) {
+	ai, aok := toInt64(a)
+	bi, bok := toInt64(b)
+	if aok && bok {
+		if bi < 0 {
+			return shiftRight(a, int64(-bi))
+		}
+		if bi >= 64 {
+			return int64(0), nil
+		}
+		return ai << uint(bi), nil
+	}
+	return nil, fmt.Errorf("cannot shift non-integer values")
+}
+
+func shiftRight(a, b interface{}) (interface{}, error) {
+	ai, aok := toInt64(a)
+	bi, bok := toInt64(b)
+	if aok && bok {
+		if bi < 0 {
+			return shiftLeft(a, int64(-bi))
+		}
+		if bi >= 64 {
+			if ai < 0 {
+				return int64(-1), nil
+			}
+			return int64(0), nil
+		}
+		return ai >> uint(bi), nil
+	}
+	return nil, fmt.Errorf("cannot shift non-integer values")
 }
 
 func concatValues(a, b interface{}) (interface{}, error) {
