@@ -81,6 +81,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 				// Rows whose rowids were computed for the aborted statement
 				// are gone; the cached rowid counter must not survive.
 				e.nextRowIDCache = make(map[uint32]int64)
+				e.autoIncSeq = make(map[uint32]int64)
 			}
 		}()
 	}
@@ -89,7 +90,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 	var lastRowID int64
 	var returningRows [][]interface{}
 	for _, tuple := range s.Values {
-		values, evalErr := e.evalTuple(tuple, s.Columns, colDefs)
+		values, evalErr := e.evalTuple(tableEntry.Name, tuple, s.Columns, colDefs)
 		if evalErr != nil {
 			return &Result{Error: evalErr}
 		}
@@ -1016,7 +1017,7 @@ func (e *Engine) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.Entry,
 		// The insert is skipped; RETURNING must not emit a row for it.
 		return &Result{Changes: 0, Row: nil}
 	case sql.ConflictDoUpdate:
-		res := e.applyUpsertUpdate(tableEntry, colDefs, colIndex, existingRowID, existingValues, oc)
+		res := e.applyUpsertUpdate(tableEntry, colDefs, colIndex, existingRowID, existingValues, values, oc)
 		if res.Error != nil {
 			return res
 		}
@@ -1028,8 +1029,8 @@ func (e *Engine) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.Entry,
 
 // applyUpsertUpdate applies DO UPDATE SET assignments to the existing row
 // and writes the updated row back to the table.
-func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, existingRowID int64, existingValues []interface{}, oc *sql.OnConflictClause) *Result {
-	updated := e.buildUpdatedRow(colDefs, colIndex, existingValues, oc)
+func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, existingRowID int64, existingValues []interface{}, values []interface{}, oc *sql.OnConflictClause) *Result {
+	updated := e.buildUpdatedRow(colDefs, colIndex, existingValues, values, oc)
 
 	// Enforce FOREIGN KEY constraints on the updated row.
 	if res := e.checkForeignKeyViolations(tableEntry, colDefs, updated); res.Error != nil {
@@ -1072,8 +1073,10 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 }
 
 // buildUpdatedRow applies ON CONFLICT DO UPDATE SET assignments to the
-// existing values and returns the updated row.
-func (e *Engine) buildUpdatedRow(colDefs []sql.ColumnDef, colIndex map[string]int, existingValues []interface{}, oc *sql.OnConflictClause) []interface{} {
+// existing values and returns the updated row. values holds the attempted
+// insert row; its columns are exposed to the SET expressions through the
+// "excluded" pseudo-table (e.g. excluded.b).
+func (e *Engine) buildUpdatedRow(colDefs []sql.ColumnDef, colIndex map[string]int, existingValues []interface{}, values []interface{}, oc *sql.OnConflictClause) []interface{} {
 	// Pad to the full column count: storage trims trailing NULLs from records,
 	// so existingValues may be shorter than colDefs.
 	n := len(existingValues)
@@ -1087,6 +1090,11 @@ func (e *Engine) buildUpdatedRow(colDefs []sql.ColumnDef, colIndex map[string]in
 	for _, col := range colDefs {
 		if idx, ok := colIndex[col.Name]; ok && idx < len(existingValues) {
 			row[col.Name] = existingValues[idx]
+		}
+		// The excluded pseudo-table carries the row that would have been
+		// inserted (values).
+		if idx, ok := colIndex[col.Name]; ok && idx < len(values) {
+			row["excluded."+col.Name] = values[idx]
 		}
 	}
 
@@ -1358,6 +1366,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			// The pager rollback can invalidate cached rowid counters (rows
 			// whose rowids were computed for the aborted statement are gone).
 			e.nextRowIDCache = make(map[uint32]int64)
+			e.autoIncSeq = make(map[uint32]int64)
 		}
 	}()
 
@@ -1974,7 +1983,7 @@ func (e *Engine) checkConstraintText(createSQL, colName string, check sql.Expr) 
 	return sql.ExprString(check)
 }
 
-func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) ([]interface{}, error) {
+func (e *Engine) evalTuple(tableName string, tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) ([]interface{}, error) {
 	values := make([]interface{}, len(tuple))
 	for i, expr := range tuple {
 		v, err := e.evalExpr(expr, nil)
@@ -1984,6 +1993,11 @@ func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.Col
 		values[i] = v
 	}
 	if len(columns) > 0 {
+		// The VALUES list must supply exactly one value per named column.
+		if len(values) != len(columns) {
+			return nil, fmt.Errorf("table %s has %d values for %d columns",
+				tableName, len(values), len(columns))
+		}
 		// Start with default values for all columns, then override with provided values
 		mapped := make([]interface{}, len(colDefs))
 		for j, cd := range colDefs {
@@ -2002,18 +2016,27 @@ func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.Col
 			}
 		}
 		values = mapped
-	} else if len(values) < len(colDefs) {
-		// Pad with default values for any missing trailing columns
-		padded := make([]interface{}, len(colDefs))
-		copy(padded, values)
-		for j := len(values); j < len(colDefs); j++ {
-			if colDefs[j].Default != nil {
-				if dv, err := e.evalExpr(colDefs[j].Default, nil); err == nil {
-					padded[j] = dv
-				}
+	} else if colDefs == nil {
+		// No column definitions available (e.g. view INSERT): return the
+		// values as-is; the caller maps them to the view's output columns.
+		return values, nil
+	} else {
+		// Without a column list every table column must be supplied. Generated
+		// columns are excluded from the count (SQLite computes them).
+		expected := len(colDefs)
+		for _, cd := range colDefs {
+			if cd.Generated != nil {
+				expected--
 			}
 		}
-		values = padded
+		if len(values) != expected {
+			if len(values) < expected {
+				return nil, fmt.Errorf("table %s has %d columns but %d values were supplied",
+					tableName, expected, len(values))
+			}
+			return nil, fmt.Errorf("table %s has %d values for %d columns",
+				tableName, len(values), expected)
+		}
 	}
 	return values, nil
 }
@@ -2126,7 +2149,7 @@ func (e *Engine) execInsertView(s *sql.InsertStmt, viewEntry *schema.Entry) *Res
 	viewCols := e.viewColumnNames(viewSelect)
 	var values []interface{}
 	if len(s.Values) > 0 {
-		values, _ = e.evalTuple(s.Values[0], s.Columns, nil)
+		values, _ = e.evalTuple(viewEntry.Name, s.Values[0], s.Columns, nil)
 	}
 	if len(s.Columns) > 0 {
 		for i, col := range s.Columns {

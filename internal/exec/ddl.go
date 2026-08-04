@@ -286,6 +286,12 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 			if aggName := findAggregateInExpr(col.Default); aggName != "" {
 				return &Result{Error: fmt.Errorf("unknown function: %s()", strings.ToLower(aggName))}
 			}
+			// SQLite requires DEFAULT expressions to be constant: bound
+			// parameters and RAISE() make an expression non-constant and are
+			// rejected at CREATE TABLE time (build.c: sqlite3AddDefaultValue).
+			if nonConst := defaultContainsNonConstant(col.Default); nonConst {
+				return &Result{Error: fmt.Errorf("default value of column [%s] is not constant", col.Name)}
+			}
 		}
 	}
 
@@ -444,6 +450,77 @@ func (e *Engine) createTableSQL(s *sql.CreateTableStmt) string {
 		return strings.TrimSpace(s.RawSQL)
 	}
 	return e.buildCreateTableSQL(s)
+}
+
+// defaultContainsNonConstant reports whether a DEFAULT expression contains
+// bound-parameter or RAISE() nodes, which make it non-constant. SQLite rejects
+// such DEFAULTs at CREATE TABLE time with "default value of column [x] is not
+// constant" (build.c: sqlite3AddDefaultValue).
+func defaultContainsNonConstant(expr sql.Expr) bool {
+	switch v := expr.(type) {
+	case *sql.ParameterExpr, *sql.RaiseExpr:
+		return true
+	case *sql.BinaryOp:
+		return defaultContainsNonConstant(v.Left) || defaultContainsNonConstant(v.Right)
+	case *sql.UnaryOp:
+		return defaultContainsNonConstant(v.Operand)
+	case *sql.IsNull:
+		return defaultContainsNonConstant(v.Operand)
+	case *sql.IsNotNull:
+		return defaultContainsNonConstant(v.Operand)
+	case *sql.IsDistinctFrom:
+		return defaultContainsNonConstant(v.Left) || defaultContainsNonConstant(v.Right)
+	case *sql.IsNotDistinctFrom:
+		return defaultContainsNonConstant(v.Left) || defaultContainsNonConstant(v.Right)
+	case *sql.IsTrue:
+		return defaultContainsNonConstant(v.Operand)
+	case *sql.IsFalse:
+		return defaultContainsNonConstant(v.Operand)
+	case *sql.Between:
+		return defaultContainsNonConstant(v.Operand) || defaultContainsNonConstant(v.Low) || defaultContainsNonConstant(v.High)
+	case *sql.InList:
+		if defaultContainsNonConstant(v.Operand) {
+			return true
+		}
+		for _, item := range v.List {
+			if defaultContainsNonConstant(item) {
+				return true
+			}
+		}
+		return false
+	case *sql.FuncCall:
+		for _, arg := range v.Args {
+			if defaultContainsNonConstant(arg) {
+				return true
+			}
+		}
+		return false
+	case *sql.RowValue:
+		for _, val := range v.Values {
+			if defaultContainsNonConstant(val) {
+				return true
+			}
+		}
+		return false
+	case *sql.ParenExpr:
+		return defaultContainsNonConstant(v.Expr)
+	case *sql.CaseExpr:
+		if v.Operand != nil && defaultContainsNonConstant(v.Operand) {
+			return true
+		}
+		for _, w := range v.Whens {
+			if defaultContainsNonConstant(w.When) || defaultContainsNonConstant(w.Then) {
+				return true
+			}
+		}
+		if v.Else != nil {
+			return defaultContainsNonConstant(v.Else)
+		}
+		return false
+	case *sql.CastExpr:
+		return defaultContainsNonConstant(v.Operand)
+	}
+	return false
 }
 
 func (e *Engine) execCreateTableAsSelect(s *sql.CreateTableStmt) *Result {

@@ -67,6 +67,11 @@ func ExprString(e Expr) string {
 		return "'" + strings.ReplaceAll(v.Value, "'", "''") + "'"
 	case *NullLit:
 		return "NULL"
+	case *ParameterExpr:
+		if v.Name != "" {
+			return v.Name
+		}
+		return "?"
 	case *ColumnRef:
 		if v.Table != "" {
 			return v.Table + "." + v.Name

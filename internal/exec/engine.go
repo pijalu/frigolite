@@ -61,6 +61,7 @@ type Engine struct {
 	tableRootPages    map[string]uint32                // tracked root pages (updated after splits)
 	tableCache        map[string]*cachedTableEntry     // cached table entry lookups
 	nextRowIDCache    map[uint32]int64                 // cached next rowid per root page (keyed by rootPage)
+	autoIncSeq        map[uint32]int64                 // AUTOINCREMENT sequence: largest rowid ever used per root page
 	templateCache     map[string]*sqlTemplateEntry     // normalized SQL → cached AST template
 	triggerDepth      int                              // prevents recursive trigger firing
 	triggerNewRow     Row                              // new row values for trigger execution (keyed as "new.colname")
@@ -198,6 +199,7 @@ func (e *Engine) invalidateTableCaches() {
 	e.tcCache = make(map[string][]sql.TableConstraint)
 	e.uniqueIdxCache = make(map[string][]uniqueIndexDef)
 	e.nextRowIDCache = make(map[uint32]int64)
+	e.autoIncSeq = make(map[uint32]int64)
 	e.fkCache = make(map[string][]fkCascadeRef)
 	e.tableCache = make(map[string]*cachedTableEntry)
 	e.tableRootPages = make(map[string]uint32)
@@ -390,6 +392,8 @@ func cloneStmtsWithValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, e
 				OnConflict:   s.OnConflict,
 				Returning:    s.Returning,
 				HasReturning: s.HasReturning,
+				IsReplace:    s.IsReplace,
+				OrIgnore:     s.OrIgnore,
 			}
 			// Clone values tuples
 			for vi, tuple := range s.Values {
@@ -514,6 +518,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		tableRootPages:   make(map[string]uint32),
 		tableCache:       make(map[string]*cachedTableEntry),
 		nextRowIDCache:   make(map[uint32]int64),
+		autoIncSeq:       make(map[uint32]int64),
 		hasTriggersCache: make(map[string]bool),
 		encoding:         "UTF-8",
 		recursiveCTELimit: 100000,

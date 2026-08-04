@@ -539,6 +539,16 @@ type NullLit struct{}
 
 func (e *NullLit) expr() {}
 
+// ParameterExpr represents a bound-parameter placeholder (?NNN, ?name, $name,
+// :name or @name). Frigolite does not support runtime binding, so it evaluates
+// to NULL; it exists separately from NullLit so CREATE TABLE can reject the
+// non-constant DEFAULT expressions that contain it.
+type ParameterExpr struct {
+	Name string
+}
+
+func (e *ParameterExpr) expr() {}
+
 // BlobLit represents a hex blob literal (x'00' or X'AB').
 type BlobLit struct {
 	Value []byte

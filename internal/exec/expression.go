@@ -30,6 +30,9 @@ func (e *Engine) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 		return v.Value, nil
 	case *sql.NullLit:
 		return nil, nil
+	case *sql.ParameterExpr:
+		// Unbound parameter placeholders evaluate to NULL.
+		return nil, nil
 	case *sql.ParenExpr:
 		return e.evalExpr(v.Expr, row)
 	case *sql.ColumnRef:
@@ -1541,6 +1544,16 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 }
 
 func (e *Engine) findNextRowID(tableName string, rootPage uint32) int64 {
+	// AUTOINCREMENT tables use a persistent sequence: the largest rowid ever
+	// used is remembered (like SQLite's sqlite_sequence), so after DELETE the
+	// next rowid still continues from the old maximum.
+	isAutoInc := e.tableHasAutoIncrement(tableName)
+	if isAutoInc {
+		if seq, ok := e.autoIncSeq[rootPage]; ok {
+			return seq + 1
+		}
+	}
+
 	// Use the cached largest rowid when available (SQLite keeps the largest
 	// rowid seen so far and recomputes it only after a DELETE or when the
 	// cache is empty). This avoids a full-table scan per insert, which is
@@ -1568,7 +1581,27 @@ func (e *Engine) findNextRowID(tableName string, rootPage uint32) int64 {
 		}
 	}
 	e.nextRowIDCache[rootPage] = maxID
+	// AUTOINCREMENT never reuses rowid 1 after the sequence starts; the
+	// sequence itself is recorded by bumpRowIDCache on the successful insert.
+	if isAutoInc && maxID < 1 {
+		return 1
+	}
 	return maxID + 1
+}
+
+// tableHasAutoIncrement reports whether the table declares an AUTOINCREMENT
+// column (an INTEGER PRIMARY KEY AUTOINCREMENT column in a rowid table).
+func (e *Engine) tableHasAutoIncrement(tableName string) bool {
+	colDefs, ok := e.colCache[tableName]
+	if !ok {
+		return false
+	}
+	for _, cd := range colDefs {
+		if cd.AutoInc {
+			return true
+		}
+	}
+	return false
 }
 
 // bumpRowIDCache records a row with the given rowid as present in the table.
@@ -1578,11 +1611,15 @@ func (e *Engine) bumpRowIDCache(rootPage uint32, rowID int64) {
 	if cur, ok := e.nextRowIDCache[rootPage]; !ok || rowID > cur {
 		e.nextRowIDCache[rootPage] = rowID
 	}
+	if cur, ok := e.autoIncSeq[rootPage]; !ok || rowID > cur {
+		e.autoIncSeq[rootPage] = rowID
+	}
 }
 
 // invalidateRowIDCache drops the cached largest rowid for a table. Called after
 // any DELETE (or rowid-changing UPDATE) because the largest rowid may have been
-// removed; the next findNextRowID recomputes it by scanning.
+// removed; the next findNextRowID recomputes it by scanning. The AUTOINCREMENT
+// sequence is deliberately kept: DELETE does not rewind sqlite_sequence.
 func (e *Engine) invalidateRowIDCache(rootPage uint32) {
 	delete(e.nextRowIDCache, rootPage)
 }
@@ -1876,6 +1913,12 @@ func negateValue(v interface{}) (interface{}, error) {
 	// Try numeric negation first
 	switch val := v.(type) {
 	case int64:
+		// Negating math.MinInt64 overflows int64 (Go wraps to MinInt64).
+		// SQLite promotes the result to REAL: -(-9223372036854775808)
+		// evaluates to 9.22337203685478e+18 (2^63 as a float).
+		if val == math.MinInt64 {
+			return -float64(val), nil
+		}
 		return -val, nil
 	case float64:
 		// Handle negative zero: return int64 0 for -0.0

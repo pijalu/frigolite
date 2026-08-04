@@ -92,19 +92,15 @@ Fresh context: true
 - Type affinity on INSERT (value coerced to column type)
 
 ### Steps
-1. **Write pre-test** → `frigolite_p1_insert_test.go`.
+- [x] 1. **Write pre-test** → `frigolite_p1_insert_test.go` (VALUES, column list, multi-row, INSERT...SELECT, DEFAULT VALUES, OR IGNORE, OR REPLACE, UPSERT DO NOTHING / DO UPDATE excluded.*, column-count validation).
    Commit: `G1.INSERT.1: add INSERT pre-test suite`
-2. **Fix column affinity on INSERT** — values coerced to declared column type.
-   SQLite ref: `src/insert.c` (sqlite3Insert), `src/vdbemem.c` (sqlite3VdbeMemApplyAffinity).
-   Fix: `internal/exec/insert.go` + new `internal/util/affinity.go`.
+- [x] 2. **Fix column affinity on INSERT** — multi-word type names (NATIONAL CHARACTER, LONG INTEGER, DOUBLE PRECISION) parse correctly; ApplyColumnAffinity coerces values.
    Commit: `G1.INSERT.2: enforce column affinity on INSERT`
-3. **Fix UPSERT** — ON CONFLICT DO UPDATE with excluded.* references.
-   SQLite ref: `src/upsert.c`.
-   Fix: `internal/exec/`.
+- [x] 3. **Fix UPSERT** — ON CONFLICT DO UPDATE with excluded.* references (excluded pseudo-table populated in buildUpdatedRow).
    Commit: `G1.INSERT.3: implement UPSERT (ON CONFLICT DO UPDATE)`
-4. **Fix column count validation** — INSERT with wrong column count must error.
+- [x] 4. **Fix column count validation** — INSERT with wrong column count errors (too few/too many/column-list mismatch); OR IGNORE swallowed via cloneStmtsWithValues OrIgnore fix.
    Commit: `G1.INSERT.4: enforce INSERT column count validation`
-5. **Run TCL tests**.
+- [x] 5. **Run TCL tests** — insert, values, valuesfault, default_pkg all green (default_pkg fixed: multi-word affinity, AUTOINCREMENT sequence, int64 overflow→REAL, non-constant DEFAULT rejection).
    Commit: `G1.INSERT.5: all INSERT TCL tests green`
 
 ---

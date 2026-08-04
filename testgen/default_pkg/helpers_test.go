@@ -129,15 +129,7 @@ func flatten(res *frigolite.Result) string {
 				case int64:
 					parts = append(parts, strconv.FormatInt(x, 10))
 				case float64:
-					// SQLite displays REALs in a fixed-point format for
-					// moderate magnitudes (e.g. 12300000.0, not 1.23e+07).
-					// %g switches to scientific notation for large exponents.
-					s := strconv.FormatFloat(x, 'f', -1, 64)
-					// SQLite preserves trailing .0 for whole-number REALs
-					if !strings.ContainsAny(s, ".eE") {
-						s = s + ".0"
-					}
-					parts = append(parts, s)
+					parts = append(parts, formatReal(x))
 				case string:
 					parts = append(parts, x)
 				case []byte:
@@ -149,6 +141,34 @@ func flatten(res *frigolite.Result) string {
 		}
 	}
 	return strings.Join(parts, " ")
+}
+
+// formatReal renders a float64 the way the SQLite shell does (%.15g with the
+// SQLite "!" flag): fixed-point for decimal exponents in [-4, 14], scientific
+// notation with 15 significant digits for exponents < -4 or >= 15, and a
+// trailing ".0" for whole numbers (SQLite always shows the decimal point).
+func formatReal(x float64) string {
+	if x == 0 {
+		return "0.0"
+	}
+	exp := int(math.Floor(math.Log10(math.Abs(x))))
+	if exp < -4 || exp >= 15 {
+		// Scientific: %.15g with the decimal point always shown.
+		s := strconv.FormatFloat(x, 'g', 15, 64)
+		if idx := strings.IndexAny(s, "eE"); idx >= 0 {
+			mantissa := s[:idx]
+			if !strings.Contains(mantissa, ".") {
+				return mantissa + ".0" + s[idx:]
+			}
+		}
+		return s
+	}
+	// Fixed-point format.
+	s := strconv.FormatFloat(x, 'f', -1, 64)
+	if !strings.ContainsAny(s, ".eE") {
+		s = s + ".0"
+	}
+	return s
 }
 
 // sqlLiteral renders a Go value as a SQL literal: numeric strings and numbers

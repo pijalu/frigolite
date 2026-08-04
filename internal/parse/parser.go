@@ -312,6 +312,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return fmt.Sprintf("%s(%s, %s)", typeName,
 			getString(getRHS(p, ruleNo, 3)), getString(getRHS(p, ruleNo, 5)))
 
+	// Rule 29: typename ::= typename ID — multi-word type names.
+	// SQLite permits multi-word type names (e.g. "NATIONAL CHARACTER",
+	// "LONG INTEGER", "DOUBLE PRECISION"). The recursive rule accumulates
+	// each additional identifier into the type name, joined by a space.
+	case 29:
+		return getString(getRHS(p, ruleNo, 1)) + " " + getString(getRHS(p, ruleNo, 2))
+
 	// Rule 32: ccons ::= CONSTRAINT nm
 	case 32:
 		return sql.ColumnDef{ConstraintName: getString(getRHS(p, ruleNo, 2))}
@@ -1313,10 +1320,15 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 186: expr ::= VARIABLE
 	// A parameter placeholder (? or $name). Frigolite does not support bound
-	// parameters; treat as NULL to avoid nil propagation (matching the RD
-	// parser's behavior for TCL variable references).
+	// parameters; it evaluates to NULL, but is kept distinct from a NULL
+	// literal so CREATE TABLE can reject it in non-constant DEFAULT
+	// expressions.
 	case 186:
-		return &sql.NullLit{}
+		param := &sql.ParameterExpr{}
+		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
+			param.Name = tok.Value
+		}
+		return param
 
 	// Rule 187: expr ::= expr COLLATE ID|STRING
 	case 187:
