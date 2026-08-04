@@ -684,9 +684,9 @@ func Test_instr(t *testing.T) {
 		}
 	}
 	{ // do_test "instr-1.52"
-		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'XÃ¤');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'Xä');")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'XÃ¤');")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'Xä');")
 			return
 		}
 		got := flatten(r)
@@ -696,9 +696,9 @@ func Test_instr(t *testing.T) {
 		}
 	}
 	{ // do_test "instr-1.53"
-		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'zXÃ¤');")
+		r = db.Query("SELECT instr(" + sqlLiteral(longstr) + ",'zXä');")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'zXÃ¤');")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT instr(" + sqlLiteral(longstr) + ",'zXä');")
 			return
 		}
 		got := flatten(r)
