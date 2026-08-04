@@ -1188,7 +1188,7 @@ func parseStringParts(s string) []stringPart {
 		if len(parts) == 0 || parts[len(parts)-1].variable != "" || parts[len(parts)-1].command != "" {
 			parts = append(parts, stringPart{})
 		}
-		parts[len(parts)-1].literal += string(ch)
+		parts[len(parts)-1].literal += string([]byte{ch})
 		pos++
 	}
 
@@ -4338,7 +4338,7 @@ func tclStringMatch(pattern, str string) bool {
 		case '*': goPattern += ".*"
 		case '?': goPattern += "."
 		case '.', '+', '(', ')', '|', '^', '$': goPattern += "\\" + string(c)
-		default: goPattern += string(c)
+		default: goPattern += string([]byte{c})
 		}
 	}
 	matched, _ := regexp.MatchString("^"+goPattern+"$", str)
