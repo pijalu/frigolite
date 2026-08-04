@@ -445,55 +445,114 @@ func fnRTRIM(args []interface{}) (interface{}, error) {
 }
 
 func fnSUBSTR(args []interface{}) (interface{}, error) {
-	if args[0] == nil {
+	if args[0] == nil || args[1] == nil {
 		return nil, nil
 	}
-	// SQLite substr() of a blob returns a blob. Operate on the raw bytes so
-	// the result keeps its []byte (blob) type; otherwise quote(), typeof(),
-	// and hex() would see a TEXT value with different rendering.
+	// A NULL length argument yields NULL (SQLite substrFunc checks the
+	// argument TYPE, not just the numeric value).
+	if len(args) > 2 && args[2] == nil {
+		return nil, nil
+	}
+	p1 := toInt64(args[1])
 	if b, ok := args[0].([]byte); ok {
-		start, length := substrBounds(len(b), args[1:])
-		if length < 0 {
+		// Blob: byte-based offsets, result stays a blob. As with text, the
+		// two-argument default length is SQLite's huge LIMIT_LENGTH so that
+		// a start pushed before the beginning returns the whole blob.
+		n := int64(len(b))
+		p2 := int64(1000000000) // SQLITE_LIMIT_LENGTH default
+		if len(args) > 2 {
+			p2 = toInt64(args[2])
+		}
+		start, length := sqliteSubstrBounds(n, p1, p2)
+		if length <= 0 || start >= n {
 			return []byte{}, nil
+		}
+		if start+length > n {
+			length = n - start
 		}
 		return b[start : start+length], nil
 	}
+	// Text: character-based offsets. With two arguments SQLite uses a huge
+	// default length (SQLITE_LIMIT_LENGTH), which matters when a negative
+	// start pushes p1 before the beginning: substr('abcdefg',-100) returns
+	// the whole string.
 	s := toString(args[0])
-	start, length := substrBounds(len(s), args[1:])
-	if length < 0 {
-		return "", nil
+	nChars := int64(utf8CharLen(s))
+	p2 := int64(1000000000) // SQLITE_LIMIT_LENGTH default
+	if len(args) > 2 {
+		p2 = toInt64(args[2])
 	}
-	return s[start : start+length], nil
+	start, length := sqliteSubstrBounds(nChars, p1, p2)
+	byteStart := charOffsetToByte(s, start)
+	byteEnd := charOffsetToByte(s, start+length)
+	if byteEnd < byteStart {
+		byteEnd = byteStart
+	}
+	return s[byteStart:byteEnd], nil
 }
 
-// substrBounds computes the 0-based start and length for SQLite's 1-based
-// substr(X, start[, length]) semantics over a byte sequence of size n.
-// A negative length means the result is empty (start out of range or a
-// negative requested length).
-func substrBounds(n int, args []interface{}) (int64, int64) {
-	start := toInt64(args[0])
-	if start < 0 {
-		start = int64(n) + start
-	} else {
-		start-- // SQLite is 1-based
-	}
-	if start < 0 {
-		start = 0
-	}
-	if int(start) >= n {
-		return start, -1
-	}
-	length := int64(n) - start // default: to end
-	if len(args) > 1 && args[1] != nil {
-		length = toInt64(args[1])
-		if length < 0 {
-			return start, -1
+// sqliteSubstrBounds computes the 0-based (start, length) pair for SQLite's
+// 1-based substr(X, p1[, p2]) over a sequence of total units (bytes for
+// blobs, characters for text). It mirrors src/func.c substrFunc: a negative
+// p1 counts back from the end, p1==0 with p2>0 consumes one unit of length,
+// and a negative p2 returns the |p2| units preceding p1.
+func sqliteSubstrBounds(total, p1, p2 int64) (int64, int64) {
+	if p1 < 0 {
+		p1 += total
+		if p1 < 0 {
+			if p2 < 0 {
+				p2 = 0
+			} else {
+				p2 += p1
+			}
+			p1 = 0
 		}
-		if start+length > int64(n) {
-			length = int64(n) - start
+	} else if p1 > 0 {
+		p1--
+	} else if p2 > 0 {
+		p2--
+	}
+	if p2 < 0 {
+		if p2 < -p1 {
+			p2 = p1
+		} else {
+			p2 = -p2
+		}
+		p1 -= p2
+	}
+	if p1 < 0 {
+		p1 = 0
+	}
+	if p2 < 0 {
+		p2 = 0
+	}
+	return p1, p2
+}
+
+// utf8CharLen counts the characters in s using SQLite's SQLITE_SKIP_UTF8
+// rule: a character is a lead byte plus any following continuation bytes
+// (bytes with the top two bits 10).
+func utf8CharLen(s string) int {
+	n := 0
+	for i := 0; i < len(s); i++ {
+		if s[i]&0xC0 != 0x80 {
+			n++
 		}
 	}
-	return start, length
+	return n
+}
+
+// charOffsetToByte returns the byte offset in s after n characters, walking
+// whole UTF-8 characters (clamped to the end of s).
+func charOffsetToByte(s string, n int64) int {
+	i := 0
+	for c := int64(0); c < n && i < len(s); c++ {
+		i++
+		for i < len(s) && s[i]&0xC0 == 0x80 {
+			i++
+		}
+	}
+	return i
 }
 
 func fnIFNULL(args []interface{}) (interface{}, error) {
