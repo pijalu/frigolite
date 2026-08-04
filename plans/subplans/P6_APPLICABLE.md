@@ -174,12 +174,49 @@ handles). changes2 generated test removed from changes package.
 
 ### G6.MISC.6 — (next root cause)
 
-## Verify
+## Current status (end of this goal's budget)
 
-```bash
-bash scripts/verify_all_applicable.sh
-```
+**Progress**: 6 commits (G6.MISC.1..G6.MISC.5 + 3b), 5 root-cause fixes, several
+packages flipped to PASS (tkt_8454a207b, changes, seekscan, partial:
+indexA affinity, randexpr parse, table aggregate validation, affinity/numindex).
 
-Requires: `plans/PACKAGES_TIER6C.txt` (space-separated, one per line or space-separated),
-`scripts/verify_all_applicable.sh` (per-package `go test -tags testgen` with timeout,
-then SOLID check).
+**N/A documented this pass**: corruptA–corruptN, dbfuzz, autovacuum_ioerr,
+changes2, notify, avtrans, incrblob, incrblob_ (all C API / fault injection /
+fuzz). 144 packages remain in PACKAGES_TIER6C.txt.
+
+**Still failing (~80 packages)** — grouped root causes, each needs its own
+sub-goal (per P6_TRIAGE these were meant to be batch goals):
+1. **Query planner**: coveridxscan, skipscan, descidx, bloom, tkt_78e04e52 —
+   covering index / index-scan selection, EXPLAIN QUERY PLAN output.
+2. **Trigger evaluation**: tkt_7bbfb7d, tkt_3a77c9714, tkt_a7b7803,
+   tkt_a7debbe, tkt_80ba, tkt_80e031a00, tkt_bdc6bbbb, tkt_d82e3f —
+   correlated subqueries in triggers, AFTER INSERT row updates.
+3. **FK semantics**: tkt_b1d3a2e (DROP TABLE with deferred children),
+   tkt_f3e5abed (attached db reuse).
+4. **Validation errors not raised**: aggorderby (misuse of aggregate),
+   tkt_4ef7e3 (no such column in trigger), tkt_385a5b56b, tkt_9f2eb3,
+   indexA (partial-index COLLATE), parser (FK COLLATE in column list).
+5. **Parser grammar gaps**: DELETE/UPDATE ORDER BY + LIMIT (wherelimit),
+   VACUUM, REINDEX with name, rowvalue `-novar` (transpiler), trailing comma
+   in PK (tkt_9f2eb3), `(a,b) IN (SELECT ...)` rowvalue forms.
+6. **Test-harness functions**: test_eval, int2str, hex_to_utf16be/le,
+   val, my_changes, f2/f3, pragma_stats — SQLite test-only functions.
+7. **TCL transpiler interpolation**: `[format %5d [expr $i*2]]` literals in
+   tkt1567/table/etc. — tcl2go does not evaluate command substitution.
+8. **JSON operators** (->>): tkt_99378177930f87 — JSON not supported (N/A).
+9. **Timeouts**: emptytable, incrvacuum, rowid, tkt_d11f09d36, func_pkg.
+
+**Verify command**: `bash scripts/verify_all_applicable.sh` — currently exits 1
+(remaining failures). Ticked checkboxes below reflect completed sub-group work.
+
+## Sub-group checkboxes
+
+- [x] **G6.MISC setup** — P6_APPLICABLE.md, PACKAGES_TIER6C.txt, verify script.
+- [x] **Root-cause fixes** — G6.MISC.1..G6.MISC.5 (see above).
+- [ ] **G6.MISC.tkt** — 22/60 tkt packages still failing (planner/trigger/FK).
+- [ ] **G6.MISC.index** — coveridxscan, skipscan, descidx, bloom still failing.
+- [ ] **G6.MISC.rowvalue** — rowvalue, rowvalueA still failing (grammar/eval).
+- [ ] **G6.MISC.misc** — ~40 general SQL packages still failing.
+- [ ] **G6.MISC.bigdata** — widetab failing (result mismatch).
+- [ ] **G6.MISC.incr** — incrvacuum timeout; autovacuum failing.
+- [ ] **G6.MISC.e_tests** — e_, e_select need do_select_tests transpiler work.
