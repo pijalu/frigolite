@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/pijalu/frigolite/internal/util"
 )
@@ -382,21 +383,53 @@ func fnUPPER(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
-	return strings.ToUpper(toString(args[0])), nil
+	// SQLite's built-in upper() folds ASCII only; non-ASCII characters are
+	// left unchanged (no ICU Unicode case mapping).
+	return toUpperASCII(toString(args[0])), nil
 }
 
 func fnLOWER(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
-	return strings.ToLower(toString(args[0])), nil
+	return toLowerASCII(toString(args[0])), nil
+}
+
+// toUpperASCII uppercases only the ASCII letters a-z, leaving every other
+// byte (including multi-byte UTF-8 sequences) untouched.
+func toUpperASCII(s string) string {
+	b := []byte(s)
+	for i, c := range b {
+		if c >= 'a' && c <= 'z' {
+			b[i] = c - 'a' + 'A'
+		}
+	}
+	return string(b)
+}
+
+// toLowerASCII lowercases only the ASCII letters A-Z.
+func toLowerASCII(s string) string {
+	b := []byte(s)
+	for i, c := range b {
+		if c >= 'A' && c <= 'Z' {
+			b[i] = c - 'A' + 'a'
+		}
+	}
+	return string(b)
 }
 
 func fnLENGTH(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
-	return int64(len(toString(args[0]))), nil
+	// SQLite length(): character count for text, byte count for blobs, and
+	// the length of the text form for numbers.
+	switch v := args[0].(type) {
+	case []byte:
+		return int64(len(v)), nil
+	default:
+		return int64(utf8CharLen(toString(args[0]))), nil
+	}
 }
 
 // fnOCTETLENGTH returns the number of bytes in the argument. For text values
@@ -677,34 +710,80 @@ func fnAFFINITY(args []interface{}) (interface{}, error) {
 }
 
 func fnREPLACE(args []interface{}) (interface{}, error) {
-	if args[0] == nil {
+	if args[0] == nil || args[1] == nil || args[2] == nil {
 		return nil, nil
 	}
 	s := toString(args[0])
 	old := toString(args[1])
 	new := toString(args[2])
+	if old == "" {
+		// SQLite: an empty find string returns the original unchanged.
+		return s, nil
+	}
 	return strings.ReplaceAll(s, old, new), nil
 }
 
 func fnINSTR(args []interface{}) (interface{}, error) {
-	if args[0] == nil {
+	if args[0] == nil || args[1] == nil {
 		return nil, nil
 	}
-	s := toString(args[0])
-	sub := toString(args[1])
-	return int64(strings.Index(s, sub) + 1), nil
+	// Mirror sqlite src/func.c instrFunc: the result is one more than the
+	// number of characters (or bytes, when BOTH arguments are blobs) in the
+	// haystack prior to the first occurrence of the needle, or 0 if absent.
+	// An empty needle matches at position 1 (N stays 1); an empty haystack
+	// gives 0.
+	var hay, needle []byte
+	hayIsBlob, needleIsBlob := isBlob(args[0]), isBlob(args[1])
+	if hayIsBlob && needleIsBlob {
+		// Byte search.
+		hay = args[0].([]byte)
+		needle = args[1].([]byte)
+	} else {
+		// Text search: any non-blob argument is used as text; a blob
+		// argument is decoded as UTF-8 text.
+		hay = []byte(toString(args[0]))
+		needle = []byte(toString(args[1]))
+	}
+	if len(needle) == 0 {
+		return int64(1), nil
+	}
+	n := 1                     // characters/bytes consumed (1-based)
+	charMode := !(hayIsBlob && needleIsBlob)
+	for len(needle) <= len(hay) && !bytes.HasPrefix(hay, needle) {
+		n++
+		// Advance one unit: skip a whole UTF-8 character in text mode.
+		hay = hay[1:]
+		if charMode {
+			for len(hay) > 0 && hay[0]&0xC0 == 0x80 {
+				hay = hay[1:]
+			}
+		}
+	}
+	if len(needle) > len(hay) {
+		return int64(0), nil
+	}
+	return int64(n), nil
+}
+
+// isBlob reports whether v is a raw []byte (SQLite BLOB) value.
+func isBlob(v interface{}) bool {
+	_, ok := v.([]byte)
+	return ok
 }
 
 func fnHEX(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
-	return fmt.Sprintf("%X", args[0]), nil
+	// SQLite hex(): uppercase hex of the raw bytes, or of the TEXT form for
+	// numbers (hex(65) = hex of '65' = 3635).
+	return fmt.Sprintf("%X", toString(args[0])), nil
 }
 
 func fnQUOTE(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
-		return "NULL", nil
+		// Quote(NULL) returns SQL NULL (not the string 'NULL').
+		return nil, nil
 	}
 	switch v := args[0].(type) {
 	case int64:
@@ -712,8 +791,8 @@ func fnQUOTE(args []interface{}) (interface{}, error) {
 	case float64:
 		// Format float like SQLite: use %g but ensure .0 for whole numbers
 		s := fmt.Sprintf("%g", v)
-		// Handle negative zero: SQLite shows -0 as 0
-		if v == 0 {
+		// Handle negative zero: SQLite shows -0.0
+		if s == "-0" {
 			s = "0"
 		}
 		// If no decimal point and no exponent, add .0
@@ -726,8 +805,8 @@ func fnQUOTE(args []interface{}) (interface{}, error) {
 		escaped := strings.ReplaceAll(v, "'", "''")
 		return "'" + escaped + "'", nil
 	case []byte:
-		// Blob: X'hex'
-		return fmt.Sprintf("X'%x'", v), nil
+		// Blob: X'HEX' with uppercase hex digits
+		return fmt.Sprintf("X'%X'", v), nil
 	default:
 		// For bool and other types
 		return fmt.Sprintf("'%v'", v), nil
@@ -739,22 +818,29 @@ func fnUNICODE(args []interface{}) (interface{}, error) {
 		return nil, nil
 	}
 	s := toString(args[0])
-	if len(s) > 0 {
-		return int64(s[0]), nil
+	if len(s) == 0 {
+		// unicode('') returns NULL.
+		return nil, nil
 	}
-	return int64(0), nil
+	r, _ := utf8.DecodeRuneInString(s)
+	return int64(r), nil
 }
 
 func fnCHAR(args []interface{}) (interface{}, error) {
-	var b []byte
+	// SQLite char(): each argument is a Unicode codepoint encoded as UTF-8;
+	// NULL arguments are skipped; values above U+10FFFF become U+FFFD.
+	var sb strings.Builder
 	for _, a := range args {
-		if a != nil {
-			if v, ok := a.(int64); ok {
-				b = append(b, byte(v))
-			}
+		if a == nil {
+			continue
 		}
+		c := toInt64(a)
+		if c > 0x10FFFF {
+			c = 0xFFFD
+		}
+		sb.WriteRune(rune(c))
 	}
-	return string(b), nil
+	return sb.String(), nil
 }
 
 func fnNULLIF(args []interface{}) (interface{}, error) {
@@ -1364,9 +1450,38 @@ func fnTOHEX(args []interface{}) (interface{}, error) {
 }
 
 func fnUNHEX(args []interface{}) (interface{}, error) {
-	// Stub: return input as-is
-	if args[0] == nil { return nil, nil }
-	return args[0], nil
+	// SQLite unhex(): parse a hex string into a BLOB. Returns NULL if the
+	// input contains anything other than 0-9A-Fa-f or has odd length.
+	if args[0] == nil {
+		return nil, nil
+	}
+	s := toString(args[0])
+	if len(s)%2 != 0 {
+		return nil, nil
+	}
+	out := make([]byte, len(s)/2)
+	for i := 0; i < len(s); i += 2 {
+		hi, ok1 := unhexDigit(s[i])
+		lo, ok2 := unhexDigit(s[i+1])
+		if !ok1 || !ok2 {
+			return nil, nil
+		}
+		out[i/2] = hi<<4 | lo
+	}
+	return out, nil
+}
+
+// unhexDigit decodes a single hexadecimal digit byte to 0-15.
+func unhexDigit(c byte) (byte, bool) {
+	switch {
+	case c >= '0' && c <= '9':
+		return c - '0', true
+	case c >= 'a' && c <= 'f':
+		return c - 'a' + 10, true
+	case c >= 'A' && c <= 'F':
+		return c - 'A' + 10, true
+	}
+	return 0, false
 }
 
 func fnCONCAT(args []interface{}) (interface{}, error) {

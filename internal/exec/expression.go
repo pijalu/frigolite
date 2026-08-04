@@ -1903,6 +1903,26 @@ func concatValues(a, b interface{}) (interface{}, error) {
 	if a == nil || b == nil {
 		return nil, nil
 	}
+	// Unwrap column-affinity wrappers so blobs concatenate as raw bytes.
+	a = util.UnwrapColumnValue(a)
+	b = util.UnwrapColumnValue(b)
+	ab, aIsBlob := a.([]byte)
+	bb, bIsBlob := b.([]byte)
+	if aIsBlob || bIsBlob {
+		// Concatenate raw bytes; SQLite yields a TEXT value (not a blob).
+		var buf []byte
+		if aIsBlob {
+			buf = append(buf, ab...)
+		} else {
+			buf = append(buf, fmt.Sprintf("%v", a)...)
+		}
+		if bIsBlob {
+			buf = append(buf, bb...)
+		} else {
+			buf = append(buf, fmt.Sprintf("%v", b)...)
+		}
+		return string(buf), nil
+	}
 	return fmt.Sprintf("%v%v", a, b), nil
 }
 
@@ -1921,10 +1941,8 @@ func negateValue(v interface{}) (interface{}, error) {
 		}
 		return -val, nil
 	case float64:
-		// Handle negative zero: return int64 0 for -0.0
-		if val == 0 {
-			return int64(0), nil
-		}
+		// SQLite keeps -0.0 as a REAL -0.0 (typeof(-0.0)='real'); do not
+		// coerce it to an integer here.
 		return -val, nil
 	}
 	// Try string as number
