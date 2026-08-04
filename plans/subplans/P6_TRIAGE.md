@@ -69,8 +69,10 @@ Fresh context: true
 - They remain as `t.Errorf` (failing) — visible signal for future work.
 
 ### Steps
-1. **Write `plans/DEFERRED.md`**.
-   Commit: `G6.DEFERRED.1: document deferred WAL/concurrency packages`
+- [x] **1. Write `plans/DEFERRED.md`** — documents each of the 33 deferred
+      packages (26 WAL + 7 concurrency) and the feature it requires; includes
+      current status per package, harness relationship, and WAL implementation
+      roadmap. Commit: `G6.DEFERRED.1: document deferred WAL/concurrency packages`
 
 ---
 
