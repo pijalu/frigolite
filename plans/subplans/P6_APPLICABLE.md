@@ -245,11 +245,12 @@ separate batch goal; analyze package fails on sqlite_stat1 population, not parse
    left-operand-collation rule (a column on the left masks a right collation).
 
 **Packages flipped**: rowvalueA PASS (was FAIL on 10 IN/collation/comparison
-errors). rowvalue reduced from ~3900 failures to ~121 edge cases (rowvalue2
+errors). rowvalue reduced from ~3900 failures to ~119 edge cases (rowvalue2
 bare-REINDEX+SELECT flow passes; remaining are UPDATE row-value assignment
-"2 columns assigned 3 values", collation-in-rowvalue "no such collation
-sequence: nose", nested subquery edge cases, and transpiler `make_expr2`
-interpolation).
+"2 columns assigned 3 values", nested subquery edge cases, and transpiler
+`make_expr2` interpolation — the collation-in-rowvalue "no such collation
+sequence: nose" errors were fixed via COLLATE-clause validation in
+validateRowValueUse).
 
 **Pre-test**: `TestP6_RowValueComparison` (written after the fix; the fixes
 were developed against the testgen failures and verified by the pre-test).

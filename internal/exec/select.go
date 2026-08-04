@@ -2918,6 +2918,15 @@ func (e *Engine) validateRowValueUse(expr sql.Expr, topLevel bool) error {
 		}
 		return nil
 	case *sql.BinaryOp:
+		// An explicit COLLATE clause (a COLLATE nose) — validate the
+		// collation name at prepare time like SQLite.
+		if strings.EqualFold(v.Operator, "COLLATE") {
+			if name := getCollationName(v.Right); name != "" {
+				if err := checkCollationString(name); err != nil {
+					return err
+				}
+			}
+		}
 		leftIsRow := isRowValueExpr(v.Left)
 		rightIsRow := isRowValueExpr(v.Right)
 		leftIsSub := isSubqueryExpr(v.Left)
@@ -3040,6 +3049,18 @@ func isSubqueryExpr(expr sql.Expr) bool {
 		return isSubqueryExpr(v.Expr)
 	}
 	return false
+}
+
+// getCollationName extracts the collation name from a COLLATE expression's
+// right operand (a StringLit or ColumnRef).
+func getCollationName(expr sql.Expr) string {
+	switch v := expr.(type) {
+	case *sql.StringLit:
+		return v.Value
+	case *sql.ColumnRef:
+		return v.Name
+	}
+	return ""
 }
 
 // validateSubqueryArity checks that a subquery returns exactly wantCols
