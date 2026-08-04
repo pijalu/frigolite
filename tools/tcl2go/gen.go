@@ -905,19 +905,60 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 
 // dbEvalExpected detects the TCL "[db eval { SQL }]" pattern used as a
 // do_test expected value and returns the SQL to run (the query result,
-// flattened, is the expected value).
-func dbEvalExpected(w tcl.RawWord) (string, bool) {
+// flattened, is the expected value). It also handles the nested
+// "[db eval [subst -novar { SQL }]]" form: subst -novar substitutes [cmd]
+// but leaves $var for db eval to bind. The second return value reports
+// whether the SQL came from a subst -novar wrapper (callers then render
+// [cmd] raw and $var as SQL literals).
+func dbEvalExpected(w tcl.RawWord) (string, bool, bool) {
 	text := strings.TrimSpace(w.Text)
 	if strings.HasPrefix(text, "[db eval ") && strings.HasSuffix(text, "]") {
 		inner := strings.TrimSpace(text[len("[db eval ") : len(text)-1])
+		isSubst := false
+		if resolved, ok := substNovarBody(inner); ok {
+			inner = resolved
+			isSubst = true
+		}
 		if strings.HasPrefix(inner, "{") && strings.HasSuffix(inner, "}") {
 			inner = strings.TrimSpace(inner[1 : len(inner)-1])
 		}
 		if inner != "" {
-			return inner, true
+			return inner, isSubst, true
 		}
 	}
-	return "", false
+	return "", false, false
+}
+
+// substNovarBody detects the "[subst -novar { ... }]" (or bare
+// "subst -novar { ... }") wrapper and returns the braced body with $var
+// references preserved (db eval binds them at runtime). Returns ok=false if
+// text is not a subst -novar form.
+func substNovarBody(text string) (string, bool) {
+	text = strings.TrimSpace(text)
+	if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") {
+		text = strings.TrimSpace(text[1 : len(text)-1])
+	}
+	rest := strings.TrimSpace(strings.TrimPrefix(text, "subst"))
+	// Strip any flags (-nobackslashes, -nocommands, -novar).
+	for strings.HasPrefix(rest, "-") {
+		fields := strings.Fields(rest)
+		if len(fields) == 0 {
+			break
+		}
+		flag := fields[0]
+		if flag != "-novar" && flag != "-nobackslashes" && flag != "-nocommands" {
+			return "", false
+		}
+		rest = strings.TrimSpace(strings.TrimPrefix(rest, flag))
+	}
+	if !strings.HasPrefix(rest, "{") || !strings.HasSuffix(rest, "}") {
+		return "", false
+	}
+	body := rest[1 : len(rest)-1]
+	if strings.TrimSpace(body) == "" {
+		return "", false
+	}
+	return body, true
 }
 
 func (tp *transpiler) buildStringExpr(s string) string {
@@ -988,6 +1029,53 @@ func (tp *transpiler) renderStringExpr(parts []stringPart, sqlMode bool) string 
 			} else {
 				result.WriteString(expr)
 			}
+		}
+	}
+	return result.String()
+}
+
+// renderSubstNovarSQL renders the body of a `subst -novar { ... }` used in a
+// SQL context (do_execsql_test / execsql). TCL subst -novar substitutes
+// [cmd] but NOT $var; the $var refs are then bound as VALUES by db eval. So
+// $var parts render as sqlLiteral(var) (a SQL value) while [cmd] parts render
+// as raw SQL text — the command typically yields SQL syntax, e.g.
+// `[set op]` produces a comparison operator.
+func (tp *transpiler) renderSubstNovarSQL(s string) string {
+	parts := parseStringParts(s)
+	if len(parts) == 0 {
+		return `""`
+	}
+	if len(parts) == 1 && parts[0].variable == "" && parts[0].command == "" {
+		return fmt.Sprintf("%q", parts[0].literal)
+	}
+	var result strings.Builder
+	for i, p := range parts {
+		if i > 0 {
+			result.WriteString(" + ")
+		}
+		if p.literal != "" {
+			result.WriteString(fmt.Sprintf("%q", p.literal))
+		}
+		if p.variable != "" {
+			if p.literal != "" {
+				result.WriteString(" + ")
+			}
+			vn := tclVarToGo(p.variable)
+			var inner string
+			if vn == "err" {
+				inner = "tclStr(err)"
+			} else if vn == "db" {
+				inner = `""`
+			} else {
+				inner = vn
+			}
+			result.WriteString("sqlLiteral(" + inner + ")")
+		}
+		if p.command != "" {
+			if p.literal != "" || p.variable != "" {
+				result.WriteString(" + ")
+			}
+			result.WriteString(tp.cmdExpr(p.command))
 		}
 	}
 	return result.String()
@@ -1144,11 +1232,42 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		return fmt.Sprintf("tclExprWith(%q, map[string]string{%s})", exprGo, strings.Join(parts, ", "))
 
 	case "subst":
+		// TCL subst [-nobackslashes] [-nocommands] [-novar] string — performs
+		// substitution on string. Flags are order-independent.
 		content := strings.TrimSpace(cmdText[len("subst"):])
+		noVar := false
+		for strings.HasPrefix(content, "-") {
+			flag := strings.Fields(content)[0]
+			if flag == "-novar" {
+				noVar = true
+			}
+			content = strings.TrimSpace(strings.TrimPrefix(content, flag))
+		}
 		if len(content) >= 2 && content[0] == '{' && content[len(content)-1] == '}' {
 			content = content[1 : len(content)-1]
 		}
-		return tp.buildStringExpr(strings.TrimSpace(content))
+		content = strings.TrimSpace(content)
+		if noVar {
+			// subst -novar substitutes [cmd] but NOT $var. In a SQL context
+			// (do_execsql_test / execsql), the $var refs are bound as VALUES
+			// by db eval, so render them as SQL literals, while [cmd] (e.g.
+			// [set op] yielding a comparison operator) renders as raw SQL
+			// syntax.
+			return tp.renderSubstNovarSQL(content)
+		}
+		return tp.buildStringExpr(content)
+
+	case "set":
+		// [set var] returns the value of a variable — exactly like $var.
+		// TCL uses this in command substitution to inject a variable's
+		// value into a string, e.g. `do_execsql_test ... [subst -novar {
+		//   SELECT rowid FROM t WHERE (a,b,c) [set op] (...)
+		// }]` where op holds the comparison operator. Resolve to the Go
+		// variable reference so the value is interpolated at runtime.
+		if len(args) >= 1 {
+			return tclVarToGo(args[0])
+		}
+		return `""`
 
 	case "string":
 		if len(args) >= 1 {
@@ -1228,6 +1347,16 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 	case "catch":
 		// Simplified: catch just returns "0" (no error)
 		return `"0"`
+
+	case "list":
+		// [list $var] constructs a TCL list. A single element renders as its
+		// value; multiple elements join with spaces (TCL list rendering).
+		// Used heavily in do_execsql_test expected values, e.g.
+		// `do_execsql_test 1.$tn.eq "SELECT ($v1) == ($v2)" [list $eq]`.
+		if len(args) >= 1 {
+			return tp.buildStringExpr(strings.Join(args, " "))
+		}
+		return `""`
 
 	case "lindex":
 		if len(args) >= 2 {
@@ -1631,10 +1760,12 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 	// Determine query vs exec
 	sql := ""
 	if len(args) >= 2 {
-		if args[1].Braced {
-			sql = args[1].Text
-		} else {
-			sql = args[1].Text
+		sql = args[1].Text
+		// `[subst -novar { SQL }]` — resolve to the inner SQL text so query
+		// detection (isQueryStmt) and unsupportedSQL see the real statement,
+		// not the "-novar {" wrapper.
+		if resolved, ok := substNovarBody(sql); ok {
+			sql = resolved
 		}
 	}
 	if reason := unsupportedSQL(sanitizeSQL(sql)); reason != "" {
@@ -1697,13 +1828,25 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
 			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
 			tp.emitLine("}")
-		} else if dbEvalSQL, ok := dbEvalExpected(args[2]); ok {
-			// [db eval { SQL }] — run the query at runtime for the expected value.
+		} else if dbEvalSQL, isSubst, ok := dbEvalExpected(args[2]); ok {
+			// [db eval { SQL }] or [db eval [subst -novar { SQL }]] — run the
+			// query at runtime for the expected value. SQL with $var/[cmd]
+			// refs must be rendered as a Go string expression (the plain
+			// braced form binds $var as SQL literals; the subst -novar form
+			// renders [cmd] raw and $var as SQL literals).
+			dbEvalExpr := fmt.Sprintf("%q", dbEvalSQL)
+			if hasVarRef(dbEvalSQL) {
+				if isSubst {
+					dbEvalExpr = tp.renderSubstNovarSQL(dbEvalSQL)
+				} else {
+					dbEvalExpr = tp.buildSQLStringExpr(dbEvalSQL)
+				}
+			}
 			wantVar := fmt.Sprintf("_want%d", tp.varCount)
 			tp.varCount++
-			tp.emitLine("%s := db.Query(%s)", wantVar, fmt.Sprintf("%q", dbEvalSQL))
+			tp.emitLine("%s := db.Query(%s)", wantVar, dbEvalExpr)
 			tp.emitLine("if %s.Error != nil {", wantVar)
-			tp.emitLine("\tt.Errorf(\"expected query error: %%v\\n  sql: %%s\", %s.Error, %s)", wantVar, fmt.Sprintf("%q", dbEvalSQL))
+			tp.emitLine("\tt.Errorf(\"expected query error: %%v\\n  sql: %%s\", %s.Error, %s)", wantVar, dbEvalExpr)
 			tp.emitLine("\treturn")
 			tp.emitLine("}")
 			tp.emitLine("want := flatten(%s)", wantVar)
@@ -1803,11 +1946,29 @@ func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 	errMsg := extractExpectedErrorFromLiteral(expectedExpr)
 	raw, _ := strconv.Unquote(expectedExpr)
 	expectSuccess := !strings.HasPrefix(raw, "1 ")
+	// A dynamic expected expression (e.g. `[list 1 $error]` → `"1 " + error`)
+	// is an error expectation when its leading literal is "1 " — the TCL
+	// do_catchsql_test form "1 {message}". strconv.Unquote cannot see the
+	// prefix of a concatenation, so detect the quoted "1 " head here.
+	errMsgDynamic := ""
+	if expectSuccess && strings.HasPrefix(expectedExpr, `"1 "`) {
+		expectSuccess = false
+		rest := strings.TrimSpace(strings.TrimPrefix(expectedExpr, `"1 "`))
+		rest = strings.TrimPrefix(rest, "+")
+		errMsgDynamic = strings.TrimSpace(rest)
+	}
 	if expectSuccess {
 		// TCL do_catchsql_test {0 {}} — the statement is expected to succeed.
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
 		tp.emitLine("if _res.Error != nil {")
 		tp.emitLine("\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", _res.Error, %s)", sqlExpr)
+		tp.emitLine("}")
+	} else if errMsgDynamic != "" {
+		// Dynamic error message: the expected text is a runtime Go expression
+		// (e.g. the loop variable `_error` holding "row value misused").
+		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+		tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", errMsgDynamic)
+		tp.emitLine("\tt.Errorf(\"expected error containing %%q, got: %%v\\n  sql: %%s\", %s, _res.Error, %s)", errMsgDynamic, sqlExpr)
 		tp.emitLine("}")
 	} else if errMsg != "" {
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
@@ -1868,12 +2029,22 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 				tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
 				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
 				tp.emitLine("}")
-			} else if dbEvalSQL, ok := dbEvalExpected(args[2]); ok {
+			} else if dbEvalSQL, isSubst, ok := dbEvalExpected(args[2]); ok {
+				// [db eval { SQL }] or [db eval [subst -novar { SQL }]] —
+				// render $var/[cmd] refs as a Go string expression.
+				dbEvalExpr := fmt.Sprintf("%q", dbEvalSQL)
+				if hasVarRef(dbEvalSQL) {
+					if isSubst {
+						dbEvalExpr = tp.renderSubstNovarSQL(dbEvalSQL)
+					} else {
+						dbEvalExpr = tp.buildSQLStringExpr(dbEvalSQL)
+					}
+				}
 				wantVar := fmt.Sprintf("_want%d", tp.varCount)
 				tp.varCount++
-				tp.emitLine("%s := db.Query(%s)", wantVar, fmt.Sprintf("%q", dbEvalSQL))
+				tp.emitLine("%s := db.Query(%s)", wantVar, dbEvalExpr)
 				tp.emitLine("if %s.Error != nil {", wantVar)
-				tp.emitLine("\tt.Errorf(\"expected query error: %%v\\n  sql: %%s\", %s.Error, %s)", wantVar, fmt.Sprintf("%q", dbEvalSQL))
+				tp.emitLine("\tt.Errorf(\"expected query error: %%v\\n  sql: %%s\", %s.Error, %s)", wantVar, dbEvalExpr)
 				tp.emitLine("\treturn")
 				tp.emitLine("}")
 				tp.emitLine("want := flatten(%s)", wantVar)

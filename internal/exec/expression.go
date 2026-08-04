@@ -37,23 +37,20 @@ func (e *Engine) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 	case *sql.FuncCall:
 		return e.evalFuncCall(v, row)
 	case *sql.RowValue:
-		var parts []string
+		// Evaluate a row value (a,b,c) into a structured slice so comparison
+		// operators and IN can implement SQLite's per-element lexicographic
+		// row-value semantics (with arity checks). A bare row value in a
+		// SELECT list projects its first element; that unwrapping happens at
+		// the projection sites.
+		var values []interface{}
 		for _, val := range v.Values {
 			ev, err := e.evalExpr(val, row)
 			if err != nil {
 				return nil, err
 			}
-			// Unwrap ColumnValue affinity wrappers so the joined string uses
-			// the raw value (a row's column values are wrapped for comparison
-			// logic; formatting them directly would print the wrapper).
-			ev = util.UnwrapColumnValue(ev)
-			if ev == nil {
-				parts = append(parts, "{}")
-			} else {
-				parts = append(parts, fmt.Sprintf("%v", ev))
-			}
+			values = append(values, ev)
 		}
-		return strings.Join(parts, " "), nil
+		return values, nil
 	default:
 		return e.evalComplexExpr(expr, row)
 	}
@@ -551,6 +548,37 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		return nil, err
 	}
 
+	// Row-value vs subquery: (a,b,c) OP (SELECT x,y,z ...). The subquery's
+	// result row (all columns) forms the right row value; evalExpr above
+	// returned only its first column, so re-evaluate the subquery in full
+	// when the other side is a row value.
+	if _, lIsRow := left.([]interface{}); lIsRow {
+		if subq, ok := v.Right.(*sql.Subquery); ok {
+			rows, err := e.evalSubqueryRows(subq, row)
+			if err != nil {
+				return nil, err
+			}
+			if len(rows) == 0 {
+				right = nil
+			} else {
+				right = rows[0]
+			}
+		}
+	}
+	if _, rIsRow := right.([]interface{}); rIsRow {
+		if subq, ok := v.Left.(*sql.Subquery); ok {
+			rows, err := e.evalSubqueryRows(subq, row)
+			if err != nil {
+				return nil, err
+			}
+			if len(rows) == 0 {
+				left = nil
+			} else {
+				left = rows[0]
+			}
+		}
+	}
+
 	// Most operators return NULL when either operand is NULL.
 	// AND/OR need Kleene logic (handled in evalArithmeticOp).
 	// IS / IS NOT are NULL-safe: NULL IS NULL is true.
@@ -563,6 +591,14 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		return likeValuesWithEscape(left, right, v.Escape), nil
 	}
 	if v.Operator == "IS" {
+		// Row-value IS: NULL-safe element-wise equality, e.g.
+		// (a,b,c) IS (x,y,z). Delegate when either side is a row value.
+		if _, lok := left.([]interface{}); lok {
+			return evalRowValueIs(v.Operator, left, right)
+		}
+		if _, rok := right.([]interface{}); rok {
+			return evalRowValueIs(v.Operator, left, right)
+		}
 		// Unwrap ColumnValue wrappers so IS NULL works on joined values.
 		left = util.UnwrapColumnValue(left)
 		right = util.UnwrapColumnValue(right)
@@ -575,6 +611,13 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		return boolToInt(compareValuesWithCollate(left, right) == 0), nil
 	}
 	if v.Operator == "IS NOT" {
+		// Row-value IS NOT: NULL-safe element-wise inequality.
+		if _, lok := left.([]interface{}); lok {
+			return evalRowValueIs(v.Operator, left, right)
+		}
+		if _, rok := right.([]interface{}); rok {
+			return evalRowValueIs(v.Operator, left, right)
+		}
 		left = util.UnwrapColumnValue(left)
 		right = util.UnwrapColumnValue(right)
 		if left == nil && right == nil {
@@ -586,6 +629,42 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		return boolToInt(compareValuesWithCollate(left, right) != 0), nil
 	}
 	return evalBinaryOpValues(v.Operator, left, right)
+}
+
+// evalRowValueIs implements NULL-safe row-value IS / IS NOT comparison.
+// Each element pair is compared with IS semantics (NULL IS NULL is true);
+// the whole row value is equal when every element is IS-equal.
+func evalRowValueIs(op string, left, right interface{}) (interface{}, error) {
+	lv, lok := left.([]interface{})
+	rv, rok := right.([]interface{})
+	if !lok || !rok {
+		return nil, fmt.Errorf("row value misused")
+	}
+	if len(lv) != len(rv) {
+		return nil, fmt.Errorf("row value misused")
+	}
+	equal := true
+	for i := range lv {
+		lv0, _ := extractValue(lv[i])
+		rv0, _ := extractValue(rv[i])
+		l := util.UnwrapColumnValue(lv0)
+		r := util.UnwrapColumnValue(rv0)
+		if l == nil && r == nil {
+			continue // IS-equal
+		}
+		if l == nil || r == nil {
+			equal = false
+			break
+		}
+		if compareValuesWithCollate(lv[i], rv[i]) != 0 {
+			equal = false
+			break
+		}
+	}
+	if op == "IS NOT" {
+		equal = !equal
+	}
+	return boolToInt(equal), nil
 }
 
 // evalMatchOp evaluates a MATCH or NOT MATCH expression for FTS virtual tables.
@@ -691,12 +770,37 @@ func unwrapCollatedValue(v interface{}) interface{} {
 func compareValuesWithCollate(left, right interface{}) int {
 	lv, lc := extractValue(left)
 	rv, rc := extractValue(right)
-	// Use the first non-empty collation found
+	// SQLite collation resolution for a binary comparison (datatype3.html):
+	// 1. Explicit COLLATE clause (already applied by the parser as a
+	//    collatedValue wrapper) wins.
+	// 2. If the LEFT operand is a column, its column collation is used —
+	//    defaulting to BINARY when the column has no COLLATE (a plain
+	//    ColumnValue wrapper). A column on the left masks a collation on
+	//    the right: `t2.y > t1.b` (b COLLATE NOCASE) compares BINARY
+	//    because t2.y is a column without collation.
+	// 3. Only when the left operand is NOT a column (literal/expression)
+	//    does the right operand's column collation apply, e.g. `'abc' > b`.
+	leftIsColumn := isColumnValue(left)
+	if leftIsColumn {
+		return util.CompareValuesCollate(lv, rv, lc)
+	}
 	collation := lc
 	if collation == "" {
 		collation = rc
 	}
 	return util.CompareValuesCollate(lv, rv, collation)
+}
+
+// isColumnValue reports whether v is a column value (a *util.ColumnValue
+// wrapper, possibly wrapped in a collatedValue marker). Used by
+// compareValuesWithCollate to apply SQLite's left-operand collation rule.
+func isColumnValue(v interface{}) bool {
+	if cv, ok := v.(*collatedValue); ok {
+		_, isCol := cv.value.(*util.ColumnValue)
+		return isCol
+	}
+	_, isCol := v.(*util.ColumnValue)
+	return isCol
 }
 
 // extractCollatedValues extracts raw values from collatedValue wrappers
@@ -712,7 +816,76 @@ func extractCollatedValues(op string, left, right interface{}) (interface{}, int
 	return l, r
 }
 
+// evalRowValueCompare implements SQLite row-value comparison:
+// (a,b,c) OP (x,y,z) compares element-wise lexicographically. One side is a
+// row value ([]interface{}); the other must be a row value of the same arity,
+// otherwise an error is raised (SQLite "row value misused" for scalar vs row,
+// and "row value comparison with different number of terms" for arity
+// mismatch). NULL elements propagate NULL like scalar comparisons: if the
+// elements compared so far are equal and one is NULL, the result is NULL.
+func evalRowValueCompare(op string, lv []interface{}, right interface{}) (interface{}, error) {
+	rv, ok := right.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("row value misused")
+	}
+	if len(lv) != len(rv) {
+		return nil, fmt.Errorf("row value misused")
+	}
+	cmp := 0
+	for i := range lv {
+		// Pass the element values as-is to compareValuesWithCollate, which
+		// extracts column collations from collatedValue wrappers (a column
+		// declared COLLATE NOCASE must apply to its row-value elements).
+		l := lv[i]
+		r := rv[i]
+		lv0, _ := extractValue(l)
+		rv0, _ := extractValue(r)
+		if util.UnwrapColumnValue(lv0) == nil || util.UnwrapColumnValue(rv0) == nil {
+			// SQLite: NULL only matters at the first position where the
+			// comparison is still undecided (all previous elements equal).
+			// If an earlier element already ordered the pair, the result is
+			// decided and NULL is ignored.
+			if cmp == 0 {
+				return nil, nil
+			}
+			break
+		}
+		cmp = compareValuesWithCollate(l, r)
+		if cmp != 0 {
+			break
+		}
+	}
+	switch op {
+	case "=", "==":
+		return boolToInt(cmp == 0), nil
+	case "<>", "!=":
+		return boolToInt(cmp != 0), nil
+	case "<":
+		return boolToInt(cmp < 0), nil
+	case ">":
+		return boolToInt(cmp > 0), nil
+	case "<=":
+		return boolToInt(cmp <= 0), nil
+	case ">=":
+		return boolToInt(cmp >= 0), nil
+	default:
+		return nil, fmt.Errorf("row value misused")
+	}
+}
+
 func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error) {
+	// Row-value comparison: (a,b,c) OP (x,y,z) compares element-wise
+	// lexicographically with SQLite's row-value semantics. A row value
+	// compared with a scalar (or a row value of different arity) is an
+	// error ("row value misused" / "row value comparison with different
+	// number of terms"). Note: a row value is only valid in comparison and
+	// IN contexts; comparing via =, <>, <, >, <=, >= is allowed.
+	if lv, lok := left.([]interface{}); lok {
+		return evalRowValueCompare(op, lv, right)
+	}
+	if rv, rok := right.([]interface{}); rok {
+		return evalRowValueCompare(op, rv, left)
+	}
 	// Extract collation-wrapped values for non-comparison operators.
 	// Comparison operators use compareValuesWithCollate which handles this internally.
 	// For || (concatenation), we preserve collation through evalConcat.
@@ -1150,14 +1323,95 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 	if operand == nil {
 		return nil, nil
 	}
+	// Row-value IN: the operand is a row value ([]interface{}) or the list
+	// items are row values. SQLite requires every item to be a row value of
+	// the same arity as the operand (or all scalars when the operand is a
+	// scalar); violations raise "row value misused" or
+	// "IN(...) element has N terms - expected M".
+	opRow, opIsRow := operand.([]interface{})
+	opArity := -1
+	if opIsRow {
+		opArity = len(opRow)
+	}
 	found := false
 	for _, item := range v.List {
+		// A subquery item in an IN list produces a set of rows. With a
+		// row-value operand each row's full column set is the comparison
+		// value; the subquery's column count must match the operand arity.
+		if subq, ok := item.(*sql.Subquery); ok {
+			res, err := e.evalSubqueryRows(subq, row)
+			if err != nil {
+				continue
+			}
+			for _, subRow := range res {
+				if opIsRow {
+					if len(subRow) != opArity {
+						return nil, fmt.Errorf("sub-select returns %d columns - expected %d", len(subRow), opArity)
+					}
+					equal := true
+					for i := range opRow {
+						l, _ := extractValue(opRow[i])
+						if util.CompareValues(util.UnwrapColumnValue(l), util.UnwrapColumnValue(subRow[i])) != 0 {
+							equal = false
+							break
+						}
+					}
+					if equal {
+						found = true
+					}
+				} else if len(subRow) > 0 {
+					if util.CompareValues(operand, subRow[0]) == 0 {
+						found = true
+					}
+				}
+			}
+			continue
+		}
 		ival, err := e.evalExpr(item, row)
 		if err != nil {
 			continue
 		}
-		if util.CompareValues(operand, ival) == 0 {
+		ivRow, ivIsRow := ival.([]interface{})
+		if opIsRow && !ivIsRow {
+			// A scalar item in a row-value IN list is treated as a 1-term
+			// row value by SQLite and reports the arity mismatch (unless the
+			// operand is also 1-term, in which case it compares as a scalar).
+			if opArity != 1 {
+				return nil, fmt.Errorf("IN(...) element has 1 term - expected %d", opArity)
+			}
+			ivIsRow = true
+			ivRow = []interface{}{ival}
+		}
+		if !opIsRow && ivIsRow {
+			return nil, fmt.Errorf("row value misused")
+		}
+		if opIsRow && ivIsRow && len(ivRow) != opArity {
+			return nil, fmt.Errorf("IN(...) element has %d terms - expected %d", len(ivRow), opArity)
+		}
+		// Element-wise equality for row values; scalar CompareValues otherwise.
+		// SQLite validates the arity of EVERY element (above) even after a
+		// match is found, so the arity check is not short-circuited here.
+		equal := false
+		if opIsRow && ivIsRow {
+			equal = true
+			for i := range opRow {
+				l, _ := extractValue(opRow[i])
+				r, _ := extractValue(ivRow[i])
+				if util.CompareValues(util.UnwrapColumnValue(l), util.UnwrapColumnValue(r)) != 0 {
+					equal = false
+					break
+				}
+			}
+		} else {
+			equal = util.CompareValues(operand, ival) == 0
+		}
+		if equal {
 			found = true
+			// Continue validating arity of remaining elements; the match is
+			// remembered but later arity violations still raise errors.
+			if opIsRow {
+				continue
+			}
 			break
 		}
 	}
@@ -1165,6 +1419,19 @@ func (e *Engine) evalInList(v *sql.InList, row Row) (interface{}, error) {
 		found = !found
 	}
 	return boolToInt(found), nil
+}
+
+// evalSubqueryRows executes a subquery and returns all result rows (each row
+// is a []interface{} of the row's column values). Used for row-value IN
+// subqueries where the full row, not just the first column, must be compared.
+func (e *Engine) evalSubqueryRows(subq *sql.Subquery, row Row) ([][]interface{}, error) {
+	e.pushOuterRow(row)
+	defer e.popOuterRow()
+	result := e.execSelect(subq.Select)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return result.Rows, nil
 }
 
 func (e *Engine) evalBool(expr sql.Expr, row Row) (bool, error) {

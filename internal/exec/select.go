@@ -2887,6 +2887,212 @@ func findNestedAggregateRowValue(v *sql.RowValue, funcs *function.Registry) stri
 
 // validateSelectExprs checks for invalid usage in SELECT expressions, such as
 // ORDER BY with non-aggregate functions or aggregates inside UNION ALL in subqueries.
+// validateRowValueUse checks an expression tree for illegal row-value usage
+// and returns "row value misused" when found. A row value (a,b,c) is legal:
+//   - as both operands of a comparison (a,b) = (1,2)
+//   - as the operand or an element of IN
+//   - on one side of a comparison when the other side is a subquery
+//     returning the same column count (validated at execution)
+//
+// It is illegal in every other scalar context: bare SELECT list entries,
+// LIMIT/OFFSET, arithmetic operands, function arguments, and comparisons
+// against a scalar. topLevel indicates a SELECT column expression (a bare
+// row value there is an error).
+func (e *Engine) validateRowValueUse(expr sql.Expr, topLevel bool) error {
+	if expr == nil {
+		return nil
+	}
+	switch v := expr.(type) {
+	case *sql.RowValue:
+		if topLevel {
+			return fmt.Errorf("row value misused")
+		}
+		// A row value nested under a scalar-producing parent is validated by
+		// the parent's case; inside IN/comparison it is allowed. We cannot
+		// decide legality here without parent context, so recurse into
+		// elements and rely on the parent cases for the misuse decision.
+		for _, sub := range v.Values {
+			if err := e.validateRowValueUse(sub, false); err != nil {
+				return err
+			}
+		}
+		return nil
+	case *sql.BinaryOp:
+		leftIsRow := isRowValueExpr(v.Left)
+		rightIsRow := isRowValueExpr(v.Right)
+		leftIsSub := isSubqueryExpr(v.Left)
+		rightIsSub := isSubqueryExpr(v.Right)
+		if leftIsRow != rightIsRow {
+			// A row value compared against a scalar (or scalar vs row) is an
+			// error unless the row side is a subquery (validated at runtime
+			// for column count).
+			if leftIsRow && !rightIsSub {
+				return fmt.Errorf("row value misused")
+			}
+			if rightIsRow && !leftIsSub {
+				return fmt.Errorf("row value misused")
+			}
+		}
+		// A scalar compared against a multi-column subquery is an error:
+		// `c == (SELECT x, y FROM ...)` returns 2 columns — the subquery's
+		// column count must match the other side (1 for a scalar). This is
+		// validated at runtime in evalSubqueryRows; the misuse surfaces when
+		// executing the comparison, which rowPassesWhere swallows. Surface it
+		// here by validating the subquery's column count when the other side
+		// is a plain scalar (not a row value and not a subquery).
+		if !leftIsRow && !leftIsSub && rightIsSub {
+			if err := e.validateSubqueryArity(v.Right, 1); err != nil {
+				// SQLite reports "row value misused" for a scalar compared
+				// against a multi-column subquery.
+				return fmt.Errorf("row value misused")
+			}
+		}
+		if !rightIsRow && !rightIsSub && leftIsSub {
+			if err := e.validateSubqueryArity(v.Left, 1); err != nil {
+				return fmt.Errorf("row value misused")
+			}
+		}
+		if err := e.validateRowValueUse(v.Left, false); err != nil {
+			return err
+		}
+		return e.validateRowValueUse(v.Right, false)
+	case *sql.UnaryOp:
+		// NOT (b = (1, 2)) — descend into unary operands (NOT, unary minus).
+		return e.validateRowValueUse(v.Operand, false)
+	case *sql.ParenExpr:
+		return e.validateRowValueUse(v.Expr, topLevel)
+	case *sql.InList:
+		if err := e.validateRowValueUse(v.Operand, false); err != nil {
+			return err
+		}
+		for _, item := range v.List {
+			if err := e.validateRowValueUse(item, false); err != nil {
+				return err
+			}
+		}
+		// Row-value IN subquery arity: (a,b) IN (SELECT * FROM t) requires
+		// the subquery to return exactly len(operand) columns.
+		if isRowValueExpr(v.Operand) && len(v.List) == 1 && isSubqueryExpr(v.List[0]) {
+			arity := rowValueArity(v.Operand)
+			if err := e.validateSubqueryArity(v.List[0], arity); err != nil {
+				return err
+			}
+		}
+		return nil
+	case *sql.Subquery:
+		return nil
+	case *sql.FuncCall:
+		// A row value as a function argument is "row value misused".
+		for _, arg := range v.Args {
+			if isRowValueExpr(arg) {
+				return fmt.Errorf("row value misused")
+			}
+		}
+		return nil
+	case *sql.CaseExpr:
+		if err := e.validateRowValueUse(v.Operand, false); err != nil {
+			return err
+		}
+		for _, w := range v.Whens {
+			if err := e.validateRowValueUse(w.When, false); err != nil {
+				return err
+			}
+			if err := e.validateRowValueUse(w.Then, false); err != nil {
+				return err
+			}
+		}
+		return e.validateRowValueUse(v.Else, false)
+	default:
+		return nil
+	}
+}
+
+// isRowValueExpr reports whether expr is a row value (or a parenthesized row
+// value).
+func isRowValueExpr(expr sql.Expr) bool {
+	switch v := expr.(type) {
+	case *sql.RowValue:
+		return true
+	case *sql.ParenExpr:
+		return isRowValueExpr(v.Expr)
+	}
+	return false
+}
+
+// rowValueArity returns the number of elements in a row value expression, or
+// -1 if expr is not a row value.
+func rowValueArity(expr sql.Expr) int {
+	switch v := expr.(type) {
+	case *sql.RowValue:
+		return len(v.Values)
+	case *sql.ParenExpr:
+		return rowValueArity(v.Expr)
+	}
+	return -1
+}
+
+// isSubqueryExpr reports whether expr is a subquery (possibly parenthesized).
+func isSubqueryExpr(expr sql.Expr) bool {
+	switch v := expr.(type) {
+	case *sql.Subquery:
+		return true
+	case *sql.ParenExpr:
+		return isSubqueryExpr(v.Expr)
+	}
+	return false
+}
+
+// validateSubqueryArity checks that a subquery returns exactly wantCols
+// columns, raising "sub-select returns N columns - expected M" otherwise
+// (SQLite: `(a,b) IN (SELECT x, y, z ...)` with a 3-column subquery). A
+// `SELECT *` column is resolved to the table's column count via the schema.
+func (e *Engine) validateSubqueryArity(expr sql.Expr, wantCols int) error {
+	sub := expr
+	for {
+		if p, ok := sub.(*sql.ParenExpr); ok {
+			sub = p.Expr
+			continue
+		}
+		break
+	}
+	sq, ok := sub.(*sql.Subquery)
+	if !ok {
+		return nil
+	}
+	n := e.subqueryColumnCount(sq.Select)
+	if n != wantCols {
+		return fmt.Errorf("sub-select returns %d columns - expected %d", n, wantCols)
+	}
+	return nil
+}
+
+// subqueryColumnCount returns the number of result columns a SELECT produces,
+// resolving a single `SELECT *` column to the FROM table's column count.
+func (e *Engine) subqueryColumnCount(s *sql.SelectStmt) int {
+	if len(s.Columns) != 1 {
+		return len(s.Columns)
+	}
+	ref, ok := s.Columns[0].Expr.(*sql.ColumnRef)
+	if !ok || ref.Name != "*" {
+		return len(s.Columns)
+	}
+	if s.From.Name == "" {
+		return 0
+	}
+	entry, _, err := e.findTable(s.From.Name)
+	if err != nil {
+		return len(s.Columns)
+	}
+	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+	count := 0
+	for _, cd := range colDefs {
+		if !cd.Dropped {
+			count++
+		}
+	}
+	return count
+}
+
 func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
 	// SQLite: an aggregate function in ORDER BY is only allowed when the
 	// SELECT is an aggregate query (has GROUP BY or an aggregate in the
@@ -2919,6 +3125,42 @@ func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
 	}
 	if s.Where != nil {
 		if err := e.validateExprSubqueries(s.Where); err != nil {
+			return err
+		}
+	}
+
+	// Row-value misuse validation (SQLite raises "row value misused" at
+	// prepare time): a row value is only legal as both sides of a
+	// comparison, as an IN operand/list element, or as a subquery result
+	// compared to a row value. Bare row values in the SELECT list, LIMIT,
+	// arithmetic, function arguments, etc. are errors.
+	for _, col := range s.Columns {
+		if err := e.validateRowValueUse(col.Expr, true); err != nil {
+			return err
+		}
+	}
+	if s.Where != nil {
+		if err := e.validateRowValueUse(s.Where, false); err != nil {
+			return err
+		}
+	}
+	if s.Having != nil {
+		if err := e.validateRowValueUse(s.Having, false); err != nil {
+			return err
+		}
+	}
+	if s.Limit != nil {
+		if err := e.validateRowValueUse(s.Limit, false); err != nil {
+			return err
+		}
+	}
+	if s.Offset != nil {
+		if err := e.validateRowValueUse(s.Offset, false); err != nil {
+			return err
+		}
+	}
+	for _, ob := range s.OrderBy {
+		if err := e.validateRowValueUse(ob.Expr, false); err != nil {
 			return err
 		}
 	}
@@ -3887,7 +4129,14 @@ func (e *Engine) fillStructRowFromTypes(sr *structRow, payload []byte, dataStart
 		for i := 0; i < len(values); i++ {
 			if values[i] != nil && affinityCols[colDefs[i].Name] {
 				aff := util.Affinity(colDefs[i].Type)
-				values[i] = &util.ColumnValue{Value: values[i], Affinity: aff}
+				cv := &util.ColumnValue{Value: values[i], Affinity: aff}
+				// Wrap with the declared collation so comparisons use it,
+				// matching buildRowMap (SQLite column collation rules).
+				if coll := colDefs[i].Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+					values[i] = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
+				} else {
+					values[i] = cv
+				}
 			}
 		}
 		// Handle rowid and PRIMARY KEY for affinity columns
@@ -4001,7 +4250,7 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 					}
 				}
 				if val, exists := row.Get(cd.Name); exists {
-					outRow = append(outRow, util.UnwrapColumnValue(val))
+					outRow = append(outRow, util.UnwrapColumnValue(unwrapCollatedValue(val)))
 				}
 			}
 		} else {

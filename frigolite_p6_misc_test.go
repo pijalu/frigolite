@@ -289,3 +289,75 @@ func TestP6_VacuumReindex(t *testing.T) {
 		t.Errorf("DETACH DATABASE aux2: %v", err)
 	}
 }
+
+// TestP6_RowValueComparison covers row-value (a,b,c) semantics: lexicographic
+// comparisons, IN with row values (arity checks and subquery rows), IS
+// NULL-safe row equality, and row-value-vs-subquery comparisons. Mirrors
+// testgen rowvalueA (which PASSES) and the bulk of rowvalue (reduced from
+// ~3900 failures to edge cases after this fix).
+func TestP6_RowValueComparison(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	// Lexicographic row-value comparison.
+	got := flattenQuery(t, db, "SELECT (1, 2) < (2, 0)")
+	if got != "1" {
+		t.Errorf("(1,2) < (2,0): got %q want 1", got)
+	}
+	got = flattenQuery(t, db, "SELECT (1, 2) < (1, 1)")
+	if got != "0" {
+		t.Errorf("(1,2) < (1,1): got %q want 0", got)
+	}
+	got = flattenQuery(t, db, "SELECT (1, 2) = (1, 2)")
+	if got != "1" {
+		t.Errorf("(1,2) = (1,2): got %q want 1", got)
+	}
+
+	// Row-value IN with arity errors.
+	r := db.Query("SELECT (1, 2) IN ( (1, 2), (3, 4, 5) )")
+	if r.Error == nil || !strings.Contains(r.Error.Error(), "IN(...) element has 3 terms - expected 2") {
+		t.Errorf("IN arity: expected error, got %v", r.Error)
+	}
+	r = db.Query("SELECT 2 IN ( (1, 2), (3, 4) )")
+	if r.Error == nil || !strings.Contains(r.Error.Error(), "row value misused") {
+		t.Errorf("scalar IN row: expected 'row value misused', got %v", r.Error)
+	}
+
+	// Row-value IN subquery (2-column table).
+	if err := db.Exec("CREATE TABLE t1(a, b); INSERT INTO t1 VALUES(1, 2); INSERT INTO t1 VALUES(3, 4);").Error; err != nil {
+		t.Fatal(err)
+	}
+	got = flattenQuery(t, db, "SELECT (1, 2) IN (SELECT a, b FROM t1)")
+	if got != "1" {
+		t.Errorf("(1,2) IN (SELECT a,b): got %q want 1", got)
+	}
+
+	// Row-value vs subquery comparison.
+	got = flattenQuery(t, db, "SELECT (3, 4) = (SELECT a, b FROM t1 WHERE a = 3)")
+	if got != "1" {
+		t.Errorf("(3,4) = (SELECT a,b): got %q want 1", got)
+	}
+
+	// Row-value IS: NULL-safe equality.
+	got = flattenQuery(t, db, "SELECT (1, NULL) IS (1, NULL)")
+	if got != "1" {
+		t.Errorf("(1,NULL) IS (1,NULL): got %q want 1", got)
+	}
+
+	// Column collation applies to row-value elements only from a column on
+	// the left; a column on the right does not force its collation
+	// (SQLite datatype3 collation resolution).
+	if err := db.Exec("CREATE TABLE x2(y); INSERT INTO x2 VALUES('abc'); CREATE TABLE x1(b PRIMARY KEY COLLATE NOCASE) WITHOUT ROWID; INSERT INTO x1 VALUES('ABCD');").Error; err != nil {
+		t.Fatal(err)
+	}
+	got = flattenQuery(t, db, "SELECT * FROM x2 CROSS JOIN x1 WHERE (1234, x2.y) > (1234, x1.b)")
+	if got != "abc ABCD" {
+		t.Errorf("cross-join row-value comparison: got %q want [abc ABCD]", got)
+	}
+
+	// Bare row value in a SELECT list is misuse.
+	r = db.Query("SELECT (1, 2, 3)")
+	if r.Error == nil || !strings.Contains(r.Error.Error(), "row value misused") {
+		t.Errorf("bare SELECT (1,2,3): expected 'row value misused', got %v", r.Error)
+	}
+}

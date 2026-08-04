@@ -184,14 +184,15 @@ const (
 
 // tokenCode maps a Frigolite TokenType + token value to an LALR parser token code.
 // TokenType values match the iota order in internal/sql/lexer.go:
-//   TokenEOF=0, TokenError=1, TokenIdentifier=2, TokenString=3,
-//   TokenNumber=4, TokenBlob=5, TokenKeyword=6, TokenEq=7,
-//   TokenNeq=8, TokenLt=9, TokenGt=10, TokenArrow=11,
-//   TokenDoubleArrow=12, TokenLe=13, TokenGe=14, TokenPlus=15,
-//   TokenMinus=16, TokenStar=17, TokenSlash=18, TokenMod=19,
-//   TokenBitAnd=20, TokenBitOr=21, TokenLShift=22, TokenRShift=23,
-//   TokenTilde=24, TokenLParen=25, TokenRParen=26, TokenComma=27,
-//   TokenSemicolon=28, TokenDot=29, TokenConcat=30, TokenParam=31
+//
+//	TokenEOF=0, TokenError=1, TokenIdentifier=2, TokenString=3,
+//	TokenNumber=4, TokenBlob=5, TokenKeyword=6, TokenEq=7,
+//	TokenNeq=8, TokenLt=9, TokenGt=10, TokenArrow=11,
+//	TokenDoubleArrow=12, TokenLe=13, TokenGe=14, TokenPlus=15,
+//	TokenMinus=16, TokenStar=17, TokenSlash=18, TokenMod=19,
+//	TokenBitAnd=20, TokenBitOr=21, TokenLShift=22, TokenRShift=23,
+//	TokenTilde=24, TokenLParen=25, TokenRParen=26, TokenComma=27,
+//	TokenSemicolon=28, TokenDot=29, TokenConcat=30, TokenParam=31
 func tokenCode(tokenType int, tokenValue string) int {
 	switch {
 	case tokenType == 0: // TokenEOF
@@ -317,6 +318,8 @@ func keywordToCode(kw string) int {
 		return TK_CONSTRAINT
 	case "CREATE":
 		return TK_CREATE
+	case "CROSS":
+		return TK_JOIN_KW
 	case "CURRENT":
 		return TK_CURRENT
 	case "DATABASE":

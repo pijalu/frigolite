@@ -5,13 +5,15 @@
 package rowvalue
 
 import (
-"github.com/pijalu/frigolite"
-"os"
-"testing"
+	"github.com/pijalu/frigolite"
+	"os"
+	"testing"
 )
 
 func Test_rowvalue2(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	if err := os.Chdir(t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -21,9 +23,9 @@ func Test_rowvalue2(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
-	_ = msg // suppress unused warning
-	_ = _res // suppress unused warning
-	_ = r    // suppress unused warning
+	_ = msg              // suppress unused warning
+	_ = _res             // suppress unused warning
+	_ = r                // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -100,8 +102,8 @@ func Test_rowvalue2(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "rowvalue2" // TCL namespace variable
-	_ = testprefix // suppress unused warning
-	{ // "1.0"
+	_ = testprefix           // suppress unused warning
+	{                        // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(0, 0, 0);\n  INSERT INTO t1 VALUES(0, 1, 1);\n  INSERT INTO t1 VALUES(1, 0, 2);\n  INSERT INTO t1 VALUES(1, 1, 3);\n\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(0, 0, 0);\n  INSERT INTO t1 VALUES(0, 1, 1);\n  INSERT INTO t1 VALUES(1, 0, 2);\n  INSERT INTO t1 VALUES(1, 1, 3);\n\n  CREATE INDEX i1 ON t1(a, b);\n")
@@ -139,14 +141,14 @@ func Test_rowvalue2(t *testing.T) {
 	}
 	{ // do_test "2.0.2"
 		for _, a := range tclSplitList("0 1 2 3") {
-		_ = a // suppress unused warning
+			_ = a // suppress unused warning
 			for _, b := range tclSplitList("0 1 2 3") {
-			_ = b // suppress unused warning
+				_ = b // suppress unused warning
 				for _, c := range tclSplitList("0 1 2 3") {
-				_ = c // suppress unused warning
+					_ = c // suppress unused warning
 					_res = db.Exec(" INSERT INTO t2 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(c) + " + " + sqlLiteral(b) + "*4 + " + sqlLiteral(a) + "*16); ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(c) + " + " + sqlLiteral(b) + "*4 + " + sqlLiteral(a) + "*16); ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES("+sqlLiteral(a)+", "+sqlLiteral(b)+", "+sqlLiteral(c)+", "+sqlLiteral(c)+" + "+sqlLiteral(b)+"*4 + "+sqlLiteral(a)+"*16); ")
 					}
 				}
 			}
@@ -159,9 +161,9 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want0 := db.Query("SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2)")
+		_want0 := db.Query(" SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2) ")
 		if _want0.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, "SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2)")
+			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, " SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2) ")
 			return
 		}
 		want := flatten(_want0)
@@ -176,9 +178,9 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want1 := db.Query("SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2)")
+		_want1 := db.Query(" SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2) ")
 		if _want1.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2)")
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, " SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2) ")
 			return
 		}
 		want := flatten(_want1)
@@ -193,9 +195,9 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want2 := db.Query("SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2))")
+		_want2 := db.Query(" SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2)) ")
 		if _want2.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2))")
+			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, " SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2)) ")
 			return
 		}
 		want := flatten(_want2)
@@ -210,9 +212,9 @@ func Test_rowvalue2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want3 := db.Query("SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2))")
+		_want3 := db.Query(" SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2)) ")
 		if _want3.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, "SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2))")
+			t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, " SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2)) ")
 			return
 		}
 		want := flatten(_want3)
@@ -222,13 +224,13 @@ func Test_rowvalue2(t *testing.T) {
 	}
 	words = "\nairfare airfield airfields airflow airfoil\nairfoils airframe airframes airily airing\nairings airless airlift airlifts airline\nairliner airlines airlock airlocks airmail\nairmails airman airmen airplane airplanes\n\narraignment arraignments arraigns arrange arranged\narrangement arrangements arranger arrangers arranges\narranging arrant array arrayed arrays\narrears arrest arrested arrester arresters\narresting arrestingly arrestor arrestors arrests\n\nedifices edit edited editing edition\neditions editor editorial editorially editorials\neditors edits educable educate educated\neducates educating education educational educationally\neducations educator educators eel eelgrass\n"
 	_ = words // suppress unused warning
-	{ // do_test "3.0"
+	{         // do_test "3.0"
 		_res = db.Exec(" CREATE TABLE t3(a, b, c, w); ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t3(a, b, c, w); ")
 		}
 		for _, w := range tclSplitList(words) {
-		_ = w // suppress unused warning
+			_ = w // suppress unused warning
 			a = tclStringRange(w, "0", "2")
 			_ = a // suppress unused warning
 			b = tclStringRange(w, "3", "5")
@@ -237,7 +239,7 @@ func Test_rowvalue2(t *testing.T) {
 			_ = c // suppress unused warning
 			_res = db.Exec(" INSERT INTO t3 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(w) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ", " + sqlLiteral(w) + ") ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES("+sqlLiteral(a)+", "+sqlLiteral(b)+", "+sqlLiteral(c)+", "+sqlLiteral(w)+") ")
 			}
 		}
 	}
@@ -249,132 +251,154 @@ func Test_rowvalue2(t *testing.T) {
 		idx := _items4[_idx4+1]
 		_ = idx // suppress unused warning
 		_ = _idx4
-			_res = db.Exec(" DROP INDEX IF EXISTS i3 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i3 ")
-			}
-			_res = db.Exec(idx)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
-			}
-			for _, w := range tclSplitList(words) {
+		_res = db.Exec(" DROP INDEX IF EXISTS i3 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i3 ")
+		}
+		_res = db.Exec(idx)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+		}
+		for _, w := range tclSplitList(words) {
 			_ = w // suppress unused warning
-				a = tclStringRange(w, "0", "2")
-				_ = a // suppress unused warning
-				b = tclStringRange(w, "3", "5")
-				_ = b // suppress unused warning
-				c = tclStringRange(w, "6", "end")
-				_ = c // suppress unused warning
-				for _, op := range tclSplitList("> >= < <= == IS") {
+			a = tclStringRange(w, "0", "2")
+			_ = a // suppress unused warning
+			b = tclStringRange(w, "3", "5")
+			_ = b // suppress unused warning
+			c = tclStringRange(w, "6", "end")
+			_ = c // suppress unused warning
+			for _, op := range tclSplitList("> >= < <= == IS") {
 				_ = op // suppress unused warning
-					{ // "3.1." + tn + "." + w + "." + op
-						_res = db.Exec("-novar {\n        SELECT rowid FROM t3 WHERE (a, b, c) " + "set op" + " (" + a + ", " + b + ", " + c + ") \n        ORDER BY +rowid\n      }")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-novar {\n        SELECT rowid FROM t3 WHERE (a, b, c) " + "set op" + " (" + a + ", " + b + ", " + c + ") \n        ORDER BY +rowid\n      }")
-						}
+				{      // "3.1." + tn + "." + w + "." + op
+					r = db.Query("SELECT rowid FROM t3 WHERE (a, b, c) " + op + " (" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ") \n        ORDER BY +rowid")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t3 WHERE (a, b, c) "+op+" ("+sqlLiteral(a)+", "+sqlLiteral(b)+", "+sqlLiteral(c)+") \n        ORDER BY +rowid")
+						return
 					}
-					{ // "3.1." + tn + "." + w + "." + op + ".subselect"
-						_res = db.Exec("-novar {\n        SELECT rowid FROM t3 WHERE (a, b, c) " + "set op" + " (\n          SELECT a, b, c FROM t3 WHERE w = " + w + "\n        )\n        ORDER BY +rowid\n      }")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-novar {\n        SELECT rowid FROM t3 WHERE (a, b, c) " + "set op" + " (\n          SELECT a, b, c FROM t3 WHERE w = " + w + "\n        )\n        ORDER BY +rowid\n      }")
-						}
+					got := flatten(r)
+					_want5 := db.Query("\n        SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid\n      ")
+					if _want5.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want5.Error, "\n        SELECT rowid FROM t3 WHERE w "+op+" "+sqlLiteral(w)+" ORDER BY +rowid\n      ")
+						return
+					}
+					want := flatten(_want5)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "3.1." + tn + "." + w + "." + op + ".subselect"
+					r = db.Query("SELECT rowid FROM t3 WHERE (a, b, c) " + op + " (\n          SELECT a, b, c FROM t3 WHERE w = " + sqlLiteral(w) + "\n        )\n        ORDER BY +rowid")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t3 WHERE (a, b, c) "+op+" (\n          SELECT a, b, c FROM t3 WHERE w = "+sqlLiteral(w)+"\n        )\n        ORDER BY +rowid")
+						return
+					}
+					got := flatten(r)
+					_want6 := db.Query("\n        SELECT rowid FROM t3 WHERE w " + op + " " + sqlLiteral(w) + " ORDER BY +rowid\n      ")
+					if _want6.Error != nil {
+						t.Errorf("expected query error: %v\n  sql: %s", _want6.Error, "\n        SELECT rowid FROM t3 WHERE w "+op+" "+sqlLiteral(w)+" ORDER BY +rowid\n      ")
+						return
+					}
+					want := flatten(_want6)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 			}
 		}
-		{ // "4.0"
-			_res = db.Exec("\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(NULL, NULL, NULL);\n  INSERT INTO t4 VALUES(NULL, NULL, 0);\n  INSERT INTO t4 VALUES(NULL, NULL, 1);\n  INSERT INTO t4 VALUES(NULL,    0, NULL);\n  INSERT INTO t4 VALUES(NULL,    0, 0);\n  INSERT INTO t4 VALUES(NULL,    0, 1);\n  INSERT INTO t4 VALUES(NULL,    1, NULL);\n  INSERT INTO t4 VALUES(NULL,    1, 0);\n  INSERT INTO t4 VALUES(NULL,    1, 1);\n\n  INSERT INTO t4 VALUES(   0, NULL, NULL);\n  INSERT INTO t4 VALUES(   0, NULL, 0);\n  INSERT INTO t4 VALUES(   0, NULL, 1);\n  INSERT INTO t4 VALUES(   0,    0, NULL);\n  INSERT INTO t4 VALUES(   0,    0, 0);\n  INSERT INTO t4 VALUES(   0,    0, 1);\n  INSERT INTO t4 VALUES(   0,    1, NULL);\n  INSERT INTO t4 VALUES(   0,    1, 0);\n  INSERT INTO t4 VALUES(   0,    1, 1);\n\n  INSERT INTO t4 VALUES(   1, NULL, NULL);\n  INSERT INTO t4 VALUES(   1, NULL, 0);\n  INSERT INTO t4 VALUES(   1, NULL, 1);\n  INSERT INTO t4 VALUES(   1,    0, NULL);\n  INSERT INTO t4 VALUES(   1,    0, 0);\n  INSERT INTO t4 VALUES(   1,    0, 1);\n  INSERT INTO t4 VALUES(   1,    1, NULL);\n  INSERT INTO t4 VALUES(   1,    1, 0);\n  INSERT INTO t4 VALUES(   1,    1, 1);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(NULL, NULL, NULL);\n  INSERT INTO t4 VALUES(NULL, NULL, 0);\n  INSERT INTO t4 VALUES(NULL, NULL, 1);\n  INSERT INTO t4 VALUES(NULL,    0, NULL);\n  INSERT INTO t4 VALUES(NULL,    0, 0);\n  INSERT INTO t4 VALUES(NULL,    0, 1);\n  INSERT INTO t4 VALUES(NULL,    1, NULL);\n  INSERT INTO t4 VALUES(NULL,    1, 0);\n  INSERT INTO t4 VALUES(NULL,    1, 1);\n\n  INSERT INTO t4 VALUES(   0, NULL, NULL);\n  INSERT INTO t4 VALUES(   0, NULL, 0);\n  INSERT INTO t4 VALUES(   0, NULL, 1);\n  INSERT INTO t4 VALUES(   0,    0, NULL);\n  INSERT INTO t4 VALUES(   0,    0, 0);\n  INSERT INTO t4 VALUES(   0,    0, 1);\n  INSERT INTO t4 VALUES(   0,    1, NULL);\n  INSERT INTO t4 VALUES(   0,    1, 0);\n  INSERT INTO t4 VALUES(   0,    1, 1);\n\n  INSERT INTO t4 VALUES(   1, NULL, NULL);\n  INSERT INTO t4 VALUES(   1, NULL, 0);\n  INSERT INTO t4 VALUES(   1, NULL, 1);\n  INSERT INTO t4 VALUES(   1,    0, NULL);\n  INSERT INTO t4 VALUES(   1,    0, 0);\n  INSERT INTO t4 VALUES(   1,    0, 1);\n  INSERT INTO t4 VALUES(   1,    1, NULL);\n  INSERT INTO t4 VALUES(   1,    1, 0);\n  INSERT INTO t4 VALUES(   1,    1, 1);\n")
+	}
+	{ // "4.0"
+		_res = db.Exec("\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(NULL, NULL, NULL);\n  INSERT INTO t4 VALUES(NULL, NULL, 0);\n  INSERT INTO t4 VALUES(NULL, NULL, 1);\n  INSERT INTO t4 VALUES(NULL,    0, NULL);\n  INSERT INTO t4 VALUES(NULL,    0, 0);\n  INSERT INTO t4 VALUES(NULL,    0, 1);\n  INSERT INTO t4 VALUES(NULL,    1, NULL);\n  INSERT INTO t4 VALUES(NULL,    1, 0);\n  INSERT INTO t4 VALUES(NULL,    1, 1);\n\n  INSERT INTO t4 VALUES(   0, NULL, NULL);\n  INSERT INTO t4 VALUES(   0, NULL, 0);\n  INSERT INTO t4 VALUES(   0, NULL, 1);\n  INSERT INTO t4 VALUES(   0,    0, NULL);\n  INSERT INTO t4 VALUES(   0,    0, 0);\n  INSERT INTO t4 VALUES(   0,    0, 1);\n  INSERT INTO t4 VALUES(   0,    1, NULL);\n  INSERT INTO t4 VALUES(   0,    1, 0);\n  INSERT INTO t4 VALUES(   0,    1, 1);\n\n  INSERT INTO t4 VALUES(   1, NULL, NULL);\n  INSERT INTO t4 VALUES(   1, NULL, 0);\n  INSERT INTO t4 VALUES(   1, NULL, 1);\n  INSERT INTO t4 VALUES(   1,    0, NULL);\n  INSERT INTO t4 VALUES(   1,    0, 0);\n  INSERT INTO t4 VALUES(   1,    0, 1);\n  INSERT INTO t4 VALUES(   1,    1, NULL);\n  INSERT INTO t4 VALUES(   1,    1, 0);\n  INSERT INTO t4 VALUES(   1,    1, 1);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(NULL, NULL, NULL);\n  INSERT INTO t4 VALUES(NULL, NULL, 0);\n  INSERT INTO t4 VALUES(NULL, NULL, 1);\n  INSERT INTO t4 VALUES(NULL,    0, NULL);\n  INSERT INTO t4 VALUES(NULL,    0, 0);\n  INSERT INTO t4 VALUES(NULL,    0, 1);\n  INSERT INTO t4 VALUES(NULL,    1, NULL);\n  INSERT INTO t4 VALUES(NULL,    1, 0);\n  INSERT INTO t4 VALUES(NULL,    1, 1);\n\n  INSERT INTO t4 VALUES(   0, NULL, NULL);\n  INSERT INTO t4 VALUES(   0, NULL, 0);\n  INSERT INTO t4 VALUES(   0, NULL, 1);\n  INSERT INTO t4 VALUES(   0,    0, NULL);\n  INSERT INTO t4 VALUES(   0,    0, 0);\n  INSERT INTO t4 VALUES(   0,    0, 1);\n  INSERT INTO t4 VALUES(   0,    1, NULL);\n  INSERT INTO t4 VALUES(   0,    1, 0);\n  INSERT INTO t4 VALUES(   0,    1, 1);\n\n  INSERT INTO t4 VALUES(   1, NULL, NULL);\n  INSERT INTO t4 VALUES(   1, NULL, 0);\n  INSERT INTO t4 VALUES(   1, NULL, 1);\n  INSERT INTO t4 VALUES(   1,    0, NULL);\n  INSERT INTO t4 VALUES(   1,    0, 0);\n  INSERT INTO t4 VALUES(   1,    0, 1);\n  INSERT INTO t4 VALUES(   1,    1, NULL);\n  INSERT INTO t4 VALUES(   1,    1, 0);\n  INSERT INTO t4 VALUES(   1,    1, 1);\n")
+		}
+	}
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// proc definition (not transpiled)
+	// foreach {tn idx} "IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }"
+	_items7 := tclSplitList("IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }")
+	for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
+		tn := _items7[_idx7+0]
+		_ = tn // suppress unused warning
+		idx := _items7[_idx7+1]
+		_ = idx // suppress unused warning
+		_ = _idx7
+		_res = db.Exec(" DROP INDEX IF EXISTS i4 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i4 ")
+		}
+		_res = db.Exec(idx)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+		}
+		// foreach {tn2 vector} "1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}"
+		_items8 := tclSplitList("1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}")
+		for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
+			tn2 := _items8[_idx8+0]
+			_ = tn2 // suppress unused warning
+			vector := _items8[_idx8+1]
+			_ = vector // suppress unused warning
+			_ = _idx8
+			for _, op := range tclSplitList("IS == < <= > >=") {
+				_ = op // suppress unused warning
+				e1 = "make_expr1 {a b c} $vector $op"
+				_ = e1 // suppress unused warning
+				e2 = "make_expr2 {a b c} $vector $op"
+				_ = e2 // suppress unused warning
+				{      // "4." + tn + "." + tn2 + "." + op
+					r = db.Query("SELECT rowid FROM t4 WHERE " + e2 + " ORDER BY +rowid")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE "+e2+" ORDER BY +rowid")
+						return
+					}
+					got := flatten(r)
+					want := "db eval \"SELECT rowid FROM t4 WHERE $e1 ORDER BY +rowid\""
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 			}
 		}
-		// proc definition (not transpiled)
-		// proc definition (not transpiled)
-		// proc definition (not transpiled)
-		// foreach {tn idx} "IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }"
-		_items5 := tclSplitList("IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }")
-		for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
-			tn := _items5[_idx5+0]
-			_ = tn // suppress unused warning
-			idx := _items5[_idx5+1]
-			_ = idx // suppress unused warning
-			_ = _idx5
-				_res = db.Exec(" DROP INDEX IF EXISTS i4 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i4 ")
+	}
+	{ // "5.0"
+		_res = db.Exec("\n  CREATE TABLE r1(a TEXT, iB TEXT);\n  CREATE TABLE r2(x TEXT, zY INTEGER);\n  CREATE INDEX r1ab ON r1(a, iB);\n\n  INSERT INTO r1 VALUES(35, 35);\n  INSERT INTO r2 VALUES(35, 36);\n  INSERT INTO r2 VALUES(35, 4);\n  INSERT INTO r2 VALUES(35, 35);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE r1(a TEXT, iB TEXT);\n  CREATE TABLE r2(x TEXT, zY INTEGER);\n  CREATE INDEX r1ab ON r1(a, iB);\n\n  INSERT INTO r1 VALUES(35, 35);\n  INSERT INTO r2 VALUES(35, 36);\n  INSERT INTO r2 VALUES(35, 4);\n  INSERT INTO r2 VALUES(35, 35);\n")
+		}
+	}
+	// foreach {tn lhs rhs} "1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}"
+	_items9 := tclSplitList("1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}")
+	for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
+		tn := _items9[_idx9+0]
+		_ = tn // suppress unused warning
+		lhs := _items9[_idx9+1]
+		_ = lhs // suppress unused warning
+		rhs := _items9[_idx9+2]
+		_ = rhs // suppress unused warning
+		_ = _idx9
+		for _, op := range tclSplitList("IS == < <= > >=") {
+			_ = op // suppress unused warning
+			e1 = "make_expr1 $lhs $rhs $op"
+			_ = e1 // suppress unused warning
+			e2 = "make_expr2 $lhs $rhs $op"
+			_ = e2 // suppress unused warning
+			{      // "5." + tn + "." + op
+				r = db.Query("SELECT * FROM r1, r2 WHERE " + e2 + " ORDER BY iB")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM r1, r2 WHERE "+e2+" ORDER BY iB")
+					return
 				}
-				_res = db.Exec(idx)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+				got := flatten(r)
+				_want10 := db.Query("\\\n      \"SELECT * FROM r1, r2 WHERE " + sqlLiteral(e1) + " ORDER BY iB\"")
+				if _want10.Error != nil {
+					t.Errorf("expected query error: %v\n  sql: %s", _want10.Error, "\\\n      \"SELECT * FROM r1, r2 WHERE "+sqlLiteral(e1)+" ORDER BY iB\"")
+					return
 				}
-				// foreach {tn2 vector} "1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}"
-				_items6 := tclSplitList("1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}")
-				for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
-					tn2 := _items6[_idx6+0]
-					_ = tn2 // suppress unused warning
-					vector := _items6[_idx6+1]
-					_ = vector // suppress unused warning
-					_ = _idx6
-						for _, op := range tclSplitList("IS == < <= > >=") {
-						_ = op // suppress unused warning
-							e1 = "make_expr1 {a b c} $vector $op"
-							_ = e1 // suppress unused warning
-							e2 = "make_expr2 {a b c} $vector $op"
-							_ = e2 // suppress unused warning
-							{ // "4." + tn + "." + tn2 + "." + op
-								r = db.Query("SELECT rowid FROM t4 WHERE " + e2 + " ORDER BY +rowid")
-								if r.Error != nil {
-									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t4 WHERE " + e2 + " ORDER BY +rowid")
-									return
-								}
-								got := flatten(r)
-								want := "db eval \"SELECT rowid FROM t4 WHERE $e1 ORDER BY +rowid\""
-								if got != want {
-									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-								}
-							}
-						}
-					}
+				want := flatten(_want10)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
-				{ // "5.0"
-					_res = db.Exec("\n  CREATE TABLE r1(a TEXT, iB TEXT);\n  CREATE TABLE r2(x TEXT, zY INTEGER);\n  CREATE INDEX r1ab ON r1(a, iB);\n\n  INSERT INTO r1 VALUES(35, 35);\n  INSERT INTO r2 VALUES(35, 36);\n  INSERT INTO r2 VALUES(35, 4);\n  INSERT INTO r2 VALUES(35, 35);\n")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE r1(a TEXT, iB TEXT);\n  CREATE TABLE r2(x TEXT, zY INTEGER);\n  CREATE INDEX r1ab ON r1(a, iB);\n\n  INSERT INTO r1 VALUES(35, 35);\n  INSERT INTO r2 VALUES(35, 36);\n  INSERT INTO r2 VALUES(35, 4);\n  INSERT INTO r2 VALUES(35, 35);\n")
-					}
-				}
-				// foreach {tn lhs rhs} "1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}"
-				_items7 := tclSplitList("1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}")
-				for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
-					tn := _items7[_idx7+0]
-					_ = tn // suppress unused warning
-					lhs := _items7[_idx7+1]
-					_ = lhs // suppress unused warning
-					rhs := _items7[_idx7+2]
-					_ = rhs // suppress unused warning
-					_ = _idx7
-						for _, op := range tclSplitList("IS == < <= > >=") {
-						_ = op // suppress unused warning
-							e1 = "make_expr1 $lhs $rhs $op"
-							_ = e1 // suppress unused warning
-							e2 = "make_expr2 $lhs $rhs $op"
-							_ = e2 // suppress unused warning
-							{ // "5." + tn + "." + op
-								r = db.Query("SELECT * FROM r1, r2 WHERE " + e2 + " ORDER BY iB")
-								if r.Error != nil {
-									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM r1, r2 WHERE " + e2 + " ORDER BY iB")
-									return
-								}
-								got := flatten(r)
-								_want8 := db.Query("\\\n      \"SELECT * FROM r1, r2 WHERE $e1 ORDER BY iB\"")
-								if _want8.Error != nil {
-									t.Errorf("expected query error: %v\n  sql: %s", _want8.Error, "\\\n      \"SELECT * FROM r1, r2 WHERE $e1 ORDER BY iB\"")
-									return
-								}
-								want := flatten(_want8)
-								if got != want {
-									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-								}
-							}
-						}
-					}
+			}
+		}
+	}
 }

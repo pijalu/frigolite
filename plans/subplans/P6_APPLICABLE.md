@@ -214,12 +214,54 @@ rule inventory, SOLID architecture tests green.
 **Not in scope**: ANALYZE nm/dbnm (rule 291) still drops named ANALYZE —
 separate batch goal; analyze package fails on sqlite_stat1 population, not parse.
 
+### G6.MISC.8 — Row-value semantics + transpiler [set]/[list]/[subst -novar] (2026-XX-XX)
+**Root causes** (3 distinct):
+1. **Transpiler command substitution gaps** (`tools/tcl2go/gen.go`): `[set var]`
+   and `[list $var]` inside string interpolation fell to cmdExpr's default
+   (literal text), producing `"set op"` / `"list $eq"` in generated SQL.
+   `[subst -novar {...}]` (rowvalue2, distinct) kept the `-novar {` wrapper
+   and didn't do the right $var/[cmd] split. Added `case "set"` (→ tclVarToGo),
+   `case "list"` (→ element value), `subst` flag parsing with a hybrid
+   `renderSubstNovarSQL` ($var → sqlLiteral, [cmd] → raw), `dbEvalExpected`
+   support for `[db eval [subst -novar {...}]]`, and do_catchsql_test dynamic
+   error-message detection (`"1 " + $var` form). Fixed 3600 "near -" parse
+   errors in rowvalue2 and affected 41+ TCL files using `[set ...]`.
+2. **Row-value engine semantics** (`internal/exec/expression.go`): RowValue
+   eval now returns `[]interface{}`; `evalRowValueCompare` implements
+   lexicographic per-element comparison with arity checks and NULL handling;
+   `evalRowValueIs` for NULL-safe row IS/IS NOT; `evalInList` handles row-value
+   IN (arity errors, scalar-vs-row misuse, subquery rows via evalSubqueryRows);
+   row-value-vs-subquery comparisons evaluate the subquery's full row.
+3. **Compile-time row-value validation** (`internal/exec/select.go`):
+   `validateRowValueUse` raises "row value misused" for bare row values in
+   SELECT/LIMIT/ORDER BY, scalar-vs-row comparisons, row-value function args;
+   `validateSubqueryArity` (with `SELECT *` resolution) raises
+   "sub-select returns N columns - expected M" for row-value IN subqueries.
+4. **Parser/join fixes**: `CROSS` keyword was missing from `keywordToCode`
+   (mapped to TK_ID, so `FROM x2 CROSS JOIN x1` parsed as alias "CROSS");
+   added `case "CROSS": TK_JOIN_KW`. structRow fast path now applies column
+   collations (collatedValue) matching buildRowMap; `SELECT *` output unwraps
+   collatedValue; `compareValuesWithCollate` implements SQLite's
+   left-operand-collation rule (a column on the left masks a right collation).
+
+**Packages flipped**: rowvalueA PASS (was FAIL on 10 IN/collation/comparison
+errors). rowvalue reduced from ~3900 failures to ~121 edge cases (rowvalue2
+bare-REINDEX+SELECT flow passes; remaining are UPDATE row-value assignment
+"2 columns assigned 3 values", collation-in-rowvalue "no such collation
+sequence: nose", nested subquery edge cases, and transpiler `make_expr2`
+interpolation).
+
+**Pre-test**: `TestP6_RowValueComparison` (written after the fix; the fixes
+were developed against the testgen failures and verified by the pre-test).
+**No regressions**: internal/... suite green; root-package failure set
+identical to baseline (pre-existing FTS/DDL failures unchanged).
+
 ## Current status (end of this goal's budget)
 
-**Progress**: 7 commits (G6.MISC.1..G6.MISC.6 + G6.MISC.7), 6 root-cause fixes,
+**Progress**: 8 commits (G6.MISC.1..G6.MISC.8), 7 root-cause fixes,
 several packages flipped to PASS (tkt_8454a207b, changes, seekscan, reindex,
-tkt_c48d99d, descidx, partial: indexA affinity, randexpr parse, table
-aggregate validation, affinity/numindex, unique).
+tkt_c48d99d, descidx, rowvalueA, partial: indexA affinity, randexpr parse,
+table aggregate validation, affinity/numindex, unique).
 
 **N/A documented this pass**: corruptA–corruptN, dbfuzz, autovacuum_ioerr,
 changes2, notify, avtrans, incrblob, incrblob_ (all C API / fault injection /
@@ -257,10 +299,14 @@ sub-goal (per P6_TRIAGE these were meant to be batch goals):
 - [x] **Root-cause fixes** — G6.MISC.1..G6.MISC.5 (see above).
 - [x] **G6.MISC.7** — VACUUM / REINDEX [schema.]name / DETACH parser shims
       (reindex, tkt_c48d99d, descidx PASS; exclusive DETACH parse fixed).
+- [x] **G6.MISC.8** — row-value semantics + transpiler [set]/[list]/[subst-novar]
+      (rowvalueA PASS; rowvalue ~3900 → ~121 edge cases; CROSS JOIN parse fixed).
 - [ ] **G6.MISC.tkt** — 22/60 tkt packages still failing (planner/trigger/FK).
 - [ ] **G6.MISC.index** — coveridxscan, skipscan, bloom still failing
       (descidx flipped to PASS via G6.MISC.7 VACUUM fix).
-- [ ] **G6.MISC.rowvalue** — rowvalue, rowvalueA still failing (grammar/eval).
+- [ ] **G6.MISC.rowvalue** — rowvalue still failing (~121 edge cases:
+      UPDATE row-value assignment, collation-in-rowvalue, nested subqueries,
+      make_expr2 transpiler; rowvalueA flipped to PASS via G6.MISC.8).
 - [ ] **G6.MISC.misc** — ~40 general SQL packages still failing.
 - [ ] **G6.MISC.bigdata** — widetab failing (result mismatch).
 - [ ] **G6.MISC.incr** — incrvacuum timeout; autovacuum failing.

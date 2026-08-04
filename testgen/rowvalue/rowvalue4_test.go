@@ -5,15 +5,17 @@
 package rowvalue
 
 import (
-"fmt"
-"github.com/pijalu/frigolite"
-"os"
-"strings"
-"testing"
+	"fmt"
+	"github.com/pijalu/frigolite"
+	"os"
+	"strings"
+	"testing"
 )
 
 func Test_rowvalue4(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	if err := os.Chdir(t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -23,9 +25,9 @@ func Test_rowvalue4(t *testing.T) {
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
-	_ = msg // suppress unused warning
-	_ = _res // suppress unused warning
-	_ = r    // suppress unused warning
+	_ = msg              // suppress unused warning
+	_ = _res             // suppress unused warning
+	_ = r                // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -72,8 +74,8 @@ func Test_rowvalue4(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "rowvalue4" // TCL namespace variable
-	_ = testprefix // suppress unused warning
-	{ // "1.0"
+	_ = testprefix           // suppress unused warning
+	{                        // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1bac ON t1(b, a, c);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1bac ON t1(b, a, c);\n")
@@ -87,234 +89,246 @@ func Test_rowvalue4(t *testing.T) {
 		e := _items0[_idx0+1]
 		_ = e // suppress unused warning
 		_ = _idx0
-			{ // "1." + tn
-				_res = db.Exec("SELECT " + e)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "SELECT " + e)
+		{ // "1." + tn
+			_res = db.Exec("SELECT " + e)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "SELECT "+e)
+			}
+		}
+	}
+	// foreach {tn s error} "1 \"SELECT * FROM t1 WHERE a = (1, 2)\"       {row value misused}\n  2 \"SELECT * FROM t1 WHERE b = (1, 2)\"       {row value misused}\n  3 \"SELECT * FROM t1 WHERE NOT (b = (1, 2))\" {row value misused}\n  4 \"SELECT * FROM t1 LIMIT (1, 2)\"           {row value misused}\n  5 \"SELECT (a, b) IN (SELECT * FROM t1) FROM t1\" \n                             {sub-select returns 3 columns - expected 2}\n\n  6 \"SELECT * FROM t1 WHERE (a, b) IN (SELECT * FROM t1)\" \n                             {sub-select returns 3 columns - expected 2}\n  7 \"SELECT * FROM t1 WHERE (c, c) <= 1\" {row value misused}\n  8 \"SELECT * FROM t1 WHERE (b, b) <= 1\" {row value misused}"
+	_items1 := tclSplitList("1 \"SELECT * FROM t1 WHERE a = (1, 2)\"       {row value misused}\n  2 \"SELECT * FROM t1 WHERE b = (1, 2)\"       {row value misused}\n  3 \"SELECT * FROM t1 WHERE NOT (b = (1, 2))\" {row value misused}\n  4 \"SELECT * FROM t1 LIMIT (1, 2)\"           {row value misused}\n  5 \"SELECT (a, b) IN (SELECT * FROM t1) FROM t1\" \n                             {sub-select returns 3 columns - expected 2}\n\n  6 \"SELECT * FROM t1 WHERE (a, b) IN (SELECT * FROM t1)\" \n                             {sub-select returns 3 columns - expected 2}\n  7 \"SELECT * FROM t1 WHERE (c, c) <= 1\" {row value misused}\n  8 \"SELECT * FROM t1 WHERE (b, b) <= 1\" {row value misused}")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
+		_ = tn // suppress unused warning
+		s := _items1[_idx1+1]
+		_ = s // suppress unused warning
+		_error := _items1[_idx1+2]
+		_ = _error // suppress unused warning
+		_ = _idx1
+		{ // "2." + tn
+			_res = db.Exec(s)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", _error, _res.Error, s)
+			}
+		}
+	}
+	{ // "2.0"
+		_res = db.Exec("\n  CREATE TABLE t2(a, b, c, d);\n  INSERT INTO t2 VALUES(1, 1, 1,   1);\n  INSERT INTO t2 VALUES(1, 1, 2,   2);\n  INSERT INTO t2 VALUES(1, 1, 3,   3);\n  INSERT INTO t2 VALUES(1, 2, 1,   4);\n  INSERT INTO t2 VALUES(1, 2, 2,   5);\n  INSERT INTO t2 VALUES(1, 2, 3,   6);\n  INSERT INTO t2 VALUES(1, 3, 1,   7);\n  INSERT INTO t2 VALUES(1, 3, 2,   8);\n  INSERT INTO t2 VALUES(1, 3, 3,   9);\n\n  INSERT INTO t2 VALUES(2, 1, 1,   10);\n  INSERT INTO t2 VALUES(2, 1, 2,   11);\n  INSERT INTO t2 VALUES(2, 1, 3,   12);\n  INSERT INTO t2 VALUES(2, 2, 1,   13);\n  INSERT INTO t2 VALUES(2, 2, 2,   14);\n  INSERT INTO t2 VALUES(2, 2, 3,   15);\n  INSERT INTO t2 VALUES(2, 3, 1,   16);\n  INSERT INTO t2 VALUES(2, 3, 2,   17);\n  INSERT INTO t2 VALUES(2, 3, 3,   18);\n\n  INSERT INTO t2 VALUES(3, 1, 1,   19);\n  INSERT INTO t2 VALUES(3, 1, 2,   20);\n  INSERT INTO t2 VALUES(3, 1, 3,   21);\n  INSERT INTO t2 VALUES(3, 2, 1,   22);\n  INSERT INTO t2 VALUES(3, 2, 2,   23);\n  INSERT INTO t2 VALUES(3, 2, 3,   24);\n  INSERT INTO t2 VALUES(3, 3, 1,   25);\n  INSERT INTO t2 VALUES(3, 3, 2,   26);\n  INSERT INTO t2 VALUES(3, 3, 3,   27);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c, d);\n  INSERT INTO t2 VALUES(1, 1, 1,   1);\n  INSERT INTO t2 VALUES(1, 1, 2,   2);\n  INSERT INTO t2 VALUES(1, 1, 3,   3);\n  INSERT INTO t2 VALUES(1, 2, 1,   4);\n  INSERT INTO t2 VALUES(1, 2, 2,   5);\n  INSERT INTO t2 VALUES(1, 2, 3,   6);\n  INSERT INTO t2 VALUES(1, 3, 1,   7);\n  INSERT INTO t2 VALUES(1, 3, 2,   8);\n  INSERT INTO t2 VALUES(1, 3, 3,   9);\n\n  INSERT INTO t2 VALUES(2, 1, 1,   10);\n  INSERT INTO t2 VALUES(2, 1, 2,   11);\n  INSERT INTO t2 VALUES(2, 1, 3,   12);\n  INSERT INTO t2 VALUES(2, 2, 1,   13);\n  INSERT INTO t2 VALUES(2, 2, 2,   14);\n  INSERT INTO t2 VALUES(2, 2, 3,   15);\n  INSERT INTO t2 VALUES(2, 3, 1,   16);\n  INSERT INTO t2 VALUES(2, 3, 2,   17);\n  INSERT INTO t2 VALUES(2, 3, 3,   18);\n\n  INSERT INTO t2 VALUES(3, 1, 1,   19);\n  INSERT INTO t2 VALUES(3, 1, 2,   20);\n  INSERT INTO t2 VALUES(3, 1, 3,   21);\n  INSERT INTO t2 VALUES(3, 2, 1,   22);\n  INSERT INTO t2 VALUES(3, 2, 2,   23);\n  INSERT INTO t2 VALUES(3, 2, 3,   24);\n  INSERT INTO t2 VALUES(3, 3, 1,   25);\n  INSERT INTO t2 VALUES(3, 3, 2,   26);\n  INSERT INTO t2 VALUES(3, 3, 3,   27);\n")
+		}
+	}
+	// foreach {nm idx} "idx1 {}\n  idx2 { CREATE INDEX t2abc ON t2(a, b, c); }\n  idx3 { CREATE INDEX t2abc ON t2(a, b DESC, c); }\n  idx4 { CREATE INDEX t2abc ON t2(a DESC, b DESC, c DESC); }\n  idx5 { CREATE INDEX t2abc ON t2(a ASC, b ASC, c ASC); }\n  idx6 { CREATE INDEX t2abc ON t2(a DESC, b, c); }\n  idx7 { CREATE INDEX t2abc ON t2(a DESC, b DESC) }\n  idx8 { CREATE INDEX t2abc ON t2(c, b, a); }\n  idx9 { CREATE INDEX t2d ON t2(d); }\n  idx10 { CREATE INDEX t2abc ON t2(a DESC, b, c DESC); }"
+	_items2 := tclSplitList("idx1 {}\n  idx2 { CREATE INDEX t2abc ON t2(a, b, c); }\n  idx3 { CREATE INDEX t2abc ON t2(a, b DESC, c); }\n  idx4 { CREATE INDEX t2abc ON t2(a DESC, b DESC, c DESC); }\n  idx5 { CREATE INDEX t2abc ON t2(a ASC, b ASC, c ASC); }\n  idx6 { CREATE INDEX t2abc ON t2(a DESC, b, c); }\n  idx7 { CREATE INDEX t2abc ON t2(a DESC, b DESC) }\n  idx8 { CREATE INDEX t2abc ON t2(c, b, a); }\n  idx9 { CREATE INDEX t2d ON t2(d); }\n  idx10 { CREATE INDEX t2abc ON t2(a DESC, b, c DESC); }")
+	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+		nm := _items2[_idx2+0]
+		_ = nm // suppress unused warning
+		idx := _items2[_idx2+1]
+		_ = idx // suppress unused warning
+		_ = _idx2
+		// drop_all_indexes (unsupported command, not transpiled)
+		_res = db.Exec(idx)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+		}
+		// foreach {tn where res} "1 \"(a, b, c) < (2, 2, 2)\"  {1 2 3 4 5 6 7 8 9 10 11 12 13}\n    2 \"(a, b, c) <= (2, 2, 2)\" {1 2 3 4 5 6 7 8 9 10 11 12 13 14}\n    3 \"(a, b, c) > (2, 2, 2)\"  {15 16 17 18 19 20 21 22 23 24 25 26 27}\n    4 \"(a, b, c) >= (2, 2, 2)\" {14 15 16 17 18 19 20 21 22 23 24 25 26 27}\n    5 \"(a, b, c) >= (2, 2, NULL)\" {16 17 18 19 20 21 22 23 24 25 26 27}\n    6 \"(a, b, c) <= (2, 2, NULL)\" {1 2 3 4 5 6 7 8 9 10 11 12}\n    7 \"(a, b, c) >= (2, NULL, NULL)\" {19 20 21 22 23 24 25 26 27}\n    8 \"(a, b, c) <= (2, NULL, NULL)\" {1 2 3 4 5 6 7 8 9}\n\n    9 \"(a, b, c) < (SELECT a, b, c FROM t2 WHERE d=14)\"  \n      {1 2 3 4 5 6 7 8 9 10 11 12 13}\n\n    10 \"(a, b, c) = (SELECT a, b, c FROM t2 WHERE d=14)\" 14\n\n    11 \"a = 2 AND (b, c) > (2, 2)\" {15 16 17 18}\n    12 \"a = 2 AND (b, c) < (3, 3) AND (b, c) > (1, 1)\" {11 12 13 14 15 16 17}"
+		_items3 := tclSplitList("1 \"(a, b, c) < (2, 2, 2)\"  {1 2 3 4 5 6 7 8 9 10 11 12 13}\n    2 \"(a, b, c) <= (2, 2, 2)\" {1 2 3 4 5 6 7 8 9 10 11 12 13 14}\n    3 \"(a, b, c) > (2, 2, 2)\"  {15 16 17 18 19 20 21 22 23 24 25 26 27}\n    4 \"(a, b, c) >= (2, 2, 2)\" {14 15 16 17 18 19 20 21 22 23 24 25 26 27}\n    5 \"(a, b, c) >= (2, 2, NULL)\" {16 17 18 19 20 21 22 23 24 25 26 27}\n    6 \"(a, b, c) <= (2, 2, NULL)\" {1 2 3 4 5 6 7 8 9 10 11 12}\n    7 \"(a, b, c) >= (2, NULL, NULL)\" {19 20 21 22 23 24 25 26 27}\n    8 \"(a, b, c) <= (2, NULL, NULL)\" {1 2 3 4 5 6 7 8 9}\n\n    9 \"(a, b, c) < (SELECT a, b, c FROM t2 WHERE d=14)\"  \n      {1 2 3 4 5 6 7 8 9 10 11 12 13}\n\n    10 \"(a, b, c) = (SELECT a, b, c FROM t2 WHERE d=14)\" 14\n\n    11 \"a = 2 AND (b, c) > (2, 2)\" {15 16 17 18}\n    12 \"a = 2 AND (b, c) < (3, 3) AND (b, c) > (1, 1)\" {11 12 13 14 15 16 17}")
+		for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+			tn := _items3[_idx3+0]
+			_ = tn // suppress unused warning
+			where := _items3[_idx3+1]
+			_ = where // suppress unused warning
+			res := _items3[_idx3+2]
+			_ = res // suppress unused warning
+			_ = _idx3
+			result = "db eval \"SELECT d FROM t2 WHERE $where\""
+			_ = result // suppress unused warning
+			{          // do_test "2.1." + nm + "." + tn
+				_ = tclSort("-integer") // lsort result
+			}
+		}
+		// foreach {tn e res} "1 \"(2, 1) IN (SELECT a, b FROM t2)\" 1\n    2 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d)\" 1\n    3 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 9)\" 0\n    4 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 10)\" 1\n\n    5 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d DESC LIMIT 1)\" 1\n    6 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" 0\n    7 \"(1, NULL) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" {{}}\n\n    8 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d DESC LIMIT 1 OFFSET 2)\" 1\n    9 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" 0\n    10 \"(1, NULL) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" {{}}\n\n    11 \"(3, 3) = (SELECT max(a), max(b) FROM t2)\" 1\n    12 \"(3, 1) = (SELECT max(a), min(b) FROM t2)\" 1\n    13 \"(NULL, NULL) = (SELECT max(a), min(b) FROM t2)\" {{}}\n\n    14 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 11)\" 1\n    15 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 12)\" 0"
+		_items4 := tclSplitList("1 \"(2, 1) IN (SELECT a, b FROM t2)\" 1\n    2 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d)\" 1\n    3 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 9)\" 0\n    4 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 10)\" 1\n\n    5 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d DESC LIMIT 1)\" 1\n    6 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" 0\n    7 \"(1, NULL) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" {{}}\n\n    8 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d DESC LIMIT 1 OFFSET 2)\" 1\n    9 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" 0\n    10 \"(1, NULL) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" {{}}\n\n    11 \"(3, 3) = (SELECT max(a), max(b) FROM t2)\" 1\n    12 \"(3, 1) = (SELECT max(a), min(b) FROM t2)\" 1\n    13 \"(NULL, NULL) = (SELECT max(a), min(b) FROM t2)\" {{}}\n\n    14 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 11)\" 1\n    15 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 12)\" 0")
+		for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+			tn := _items4[_idx4+0]
+			_ = tn // suppress unused warning
+			e := _items4[_idx4+1]
+			_ = e // suppress unused warning
+			res := _items4[_idx4+2]
+			_ = res // suppress unused warning
+			_ = _idx4
+			{ // "2.2." + nm + "." + tn
+				r = db.Query("SELECT " + e)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT "+e)
+					return
+				}
+				got := flatten(r)
+				want := res
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}
-		// foreach {tn s error} "1 \"SELECT * FROM t1 WHERE a = (1, 2)\"       {row value misused}\n  2 \"SELECT * FROM t1 WHERE b = (1, 2)\"       {row value misused}\n  3 \"SELECT * FROM t1 WHERE NOT (b = (1, 2))\" {row value misused}\n  4 \"SELECT * FROM t1 LIMIT (1, 2)\"           {row value misused}\n  5 \"SELECT (a, b) IN (SELECT * FROM t1) FROM t1\" \n                             {sub-select returns 3 columns - expected 2}\n\n  6 \"SELECT * FROM t1 WHERE (a, b) IN (SELECT * FROM t1)\" \n                             {sub-select returns 3 columns - expected 2}\n  7 \"SELECT * FROM t1 WHERE (c, c) <= 1\" {row value misused}\n  8 \"SELECT * FROM t1 WHERE (b, b) <= 1\" {row value misused}"
-		_items1 := tclSplitList("1 \"SELECT * FROM t1 WHERE a = (1, 2)\"       {row value misused}\n  2 \"SELECT * FROM t1 WHERE b = (1, 2)\"       {row value misused}\n  3 \"SELECT * FROM t1 WHERE NOT (b = (1, 2))\" {row value misused}\n  4 \"SELECT * FROM t1 LIMIT (1, 2)\"           {row value misused}\n  5 \"SELECT (a, b) IN (SELECT * FROM t1) FROM t1\" \n                             {sub-select returns 3 columns - expected 2}\n\n  6 \"SELECT * FROM t1 WHERE (a, b) IN (SELECT * FROM t1)\" \n                             {sub-select returns 3 columns - expected 2}\n  7 \"SELECT * FROM t1 WHERE (c, c) <= 1\" {row value misused}\n  8 \"SELECT * FROM t1 WHERE (b, b) <= 1\" {row value misused}")
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			tn := _items1[_idx1+0]
-			_ = tn // suppress unused warning
-			s := _items1[_idx1+1]
-			_ = s // suppress unused warning
-			_error := _items1[_idx1+2]
-			_ = _error // suppress unused warning
-			_ = _idx1
-				{ // "2." + tn
-					_res = db.Exec(s)
-					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, s)
-					}
+	}
+	{ // "3.0"
+		_res = db.Exec("\n    CREATE TABLE c1(a, b, c, d);\n    INSERT INTO c1(a, b) VALUES(1, 'a');\n    INSERT INTO c1(a, b) VALUES(1, 'b');\n    INSERT INTO c1(a, b) VALUES(1, 'c');\n    INSERT INTO c1(a, b) VALUES(1, 'd');\n    INSERT INTO c1(a, b) VALUES(1, 'e');\n    INSERT INTO c1(a, b) VALUES(1, 'f');\n    INSERT INTO c1(a, b) VALUES(1, 'g');\n    INSERT INTO c1(a, b) VALUES(1, 'h');\n    INSERT INTO c1(a, b) VALUES(1, 'i');\n    INSERT INTO c1(a, b) VALUES(1, 'j');\n    INSERT INTO c1(a, b) VALUES(1, 'k');\n    INSERT INTO c1(a, b) VALUES(1, 'l');\n    INSERT INTO c1(a, b) VALUES(1, 'm');\n    INSERT INTO c1(a, b) VALUES(1, 'n');\n    INSERT INTO c1(a, b) VALUES(1, 'o');\n    INSERT INTO c1(a, b) VALUES(1, 'p');\n    INSERT INTO c1(a, b) VALUES(2, 'a');\n    INSERT INTO c1(a, b) VALUES(2, 'b');\n    INSERT INTO c1(a, b) VALUES(2, 'c');\n    INSERT INTO c1(a, b) VALUES(2, 'd');\n    INSERT INTO c1(a, b) VALUES(2, 'e');\n    INSERT INTO c1(a, b) VALUES(2, 'f');\n    INSERT INTO c1(a, b) VALUES(2, 'g');\n    INSERT INTO c1(a, b) VALUES(2, 'h');\n\n    INSERT INTO c1(c, d) SELECT a, b FROM c1;\n\n    CREATE INDEX c1ab ON c1(a, b);\n    CREATE INDEX c1cd ON c1(c, d);\n    ANALYZE;\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE c1(a, b, c, d);\n    INSERT INTO c1(a, b) VALUES(1, 'a');\n    INSERT INTO c1(a, b) VALUES(1, 'b');\n    INSERT INTO c1(a, b) VALUES(1, 'c');\n    INSERT INTO c1(a, b) VALUES(1, 'd');\n    INSERT INTO c1(a, b) VALUES(1, 'e');\n    INSERT INTO c1(a, b) VALUES(1, 'f');\n    INSERT INTO c1(a, b) VALUES(1, 'g');\n    INSERT INTO c1(a, b) VALUES(1, 'h');\n    INSERT INTO c1(a, b) VALUES(1, 'i');\n    INSERT INTO c1(a, b) VALUES(1, 'j');\n    INSERT INTO c1(a, b) VALUES(1, 'k');\n    INSERT INTO c1(a, b) VALUES(1, 'l');\n    INSERT INTO c1(a, b) VALUES(1, 'm');\n    INSERT INTO c1(a, b) VALUES(1, 'n');\n    INSERT INTO c1(a, b) VALUES(1, 'o');\n    INSERT INTO c1(a, b) VALUES(1, 'p');\n    INSERT INTO c1(a, b) VALUES(2, 'a');\n    INSERT INTO c1(a, b) VALUES(2, 'b');\n    INSERT INTO c1(a, b) VALUES(2, 'c');\n    INSERT INTO c1(a, b) VALUES(2, 'd');\n    INSERT INTO c1(a, b) VALUES(2, 'e');\n    INSERT INTO c1(a, b) VALUES(2, 'f');\n    INSERT INTO c1(a, b) VALUES(2, 'g');\n    INSERT INTO c1(a, b) VALUES(2, 'h');\n\n    INSERT INTO c1(c, d) SELECT a, b FROM c1;\n\n    CREATE INDEX c1ab ON c1(a, b);\n    CREATE INDEX c1cd ON c1(c, d);\n    ANALYZE;\n  ")
+		}
+	}
+	{ // "3.1.1"
+		r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c=2 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c=2 ")
+		}
+	}
+	{ // "3.1.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND b>'d' AND c=2 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND b>'d' AND c=2 ")
+		}
+	}
+	{ // "3.1.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND b>'l' AND c=2 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND b>'l' AND c=2 ")
+		}
+	}
+	{ // "3.2.1"
+		r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c>1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c>1 ")
+		}
+	}
+	{ // "3.2.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c>0 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c>0 ")
+		}
+	}
+	{ // "3.2.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c>=1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c>=1 ")
+		}
+	}
+	{ // "3.2.4"
+		r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'c') ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'c') ")
+		}
+	}
+	{ // "3.2.5"
+		r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'o') ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'o') ")
+		}
+	}
+	{ // "3.2.6"
+		r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND (c, +b)>(1, 'c') ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND (c, +b)>(1, 'c') ")
+		}
+	}
+	{ // "5.0"
+		r = db.Query("\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
+		}
+	}
+	{ // "5.1"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM d2 WHERE \n    (a, b) IN (SELECT x, y FROM d1) AND\n    (c) IN (SELECT y FROM d1)\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM d2 WHERE \n    (a, b) IN (SELECT x, y FROM d1) AND\n    (c) IN (SELECT y FROM d1)\n")
+		}
+	}
+	{ // "6.0"
+		_res = db.Exec("\n  CREATE TABLE e1(a, b, c, d, e);\n  CREATE INDEX e1ab ON e1(a, b);\n  CREATE INDEX e1cde ON e1(c, d, e);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE e1(a, b, c, d, e);\n  CREATE INDEX e1ab ON e1(a, b);\n  CREATE INDEX e1cde ON e1(c, d, e);\n")
+		}
+	}
+	{ // "6.1"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE (a, b) > (?, ?)\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE (a, b) > (?, ?)\n")
+		}
+	}
+	{ // "6.2"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE (a, b) < (?, ?)\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE (a, b) < (?, ?)\n")
+		}
+	}
+	{ // "6.3"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE c = ? AND (d, e) > (?, ?)\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE c = ? AND (d, e) > (?, ?)\n")
+		}
+	}
+	{ // "6.4"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE c = ? AND (d, e) < (?, ?)\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE c = ? AND (d, e) < (?, ?)\n")
+		}
+	}
+	{ // "6.5"
+		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE (d, e) BETWEEN (?, ?) AND (?, ?) AND c = ?\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE (d, e) BETWEEN (?, ?) AND (?, ?) AND c = ?\n")
+		}
+	}
+	{ // "7.1"
+		_res = db.Exec("\n  CREATE TABLE f1(a, b, c);\n  CREATE INDEX f1ab ON f1(a, b);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE f1(a, b, c);\n  CREATE INDEX f1ab ON f1(a, b);\n")
+		}
+	}
+	{ // "7.2"
+		_res = db.Exec("\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
+		}
+	}
+	{ // "7.3"
+		_res = db.Exec("\n  SELECT (a COLLATE nose, b) IN (SELECT a, b FROM f1) FROM f1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: nose") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", _res.Error, "\n  SELECT (a COLLATE nose, b) IN (SELECT a, b FROM f1) FROM f1;\n")
+		}
+	}
+	{ // "7.4"
+		_res = db.Exec("\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: nose") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", _res.Error, "\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
+	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
+		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
+	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
 				}
 			}
-			{ // "2.0"
-				_res = db.Exec("\n  CREATE TABLE t2(a, b, c, d);\n  INSERT INTO t2 VALUES(1, 1, 1,   1);\n  INSERT INTO t2 VALUES(1, 1, 2,   2);\n  INSERT INTO t2 VALUES(1, 1, 3,   3);\n  INSERT INTO t2 VALUES(1, 2, 1,   4);\n  INSERT INTO t2 VALUES(1, 2, 2,   5);\n  INSERT INTO t2 VALUES(1, 2, 3,   6);\n  INSERT INTO t2 VALUES(1, 3, 1,   7);\n  INSERT INTO t2 VALUES(1, 3, 2,   8);\n  INSERT INTO t2 VALUES(1, 3, 3,   9);\n\n  INSERT INTO t2 VALUES(2, 1, 1,   10);\n  INSERT INTO t2 VALUES(2, 1, 2,   11);\n  INSERT INTO t2 VALUES(2, 1, 3,   12);\n  INSERT INTO t2 VALUES(2, 2, 1,   13);\n  INSERT INTO t2 VALUES(2, 2, 2,   14);\n  INSERT INTO t2 VALUES(2, 2, 3,   15);\n  INSERT INTO t2 VALUES(2, 3, 1,   16);\n  INSERT INTO t2 VALUES(2, 3, 2,   17);\n  INSERT INTO t2 VALUES(2, 3, 3,   18);\n\n  INSERT INTO t2 VALUES(3, 1, 1,   19);\n  INSERT INTO t2 VALUES(3, 1, 2,   20);\n  INSERT INTO t2 VALUES(3, 1, 3,   21);\n  INSERT INTO t2 VALUES(3, 2, 1,   22);\n  INSERT INTO t2 VALUES(3, 2, 2,   23);\n  INSERT INTO t2 VALUES(3, 2, 3,   24);\n  INSERT INTO t2 VALUES(3, 3, 1,   25);\n  INSERT INTO t2 VALUES(3, 3, 2,   26);\n  INSERT INTO t2 VALUES(3, 3, 3,   27);\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c, d);\n  INSERT INTO t2 VALUES(1, 1, 1,   1);\n  INSERT INTO t2 VALUES(1, 1, 2,   2);\n  INSERT INTO t2 VALUES(1, 1, 3,   3);\n  INSERT INTO t2 VALUES(1, 2, 1,   4);\n  INSERT INTO t2 VALUES(1, 2, 2,   5);\n  INSERT INTO t2 VALUES(1, 2, 3,   6);\n  INSERT INTO t2 VALUES(1, 3, 1,   7);\n  INSERT INTO t2 VALUES(1, 3, 2,   8);\n  INSERT INTO t2 VALUES(1, 3, 3,   9);\n\n  INSERT INTO t2 VALUES(2, 1, 1,   10);\n  INSERT INTO t2 VALUES(2, 1, 2,   11);\n  INSERT INTO t2 VALUES(2, 1, 3,   12);\n  INSERT INTO t2 VALUES(2, 2, 1,   13);\n  INSERT INTO t2 VALUES(2, 2, 2,   14);\n  INSERT INTO t2 VALUES(2, 2, 3,   15);\n  INSERT INTO t2 VALUES(2, 3, 1,   16);\n  INSERT INTO t2 VALUES(2, 3, 2,   17);\n  INSERT INTO t2 VALUES(2, 3, 3,   18);\n\n  INSERT INTO t2 VALUES(3, 1, 1,   19);\n  INSERT INTO t2 VALUES(3, 1, 2,   20);\n  INSERT INTO t2 VALUES(3, 1, 3,   21);\n  INSERT INTO t2 VALUES(3, 2, 1,   22);\n  INSERT INTO t2 VALUES(3, 2, 2,   23);\n  INSERT INTO t2 VALUES(3, 2, 3,   24);\n  INSERT INTO t2 VALUES(3, 3, 1,   25);\n  INSERT INTO t2 VALUES(3, 3, 2,   26);\n  INSERT INTO t2 VALUES(3, 3, 3,   27);\n")
-				}
-			}
-			// foreach {nm idx} "idx1 {}\n  idx2 { CREATE INDEX t2abc ON t2(a, b, c); }\n  idx3 { CREATE INDEX t2abc ON t2(a, b DESC, c); }\n  idx4 { CREATE INDEX t2abc ON t2(a DESC, b DESC, c DESC); }\n  idx5 { CREATE INDEX t2abc ON t2(a ASC, b ASC, c ASC); }\n  idx6 { CREATE INDEX t2abc ON t2(a DESC, b, c); }\n  idx7 { CREATE INDEX t2abc ON t2(a DESC, b DESC) }\n  idx8 { CREATE INDEX t2abc ON t2(c, b, a); }\n  idx9 { CREATE INDEX t2d ON t2(d); }\n  idx10 { CREATE INDEX t2abc ON t2(a DESC, b, c DESC); }"
-			_items2 := tclSplitList("idx1 {}\n  idx2 { CREATE INDEX t2abc ON t2(a, b, c); }\n  idx3 { CREATE INDEX t2abc ON t2(a, b DESC, c); }\n  idx4 { CREATE INDEX t2abc ON t2(a DESC, b DESC, c DESC); }\n  idx5 { CREATE INDEX t2abc ON t2(a ASC, b ASC, c ASC); }\n  idx6 { CREATE INDEX t2abc ON t2(a DESC, b, c); }\n  idx7 { CREATE INDEX t2abc ON t2(a DESC, b DESC) }\n  idx8 { CREATE INDEX t2abc ON t2(c, b, a); }\n  idx9 { CREATE INDEX t2d ON t2(d); }\n  idx10 { CREATE INDEX t2abc ON t2(a DESC, b, c DESC); }")
-			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-				nm := _items2[_idx2+0]
-				_ = nm // suppress unused warning
-				idx := _items2[_idx2+1]
-				_ = idx // suppress unused warning
-				_ = _idx2
-					// drop_all_indexes (unsupported command, not transpiled)
-					_res = db.Exec(idx)
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
-					}
-					// foreach {tn where res} "1 \"(a, b, c) < (2, 2, 2)\"  {1 2 3 4 5 6 7 8 9 10 11 12 13}\n    2 \"(a, b, c) <= (2, 2, 2)\" {1 2 3 4 5 6 7 8 9 10 11 12 13 14}\n    3 \"(a, b, c) > (2, 2, 2)\"  {15 16 17 18 19 20 21 22 23 24 25 26 27}\n    4 \"(a, b, c) >= (2, 2, 2)\" {14 15 16 17 18 19 20 21 22 23 24 25 26 27}\n    5 \"(a, b, c) >= (2, 2, NULL)\" {16 17 18 19 20 21 22 23 24 25 26 27}\n    6 \"(a, b, c) <= (2, 2, NULL)\" {1 2 3 4 5 6 7 8 9 10 11 12}\n    7 \"(a, b, c) >= (2, NULL, NULL)\" {19 20 21 22 23 24 25 26 27}\n    8 \"(a, b, c) <= (2, NULL, NULL)\" {1 2 3 4 5 6 7 8 9}\n\n    9 \"(a, b, c) < (SELECT a, b, c FROM t2 WHERE d=14)\"  \n      {1 2 3 4 5 6 7 8 9 10 11 12 13}\n\n    10 \"(a, b, c) = (SELECT a, b, c FROM t2 WHERE d=14)\" 14\n\n    11 \"a = 2 AND (b, c) > (2, 2)\" {15 16 17 18}\n    12 \"a = 2 AND (b, c) < (3, 3) AND (b, c) > (1, 1)\" {11 12 13 14 15 16 17}"
-					_items3 := tclSplitList("1 \"(a, b, c) < (2, 2, 2)\"  {1 2 3 4 5 6 7 8 9 10 11 12 13}\n    2 \"(a, b, c) <= (2, 2, 2)\" {1 2 3 4 5 6 7 8 9 10 11 12 13 14}\n    3 \"(a, b, c) > (2, 2, 2)\"  {15 16 17 18 19 20 21 22 23 24 25 26 27}\n    4 \"(a, b, c) >= (2, 2, 2)\" {14 15 16 17 18 19 20 21 22 23 24 25 26 27}\n    5 \"(a, b, c) >= (2, 2, NULL)\" {16 17 18 19 20 21 22 23 24 25 26 27}\n    6 \"(a, b, c) <= (2, 2, NULL)\" {1 2 3 4 5 6 7 8 9 10 11 12}\n    7 \"(a, b, c) >= (2, NULL, NULL)\" {19 20 21 22 23 24 25 26 27}\n    8 \"(a, b, c) <= (2, NULL, NULL)\" {1 2 3 4 5 6 7 8 9}\n\n    9 \"(a, b, c) < (SELECT a, b, c FROM t2 WHERE d=14)\"  \n      {1 2 3 4 5 6 7 8 9 10 11 12 13}\n\n    10 \"(a, b, c) = (SELECT a, b, c FROM t2 WHERE d=14)\" 14\n\n    11 \"a = 2 AND (b, c) > (2, 2)\" {15 16 17 18}\n    12 \"a = 2 AND (b, c) < (3, 3) AND (b, c) > (1, 1)\" {11 12 13 14 15 16 17}")
-					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-						tn := _items3[_idx3+0]
-						_ = tn // suppress unused warning
-						where := _items3[_idx3+1]
-						_ = where // suppress unused warning
-						res := _items3[_idx3+2]
-						_ = res // suppress unused warning
-						_ = _idx3
-							result = "db eval \"SELECT d FROM t2 WHERE $where\""
-							_ = result // suppress unused warning
-							{ // do_test "2.1." + nm + "." + tn
-								_ = tclSort("-integer") // lsort result
-							}
-						}
-						// foreach {tn e res} "1 \"(2, 1) IN (SELECT a, b FROM t2)\" 1\n    2 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d)\" 1\n    3 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 9)\" 0\n    4 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 10)\" 1\n\n    5 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d DESC LIMIT 1)\" 1\n    6 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" 0\n    7 \"(1, NULL) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" {{}}\n\n    8 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d DESC LIMIT 1 OFFSET 2)\" 1\n    9 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" 0\n    10 \"(1, NULL) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" {{}}\n\n    11 \"(3, 3) = (SELECT max(a), max(b) FROM t2)\" 1\n    12 \"(3, 1) = (SELECT max(a), min(b) FROM t2)\" 1\n    13 \"(NULL, NULL) = (SELECT max(a), min(b) FROM t2)\" {{}}\n\n    14 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 11)\" 1\n    15 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 12)\" 0"
-						_items4 := tclSplitList("1 \"(2, 1) IN (SELECT a, b FROM t2)\" 1\n    2 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d)\" 1\n    3 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 9)\" 0\n    4 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 10)\" 1\n\n    5 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d DESC LIMIT 1)\" 1\n    6 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" 0\n    7 \"(1, NULL) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" {{}}\n\n    8 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d DESC LIMIT 1 OFFSET 2)\" 1\n    9 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" 0\n    10 \"(1, NULL) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" {{}}\n\n    11 \"(3, 3) = (SELECT max(a), max(b) FROM t2)\" 1\n    12 \"(3, 1) = (SELECT max(a), min(b) FROM t2)\" 1\n    13 \"(NULL, NULL) = (SELECT max(a), min(b) FROM t2)\" {{}}\n\n    14 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 11)\" 1\n    15 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 12)\" 0")
-						for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-							tn := _items4[_idx4+0]
-							_ = tn // suppress unused warning
-							e := _items4[_idx4+1]
-							_ = e // suppress unused warning
-							res := _items4[_idx4+2]
-							_ = res // suppress unused warning
-							_ = _idx4
-								{ // "2.2." + nm + "." + tn
-									r = db.Query("SELECT " + e)
-									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + e)
-										return
-									}
-									got := flatten(r)
-									want := res
-									if got != want {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-									}
-								}
-							}
-						}
-						{ // "3.0"
-							_res = db.Exec("\n    CREATE TABLE c1(a, b, c, d);\n    INSERT INTO c1(a, b) VALUES(1, 'a');\n    INSERT INTO c1(a, b) VALUES(1, 'b');\n    INSERT INTO c1(a, b) VALUES(1, 'c');\n    INSERT INTO c1(a, b) VALUES(1, 'd');\n    INSERT INTO c1(a, b) VALUES(1, 'e');\n    INSERT INTO c1(a, b) VALUES(1, 'f');\n    INSERT INTO c1(a, b) VALUES(1, 'g');\n    INSERT INTO c1(a, b) VALUES(1, 'h');\n    INSERT INTO c1(a, b) VALUES(1, 'i');\n    INSERT INTO c1(a, b) VALUES(1, 'j');\n    INSERT INTO c1(a, b) VALUES(1, 'k');\n    INSERT INTO c1(a, b) VALUES(1, 'l');\n    INSERT INTO c1(a, b) VALUES(1, 'm');\n    INSERT INTO c1(a, b) VALUES(1, 'n');\n    INSERT INTO c1(a, b) VALUES(1, 'o');\n    INSERT INTO c1(a, b) VALUES(1, 'p');\n    INSERT INTO c1(a, b) VALUES(2, 'a');\n    INSERT INTO c1(a, b) VALUES(2, 'b');\n    INSERT INTO c1(a, b) VALUES(2, 'c');\n    INSERT INTO c1(a, b) VALUES(2, 'd');\n    INSERT INTO c1(a, b) VALUES(2, 'e');\n    INSERT INTO c1(a, b) VALUES(2, 'f');\n    INSERT INTO c1(a, b) VALUES(2, 'g');\n    INSERT INTO c1(a, b) VALUES(2, 'h');\n\n    INSERT INTO c1(c, d) SELECT a, b FROM c1;\n\n    CREATE INDEX c1ab ON c1(a, b);\n    CREATE INDEX c1cd ON c1(c, d);\n    ANALYZE;\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE c1(a, b, c, d);\n    INSERT INTO c1(a, b) VALUES(1, 'a');\n    INSERT INTO c1(a, b) VALUES(1, 'b');\n    INSERT INTO c1(a, b) VALUES(1, 'c');\n    INSERT INTO c1(a, b) VALUES(1, 'd');\n    INSERT INTO c1(a, b) VALUES(1, 'e');\n    INSERT INTO c1(a, b) VALUES(1, 'f');\n    INSERT INTO c1(a, b) VALUES(1, 'g');\n    INSERT INTO c1(a, b) VALUES(1, 'h');\n    INSERT INTO c1(a, b) VALUES(1, 'i');\n    INSERT INTO c1(a, b) VALUES(1, 'j');\n    INSERT INTO c1(a, b) VALUES(1, 'k');\n    INSERT INTO c1(a, b) VALUES(1, 'l');\n    INSERT INTO c1(a, b) VALUES(1, 'm');\n    INSERT INTO c1(a, b) VALUES(1, 'n');\n    INSERT INTO c1(a, b) VALUES(1, 'o');\n    INSERT INTO c1(a, b) VALUES(1, 'p');\n    INSERT INTO c1(a, b) VALUES(2, 'a');\n    INSERT INTO c1(a, b) VALUES(2, 'b');\n    INSERT INTO c1(a, b) VALUES(2, 'c');\n    INSERT INTO c1(a, b) VALUES(2, 'd');\n    INSERT INTO c1(a, b) VALUES(2, 'e');\n    INSERT INTO c1(a, b) VALUES(2, 'f');\n    INSERT INTO c1(a, b) VALUES(2, 'g');\n    INSERT INTO c1(a, b) VALUES(2, 'h');\n\n    INSERT INTO c1(c, d) SELECT a, b FROM c1;\n\n    CREATE INDEX c1ab ON c1(a, b);\n    CREATE INDEX c1cd ON c1(c, d);\n    ANALYZE;\n  ")
-							}
-						}
-						{ // "3.1.1"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c=2 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c=2 ")
-							}
-						}
-						{ // "3.1.2"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND b>'d' AND c=2 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND b>'d' AND c=2 ")
-							}
-						}
-						{ // "3.1.3"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND b>'l' AND c=2 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND b>'l' AND c=2 ")
-							}
-						}
-						{ // "3.2.1"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c>1 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c>1 ")
-							}
-						}
-						{ // "3.2.2"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c>0 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c>0 ")
-							}
-						}
-						{ // "3.2.3"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND c>=1 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND c>=1 ")
-							}
-						}
-						{ // "3.2.4"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'c') ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'c') ")
-							}
-						}
-						{ // "3.2.5"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'o') ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND (c, d)>(1, 'o') ")
-							}
-						}
-						{ // "3.2.6"
-							r = db.Query("EXPLAIN QUERY PLAN " + " SELECT * FROM c1 WHERE a=1 AND (c, +b)>(1, 'c') ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+" SELECT * FROM c1 WHERE a=1 AND (c, +b)>(1, 'c') ")
-							}
-						}
-						{ // "5.0"
-							r = db.Query("\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE d1(x, y);\n  CREATE TABLE d2(a, b, c);\n  CREATE INDEX d2ab ON d2(a, b);\n  CREATE INDEX d2c ON d2(c);\n\n  WITH i(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM i WHERE i<1000\n  )\n  INSERT INTO d2 SELECT i/100, i%100, i/100 FROM i;\n  ANALYZE;\n")
-							}
-						}
-						{ // "5.1"
-							r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM d2 WHERE \n    (a, b) IN (SELECT x, y FROM d1) AND\n    (c) IN (SELECT y FROM d1)\n")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM d2 WHERE \n    (a, b) IN (SELECT x, y FROM d1) AND\n    (c) IN (SELECT y FROM d1)\n")
-							}
-						}
-						{ // "6.0"
-							_res = db.Exec("\n  CREATE TABLE e1(a, b, c, d, e);\n  CREATE INDEX e1ab ON e1(a, b);\n  CREATE INDEX e1cde ON e1(c, d, e);\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE e1(a, b, c, d, e);\n  CREATE INDEX e1ab ON e1(a, b);\n  CREATE INDEX e1cde ON e1(c, d, e);\n")
-							}
-						}
-						{ // "6.1"
-							r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE (a, b) > (?, ?)\n")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE (a, b) > (?, ?)\n")
-							}
-						}
-						{ // "6.2"
-							r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE (a, b) < (?, ?)\n")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE (a, b) < (?, ?)\n")
-							}
-						}
-						{ // "6.3"
-							r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE c = ? AND (d, e) > (?, ?)\n")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE c = ? AND (d, e) > (?, ?)\n")
-							}
-						}
-						{ // "6.4"
-							r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE c = ? AND (d, e) < (?, ?)\n")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE c = ? AND (d, e) < (?, ?)\n")
-							}
-						}
-						{ // "6.5"
-							r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM e1 WHERE (d, e) BETWEEN (?, ?) AND (?, ?) AND c = ?\n")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM e1 WHERE (d, e) BETWEEN (?, ?) AND (?, ?) AND c = ?\n")
-							}
-						}
-						{ // "7.1"
-							_res = db.Exec("\n  CREATE TABLE f1(a, b, c);\n  CREATE INDEX f1ab ON f1(a, b);\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE f1(a, b, c);\n  CREATE INDEX f1ab ON f1(a, b);\n")
-							}
-						}
-						{ // "7.2"
-							_res = db.Exec("\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
-							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT (a COLLATE nocase, b) IN (SELECT a, b FROM f1) FROM f1;\n")
-							}
-						}
-						{ // "7.3"
-							_res = db.Exec("\n  SELECT (a COLLATE nose, b) IN (SELECT a, b FROM f1) FROM f1;\n")
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: nose") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", _res.Error, "\n  SELECT (a COLLATE nose, b) IN (SELECT a, b FROM f1) FROM f1;\n")
-							}
-						}
-						{ // "7.4"
-							_res = db.Exec("\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: nose") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", _res.Error, "\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
-							}
-						}
-						for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
-							db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
-						}
-						{ // "8.1"
-							_res = db.Exec("\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
-							}
-						}
-						{ // "8.2"
-							_res = db.Exec("\n  SELECT * FROM c2 CROSS JOIN c3 WHERE \n    ( (a, b) == (SELECT x, y FROM c1) AND c3.d = c ) OR\n    ( c == (SELECT x, y FROM c1) AND c3.d = c )\n")
-							if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
-								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM c2 CROSS JOIN c3 WHERE \n    ( (a, b) == (SELECT x, y FROM c1) AND c3.d = c ) OR\n    ( c == (SELECT x, y FROM c1) AND c3.d = c )\n")
-							}
-						}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
+	{ // "8.1"
+		_res = db.Exec("\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
+		}
+	}
+	{ // "8.2"
+		_res = db.Exec("\n  SELECT * FROM c2 CROSS JOIN c3 WHERE \n    ( (a, b) == (SELECT x, y FROM c1) AND c3.d = c ) OR\n    ( c == (SELECT x, y FROM c1) AND c3.d = c )\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "row value misused") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "row value misused", _res.Error, "\n  SELECT * FROM c2 CROSS JOIN c3 WHERE \n    ( (a, b) == (SELECT x, y FROM c1) AND c3.d = c ) OR\n    ( c == (SELECT x, y FROM c1) AND c3.d = c )\n")
+		}
+	}
 }
