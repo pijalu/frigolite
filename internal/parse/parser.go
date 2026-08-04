@@ -1805,6 +1805,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		name := getString(getRHS(p, ruleNo, 4))
 		return &sql.DropIndexStmt{Name: name, IfExists: ifExists}
 
+	// Rule 249: cmd ::= VACUUM into_opt
+	// VACUUM with an optional INTO <file> clause (into_opt: empty, rule 252,
+	// or "INTO ids", rule 251). The exec handler is a no-op, so the INTO
+	// target is not retained.
+	case 249:
+		return &sql.VacuumStmt{}
+
 	// Rule 253: cmd ::= PRAGMA nm dbnm
 	case 253:
 		name := getString(getRHS(p, ruleNo, 2))
@@ -1948,7 +1955,6 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return &sql.DropTriggerStmt{Name: name, IfExists: ifExists}
 
 	// Rule 284: cmd ::= ATTACH database_kw_opt expr AS expr key_opt
-	// (also handles DETACH when the schema/expr arrangement matches).
 	case 284:
 		pathExpr := getExpr(getRHS(p, ruleNo, 3))
 		schemaExpr := getExpr(getRHS(p, ruleNo, 5))
@@ -1964,8 +1970,28 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		}
 		return &sql.AttachStmt{Path: path, PathExpr: pathExpr, Schema: schema}
 
+	// Rule 285: cmd ::= DETACH database_kw_opt expr
+	// DETACH is a separate production from ATTACH (rule 284); the optional
+	// DATABASE keyword is database_kw_opt and the database name arrives as an
+	// expr (rule 180 yields a *sql.ColumnRef for a bare name).
+	case 285:
+		schema := ""
+		if ref, ok := getRHS(p, ruleNo, 3).(*sql.ColumnRef); ok {
+			schema = ref.Name
+		} else {
+			schema = getString(getRHS(p, ruleNo, 3))
+		}
+		return &sql.AttachStmt{IsDetach: true, Schema: schema}
+
 	// Rule 288: cmd ::= REINDEX
 	case 288:
+		return &sql.ReindexStmt{}
+
+	// Rule 289: cmd ::= REINDEX nm dbnm
+	// REINDEX with an optional [schema.]name target (dbnm may be empty, rule
+	// 116, or ".name", rule 117). The exec handler is a no-op, so the name is
+	// not retained.
+	case 289:
 		return &sql.ReindexStmt{}
 
 	// Rule 290: cmd ::= ANALYZE

@@ -181,13 +181,45 @@ handles). changes2 generated test removed from changes package.
 **Pre-test**: `TestP6_RowidInTableConstraint`.
 **No regressions**: internal/exec suite green; types/literal/select1/insert pass.
 
-### G6.MISC.7 — (next root cause)
+### G6.MISC.7 — VACUUM / REINDEX [schema.]name / DETACH parser shims (2026-XX-XX)
+**Root cause**: The LALR grammar productions ALREADY exist in the generated
+tables — rule 249 `cmd ::= VACUUM into_opt`, rule 285
+`cmd ::= DETACH database_kw_opt expr`, rule 289 `cmd ::= REINDEX nm dbnm` —
+but had no `handleRule` case, so the generic passthrough returned a non-Stmt
+value and the statement was silently dropped ("no statements parsed").
+Rule 288 `cmd ::= REINDEX` (bare) was already handled; bare VACUUM was NOT.
+
+**Fixes** (in `internal/parse/parser.go` handleRule — no LALR table regeneration
+needed, no pre-parse shim required):
+- `case 249`: `&sql.VacuumStmt{}` — bare `VACUUM` and `VACUUM INTO <file>`.
+- `case 289`: `&sql.ReindexStmt{}` — `REINDEX t1`, `REINDEX main.t1`, etc.
+  (name/dbnm not retained; exec handler is a no-op).
+- `case 285`: `&sql.AttachStmt{IsDetach: true, Schema: <name>}` — `DETACH aux;`
+  and `DETACH DATABASE aux2;`. The old comment on rule 284 claiming it "also
+  handles DETACH" was wrong; DETACH is a separate production.
+
+**Packages flipped**: reindex PASS (was 22 stmts failing), tkt_c48d99d PASS
+(bare VACUUM), descidx PASS (bonus — 6 VACUUM uses), exclusive partial
+(DETACH parse error fixed; 3 remaining failures are the pager
+"file already closed" bug, a separate root cause).
+
+**Investigation (DETACH)**: rule 285 confirmed as the DETACH production;
+parse fixed. The exclusive package still fails on `pager: write page N:
+write test.db: file already closed` (pager lifecycle bug after journal
+operations in EXCLUSIVE locking mode) — separate root cause, not parser.
+
+**Pre-test**: `TestP6_VacuumReindex` (RED then GREEN).
+**No regressions**: internal/... suite green; parse grammar coverage,
+rule inventory, SOLID architecture tests green.
+**Not in scope**: ANALYZE nm/dbnm (rule 291) still drops named ANALYZE —
+separate batch goal; analyze package fails on sqlite_stat1 population, not parse.
 
 ## Current status (end of this goal's budget)
 
-**Progress**: 6 commits (G6.MISC.1..G6.MISC.5 + 3b), 5 root-cause fixes, several
-packages flipped to PASS (tkt_8454a207b, changes, seekscan, partial:
-indexA affinity, randexpr parse, table aggregate validation, affinity/numindex).
+**Progress**: 7 commits (G6.MISC.1..G6.MISC.6 + G6.MISC.7), 6 root-cause fixes,
+several packages flipped to PASS (tkt_8454a207b, changes, seekscan, reindex,
+tkt_c48d99d, descidx, partial: indexA affinity, randexpr parse, table
+aggregate validation, affinity/numindex, unique).
 
 **N/A documented this pass**: corruptA–corruptN, dbfuzz, autovacuum_ioerr,
 changes2, notify, avtrans, incrblob, incrblob_ (all C API / fault injection /
@@ -206,7 +238,8 @@ sub-goal (per P6_TRIAGE these were meant to be batch goals):
    tkt_4ef7e3 (no such column in trigger), tkt_385a5b56b, tkt_9f2eb3,
    indexA (partial-index COLLATE), parser (FK COLLATE in column list).
 5. **Parser grammar gaps**: DELETE/UPDATE ORDER BY + LIMIT (wherelimit),
-   VACUUM, REINDEX with name, rowvalue `-novar` (transpiler), trailing comma
+   ~~VACUUM~~ (G6.MISC.7), ~~REINDEX with name~~ (G6.MISC.7),
+   rowvalue `-novar` (transpiler), trailing comma
    in PK (tkt_9f2eb3), `(a,b) IN (SELECT ...)` rowvalue forms.
 6. **Test-harness functions**: test_eval, int2str, hex_to_utf16be/le,
    val, my_changes, f2/f3, pragma_stats — SQLite test-only functions.
@@ -222,8 +255,11 @@ sub-goal (per P6_TRIAGE these were meant to be batch goals):
 
 - [x] **G6.MISC setup** — P6_APPLICABLE.md, PACKAGES_TIER6C.txt, verify script.
 - [x] **Root-cause fixes** — G6.MISC.1..G6.MISC.5 (see above).
+- [x] **G6.MISC.7** — VACUUM / REINDEX [schema.]name / DETACH parser shims
+      (reindex, tkt_c48d99d, descidx PASS; exclusive DETACH parse fixed).
 - [ ] **G6.MISC.tkt** — 22/60 tkt packages still failing (planner/trigger/FK).
-- [ ] **G6.MISC.index** — coveridxscan, skipscan, descidx, bloom still failing.
+- [ ] **G6.MISC.index** — coveridxscan, skipscan, bloom still failing
+      (descidx flipped to PASS via G6.MISC.7 VACUUM fix).
 - [ ] **G6.MISC.rowvalue** — rowvalue, rowvalueA still failing (grammar/eval).
 - [ ] **G6.MISC.misc** — ~40 general SQL packages still failing.
 - [ ] **G6.MISC.bigdata** — widetab failing (result mismatch).

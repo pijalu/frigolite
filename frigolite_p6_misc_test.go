@@ -225,3 +225,67 @@ func TestP6_RowidInTableConstraint(t *testing.T) {
 		t.Errorf("valid unique: %v", err)
 	}
 }
+
+// TestP6_VacuumReindex covers the parser gap for VACUUM, REINDEX with a
+// [schema.]name, and DETACH. The LALR grammar productions exist (rules 249
+// `cmd ::= VACUUM into_opt`, 285 `cmd ::= DETACH database_kw_opt nm`, 289
+// `cmd ::= REINDEX nm dbnm`) but had no handleRule case, so the generic
+// passthrough dropped the statement ("no statements parsed"). Mirrors testgen
+// reindex (REINDEX t1/i1/main.t1/main.i1, multi-statement REINDEX+SELECT),
+// tkt_c48d99d (bare VACUUM), and exclusive (DETACH aux;).
+func TestP6_VacuumReindex(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec("CREATE TABLE t1(a); CREATE INDEX i1 ON t1(a);").Error; err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	// Bare VACUUM — tkt_c48d99d.
+	if err := db.Exec("VACUUM").Error; err != nil {
+		t.Errorf("VACUUM: %v", err)
+	}
+
+	// VACUUM INTO <file> parses (no-op execution).
+	if err := db.Exec("VACUUM INTO 'vacuum_out.db'").Error; err != nil {
+		t.Errorf("VACUUM INTO: %v", err)
+	}
+
+	// REINDEX bare and with [schema.]name — reindex-1.x.
+	for _, sql := range []string{
+		"REINDEX;",
+		"REINDEX t1;",
+		"REINDEX i1;",
+		"REINDEX main.t1;",
+		"REINDEX main.i1;",
+	} {
+		if err := db.Exec(sql).Error; err != nil {
+			t.Errorf("%s: %v", sql, err)
+		}
+	}
+
+	// Multi-statement input: REINDEX followed by SELECT must preserve both
+	// statements in order (reindex-2.6 style).
+	if err := db.Exec("REINDEX i1; SELECT a FROM t1;").Error; err != nil {
+		t.Errorf("REINDEX + SELECT: %v", err)
+	}
+	got := flattenQuery(t, db, "SELECT a FROM t1")
+	if got != "" {
+		t.Errorf("unexpected rows after REINDEX+SELECT: %q", got)
+	}
+
+	// DETACH with and without the DATABASE keyword parses and executes
+	// (exclusive). ATTACH first so DETACH has a real database to detach.
+	if err := db.Exec("ATTACH ':memory:' AS aux;").Error; err != nil {
+		t.Fatalf("attach: %v", err)
+	}
+	if err := db.Exec("DETACH aux;").Error; err != nil {
+		t.Errorf("DETACH aux: %v", err)
+	}
+	if err := db.Exec("ATTACH ':memory:' AS aux2;").Error; err != nil {
+		t.Fatalf("attach aux2: %v", err)
+	}
+	if err := db.Exec("DETACH DATABASE aux2;").Error; err != nil {
+		t.Errorf("DETACH DATABASE aux2: %v", err)
+	}
+}
