@@ -159,7 +159,20 @@ descidx/numindex/expridx reduced to fewer distinct failures.
 **Pre-test**: `TestP6_TextAffinityFloatCompare`.
 **No regressions**: internal/util, exec suites green; types/literal/select1/insert pass.
 
-### G6.MISC.5 — (next root cause)
+### G6.MISC.5 — Aggregate functions rejected in DEFAULT (2026-08-XX)
+**Fixes**:
+- `internal/exec/ddl.go`: CREATE TABLE validates column DEFAULT expressions
+  reject aggregate functions with "unknown function: <name>()" (SQLite
+  build.c semantics). Uses the existing findAggregateInExpr walker.
+
+**Packages flipped**: table's 5 aggregate-in-DEFAULT errors gone (remaining
+table failures are TCL format-string transpiler interpolation, not engine bugs).
+**N/A added**: notify, avtrans, incrblob, incrblob_ (C API blob/update-hook
+handles). changes2 generated test removed from changes package.
+**Pre-test**: `TestP6_AggregateInDefault`.
+**No regressions**: internal/exec suite green; types/literal/select1/insert/changes pass.
+
+### G6.MISC.6 — (next root cause)
 
 ## Verify
 

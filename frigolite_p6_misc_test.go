@@ -181,3 +181,25 @@ func TestP6_TextAffinityFloatCompare(t *testing.T) {
 		t.Errorf("a='2.0': got [%s], want [2.0 twopointoh ii.0 text]", got)
 	}
 }
+
+// TestP6_AggregateInDefault covers the table package: aggregate functions
+// are rejected in DEFAULT expressions with "unknown function: <name>()".
+func TestP6_AggregateInDefault(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	for _, ddl := range []string{
+		"CREATE TABLE t1(x DEFAULT(avg(1)))",
+		"CREATE TABLE t2(x DEFAULT(max(1)))",
+		"CREATE TABLE t3(x DEFAULT(count(*)))",
+	} {
+		r := db.Exec(ddl)
+		if r.Error == nil || !strings.Contains(r.Error.Error(), "unknown function:") {
+			t.Errorf("%s: expected 'unknown function' error, got: %v", ddl, r.Error)
+		}
+	}
+	// Non-aggregate defaults still work.
+	if err := db.Exec("CREATE TABLE t4(x DEFAULT 5)").Error; err != nil {
+		t.Errorf("normal default: %v", err)
+	}
+}

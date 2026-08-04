@@ -265,6 +265,17 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		}
 	}
 
+	// Aggregate functions are not allowed in DEFAULT expressions (SQLite
+	// build.c: sqlite3AddDefaultValue rejects them with "unknown function:
+	// <name>()").
+	for _, col := range s.Columns {
+		if col.Default != nil {
+			if aggName := findAggregateInExpr(col.Default); aggName != "" {
+				return &Result{Error: fmt.Errorf("unknown function: %s()", strings.ToLower(aggName))}
+			}
+		}
+	}
+
 	pg := ctx.Pager.AllocatePage()
 	// Initialize a fresh empty leaf: zero the page and set a valid header so
 	// a reused page (from a dropped table) does not retain stale cells.

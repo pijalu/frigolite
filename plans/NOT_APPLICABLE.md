@@ -92,6 +92,10 @@
 | openv | Tests sqlite3 C API (prepare/step/finalize) — frigolite has no C API |
 | tableapi | Tests sqlite3 C API (prepare/step/finalize) — frigolite has no C API |
 | tclsqlite | Tests sqlite3 C API (prepare/step/finalize) — frigolite has no C API |
+| notify | Tests sqlite3 C API (update hooks, db handle indirection) — frigolite has no C API |
+| avtrans | Tests sqlite3 C API (altdb connection handles, autovacuum) — frigolite has no C API |
+| incrblob | Tests sqlite3 C API (incrblob blob handles) — frigolite has no C API |
+| incrblob_ | Tests sqlite3 C API (incrblob blob handles) — frigolite has no C API |
 
 ### Corruption
 
