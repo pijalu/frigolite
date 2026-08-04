@@ -265,6 +265,19 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		}
 	}
 
+	// rowid/_rowid_/oid may not be used in table-level UNIQUE or PRIMARY KEY
+	// constraints (SQLite: "no such column: rowid") — rowid is not a column
+	// name that can be indexed at table level.
+	for _, tc := range s.Constraints {
+		if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.Columns != nil {
+			for _, col := range tc.Columns {
+				if isRowIDName(col.Name) {
+					return &Result{Error: fmt.Errorf("no such column: %s", col.Name)}
+				}
+			}
+		}
+	}
+
 	// Aggregate functions are not allowed in DEFAULT expressions (SQLite
 	// build.c: sqlite3AddDefaultValue rejects them with "unknown function:
 	// <name>()").

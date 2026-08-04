@@ -172,7 +172,16 @@ handles). changes2 generated test removed from changes package.
 **Pre-test**: `TestP6_AggregateInDefault`.
 **No regressions**: internal/exec suite green; types/literal/select1/insert/changes pass.
 
-### G6.MISC.6 — (next root cause)
+### G6.MISC.6 — rowid rejected in table-level UNIQUE/PRIMARY KEY (2026-08-XX)
+**Fixes**:
+- `internal/exec/ddl.go`: CREATE TABLE rejects rowid/_rowid_/oid in table-level
+  UNIQUE and PRIMARY KEY constraints ("no such column: rowid"), matching SQLite.
+
+**Packages flipped**: unique PASS (was FAIL on 2 validation errors).
+**Pre-test**: `TestP6_RowidInTableConstraint`.
+**No regressions**: internal/exec suite green; types/literal/select1/insert pass.
+
+### G6.MISC.7 — (next root cause)
 
 ## Current status (end of this goal's budget)
 

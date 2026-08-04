@@ -203,3 +203,25 @@ func TestP6_AggregateInDefault(t *testing.T) {
 		t.Errorf("normal default: %v", err)
 	}
 }
+
+// TestP6_RowidInTableConstraint covers unique2: rowid may not be used in
+// table-level UNIQUE or PRIMARY KEY constraints ("no such column: rowid").
+func TestP6_RowidInTableConstraint(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	for _, ddl := range []string{
+		"CREATE TABLE err1(a,b,c,UNIQUE(rowid))",
+		"CREATE TABLE err2(a,b,c,PRIMARY KEY(rowid))",
+		"CREATE TABLE err3(a,b,c,UNIQUE(_rowid_))",
+	} {
+		r := db.Exec(ddl)
+		if r.Error == nil || !strings.Contains(r.Error.Error(), "no such column:") {
+			t.Errorf("%s: expected 'no such column:' error, got: %v", ddl, r.Error)
+		}
+	}
+	// Valid table-level unique constraints still work.
+	if err := db.Exec("CREATE TABLE ok1(a,b,c,UNIQUE(a,b))").Error; err != nil {
+		t.Errorf("valid unique: %v", err)
+	}
+}
