@@ -376,6 +376,28 @@ func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
 	if v.Cached() != nil {
 		return v.Cached(), nil
 	}
+	// Hex literals: SQLite rejects any whose unsigned magnitude exceeds
+	// MaxInt64 (0x7fff...), reporting "hex literal too big: <literal>" with
+	// the sign folded in reversed by the parser (e.g. "-0x08000000000000000"
+	// is magnitude 2^63 and is rejected even though -2^63 fits in int64).
+	if isHexLiteral(v.Value) && v.Value != "" {
+		mag := v.Value
+		if mag[0] == '+' || mag[0] == '-' {
+			mag = mag[1:]
+		}
+		if u, err := strconv.ParseUint(mag, 0, 64); err == nil {
+			if u > math.MaxInt64 {
+				return nil, fmt.Errorf("hex literal too big: %s", v.Value)
+			}
+			i := int64(u)
+			if v.Value[0] == '-' {
+				i = -i
+			}
+			v.SetCached(i)
+			return i, nil
+		}
+		return nil, fmt.Errorf("hex literal too big: %s", v.Value)
+	}
 	// Try base 0 first (auto-detect for hex literals like 0x...)
 	if i, err := strconv.ParseInt(v.Value, 0, 64); err == nil {
 		v.SetCached(i)
@@ -387,6 +409,16 @@ func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
 	}
 	v.SetCached(v.Value)
 	return v.Value, nil
+}
+
+// isHexLiteral reports whether s is a hexadecimal integer literal
+// (optionally with a leading + or - sign), e.g. "0x1A" or "-0xFF".
+func isHexLiteral(s string) bool {
+	i := 0
+	if i < len(s) && (s[i] == '+' || s[i] == '-') {
+		i++
+	}
+	return i+2 <= len(s) && s[i] == '0' && (s[i+1] == 'x' || s[i+1] == 'X') && i+2 < len(s)
 }
 
 func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {

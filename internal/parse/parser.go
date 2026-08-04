@@ -164,6 +164,16 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	return stmts, nil
 }
 
+// isHexLiteral reports whether s is a hexadecimal integer literal
+// (optionally with a leading + or - sign), e.g. "0x1A" or "-0xFF".
+func isHexLiteral(s string) bool {
+	i := 0
+	if i < len(s) && (s[i] == '+' || s[i] == '-') {
+		i++
+	}
+	return i+2 <= len(s) && s[i] == '0' && (s[i+1] == 'x' || s[i+1] == 'X') && i+2 < len(s)
+}
+
 // getRHS returns the Nth RHS symbol value (1-indexed) for the current rule.
 // In C lemon convention: yymsp[-(N-n)] where N = RHS count.
 // In Go stack: stack[pos - size + n] where size = -RuleInfoNRhs[ruleNo].
@@ -1650,6 +1660,12 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			// to produce math.MinInt64 as an INTEGER (not a REAL).
 			if nl, ok := operand.(*sql.NumericLit); ok && nl.Value == "9223372036854775808" {
 				return &sql.NumericLit{Value: "-9223372036854775808"}
+			}
+			// SQLite folds the sign into hex literals too, so the "hex
+			// literal too big" error message carries the minus sign
+			// (e.g. "-0x08000000000000000").
+			if nl, ok := operand.(*sql.NumericLit); ok && isHexLiteral(nl.Value) {
+				return &sql.NumericLit{Value: "-" + nl.Value}
 			}
 			return &sql.UnaryOp{Operand: operand, Operator: "-"}
 		}
