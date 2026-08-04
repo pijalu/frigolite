@@ -8,6 +8,92 @@
 
 ---
 
+## 0b. CHECKPOINT — G4.STRING (2026-08-04)
+
+### Objective
+
+```
+All string functions — SUBSTR, INSTR, REPLACE, TRIM/LTRIM/RTRIM, UPPER/LOWER,
+LENGTH, QUOTE, HEX/UNHEX, CHAR, UNICODE, SOUNDEX.
+Completion criterion: testgen instr, substr, hexlit, blob, quote, regexp PASS.
+Verify: go test -tags testgen ./testgen/instr/ ./testgen/substr/ ./testgen/hexlit/ ./testgen/blob/ ./testgen/quote/ ./testgen/regexp/ -count=1 && go test -run TestP4String -count=1 .
+```
+
+### Status at checkpoint (mid-goal, NOT complete)
+
+| Item | State |
+|------|-------|
+| instr / substr / hexlit / blob | ✅ PASS |
+| regexp | ✅ PASS (hard-won — see commits below) |
+| quote | ❌ FAIL — needs transpiler fix + 4-5 engine features (analysis below) |
+| TestP4String | ✅ PASS |
+| Working tree | ✅ clean; all work committed + pushed |
+
+### Committed (pushed to origin/main)
+
+- `3e3a43ce G4.STRING.8: REGEXP operator, statement rollback, chained triggers`
+- `c66af66f G4.STRING.6: hex literal too big errors` (prior session)
+- earlier G4.STRING.x commits: SUBSTR/INSTR/TRIM/hexlit/blob work + P4 pre-tests
+
+### What G4.STRING.8 did (all committed)
+
+1. **tcl2go transpiler fix** (`tools/tcl2go/gen.go`): `parseStringParts(s, sqlQuoted)` — SQL string literals inside `db eval` strings are preserved verbatim, so regexp classes `[Aa]` are not transpiled as TCL command substitution.
+2. **Parser** (`internal/parse/parser.go`): GLOB and REGEXP parsed as `BinaryOp` operators (rules 206/387).
+3. **`internal/util/regexp.go`** (NEW): `util.CompileRegexp` — translates `\uXXXX`/`\UXXXXXXXX` to Go `\x{...}`, rejects trailing `-` in char class ("unclosed '['"), maps Go "invalid repeat count" → "REGEXP pattern too big".
+4. **Functions**: REGEXP/REGEXPI scalar functions registered.
+5. **WHERE error propagation**: `rowPassesWhere`/`rowMatchesWhere` now return `(bool, error)`; SELECT/DELETE/UPDATE scans propagate eval errors instead of swallowing them (bad patterns raise the expected error). Touched: `select.go`, `delete.go`, `update.go`.
+6. **DELETE qualified columns**: set `e.currentScanTable` during DELETE scan so `t6.x` resolves against the row map.
+7. **Statement-level rollback** (`internal/exec/engine.go`): snapshot all pagers before DML; restore on any error → SQLite-style statement atomicity (fixed regexp2-2.3 cascade rollback). Also clears nextRowIDCache/autoIncSeq on restore.
+8. **Chained triggers** (`insert.go`): `triggerTables` stack — triggers fire on OTHER tables in a chain; only recursion on the same table is blocked (matches recursive_triggers OFF).
+
+### Regression verified
+
+- `go build ./...` ✅
+- Hand-written tests: 3 pre-existing failures (TestDoubleCreateTable, TestDropTable, TestDialectLimitOffset) — verified present at HEAD `c66af66f` via worktree, NOT caused by G4.STRING.8.
+- TestSQLiteSuite (JSON harness) stack-overflows — pre-existing, documented.
+- Testgen WHERE/DML/trigger regression: join(6), joinA/B/C(1), where(5), whereA/D/E/F/G/H/I/K/L/M(1), update(1), trigger(3), triggerA/B/D/E/G(1), triggerupfrom(1) — all identical at baseline HEAD. ZERO new regressions.
+- Baseline worktree still exists at `/tmp/frigolite-baseline` (detached HEAD c66af66f) for comparisons.
+
+### QUOTE package — remaining work (the critical path)
+
+`go test -tags testgen ./testgen/quote/` currently fails on ~8 points:
+
+1. **Transpiler bug (MANDATORY first)**: the generated `quote_test.go` 2.1 `foreach` loop is INTERNALLY INCONSISTENT — it asserts "expected success" for `CREATE TABLE xyz(...)` and `CREATE INDEX i2 ON t1(x, y, z||"abc")` etc., then 2.2 re-runs `CREATE TABLE xyz` → "table xyz already exists" error. The original TCL (`ori/sqlite/test/quote.test` lines 80-96) uses `do_catchsql_test 2.1.$tn $sql [list 1 "no such column: \"$errname\" - should this be a string literal in single-quotes?"]` — i.e. it EXPECTS the error, so xyz is NOT created and 2.2 succeeds. The test is unwinnable by engine behavior alone; the transpiler must be fixed.
+   - Root cause: `processDoCatchSQLTest` (tools/tcl2go/gen.go ~1926) only detects error expectations from a STATIC `"1 {...}"` literal (`extractExpectedErrorFromLiteral` + `strings.HasPrefix(expectedExpr, `"1 "`)`). For the dynamic `[list 1 "...$errname..."]` expected word, `strconv.Unquote` fails and the expectedExpr is a Go concat expression — `expectSuccess` wrongly becomes true.
+   - Fix: in `processDoCatchSQLTest`, detect when `args[2].Text` is a `[list 1 ...]` form (first element `1`) even with `$var` refs; build `errMsgDynamic` as a Go expression rendering the message element with `$errname` → e.g. `"no such column: \"" + errname + "\" - should this be a string literal in single-quotes?"`.
+   - Need to find the transpiler's word-with-$var → Go expression renderer (`collectSQLExpression` at gen.go:2379 exists; `renderStringExpr` at ~1041 handles string parts; look at how `processSet`/`processListAppend` render values).
+   - Then regenerate: `go run ./tools/tcl2go/` regenerates ALL testgen files (~1000) — check `git diff` blast radius; earlier G4.STRING.8 regeneration only changed regexp files (the sqlQuoted fix), so regeneration is safe-ish, but review diffs.
+   - After regeneration, the 2.1 loop will assert errors like `no such column: "null" - should this be a string literal in single-quotes?` — which requires the ENGINE to produce them (below).
+
+2. **DQS DDL errors (engine)**: with `SQLITE_DBCONFIG_DQS_DDL=0` semantics, in DDL (CREATE TABLE/INDEX/CHECK), a double-quoted token `"X"` is a COLUMN REFERENCE; if X is not a column → error `no such column: "X" - should this be a string literal in single-quotes?`. Currently the engine treats `"null"` in `CHECK (c!="null")` as a string literal (no error). Required by quote-2.1.1..2.1.4: `CREATE TABLE xyz(a, b, c CHECK (c!="null"))` → error `no such column: "null" ...`; `CREATE INDEX i2 ON t1(x, y, z||"abc")` → `no such column: "abc" ...`; `CREATE INDEX i3 ON t1("w")` → `no such column: "w" ...`; `CREATE INDEX i4 ON t1(x) WHERE z="w"` → `no such column: "w" ...`.
+
+3. **writable_schema + verbatim sqlite_master.sql (engine)**: quote-2.2 runs `PRAGMA writable_schema=1; CREATE TABLE xyz(a, b, c CHECK (c!="null")); CREATE INDEX i2 ON t1(x, y, z||"abc"); ...` expecting SUCCESS (writable_schema bypasses the DQS column validation). quote-2.5 `SELECT sql FROM sqlite_master` expects the EXACT original text stored: `CREATE TABLE xyz(a, b, c CHECK (c!="null") )`, `CREATE INDEX i2 ON t1(x, y, z||"abc")`, `CREATE INDEX i3 ON t1("w"||"")`, `CREATE INDEX i4 ON t1(x) WHERE z="w"`. So schema SQL must be stored VERBATIM (no reformatting) AND the DQS validation must be skipped under writable_schema. Check how `internal/schema` stores SQL and what PRAGMA writable_schema currently does.
+
+4. **CHECK constraint enforcement (engine)**: quote-2.3.2 `INSERT INTO xyz VALUES(1, 2, 'null')` → error `CHECK constraint failed: c!="null"` (message must include the double-quoted expression text verbatim). Currently no CHECK enforcement.
+
+5. **ALTER TABLE DROP COLUMN validation (engine)**: quote-3.0..3.5 exercise `internal/rename` (or wherever ALTER lives):
+   - 3.0/3.1/3.2: `CREATE INDEX x1 on t1("b"); ALTER TABLE t1 DROP COLUMN b` → error `error in index x1 after drop column: no such column: "b" - should this be a string literal in single-quotes?` (double-quoted index column ref → quote hint)
+   - 3.3: `CREATE INDEX x1 on t1('b')` (single-quoted) → error `error in index x1 after drop column: no such column: b` (no hint)
+   - 3.4: `CREATE INDEX x1 ON t1("a"||"b")` → error `... no such column: "b" - should this be a string literal in single-quotes?`
+   - 3.5: `CREATE INDEX x1 ON t1("a"||"x")` → SUCCESS (both refs survive drop of column b)
+
+### Suggested execution order
+
+1. Fix tcl2go `processDoCatchSQLTest` for `[list 1 ...]` dynamic expected; regenerate; review diff (expect: quote_test.go changes only, or a small set).
+2. Re-run quote; now the failures will be purely engine-side (DQS errors, CHECK, DROP COLUMN, sqlite_master verbatim).
+3. Implement engine features in order: DQS DDL errors → writable_schema skip + verbatim SQL → CHECK enforcement → ALTER DROP COLUMN messages.
+4. Run the full G4.STRING verify command; commit each milestone (`G4.STRING.N: ...`); push.
+
+### Risks / notes
+
+- `internal/rename` package owns ALTER TABLE — DROP COLUMN currently reports `error in index x1 after drop column: no such column: b` (missing the quote hint for double-quoted refs) and 3.3/3.4 return nil (index validation not detecting single-quoted/expression refs). Read `rename/` before editing.
+- CHECK constraints: search `internal/sql` for CHECK parsing (ColumnDef.CheckExpr?) and `internal/exec/insert.go` for constraint validation hooks.
+- `PRAGMA writable_schema` exists (25+ pragmas supported) — verify it actually toggles schema write access today.
+- quote-1.x sections (strange table/column names `'@abc'`, `'#xyz'`, `'!pqr'`, `[]`, backtick quoting) currently PASS — do not regress them.
+- The 2.2 `PRAGMA writable_schema = 1;` + multi-statement `db.Query` — writable_schema must persist across the batch.
+
+---
+
 ## 0. CHECKPOINT — G1.CREATE.UNBLOCK (2026-08-03)
 
 ### Objective
