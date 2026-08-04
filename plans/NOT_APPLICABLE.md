@@ -87,6 +87,7 @@
 | bindxfer | Tests sqlite3 C API (prepare/step/finalize) — frigolite has no C API |
 | capi | Tests sqlite3 C API (prepare/step/finalize) — frigolite has no C API |
 | capi3 | Tests sqlite3 C API (prepare/step/finalize) — frigolite has no C API |
+| changes2 | Tests sqlite3 C API (prepare/step/finalize, update hooks) — frigolite has no C API |
 | close_pkg | Tests sqlite3 C API (prepare/step/finalize) — frigolite has no C API |
 | openv | Tests sqlite3 C API (prepare/step/finalize) — frigolite has no C API |
 | tableapi | Tests sqlite3 C API (prepare/step/finalize) — frigolite has no C API |

@@ -1177,7 +1177,10 @@ func (e *Engine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef) *Result {
 	// Iterate the recursive part until no more rows
 	currentRows := anchorResult.Rows
 	recursiveSelect := cte.Select.Union
-	maxIter := 1000 // SQLite's default recursion limit
+	maxIter := e.recursiveCTELimit
+	if maxIter <= 0 {
+		maxIter = 100000 // SQLite test builds default
+	}
 	for iter := 0; iter < maxIter; iter++ {
 		var newRows [][]interface{}
 		for _, row := range currentRows {

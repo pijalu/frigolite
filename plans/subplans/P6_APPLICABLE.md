@@ -119,7 +119,35 @@ Fresh context: true
 **No regressions**: internal/util, storage, btree, exec unit suites green;
 null/expr/affinity/intpkey fail identically before and after (pre-existing).
 
-### G6.MISC.2 — (next root cause)
+### G6.MISC.2 — Bitwise operators | << >> (2026-08-XX)
+**Fixes**:
+- `internal/sql/lexer.go`: added TokenBitOr/TokenLShift/TokenRShift; `readPipeOp`
+  returns TokenBitOr for single `|`, `readLtOp`/`readGtOp` recognize `<<`/`>>`.
+- `internal/parse/token.go`: map new TokenTypes to TK_BITOR/TK_LSHIFT/TK_RSHIFT.
+- `internal/exec/expression.go`: evaluate `|`, `<<`, `>>` (bitwiseOr,
+  shiftLeft, shiftRight) with SQLite integer semantics.
+
+**Packages flipped**: randexpr no longer fails on parse (`parse error: near "|"`);
+remaining randexpr mismatches are separate expression-evaluation bugs.
+**Pre-test**: `TestP6_BitwiseOperators`.
+**No regressions**: internal/sql, parse, exec suites green; select1/insert pass.
+
+### G6.MISC.3 — changes() function, journal_mode pragma, recursive CTE limit (2026-08-XX)
+**Fixes**:
+- `internal/exec/engine.go`: only update `lastChanges` for INSERT/UPDATE/DELETE
+  (SELECT/DDL no longer reset the changes() counter, matching SQLite).
+- `internal/exec/pragma.go`: `PRAGMA journal_mode = X` returns the resulting
+  mode (e.g. "off"); added `PRAGMA recursive_cte_limit` support.
+- `internal/exec/select.go` + engine: recursive CTE limit is configurable,
+  default 100000 (SQLite test builds) instead of hardcoded 1000.
+- `internal/function/function.go`: added OCTET_LENGTH scalar.
+
+**Packages flipped**: changes PASS (was FAIL on journal_mode + CTE + changes()).
+**N/A added**: changes2 (C API prepare/step/finalize + update hooks).
+**Pre-test**: `TestP6_ChangesRecursiveCTE`.
+**No regressions**: internal/exec suite green.
+
+### G6.MISC.4 — (next root cause)
 
 ## Verify
 

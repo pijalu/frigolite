@@ -82,6 +82,7 @@ type Engine struct {
 	recursiveTriggers bool                             // PRAGMA recursive_triggers setting (allows trigger re-entry)
 	foreignKeys       bool                             // PRAGMA foreign_keys setting (enables FK constraint enforcement)
 	writableSchema    bool                             // PRAGMA writable_schema setting (permits sqlite_schema edits)
+	recursiveCTELimit int                              // PRAGMA recursive_cte_limit setting (default 100000, matching SQLite test builds)
 	returningStrict   bool                             // RETURNING eval: unknown columns are errors (SQLite semantics)
 	returningTable    string                           // table name for RETURNING qualified column resolution
 	// aggRowMaps, when non-nil, holds the row set an aggregate query is
@@ -515,6 +516,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		nextRowIDCache:   make(map[uint32]int64),
 		hasTriggersCache: make(map[string]bool),
 		encoding:         "UTF-8",
+		recursiveCTELimit: 100000,
 		ftsTables:        make(map[string]*fts.FTS3Table),
 	}
 	e.vtabs.RegisterDefaults()
@@ -745,15 +747,19 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	e.counterVal = 0
 
 	var res *Result
+	isDML := false
 	switch s := stmt.(type) {
 	case *sql.SelectStmt:
 		res = e.execSelect(s)
 	case *sql.InsertStmt:
 		res = e.execInsert(s)
+		isDML = true
 	case *sql.UpdateStmt:
 		res = e.execUpdate(s)
+		isDML = true
 	case *sql.DeleteStmt:
 		res = e.execDelete(s)
+		isDML = true
 	case *sql.CommitStmt:
 		res = e.execCommit()
 	case *sql.BeginStmt:
@@ -763,9 +769,13 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	default:
 		res = e.execOtherDDL(stmt)
 	}
-	// Track changes and last rowid for CHANGES() / LAST_INSERT_ROWID() functions
+	// Track changes and last rowid for CHANGES() / LAST_INSERT_ROWID() functions.
+	// SQLite: sqlite3_changes() reflects the last INSERT/UPDATE/DELETE only;
+	// SELECT/DDL statements do not reset the counter.
 	if res != nil {
-		e.lastChanges = res.Changes
+		if isDML {
+			e.lastChanges = res.Changes
+		}
 		if res.LastInsertRowID > 0 {
 			e.lastRowID = res.LastInsertRowID
 		}

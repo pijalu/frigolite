@@ -77,6 +77,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "UPPER", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUPPER})
 	r.register(&Func{Name: "LOWER", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLOWER})
 	r.register(&Func{Name: "LENGTH", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLENGTH})
+	r.register(&Func{Name: "OCTET_LENGTH", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnOCTETLENGTH})
 	r.register(&Func{Name: "TRIM", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnTRIM})
 	r.register(&Func{Name: "LTRIM", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnLTRIM})
 	r.register(&Func{Name: "RTRIM", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnRTRIM})
@@ -396,6 +397,21 @@ func fnLENGTH(args []interface{}) (interface{}, error) {
 		return nil, nil
 	}
 	return int64(len(toString(args[0]))), nil
+}
+
+// fnOCTETLENGTH returns the number of bytes in the argument. For text values
+// this is the UTF-8 byte length; for numbers the byte length of their text
+// representation (SQLite octet_length semantics). NULL returns NULL.
+func fnOCTETLENGTH(args []interface{}) (interface{}, error) {
+	if args[0] == nil {
+		return nil, nil
+	}
+	switch v := args[0].(type) {
+	case []byte:
+		return int64(len(v)), nil
+	default:
+		return int64(len(toString(args[0]))), nil
+	}
 }
 
 func fnTRIM(args []interface{}) (interface{}, error) {

@@ -121,3 +121,35 @@ func TestP6_BitwiseOperators(t *testing.T) {
 		t.Errorf("column bitwise: got [%s], want [7 2 12 3]", got)
 	}
 }
+
+// TestP6_ChangesRecursiveCTE covers the changes() function after DML and
+// recursive CTEs beyond SQLite's 1000 default recursion limit (changes.test
+// uses up to 50000 rows).
+func TestP6_ChangesRecursiveCTE(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+
+	if err := db.Exec("PRAGMA journal_mode=off;").Error; err != nil {
+		t.Fatalf("journal_mode: %v", err)
+	}
+	r := db.Query("PRAGMA journal_mode=off")
+	if r.Error != nil || len(r.Rows) != 1 {
+		t.Errorf("PRAGMA journal_mode=off: rows=%v err=%v", r.Rows, r.Error)
+	} else if got := flattenQuery(t, db, "PRAGMA journal_mode=off"); got != "off" {
+		t.Errorf("journal_mode=off: got [%s], want [off]", got)
+	}
+
+	if err := db.Exec("CREATE TABLE t1(x INTEGER PRIMARY KEY);").Error; err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	if err := db.Exec("WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < 5000) INSERT INTO t1 SELECT i FROM s;").Error; err != nil {
+		t.Fatalf("recursive CTE insert: %v", err)
+	}
+	if got := flattenQuery(t, db, "SELECT count(*) FROM t1"); got != "5000" {
+		t.Errorf("recursive CTE count: got [%s], want [5000]", got)
+	}
+	// changes() after the insert reports the number of inserted rows.
+	if got := flattenQuery(t, db, "SELECT changes()"); got != "5000" {
+		t.Errorf("changes(): got [%s], want [5000]", got)
+	}
+}

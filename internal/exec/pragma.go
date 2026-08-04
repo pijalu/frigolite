@@ -591,6 +591,24 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 			default:
 				return &Result{Error: fmt.Errorf("unsupported encoding: %s", s.Value)}
 			}
+		case "JOURNAL_MODE":
+			// SQLite returns the resulting journal mode after assignment
+			// (e.g. "PRAGMA journal_mode=off" yields "off"). Frigolite uses
+			// rollback journal only; report the requested mode normalized.
+			mode := strings.ToLower(s.Value)
+			switch mode {
+			case "delete", "truncate", "persist", "memory", "off", "wal", "wal2":
+				// accepted modes (WAL modes accepted but not implemented:
+				// report the requested mode as SQLite does)
+			default:
+				return &Result{Error: fmt.Errorf("unsupported journal mode: %s", s.Value)}
+			}
+			return &Result{Rows: [][]interface{}{{mode}}}
+		case "RECURSIVE_CTE_LIMIT":
+			if n, err := strconv.Atoi(s.Value); err == nil && n >= 0 {
+				e.recursiveCTELimit = n
+			}
+			return &Result{Rows: [][]interface{}{{int64(e.recursiveCTELimit)}}}
 		}
 		// When setting a PRAGMA value, don't also return the value
 		return &Result{}
