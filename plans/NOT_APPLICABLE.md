@@ -98,6 +98,7 @@
 |---------|--------|
 | altercorrupt | Tests file-format corruption detection — requires byte-level corruption tooling |
 | corrupt | Tests file-format corruption detection — requires byte-level corruption tooling |
+| corruptA–corruptN | Tests file-format corruption detection (database_may_be_corrupt) — requires byte-level corruption tooling |
 | fts3corrupt | Tests file-format corruption detection — requires byte-level corruption tooling |
 | incrcorrupt | Tests file-format corruption detection — requires byte-level corruption tooling |
 | mmapcorrupt | Tests file-format corruption detection — requires byte-level corruption tooling |
@@ -168,12 +169,14 @@
 | aggfault | Tests OOM/error injection — frigolite has no fault simulator |
 | altermalloc | Tests OOM/error injection — frigolite has no fault simulator |
 | attachmalloc | Tests OOM/error injection — frigolite has no fault simulator |
+| autovacuum_ioerr | Tests OOM/error injection (ioerr variant) — frigolite has no fault simulator |
 | btreefault | Tests OOM/error injection — frigolite has no fault simulator |
 | carrayfault | Tests OOM/error injection — frigolite has no fault simulator |
 | cffault | Tests OOM/error injection — frigolite has no fault simulator |
 | checkfault | Tests OOM/error injection — frigolite has no fault simulator |
 | crash | Tests OOM/error injection — frigolite has no fault simulator |
 | crashM | Tests OOM/error injection — frigolite has no fault simulator |
+| dbfuzz | Fuzz testing — requires SQLite fuzz infrastructure |
 | dbpagefault | Tests OOM/error injection — frigolite has no fault simulator |
 | diskfull | Tests OOM/error injection — frigolite has no fault simulator |
 | existsfault | Tests OOM/error injection — frigolite has no fault simulator |

@@ -3819,6 +3819,25 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 			row[cd.Name] = rowID
 		}
 	}
+	// Rows written before ALTER TABLE ADD COLUMN have fewer record values
+	// than column definitions; apply the added column's DEFAULT at read time
+	// (with column affinity), matching SQLite semantics.
+	if len(rec.Values) < len(colDefs) {
+		vals := make([]interface{}, len(colDefs))
+		copy(vals, rec.Values)
+		e.applyColumnDefaults(vals, colDefs, len(rec.Values))
+		for i := len(rec.Values); i < len(colDefs); i++ {
+			if cd := &colDefs[i]; cd.Default != nil && !cd.Dropped {
+				aff := util.Affinity(cd.Type)
+				cv := &util.ColumnValue{Value: vals[i], Affinity: aff}
+				if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") && !strings.EqualFold(coll, "RTRIM") {
+					row[cd.Name] = &collatedValue{value: cv, collation: strings.ToUpper(coll)}
+				} else {
+					row[cd.Name] = cv
+				}
+			}
+		}
+	}
 	return row
 }
 
@@ -3850,6 +3869,12 @@ func (e *Engine) fillStructRowFromTypes(sr *structRow, payload []byte, dataStart
 
 	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, serialTypes, colIndices)
 
+	// Rows written before ALTER TABLE ADD COLUMN have fewer record values
+	// than column definitions; SQLite applies the added column's DEFAULT at
+	// read time. Only columns beyond the record's value count get the default
+	// (a column present in the record — even as NULL — keeps its value).
+	e.applyColumnDefaults(values, colDefs, len(serialTypes))
+
 	// Apply affinity wrappers for columns specified in affinityCols.
 	// Match buildRowMap: wrap ALL columns (including INTEGER/REAL) with their
 	// affinity so comparison logic applies the same SQLite affinity rules on
@@ -3879,6 +3904,28 @@ func (e *Engine) fillStructRowFromTypes(sr *structRow, payload []byte, dataStart
 // columns — already decoded in phase 1). Remaining columns are left raw.
 func (e *Engine) fillStructRowRemainingFromTypes(sr *structRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, serialTypes []uint64, indices map[int]bool) {
 	storage.DecodeRecordValuesFromTypes(payload, dataStart, sr.values, serialTypes, indices)
+	// Same missing-column default handling as fillStructRowFromTypes: rows
+	// written before ALTER TABLE ADD COLUMN need the added column's DEFAULT.
+	e.applyColumnDefaults(sr.values, colDefs, len(serialTypes))
+}
+
+// applyColumnDefaults fills in DEFAULT values for columns that are absent
+// from the stored record (e.g., rows written before ALTER TABLE ADD COLUMN).
+// Only columns beyond the record's value count get the default: a column
+// present in the record — even as NULL — keeps its stored value. The default
+// expression is evaluated with an empty row (it cannot reference other
+// columns) and the column's declared affinity is applied, matching SQLite's
+// ALTER TABLE ADD COLUMN semantics (e.g. TEXT column with DEFAULT -123.0
+// yields the text value "-123.0").
+func (e *Engine) applyColumnDefaults(values []interface{}, colDefs []sql.ColumnDef, recordValueCount int) {
+	for i := recordValueCount; i < len(colDefs); i++ {
+		cd := &colDefs[i]
+		if cd.Default != nil && !cd.Dropped {
+			if dv, err := e.evalExpr(cd.Default, nil); err == nil {
+				values[i] = util.ApplyColumnAffinity(dv, cd.Type)
+			}
+		}
+	}
 }
 
 // structRowToMap converts a structRow to a RowMap, deep-copying mutable

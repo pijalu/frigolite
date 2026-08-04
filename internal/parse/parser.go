@@ -330,6 +330,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 36: ccons ::= DEFAULT MINUS scantok term
 	case 36:
+		// Fold -9223372036854775808 into math.MinInt64 (SQLite special case),
+		// mirroring the unary-minus handling in rule 216.
+		if nl, ok := getExpr(getRHS(p, ruleNo, 4)).(*sql.NumericLit); ok && nl.Value == "9223372036854775808" {
+			return sql.ColumnDef{Default: &sql.NumericLit{Value: "-9223372036854775808"}}
+		}
 		return sql.ColumnDef{Default: &sql.UnaryOp{Operand: getExpr(getRHS(p, ruleNo, 4)), Operator: "-"}}
 
 	// Rule 38: ccons ::= NOT NULL onconf
@@ -1627,6 +1632,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		// Read the operator from the RHS token value (lookahead is the NEXT
 		// token at reduce time, so it cannot distinguish + from -).
 		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok && tok.Value == "-" {
+			// SQLite special case: -9223372036854775808 is the minimum int64.
+			// The positive literal 9223372036854775808 does not fit in int64
+			// (it is 2^63), so SQLite folds the unary minus into the literal
+			// to produce math.MinInt64 as an INTEGER (not a REAL).
+			if nl, ok := operand.(*sql.NumericLit); ok && nl.Value == "9223372036854775808" {
+				return &sql.NumericLit{Value: "-9223372036854775808"}
+			}
 			return &sql.UnaryOp{Operand: operand, Operator: "-"}
 		}
 		// Unary + is a no-op at parse level (SQLite semantics: +expr is

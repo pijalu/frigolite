@@ -494,6 +494,14 @@ func applyTextAffinity(val interface{}) interface{} {
 	case int64:
 		return fmt.Sprintf("%d", v)
 	case float64:
+		// SQLite converts a REAL to text using its full precision string and
+		// keeps the ".0" for whole values (e.g. -123.0 -> "-123.0"). %g would
+		// drop the trailing ".0", so format whole numbers with one decimal —
+		// but only when the value fits in int64 (larger floats like -9.2e18
+		// must keep %g precision; %.1f would round them).
+		if v == float64(int64(v)) && v >= -9.223372036854776e18 && v <= 9.223372036854776e18 {
+			return fmt.Sprintf("%.1f", v)
+		}
 		return fmt.Sprintf("%g", v)
 	default:
 		return val
