@@ -173,8 +173,8 @@ func Test_quote(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 0 (unsupported command, not transpiled)
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+	db.SetDQS(false, true)
+	db.SetDQS(false, true)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n")
 		if _res.Error != nil {
@@ -193,8 +193,8 @@ func Test_quote(t *testing.T) {
 		_ = _idx0
 			{ // "2.1." + tn
 				_res = db.Exec(sql)
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \"" + errname + "\" - should this be a string literal in single-quotes?") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: \"" + errname + "\" - should this be a string literal in single-quotes?", _res.Error, sql)
 				}
 			}
 		}
@@ -238,7 +238,7 @@ func Test_quote(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "\n  {CREATE TABLE t1(x, y, z)}\n  {CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") )}\n  {CREATE INDEX i2 ON t1(x, y, z||\"abc\")}\n  {CREATE INDEX i3 ON t1(\"w\"||\"\")}\n  {CREATE INDEX i4 ON t1(x) WHERE z=\"w\"}\n"
+			want := "CREATE TABLE t1(x, y, z) CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") ) CREATE INDEX i2 ON t1(x, y, z||\"abc\") CREATE INDEX i3 ON t1(\"w\"||\"\") CREATE INDEX i4 ON t1(x) WHERE z=\"w\""
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -276,7 +276,7 @@ func Test_quote(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?", _res.Error, "\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			}
 		}
-		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
+		db.SetDQS(true, true)
 		{ // "3.5"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"x\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;\n  ")
 			if _res.Error != nil {

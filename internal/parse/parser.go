@@ -90,6 +90,8 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 							tr.RawSQL = strings.TrimSpace(input[stmtStart:end])
 						} else if vw, vwOK := s.(*sql.CreateViewStmt); vwOK {
 							vw.RawSQL = strings.TrimSpace(input[stmtStart:end])
+						} else if ci, ciOK := s.(*sql.CreateIndexStmt); ciOK {
+							ci.RawSQL = strings.TrimSpace(input[stmtStart:end])
 						}
 						stmtStart = end + 1
 					}
@@ -1276,11 +1278,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	case 180:
 		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
 			// SQLite DQS: an empty double-quoted identifier "" is a string
-			// literal, not a column reference.
+			// literal, not a column reference. Non-empty double-quoted
+			// identifiers keep the Quoted flag so resolution can fall back
+			// to a string literal when no column matches (DQS enabled).
 			if tok.QuotedIdent && tok.Value == "" {
 				return &sql.StringLit{Value: ""}
 			}
-			return &sql.ColumnRef{Name: tok.Value}
+			return &sql.ColumnRef{Name: tok.Value, Quoted: tok.QuotedIdent}
 		}
 		if s, ok := getRHS(p, ruleNo, 1).(string); ok {
 			return &sql.ColumnRef{Name: s}
@@ -1784,17 +1788,23 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		where := getExpr(getRHS(p, ruleNo, 12))
 		// uniqueflag is RHS[2]: empty or "UNIQUE".
 		unique := strings.EqualFold(strings.TrimSpace(getString(getRHS(p, ruleNo, 2))), "UNIQUE")
-		// The sortlist is []OrderByTerm; convert to []IndexColumn.
+		// The sortlist is []OrderByTerm; convert to []IndexColumn for the
+		// engine's key population, while retaining the full term expressions
+		// (Terms) for DDL validation and ALTER DROP COLUMN checks.
 		// A plain identifier becomes a column reference. A numeric literal
 		// is a 1-based column position (SQLite allows "CREATE INDEX ON
 		// t1(1)" meaning "on the first column"); record it by its numeric
 		// text so the engine can resolve it against the table columns.
+		// A bare string literal index key is converted to an identifier
+		// (SQLite sqlite3StringToId: CREATE INDEX t1('b') indexes column b).
 		// Other expressions (e.g. "a+b") are not supported as index keys.
 		var cols []sql.IndexColumn
 		for _, term := range sortlist {
 			switch ex := term.Expr.(type) {
 			case *sql.ColumnRef:
 				cols = append(cols, sql.IndexColumn{Name: ex.Name, Desc: term.Desc})
+			case *sql.StringLit:
+				cols = append(cols, sql.IndexColumn{Name: ex.Value, Desc: term.Desc})
 			case *sql.NumericLit:
 				cols = append(cols, sql.IndexColumn{Name: ex.Value, Desc: term.Desc})
 			}
@@ -1803,6 +1813,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Name:    name,
 			Table:   table,
 			Columns: cols,
+			Terms:   sortlist,
 			Unique:  unique,
 			Where:   where,
 		}

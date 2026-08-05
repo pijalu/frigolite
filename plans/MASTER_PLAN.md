@@ -19,15 +19,68 @@ Completion criterion: testgen instr, substr, hexlit, blob, quote, regexp PASS.
 Verify: go test -tags testgen ./testgen/instr/ ./testgen/substr/ ./testgen/hexlit/ ./testgen/blob/ ./testgen/quote/ ./testgen/regexp/ -count=1 && go test -run TestP4String -count=1 .
 ```
 
-### Status at checkpoint (mid-goal, NOT complete)
+### Status (G4.STRING COMPLETE)
 
 | Item | State |
 |------|-------|
 | instr / substr / hexlit / blob | ✅ PASS |
 | regexp | ✅ PASS (hard-won — see commits below) |
-| quote | ❌ FAIL — needs transpiler fix + 4-5 engine features (analysis below) |
-| TestP4String | ✅ PASS |
-| Working tree | ✅ clean; all work committed + pushed |
+| quote | ✅ PASS |
+| TestP4String pre-tests (`TestP4String_*`) | ✅ PASS |
+| Working tree | ✅ clean — G4.STRING.9 committed + pushed |
+| G4.STRING.9 commit + push | ✅ DONE |
+
+**Current status (2026-08-05):** G4.STRING is COMPLETE — all six testgen packages
+(instr, substr, hexlit, blob, quote, regexp) PASS plus `TestP4String` pre-tests.
+The G4.STRING.9 quote work (DQS engine features + transpiler fixes + regenerated
+`testgen/quote`) is committed as `G4.STRING.9` and pushed to origin/main.
+Pre-tests are named `TestP4String_Substr`/`TestP4String_Instr`/etc. under
+`frigolite_p4_string_test.go`; run them with `-run 'TestP4String'`.
+
+Verification confirmed:
+- `go test -tags testgen -count=1 ./testgen/instr/ ./testgen/substr/ ./testgen/hexlit/ ./testgen/blob/ ./testgen/quote/ ./testgen/regexp/` → all 6 PASS
+- `go test -count=1 -run 'TestP4String' .` → PASS
+- `go build ./...` → PASS
+- staticcheck: only pre-existing `tools/tclconvert/` unused-code findings; none in changed files
+
+### Detailed status (G4.STRING.9 — quote package)
+
+Verified ground-truth behavior against `sqlite3` 3.51 CLI (`.dbconfig dqs_ddl off / dqs_dml on`):
+
+- **SQLite DQS model**: a double-quoted identifier `"X"` resolves as a column first; if
+  unresolved, it becomes a string literal when DQS is enabled for the context, else errors
+  `no such column: "X" - should this be a string literal in single-quotes?`. Context gate:
+  DDL → `SQLITE_DqsDDL` (or `writable_schema && DqsDML`); DML → `SQLITE_DqsDML`.
+- **Index keys**: a bare single-quoted string index key `'b'` becomes an identifier
+  (`sqlite3StringToId`) → resolves as column `b`; double-quoted `"b"` stays a column ref.
+- **DROP COLUMN**: `sqlite3_rename_test(..., bNoDQS=1)` re-parses each schema object with DQS
+  OFF; the "after drop column" error is `error in <type> <name> after drop column: <parseerr>`.
+  Only indexes referencing the DROPPED column fail (an index on `"a"||"x"` does not block
+  dropping column `b`).
+- **CHECK message**: `CHECK constraint failed: <expr-text>` — expression text verbatim
+  (`c!="null"`, from the stored CREATE TABLE SQL).
+- **sqlite_master.sql**: stored VERBATIM, incl. expression keys `z||"abc"` and `"w"||""`.
+
+**Engine (implemented in G4.STRING.9 — UNCOMMITTED):**
+- `sql.ColumnRef.Quoted` — set in parser rule 180 for `"name"`; `CreateIndexStmt` gained
+  `Terms []OrderByTerm` + `RawSQL string`.
+- Parser rule 239 keeps the full sortlist as `Terms`; single-quoted string key → `IndexColumn`
+  via `sqlite3StringToId`; RawSQL captured for CREATE INDEX.
+- `Engine`: `dqsDDL`/`dqsDML` flags (default true) + `SetDQS(ddl,dml)`; `frigolite.DB.SetDQS`.
+- `execCreateTable`/`execCreateIndex`: DDL DQS validation (CHECK constraints; index key terms
+  and WHERE) — `no such column: "X" - should this be a string literal in single-quotes?`;
+  `writable_schema && dqsDML` bypasses (legacy schema load). CREATE INDEX stores RawSQL verbatim.
+- `checkIndexDependencies`/`indexReferencesColumn`: DROP COLUMN index errors carry the DQS-off
+  quoted/hint message for double-quoted references, plain `no such column: b` otherwise.
+- DML eval: unresolved double-quoted identifier → string when `dqsDML`, else the hint error.
+
+**Transpiler (implemented in G4.STRING.9 — UNCOMMITTED):**
+- `sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL|DML N` → `db.SetDQS(ddl,dml)` (state tracked,
+  reset on fresh connections/reset_db).
+- `processDoCatchSQLTest` honors `[list 1 "<msg with $vars>"]` dynamic expected-error form.
+- `normalizeExpectedWord`: brace-delimited multi-row TCL lists are flattened to the
+  space-joined unbraced form `flatten()` produces (fixes `=`-containing rows like
+  `CHECK (c!="null")`).
 
 ### Committed (pushed to origin/main)
 

@@ -527,6 +527,20 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 		}
 		return nil, fmt.Errorf("no such column: %s", v.Name)
 	}
+	// SQLite double-quoted-string (DQS) resolution: if an unqualified
+	// double-quoted identifier does not match any column, and DQS is enabled
+	// for DML, it becomes a string literal. (CREATE "foo" CHECK (c!="bar")
+	// stores the raw SQL verbatim; at DML evaluation the "bar" resolves to a
+	// string.) When DQS_DML is off, the unresolved reference is an error.
+	if v.Quoted {
+		if e.dqsDML {
+			return v.Name, nil
+		}
+		// DQS disabled for DML: an unresolved double-quoted identifier is an
+		// error naming the identifier and hinting at single-quoted strings
+		// (matches SQLite's resolve.c message).
+		return nil, fmt.Errorf("no such column: \"%s\" - should this be a string literal in single-quotes?", v.Name)
+	}
 	return nil, nil
 }
 

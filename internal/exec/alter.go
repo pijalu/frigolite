@@ -1820,7 +1820,16 @@ func (e *Engine) checkIndexDependencies(tableName, columnName string) *Result {
 		if !strings.EqualFold(entry.TblName, tableName) {
 			continue
 		}
-		if indexReferencesColumn(entry.SQL, columnName) {
+		if refs, quoted := indexReferencesColumn(entry.SQL, columnName); refs {
+			// SQLite re-parses each schema object with DQS OFF when validating
+			// a DROP COLUMN (sqlite3_rename_test bNoDQS=1). A double-quoted
+			// reference to the dropped column therefore reports the DQS-off
+			// hint message; a bare or single-quoted (string-to-identifier)
+			// reference reports the plain "no such column" message.
+			if quoted {
+				return &Result{Error: fmt.Errorf("error in index %s after drop column: no such column: \"%s\" - should this be a string literal in single-quotes?",
+					entry.Name, columnName)}
+			}
 			return &Result{Error: fmt.Errorf("error in index %s after drop column: no such column: %s",
 				entry.Name, columnName)}
 		}
@@ -2274,8 +2283,11 @@ func exprReferencesColumn(expr sql.Expr, columnName string) bool {
 	}
 }
 
-// indexReferencesColumn checks if the CREATE INDEX SQL references a given column.
-func indexReferencesColumn(sqlStr, columnName string) bool {
+// indexReferencesColumn checks if the CREATE INDEX SQL references a given
+// column. The second return value reports whether the reference was written
+// as a double-quoted identifier ("name") — which determines the DQS-off
+// error message wording when the column is dropped.
+func indexReferencesColumn(sqlStr, columnName string) (bool, bool) {
 	upperSQL := strings.ToUpper(sqlStr)
 	// Check for simple column reference (word boundary)
 	// The column name appears after the ON table_name ( or after ON clause
@@ -2283,11 +2295,11 @@ func indexReferencesColumn(sqlStr, columnName string) bool {
 	// by looking for it with surrounding non-alphanumeric characters
 	onIdx := strings.Index(upperSQL, " ON ")
 	if onIdx < 0 {
-		return false
+		return false, false
 	}
 	parenIdx := strings.Index(upperSQL[onIdx:], "(")
 	if parenIdx < 0 {
-		return false
+		return false, false
 	}
 	exprText := upperSQL[onIdx+parenIdx+1:]
 	// Find the matching closing paren
@@ -2315,11 +2327,22 @@ func indexReferencesColumn(sqlStr, columnName string) bool {
 	words := strings.FieldsFunc(exprText, func(r rune) bool {
 		return !(r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '_' || r == '"')
 	})
-	for _, w := range words {
-		w = strings.Trim(w, `"`)
+	found := false
+	quoted := false
+	for _, raw := range words {
+		// A double-quoted reference "name" keeps its quotes in the word scan
+		// (the FieldsFunc set includes '"'), so record quotedness before
+		// trimming.
+		if len(raw) >= 2 && strings.HasPrefix(raw, `"`) && strings.HasSuffix(raw, `"`) {
+			if strings.EqualFold(raw[1:len(raw)-1], columnName) {
+				found = true
+				quoted = true
+			}
+		}
+		w := strings.Trim(raw, `"`)
 		if strings.EqualFold(w, columnName) {
-			return true
+			found = true
 		}
 	}
-	return false
+	return found, quoted
 }

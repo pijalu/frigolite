@@ -61,6 +61,18 @@ func (db *DB) SetAuthorizer(a auth.Authorizer) {
 	}
 }
 
+// SetDQS configures SQLite's double-quoted-string (DQS) behavior.
+// ddl=true allows double-quoted strings in DDL statements (CREATE TABLE
+// CHECK/DEFAULT expressions, CREATE INDEX keys); dml=true allows them in DML
+// (SELECT/INSERT/UPDATE expressions). Both default to true, matching SQLite.
+// When disabled, an unresolved double-quoted identifier is an error
+// ("no such column: \"X\" - should this be a string literal in single-quotes?").
+func (db *DB) SetDQS(ddl, dml bool) {
+	if db != nil && db.engine != nil {
+		db.engine.SetDQS(ddl, dml)
+	}
+}
+
 // Open opens a database file. Use ":memory:" for an in-memory database.
 func Open(path string) (*DB, error) {
 	var pg *pager.Pager

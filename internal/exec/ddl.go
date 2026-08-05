@@ -295,6 +295,29 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 		}
 	}
 
+	// DDL double-quoted-string (DQS) validation: with DQS disabled for DDL,
+	// a double-quoted identifier in a CHECK constraint that does not resolve
+	// to a column of this table is an error (SQLite resolve.c rejects
+	// CREATE TABLE xyz(a, b, c CHECK (c!="null")) with "no such column:
+	// \"null\" - should this be a string literal in single-quotes?").
+	// writable_schema + DQS DML allows the DDL (legacy schema load bypass).
+	if !e.dqsAllowedDDL() {
+		for _, col := range s.Columns {
+			if col.Check != nil {
+				if err := e.validateDQSExpr(col.Check, s.Columns); err != nil {
+					return &Result{Error: err}
+				}
+			}
+		}
+		for _, tc := range s.Constraints {
+			if tc.Type == sql.ConstraintCheck && tc.Expr != nil {
+				if err := e.validateDQSExpr(tc.Expr, s.Columns); err != nil {
+					return &Result{Error: err}
+				}
+			}
+		}
+	}
+
 	pg := ctx.Pager.AllocatePage()
 	// Initialize a fresh empty leaf: zero the page and set a valid header so
 	// a reused page (from a dropped table) does not retain stale cells.
@@ -692,6 +715,34 @@ func formatTableConstraint(buf *strings.Builder, tc sql.TableConstraint) {
 
 // --- CREATE INDEX ---
 
+// dqsAllowedDDL reports whether double-quoted strings are permitted in DDL
+// statements. SQLite allows them when the DQS DDL setting is enabled, or when
+// writable_schema is on and the DQS DML setting is enabled (the legacy schema
+// load bypass — resolve.c areDoubleQuotedStringsEnabled + db->init.busy).
+func (e *Engine) dqsAllowedDDL() bool {
+	return e.dqsDDL || (e.writableSchema && e.dqsDML)
+}
+
+// validateDQSExpr returns an error when a double-quoted identifier in expr
+// does not resolve to a column of the given table. SQLite's DQS
+// (double-quoted string) fallback converts such identifiers to string
+// literals only when DQS is enabled; when disabled for DDL they are errors
+// ("no such column: \"X\" - should this be a string literal in single-quotes?").
+func (e *Engine) validateDQSExpr(expr sql.Expr, colDefs []sql.ColumnDef) error {
+	var quoted []*sql.ColumnRef
+	walkExprFull(expr, func(n sql.Expr) {
+		if cr, ok := n.(*sql.ColumnRef); ok && cr.Quoted {
+			quoted = append(quoted, cr)
+		}
+	})
+	for _, cr := range quoted {
+		if cdIndex(colDefs, cr.Name) < 0 {
+			return fmt.Errorf("no such column: \"%s\" - should this be a string literal in single-quotes?", cr.Name)
+		}
+	}
+	return nil
+}
+
 func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	e.invalidateTableCaches()
 	if err := e.authorize(auth.ActionCreateIndex, s.Name, s.Table, "", ""); err != nil {
@@ -733,6 +784,28 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		tableCtx = ctx
 	}
 
+	// Resolve the table's column definitions up front: DQS validation and
+	// collation checks both need them, and both must run before the index
+	// entry is written to the schema (an error must not leak a partial index).
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+
+	// DDL double-quoted-string (DQS) validation: with DQS disabled for DDL,
+	// a double-quoted identifier in an index key or WHERE clause that does
+	// not resolve to a table column is an error. writable_schema + DQS DML
+	// allows the DDL (legacy schema load bypass).
+	if !e.dqsAllowedDDL() {
+		for _, term := range s.Terms {
+			if err := e.validateDQSExpr(term.Expr, colDefs); err != nil {
+				return &Result{Error: err}
+			}
+		}
+		if s.Where != nil {
+			if err := e.validateDQSExpr(s.Where, colDefs); err != nil {
+				return &Result{Error: err}
+			}
+		}
+	}
+
 	// Allocate root page for index
 	pg := tableCtx.Pager.AllocatePage()
 	pg.Data[0] = storage.PageTypeLeafIndex
@@ -740,8 +813,13 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	// Build index SQL
-	sqlStr := buildIndexSQL(indexName, s.Table, s.Columns, s.Unique, s.Where)
+	// Build index SQL: store the original statement verbatim when available
+	// (matching SQLite's sqlite_schema storage, which preserves expression
+	// index keys and original quoting), falling back to the AST rendering.
+	sqlStr := strings.TrimSpace(s.RawSQL)
+	if sqlStr == "" {
+		sqlStr = buildIndexSQL(indexName, s.Table, s.Columns, s.Unique, s.Where)
+	}
 
 	entry := &schema.Entry{
 		Type:     schema.TypeIndex,
@@ -754,9 +832,6 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	if err := tableCtx.Schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
 	}
-
-	// Populate index from existing table data
-	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	// Resolve each index column's collation from the table definition and
 	// reject unknown collation sequences (SQLite does this at CREATE INDEX

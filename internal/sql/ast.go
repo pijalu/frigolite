@@ -321,8 +321,17 @@ type CreateIndexStmt struct {
 	Table    string
 	TableTok TokenInfo // byte position of the Table name in original SQL
 	Columns  []IndexColumn
+	// Terms are the full index key expressions (sortlist), kept alongside the
+	// flattened Columns so DDL DQS validation and ALTER TABLE DROP COLUMN
+	// dependency checks can inspect expression index keys (e.g. z||"abc").
+	Terms []OrderByTerm
 	Unique   bool
 	Where    Expr // optional WHERE clause for partial indexes
+
+	// RawSQL is the original CREATE INDEX statement text as written by the
+	// user. It is stored verbatim in sqlite_schema (matching SQLite) so the
+	// stored SQL preserves expression index keys and original quoting.
+	RawSQL string
 }
 
 func (s *CreateIndexStmt) stmt() {}
@@ -509,6 +518,12 @@ type ColumnRef struct {
 	Name     string
 	TableTok TokenInfo // byte position of the Table qualifier (if present)
 	NameTok  TokenInfo // byte position of the Name token
+
+	// Quoted is true when the identifier came from a double-quoted token
+	// ("name"). SQLite's DQS (double-quoted string) behavior resolves such
+	// identifiers as column references first, then falls back to a string
+	// literal when no column matches and DQS is enabled for the context.
+	Quoted bool
 }
 
 func (e *ColumnRef) expr() {}

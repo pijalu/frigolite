@@ -142,6 +142,8 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 		dbVar:  "db",
 		t:      "t",
 		vars:   initialVars,
+		dqsDDL: true, // SQLite default: DQS allowed in DDL
+		dqsDML: true, // SQLite default: DQS allowed in DML
 	}
 	tp.processCommands(cmds)
 
@@ -503,6 +505,8 @@ type transpiler struct {
 	pendingFileReset map[string]bool       // file removed by forcedelete; next sqlite3 open resets the db
 	varsetLoopVars   map[string]varsetInfo // loop vars that iterate over varset structs
 	dbAliases        map[string]string     // secondary connection name -> main db var it aliases (same file)
+	dqsDDL           bool                  // current SQLITE_DBCONFIG_DQS_DDL state (default true)
+	dqsDML           bool                  // current SQLITE_DBCONFIG_DQS_DML state (default true)
 }
 
 // varsetInfo describes a foreach loop variable whose elements are TCL "varset"
@@ -880,6 +884,24 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 		if strings.TrimSpace(inner) != "" {
 			text = strings.TrimSpace(inner)
 			unwrapped = true
+		}
+	}
+	// Multi-element TCL list: db eval renders each result row as a braced
+	// element, so a multi-row expected value is a list of braced strings.
+	// flatten() produces the space-joined unbraced form, so split the list
+	// (respecting nested braces) and join the elements with single spaces.
+	// This must run before the structural-preservation checks below, which
+	// would otherwise keep the raw braces for lists containing '=' (e.g. a
+	// row value like CHECK (c!="null")). Only brace-delimited lists are
+	// flattened — bare multi-field words (e.g. "1 4 9") keep their existing
+	// handling to minimize churn.
+	if strings.Contains(text, "{") {
+		if elems := tclSplitList(text); len(elems) > 1 {
+			var parts []string
+			for _, e := range elems {
+				parts = append(parts, strings.TrimSpace(e))
+			}
+			return tcl.RawWord{Text: strings.Join(parts, " "), Braced: true}
 		}
 	}
 	// Preserve structural content.
@@ -1558,6 +1580,8 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		tp.emitLine("if _res.Error != nil { t.Errorf(\"integrity check: %%v\", _res.Error) }")
 	case "sqlite3":
 		tp.processSqlite3(args)
+	case "sqlite3_db_config":
+		tp.processDBConfig(args)
 	case "puts":
 		tp.processPuts(args)
 	case "forcedelete":
@@ -1570,6 +1594,8 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		tp.emitLine("db.Close()")
 		tp.emitLine("db, err = frigolite.Open(\"\")")
 		tp.emitLine("if err != nil { t.Fatal(err) }")
+		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
+		tp.dqsDML = true
 	case "source", "finish_test", "test_finish", "exit", "flush",
 		"fix_testname", "incr_ntest", "sqlite3_memdebug_settitle",
 		"namespace", "rename", "array",
@@ -1923,6 +1949,32 @@ func extractExpectedErrorFromLiteral(expected string) string {
 	return strings.TrimSpace(msg)
 }
 
+// listExpectedErrorMsg detects the TCL "[list 1 <msg>]" form used as a
+// do_catchsql_test expected value (SQLite error code 1 plus a message that
+// may interpolate $vars at runtime). It returns the message as a Go string
+// expression (with $var rendered as Go variables), or ("", false) when the
+// form does not match.
+func (tp *transpiler) listExpectedErrorMsg(rawText string) (string, bool) {
+	text := strings.TrimSpace(rawText)
+	if !strings.HasPrefix(text, "[list 1") || !strings.HasSuffix(text, "]") {
+		return "", false
+	}
+	inner := strings.TrimSpace(text[len("[list 1"):len(text)-1])
+	if inner == "" {
+		return "", false
+	}
+	// The message is a TCL word: strip outer double-quotes or braces and
+	// resolve TCL quoted escapes before interpolation.
+	msg := inner
+	if len(msg) >= 2 && msg[0] == '"' && msg[len(msg)-1] == '"' {
+		msg = msg[1 : len(msg)-1]
+		msg = tclUnescapeQuoted(msg)
+	} else if len(msg) >= 2 && msg[0] == '{' && msg[len(msg)-1] == '}' {
+		msg = msg[1 : len(msg)-1]
+	}
+	return tp.buildStringExpr(msg), true
+}
+
 func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 	if len(args) < 2 {
 		return
@@ -1972,6 +2024,12 @@ func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 		rest := strings.TrimSpace(strings.TrimPrefix(expectedExpr, `"1 "`))
 		rest = strings.TrimPrefix(rest, "+")
 		errMsgDynamic = strings.TrimSpace(rest)
+	}
+	// TCL [list 1 "<msg with $vars>"] form: the expected error message is a
+	// runtime Go expression (the list command builds the message dynamically).
+	if msgExpr, ok := tp.listExpectedErrorMsg(args[2].Text); ok {
+		expectSuccess = false
+		errMsgDynamic = msgExpr
 	}
 	if expectSuccess {
 		// TCL do_catchsql_test {0 {}} — the statement is expected to succeed.
@@ -4126,11 +4184,15 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 		// connection to a fresh database (dropping all prior tables).
 		// Reopen it empty. (The preceding "db close" already emitted Close.)
 		tp.emitLine("db, err = frigolite.Open(\"\")")
+		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
+		tp.dqsDML = true
 	} else if goName == "db" && len(args) >= 2 && tp.pendingFileReset[args[1].Text] {
 		// "forcedelete test.db; sqlite3 db test.db": start from a fresh
 		// database (in-memory; the compat suite does not rely on the file).
 		delete(tp.pendingFileReset, args[1].Text)
 		tp.emitLine("db, err = frigolite.Open(\"\")")
+		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
+		tp.dqsDML = true
 	} else if !tp.isVarDeclared(goName) {
 		// New DB connection variable
 		tp.emitLine("%s, err := frigolite.Open(%s)", goName, filename)
@@ -4148,6 +4210,33 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 		tp.emitLine("_ = %s // sqlite3 db connection", tmpVar)
 	}
 	tp.emitLine("if err != nil { t.Fatal(err) }")
+}
+
+// processDBConfig handles: sqlite3_db_config <conn> SQLITE_DBCONFIG_DQS_DDL|DML N
+// SQLite's double-quoted-string (DQS) per-connection toggles. The transpiler
+// tracks the current DDL/DML state and emits a db.SetDQS(ddl,dml) call
+// reflecting both flags.
+func (tp *transpiler) processDBConfig(args []tcl.RawWord) {
+	if len(args) < 3 {
+		return
+	}
+	flag := strings.ToUpper(strings.TrimSpace(args[1].Text))
+	val := strings.TrimSpace(args[2].Text)
+	on := val != "0" && !strings.EqualFold(val, "off")
+	switch {
+	case strings.HasSuffix(flag, "DQS_DDL"):
+		tp.dqsDDL = on
+	case strings.HasSuffix(flag, "DQS_DML"):
+		tp.dqsDML = on
+	default:
+		tp.emitLine("// sqlite3_db_config %s (unhandled flag)", sanitizeTCLComment(flag))
+		return
+	}
+	goName := tclVarToGo(args[0].Text)
+	if goName == "" {
+		goName = "db"
+	}
+	tp.emitLine("%s.SetDQS(%t, %t)", goName, tp.dqsDDL, tp.dqsDML)
 }
 
 // processPuts handles: puts message

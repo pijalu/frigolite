@@ -84,6 +84,8 @@ type Engine struct {
 	recursiveTriggers bool                             // PRAGMA recursive_triggers setting (allows trigger re-entry)
 	foreignKeys       bool                             // PRAGMA foreign_keys setting (enables FK constraint enforcement)
 	writableSchema    bool                             // PRAGMA writable_schema setting (permits sqlite_schema edits)
+	dqsDDL            bool                             // SQLITE_DBCONFIG_DQS_DDL: allow double-quoted strings in DDL (default true)
+	dqsDML            bool                             // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
 	recursiveCTELimit int                              // PRAGMA recursive_cte_limit setting (default 100000, matching SQLite test builds)
 	returningStrict   bool                             // RETURNING eval: unknown columns are errors (SQLite semantics)
 	returningTable    string                           // table name for RETURNING qualified column resolution
@@ -146,6 +148,17 @@ func (e *Engine) LastInsertRowID() int64 {
 // A nil authorizer allows all operations (default behavior).
 func (e *Engine) SetAuthorizer(a auth.Authorizer) {
 	e.authorizer = a
+}
+
+// SetDQS configures SQLite's double-quoted-string (DQS) behavior.
+// ddl=true allows double-quoted strings in DDL statements (CREATE TABLE
+// CHECK/DEFAULT expressions, CREATE INDEX keys); dml=true allows them in DML
+// (SELECT/INSERT/UPDATE expressions). Both default to true, matching SQLite.
+// When disabled, an unresolved double-quoted identifier is an error
+// ("no such column: \"X\" - should this be a string literal in single-quotes?").
+func (e *Engine) SetDQS(ddl, dml bool) {
+	e.dqsDDL = ddl
+	e.dqsDML = dml
 }
 
 // authorize checks whether an operation is allowed by the authorizer.
@@ -523,6 +536,8 @@ func NewEngine(pg *pager.Pager) *Engine {
 		hasTriggersCache: make(map[string]bool),
 		encoding:         "UTF-8",
 		recursiveCTELimit: 100000,
+		dqsDDL:           true, // SQLite default: double-quoted strings allowed in DDL
+		dqsDML:           true, // SQLite default: double-quoted strings allowed in DML
 		ftsTables:        make(map[string]*fts.FTS3Table),
 	}
 	e.vtabs.RegisterDefaults()
