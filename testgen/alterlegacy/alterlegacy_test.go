@@ -77,7 +77,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}\n"
+		want := "CREATE TABLE t1(a, b, CHECK(t1.a != t1.b)) CREATE TABLE t2(a, b) CREATE INDEX t2expr ON t2(a) WHERE t2.b>0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -101,7 +101,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}\n"
+		want := "CREATE TABLE t1(a, b, CHECK(t1.a != t1.b)) CREATE TABLE t2(a, b) CREATE INDEX t2expr ON t2(a) WHERE t2.b>0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -119,7 +119,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  {CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}\n"
+		want := "CREATE TABLE t1(a, b, CHECK(t1.a != t1.b)) CREATE TABLE t2(a, b) CREATE INDEX t2expr ON t2(a) WHERE t2.b>0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -458,7 +458,7 @@ func Test_alterlegacy(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END} {CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END}"
+		want := "CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -494,7 +494,7 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
-	trigger = "list" // TCL namespace variable
+	trigger = "" // TCL namespace variable
 	_ = trigger // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "11.0"

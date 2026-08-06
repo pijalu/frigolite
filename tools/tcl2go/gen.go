@@ -899,7 +899,13 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 		if elems := tclSplitList(text); len(elems) > 1 {
 			var parts []string
 			for _, e := range elems {
-				parts = append(parts, strings.TrimSpace(e))
+				e = strings.TrimSpace(e)
+				// Strip each element's outer rendering braces (db eval renders
+				// each row as a braced element; flatten() emits it unbraced).
+				if len(e) >= 2 && e[0] == '{' && e[len(e)-1] == '}' {
+					e = strings.TrimSpace(e[1 : len(e)-1])
+				}
+				parts = append(parts, e)
 			}
 			return tcl.RawWord{Text: strings.Join(parts, " "), Braced: true}
 		}

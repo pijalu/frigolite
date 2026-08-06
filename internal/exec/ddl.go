@@ -4,6 +4,7 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -1088,8 +1089,16 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 	}
 	sqlStr := ""
 	if s.RawSQL != "" {
-		// Preserve the verbatim definition (keeps CTEs in the view body).
+		// Preserve the verbatim definition (keeps CTEs in the view body),
+		// but strip a main/temp schema prefix from the view name (SQLite
+		// stores "CREATE VIEW ttt ..." not "CREATE VIEW temp.ttt ...").
 		sqlStr = s.RawSQL
+		if dotIdx := strings.Index(rawName, "."); dotIdx >= 0 {
+			prefix := strings.ToUpper(rawName[:dotIdx])
+			if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
+				sqlStr = stripViewSchemaPrefix(s.RawSQL, rawName[:dotIdx])
+			}
+		}
 	} else {
 		sqlStr = fmt.Sprintf("CREATE VIEW %s%s AS %s", viewName, colsClause, selectStmtToString(s.Select))
 	}
@@ -1111,6 +1120,16 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 		return &Result{Error: err}
 	}
 	return &Result{}
+}
+
+// stripViewSchemaPrefix removes a "<schema>." prefix from the view name in a
+// CREATE VIEW statement ("CREATE VIEW temp.ttt AS ..." → "CREATE VIEW ttt
+// AS ..."). Used because SQLite stores temp-schema view SQL without the
+// schema qualifier.
+func stripViewSchemaPrefix(sqlStr, schemaPrefix string) string {
+	quoted := regexp.QuoteMeta(schemaPrefix)
+	re := regexp.MustCompile(`(?i)(CREATE\s+VIEW\s+)` + quoted + `\.`)
+	return re.ReplaceAllString(sqlStr, "$1")
 }
 
 // --- CREATE TRIGGER ---

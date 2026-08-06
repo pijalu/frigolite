@@ -122,6 +122,15 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		delete(e.colCache, oldName)
 	}
 
+	// Invalidate table/column/constraint caches for the old and new names so
+	// stale entries do not outlive the rename.
+	delete(e.tableCache, oldName)
+	delete(e.tableCache, newName)
+	delete(e.tcCache, oldName)
+	delete(e.tcCache, newName)
+	delete(e.tableRootPages, oldName)
+	delete(e.tableRootPages, newName)
+
 	// SQLite's ALTER TABLE RENAME updates sqlite_sequence: any row whose
 	// name matches the old table name is rewritten to the new name.
 	e.renameSQLiteSequence(oldName, newName)
