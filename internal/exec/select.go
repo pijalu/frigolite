@@ -2736,18 +2736,22 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap, colD
 
 	// Partition rows by GROUP BY key
 	groups := make(map[string][]RowMap)
+	keyVals := make(map[string][]interface{})
 	var keyOrder []string
 
 	groupBy := resolveGroupByOrdinals(s)
 	for _, row := range rowMaps {
-		key := e.computeGroupByKey(groupBy, row)
+		key, vals := e.computeGroupByKeyValues(groupBy, row)
 		if _, exists := groups[key]; !exists {
 			keyOrder = append(keyOrder, key)
+			keyVals[key] = vals
 		}
 		groups[key] = append(groups[key], row)
 	}
-	// Sort keys for deterministic output matching SQLite GROUP BY behavior
-	sort.Strings(keyOrder)
+	// Sort keys for deterministic output matching SQLite GROUP BY behavior.
+	// Use the evaluated key VALUES (not the serialized strings) so NULL
+	// sorts first and numeric keys sort numerically.
+	e.sortGroupKeys(keyOrder, keyVals)
 
 	columns := e.buildColumnNames(s.Columns, colDefs)
 	var outRows [][]interface{}
