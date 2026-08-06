@@ -151,7 +151,7 @@ func Test_trigger4(t *testing.T) {
 		db.Close()
 		os.Remove("trigtest.db")
 		os.Remove("trigtest.db-journal")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("trigtest.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("drop table tbl; drop view vw")
 		_ = _res // catchsql

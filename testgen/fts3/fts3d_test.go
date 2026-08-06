@@ -237,7 +237,7 @@ func Test_fts3d(t *testing.T) {
 	{ // do_test "fts3d-6.0"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF8;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
 		if _res.Error != nil {
@@ -259,7 +259,7 @@ func Test_fts3d(t *testing.T) {
 	{ // do_test "fts3d-6.2"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16le;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
 		if _res.Error != nil {
@@ -281,7 +281,7 @@ func Test_fts3d(t *testing.T) {
 	{ // do_test "fts3d-6.4"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16be;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;\n  ")
 		if _res.Error != nil {

@@ -101,6 +101,8 @@ func Test_analyze5(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	// db function alpha (variable-reader, inlined)
+	// db function lindex (variable-reader, inlined)
 	{ // do_test "analyze5-1.0"
 		_res = db.Exec("CREATE TABLE t1(t,u,v TEXT COLLATE nocase,w,x,y,z)")
 		if _res.Error != nil {

@@ -136,7 +136,7 @@ func Test_e_reindex(t *testing.T) {
 	db.Close()
 	os.Remove("test.db2")
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

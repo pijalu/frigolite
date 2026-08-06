@@ -132,7 +132,7 @@ func Test_nolock(t *testing.T) {
 	{ // do_test "nolock-2.0"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(a,b);\n     INSERT INTO t1 VALUES('hello','world');\n     CREATE TABLE t2(x,y);\n     INSERT INTO t2 VALUES(12345,67890);\n     SELECT * FROM t1, t2;\n  ")
 		if _res.Error != nil {
@@ -228,7 +228,7 @@ func Test_nolock(t *testing.T) {
 		db.Close()
 		{ // do_test "nolock-4.2"
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('catbird');\n      SELECT * FROM t1;\n    ")
 			if _res.Error != nil {

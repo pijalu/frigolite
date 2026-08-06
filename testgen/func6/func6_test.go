@@ -104,6 +104,7 @@ func Test_func6(t *testing.T) {
 	// proc definition (not transpiled)
 	F = "loadhex test.db"
 	_ = F // suppress unused warning
+	// db function offrec (variable-reader, inlined)
 	if tclBool(bNullTrim) {
 		offset = "8180"
 		_ = offset // suppress unused warning

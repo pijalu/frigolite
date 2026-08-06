@@ -242,7 +242,7 @@ func Test_misc7(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "misc7-14.0"
 		_res = db.Exec("\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n  ")
@@ -271,7 +271,7 @@ func Test_misc7(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc7-15.1"
 		r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc \n    VALUES(randstr(100,100), randstr(100,100), randstr(100,100));\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    COMMIT;\n  ")
@@ -289,7 +289,7 @@ func Test_misc7(t *testing.T) {
 	db.Close()
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_ioerr_test misc7-16 -sqlprep {\n   PRAGMA cache_size = 10;\n   PRAGMA default_ca...} -tclbo... (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
@@ -414,7 +414,7 @@ func Test_misc7(t *testing.T) {
 	{ // do_test "misc7-22.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		if _res.Error != nil {

@@ -532,7 +532,7 @@ func Test_savepoint(t *testing.T) {
 	// wal_check_journal_mode savepoint-5.5 (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-6.1"
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
@@ -579,7 +579,7 @@ func Test_savepoint(t *testing.T) {
 	// wal_check_journal_mode savepoint-6.5 (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-7.1"
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
@@ -629,7 +629,7 @@ func Test_savepoint(t *testing.T) {
 	{ // do_test "savepoint-7.4.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
 		if r.Error != nil {
@@ -893,7 +893,7 @@ func Test_savepoint(t *testing.T) {
 	{ // do_test "savepoint-11.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = full; ")
 		if r.Error != nil {

@@ -151,7 +151,7 @@ func Test_shared3(t *testing.T) {
 	db2.Close()
 	db3.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2

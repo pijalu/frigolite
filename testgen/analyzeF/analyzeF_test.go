@@ -72,6 +72,7 @@ func Test_analyzeF(t *testing.T) {
 	testprefix = "analyzeF" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
+	// db function isqrt (variable-reader, inlined)
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;\n")
 		if r.Error != nil {
@@ -79,6 +80,7 @@ func Test_analyzeF(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function str (variable-reader, inlined)
 	// foreach {tn where idx} "1 \"x = 4 AND y = 19\"     {t1x (x=?)}\n  2 \"x = 19 AND y = 4\"     {t1y (y=?)}\n  3 \"x = '4' AND y = '19'\" {t1x (x=?)}\n  4 \"x = '19' AND y = '4'\" {t1y (y=?)}\n  5 \"x = substr('5195', 2, 2) AND y = substr('145', 2, 1)\" {t1y (y=?)}\n  6 \"x = substr('145', 2, 1) AND y = substr('5195', 2, 2)\" {t1x (x=?)}\n\n  7  \"x = substr('5195', 2, 2+0) AND y = substr('145', 2, 1+0)\" {t1y (y=?)}\n  8  \"x = substr('145', 2, 1+0) AND y = substr('5195', 2, 2+0)\" {t1y (y=?)}\n\n  9  \"x = str('19') AND y = str('4')\" {t1y (y=?)}\n  10 \"x = str('4') AND y = str('19')\" {t1y (y=?)}\n\n  11 \"x = nullif('19', 0) AND y = nullif('4', 0)\" {t1y (y=?)}\n  12 \"x = nullif('4', 0) AND y = nullif('19', 0)\" {t1y (y=?)}"
 	_items0 := tclSplitList("1 \"x = 4 AND y = 19\"     {t1x (x=?)}\n  2 \"x = 19 AND y = 4\"     {t1y (y=?)}\n  3 \"x = '4' AND y = '19'\" {t1x (x=?)}\n  4 \"x = '19' AND y = '4'\" {t1y (y=?)}\n  5 \"x = substr('5195', 2, 2) AND y = substr('145', 2, 1)\" {t1y (y=?)}\n  6 \"x = substr('145', 2, 1) AND y = substr('5195', 2, 2)\" {t1x (x=?)}\n\n  7  \"x = substr('5195', 2, 2+0) AND y = substr('145', 2, 1+0)\" {t1y (y=?)}\n  8  \"x = substr('145', 2, 1+0) AND y = substr('5195', 2, 2+0)\" {t1y (y=?)}\n\n  9  \"x = str('19') AND y = str('4')\" {t1y (y=?)}\n  10 \"x = str('4') AND y = str('19')\" {t1y (y=?)}\n\n  11 \"x = nullif('19', 0) AND y = nullif('4', 0)\" {t1y (y=?)}\n  12 \"x = nullif('4', 0) AND y = nullif('19', 0)\" {t1y (y=?)}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -111,6 +113,10 @@ func Test_analyzeF(t *testing.T) {
 			}
 		}
 		// proc definition (not transpiled)
+		// db function det4 (variable-reader, inlined)
+		// db function nondet4 (variable-reader, inlined)
+		// db function det19 (variable-reader, inlined)
+		// db function nondet19 (variable-reader, inlined)
 		// foreach {tn where idx} "1 \"x = det4() AND y = det19()\"     {t1x (x=?)}\n  2 \"x = det19() AND y = det4()\"     {t1y (y=?)}\n\n  3 \"x = nondet4() AND y = nondet19()\"     {t1y (y=?)}\n  4 \"x = nondet19() AND y = nondet4()\"     {t1y (y=?)}"
 		_items1 := tclSplitList("1 \"x = det4() AND y = det19()\"     {t1x (x=?)}\n  2 \"x = det19() AND y = det4()\"     {t1y (y=?)}\n\n  3 \"x = nondet4() AND y = nondet19()\"     {t1y (y=?)}\n  4 \"x = nondet19() AND y = nondet4()\"     {t1y (y=?)}")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
@@ -135,10 +141,11 @@ func Test_analyzeF(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 			}
 			// proc definition (not transpiled)
+			// db function error (variable-reader, inlined)
 			{ // "4.1"
-				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = error('error one') AND y = 4;\n")
+				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = " + sqlLiteral(error_one) + " AND y = 4;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error one") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error one", _res.Error, "\n  SELECT * FROM t1 WHERE x = error('error one') AND y = 4;\n")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error one", _res.Error, "\n  SELECT * FROM t1 WHERE x = " + sqlLiteral(error_one) + " AND y = 4;\n")
 				}
 			}
 			{ // "4.2"
@@ -149,6 +156,7 @@ func Test_analyzeF(t *testing.T) {
 			}
 			// sqlite3_limit db SQLITE_LIMIT_LENGTH 1000000 (unsupported command, not transpiled)
 			// proc definition (not transpiled)
+			// db function dstr (variable-reader, inlined)
 			{ // "4.3"
 				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = dstr() AND y = 11;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {

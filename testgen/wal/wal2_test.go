@@ -519,7 +519,7 @@ func Test_wal2(t *testing.T) {
 			// tvfs delete (unsupported command, not transpiled)
 			{ // do_test "wal2-6.1.1"
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    Pragma Journal_Mode = Wal;\n  ")
 				if r.Error != nil {
@@ -563,7 +563,7 @@ func Test_wal2(t *testing.T) {
 			db.Close()
 			{ // do_test "wal2-6.2.1"
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    Pragma Locking_Mode = Exclusive;\n    Pragma Journal_Mode = Wal;\n    Pragma Lock_Status;\n  ")
 				if r.Error != nil {
@@ -632,7 +632,7 @@ func Test_wal2(t *testing.T) {
 			db.Close()
 			{ // do_test "wal2-6.3.1"
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    PRAGMA journal_mode = WAL;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Chico');\n      INSERT INTO t1 VALUES('Harpo');\n    COMMIT;\n  ")
 				if r.Error != nil {
@@ -696,7 +696,7 @@ func Test_wal2(t *testing.T) {
 				// proc definition (not transpiled)
 				// testvfs tvfs (unsupported command, not transpiled)
 				// tvfs script tvfs_cb (unsupported command, not transpiled)
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// set  (invalid identifier, skipped)
 			}
@@ -1326,8 +1326,8 @@ func Test_wal2(t *testing.T) {
 										// testvfs tvfs -default 1 (unsupported command, not transpiled)
 										// tvfs filter xSync (unsupported command, not transpiled)
 										// tvfs script xSyncCb (unsupported command, not transpiled)
-										// proc definition (not transpiled)
-										db, err = frigolite.Open("")
+										// proc xSyncCb increments counter var sync_flags (registered via db func)
+										db, err = frigolite.Open("test.db")
 										if err != nil { t.Fatal(err) }
 										{ // "15." + tn + ".1"
 											r = db.Query("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = " + tclLIndex(settings, "0") + ";\n    PRAGMA fullfsync = " + tclLIndex(settings, "1") + ";\n    PRAGMA synchronous = " + tclLIndex(settings, "2") + ";\n  ")

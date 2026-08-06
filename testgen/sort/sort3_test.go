@@ -78,6 +78,7 @@ func Test_sort3(t *testing.T) {
 	testprefix = "sort3"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
+	// db function cksum (variable-reader, inlined)
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA cache_size = 5;\n  CREATE TABLE t11(a, b);\n  INSERT INTO t11 VALUES(randomblob(5000), NULL);\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --2\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --3\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --4\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --5\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --6\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --7\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --8\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --9\n  UPDATE t11 SET b = cksum(a);\n")
 		if r.Error != nil {

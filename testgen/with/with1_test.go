@@ -520,7 +520,7 @@ func Test_with1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	I = "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"
+	I = "2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"
 	_ = I // suppress unused warning
 	// proc definition (not transpiled)
 	// limit_test 9.1 20 0 (unsupported command, not transpiled)

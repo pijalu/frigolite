@@ -157,6 +157,7 @@ func Test_corruptK(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		// db function hex2blob (variable-reader, inlined)
 		{ // "3.1"
 			r = db.Query("\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);\n  ")
 			if r.Error != nil {

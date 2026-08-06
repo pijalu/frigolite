@@ -141,7 +141,7 @@ func Test_fallocate(t *testing.T) {
 	if tclBool("!" + skipwaltests) {
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// file_control_chunksize_test db main [expr 32*1024] (unsupported command, not transpiled)
 		{ // do_test "fallocate-2.1"

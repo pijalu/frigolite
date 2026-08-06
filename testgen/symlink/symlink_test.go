@@ -169,7 +169,7 @@ func Test_symlink(t *testing.T) {
 			db2.Close()
 		}
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(x) ")
 		if _res.Error != nil {

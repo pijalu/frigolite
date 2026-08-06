@@ -70,7 +70,7 @@ func Test_tkt2820(t *testing.T) {
 	{ // do_test "tkt2820-4.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n  ")
 		if _res.Error != nil {

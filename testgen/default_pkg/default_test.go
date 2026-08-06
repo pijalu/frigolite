@@ -120,7 +120,7 @@ func Test_default(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "default-4.0"

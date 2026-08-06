@@ -191,6 +191,7 @@ func Test_pager1(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
+	// db function a_string (variable-reader, inlined)
 	// do_multiclient_test tn {\n\n  # Create and populate a database table using...} (unsupported command, not transpiled)
 	{ // do_test "pager1-3.1.1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -264,6 +265,7 @@ func Test_pager1(t *testing.T) {
 			{ // do_test "pager1-3." + tn + ".1"
 				// eval $tcl (dynamic, not transpiled)
 				// faultsim_delete_and_reopen (unsupported command, not transpiled)
+				// db function a_string (variable-reader, inlined)
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -360,6 +362,7 @@ func Test_pager1(t *testing.T) {
 			// tstvfs script xDeleteCallback (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			// faultsim_delete_and_reopen (unsupported command, not transpiled)
+			// db function a_string (variable-reader, inlined)
 			r = db.Query("\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
@@ -1239,6 +1242,7 @@ func Test_pager1(t *testing.T) {
 							}
 							{ // do_test "pager1-9.0.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
+								// db function a_string (variable-reader, inlined)
 								r = db.Query("\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;\n  ")
@@ -1402,6 +1406,7 @@ func Test_pager1(t *testing.T) {
 								}
 								{ // do_test "pager1-10." + sectorsize + ".1"
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
+									// db function a_string (variable-reader, inlined)
 									r = db.Query("\n      PRAGMA journal_mode = PERSIST;\n      PRAGMA page_size = 1024;\n      BEGIN;\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        CREATE TABLE t3(a, b);\n      COMMIT;\n    ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = PERSIST;\n      PRAGMA page_size = 1024;\n      BEGIN;\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        CREATE TABLE t3(a, b);\n      COMMIT;\n    ")
@@ -1491,6 +1496,7 @@ func Test_pager1(t *testing.T) {
 							// tv delete (unsupported command, not transpiled)
 							// testvfs tv -default 1 (unsupported command, not transpiled)
 							// faultsim_delete_and_reopen (unsupported command, not transpiled)
+							// db function a_string (variable-reader, inlined)
 							{ // "pager1-11.1"
 								r = db.Query("\n  PRAGMA journal_mode = DELETE;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE zz(top PRIMARY KEY);\n    INSERT INTO zz VALUES(a_string(222));\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n  COMMIT;\n  BEGIN;\n    UPDATE zz SET top = a_string(345);\n")
 								if r.Error != nil {
@@ -1585,6 +1591,7 @@ func Test_pager1(t *testing.T) {
 							// tv filter xSync (unsupported command, not transpiled)
 							// proc definition (not transpiled)
 							// faultsim_delete_and_reopen (unsupported command, not transpiled)
+							// db function a_string (variable-reader, inlined)
 							{ // "pager1-13.1.1"
 								r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = PERSIST;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n    INSERT INTO t1 VALUES(NULL, a_string(400));\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   2 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   4 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   8 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  16 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  32 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  64 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /* 128 */\n  COMMIT;\n  UPDATE t1 SET b = a_string(400);\n")
 								if r.Error != nil {
@@ -1834,6 +1841,7 @@ func Test_pager1(t *testing.T) {
 							{ // do_test "pager1-19.1"
 								db, err = frigolite.Open("")
 								if err != nil { t.Fatal(err) }
+								// db function a_string (variable-reader, inlined)
 								r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    CREATE TABLE t2(aa, ab, ac, ad, ae, af, ag, ah, ai, aj, ak, al, am, an,\n                    ba, bb, bc, bd, be, bf, bg, bh, bi, bj, bk, bl, bm, bn,\n                    ca, cb, cc, cd, ce, cf, cg, ch, ci, cj, ck, cl, cm, cn,\n                    da, db, dc, dd, de, df, dg, dh, di, dj, dk, dl, dm, dn,\n                    ea, eb, ec, ed, ee, ef, eg, eh, ei, ej, ek, el, em, en,\n                    fa, fb, fc, fd, fe, ff, fg, fh, fi, fj, fk, fl, fm, fn,\n                    ga, gb, gc, gd, ge, gf, gg, gh, gi, gj, gk, gl, gm, gn,\n                    ha, hb, hc, hd, he, hf, hg, hh, hi, hj, hk, hl, hm, hn,\n                    ia, ib, ic, id, ie, if, ig, ih, ii, ij, ik, il, im, ix,\n                    ja, jb, jc, jd, je, jf, jg, jh, ji, jj, jk, jl, jm, jn,\n                    ka, kb, kc, kd, ke, kf, kg, kh, ki, kj, kk, kl, km, kn,\n                    la, lb, lc, ld, le, lf, lg, lh, li, lj, lk, ll, lm, ln,\n                    ma, mb, mc, md, me, mf, mg, mh, mi, mj, mk, ml, mm, mn\n    );\n    INSERT INTO t1(aa) VALUES( a_string(100000) );\n    INSERT INTO t2(aa) VALUES( a_string(100000) );\n    VACUUM;\n  ")
@@ -1873,6 +1881,7 @@ func Test_pager1(t *testing.T) {
 							}
 							{ // do_test "pager1-20.3.1"
 								// faultsim_delete_and_reopen (unsupported command, not transpiled)
+								// db function a_string (variable-reader, inlined)
 								r = db.Query("\n      PRAGMA cache_size = 10;\n      PRAGMA journal_mode = wal;\n      BEGIN;\n        CREATE TABLE t1(x);\n        CREATE TABLE t2(y);\n        INSERT INTO t1 VALUES(a_string(800));\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   2 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   4 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   8 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  16 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  32 */\n      COMMIT;\n    ")
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA cache_size = 10;\n      PRAGMA journal_mode = wal;\n      BEGIN;\n        CREATE TABLE t1(x);\n        CREATE TABLE t2(y);\n        INSERT INTO t1 VALUES(a_string(800));\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   2 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   4 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*   8 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  16 */\n        INSERT INTO t1 SELECT a_string(800) FROM t1;         /*  32 */\n      COMMIT;\n    ")
@@ -1929,7 +1938,7 @@ func Test_pager1(t *testing.T) {
 								// testvfs tv -default 1 (unsupported command, not transpiled)
 								// tv filter xSync (unsupported command, not transpiled)
 								// tv script xSyncCb (unsupported command, not transpiled)
-								// proc definition (not transpiled)
+								// proc xSyncCb increments counter var synccount (registered via db func)
 								synccount = "0" // TCL namespace variable
 								_ = synccount // suppress unused warning
 								_dbtmp10, err := frigolite.Open("test.db")
@@ -2086,6 +2095,7 @@ func Test_pager1(t *testing.T) {
 								}
 								{ // do_test "pager1-24.1.1"
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
+									// db function a_string (variable-reader, inlined)
 									r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE x1(x, y, z, PRIMARY KEY(y, z));\n    CREATE TABLE x2(x, y, z, PRIMARY KEY(y, z));\n    INSERT INTO x2 VALUES(a_string(400), a_string(500), a_string(600));\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x1 SELECT * FROM x2;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE x1(x, y, z, PRIMARY KEY(y, z));\n    CREATE TABLE x2(x, y, z, PRIMARY KEY(y, z));\n    INSERT INTO x2 VALUES(a_string(400), a_string(500), a_string(600));\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x2 SELECT a_string(600), a_string(400), a_string(500) FROM x2;\n    INSERT INTO x2 SELECT a_string(500), a_string(600), a_string(400) FROM x2;\n    INSERT INTO x2 SELECT a_string(400), a_string(500), a_string(600) FROM x2;\n    INSERT INTO x1 SELECT * FROM x2;\n  ")
@@ -2146,6 +2156,7 @@ func Test_pager1(t *testing.T) {
 									// testvfs tv -default 1 (unsupported command, not transpiled)
 									// tv sectorsize 4096 (unsupported command, not transpiled)
 									// faultsim_delete_and_reopen (unsupported command, not transpiled)
+									// db function a_string (variable-reader, inlined)
 									r = db.Query("\n    PRAGMA page_size = 512;\n    CREATE TABLE tbl(a PRIMARY KEY, b UNIQUE);\n    BEGIN;\n      INSERT INTO tbl VALUES(a_string(25), a_string(600));\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n    COMMIT;\n  ")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    CREATE TABLE tbl(a PRIMARY KEY, b UNIQUE);\n    BEGIN;\n      INSERT INTO tbl VALUES(a_string(25), a_string(600));\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n      INSERT INTO tbl SELECT a_string(25), a_string(600) FROM tbl;\n    COMMIT;\n  ")
@@ -2303,6 +2314,7 @@ func Test_pager1(t *testing.T) {
 										os.Remove("test.db")
 										db, err = frigolite.Open("test.db")
 										if err != nil { t.Fatal(err) }
+										// db function a_string (variable-reader, inlined)
 										_res = db.Exec(pragma)
 										if _res.Error != nil {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, pragma)
@@ -2400,7 +2412,7 @@ func Test_pager1(t *testing.T) {
 											_putsMsg := fd
 											_ = _putsMsg
 											// close $fd
-											db, err = frigolite.Open("")
+											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
 											_res = db.Exec(" CREATE TABLE t1(x) ")
 											_ = _res // catchsql

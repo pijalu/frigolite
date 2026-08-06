@@ -290,7 +290,7 @@ func Test_e_wal(t *testing.T) {
 	db.Close()
 	{ // do_test "3.4.2"
 		os.Remove("test.db2")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA journal_mode = WAL ")
 		_ = _res // catchsql

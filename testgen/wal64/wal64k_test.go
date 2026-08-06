@@ -98,7 +98,7 @@ func Test_wal64k(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA page_size=512;\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8200)\n  INSERT INTO t1(a,b) SELECT x, zeroblob(300) FROM c;\n  PRAGMA integrity_check;\n")

@@ -162,7 +162,7 @@ func Test_triggerD(t *testing.T) {
 	{ // do_test "triggerD-4.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    ATTACH 'test2.db' AS db2;\n    CREATE TABLE db2.t2(y);\n    CREATE TABLE db2.log(z);\n    CREATE TRIGGER db2.trig AFTER INSERT ON db2.t2 BEGIN\n      INSERT INTO log(z) VALUES(new.y);\n    END;\n    INSERT INTO t2 VALUES(123);\n    SELECT * FROM log;\n  ")
 		if _res.Error != nil {

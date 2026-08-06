@@ -120,6 +120,7 @@ func Test_wal3(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
+	// db function a_string (variable-reader, inlined)
 	{ // do_test "wal3-1.0"
 		r = db.Query("\n    PRAGMA cache_size = 2000;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = off;\n    PRAGMA synchronous = normal;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES( a_string(800) );                  /*    1 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /*    2 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /*    4 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /*    8 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /*   16 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /*   32 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /*   64 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /*  128*/\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /*  256 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /*  512 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /* 1024 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1;             /* 2048 */\n      INSERT INTO t1 SELECT a_string(800) FROM t1 LIMIT 1970;  /* 4018 */\n    COMMIT;\n    PRAGMA cache_size = 10;\n  ")
 		if r.Error != nil {
@@ -232,7 +233,7 @@ func Test_wal3(t *testing.T) {
 				// testvfs T (unsupported command, not transpiled)
 				// T filter {} (unsupported command, not transpiled)
 				// T script sync_counter (unsupported command, not transpiled)
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("PRAGMA synchronous = " + syncmode)
 				if r.Error != nil {
@@ -328,7 +329,7 @@ func Test_wal3(t *testing.T) {
 		// testvfs T -default 1 (unsupported command, not transpiled)
 		{ // do_test "wal3-6.1.1"
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA auto_vacuum = off ")
 			if r.Error != nil {
@@ -411,7 +412,7 @@ func Test_wal3(t *testing.T) {
 		db.Close()
 		{ // do_test "wal3-6.2.1"
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2
@@ -479,7 +480,7 @@ func Test_wal3(t *testing.T) {
 		// testvfs T -default 1 (unsupported command, not transpiled)
 		{ // do_test "wal3-7.1.1"
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
 			if r.Error != nil {
@@ -533,7 +534,7 @@ func Test_wal3(t *testing.T) {
 		}
 		{ // do_test "wal3-9.0"
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
 			if r.Error != nil {

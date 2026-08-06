@@ -146,6 +146,12 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// Validate compound SELECT column-count consistency (SQLite does this at
+	// prepare time, before any rows are produced).
+	if err := e.validateCompoundColumnCounts(s); err != nil {
+		return &Result{Error: err}
+	}
+
 	// Push this statement's WITH (CTE) definitions so nested subqueries can
 	// resolve them by name (SQLite's name resolver consults enclosing WITH
 	// clauses). Pop on return regardless of path.
@@ -235,6 +241,17 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 			Rows:    rows,
 		}
 		return result
+	}
+
+	// Validate that every column reference in the SELECT (select list, WHERE,
+	// GROUP BY, HAVING, ORDER BY) resolves to a column of the scanned table.
+	// SQLite reports unknown columns at prepare time; without this check an
+	// unknown column silently evaluates to NULL. (Virtual tables are handled
+	// above where the table-name pseudo-column is legal, e.g. FTS MATCH.)
+	if len(s.Joins) == 0 && e.outerRow == nil {
+		if err := e.validateSelectColumnRefs(s, colDefs, tableEntry.Name); err != nil {
+			return &Result{Error: err}
+		}
 	}
 
 	tree := e.tableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
@@ -376,8 +393,11 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 
 // finalizeSelectResult applies DISTINCT, ORDER BY, LIMIT, and UNION.
 func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps []RowMap) *Result {
+	// The collation of each result column of a compound query comes from the
+	// leftmost SELECT member (SQLite's compound column collation rule).
+	colls := e.selectOutputCollations(s)
 	if s.Distinct {
-		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps)
+		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps, colls)
 	}
 	// Handle UNION before ORDER BY (ORDER BY on compound SELECT applies to the merged result).
 	// The parser attaches a trailing ORDER BY / LIMIT / OFFSET to the LAST member
@@ -398,9 +418,10 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 				// tuple list (the internal UNION ALL chain of one node per
 				// tuple) as one set before the link's operator applies.
 				memberResult := e.execValuesGroup(member)
-				if memberResult.Error == nil {
-					result.Rows = applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll)
+				if memberResult.Error != nil {
+					return memberResult
 				}
+				result.Rows = applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll, colls)
 				// Skip the VALUES group's internal tuple nodes (links that
 				// are UNION ALL); stop at the next real compound member.
 				for member.Union != nil && member.SetOp == sql.SetUnion && member.UnionAll {
@@ -411,10 +432,17 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 			}
 			memberCopy := *member
 			memberCopy.Union = nil
+			prevCompound := e.inCompoundMember
+			e.inCompoundMember = true
 			memberResult := e.execSelect(&memberCopy)
-			if memberResult.Error == nil {
-				result.Rows = applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll)
+			e.inCompoundMember = prevCompound
+			if memberResult.Error != nil {
+				return memberResult
 			}
+			if len(memberResult.Columns) != len(result.Columns) {
+				return &Result{Error: fmt.Errorf("SELECTs to the left and right of %s do not have the same number of result columns", setOpName(cur.SetOp, cur.UnionAll))}
+			}
+			result.Rows = applySetOp(result.Rows, memberResult.Rows, cur.SetOp, cur.UnionAll, colls)
 			cur = member
 		}
 		last := cur
@@ -444,6 +472,15 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 		if err := validateOrderBy(orderBy, len(result.Columns)); err != nil {
 			return &Result{Error: err}
 		}
+		// Compound queries restrict ORDER BY terms to result column names or
+		// ordinals (SQLite: expressions from underlying tables are rejected
+		// with "Nth ORDER BY term does not match any column in the result
+		// set" unless they match a result column).
+		if s.Union != nil {
+			if err := e.validateCompoundOrderBy(s, orderBy); err != nil {
+				return &Result{Error: err}
+			}
+		}
 		e.sortRowsWithMaps(result, orderBy, rowMaps)
 	}
 	result.Rows = applyLimitOffset(result.Rows, limit, offset)
@@ -455,11 +492,14 @@ func (e *Engine) mergeUnionRows(rows [][]interface{}, union *sql.SelectStmt, op 
 	if unionResult.Error != nil {
 		return rows
 	}
-	return applySetOp(rows, unionResult.Rows, op, unionAll)
+	return applySetOp(rows, unionResult.Rows, op, unionAll, nil)
 }
 
 // applySetOp combines left and right row sets with a compound set operator.
-func applySetOp(rows, rightRows [][]interface{}, op sql.SetOp, unionAll bool) [][]interface{} {
+// colls holds the collation of each result column (from the leftmost member
+// of the compound query), used to deduplicate/intersect with SQLite's column
+// collation semantics; nil means BINARY for all columns.
+func applySetOp(rows, rightRows [][]interface{}, op sql.SetOp, unionAll bool, colls []string) [][]interface{} {
 	switch op {
 	case sql.SetUnion:
 		if unionAll {
@@ -467,15 +507,209 @@ func applySetOp(rows, rightRows [][]interface{}, op sql.SetOp, unionAll bool) []
 			return append(rows, rightRows...)
 		}
 		// UNION: deduplicate combined rows
-		return dedupeRows(append(rows, rightRows...))
+		return dedupeRows(append(rows, rightRows...), colls)
 	case sql.SetIntersect:
 		// INTERSECT: rows that appear in both sets
-		return intersectRows(rows, rightRows)
+		return intersectRows(rows, rightRows, colls)
 	case sql.SetExcept:
 		// EXCEPT: rows in left but not in right
-		return exceptRows(rows, rightRows)
+		return exceptRows(rows, rightRows, colls)
 	default:
 		return append(rows, rightRows...)
+	}
+}
+
+// compoundSelectColCount returns the declared output column count of a
+// single SELECT member of a compound query, expanding "*" / "t.*" through
+// the schema. It is used to validate that all members of a compound query
+// have the same number of result columns (SQLite reports this error at
+// prepare time, including under EXPLAIN QUERY PLAN).
+func (e *Engine) compoundSelectColCount(s *sql.SelectStmt) (int, error) {
+	count := 0
+	for _, col := range s.Columns {
+		ref, ok := col.Expr.(*sql.ColumnRef)
+		if ok && ref.Name == "*" {
+			// Star expansion: count the columns of the referenced table or
+			// subquery.
+			var n int
+			if ref.Table != "" {
+				cols, err := e.tableColumnNames(ref.Table)
+				if err != nil {
+					return 0, err
+				}
+				n = len(cols)
+			} else if s.From.Subquery != nil {
+				subCols, err := e.compoundSelectColCount(s.From.Subquery)
+				if err != nil {
+					return 0, err
+				}
+				n = subCols
+			} else if s.From.Name != "" {
+				cols, err := e.tableColumnNames(s.From.Name)
+				if err != nil {
+					return 0, err
+				}
+				n = len(cols)
+			} else {
+				return 0, fmt.Errorf("no tables specified")
+			}
+			count += n
+		} else {
+			count++
+		}
+	}
+	return count, nil
+}
+
+// validateCompoundColumnCounts checks that all members of a compound SELECT
+// chain produce the same number of result columns, matching SQLite's
+// "SELECTs to the left and right of <OP> do not have the same number of
+// result columns" error.
+func (e *Engine) validateCompoundColumnCounts(s *sql.SelectStmt) error {
+	if s.Union == nil {
+		return nil
+	}
+	headCount, err := e.compoundSelectColCount(s)
+	if err != nil {
+		return err
+	}
+	cur := s
+	for cur.Union != nil {
+		member := cur.Union
+		if member.ValuesChain {
+			// VALUES members contribute one column per expression.
+			for member.Union != nil && member.SetOp == sql.SetUnion && member.UnionAll {
+				member = member.Union
+			}
+			cur = member
+			continue
+		}
+		memberCount, err := e.compoundSelectColCount(member)
+		if err != nil {
+			return err
+		}
+		if memberCount != headCount {
+			return fmt.Errorf("SELECTs to the left and right of %s do not have the same number of result columns", setOpName(cur.SetOp, cur.UnionAll))
+		}
+		cur = member
+	}
+	return nil
+}
+
+// tableColumnNames returns the column names of a table (or view), resolving
+// schema entries by name.
+func (e *Engine) tableColumnNames(tableName string) ([]string, error) {
+	entry, _, err := e.findTable(tableName)
+	if err != nil {
+		// Views are resolved through a different path; try the main schema.
+		if v, verr := e.mainDB.Schema.FindView(tableName); verr == nil && v != nil {
+			return e.viewSelectColumnNames(v)
+		}
+		return nil, fmt.Errorf("no such table: %s", tableName)
+	}
+	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+	names := make([]string, 0, len(colDefs))
+	for _, cd := range colDefs {
+		if cd.Dropped {
+			continue
+		}
+		names = append(names, cd.Name)
+	}
+	return names, nil
+}
+
+// viewSelectColumnNames returns the result column names of a view by parsing
+// its stored SELECT body and deriving column names.
+func (e *Engine) viewSelectColumnNames(entry *schema.Entry) ([]string, error) {
+	sqlStr := entry.SQL
+	upper := strings.ToUpper(sqlStr)
+	idx := strings.Index(upper, " AS")
+	if idx < 0 {
+		return nil, fmt.Errorf("exec: invalid view SQL: %s", sqlStr)
+	}
+	selectSQL := strings.TrimSpace(sqlStr[idx+3:])
+	stmts, err := parse.ParseSQL(selectSQL)
+	if err != nil || len(stmts) == 0 {
+		return nil, fmt.Errorf("exec: view parse error: %v", err)
+	}
+	if sel, ok := stmts[0].(*sql.SelectStmt); ok {
+		return e.viewColumnNames(sel), nil
+	}
+	return nil, fmt.Errorf("exec: view does not contain SELECT")
+}
+
+// validateViewBody parses a view's stored SELECT body and runs the same
+// compile-time validations a real query would (compound column counts,
+// expression checks). It returns the first error found, or nil.
+func (e *Engine) validateViewBody(entry *schema.Entry) error {
+	sqlStr := entry.SQL
+	upper := strings.ToUpper(sqlStr)
+	idx := strings.Index(upper, " AS")
+	if idx < 0 {
+		return fmt.Errorf("exec: invalid view SQL: %s", sqlStr)
+	}
+	selectSQL := strings.TrimSpace(sqlStr[idx+3:])
+	stmts, err := parse.ParseSQL(selectSQL)
+	if err != nil || len(stmts) == 0 {
+		return fmt.Errorf("exec: view parse error: %v", err)
+	}
+	if sel, ok := stmts[0].(*sql.SelectStmt); ok {
+		if err := e.validateCompoundColumnCounts(sel); err != nil {
+			return err
+		}
+		if err := e.validateSelectExprs(sel); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// selectOutputCollations returns the collation of each output column of a
+// SELECT, based on the column references in the select list and the FROM
+// table's declared column collations. SQLite applies the leftmost member's
+// column collations to a compound query result, so this is called on the
+// head SELECT. Returns nil when collations cannot be determined (BINARY).
+func (e *Engine) selectOutputCollations(s *sql.SelectStmt) []string {
+	if s == nil || s.From.Name == "" {
+		return nil
+	}
+	entry, _, err := e.findTable(s.From.Name)
+	if err != nil {
+		return nil
+	}
+	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+	colByName := make(map[string]string, len(colDefs))
+	for _, cd := range colDefs {
+		if cd.Collate != "" && !strings.EqualFold(cd.Collate, "BINARY") {
+			colByName[strings.ToLower(cd.Name)] = strings.ToUpper(cd.Collate)
+		}
+	}
+	colls := make([]string, 0, len(s.Columns))
+	for _, col := range s.Columns {
+		coll := ""
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "*" {
+			coll = colByName[strings.ToLower(ref.Name)]
+		}
+		colls = append(colls, coll)
+	}
+	return colls
+}
+
+// setOpName returns the SQL keyword for a compound set operator, used in
+// error messages about mismatched result column counts.
+func setOpName(op sql.SetOp, unionAll bool) string {
+	switch op {
+	case sql.SetUnion:
+		if unionAll {
+			return "UNION ALL"
+		}
+		return "UNION"
+	case sql.SetIntersect:
+		return "INTERSECT"
+	case sql.SetExcept:
+		return "EXCEPT"
+	default:
+		return "UNION"
 	}
 }
 
@@ -504,14 +738,15 @@ func (e *Engine) execValuesGroup(head *sql.SelectStmt) *Result {
 }
 
 // dedupeRows removes duplicate rows using CompareValues-based keys.
-func dedupeRows(rows [][]interface{}) [][]interface{} {
+// colls holds the collation of each column (nil → BINARY).
+func dedupeRows(rows [][]interface{}, colls []string) [][]interface{} {
 	if len(rows) == 0 {
 		return rows
 	}
 	seen := make(map[string]bool)
 	var result [][]interface{}
 	for _, row := range rows {
-		key := rowKey(row)
+		key := rowKey(row, colls)
 		if !seen[key] {
 			seen[key] = true
 			result = append(result, row)
@@ -521,20 +756,21 @@ func dedupeRows(rows [][]interface{}) [][]interface{} {
 }
 
 // intersectRows returns rows that exist in both a and b (INTERSECT).
-func intersectRows(a, b [][]interface{}) [][]interface{} {
+// colls holds the collation of each column (nil → BINARY).
+func intersectRows(a, b [][]interface{}, colls []string) [][]interface{} {
 	if len(a) == 0 || len(b) == 0 {
 		return [][]interface{}{}
 	}
 	// Build set of b rows
 	bSet := make(map[string]bool)
 	for _, row := range b {
-		bSet[rowKey(row)] = true
+		bSet[rowKey(row, colls)] = true
 	}
 	// Find a rows that are also in b
 	var result [][]interface{}
 	seen := make(map[string]bool)
 	for _, row := range a {
-		key := rowKey(row)
+		key := rowKey(row, colls)
 		if bSet[key] && !seen[key] {
 			seen[key] = true
 			result = append(result, row)
@@ -544,18 +780,19 @@ func intersectRows(a, b [][]interface{}) [][]interface{} {
 }
 
 // exceptRows returns rows in a that are not in b (EXCEPT).
-func exceptRows(a, b [][]interface{}) [][]interface{} {
+// colls holds the collation of each column (nil → BINARY).
+func exceptRows(a, b [][]interface{}, colls []string) [][]interface{} {
 	if len(a) == 0 {
 		return [][]interface{}{}
 	}
 	bSet := make(map[string]bool)
 	for _, row := range b {
-		bSet[rowKey(row)] = true
+		bSet[rowKey(row, colls)] = true
 	}
 	var result [][]interface{}
 	seen := make(map[string]bool)
 	for _, row := range a {
-		key := rowKey(row)
+		key := rowKey(row, colls)
 		if !bSet[key] && !seen[key] {
 			seen[key] = true
 			result = append(result, row)
@@ -567,27 +804,51 @@ func exceptRows(a, b [][]interface{}) [][]interface{} {
 // rowKey creates a deduplication key for a row using CompareValues-based
 // serialization. This is more robust than fmt.Sprintf because it handles
 // type equivalence (int64(1) == float64(1.0) per SQLite affinity).
-func rowKey(row []interface{}) string {
+// colls holds the collation of each column (nil → BINARY); string keys are
+// normalized by their column's collation so compound set operators and
+// DISTINCT compare with the column's declared collation, matching SQLite.
+func rowKey(row []interface{}, colls []string) string {
 	parts := make([]string, len(row))
 	for i, v := range row {
 		if v == nil {
 			parts[i] = "\x00"
-		} else {
-			switch x := v.(type) {
-			case int64:
-				parts[i] = "i:" + strconv.FormatInt(x, 10)
-			case float64:
-				parts[i] = "f:" + strconv.FormatFloat(x, 'g', -1, 64)
-			case string:
-				parts[i] = "s:" + x
-			case []byte:
-				parts[i] = "b:" + string(x)
-			default:
-				parts[i] = "o:" + fmt.Sprintf("%v", x)
-			}
+			continue
+		}
+		raw, coll := extractValue(v)
+		if raw == nil {
+			parts[i] = "\x00"
+			continue
+		}
+		if coll == "" && colls != nil && i < len(colls) {
+			coll = colls[i]
+		}
+		switch x := raw.(type) {
+		case int64:
+			parts[i] = "i:" + strconv.FormatInt(x, 10)
+		case float64:
+			parts[i] = "f:" + strconv.FormatFloat(x, 'g', -1, 64)
+		case string:
+			parts[i] = "s:" + normalizeForKey(x, coll)
+		case []byte:
+			parts[i] = "b:" + string(x)
+		default:
+			parts[i] = "o:" + fmt.Sprintf("%v", util.UnwrapColumnValue(raw))
 		}
 	}
 	return strings.Join(parts, "\x00")
+}
+
+// normalizeForKey applies a collation's normalization to a string for use as
+// a deduplication/set-operator key.
+func normalizeForKey(s, collation string) string {
+	switch strings.ToUpper(collation) {
+	case "NOCASE":
+		return strings.ToUpper(s)
+	case "RTRIM":
+		return strings.TrimRight(s, " ")
+	default:
+		return s
+	}
 }
 
 // viewDeclaredColumns extracts the optional declared column list from a
@@ -787,7 +1048,7 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 				if memberResult.Error != nil {
 					return memberResult
 				}
-				rows = applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll)
+				rows = applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll, nil)
 				for member.Union != nil && member.SetOp == sql.SetUnion && member.UnionAll {
 					member = member.Union
 				}
@@ -800,7 +1061,7 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 			if memberResult.Error != nil {
 				return memberResult
 			}
-			rows = applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll)
+			rows = applySetOp(rows, memberResult.Rows, cur.SetOp, cur.UnionAll, nil)
 			cur = member
 		}
 		result := &Result{Columns: columns, Rows: rows}
@@ -999,7 +1260,7 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 
 	// Apply DISTINCT
 	if s.Distinct {
-		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps)
+		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps, e.selectOutputCollations(s))
 	}
 
 	// Apply ORDER BY
@@ -1297,9 +1558,6 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 	for _, d := range baseDefs {
 		plainNames[d.Name] = true
 	}
-	currentMaps := baseMaps
-	currentDefs := baseDefs
-
 	// The left table's qualified-name prefix in combined row maps must use
 	// the table's alias when present (e.g. "c.id" for "FROM customer c"),
 	// so JOIN ON conditions referencing the alias resolve correctly.
@@ -1307,6 +1565,9 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 	if s.From.As != "" {
 		leftName = s.From.As
 	}
+	currentMaps := baseMaps
+	currentDefs := baseDefs
+	lastTableName := leftName // immediate left table of the next join
 
 	for _, join := range s.Joins {
 		var rightMaps []RowMap
@@ -1369,10 +1630,10 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			if join.Table.As != "" {
 				tableName = join.Table.As
 			}
-		} else if tableEntry, err := e.schema.FindTable(join.Table.Name); err != nil {
-			viewEntry, viewErr := e.schema.FindView(join.Table.Name)
+		} else if tableEntry, _, tableErr := e.findTable(join.Table.Name); tableErr != nil {
+			viewEntry, _, viewErr := e.findView(join.Table.Name)
 			if viewErr != nil {
-				return nil, nil, err
+				return nil, nil, tableErr
 			}
 			// Execute the view to get its columns and rows
 			viewResult := e.execSelectView(viewEntry)
@@ -1412,8 +1673,10 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 				tableName = join.Table.As
 			}
 
-			// Scan all rows from the right table
-			tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
+			// Scan all rows from the right table. Use the qualified name (e.g.
+			// "aux1.t4") so tablePager resolves the attached database's pager
+			// rather than falling back to the main pager via the short name.
+			tree := e.tableBTreeForName(join.Table.Name, tableEntry.RootPage, true)
 			cursor, err := tree.OpenCursor()
 			if err != nil {
 				return nil, nil, err
@@ -1444,8 +1707,11 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			effectiveOn = e.generateNaturalJoinOn(currentDefs, rightDefs, leftName, tableName)
 		}
 		// USING(col1, col2): generate ON left.col = right.col for each column.
+		// The LEFT side is the table most recently joined (not necessarily the
+		// FROM clause's first table), so the ON compares the immediate left
+		// table with the current right table.
 		if len(join.Using) > 0 && effectiveOn == nil {
-			effectiveOn = e.generateUsingJoinOn(join.Using, leftName, tableName)
+			effectiveOn = e.generateUsingJoinOn(join.Using, lastTableName, tableName)
 		}
 
 		// SQLite forbids an ON clause from referencing tables to its right;
@@ -1520,6 +1786,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 
 		currentMaps = combinedMaps
 		currentDefs = combinedDefs
+		lastTableName = tableName
 	}
 
 	return currentMaps, currentDefs, nil
@@ -1695,8 +1962,8 @@ func (e *Engine) generateUsingJoinOn(cols []string, leftName, rightName string) 
 	var onExpr sql.Expr
 	for _, col := range cols {
 		eq := &sql.BinaryOp{
-			Left:     &sql.ColumnRef{Name: col},
-			Right:    &sql.ColumnRef{Name: col},
+			Left:     &sql.ColumnRef{Table: leftName, Name: col},
+			Right:    &sql.ColumnRef{Table: rightName, Name: col},
 			Operator: "=",
 		}
 		if onExpr == nil {
@@ -1815,12 +2082,15 @@ func collectUsingColumns(expr sql.Expr, cols map[string]bool) {
 		if v.Operator == "=" {
 			leftRef, leftOK := v.Left.(*sql.ColumnRef)
 			rightRef, rightOK := v.Right.(*sql.ColumnRef)
-			// Only treat as USING if both sides are unqualified column refs
-			// with the same name — this is the signature of a USING clause.
-			if leftOK && rightOK &&
-				leftRef.Table == "" && rightRef.Table == "" &&
-				leftRef.Name == rightRef.Name {
-				cols[leftRef.Name] = true
+			// Treat as USING when both sides reference the SAME column name,
+			// either both unqualified (legacy) or each qualified with a
+			// different table (left.name = right.name, the current form).
+			if leftOK && rightOK && leftRef.Name == rightRef.Name {
+				if leftRef.Table == "" && rightRef.Table == "" {
+					cols[leftRef.Name] = true
+				} else if !strings.EqualFold(leftRef.Table, rightRef.Table) {
+					cols[leftRef.Name] = true
+				}
 			}
 		} else if v.Operator == "AND" {
 			collectUsingColumns(v.Left, cols)
@@ -3147,11 +3417,111 @@ func (e *Engine) subqueryColumnCount(s *sql.SelectStmt) int {
 	return count
 }
 
+// validateSelectColumnRefs checks that every column reference in a SELECT
+// (select list, WHERE, GROUP BY, HAVING, ORDER BY) resolves to a column of
+// the scanned table. SQLite reports unknown columns at prepare time; without
+// this check an unknown column would silently evaluate to NULL.
+func (e *Engine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.ColumnDef, tableName string) error {
+	colByName := make(map[string]bool, len(colDefs))
+	for _, cd := range colDefs {
+		colByName[strings.ToLower(cd.Name)] = true
+	}
+	checkRef := func(ref *sql.ColumnRef) error {
+		// Qualified references must name this table (or be rowid aliases).
+		if ref.Table != "" {
+			q := strings.ToLower(ref.Table)
+			// Strip a schema prefix (main./temp./aux.) for comparison.
+			if dot := strings.LastIndex(q, "."); dot >= 0 {
+				q = q[dot+1:]
+			}
+			tn := strings.ToLower(tableName)
+			if q != tn {
+				// Qualified ref to another table: handled by join validation;
+				// a single-table query referencing a non-existent table is an
+				// error but that is reported elsewhere (no such table).
+				return nil
+			}
+		}
+		if ref.Name == "*" {
+			return nil
+		}
+		if colByName[strings.ToLower(ref.Name)] {
+			return nil
+		}
+		if isRowIDName(ref.Name) {
+			return nil
+		}
+		// Double-quoted identifiers fall back to string literals when DQS is
+		// enabled (handled at evaluation); do not reject them here.
+		if ref.Quoted {
+			return nil
+		}
+		return fmt.Errorf("no such column: %s", ref.Name)
+	}
+	var checkErr error
+	walk := func(expr sql.Expr) {
+		if checkErr != nil || expr == nil {
+			return
+		}
+		walkExprFull(expr, func(e sql.Expr) {
+			if checkErr != nil {
+				return
+			}
+			if ref, ok := e.(*sql.ColumnRef); ok {
+				checkErr = checkRef(ref)
+			}
+		})
+	}
+	for _, col := range s.Columns {
+		walk(col.Expr)
+	}
+	// Aliases (e.g. "SELECT a AS x ... WHERE x=1") are usable in WHERE too.
+	aliasNames := make(map[string]bool)
+	for _, col := range s.Columns {
+		if col.As != "" {
+			aliasNames[strings.ToLower(col.As)] = true
+		}
+	}
+	walkAliasAware := func(expr sql.Expr) {
+		if expr == nil || checkErr != nil {
+			return
+		}
+		walkExprFull(expr, func(e sql.Expr) {
+			if checkErr != nil {
+				return
+			}
+			if ref, ok := e.(*sql.ColumnRef); ok && aliasNames[strings.ToLower(ref.Name)] {
+				return
+			}
+			if ref, ok := e.(*sql.ColumnRef); ok {
+				checkErr = checkRef(ref)
+			}
+		})
+	}
+	walkAliasAware(s.Where)
+	// ORDER BY, GROUP BY, and HAVING terms may reference result-column aliases
+	// (e.g. GROUP BY x / ORDER BY x for "SELECT a AS x"), which are not table
+	// columns; skip those. The walk below filters alias refs (including inside
+	// expressions like 10-(x+y)).
+	for _, g := range s.GroupBy {
+		walkAliasAware(g)
+	}
+	walkAliasAware(s.Having)
+	if !e.inCompoundMember {
+		for _, ob := range s.OrderBy {
+			walkAliasAware(ob.Expr)
+		}
+	}
+	return checkErr
+}
+
 func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
 	// SQLite: an aggregate function in ORDER BY is only allowed when the
 	// SELECT is an aggregate query (has GROUP BY or an aggregate in the
 	// SELECT list). Otherwise it is a "misuse of aggregate" error.
-	if len(s.OrderBy) > 0 && s.GroupBy == nil {
+	// Compound queries skip this: a trailing ORDER BY on a compound member
+	// is the compound-level ORDER BY, where aggregates are permitted.
+	if len(s.OrderBy) > 0 && s.GroupBy == nil && !e.inCompoundMember && s.Union == nil {
 		isAgg := e.hasAggregates(s.Columns)
 		for _, ob := range s.OrderBy {
 			if e.exprHasAggregate(ob.Expr) && !isAgg {
@@ -3227,7 +3597,7 @@ func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
 	}
 
 	// Check for aggregates in ORDER BY when SELECT doesn't use aggregates and no GROUP BY
-	if len(s.OrderBy) > 0 && len(s.GroupBy) == 0 && !e.hasAggregates(s.Columns) {
+	if len(s.OrderBy) > 0 && len(s.GroupBy) == 0 && !e.inCompoundMember && !e.hasAggregates(s.Columns) {
 		for _, ob := range s.OrderBy {
 			if nested := findAggregateInExpr(ob.Expr); nested != "" {
 				return fmt.Errorf("misuse of aggregate: %s()", nested)
@@ -3580,8 +3950,9 @@ func applyLimitOffset(rows [][]interface{}, limit, offset sql.Expr) [][]interfac
 }
 
 // distinctRows removes duplicate rows from a result set,
-// keeping the corresponding rowMaps in sync.
-func (e *Engine) distinctRows(rows [][]interface{}, rowMaps []RowMap) ([][]interface{}, []RowMap) {
+// keeping the corresponding rowMaps in sync. colls holds the collation of
+// each result column (nil → BINARY).
+func (e *Engine) distinctRows(rows [][]interface{}, rowMaps []RowMap, colls []string) ([][]interface{}, []RowMap) {
 	if len(rows) == 0 {
 		return rows, rowMaps
 	}
@@ -3589,7 +3960,7 @@ func (e *Engine) distinctRows(rows [][]interface{}, rowMaps []RowMap) ([][]inter
 	var newRows [][]interface{}
 	var newMaps []RowMap
 	for i, row := range rows {
-		key := rowKey(row)
+		key := rowKey(row, colls)
 		if !seen[key] {
 			seen[key] = true
 			newRows = append(newRows, row)
@@ -4305,16 +4676,18 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 	outRow := make([]interface{}, 0, colCount)
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+			if ref.Table != "" {
+				// Qualified star (t.*): include only the columns of that table,
+				// resolved by the table's real column names (aliases allowed).
+				tableCols := e.qualifiedStarColNames(ref.Table, colDefs, row)
+				for _, cd := range tableCols {
+					outRow = append(outRow, util.UnwrapColumnValue(unwrapCollatedValue(cd.value)))
+				}
+				continue
+			}
 			for _, cd := range colDefs {
 				if cd.Dropped {
 					continue
-				}
-				if ref.Table != "" {
-					// Qualified star: only include columns of that table,
-					// identified by the qualified key in the combined row map.
-					if _, exists := row.Get(ref.Table + "." + cd.Name); !exists {
-						continue
-					}
 				}
 				if val, exists := row.Get(cd.Name); exists {
 					outRow = append(outRow, util.UnwrapColumnValue(unwrapCollatedValue(val)))
@@ -4332,11 +4705,78 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 	return outRow
 }
 
+// qualifiedStarColNames resolves a qualified star (t.* / alias.*) against a
+// joined row map. It returns the table's column name+value pairs in column
+// order, resolving each value via the qualified key (alias.col) first, then
+// the short key (col) when the qualified key is absent.
+func (e *Engine) qualifiedStarColNames(tableRef string, colDefs []sql.ColumnDef, row Row) []struct {
+	name  string
+	value interface{}
+} {
+	var out []struct {
+		name  string
+		value interface{}
+	}
+	// Resolve the referenced table's column names. Prefer the schema's full
+	// column list: a USING join merges the join column out of the colDefs, but
+	// t.* must still include it (SQLite emits the merged value for t.*).
+	colNames, err := e.tableColumnNames(tableRef)
+	if err != nil || len(colNames) == 0 {
+		// Fall back to prefixed colDefs (e.g. alias.* where the alias is not
+		// a schema-resolvable table name).
+		for _, cd := range colDefs {
+			if cd.Dropped {
+				continue
+			}
+			if strings.HasPrefix(cd.Name, tableRef+".") {
+				colNames = append(colNames, strings.TrimPrefix(cd.Name, tableRef+"."))
+			}
+		}
+	}
+	for _, name := range colNames {
+		if val, ok := row.Get(tableRef + "." + name); ok {
+			out = append(out, struct {
+				name  string
+				value interface{}
+			}{name: name, value: val})
+			continue
+		}
+		if val, ok := row.Get(name); ok {
+			out = append(out, struct {
+				name  string
+				value interface{}
+			}{name: name, value: val})
+		}
+	}
+	return out
+}
+
 // buildColumnNames builds the column name list from SELECT columns.
 func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef) []string {
 	var names []string
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+			if ref.Table != "" {
+				// Qualified star (t.*): only that table's columns.
+				var tblNames []string
+				for _, cd := range colDefs {
+					if cd.Dropped {
+						continue
+					}
+					if strings.HasPrefix(cd.Name, ref.Table+".") {
+						tblNames = append(tblNames, strings.TrimPrefix(cd.Name, ref.Table+"."))
+					}
+				}
+				if len(tblNames) == 0 {
+					// The table's columns were unprefixed (no name conflicts);
+					// derive them from the schema.
+					if names2, err := e.tableColumnNames(ref.Table); err == nil && len(names2) > 0 {
+						tblNames = names2
+					}
+				}
+				names = append(names, tblNames...)
+				continue
+			}
 			for _, cd := range colDefs {
 				if cd.Dropped {
 					continue
@@ -4391,6 +4831,59 @@ func validateOrderBy(orderBy []sql.OrderByTerm, numCols int) error {
 	return nil
 }
 
+// validateCompoundOrderBy enforces SQLite's compound-SELECT ORDER BY rule:
+// each term must be a result-column ordinal or a name matching one of the
+// result columns of any SELECT member (case-insensitively). Expressions that
+// do not match a member column (e.g. ORDER BY a+b when no member selects a
+// column named a+b) are rejected with "Nth ORDER BY term does not match any
+// column in the result set".
+func (e *Engine) validateCompoundOrderBy(s *sql.SelectStmt, orderBy []sql.OrderByTerm) error {
+	colNames := make(map[string]bool)
+	collect := func(m *sql.SelectStmt) {
+		for _, col := range m.Columns {
+			if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "*" {
+				colNames[strings.ToLower(ref.Name)] = true
+			}
+			if col.As != "" {
+				colNames[strings.ToLower(col.As)] = true
+			}
+		}
+	}
+	cur := s
+	for cur != nil {
+		collect(cur)
+		cur = cur.Union
+	}
+	for i, ob := range orderBy {
+		// Unwrap COLLATE: "1 COLLATE binary" is an ordinal with a collation.
+		expr := ob.Expr
+		if bop, ok := expr.(*sql.BinaryOp); ok && strings.EqualFold(bop.Operator, "COLLATE") {
+			expr = bop.Left
+		}
+		// Ordinals (1, 2, ...) are always allowed; validateOrderBy already
+		// checked the range.
+		if nl, ok := expr.(*sql.NumericLit); ok {
+			if _, ok := parsePositiveInt(nl.Value); ok {
+				continue
+			}
+		}
+		// A bare column name (possibly wrapped in COLLATE) must match a
+		// member's result column.
+		if ref, ok := expr.(*sql.ColumnRef); ok && colNames[strings.ToLower(ref.Name)] {
+			continue
+		}
+		// Aggregate expressions are permitted in compound ORDER BY (SQLite
+		// treats the trailing ORDER BY of a compound as applying to the
+		// merged result, where aggregates are legal).
+		if e.exprHasAggregate(ob.Expr) {
+			continue
+		}
+		return fmt.Errorf("%d%s ORDER BY term does not match any column in the result set",
+			i+1, ordinalSuffix(i+1))
+	}
+	return nil
+}
+
 func parsePositiveInt(s string) (int, bool) {
 	n := 0
 	for _, c := range s {
@@ -4441,7 +4934,7 @@ func (e *Engine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, row
 		indices[i] = i
 	}
 	sort.SliceStable(indices, func(i, j int) bool {
-		return e.lessRows(orderBy, rowMaps, result.Rows, indices[i], indices[j])
+		return e.lessRows(orderBy, rowMaps, result.Rows, result.Columns, indices[i], indices[j])
 	})
 	newRows := make([][]interface{}, n)
 	newMaps := make([]RowMap, n)
@@ -4454,7 +4947,8 @@ func (e *Engine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, row
 }
 
 // lessRows returns true if row i should come before row j according to ORDER BY.
-func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]interface{}, i, j int) bool {
+// resultCols maps ORDER BY aliases/column names to result column positions.
+func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) bool {
 	for _, ob := range orderBy {
 		// Handle positional ORDER BY (e.g., ORDER BY 1 means order by first
 		// column). SQLite treats a unary plus as the literal, so ORDER BY +1
@@ -4473,10 +4967,23 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 			if pos, err := strconv.ParseInt(nl.Value, 10, 64); err == nil && pos >= 1 && pos <= int64(len(rows[i])) {
 				left := rows[i][pos-1]
 				right := rows[j][pos-1]
-				cmp := util.CompareValues(left, right)
-				if ob.Desc {
-					cmp = -cmp
+				cmp := compareOrderByValues(left, right, ob)
+				if cmp < 0 {
+					return true
+				} else if cmp > 0 {
+					return false
 				}
+				continue
+			}
+		}
+		// An ORDER BY term that names a result column (alias or column name)
+		// resolves to that column's value in the output row (SQLite rules:
+		// aliases in the SELECT list can be referenced by ORDER BY).
+		if ref, ok := obExpr.(*sql.ColumnRef); ok {
+			if pos := resultColumnIndex(resultCols, ref.Name); pos >= 0 && pos < len(rows[i]) {
+				left := rows[i][pos]
+				right := rows[j][pos]
+				cmp := compareOrderByValues(left, right, ob)
 				if cmp < 0 {
 					return true
 				} else if cmp > 0 {
@@ -4487,10 +4994,7 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 		}
 		left, _ := e.evalExpr(ob.Expr, rowMaps[i])
 		right, _ := e.evalExpr(ob.Expr, rowMaps[j])
-		cmp := compareValuesWithCollate(left, right)
-		if ob.Desc {
-			cmp = -cmp
-		}
+		cmp := compareOrderByValues(left, right, ob)
 		if cmp < 0 {
 			return true
 		} else if cmp > 0 {
@@ -4498,6 +5002,69 @@ func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]
 		}
 	}
 	return false
+}
+
+// compareOrderByValues compares two values for an ORDER BY term, applying
+// the term's direction and explicit NULLS FIRST/LAST rules. SQLite defaults:
+// NULLs sort first for ASC, last for DESC; explicit NULLS FIRST/LAST win.
+func compareOrderByValues(left, right interface{}, ob sql.OrderByTerm) int {
+	leftNull := isSQLNull(left)
+	rightNull := isSQLNull(right)
+	if leftNull || rightNull {
+		// NULLs are equal to each other and sort before all non-NULL values
+		// by default (ASC), after all non-NULL values by default (DESC).
+		if leftNull && rightNull {
+			return 0
+		}
+		nullsFirst := ob.NullsFirst
+		if ob.NullsLast {
+			nullsFirst = false
+		}
+		if !ob.NullsFirst && !ob.NullsLast {
+			// Default: ASC → NULLs first, DESC → NULLs last.
+			nullsFirst = !ob.Desc
+		}
+		if leftNull {
+			if nullsFirst {
+				return -1
+			}
+			return 1
+		}
+		if nullsFirst {
+			return 1
+		}
+		return -1
+	}
+	cmp := compareValuesWithCollate(left, right)
+	if ob.Desc {
+		cmp = -cmp
+	}
+	return cmp
+}
+
+// isSQLNull reports whether v is a SQL NULL value.
+func isSQLNull(v interface{}) bool {
+	if v == nil {
+		return true
+	}
+	if cv, ok := v.(*util.ColumnValue); ok {
+		return cv.Value == nil
+	}
+	if cv, ok := v.(*collatedValue); ok {
+		return isSQLNull(cv.value)
+	}
+	return false
+}
+
+// resultColumnIndex returns the index of a column name in resultCols
+// (case-insensitive), or -1.
+func resultColumnIndex(resultCols []string, name string) int {
+	for i, c := range resultCols {
+		if strings.EqualFold(c, name) {
+			return i
+		}
+	}
+	return -1
 }
 
 // validateJoinOnClauses checks that each join's ON clause only references

@@ -94,6 +94,11 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	sqliteTargets := collectSqlite3Targets(cmds)
 	knownGlobals := knownGlobalVars()
 	incrOnly := collectIncrOnlyVars(cmds)
+	// Constant-returning procs (e.g. `proc f {args} { return 1 }`) are
+	// collected up front so `db func f f` can register a scalar SQL function
+	// regardless of where the proc is defined relative to the registration.
+	constFuncs := collectConstFuncs(cmds)
+	counterFuncs := collectCounterFuncs(cmds)
 
 	// Merge: pre-declare all set variables + referenced-but-not-global variables
 	var preDeclared []string
@@ -137,13 +142,15 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	}
 	initialVars = append(initialVars, preDeclared...)
 	tp := &transpiler{
-		sb:     &body,
-		indent: 1,
-		dbVar:  "db",
-		t:      "t",
-		vars:   initialVars,
-		dqsDDL: true, // SQLite default: DQS allowed in DDL
-		dqsDML: true, // SQLite default: DQS allowed in DML
+		sb:           &body,
+		indent:       1,
+		dbVar:        "db",
+		t:            "t",
+		vars:         initialVars,
+		dqsDDL:       true, // SQLite default: DQS allowed in DDL
+		dqsDML:       true, // SQLite default: DQS allowed in DML
+		constFuncs:   constFuncs,
+		counterFuncs: counterFuncs,
 	}
 	tp.processCommands(cmds)
 
@@ -440,6 +447,102 @@ func collectIncrOnlyVars(cmds [][]tcl.RawWord) map[string]bool {
 	return only
 }
 
+// constantProcValue extracts a constant return value from a simple proc body
+// like "return 1" or "{ return 1 }". It returns (value, true) for bodies
+// whose only statement returns an integer constant; otherwise ("", false).
+// SQLite's test suite uses such procs (e.g. `proc f {args} { return 1 }`)
+// registered with `db func f f` as always-returning scalar SQL functions.
+func constantProcValue(body string) string {
+	body = strings.TrimSpace(body)
+	// Strip one level of braces.
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	if !strings.HasPrefix(strings.ToLower(body), "return ") {
+		return ""
+	}
+	val := strings.TrimSpace(body[len("return "):])
+	// Only integer literals (optionally negative) are portable to Go int64.
+	if _, err := strconv.ParseInt(val, 10, 64); err == nil {
+		return val
+	}
+	return ""
+}
+
+// counterProcValue extracts the incremented variable name from a counter proc
+// body like "{ incr ::udf }". It returns the Go variable name, or "" when the
+// body is not a single incr of a namespace variable.
+func counterProcValue(body string) string {
+	body = strings.TrimSpace(body)
+	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
+		body = strings.TrimSpace(body[1 : len(body)-1])
+	}
+	if !strings.HasPrefix(strings.ToLower(body), "incr ") {
+		return ""
+	}
+	val := strings.TrimSpace(body[len("incr "):])
+	if !strings.HasPrefix(val, "::") {
+		return ""
+	}
+	goName := tclVarToGo(strings.TrimPrefix(val, "::"))
+	if !isValidGoIdent(goName) {
+		return ""
+	}
+	return goName
+}
+
+// collectConstFuncs scans all TCL commands (including nested braced bodies)
+// for constant-returning procs and returns a map of proc name → constant value.
+func collectConstFuncs(cmds [][]tcl.RawWord) map[string]string {
+	result := make(map[string]string)
+	var walk func(cs [][]tcl.RawWord)
+	walk = func(cs [][]tcl.RawWord) {
+		for _, cmd := range cs {
+			if len(cmd) == 0 {
+				continue
+			}
+			if cmd[0].Text == "proc" && len(cmd) >= 3 {
+				if val := constantProcValue(cmd[2].Text); val != "" {
+					result[cmd[1].Text] = val
+				}
+			}
+			for i := 1; i < len(cmd); i++ {
+				if cmd[i].Braced {
+					walk(tcl.ParseCommands(cmd[i].Text))
+				}
+			}
+		}
+	}
+	walk(cmds)
+	return result
+}
+
+// collectCounterFuncs scans all TCL commands for counter procs
+// (`proc NAME {} { incr ::VAR }`) and returns a map of proc name → Go var.
+func collectCounterFuncs(cmds [][]tcl.RawWord) map[string]string {
+	result := make(map[string]string)
+	var walk func(cs [][]tcl.RawWord)
+	walk = func(cs [][]tcl.RawWord) {
+		for _, cmd := range cs {
+			if len(cmd) == 0 {
+				continue
+			}
+			if cmd[0].Text == "proc" && len(cmd) >= 3 {
+				if val := counterProcValue(cmd[2].Text); val != "" {
+					result[cmd[1].Text] = val
+				}
+			}
+			for i := 1; i < len(cmd); i++ {
+				if cmd[i].Braced {
+					walk(tcl.ParseCommands(cmd[i].Text))
+				}
+			}
+		}
+	}
+	walk(cmds)
+	return result
+}
+
 func collectRefVars(src string) []string {
 	var names []string
 	seen := make(map[string]bool)
@@ -509,6 +612,8 @@ type transpiler struct {
 	dqsDML           bool                  // current SQLITE_DBCONFIG_DQS_DML state (default true)
 	unsetVars        map[string]bool       // TCL vars unset via `unset`; `$var` renders as SQL NULL
 	dbVarFuncs       map[string]bool       // `db function NAME proc` registrations: NAME reads a TCL var
+	constFuncs       map[string]string     // `proc NAME {args} { return CONST }`: NAME returns CONST
+	counterFuncs     map[string]string     // `proc NAME {} { incr ::VAR }`: NAME increments VAR
 	dbClosed         bool                  // main "db" connection was closed via `db close`
 }
 
@@ -1183,10 +1288,12 @@ func (tp *transpiler) renderStringExpr(parts []stringPart, sqlMode bool) string 
 				result.WriteString(" + ")
 			}
 			vn := tclVarToGo(p.variable)
-			// 'err' is Go error type, 'db' is *frigolite.DB — use tclStr for conversion
+			// 'err' is the Go error type in the preamble; TCL assignments to
+			// 'err' are redirected to _err_tcl (see the set handler), so a
+			// $err reference must read _err_tcl too.
 			var inner string
 			if vn == "err" {
-				inner = "tclStr(err)"
+				inner = "_err_tcl"
 			} else if vn == "db" {
 				inner = `""`
 			} else {
@@ -1629,10 +1736,10 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		goName := tclVarToGo(args[0])
 		filename := tp.buildStringExpr(args[1])
 		// A preceding forcedelete of the file means the reopen starts from
-		// a fresh database.
+		// a fresh database on the real file (matching SQLite).
 		if tp.pendingFileReset[args[1]] {
 			delete(tp.pendingFileReset, args[1])
-			filename = `""`
+			filename = tp.buildStringExpr(args[1])
 		}
 		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
 		tp.dqsDML = true
@@ -1843,6 +1950,40 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 			tp.vars = bodyTP.vars
 		}
 	case "proc":
+		// Recognize simple constant-returning procs used by the SQLite test
+		// suite (e.g. `proc f {args} { return 1 }`). These are registered via
+		// `db func f f` and become scalar SQL functions returning the constant.
+		if len(args) >= 3 {
+			body := strings.TrimSpace(args[2].Text)
+			body = strings.TrimPrefix(body, "{")
+			body = strings.TrimSuffix(body, "}")
+			body = strings.TrimSpace(body)
+			if constVal := constantProcValue(body); constVal != "" {
+				name := strings.TrimSpace(args[0].Text)
+				if name != "" {
+					if tp.constFuncs == nil {
+						tp.constFuncs = make(map[string]string)
+					}
+					tp.constFuncs[name] = constVal
+					tp.emitLine("// proc %s returns constant %s (registered via db func)", name, constVal)
+					break
+				}
+			}
+			// Counter procs: `proc NAME {} { incr ::VAR }` — the proc
+			// increments a TCL variable and returns the new value. Register a
+			// scalar SQL function that increments the Go variable.
+			if varName := counterProcValue(body); varName != "" {
+				name := strings.TrimSpace(args[0].Text)
+				if name != "" {
+					if tp.counterFuncs == nil {
+						tp.counterFuncs = make(map[string]string)
+					}
+					tp.counterFuncs[name] = varName
+					tp.emitLine("// proc %s increments counter var %s (registered via db func)", name, varName)
+					break
+				}
+			}
+		}
 		tp.emitLine("// proc definition (not transpiled)")
 	case "unset":
 		// unset var — in TCL an unset variable referenced via $var in a
@@ -2232,7 +2373,7 @@ func (tp *transpiler) listExpectedErrorMsg(rawText string) (string, bool) {
 	if !strings.HasPrefix(text, "[list 1") || !strings.HasSuffix(text, "]") {
 		return "", false
 	}
-	inner := strings.TrimSpace(text[len("[list 1"):len(text)-1])
+	inner := strings.TrimSpace(text[len("[list 1") : len(text)-1])
 	if inner == "" {
 		return "", false
 	}
@@ -2287,16 +2428,16 @@ func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 	errMsg := extractExpectedErrorFromLiteral(expectedExpr)
 	raw, _ := strconv.Unquote(expectedExpr)
 	expectSuccess := !strings.HasPrefix(raw, "1 ")
-	// A dynamic expected expression (e.g. `[list 1 $error]` → `"1 " + error`)
-	// is an error expectation when its leading literal is "1 " — the TCL
-	// do_catchsql_test form "1 {message}". strconv.Unquote cannot see the
-	// prefix of a concatenation, so detect the quoted "1 " head here.
 	errMsgDynamic := ""
-	if expectSuccess && strings.HasPrefix(expectedExpr, `"1 "`) {
+	// A bare TCL variable expected value (do_catchsql_test NAME SQL $err):
+	// render the variable's Go value at runtime so the leading "1 " error
+	// marker is detected dynamically.
+	if len(args) >= 3 && strings.HasPrefix(strings.TrimSpace(args[2].Text), "$") {
+		dynamic := tp.buildStringExpr(strings.TrimSpace(args[2].Text))
+		raw = ""
 		expectSuccess = false
-		rest := strings.TrimSpace(strings.TrimPrefix(expectedExpr, `"1 "`))
-		rest = strings.TrimPrefix(rest, "+")
-		errMsgDynamic = strings.TrimSpace(rest)
+		errMsg = ""
+		errMsgDynamic = dynamic
 	}
 	// TCL [list 1 "<msg with $vars>"] form: the expected error message is a
 	// runtime Go expression (the list command builds the message dynamically).
@@ -2459,6 +2600,7 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 			forIncrs:   tp.forIncrs,
 			unsetVars:  tp.unsetVars,
 			dbVarFuncs: tp.dbVarFuncs,
+			constFuncs: tp.constFuncs,
 		}
 		bodyTP.processCommands(bodyCmds)
 		tp.varCount = bodyTP.varCount
@@ -2468,6 +2610,7 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		// registered in one test, used in later ones).
 		tp.unsetVars = bodyTP.unsetVars
 		tp.dbVarFuncs = bodyTP.dbVarFuncs
+		tp.constFuncs = bodyTP.constFuncs
 		// A multi-command body whose expected value is a variable holding an
 		// error message (e.g. foreach $error in "13.2.$tn.1"): the last
 		// statement must fail with that message. When the body is a catchsql
@@ -2719,15 +2862,32 @@ func (tp *transpiler) processDB(args []tcl.RawWord) {
 			tp.varCount = bodyTP.varCount
 			tp.indent = bodyTP.indent
 		}
-	case "function":
-		// TCL `db function NAME procName` registers a scalar SQL function
-		// whose behavior is a TCL proc — not portable to a pure-Go engine.
-		// The only supported pattern is the variable-reader used by tests:
-		//   proc vf {vname} {return [set ::$vname]}
-		//   db function tclvar vf
-		// where tclvar('X') in SQL returns the current value of TCL var X.
-		// Track NAME so SQL rendering can inline the Go variable's value
-		// (see renderStringExpr / collectSQLExpression).
+	case "function", "func":
+		// TCL `db function NAME procName` / `db func NAME procName` registers a
+		// scalar SQL function whose behavior is a TCL proc — not portable to a
+		// pure-Go engine.
+		// Supported patterns:
+		//  1. Constant-returning proc (`proc f {args} { return 1 }`):
+		//     register a scalar SQL function returning the constant.
+		//  2. Counter proc (`proc udf {} { incr ::udf }`): register a scalar
+		//     SQL function that increments a dedicated Go counter var.
+		//  3. Variable-reader proc (`proc vf {vname} {return [set ::$vname]}`
+		//     + `db function tclvar vf`): track NAME so SQL rendering can
+		//     inline the Go variable's value (see inlineVarFuncs).
+		if len(rest) >= 2 {
+			name := strings.TrimSpace(rest[0].Text)
+			procName := strings.TrimSpace(rest[1].Text)
+			if constVal, ok := tp.constFuncs[procName]; ok && name != "" {
+				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { return int64(%s), nil }, 0, -1)", tp.dbVar, name, constVal)
+				break
+			}
+			if goVar, ok := tp.counterFuncs[procName]; ok && name != "" {
+				counterVar := goVar + "Counter"
+				tp.emitLine("var %s int64", counterVar)
+				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { %s++; return %s, nil }, 0, -1)", tp.dbVar, name, counterVar, counterVar)
+				break
+			}
+		}
 		if len(rest) >= 1 {
 			if tp.dbVarFuncs == nil {
 				tp.dbVarFuncs = make(map[string]bool)
@@ -2843,7 +3003,9 @@ func (tp *transpiler) collectSQLExpression(args []tcl.RawWord) string {
 // inlineVarFuncs rewrites calls to registered variable-reader SQL functions
 // (e.g. `db function tclvar` → `tclvar('v1')`) into a Go string concatenation
 // that injects the current value of the named TCL variable as a SQL literal:
-//   `SELECT ... WHERE tclvar('v1')`  →  `"SELECT ... WHERE " + sqlLiteral(v1) + ";..."`
+//
+//	`SELECT ... WHERE tclvar('v1')`  →  `"SELECT ... WHERE " + sqlLiteral(v1) + ";..."`
+//
 // Returns "" when no such call is present.
 func (tp *transpiler) inlineVarFuncs(text string) string {
 	if tp.dbVarFuncs == nil || len(tp.dbVarFuncs) == 0 {
@@ -3934,6 +4096,16 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			listText = strings.ReplaceAll(listText, "\\\r\n", " ")
 			listText = strings.ReplaceAll(listText, "\\\n", " ")
 			listText = strings.TrimSpace(listText)
+			// A [list 1 {message}] form (catchsql-style error) is often stored
+			// for later do_catchsql_test $var comparisons; keep just the
+			// message text so strings.Contains against a real error matches.
+			if strings.HasPrefix(listText, "1 ") {
+				msg := strings.TrimSpace(listText[2:])
+				if len(msg) >= 2 && msg[0] == '{' && msg[len(msg)-1] == '}' {
+					msg = strings.TrimSpace(msg[1 : len(msg)-1])
+				}
+				listText = msg
+			}
 			valExpr := tp.goStringLiteral(tcl.RawWord{Text: listText})
 			if tp.isVarDeclared(goName) {
 				tp.emitLine("%s = %s", goName, valExpr)
@@ -3953,7 +4125,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			filename := tp.buildStringExpr(cmdParts[2])
 			if tp.pendingFileReset[cmdParts[2]] {
 				delete(tp.pendingFileReset, cmdParts[2])
-				filename = `""`
+				filename = tp.buildStringExpr(cmdParts[2])
 			}
 			tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
 			tp.dqsDML = true
@@ -4694,9 +4866,13 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 		tp.dqsDML = true
 	} else if goName == "db" && len(args) >= 2 && tp.pendingFileReset[args[1].Text] {
 		// "forcedelete test.db; sqlite3 db test.db": start from a fresh
-		// database (in-memory; the compat suite does not rely on the file).
+		// database on the real file (deleted by forcedelete, recreated
+		// empty by the reopen). Reopening on the actual filename matters:
+		// a later "db close; sqlite3 db test.db" must find writes made
+		// after the reset, matching SQLite's file-based close+reopen
+		// semantics (see default-4.0/default-4.1).
 		delete(tp.pendingFileReset, args[1].Text)
-		tp.emitLine("db, err = frigolite.Open(\"\")")
+		tp.emitLine("db, err = frigolite.Open(%s)", filename)
 		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
 		tp.dqsDML = true
 	} else if !tp.isVarDeclared(goName) {

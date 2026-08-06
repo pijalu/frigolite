@@ -482,7 +482,7 @@ func Test_autoinc(t *testing.T) {
 			db.Close()
 		}
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
@@ -647,7 +647,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-12.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n    CREATE TABLE fake_sequence(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n     sql=replace(sql,'fake_','sqlite_'),\n     name='sqlite_sequence',\n     tbl_name='sqlite_sequence'\n     WHERE name='fake_sequence';\n  ")
@@ -676,7 +676,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-12.2"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql=replace(sql,'sqlite_','x_'),\n     name='x_sequence',\n     tbl_name='x_sequence'\n    WHERE name='sqlite_sequence';\n  ")
@@ -708,7 +708,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-12.3"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql='CREATE VIRTUAL TABLE sqlite_sequence USING sqlite_dbpage'\n    WHERE name='sqlite_sequence';\n  ")
@@ -737,7 +737,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-12.4"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    CREATE TABLE fake(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n  ")
 		if _res.Error != nil {
@@ -774,7 +774,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-12.5"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x)'\n      WHERE name='sqlite_sequence';\n  ")
@@ -803,7 +803,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-12.6"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x,y INTEGER PRIMARY KEY)'\n      WHERE name='sqlite_sequence';\n  ")
@@ -832,7 +832,7 @@ func Test_autoinc(t *testing.T) {
 	{ // do_test "autoinc-12.7"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY,x)'\n      WHERE name='sqlite_sequence';\n  ")

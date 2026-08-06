@@ -81,6 +81,7 @@ type Engine struct {
 	resolvingCTEs     map[string]bool                  // CTEs currently being resolved (circular reference detection)
 	currentScanTable  string                           // table name being scanned (for qualified column resolution)
 	resolvingViews    map[string]bool                  // tracks views currently being resolved (circular reference detection)
+	inCompoundMember  bool                             // executing a SELECT member of a compound query
 	legacyAlterTable  bool                             // PRAGMA legacy_alter_table setting
 	recursiveTriggers bool                             // PRAGMA recursive_triggers setting (allows trigger re-entry)
 	foreignKeys       bool                             // PRAGMA foreign_keys setting (enables FK constraint enforcement)
@@ -160,6 +161,13 @@ func (e *Engine) SetAuthorizer(a auth.Authorizer) {
 func (e *Engine) SetDQS(ddl, dml bool) {
 	e.dqsDDL = ddl
 	e.dqsDML = dml
+}
+
+// RegisterFunction registers a scalar SQL function for this engine instance.
+// It is used by the test harness to reproduce SQLite's TCL-defined functions
+// (e.g. `db func f f` where f returns a constant).
+func (e *Engine) RegisterFunction(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int) {
+	e.funcs.Register(name, fn, minArgs, maxArgs)
 }
 
 // authorize checks whether an operation is allowed by the authorizer.
@@ -540,24 +548,24 @@ func NewEngine(pg *pager.Pager) *Engine {
 			"MAIN": mainCtx,
 			"TEMP": mainCtx, // TEMP is an alias for main (no true temp db support yet)
 		},
-		dbList:           []*DatabaseContext{mainCtx},
-		mainDB:           mainCtx,
-		pager:            mainCtx.Pager,
-		schema:           mainCtx.Schema,
-		funcs:            function.NewRegistry(),
-		vtabs:            vtab.NewRegistry(),
-		colCache:         make(map[string][]sql.ColumnDef),
-		stmtCache:        make(map[string][]sql.Stmt),
-		tableRootPages:   make(map[string]uint32),
-		tableCache:       make(map[string]*cachedTableEntry),
-		nextRowIDCache:   make(map[uint32]int64),
-		autoIncSeq:       make(map[uint32]int64),
-		hasTriggersCache: make(map[string]bool),
-		encoding:         "UTF-8",
+		dbList:            []*DatabaseContext{mainCtx},
+		mainDB:            mainCtx,
+		pager:             mainCtx.Pager,
+		schema:            mainCtx.Schema,
+		funcs:             function.NewRegistry(),
+		vtabs:             vtab.NewRegistry(),
+		colCache:          make(map[string][]sql.ColumnDef),
+		stmtCache:         make(map[string][]sql.Stmt),
+		tableRootPages:    make(map[string]uint32),
+		tableCache:        make(map[string]*cachedTableEntry),
+		nextRowIDCache:    make(map[uint32]int64),
+		autoIncSeq:        make(map[uint32]int64),
+		hasTriggersCache:  make(map[string]bool),
+		encoding:          "UTF-8",
 		recursiveCTELimit: 100000,
-		dqsDDL:           true, // SQLite default: double-quoted strings allowed in DDL
-		dqsDML:           true, // SQLite default: double-quoted strings allowed in DML
-		ftsTables:        make(map[string]*fts.FTS3Table),
+		dqsDDL:            true, // SQLite default: double-quoted strings allowed in DDL
+		dqsDML:            true, // SQLite default: double-quoted strings allowed in DML
+		ftsTables:         make(map[string]*fts.FTS3Table),
 	}
 	e.vtabs.RegisterDefaults()
 	// Register FTS modules (overrides NoopModule defaults)

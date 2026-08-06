@@ -1221,6 +1221,7 @@ func Test_indexexpr1(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
+	// db function addone (variable-reader, inlined)
 	{ // "indexexpr1-2400"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n")
 		if _res.Error != nil {

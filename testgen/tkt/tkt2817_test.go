@@ -74,7 +74,7 @@ func Test_tkt2817(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tkt2817-2.0"
 		_res = db.Exec("\n    CREATE TEMP TABLE tmp(a, b, c);\n    INSERT INTO tmp VALUES(1, 'abc', 'def');\n    INSERT INTO tmp VALUES(2, 'ghi', 'jkl');\n  ")

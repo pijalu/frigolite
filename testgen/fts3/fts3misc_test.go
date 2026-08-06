@@ -87,6 +87,8 @@ func Test_fts3misc(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	// db function v1 (variable-reader, inlined)
+	// db function v2 (variable-reader, inlined)
 	{ // do_test "2.0"
 		cols = ""
 		_ = cols // suppress unused warning

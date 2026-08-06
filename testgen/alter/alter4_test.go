@@ -218,7 +218,7 @@ func Test_alter4(t *testing.T) {
 	{ // do_test "alter4-4.1"
 		db.Close()
 		os.Remove("test.db")
-		DB = func() string { db, err = frigolite.Open(""); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
+		DB = func() string { db, err = frigolite.Open("test.db"); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
 		_ = DB // suppress unused warning
 		r = db.Query("\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {

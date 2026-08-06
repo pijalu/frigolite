@@ -145,7 +145,7 @@ func Test_indexfault(t *testing.T) {
 		db.Close()
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(11000));\n    INSERT INTO t1 SELECT randomblob(11001) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(11002) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(11003) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(11004) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    64\n  COMMIT;\n")

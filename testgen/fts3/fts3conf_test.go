@@ -133,8 +133,8 @@ func Test_fts3conf(t *testing.T) {
 			_ = R_1 // suppress unused warning
 			{ // "1." + tn + ".1"
 				_res = db.Exec(sql)
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), R_constraint) {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", R_constraint, _res.Error, sql)
 				}
 			}
 			{ // "1." + tn + ".2"

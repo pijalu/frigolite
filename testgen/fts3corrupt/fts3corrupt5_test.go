@@ -7,6 +7,7 @@ package fts3corrupt
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -122,8 +123,8 @@ func Test_fts3corrupt5(t *testing.T) {
 			}
 			{ // "1.3." + tn + ".2"
 				_res = db.Exec("\n    SELECT * FROM ft WHERE ft MATCH " + sqlLiteral(q) + "\n  ")
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM ft WHERE ft MATCH " + sqlLiteral(q) + "\n  ")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", res, _res.Error, "\n    SELECT * FROM ft WHERE ft MATCH " + sqlLiteral(q) + "\n  ")
 				}
 			}
 		}

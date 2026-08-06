@@ -610,7 +610,9 @@ func Test_e_createtable(t *testing.T) {
 		}
 		nextint = "0" // TCL namespace variable
 		_ = nextint // suppress unused warning
-		// proc definition (not transpiled)
+		// proc nextint increments counter var nextint (registered via db func)
+		var nextintCounter int64
+		db.RegisterFunction("nextint", func(args []interface{}) (interface{}, error) { nextintCounter++; return nextintCounter, nil }, 0, -1)
 		{ // "e_createtable-3.7.1"
 			_res = db.Exec("\n  CREATE TABLE t6(a DEFAULT ( nextint() ), b DEFAULT ( nextint() ));\n")
 			if _res.Error != nil {
@@ -952,8 +954,8 @@ func Test_e_createtable(t *testing.T) {
 				}
 				{ // "4.15." + tn + ".2"
 					_res = db.Exec(" \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'string' FROM " + tbl + ";\n  ")
-					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'string' FROM " + tbl + ";\n  ")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", res, _res.Error, " \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'string' FROM " + tbl + ";\n  ")
 					}
 				}
 				{ // do_test "e_createtable-4.15." + tn + ".3"
@@ -999,8 +1001,8 @@ func Test_e_createtable(t *testing.T) {
 					}
 					{ // "4.16." + tn + ".2"
 						_res = db.Exec(" \n    INSERT INTO " + tbl + " SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM " + tbl + "\n  ")
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO " + tbl + " SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM " + tbl + "\n  ")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", res, _res.Error, " \n    INSERT INTO " + tbl + " SELECT a+3, CASE a WHEN 2 THEN NULL ELSE 'xx' END FROM " + tbl + "\n  ")
 						}
 					}
 					{ // do_test "e_createtable-4.16." + tn + ".3"
@@ -1046,8 +1048,8 @@ func Test_e_createtable(t *testing.T) {
 						}
 						{ // "4.17." + tn + ".2"
 							_res = db.Exec(" \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'three' FROM " + tbl + "\n  ")
-							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'three' FROM " + tbl + "\n  ")
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", res, _res.Error, " \n    INSERT INTO " + tbl + " SELECT ((a%2)*a+3), 'three' FROM " + tbl + "\n  ")
 							}
 						}
 						{ // do_test "e_createtable-4.17." + tn + ".3"

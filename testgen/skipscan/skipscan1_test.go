@@ -450,7 +450,7 @@ func Test_skipscan1(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "skipscan1-6.1"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d,e,f,g,h varchar(300));\n  CREATE INDEX t1ab ON t1(a,b);\n  ANALYZE sqlite_master;\n  -- Only two distinct values for the skip-scan column.  Skip-scan is not used.\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','500000 250000 125000');\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;\n")

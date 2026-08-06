@@ -511,7 +511,7 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-3.4"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -546,7 +546,7 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-4.0"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -620,7 +620,7 @@ func Test_autovacuum(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		os.Remove("test.db-journal")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
 		if r.Error != nil {

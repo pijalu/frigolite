@@ -803,8 +803,9 @@ func fnHEX(args []interface{}) (interface{}, error) {
 
 func fnQUOTE(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
-		// Quote(NULL) returns SQL NULL (not the string 'NULL').
-		return nil, nil
+		// Quote(NULL) returns the 4-character text string 'NULL' (not SQL
+		// NULL), matching SQLite: SELECT quote(NULL) -> 'NULL' (text).
+		return "NULL", nil
 	}
 	switch v := args[0].(type) {
 	case int64:

@@ -413,7 +413,7 @@ func Test_pragma(t *testing.T) {
 	{ // do_test "pragma-3.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE t2(a,b,c);\n    CREATE INDEX i2 ON t2(a);\n    INSERT INTO t2 VALUES(11,2,3);\n    INSERT INTO t2 VALUES(22,3,4);\n    COMMIT;\n    SELECT rowid, * from t2;\n  ")
 		if r.Error != nil {
@@ -621,7 +621,7 @@ func Test_pragma(t *testing.T) {
 			db.Close()
 		}
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil {
@@ -1468,7 +1468,7 @@ func Test_pragma(t *testing.T) {
 		}
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "pragma-14.1"
 			r = db.Query(" pragma auto_vacuum = 0 ")
@@ -1831,7 +1831,7 @@ func Test_pragma(t *testing.T) {
 						{ // do_test "21.1"
 							db.Close()
 							os.Remove("test.db")
-							db, err = frigolite.Open("")
+							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							r = db.Query(" \n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);\n    ")
 							if r.Error != nil {
@@ -1948,7 +1948,7 @@ func Test_pragma(t *testing.T) {
 					}
 					db.Close()
 					os.Remove("test.db")
-					db, err = frigolite.Open("")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 					_ = db2

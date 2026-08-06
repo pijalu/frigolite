@@ -68,7 +68,7 @@ func Test_createtab(t *testing.T) {
 	for func() bool { av_n, _av_e := strconv.Atoi(av); if _av_e != nil { return false }; upperBound_n, _upperBound_e := strconv.Atoi(upperBound); if _upperBound_e != nil { return false }; return av_n <= upperBound_n }() {
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "createtab-" + av + ".1"
 			r = db.Query("PRAGMA auto_vacuum=" + av)

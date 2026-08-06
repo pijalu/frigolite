@@ -65,6 +65,7 @@ func Test_tkt_b72787b1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 SELECT x+2 FROM t1;\n    INSERT INTO t2 SELECT x+4 FROM t1;\n  ")
 		}
+		// db function runsql (variable-reader, inlined)
 		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
 		sql = "SELECT max(x) FROM t1"

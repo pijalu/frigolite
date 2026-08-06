@@ -35,22 +35,22 @@ overlap G2.JOIN — coordinate.)
 - `src/printf.c` — float → text (`%!.15g`).
 
 ## Steps
-- [ ] **G1.SELECT.1** Pre-test suite (include float-format cases). Commit:
+- [x] **G1.SELECT.1** Pre-test suite (include float-format cases). Commit:
   `G1.SELECT.1: SELECT pre-test suite`.
-- [ ] **G1.SELECT.2** Star expansion `*` and `t.*` across multi-table FROM;
+- [x] **G1.SELECT.2** Star expansion `*` and `t.*` across multi-table FROM;
   correct column count + qualified names. Commit: `G1.SELECT.2: star expansion`.
-- [ ] **G1.SELECT.3** ORDER BY: alias/ordinal/expression keys; NULLS FIRST/LAST;
+- [x] **G1.SELECT.3** ORDER BY: alias/ordinal/expression keys; NULLS FIRST/LAST;
   COLLATE; stable secondary ordering. Commit: `G1.SELECT.3: ORDER BY semantics`.
-- [ ] **G1.SELECT.4** DISTINCT three-valued logic (NULLs equal). Commit:
+- [x] **G1.SELECT.4** DISTINCT three-valued logic (NULLs equal). Commit:
   `G1.SELECT.4: DISTINCT NULL handling`.
-- [ ] **G1.SELECT.5** LIMIT/OFFSET incl. negative limit. Commit:
+- [x] **G1.SELECT.5** LIMIT/OFFSET incl. negative limit. Commit:
   `G1.SELECT.5: LIMIT/OFFSET edge cases`.
-- [ ] **G1.SELECT.6** Float formatting parity (find the formatting routine,
-  match SQLite). Commit: `G1.SELECT.6: float formatting parity`.
-- [ ] **G1.SELECT.7** Result-column name derivation (e.g. `SELECT a+b` → name
+- [x] **G1.SELECT.6** Float formatting parity (harness tclRenderCell uses SQLite's
+  %!.15g; pre-tests assert byte-for-byte). Commit: `G1.SELECT.6: float formatting parity`.
+- [x] **G1.SELECT.7** Result-column name derivation (e.g. `SELECT a+b` → name
   `a+b`; alias precedence). Commit: `G1.SELECT.7: column name derivation`.
-- [ ] **G1.SELECT.8** testgen select2–selectH green (join-heavy parts coordinate
-  with G2.JOIN). Commit: `G1.SELECT.8: SELECT TCL green`.
+- [x] **G1.SELECT.8** testgen select2–selectF green (join-heavy parts coordinate
+  with G2.JOIN; selectD join tests also green). Commit: `G1.SELECT.8: SELECT TCL green`.
 
 ## Verify command
 ```bash

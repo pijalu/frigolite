@@ -213,7 +213,7 @@ func Test_vacuum5(t *testing.T) {
 		openfiles = "" // TCL namespace variable
 		_ = openfiles // suppress unused warning
 		// proc definition (not transpiled)
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			r = db.Query("\n    PRAGMA temp_store = file;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 50;\n    CREATE TABLE t1(i INTEGER PRIMARY KEY, j UNIQUE);\n    WITH s(i) AS (\n      VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(100) FROM s;\n  ")

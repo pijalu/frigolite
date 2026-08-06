@@ -240,7 +240,7 @@ func Test_bestindex1(t *testing.T) {
 		// proc definition (not transpiled)
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// register_tcl_module db (unsupported command, not transpiled)
 		{ // "3.1"

@@ -403,7 +403,7 @@ func Test_capi3c(t *testing.T) {
 	if tclBool("!" + "") {
 		{ // do_test "capi3c-8.1"
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(a);\n    ")
 			if _res.Error != nil {
@@ -436,7 +436,7 @@ func Test_capi3c(t *testing.T) {
 		{ // do_test "capi3c-8.4"
 			db.Close()
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config DEFENSIVE (unhandled flag)
 			r = db.Query("\n      CREATE TABLE t1(a);\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES('table',NULL,NULL,NULL,NULL);\n    ")
@@ -506,7 +506,7 @@ func Test_capi3c(t *testing.T) {
 			db.Close()
 			// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 		}
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning

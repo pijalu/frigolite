@@ -203,6 +203,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1"
+		// db function nn (variable-reader, inlined)
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")

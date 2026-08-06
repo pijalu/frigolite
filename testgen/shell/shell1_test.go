@@ -87,7 +87,7 @@ func Test_shell1(t *testing.T) {
 	_ = CLI // suppress unused warning
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell1-1.1.1"
 		res = "catchcmd \"-bad test.db\" \"\""
@@ -636,7 +636,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-4.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,null), (2,''), (3,1),\n                         (4,2.25), (5,'hello'), (6,x'807f');\n  ")
 		if _res.Error != nil {
@@ -650,7 +650,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-4.1.2"
 		db.Close()
 		os.Remove("test2.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(1,null), (2,''), (3,1),\n                         (4,2.25), (5,'hello'), (6,x'807f');\n  ")
 		if _res.Error != nil {
@@ -661,7 +661,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-4.1.3"
 		db.Close()
 		os.Remove("test2.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE " + sqlLiteral("table") + "(x INTEGER PRIMARY KEY DESC, y);\n    INSERT INTO " + sqlLiteral("table") + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		if _res.Error != nil {
@@ -672,7 +672,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-4.1.4"
 		db.Close()
 		os.Remove("test2.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE " + sqlLiteral("ta<>ble") + "(x INTEGER PRIMARY KEY, y) WITHOUT ROWID;\n    INSERT INTO " + sqlLiteral("ta<>ble") + " VALUES(1,null), (12,''), (23,1),\n                         (34,2.25), (45,'hello'), (56,x'807f');\n  ")
 		if _res.Error != nil {
@@ -683,7 +683,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-4.1.5"
 		db.Close()
 		os.Remove("test2.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(_ROWID_,rowid,oid);\n    INSERT INTO t1 VALUES(1,null,'alpha'), (12,'',99), (23,1,x'b0b1b2');\n  ")
 		if _res.Error != nil {
@@ -694,7 +694,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-4.1.7"
 		db.Close()
 		os.Remove("test2.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n  ")
 		if _res.Error != nil {
@@ -705,7 +705,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-4.1.8"
 		db.Close()
 		os.Remove("test2.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
@@ -716,7 +716,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-4.1.9"
 		db.Close()
 		os.Remove("test2.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    INSERT INTO sqlite_sequence VALUES('extra',999);\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
@@ -739,7 +739,7 @@ func Test_shell1(t *testing.T) {
 	{ // do_test "shell1-4.3"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n  ")
 		if _res.Error != nil {
@@ -892,7 +892,7 @@ func Test_shell1(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell1-7.1.1"
 		_res = db.Exec("\n    CREATE TABLE Z (x TEXT PRIMARY KEY);\n    CREATE TABLE _ (x TEXT PRIMARY KEY);\n    CREATE TABLE YY (x TEXT PRIMARY KEY);\n    CREATE TABLE __ (x TEXT PRIMARY KEY);\n    CREATE TABLE WWW (x TEXT PRIMARY KEY);\n    CREATE TABLE ___ (x TEXT PRIMARY KEY);\n  ")

@@ -172,15 +172,16 @@ func Test_wal6(t *testing.T) {
 		}
 	}
 	// test3 2.6.2 (unsupported command, not transpiled)
+	// db function test3 (variable-reader, inlined)
 	{ // "2.6.3"
 		_res = db.Exec(" DELETE FROM t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 		}
 	}
-	_res = db.Exec("SELECT test3('2.6.4')")
+	_res = db.Exec("SELECT " + sqlLiteral(v_2_6_4) + "")
 	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT test3('2.6.4')")
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v_2_6_4) + "")
 	}
 	{ // do_test "2.x"
 		db2.Close()
@@ -211,15 +212,16 @@ func Test_wal6(t *testing.T) {
 		}
 	}
 	// test4 3.2.2 (unsupported command, not transpiled)
+	// db function test4 (variable-reader, inlined)
 	{ // do_test "3.3.1"
 		_res = db2.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
 		}
 	}
-	_res = db.Exec("SELECT test4('3.3.2')")
+	_res = db.Exec("SELECT " + sqlLiteral(v_3_3_2) + "")
 	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT test4('3.3.2')")
+		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(v_3_3_2) + "")
 	}
 	{ // do_test "3.x"
 		db2.Close()

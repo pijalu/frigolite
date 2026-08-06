@@ -108,6 +108,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	_ = DEPTH // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	// db function make_interior_node (variable-reader, inlined)
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(content) VALUES ('hello world');\n  DELETE FROM fts_segdir;\n  INSERT INTO fts_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root) VALUES\n  (0, 0, 100, 100 + " + sqlLiteral(DEPTH) + ", 100 + " + sqlLiteral(DEPTH) + ", make_interior_node(" + sqlLiteral(DEPTH) + "+1, 100));\n")
 		if _res.Error != nil {

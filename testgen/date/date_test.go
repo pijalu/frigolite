@@ -649,6 +649,7 @@ func Test_date(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "date-15.1"
+		// db function sleeper (variable-reader, inlined)
 		_res = db.Exec("\n     SELECT c - a FROM (SELECT julianday('now') AS a,\n                               sleeper(), julianday('now') AS c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT c - a FROM (SELECT julianday('now') AS a,\n                               sleeper(), julianday('now') AS c);\n  ")

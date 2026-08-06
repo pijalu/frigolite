@@ -132,7 +132,9 @@ func Test_swarmvtab3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function missing_db (variable-reader, inlined)
 	// proc definition (not transpiled)
+	// db function openclose_db (variable-reader, inlined)
 	// proc definition (not transpiled)
 	// foreach {tn nMaxOpen cvt} "1 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n\n  2 3 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing =       'missing_db',\n        openclose=" + "openclose_db" + ",\n        maxopen = 3\n    )\n  }\n\n  3 1 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix||''.''||:suffix||id, tbl, minval, minval FROM swarm',\n        :prefix=test, :suffix=db,\n        missing =       'missing_db',\n        openclose=" + "openclose_db" + ",\n        maxopen = 1\n    )\n  }"
 	_items0 := tclSplitList("1 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n\n  2 3 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing =       'missing_db',\n        openclose=" + "openclose_db" + ",\n        maxopen = 3\n    )\n  }\n\n  3 1 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix||''.''||:suffix||id, tbl, minval, minval FROM swarm',\n        :prefix=test, :suffix=db,\n        missing =       'missing_db',\n        openclose=" + "openclose_db" + ",\n        maxopen = 1\n    )\n  }")
@@ -258,7 +260,9 @@ func Test_swarmvtab3(t *testing.T) {
 			}
 		}
 		// proc definition (not transpiled)
+		// db function missing_db (variable-reader, inlined)
 		// proc definition (not transpiled)
+		// db function openclose_db (variable-reader, inlined)
 		// proc definition (not transpiled)
 		// foreach {tn nMaxOpen cvt} "2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }"
 		_items1 := tclSplitList("2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }")

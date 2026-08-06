@@ -238,7 +238,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-4.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
 		if r.Error != nil {
@@ -283,7 +283,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-5.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA page_size = 1024 ")
 		if r.Error != nil {
@@ -313,7 +313,7 @@ func Test_corrupt(t *testing.T) {
 	{ // do_test "corrupt-6.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
 		if r.Error != nil {
@@ -351,7 +351,7 @@ func Test_corrupt(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	r = db.Query(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
 	if r.Error != nil {

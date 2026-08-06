@@ -109,7 +109,7 @@ func Test_enc2(t *testing.T) {
 	for _, enc := range tclSplitList(encodings) {
 	_ = enc // suppress unused warning
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
 		if _res.Error != nil {
@@ -183,7 +183,7 @@ func Test_enc2(t *testing.T) {
 	}
 	{ // do_test "enc2-4.1"
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = 'UTF-8'")
 		if _res.Error != nil {
@@ -215,7 +215,7 @@ func Test_enc2(t *testing.T) {
 	_ = test_collate_enc // suppress unused warning
 	// proc definition (not transpiled)
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -245,7 +245,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -279,7 +279,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -348,7 +348,7 @@ func Test_enc2(t *testing.T) {
 	// proc definition (not transpiled)
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -395,7 +395,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -442,7 +442,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -581,7 +581,7 @@ func Test_enc2(t *testing.T) {
 	{ // do_test "enc2-10.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a);\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t2(b);\n  ")
 		if _res.Error != nil {

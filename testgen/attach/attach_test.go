@@ -603,7 +603,7 @@ func Test_attach(t *testing.T) {
 			db2.Close()
 		}
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(a,b);\n      CREATE TRIGGER x1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2(a,b) SELECT key, value FROM json_each(NEW.x);\n      END;\n      INSERT INTO t1(x) VALUES('{\"a\":1}');\n      SELECT * FROM t2;\n    ")
 		if _res.Error != nil {
@@ -665,7 +665,7 @@ func Test_attach(t *testing.T) {
 	os.Remove("no-such-file")
 	{ // do_test "attach-7.1"
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      DETACH RAISE ( IGNORE ) IN ( SELECT \"AAAAAA\" . * ORDER BY \n      REGISTER LIMIT \"AAAAAA\" . \"AAAAAA\" OFFSET RAISE ( IGNORE ) NOT NULL )\n    ")
 		_ = _res // catchsql

@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -88,8 +89,8 @@ func Test_fts4noti(t *testing.T) {
 		_ = _idx0
 			{ // "1." + tn
 				_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4 " + arg)
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING fts4 " + arg)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", res, _res.Error, "CREATE VIRTUAL TABLE t1 USING fts4 " + arg)
 				}
 			}
 			if func() bool { l_n, l_e := strconv.Atoi(tclLIndex(res, "0")); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {

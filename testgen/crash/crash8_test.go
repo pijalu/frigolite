@@ -282,7 +282,7 @@ func Test_crash8(t *testing.T) {
 				db.Close()
 			}
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "crash8-5." + i + ".1"
 				_res = db.Exec("\n        CREATE TABLE t1(x PRIMARY KEY);\n        INSERT INTO t1 VALUES(randomblob(900));\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;          /* 64 rows */\n      ")
@@ -301,7 +301,7 @@ func Test_crash8(t *testing.T) {
 				db.Close()
 			}
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "crash8-5." + i + ".2"
 				r = db.Query("\n        PRAGMA cache_size = 10;\n        CREATE TABLE t1(x PRIMARY KEY);\n        INSERT INTO t1 VALUES(randomblob(900));\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;          /* 64 rows */\n        BEGIN;\n          UPDATE t1 SET x = randomblob(900);\n      ")

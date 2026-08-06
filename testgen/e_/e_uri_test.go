@@ -376,7 +376,7 @@ func Test_e_uri(t *testing.T) {
 										_ = _catchErr // suppress unused warning
 										db.Close()
 									}
-									db, err = frigolite.Open("")
+									db, err = frigolite.Open("test.db")
 									if err != nil { t.Fatal(err) }
 									_res = db.Exec(" CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES('a', 'b') ;")
 									if _res.Error != nil {
@@ -410,7 +410,7 @@ func Test_e_uri(t *testing.T) {
 									}
 								}
 								os.Remove("test.db")
-								db, err = frigolite.Open("")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								db.Close()
 								// foreach {tn uri flags error} "1   {file:test.db?mode=ro}   ro    {not an error}\n  2   {file:test.db?mode=ro}   rw    {not an error}\n  3   {file:test.db?mode=ro}   rwc   {not an error}\n\n  4   {file:test.db?mode=rw}   ro    {access mode not allowed: rw}\n  5   {file:test.db?mode=rw}   rw    {not an error}\n  6   {file:test.db?mode=rw}   rwc   {not an error}\n\n  7   {file:test.db?mode=rwc}  ro    {access mode not allowed: rwc}\n  8   {file:test.db?mode=rwc}  rw    {access mode not allowed: rwc}\n  9   {file:test.db?mode=rwc}  rwc   {not an error}"
@@ -480,7 +480,7 @@ func Test_e_uri(t *testing.T) {
 											_ = _idx10
 												os.Remove("test.db")
 												// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
-												db, err = frigolite.Open("")
+												db, err = frigolite.Open("test.db")
 												if err != nil { t.Fatal(err) }
 												// sqlite3_enable_shared_cache 0 (unsupported command, not transpiled)
 												_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');\n  ")

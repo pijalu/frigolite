@@ -410,6 +410,7 @@ func Test_check(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
+	// db function myfunc (variable-reader, inlined)
 	{ // "7.1"
 		_res = db.Exec(" CREATE TABLE t6(a CHECK (myfunc(a))) ")
 		if _res.Error != nil {
@@ -483,7 +484,7 @@ func Test_check(t *testing.T) {
 	db.Close()
 	db2.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "10.1"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE VIEW v1(y) AS SELECT x FROM t1;\n  PRAGMA integrity_check;\n")

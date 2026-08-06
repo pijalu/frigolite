@@ -134,7 +134,7 @@ func Test_autovacuum2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// proc definition (not transpiled)
+	// proc autovac_page_callback_off returns constant 0 (registered via db func)
 	// sqlite3_autovacuum_pages db autovac_page_callback_off (unsupported command, not transpiled)
 	{ // "autovacuum2-1.20"
 		r = db.Query("\n  BEGIN;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  DELETE FROM t1;\n  PRAGMA freelist_count;\n  COMMIT;\n  PRAGMA freelist_count;\n")

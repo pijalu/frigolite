@@ -135,7 +135,7 @@ func Test_e_fts3(t *testing.T) {
 		_ = _idx0
 			db.Close()
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			if tclBool(DO_MALLOC_TEST) {
 				// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
@@ -145,6 +145,7 @@ func Test_e_fts3(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = '" + enc + "'")
 			}
 			// proc definition (not transpiled)
+			// db function mit (variable-reader, inlined)
 			// ddl_test 1.1.1.1 {CREATE VIRTUAL TABLE data USING fts3()} (unsupported command, not transpiled)
 			// read_test 1.1.1.2 {PRAGMA table_info(data)} {0 content {} 0 {} 0} (unsupported command, not transpiled)
 			// ddl_test 1.1.2.1 {\n  CREATE VIRTUAL TABLE pages USING fts3(title, k...} (unsupported command, not transpiled)
@@ -384,7 +385,7 @@ func Test_e_fts3(t *testing.T) {
 					_ = DO_MALLOC_TEST // suppress unused warning
 						db.Close()
 						os.Remove("test.db")
-						db, err = frigolite.Open("")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						if tclBool(DO_MALLOC_TEST) {
 							// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)

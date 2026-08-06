@@ -74,6 +74,7 @@ func Test_walckptnoop(t *testing.T) {
 	_ = VAL // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	// db function myrandomblob (variable-reader, inlined)
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=NONE;\n  PRAGMA secure_delete=OFF;\n  VACUUM;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n  CREATE INDEX i1 ON t1(y);\n  PRAGMA journal_mode = wal;\n\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, hex(myrandomblob(64)) FROM s;\n")
 		if r.Error != nil {

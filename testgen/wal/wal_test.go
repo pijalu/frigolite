@@ -312,6 +312,7 @@ func Test_wal(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		// db function blob (variable-reader, inlined)
 		_list := tclList([]string{tclExecSQL(db, "{ SELECT * FROM t1 }"), "file size test.db-wal"})
 		_ = _list
 	}
@@ -365,6 +366,7 @@ func Test_wal(t *testing.T) {
 	db2.Close()
 	{ // do_test "wal-4.5.1"
 		// reopen_db (unsupported command, not transpiled)
+		// db function blob (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
@@ -372,6 +374,7 @@ func Test_wal(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
+		// db function blob (variable-reader, inlined)
 		_list := tclList([]string{tclExecSQL(db, "{ SELECT * FROM t1 }"), "file size test.db-wal"})
 		_ = _list
 	}
@@ -519,7 +522,7 @@ func Test_wal(t *testing.T) {
 			db.Close()
 		}
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// db function blob (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = wal;\n    PRAGMA auto_vacuum;\n  ")
@@ -760,7 +763,7 @@ func Test_wal(t *testing.T) {
 		db3.Close()
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -787,7 +790,7 @@ func Test_wal(t *testing.T) {
 		db2.Close()
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "wal-15.1"
 		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n  ")
@@ -882,7 +885,7 @@ func Test_wal(t *testing.T) {
 		_ = _idx2
 			os.Remove("test.db")
 			// sqlite3_simulate_device -sectorsize $sectorsize (unsupported command, not transpiled)
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "wal-17." + tn + ".1"
 				r = db.Query("\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 512;\n      PRAGMA cache_size = -2000;\n      PRAGMA journal_mode = WAL;\n      PRAGMA synchronous = FULL;\n    ")
@@ -1056,7 +1059,7 @@ func Test_wal(t *testing.T) {
 				}
 				{ // do_test "wal-19.1"
 					os.Remove("test.db")
-					db, err = frigolite.Open("")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 					_ = db2
@@ -1097,7 +1100,7 @@ func Test_wal(t *testing.T) {
 							db.Close()
 						}
 						os.Remove("test.db")
-						db, err = frigolite.Open("")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						r = db.Query("\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(randomblob(900));\n      SELECT count(*) FROM t1;\n    ")
 						if r.Error != nil {
@@ -1232,7 +1235,7 @@ func Test_wal(t *testing.T) {
 					db.Close()
 				}
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "24.1"
 					r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    PRAGMA journal_mode = WAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(5000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
@@ -1292,7 +1295,7 @@ func Test_wal(t *testing.T) {
 					db.Close()
 				}
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("PRAGMA journal_mode=WAL")
 				if _res.Error != nil {

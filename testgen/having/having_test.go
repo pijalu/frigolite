@@ -163,6 +163,7 @@ func Test_having(t *testing.T) {
 					}
 				}
 				// proc definition (not transpiled)
+				// db function nondeter (variable-reader, inlined)
 				nondeter_ret = "0" // TCL namespace variable
 				_ = nondeter_ret // suppress unused warning
 				{ // "4.2"

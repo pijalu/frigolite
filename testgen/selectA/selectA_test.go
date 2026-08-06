@@ -1287,7 +1287,8 @@ func Test_selectA(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// proc definition (not transpiled)
+	// proc f returns constant 1 (registered via db func)
+	db.RegisterFunction("f", func(args []interface{}) (interface{}, error) { return int64(1), nil }, 0, -1)
 	{ // "4.1.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  CREATE TABLE t5(c, d);\n\n  INSERT INTO t5 VALUES(1, 'x');\n  INSERT INTO t5 VALUES(2, 'x');\n  INSERT INTO t4 VALUES(3, 'x');\n  INSERT INTO t4 VALUES(4, 'x');\n\n  CREATE INDEX i1 ON t4(a);\n  CREATE INDEX i2 ON t5(c);\n")
 		if _res.Error != nil {

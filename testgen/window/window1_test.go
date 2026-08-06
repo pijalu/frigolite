@@ -675,7 +675,7 @@ func Test_window1(t *testing.T) {
 						_ = _idx4
 							res = "0 1"
 							_ = res // suppress unused warning
-							if tclBool(tclStr(err)) {
+							if tclBool(_err_tcl) {
 								res = "1 {frame starting offset must be a non-negative number}"
 								_ = res // suppress unused warning
 							}
@@ -685,7 +685,7 @@ func Test_window1(t *testing.T) {
 							}
 							res = "0 1"
 							_ = res // suppress unused warning
-							if tclBool(tclStr(err)) {
+							if tclBool(_err_tcl) {
 								res = "1 {frame ending offset must be a non-negative number}"
 								_ = res // suppress unused warning
 							}

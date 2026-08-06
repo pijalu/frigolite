@@ -115,6 +115,7 @@ func Test_pagerfault(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
+	// db function a_string (variable-reader, inlined)
 	{ // do_test "pagerfault-1-pre1"
 		r = db.Query("\n    PRAGMA journal_mode = DELETE;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n  ")
 		if r.Error != nil {
@@ -143,6 +144,7 @@ func Test_pagerfault(t *testing.T) {
 		// tstvfs script xDeleteCallback (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
@@ -154,6 +156,7 @@ func Test_pagerfault(t *testing.T) {
 	// do_faultsim_test pagerfault-4 -prep {\n  faultsim_delete_and_reopen\n} -body {\n  execsql { \n   ... (unsupported command, not transpiled)
 	{ // do_test "pagerfault-5-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		_res = db.Exec("\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n  ")
@@ -165,6 +168,7 @@ func Test_pagerfault(t *testing.T) {
 	// do_faultsim_test pagerfault-5.3 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  d... (unsupported command, not transpiled)
 	{ // do_test "pagerfault-6-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		_res = db.Exec("\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n  ")
@@ -218,6 +222,7 @@ func Test_pagerfault(t *testing.T) {
 	}
 	{ // do_test "pagerfault-9-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA auto_vacuum = on;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y UNIQUE);\n    CREATE TABLE t3(z UNIQUE);\n    BEGIN;\n      INSERT INTO t1 VALUES(a_string(202));\n      INSERT INTO t2 VALUES(a_string(203));\n      INSERT INTO t3 VALUES(a_string(204));\n      INSERT INTO t1 SELECT a_string(202) FROM t1;\n      INSERT INTO t1 SELECT a_string(203) FROM t1;\n      INSERT INTO t1 SELECT a_string(204) FROM t1;\n      INSERT INTO t1 SELECT a_string(205) FROM t1;\n      INSERT INTO t2 SELECT a_string(length(x)) FROM t1;\n      INSERT INTO t3 SELECT a_string(length(x)) FROM t1;\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = on;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y UNIQUE);\n    CREATE TABLE t3(z UNIQUE);\n    BEGIN;\n      INSERT INTO t1 VALUES(a_string(202));\n      INSERT INTO t2 VALUES(a_string(203));\n      INSERT INTO t3 VALUES(a_string(204));\n      INSERT INTO t1 SELECT a_string(202) FROM t1;\n      INSERT INTO t1 SELECT a_string(203) FROM t1;\n      INSERT INTO t1 SELECT a_string(204) FROM t1;\n      INSERT INTO t1 SELECT a_string(205) FROM t1;\n      INSERT INTO t2 SELECT a_string(length(x)) FROM t1;\n      INSERT INTO t3 SELECT a_string(length(x)) FROM t1;\n    COMMIT;\n  ")
@@ -229,6 +234,7 @@ func Test_pagerfault(t *testing.T) {
 		// testvfs ss_layer -default 1 (unsupported command, not transpiled)
 		// ss_layer sectorsize 4096 (unsupported command, not transpiled)
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(44), a_string(55) FROM t1 LIMIT 13;\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(44), a_string(55) FROM t1 LIMIT 13;\n    COMMIT;\n  ")
@@ -253,6 +259,7 @@ func Test_pagerfault(t *testing.T) {
 	// ss_layer delete (unsupported command, not transpiled)
 	{ // do_test "pagerfault-13-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA journal_mode = PERSIST;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = PERSIST;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
@@ -264,6 +271,7 @@ func Test_pagerfault(t *testing.T) {
 	// do_faultsim_test pagerfault-13 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CRE... (unsupported command, not transpiled)
 	{ // do_test "pagerfault-14-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA journal_mode = PERSIST;\n    ATTACH 'test.db2' AS two;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      CREATE TABLE two.t2(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t2 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = PERSIST;\n    ATTACH 'test.db2' AS two;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      CREATE TABLE two.t2(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t2 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
@@ -275,6 +283,7 @@ func Test_pagerfault(t *testing.T) {
 	// do_faultsim_test pagerfault-14c -prep {\n  catch { db2 close }\n  faultsim_restore_and_re...} -bo... (unsupported command, not transpiled)
 	{ // do_test "pagerfault-15-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		_res = db.Exec("\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n    COMMIT;\n  ")
@@ -352,6 +361,7 @@ func Test_pagerfault(t *testing.T) {
 		// hexio_write test.db 105 03F0 (unsupported command, not transpiled)
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		// db function a_string (variable-reader, inlined)
 		_res = db.Exec("\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n    INSERT INTO t0 VALUES(a_string(224), a_string(335));\n    INSERT INTO t0 VALUES(a_string(225), a_string(336));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n    INSERT INTO t0 VALUES(a_string(224), a_string(335));\n    INSERT INTO t0 VALUES(a_string(225), a_string(336));\n  ")
@@ -369,6 +379,7 @@ func Test_pagerfault(t *testing.T) {
 	// hexio_write test.db 105 03F0 (unsupported command, not transpiled)
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	// db function a_string (variable-reader, inlined)
 	_res = db.Exec("\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n  ")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n  ")
@@ -400,6 +411,7 @@ func Test_pagerfault(t *testing.T) {
 	}
 	{ // do_test "pagerfault-22-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(a_string(3000));\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(a_string(3000));\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n  ")
@@ -414,6 +426,7 @@ func Test_pagerfault(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "pagerfault-25-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(a_string(500));\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(a_string(500));\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n  ")
@@ -424,6 +437,7 @@ func Test_pagerfault(t *testing.T) {
 	// do_faultsim_test pagerfault-26 -prep {\n  faultsim_delete_and_reopen\n  execsql {\n    P...} -bod... (unsupported command, not transpiled)
 	{ // do_test "pagerfault-27-pre"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t1 VALUES (a_string(20000), a_string(20000));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t1 VALUES (a_string(20000), a_string(20000));\n  ")
@@ -433,6 +447,7 @@ func Test_pagerfault(t *testing.T) {
 	// do_faultsim_test pagerfault-27 -faults ioerr-persistent -prep {\n  faultsim_restore_and_reopen\n ... (unsupported command, not transpiled)
 	{ // do_test "pagerfault-28-pre"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA page_size = 512;\n\n    PRAGMA journal_mode = wal;\n    PRAGMA wal_autocheckpoint = 0;\n    PRAGMA cache_size = 100000;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n\n    PRAGMA journal_mode = wal;\n    PRAGMA wal_autocheckpoint = 0;\n    PRAGMA cache_size = 100000;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
@@ -457,6 +472,7 @@ func Test_pagerfault(t *testing.T) {
 	_ = FAULTSIM_custom // suppress unused warning
 	{ // do_test "pagerfault-29-pre"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 5;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 5;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n  ")

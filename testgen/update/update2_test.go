@@ -65,6 +65,7 @@ func Test_update2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "update2"
 	_ = testprefix // suppress unused warning
+	// db function repeat (variable-reader, inlined)
 	nrow = "10"
 	_ = nrow // suppress unused warning
 	{ // "1.1.0"

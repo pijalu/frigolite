@@ -89,7 +89,7 @@ func Test_walsetlk_recover(t *testing.T) {
 	// tvfs filter xSleep (unsupported command, not transpiled)
 	sleep_count = "0" // TCL namespace variable
 	_ = sleep_count // suppress unused warning
-	// proc definition (not transpiled)
+	// proc sleep_callback increments counter var sleep_count (registered via db func)
 	_dbtmp1, err := frigolite.Open("test.db")
 	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }

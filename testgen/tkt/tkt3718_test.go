@@ -84,6 +84,8 @@ func Test_tkt3718(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	// db function f1 (variable-reader, inlined)
+	// db function f2 (variable-reader, inlined)
 	{ // do_test "tkt3718-1.2"
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t2 SELECT a, b FROM t1;\n    INSERT INTO t2 SELECT a+5, f1(b) FROM t1;\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -115,6 +117,7 @@ func Test_tkt3718(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function sql (variable-reader, inlined)
 	{ // do_test "tkt3718-2.1"
 		r = db.Query(" SELECT sql(1, 'DELETE FROM t2 WHERE a = '||a ) FROM t2 WHERE a>5 ")
 		if r.Error != nil {

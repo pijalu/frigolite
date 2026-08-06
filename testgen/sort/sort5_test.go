@@ -143,7 +143,7 @@ func Test_sort5(t *testing.T) {
 		db.Close()
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(" CREATE TABLE t1(x) ")
 	if _res.Error != nil {

@@ -106,11 +106,11 @@ func Test_crash4(t *testing.T) {
 			if func() bool { l_n, l_e := strconv.Atoi(c); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0 {}"); if r_e != nil { return false }; return l_n == r_n }() {
 				fin = "1" // TCL namespace variable
 				_ = fin // suppress unused warning
-				c = "1 {child process exited abnormally}"
+				c = "child process exited abnormally"
 				_ = c // suppress unused warning
 			}
 		}
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }

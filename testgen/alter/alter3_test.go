@@ -206,7 +206,7 @@ func Test_alter3(t *testing.T) {
 	{ // do_test "alter3-4.1"
 		db.Close()
 		os.Remove("test.db")
-		DB = func() string { db, err = frigolite.Open(""); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
+		DB = func() string { db, err = frigolite.Open("test.db"); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
 		_ = DB // suppress unused warning
 		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")

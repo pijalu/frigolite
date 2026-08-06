@@ -239,19 +239,20 @@ func Test_e_changes(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		// db function my_changes (variable-reader, inlined)
 		changes = "" // TCL namespace variable
 		_ = changes // suppress unused warning
 		// proc definition (not transpiled)
 		{ // "5.1.0"
-			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT my_changes('trigger');\n  END;\n")
+			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT " + sqlLiteral(trigger) + ";\n  END;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT my_changes('trigger');\n  END;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT " + sqlLiteral(trigger) + ";\n  END;\n")
 			}
 		}
 		{ // "5.1.1"
-			r = db.Query("\n  INSERT INTO t2 VALUES('a'), ('b');\n  UPDATE t1 SET b = my_changes('update');\n  SELECT * FROM t1;\n")
+			r = db.Query("\n  INSERT INTO t2 VALUES('a'), ('b');\n  UPDATE t1 SET b = " + sqlLiteral(update) + ";\n  SELECT * FROM t1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2 VALUES('a'), ('b');\n  UPDATE t1 SET b = my_changes('update');\n  SELECT * FROM t1;\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2 VALUES('a'), ('b');\n  UPDATE t1 SET b = " + sqlLiteral(update) + ";\n  SELECT * FROM t1;\n")
 				return
 			}
 			got := flatten(r)

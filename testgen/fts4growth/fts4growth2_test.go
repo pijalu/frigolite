@@ -127,6 +127,7 @@ func Test_fts4growth2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE rowid>16;\n  DROP TABLE IF EXISTS x1;\n  CREATE VIRTUAL TABLE x1 USING fts4;\n")
 		}
 	}
+	// db function second (variable-reader, inlined)
 	// proc definition (not transpiled)
 	tn = "0"
 	_ = tn // suppress unused warning

@@ -60,7 +60,7 @@ func Test_selectD(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 2 }() {
 		db.Close()
 		os.Remove("test" + i + ".db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test" + i + ".db")
 		if err != nil { t.Fatal(err) }
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 2 }() {
 			// optimization_control db query-flattener off (unsupported command, not transpiled)

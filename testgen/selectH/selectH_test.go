@@ -68,6 +68,7 @@ func Test_selectH(t *testing.T) {
 	selectH_cnt = "0"
 	_ = selectH_cnt // suppress unused warning
 	// proc definition (not transpiled)
+	// db function counter (variable-reader, inlined)
 	{ // "1.2"
 		r = db.Query("\n  SELECT DISTINCT c44 FROM (\n    SELECT c0 AS a, *, counter(1) FROM t1\n    UNION ALL\n    SELECT c1 AS a, *, counter(1) FROM t1\n  ) WHERE c60=60;\n")
 		if r.Error != nil {

@@ -257,7 +257,7 @@ func Test_descidx1(t *testing.T) {
 	{ // do_test "descidx1-6.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "descidx1-6.2"
@@ -280,7 +280,7 @@ func Test_descidx1(t *testing.T) {
 	{ // do_test "descidx1-6.4"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 	}

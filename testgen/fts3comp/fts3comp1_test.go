@@ -96,8 +96,10 @@ func Test_fts3comp1(t *testing.T) {
 				db.Close()
 			}
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			// db function $zip (variable-reader, inlined)
+			// db function $unzip (variable-reader, inlined)
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
 				if _res.Error != nil {
@@ -238,10 +240,11 @@ func Test_fts3comp1(t *testing.T) {
 		myfunc_invoked = "0" // TCL namespace variable
 		_ = myfunc_invoked // suppress unused warning
 		// proc definition (not transpiled)
+		// db function myfunc (variable-reader, inlined)
 		{ // "3.1"
-			_res = db.Exec("\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
+			_res = db.Exec("\n  CREATE VIEW v1 AS SELECT " + sqlLiteral(xyz) + ";\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS SELECT " + sqlLiteral(xyz) + ";\n")
 			}
 		}
 		{ // "3.2"
@@ -289,6 +292,8 @@ func Test_fts3comp1(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
+		// db function comp (variable-reader, inlined)
+		// db function uncomp (variable-reader, inlined)
 		{ // "4.1"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
 			if _res.Error != nil {
@@ -298,12 +303,14 @@ func Test_fts3comp1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		// db function comp (variable-reader, inlined)
 		{ // "4.2"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
+		// db function uncomp (variable-reader, inlined)
 		{ // "4.3"
 			_res = db.Exec("\n  SELECT * FROM v1\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {

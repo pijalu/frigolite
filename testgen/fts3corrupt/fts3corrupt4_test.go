@@ -79,6 +79,7 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function blob (variable-reader, inlined)
 	{ // "1.1"
 		r = db.Query("\n  SELECT quote(root) FROM ft_segdir;\n")
 		if r.Error != nil {
@@ -159,11 +160,12 @@ func Test_fts3corrupt4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	// db function blob (variable-reader, inlined)
 	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "2.3.1"
-		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 FFFFFFFF07FF55 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
+		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    " + sqlLiteral(v_00056162633130031F0200_FFFFFFFF07FF55_66740302020003046E646F6E03030200) + "\n    WHERE blockid=2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 FFFFFFFF07FF55 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segments SET block = \n    " + sqlLiteral(v_00056162633130031F0200_FFFFFFFF07FF55_66740302020003046E646F6E03030200) + "\n    WHERE blockid=2;\n")
 		}
 	}
 	{ // "2.3.2"
@@ -173,9 +175,9 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	{ // "2.4.1"
-		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 02FFFFFFFF07 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
+		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    " + sqlLiteral(v_00056162633130031F0200_02FFFFFFFF07_66740302020003046E646F6E03030200) + "\n    WHERE blockid=2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 02FFFFFFFF07 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segments SET block = \n    " + sqlLiteral(v_00056162633130031F0200_02FFFFFFFF07_66740302020003046E646F6E03030200) + "\n    WHERE blockid=2;\n")
 		}
 	}
 	{ // "2.4.2"
@@ -185,9 +187,9 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	{ // "2.5.1"
-		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 0202 6674 FFFFFF070302020003046E646F6E030200')\n    WHERE blockid=2;\n")
+		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    " + sqlLiteral(v_00056162633130031F0200_0202_6674_FFFFFF070302020003046E646F6E030200) + "\n    WHERE blockid=2;\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 0202 6674 FFFFFF070302020003046E646F6E030200')\n    WHERE blockid=2;\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segments SET block = \n    " + sqlLiteral(v_00056162633130031F0200_0202_6674_FFFFFF070302020003046E646F6E030200) + "\n    WHERE blockid=2;\n")
 		}
 	}
 	{ // "2.5.2"
@@ -243,11 +245,12 @@ func Test_fts3corrupt4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	// db function blob (variable-reader, inlined)
 	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "3.2"
-		_res = db.Exec("\n  UPDATE ft_segdir \n  SET root = blob('0101056162633132FFFFFFFF070236030132030136');\n")
+		_res = db.Exec("\n  UPDATE ft_segdir \n  SET root = " + sqlLiteral(v_0101056162633132FFFFFFFF070236030132030136) + ";\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segdir \n  SET root = blob('0101056162633132FFFFFFFF070236030132030136');\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE ft_segdir \n  SET root = " + sqlLiteral(v_0101056162633132FFFFFFFF070236030132030136) + ";\n")
 		}
 	}
 	{ // "3.1"

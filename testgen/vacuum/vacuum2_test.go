@@ -182,7 +182,7 @@ func Test_vacuum2(t *testing.T) {
 	{ // do_test "vacuum2-4.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      pragma auto_vacuum=1;\n      create table t(a, b);\n      insert into t values(1, 2);\n      insert into t values(1, 2);\n      pragma auto_vacuum=0;\n      vacuum;\n      pragma auto_vacuum;\n    ")
 		if r.Error != nil {
@@ -233,7 +233,7 @@ func Test_vacuum2(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "vacuum2-5.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 SELECT a+1, randomblob(500) FROM t1;      -- 2\n  INSERT INTO t1 SELECT a+2, randomblob(500) FROM t1;      -- 4 \n  INSERT INTO t1 SELECT a+4, randomblob(500) FROM t1;      -- 8 \n  INSERT INTO t1 SELECT a+8, randomblob(500) FROM t1;      -- 16 \n")

@@ -273,7 +273,7 @@ func Test_jrnlmode(t *testing.T) {
 	db.Close()
 	os.Remove("test2.db")
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "jrnlmode-3.1"
 		_res = db.Exec(" \n      CREATE TABLE x(n INTEGER); \n      ATTACH 'test2.db' AS a; \n      create table a.x ( n integer ); \n      insert into a.x values(1); \n      insert into a.x values (2); \n      insert into a.x values (3); \n      insert into a.x values (4); \n    ")
@@ -293,7 +293,7 @@ func Test_jrnlmode(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "jrnlmode-4.1"
 		r = db.Query("\n      PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);\n    ")
@@ -328,7 +328,7 @@ func Test_jrnlmode(t *testing.T) {
 	if tclBool("atomic_batch_write test.db" + "==0") {
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "jrnlmode-5.1"
 			r = db.Query("pragma page_size=1024")

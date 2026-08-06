@@ -153,6 +153,7 @@ func Test_fts3query(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function mit (variable-reader, inlined)
 	{ // do_test "fts3query-3.3"
 		r = db.Query(" SELECT mit(matchinfo(foobar)) FROM foobar WHERE foobar MATCH 'the' ")
 		if r.Error != nil {

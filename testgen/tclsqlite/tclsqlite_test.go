@@ -1279,6 +1279,7 @@ func Test_tclsqlite(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t5;\n      INSERT INTO t5 VALUES(@y);\n      SELECT hex(x), typeof(x) FROM t5\n    ")
 		}
 	}
+	// db function xCall (variable-reader, inlined)
 	// proc definition (not transpiled)
 	{ // "tcl-14.1"
 		_res = db.Exec("\n  CREATE TABLE t6(x);\n  INSERT INTO t6 VALUES(1);\n")
@@ -1326,7 +1327,7 @@ func Test_tclsqlite(t *testing.T) {
 		db.Close()
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "tcl-16.100"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2),(2,NULL),(3,'xyz');\n")
@@ -1612,10 +1613,12 @@ func Test_tclsqlite(t *testing.T) {
 		_ = _list
 	}
 	// proc definition (not transpiled)
-	// proc definition (not transpiled)
+	// proc func1 returns constant 1 (registered via db func)
 	_dbtmp1, err := frigolite.Open("test.db")
 	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
+	// db function closedb (variable-reader, inlined)
+	db.RegisterFunction("func1", func(args []interface{}) (interface{}, error) { return int64(1), nil }, 0, -1)
 	{ // do_test "21.2"
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning

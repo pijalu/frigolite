@@ -67,7 +67,7 @@ func Test_fuzz_oss1(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db.SetDQS(true, true)
 	db.SetDQS(true, true)

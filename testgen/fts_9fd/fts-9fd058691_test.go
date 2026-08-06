@@ -78,7 +78,7 @@ func Test_fts_9fd058691(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts3(tags TEXT);\n  INSERT INTO fts (docid, tags) VALUES (1, 'tag1');\n  INSERT INTO fts (docid, tags) VALUES (2, NULL);\n  INSERT INTO fts (docid, tags) VALUES (3, 'three');\n")

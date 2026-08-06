@@ -73,7 +73,7 @@ func Test_altermalloc2(t *testing.T) {
 		db.Close()
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);\n")

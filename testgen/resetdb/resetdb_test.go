@@ -110,7 +110,7 @@ func Test_resetdb(t *testing.T) {
 	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=8192;\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20)\n    INSERT INTO t1(a,b) SELECT x, randomblob(1300) FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  SELECT sum(a), sum(length(b)) FROM t1;\n  PRAGMA integrity_check;\n  PRAGMA journal_mode;\n  PRAGMA page_size;\n  PRAGMA page_count;\n")

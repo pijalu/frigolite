@@ -184,7 +184,8 @@ func TestP4String_Length(t *testing.T) {
 
 // TestP4String_Quote covers quote(): SQL literal rendering — strings quoted
 // with doubled quotes, blobs as uppercase X'HEX', integers/REALs as their
-// numeric literal, NULL input returns NULL (not the string 'NULL').
+// numeric literal, NULL input returns the 4-char text 'NULL' (matching
+// SQLite: quote(NULL) is the unquoted string NULL, of type text).
 func TestP4String_Quote(t *testing.T) {
 	db := openTestDB(t)
 	defer db.Close()
@@ -204,7 +205,9 @@ func TestP4String_Quote(t *testing.T) {
 		{"SELECT quote(5.5)", "5.5"},
 		{"SELECT quote(0.0)", "0.0"},
 		{"SELECT quote(-0.0)", "0.0"},
-		{"SELECT ifnull(quote(NULL),'nil')", "nil"}, // NULL → NULL
+		{"SELECT quote(NULL)", "NULL"},         // text 'NULL', like SQLite
+		{"SELECT quote(NULL) IS NULL", "0"},    // not SQL NULL
+		{"SELECT typeof(quote(NULL))", "text"}, // text type
 	}
 	for _, c := range cases {
 		got := flattenQuery(t, db, c.sql)
@@ -349,4 +352,3 @@ func TestP4String_All(t *testing.T) {
 		}
 	}
 }
-

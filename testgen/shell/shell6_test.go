@@ -90,7 +90,7 @@ func Test_shell6(t *testing.T) {
 				db.Close()
 			}
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(schema)
 			if _res.Error != nil {

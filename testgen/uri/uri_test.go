@@ -249,7 +249,7 @@ func Test_uri(t *testing.T) {
 						db.Close()
 					}
 					os.Remove("test.db")
-					db, err = frigolite.Open("")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" CREATE TABLE t1(a, b) ")
 					if _res.Error != nil {
@@ -272,7 +272,7 @@ func Test_uri(t *testing.T) {
 					}
 					A_1 = "0 {}"
 					_ = A_1 // suppress unused warning
-					A_0 = "1 \"access mode not allowed: " + mode + "\""
+					A_0 = "\"access mode not allowed: " + mode + "\""
 					_ = A_0 // suppress unused warning
 					{ // do_test "4.1." + tn + ".3"
 						_list := tclList([]string{"0", msg})

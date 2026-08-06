@@ -165,7 +165,7 @@ func Test_fts3ao(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "fts3ao-3.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n    INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one two');\n    SELECT a, b, c FROM t1 WHERE c MATCH 'two';\n  ")

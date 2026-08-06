@@ -187,10 +187,11 @@ func Test_selectC(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, max(a || b) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;\n  ")
 		}
 	}
-	// proc definition (not transpiled)
+	// proc udf increments counter var udf (registered via db func)
 	udf = "0" // TCL namespace variable
 	_ = udf // suppress unused warning
-	// db function udf (variable-reader, inlined)
+	var udfCounter int64
+	db.RegisterFunction("udf", func(args []interface{}) (interface{}, error) { udfCounter++; return udfCounter, nil }, 0, -1)
 	{ // "selectC-4.1"
 		_res = db.Exec("\n  create table t_distinct_bug (a, b, c);\n  insert into t_distinct_bug values ('1', '1', 'a');\n  insert into t_distinct_bug values ('1', '2', 'b');\n  insert into t_distinct_bug values ('1', '3', 'c');\n  insert into t_distinct_bug values ('1', '1', 'd');\n  insert into t_distinct_bug values ('1', '2', 'e');\n  insert into t_distinct_bug values ('1', '3', 'f');\n")
 		if _res.Error != nil {

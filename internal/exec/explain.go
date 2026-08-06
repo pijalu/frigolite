@@ -147,6 +147,25 @@ func queryTableFromRef(r sql.TableRef) queryTable {
 }
 
 func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
+	// Compound SELECT column-count mismatches are compile errors in SQLite and
+	// surface under EXPLAIN QUERY PLAN too.
+	if err := e.validateCompoundColumnCounts(s); err != nil {
+		return &Result{Error: err}
+	}
+
+	// A view reference must be validated by expanding its stored body (SQLite
+	// prepares the view definition, so compile errors in the body surface
+	// under EXPLAIN QUERY PLAN as well).
+	if s.From.Name != "" {
+		if _, _, err := e.findTable(s.From.Name); err != nil {
+			if viewEntry, _, viewErr := e.findView(s.From.Name); viewErr == nil {
+				if viewErr := e.validateViewBody(viewEntry); viewErr != nil {
+					return &Result{Error: viewErr}
+				}
+			}
+		}
+	}
+
 	tables := e.collectQueryTables(s)
 	if len(tables) == 0 {
 		return planResult([]string{"SCAN (no from)"})
@@ -276,9 +295,15 @@ func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
 		}
 		if idx := e.findIndexOnColumn(tables[li].real, left.Name); idx != "" {
 			joinRefs[li] = append(joinRefs[li], joinRef{table: tables[li].display, col: left.Name, otherTable: tables[ri].display, indexName: idx})
+		} else if !e.isRealTable(tables[ri].real) {
+			// The right side is a subquery/derived table: SQLite creates an
+			// automatic index on its join column.
+			joinRefs[ri] = append(joinRefs[ri], joinRef{table: tables[ri].display, col: right.Name, otherTable: tables[li].display, indexName: ""})
 		}
 		if idx := e.findIndexOnColumn(tables[ri].real, right.Name); idx != "" {
 			joinRefs[ri] = append(joinRefs[ri], joinRef{table: tables[ri].display, col: right.Name, otherTable: tables[li].display, indexName: idx})
+		} else if !e.isRealTable(tables[li].real) {
+			joinRefs[li] = append(joinRefs[li], joinRef{table: tables[li].display, col: left.Name, otherTable: tables[ri].display, indexName: ""})
 		}
 	}
 
@@ -329,7 +354,12 @@ func (e *Engine) planJoin(tables []queryTable, s *sql.SelectStmt) []string {
 // SEARCH on constant predicates when they are selective, otherwise a SCAN.
 func (e *Engine) joinNodeFor(t queryTable, planned []string, joins []joinRef, s *sql.SelectStmt) string {
 	if jr := e.joinSearchRef(joins, planned); jr != nil {
-		return fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", t.display, jr.indexName, jr.col)
+		if jr.indexName != "" {
+			return fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", t.display, jr.indexName, jr.col)
+		}
+		// No real index on the join column (e.g. a subquery in the FROM
+		// clause): SQLite materializes an automatic index on the right side.
+		return fmt.Sprintf("SEARCH %s USING AUTOMATIC COVERING INDEX (%s=?)", t.display, jr.col)
 	}
 	nRow := e.estimatedRowCount(t.real)
 	est := float64(nRow)
@@ -385,6 +415,22 @@ func (e *Engine) estimatedRowCount(table string) int64 {
 		return n
 	}
 	return 1000000
+}
+
+// isRealTable reports whether name resolves to an actual schema table (as
+// opposed to a subquery alias or other non-schema table reference). Used by
+// the query planner to decide whether an automatic index is needed.
+func (e *Engine) isRealTable(name string) bool {
+	if name == "" {
+		return false
+	}
+	if _, _, err := e.findTable(name); err == nil {
+		return true
+	}
+	if _, _, err := e.findView(name); err == nil {
+		return true
+	}
+	return false
 }
 
 // splitAnd flattens a predicate tree into a list of conjuncts.

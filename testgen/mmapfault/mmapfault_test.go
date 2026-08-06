@@ -64,6 +64,7 @@ func Test_mmapfault(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
+	// db function a_string (variable-reader, inlined)
 	{ // do_test "1-pre"
 		_res = db.Exec("\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n  ")
 		if _res.Error != nil {

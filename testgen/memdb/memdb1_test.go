@@ -192,7 +192,7 @@ func Test_memdb1(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "200"
 		r = db.Query("\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")

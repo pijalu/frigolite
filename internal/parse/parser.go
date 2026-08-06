@@ -278,6 +278,7 @@ func extractFuncCallOrderBy(raw, funcName string) []sql.OrderByTerm {
 	}
 	return subSel.OrderBy
 }
+
 // (optionally with a leading + or - sign), e.g. "0x1A" or "-0xFF".
 func isHexLiteral(s string) bool {
 	i := 0
@@ -783,7 +784,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		groupBy := getExprList(getRHS(p, ruleNo, 6))
 		having := getExpr(getRHS(p, ruleNo, 7))
 		orderBy := getOrderByList(getRHS(p, ruleNo, 8))
-		limit := getExpr(getRHS(p, ruleNo, 9))
+		lc := getLimitClause(getRHS(p, ruleNo, 9))
 
 		return &sql.SelectStmt{
 			Distinct: distinct,
@@ -794,7 +795,8 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			GroupBy:  groupBy,
 			Having:   having,
 			OrderBy:  orderBy,
-			Limit:    limit,
+			Limit:    lc.limit,
+			Offset:   lc.offset,
 		}
 
 	// Rule 93: oneselect ::= SELECT distinct selcollist from where_opt groupby_opt having_opt window_clause orderby_opt limit_opt
@@ -808,7 +810,7 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		having := getExpr(getRHS(p, ruleNo, 7))
 		windows := getWindowDefList(getRHS(p, ruleNo, 8))
 		orderBy := getOrderByList(getRHS(p, ruleNo, 9))
-		limit := getExpr(getRHS(p, ruleNo, 10))
+		lc := getLimitClause(getRHS(p, ruleNo, 10))
 
 		return &sql.SelectStmt{
 			Distinct: distinct,
@@ -820,7 +822,8 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Having:   having,
 			Windows:  windows,
 			OrderBy:  orderBy,
-			Limit:    limit,
+			Limit:    lc.limit,
+			Offset:   lc.offset,
 		}
 
 	// Rule 94: values ::= VALUES LP nexprlist RP
@@ -977,12 +980,17 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		acc := getSeltablist(getRHS(p, ruleNo, 1))
 		inner := getSeltablist(getRHS(p, ruleNo, 3))
 		alias := getString(getRHS(p, ruleNo, 5))
+		on, using := getOnUsing(getRHS(p, ruleNo, 6))
 		ref := inner.firstTable()
 		if alias != "" {
 			ref.As = alias
 		}
-		// A parenthesized comma list (t1, t2) contributes its joins.
-		acc = acc.appendTable(ref)
+		// A parenthesized comma list (t1, t2) contributes its joins. The
+		// trailing ON/USING of the parenthesized group binds to the first
+		// table contributed by the group (SQLite: FROM t1 JOIN (t2 JOIN t3
+		// USING(a)) USING(a) applies the outer USING to the group's first
+		// table t2).
+		acc = acc.appendTableWithOn(ref, on, using)
 		for _, j := range inner.Joins {
 			acc = acc.appendJoin(j)
 		}
@@ -1087,13 +1095,15 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		acc := getOrderByList(getRHS(p, ruleNo, 1))
 		expr := getExpr(getRHS(p, ruleNo, 3))
 		desc := getBool(getRHS(p, ruleNo, 4))
-		return append(acc, sql.OrderByTerm{Expr: expr, Desc: desc})
+		nf, nl := getNullsOrder(getRHS(p, ruleNo, 5))
+		return append(acc, sql.OrderByTerm{Expr: expr, Desc: desc, NullsFirst: nf, NullsLast: nl})
 
 	// Rule 137: sortlist ::= expr sortorder nulls
 	case 137:
 		expr := getExpr(getRHS(p, ruleNo, 1))
 		desc := getBool(getRHS(p, ruleNo, 2))
-		return []sql.OrderByTerm{{Expr: expr, Desc: desc}}
+		nf, nl := getNullsOrder(getRHS(p, ruleNo, 3))
+		return []sql.OrderByTerm{{Expr: expr, Desc: desc, NullsFirst: nf, NullsLast: nl}}
 
 	// Rule 138: sortorder ::= ASC
 	case 138:
@@ -1109,15 +1119,15 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 141: nulls ::= NULLS FIRST
 	case 141:
-		return nil
+		return nullsOrder{first: true}
 
 	// Rule 142: nulls ::= NULLS LAST
 	case 142:
-		return nil
+		return nullsOrder{last: true}
 
 	// Rule 143: nulls ::=
 	case 143:
-		return nil
+		return nullsOrder{}
 
 	// Rule 144: groupby_opt ::=
 	case 144:
@@ -1141,15 +1151,22 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 149: limit_opt ::= LIMIT expr
 	case 149:
-		return getExpr(getRHS(p, ruleNo, 2))
+		return &limitClause{limit: getExpr(getRHS(p, ruleNo, 2))}
 
 	// Rule 150: limit_opt ::= LIMIT expr OFFSET expr
 	case 150:
-		return getExpr(getRHS(p, ruleNo, 2))
+		return &limitClause{
+			limit:  getExpr(getRHS(p, ruleNo, 2)),
+			offset: getExpr(getRHS(p, ruleNo, 4)),
+		}
 
 	// Rule 151: limit_opt ::= LIMIT expr COMMA expr
 	case 151:
-		return getExpr(getRHS(p, ruleNo, 2))
+		// SQLite's LIMIT expr, expr form: first expr is the OFFSET.
+		return &limitClause{
+			offset: getExpr(getRHS(p, ruleNo, 2)),
+			limit:  getExpr(getRHS(p, ruleNo, 4)),
+		}
 
 	// Rule 152: cmd ::= with DELETE FROM xfullname indexed_opt where_opt_ret
 	case 152:
@@ -1388,13 +1405,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 180: expr ::= ID|INDEXED|JOIN_KW (column reference)
 	case 180:
 		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
-			// SQLite DQS: an empty double-quoted identifier "" is a string
-			// literal, not a column reference. Non-empty double-quoted
-			// identifiers keep the Quoted flag so resolution can fall back
-			// to a string literal when no column matches (DQS enabled).
-			if tok.QuotedIdent && tok.Value == "" {
-				return &sql.StringLit{Value: ""}
-			}
+			// Keep the Quoted flag on all double-quoted identifiers (including
+			// the empty "") so resolution can apply SQLite's DQS rules: with
+			// DQS enabled an unmatched double-quoted identifier becomes a
+			// string literal; with DQS disabled it is a "no such column"
+			// error hinting at single-quoted strings.
 			return &sql.ColumnRef{Name: tok.Value, Quoted: tok.QuotedIdent}
 		}
 		if s, ok := getRHS(p, ruleNo, 1).(string); ok {
@@ -2052,33 +2067,33 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Where:       getExpr(getRHS(p, ruleNo, 8)),
 		}
 
-	// Rule 275: trigger_cmd ::= with insert_cmd INTO nm idlist_opt select upsert
-		case 275:
-			cmd := getString(getRHS(p, ruleNo, 2))
-			table := getString(getRHS(p, ruleNo, 4))
-			columns := getStringList(getRHS(p, ruleNo, 5))
-			sel := getSelectStmt(getRHS(p, ruleNo, 6))
-			var values [][]sql.Expr
-			if sel != nil && sel.ValuesChain {
-				values = valuesFromSelect(sel)
-				sel = nil
+		// Rule 275: trigger_cmd ::= with insert_cmd INTO nm idlist_opt select upsert
+	case 275:
+		cmd := getString(getRHS(p, ruleNo, 2))
+		table := getString(getRHS(p, ruleNo, 4))
+		columns := getStringList(getRHS(p, ruleNo, 5))
+		sel := getSelectStmt(getRHS(p, ruleNo, 6))
+		var values [][]sql.Expr
+		if sel != nil && sel.ValuesChain {
+			values = valuesFromSelect(sel)
+			sel = nil
+		}
+		stmt := &sql.InsertStmt{
+			Table:     table,
+			Columns:   columns,
+			Values:    values,
+			Select:    sel,
+			IsReplace: strings.EqualFold(cmd, "REPLACE"),
+		}
+		// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause.
+		if uv := getUpsertVal(getRHS(p, ruleNo, 7)); uv != nil {
+			stmt.OnConflict = uv.onConflict
+			if len(uv.returning) > 0 {
+				stmt.HasReturning = true
+				stmt.Returning = foldReturning(uv.returning)
 			}
-			stmt := &sql.InsertStmt{
-				Table:     table,
-				Columns:   columns,
-				Values:    values,
-				Select:    sel,
-				IsReplace: strings.EqualFold(cmd, "REPLACE"),
-			}
-			// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause.
-			if uv := getUpsertVal(getRHS(p, ruleNo, 7)); uv != nil {
-				stmt.OnConflict = uv.onConflict
-				if len(uv.returning) > 0 {
-					stmt.HasReturning = true
-					stmt.Returning = foldReturning(uv.returning)
-				}
-			}
-			return stmt
+		}
+		return stmt
 
 	// Rule 276: trigger_cmd ::= DELETE FROM xfullname tridxby where_opt scanpt
 	case 276:
@@ -3248,6 +3263,37 @@ func getOrderByList(v interface{}) []sql.OrderByTerm {
 		return list
 	}
 	return nil
+}
+
+// nullsOrder records the NULLS FIRST / NULLS LAST clause on an ORDER BY term.
+type nullsOrder struct {
+	first bool
+	last  bool
+}
+
+// limitClause carries both the LIMIT and OFFSET expressions from a
+// limit_opt reduction (OFFSET may be absent).
+type limitClause struct {
+	limit  sql.Expr
+	offset sql.Expr
+}
+
+// getLimitClause extracts a limitClause from a parser stack value, returning
+// an empty clause when absent.
+func getLimitClause(v interface{}) *limitClause {
+	if lc, ok := v.(*limitClause); ok {
+		return lc
+	}
+	return &limitClause{}
+}
+
+// getNullsOrder extracts the NULLS FIRST/LAST marker from a parser stack
+// value, returning (first, last).
+func getNullsOrder(v interface{}) (bool, bool) {
+	if no, ok := v.(nullsOrder); ok {
+		return no.first, no.last
+	}
+	return false, false
 }
 
 // conflictTargetColumn extracts the single-column conflict target from an

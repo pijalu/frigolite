@@ -458,7 +458,7 @@ func Test_exclusive(t *testing.T) {
 				os.Remove("test2.db")
 				// copy_file test.db test2.db (unsupported command, not transpiled)
 				// copy_file test.db-journal test2.db-journal (unsupported command, not transpiled)
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test2.db")
 				if err != nil { t.Fatal(err) }
 			}
 			{ // "exclusive-6.3"
@@ -481,7 +481,7 @@ func Test_exclusive(t *testing.T) {
 				_putsMsg := fd
 				_ = _putsMsg
 				// close $fd
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 			}
 			{ // "exclusive-6.5"
@@ -500,7 +500,7 @@ func Test_exclusive(t *testing.T) {
 				{ // do_test "exclusive-7.1"
 					db.Close()
 					os.Remove("test.db")
-					db, err = frigolite.Open("")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n      PRAGMA locking_mode = EXCLUSIVE;\n      PRAGMA journal_mode = WAL;\n      PRAGMA locking_mode = NORMAL;\n      PRAGMA user_version;\n      PRAGMA journal_mode = DELETE;\n    ")
 					if _res.Error != nil {

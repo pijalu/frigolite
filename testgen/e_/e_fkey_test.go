@@ -1899,6 +1899,7 @@ func Test_e_fkey(t *testing.T) {
 							_res = db.Exec("PRAGMA foreign_keys = ON")
 							{ // do_test "e_fkey-51.1"
 								// proc definition (not transpiled)
+								// db function maxparent (variable-reader, inlined)
 								_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n\n    CREATE TRIGGER bu BEFORE UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x-old.x);\n    END;\n    CREATE TABLE child(\n      a DEFAULT (maxparent()) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n    CREATE TRIGGER au AFTER UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x+old.x);\n    END;\n\n    INSERT INTO parent VALUES(1);\n    INSERT INTO child VALUES(1);\n  ")
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n\n    CREATE TRIGGER bu BEFORE UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x-old.x);\n    END;\n    CREATE TABLE child(\n      a DEFAULT (maxparent()) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n    CREATE TRIGGER au AFTER UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x+old.x);\n    END;\n\n    INSERT INTO parent VALUES(1);\n    INSERT INTO child VALUES(1);\n  ")

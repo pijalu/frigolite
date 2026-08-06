@@ -370,6 +370,7 @@ func Test_scanstatus(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	// proc definition (not transpiled)
+	// db function tochar (variable-reader, inlined)
 	{ // "5.0"
 		r = db.Query("\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(0, 1, 'a');\n  INSERT INTO t1 VALUES(1, 0, 'b');\n  INSERT INTO t1 VALUES(2, 1, 'c');\n  INSERT INTO t1 VALUES(3, 0, 'd');\n  INSERT INTO t1 VALUES(4, 1, 'e');\n  INSERT INTO t1 VALUES(5, 0, 'a');\n  INSERT INTO t1 VALUES(6, 1, 'b');\n  INSERT INTO t1 VALUES(7, 0, 'c');\n  INSERT INTO t1 VALUES(8, 1, 'd');\n  INSERT INTO t1 VALUES(9, 0, 'e');\n  CREATE INDEX t1bc ON t1(b, c);\n\n  CREATE TABLE t2(x, y);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH data(i, x, y) AS (\n    SELECT 0, 0, tochar(0) \n    UNION ALL\n    SELECT i+1, (i+1)%2, tochar(i+1) FROM data WHERE i<500\n  ) INSERT INTO t2 SELECT x, y FROM data;\n\n  CREATE TABLE t3(x, y);\n  INSERT INTO t3 SELECT * FROM t2;\n\n  ANALYZE;\n")
 		if r.Error != nil {

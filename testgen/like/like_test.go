@@ -543,8 +543,8 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-8.2"
-		// proc definition (not transpiled)
-		// db function like (variable-reader, inlined)
+		// proc newlike returns constant 1 (registered via db func)
+		db.RegisterFunction("like", func(args []interface{}) (interface{}, error) { return int64(1), nil }, 0, -1)
 		_res = db.Exec("\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")

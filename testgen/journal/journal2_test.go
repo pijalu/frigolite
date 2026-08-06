@@ -156,6 +156,7 @@ func Test_journal2(t *testing.T) {
 	}
 	{ // do_test "journal2-1.10"
 		db2.Close()
+		// db function a_string (variable-reader, inlined)
 		_res = db.Exec("\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64\n  ")

@@ -414,7 +414,7 @@ func Test_walmode(t *testing.T) {
 		db.Close()
 		{ // do_test "walmode-7.0"
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
 			if r.Error != nil {

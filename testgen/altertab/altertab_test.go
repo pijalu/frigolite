@@ -279,6 +279,7 @@ func Test_altertab(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function squish (variable-reader, inlined)
 	{ // do_test "4.2"
 		r = db.Query(" SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1' ")
 		if r.Error != nil {
@@ -510,6 +511,7 @@ func Test_altertab(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
+	// db function trigger (variable-reader, inlined)
 	trigger = "" // TCL namespace variable
 	_ = trigger // suppress unused warning
 	// proc definition (not transpiled)

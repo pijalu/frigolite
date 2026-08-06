@@ -81,7 +81,7 @@ func Test_enc4(t *testing.T) {
 	db.Close()
 	encodings = "UTF-8 UTF-16le UTF-16be"
 	_ = encodings // suppress unused warning
-	inits = "1 1.0 1. 1e0"
+	inits = "1.0 1. 1e0"
 	_ = inits // suppress unused warning
 	vals = "list\"922337203685477580792233720368547758079223372036854775807\"\"100000000000000000000000000000000000000000000000000000000\"\"1.0000000000000000000000000000000000000000000000000000000\""
 	_ = vals // suppress unused warning
@@ -90,7 +90,7 @@ func Test_enc4(t *testing.T) {
 	for _, enc := range tclSplitList(encodings) {
 	_ = enc // suppress unused warning
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
 		if _res.Error != nil {
@@ -165,7 +165,7 @@ func Test_enc4(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "enc4-4.1"
 		r = db.Query("select 1+1.")

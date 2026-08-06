@@ -85,6 +85,9 @@ func Test_vacuum(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "vacuum-1.1b"
+		// db function substr (variable-reader, inlined)
+		// db function like (variable-reader, inlined)
+		// db function quote (variable-reader, inlined)
 		_res = db.Exec("SELECT substr(name,1,3) FROM sqlite_master")
 		_ = _res // catchsql
 	}
@@ -246,7 +249,7 @@ func Test_vacuum(t *testing.T) {
 	{ // do_test "vacuum-5.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE Test (TestID int primary key);\n    INSERT INTO Test VALUES (NULL);\n    CREATE VIEW viewTest AS SELECT * FROM Test;\n\n    BEGIN;\n    CREATE TABLE tempTest (TestID int primary key, Test2 int NULL);\n    INSERT INTO tempTest SELECT TestID, 1 FROM Test;\n    DROP TABLE Test;\n    CREATE TABLE Test(TestID int primary key, Test2 int NULL);\n    INSERT INTO Test SELECT * FROM tempTest;\n    DROP TABLE tempTest;\n    COMMIT;\n    VACUUM;\n  ")
 		_ = _res // catchsql
@@ -390,7 +393,7 @@ func Test_vacuum(t *testing.T) {
 	{ // do_test "vacuum-10.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('a', 'b');\n    INSERT INTO t8 VALUES('c', 'd');\n    PRAGMA count_changes = 1;\n  ")
 		if r.Error != nil {

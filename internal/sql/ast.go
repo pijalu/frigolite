@@ -174,6 +174,11 @@ type TableRef struct {
 type OrderByTerm struct {
 	Expr Expr
 	Desc bool
+	// NullsFirst forces NULLs to sort first regardless of direction;
+	// NullsLast forces them last. Both false means SQLite's default (NULLs
+	// first for ASC, last for DESC).
+	NullsFirst bool
+	NullsLast  bool
 }
 
 // InsertStmt represents an INSERT statement.

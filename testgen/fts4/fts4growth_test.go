@@ -264,6 +264,7 @@ func Test_fts4growth(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	// db function second (variable-reader, inlined)
 	{ // "3.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE x3 USING fts4 ")
 		if _res.Error != nil {
@@ -416,6 +417,7 @@ func Test_fts4growth(t *testing.T) {
 	}
 	// fts_kjv_genesis (unsupported command, not transpiled)
 	// proc definition (not transpiled)
+	// db function first (variable-reader, inlined)
 	{ // do_test "5.2"
 		_rows2 := db.Query("SELECT rowid FROM t1")
 		if _rows2.Error != nil {

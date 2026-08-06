@@ -65,8 +65,10 @@ func Test_pagerfault2(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
+	// db function a_string (variable-reader, inlined)
 	{ // do_test "pagerfault2-1-pre1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// db function a_string (variable-reader, inlined)
 		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(401), a_string(402));\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(401), a_string(402));\n  ")

@@ -109,7 +109,7 @@ func Test_crash7(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  DELETE FROM t1 WHERE rowid%2;\n")

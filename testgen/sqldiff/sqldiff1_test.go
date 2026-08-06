@@ -61,7 +61,7 @@ func Test_sqldiff1(t *testing.T) {
 	_ = PROG // suppress unused warning
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sqldiff-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b) SELECT x, printf('abc-%d-xyz',x) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;\n  ")
@@ -95,7 +95,7 @@ func Test_sqldiff1(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sqldiff-2.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  ")

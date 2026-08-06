@@ -433,7 +433,7 @@ func Test_multiplex(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.x")
 	if err != nil { t.Fatal(err) }
 	{ // "multiplex-2.5.12"
 		r = db.Query("\n  PRAGMA multiplex_filecount;\n  PRAGMA multiplex_chunksize;\n")

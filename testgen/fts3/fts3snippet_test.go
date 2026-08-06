@@ -137,7 +137,7 @@ func Test_fts3snippet(t *testing.T) {
 		_ = _idx0
 			db.Close()
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 			_res = db.Exec("PRAGMA encoding = \"" + enc + "\"")
@@ -272,6 +272,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			// eval (dynamic, not transpiled)
 			// proc definition (not transpiled)
+			// db function mit (variable-reader, inlined)
 			// proc definition (not transpiled)
 			{ // do_test T + ".8.1"
 				ten = "one two three four five six seven eight nine ten"

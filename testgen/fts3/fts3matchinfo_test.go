@@ -126,6 +126,7 @@ func Test_fts3matchinfo(t *testing.T) {
 	sqlite_fts3_enable_parentheses = "0"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
+	// db function mit (variable-reader, inlined)
 	{ // "1.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE t1 USING fts4(matchinfo=fts3);\n  SELECT name FROM sqlite_master WHERE type = 'table';\n")
 		if r.Error != nil {
@@ -517,6 +518,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE tt USING fts3(x, y);\n  INSERT INTO tt VALUES('c d a c d d', 'e a g b d a');   -- 1\n  INSERT INTO tt VALUES('c c g a e b', 'c g d g e c');   -- 2\n  INSERT INTO tt VALUES('b e f d e g', 'b a c b c g');   -- 3\n  INSERT INTO tt VALUES('a c f f g d', 'd b f d e g');   -- 4\n  INSERT INTO tt VALUES('g a c f c f', 'd g g b c c');   -- 5\n  INSERT INTO tt VALUES('g a c e b b', 'd b f b g g');   -- 6\n  INSERT INTO tt VALUES('f d a a f c', 'e e a d c f');   -- 7\n  INSERT INTO tt VALUES('a c b b g f', 'a b a e d f');   -- 8\n  INSERT INTO tt VALUES('b a f e c c', 'f d b b a b');   -- 9\n  INSERT INTO tt VALUES('f d c e a c', 'f a f a a f');   -- 10\n")
 		}
 	}
+	// db function mit (variable-reader, inlined)
 	// foreach {tn expr res} "1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }"
 	_items0 := tclSplitList("1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -597,6 +599,7 @@ func Test_fts3matchinfo(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				// db function mit (variable-reader, inlined)
 				{ // do_test "12.0"
 					cols = ""
 					_ = cols // suppress unused warning

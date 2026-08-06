@@ -208,7 +208,7 @@ func Test_superlock(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.1"
 		r = db.Query("\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.journal_mode = wal;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO aux.t2 VALUES('a', 'b');\n  PRAGMA schema_version = 450;\n  DETACH aux;\n\n  PRAGMA main.journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  SELECT * FROM t1;\n")

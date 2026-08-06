@@ -66,6 +66,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function f (variable-reader, inlined)
 	{ // do_test "1.1"
 		L = ""
 		_ = L // suppress unused warning
@@ -113,17 +114,17 @@ func Test_pushdown(t *testing.T) {
 	{ // do_test "2.1"
 		L = ""
 		_ = L // suppress unused warning
-		r = db.Query("\n    SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )\n  ")
+		r = db.Query("\n    SELECT * FROM u1 WHERE " + sqlLiteral(one) + "=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND " + sqlLiteral(two) + "\n    )\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM u1 WHERE " + sqlLiteral(one) + "=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND " + sqlLiteral(two) + "\n    )\n  ")
 		}
 	}
 	{ // do_test "2.2"
 		L = ""
 		_ = L // suppress unused warning
-		r = db.Query("\n    SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123\n  ")
+		r = db.Query("\n    SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND " + sqlLiteral(two) + "\n    ) AND " + sqlLiteral(three) + "=123\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND " + sqlLiteral(two) + "\n    ) AND " + sqlLiteral(three) + "=123\n  ")
 		}
 	}
 	db.Close()

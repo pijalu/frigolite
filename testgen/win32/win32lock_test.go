@@ -226,7 +226,7 @@ func Test_win32lock(t *testing.T) {
 	// sqlite3_test_control_pending_byte $old_pending_byte (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2

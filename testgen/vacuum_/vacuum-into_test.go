@@ -143,6 +143,7 @@ func Test_vacuum_into(t *testing.T) {
 		}
 	}
 	os.Remove("test.db2")
+	// db function target (variable-reader, inlined)
 	// proc definition (not transpiled)
 	{ // do_test "vacuum-into-410"
 		_res = db.Exec(" VACUUM INTO target() ")
@@ -228,7 +229,7 @@ func Test_vacuum_into(t *testing.T) {
 	// testvfs tvfs -default 1 (unsupported command, not transpiled)
 	// tvfs filter xSync (unsupported command, not transpiled)
 	// tvfs script xSyncCb (unsupported command, not transpiled)
-	// proc definition (not transpiled)
+	// proc xSyncCb increments counter var sync_flags (registered via db func)
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")

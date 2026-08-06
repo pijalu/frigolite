@@ -71,7 +71,7 @@ func Test_vtabC(t *testing.T) {
 	for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return N_n <= 20 }() {
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		tablist = ""

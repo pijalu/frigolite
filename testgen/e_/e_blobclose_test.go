@@ -180,6 +180,7 @@ func Test_e_blobclose(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function val (variable-reader, inlined)
 	{ // do_test "2.3.1"
 		// sqlite3_blob_open db main x1 b -100 1 B (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")

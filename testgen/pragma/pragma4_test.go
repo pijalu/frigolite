@@ -98,7 +98,7 @@ func Test_pragma4(t *testing.T) {
 				db.Close()
 			}
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "pragma4-2.100"
 				_res = db.Exec("\n    PRAGMA page_size=512;\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10000)\n    INSERT INTO t1(x) SELECT zeroblob(300) FROM c;\n    CREATE TABLE t2(y);\n    DROP TABLE t1;\n  ")

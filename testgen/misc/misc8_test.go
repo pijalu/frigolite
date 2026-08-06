@@ -135,6 +135,7 @@ func Test_misc8(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
+	// db function eval (variable-reader, inlined)
 	{ // "misc8-2.1"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER) WITHOUT ROWID;\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INTEGER, x BLOB);\n  INSERT INTO t1 VALUES(0,0);\n  INSERT INTO t1 VALUES(10,10);\n  INSERT INTO t2 VALUES(1,1,zeroblob(200));\n  INSERT INTO t2 VALUES(2,2,zeroblob(200));\n  INSERT INTO t2 VALUES(3,3,zeroblob(200));\n  INSERT INTO t2 VALUES(4,4,zeroblob(200));\n  INSERT INTO t2 VALUES(5,5,zeroblob(200));\n  INSERT INTO t2 VALUES(6,6,zeroblob(200));\n  INSERT INTO t2 VALUES(7,7,zeroblob(200));\n  INSERT INTO t2 VALUES(8,8,zeroblob(200));\n  INSERT INTO t2 VALUES(9,9,zeroblob(200));\n  INSERT INTO t2 VALUES(10,10,zeroblob(200));\n  SELECT a, c, eval(\n      printf('DELETE FROM t2 WHERE c=%d AND %d>5', a+c, a+c)\n  ) FROM t1, t2;\n")
 		if r.Error != nil {
@@ -151,13 +152,13 @@ func Test_misc8(t *testing.T) {
 	_ = nosuch // suppress unused warning
 	{ // "misc8-3.0"
 		_res = db.Exec("\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
-		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), nosuch) {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", nosuch, _res.Error, "\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
 		}
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "misc8-4.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  ATTACH 'test2.db' AS aux2;\n  CREATE TABLE aux2.t2(c,d,e);\n  INSERT INTO t2 VALUES(4,5,6);\n  SELECT * FROM t1, t2;\n")

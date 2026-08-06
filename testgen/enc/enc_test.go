@@ -170,7 +170,7 @@ func Test_enc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db3")
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.4"
 		r = db.Query("\n  SELECT * FROM t3;\n  PRAGMA encoding = 'UTF-16le';\n  SELECT * FROM t3;\n")
@@ -248,7 +248,7 @@ func Test_enc(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("utf16.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("utf16.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');")
 	if _res.Error != nil {

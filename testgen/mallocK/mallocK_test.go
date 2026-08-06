@@ -191,6 +191,7 @@ func Test_mallocK(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
+	// db function isqrt (variable-reader, inlined)
 	{ // "8.0"
 		r = db.Query("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE x2(x TEXT, y TEXT);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO x2 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX x2x ON x2(x);\n  CREATE INDEX x2y ON x2(y);\n  ANALYZE;\n  DELETE FROM x2;\n")
 		if r.Error != nil {
@@ -198,5 +199,6 @@ func Test_mallocK(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function str (variable-reader, inlined)
 	// do_faultsim_test 8 -faults oom* -body {\n  execsql { SELECT * FROM x2 WHERE x = str('19')...} -te... (unsupported command, not transpiled)
 }

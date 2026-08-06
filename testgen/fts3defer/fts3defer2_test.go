@@ -72,6 +72,7 @@ func Test_fts3defer2(t *testing.T) {
 	testprefix = "fts3defer2"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
+	// db function mit (variable-reader, inlined)
 	{ // "1.1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4;\n")
 		if _res.Error != nil {

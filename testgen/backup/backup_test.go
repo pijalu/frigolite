@@ -975,7 +975,7 @@ func Test_backup(t *testing.T) {
 		db.Close()
 		os.Remove("test.db")
 		os.Remove("bak.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2

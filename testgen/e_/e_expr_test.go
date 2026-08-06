@@ -279,6 +279,8 @@ func Test_e_expr(t *testing.T) {
 			}
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
+			// db function match (variable-reader, inlined)
+			// db function regexp (variable-reader, inlined)
 			for _, op1 := range tclSplitList(oplist) {
 			_ = op1 // suppress unused warning
 				for _, op2 := range tclSplitList(oplist) {
@@ -1676,10 +1678,10 @@ func Test_e_expr(t *testing.T) {
 														if _res.Error != nil {
 															t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS dbname;\n  CREATE TABLE dbname.tblname(cname);\n")
 														}
-														// proc definition (not transpiled)
-														// db function glob (variable-reader, inlined)
-														// db function match (variable-reader, inlined)
-														// db function regexp (variable-reader, inlined)
+														// proc glob returns constant 1 (registered via db func)
+														db.RegisterFunction("glob", func(args []interface{}) (interface{}, error) { return int64(1), nil }, 0, -1)
+														db.RegisterFunction("match", func(args []interface{}) (interface{}, error) { return int64(1), nil }, 0, -1)
+														db.RegisterFunction("regexp", func(args []interface{}) (interface{}, error) { return int64(1), nil }, 0, -1)
 														// foreach {tn expr} "1 123\n  2 123.4e05\n  3 'abcde'\n  4 X'414243'\n  5 NULL\n  6 CURRENT_TIME\n  7 CURRENT_DATE\n  8 CURRENT_TIMESTAMP\n\n  9 ?\n 10 ?123\n 11 @hello\n 12 :world\n 13 " + tcl + "\n 14 " + tcl_array + "\n  \n  15 cname\n  16 tblname.cname\n  17 dbname.tblname.cname\n\n  18 \"+ EXPR\"\n  19 \"- EXPR\"\n  20 \"NOT EXPR\"\n  21 \"~ EXPR\"\n\n  22 \"EXPR1 || EXPR2\"\n  23 \"EXPR1 * EXPR2\"\n  24 \"EXPR1 / EXPR2\"\n  25 \"EXPR1 % EXPR2\"\n  26 \"EXPR1 + EXPR2\"\n  27 \"EXPR1 - EXPR2\"\n  28 \"EXPR1 << EXPR2\"\n  29 \"EXPR1 >> EXPR2\"\n  30 \"EXPR1 & EXPR2\"\n  31 \"EXPR1 | EXPR2\"\n  32 \"EXPR1 < EXPR2\"\n  33 \"EXPR1 <= EXPR2\"\n  34 \"EXPR1 > EXPR2\"\n  35 \"EXPR1 >= EXPR2\"\n  36 \"EXPR1 = EXPR2\"\n  37 \"EXPR1 == EXPR2\"\n  38 \"EXPR1 != EXPR2\"\n  39 \"EXPR1 <> EXPR2\"\n  40 \"EXPR1 IS EXPR2\"\n  41 \"EXPR1 IS NOT EXPR2\"\n  42 \"EXPR1 AND EXPR2\"\n  43 \"EXPR1 OR EXPR2\"\n \n  44 \"count(*)\"\n  45 \"count(DISTINCT EXPR)\"\n  46 \"substr(EXPR, 10, 20)\"\n  47 \"changes()\"\n \n  48 \"( EXPR )\"\n \n  49 \"CAST ( EXPR AS integer )\"\n  50 \"CAST ( EXPR AS 'abcd' )\"\n  51 \"CAST ( EXPR AS 'ab$ " + cd + "' )\"\n \n  52 \"EXPR COLLATE nocase\"\n  53 \"EXPR COLLATE binary\"\n \n  54 \"EXPR1 LIKE EXPR2\"\n  55 \"EXPR1 LIKE EXPR2 ESCAPE EXPR\"\n  56 \"EXPR1 GLOB EXPR2\"\n  57 \"EXPR1 GLOB EXPR2 ESCAPE EXPR\"\n  58 \"EXPR1 REGEXP EXPR2\"\n  59 \"EXPR1 REGEXP EXPR2 ESCAPE EXPR\"\n  60 \"EXPR1 MATCH EXPR2\"\n  61 \"EXPR1 MATCH EXPR2 ESCAPE EXPR\"\n  62 \"EXPR1 NOT LIKE EXPR2\"\n  63 \"EXPR1 NOT LIKE EXPR2 ESCAPE EXPR\"\n  64 \"EXPR1 NOT GLOB EXPR2\"\n  65 \"EXPR1 NOT GLOB EXPR2 ESCAPE EXPR\"\n  66 \"EXPR1 NOT REGEXP EXPR2\"\n  67 \"EXPR1 NOT REGEXP EXPR2 ESCAPE EXPR\"\n  68 \"EXPR1 NOT MATCH EXPR2\"\n  69 \"EXPR1 NOT MATCH EXPR2 ESCAPE EXPR\"\n \n  70 \"EXPR ISNULL\"\n  71 \"EXPR NOTNULL\"\n  72 \"EXPR NOT NULL\"\n \n  73 \"EXPR1 IS EXPR2\"\n  74 \"EXPR1 IS NOT EXPR2\"\n\n  75 \"EXPR NOT BETWEEN EXPR1 AND EXPR2\"\n  76 \"EXPR BETWEEN EXPR1 AND EXPR2\"\n\n  77 \"EXPR NOT IN (SELECT cname FROM tblname)\"\n  78 \"EXPR NOT IN (1)\"\n  79 \"EXPR NOT IN (1, 2, 3)\"\n  80 \"EXPR NOT IN tblname\"\n  81 \"EXPR NOT IN dbname.tblname\"\n  82 \"EXPR IN (SELECT cname FROM tblname)\"\n  83 \"EXPR IN (1)\"\n  84 \"EXPR IN (1, 2, 3)\"\n  85 \"EXPR IN tblname\"\n  86 \"EXPR IN dbname.tblname\"\n\n  87 \"EXISTS (SELECT cname FROM tblname)\"\n  88 \"NOT EXISTS (SELECT cname FROM tblname)\"\n\n  89 \"CASE EXPR WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  90 \"CASE EXPR WHEN EXPR1 THEN EXPR2 END\"\n  91 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  92 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"\n  93 \"CASE WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  94 \"CASE WHEN EXPR1 THEN EXPR2 END\"\n  95 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  96 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\""
 														_items13 := tclSplitList("1 123\n  2 123.4e05\n  3 'abcde'\n  4 X'414243'\n  5 NULL\n  6 CURRENT_TIME\n  7 CURRENT_DATE\n  8 CURRENT_TIMESTAMP\n\n  9 ?\n 10 ?123\n 11 @hello\n 12 :world\n 13 " + tcl + "\n 14 " + tcl_array + "\n  \n  15 cname\n  16 tblname.cname\n  17 dbname.tblname.cname\n\n  18 \"+ EXPR\"\n  19 \"- EXPR\"\n  20 \"NOT EXPR\"\n  21 \"~ EXPR\"\n\n  22 \"EXPR1 || EXPR2\"\n  23 \"EXPR1 * EXPR2\"\n  24 \"EXPR1 / EXPR2\"\n  25 \"EXPR1 % EXPR2\"\n  26 \"EXPR1 + EXPR2\"\n  27 \"EXPR1 - EXPR2\"\n  28 \"EXPR1 << EXPR2\"\n  29 \"EXPR1 >> EXPR2\"\n  30 \"EXPR1 & EXPR2\"\n  31 \"EXPR1 | EXPR2\"\n  32 \"EXPR1 < EXPR2\"\n  33 \"EXPR1 <= EXPR2\"\n  34 \"EXPR1 > EXPR2\"\n  35 \"EXPR1 >= EXPR2\"\n  36 \"EXPR1 = EXPR2\"\n  37 \"EXPR1 == EXPR2\"\n  38 \"EXPR1 != EXPR2\"\n  39 \"EXPR1 <> EXPR2\"\n  40 \"EXPR1 IS EXPR2\"\n  41 \"EXPR1 IS NOT EXPR2\"\n  42 \"EXPR1 AND EXPR2\"\n  43 \"EXPR1 OR EXPR2\"\n \n  44 \"count(*)\"\n  45 \"count(DISTINCT EXPR)\"\n  46 \"substr(EXPR, 10, 20)\"\n  47 \"changes()\"\n \n  48 \"( EXPR )\"\n \n  49 \"CAST ( EXPR AS integer )\"\n  50 \"CAST ( EXPR AS 'abcd' )\"\n  51 \"CAST ( EXPR AS 'ab$ " + cd + "' )\"\n \n  52 \"EXPR COLLATE nocase\"\n  53 \"EXPR COLLATE binary\"\n \n  54 \"EXPR1 LIKE EXPR2\"\n  55 \"EXPR1 LIKE EXPR2 ESCAPE EXPR\"\n  56 \"EXPR1 GLOB EXPR2\"\n  57 \"EXPR1 GLOB EXPR2 ESCAPE EXPR\"\n  58 \"EXPR1 REGEXP EXPR2\"\n  59 \"EXPR1 REGEXP EXPR2 ESCAPE EXPR\"\n  60 \"EXPR1 MATCH EXPR2\"\n  61 \"EXPR1 MATCH EXPR2 ESCAPE EXPR\"\n  62 \"EXPR1 NOT LIKE EXPR2\"\n  63 \"EXPR1 NOT LIKE EXPR2 ESCAPE EXPR\"\n  64 \"EXPR1 NOT GLOB EXPR2\"\n  65 \"EXPR1 NOT GLOB EXPR2 ESCAPE EXPR\"\n  66 \"EXPR1 NOT REGEXP EXPR2\"\n  67 \"EXPR1 NOT REGEXP EXPR2 ESCAPE EXPR\"\n  68 \"EXPR1 NOT MATCH EXPR2\"\n  69 \"EXPR1 NOT MATCH EXPR2 ESCAPE EXPR\"\n \n  70 \"EXPR ISNULL\"\n  71 \"EXPR NOTNULL\"\n  72 \"EXPR NOT NULL\"\n \n  73 \"EXPR1 IS EXPR2\"\n  74 \"EXPR1 IS NOT EXPR2\"\n\n  75 \"EXPR NOT BETWEEN EXPR1 AND EXPR2\"\n  76 \"EXPR BETWEEN EXPR1 AND EXPR2\"\n\n  77 \"EXPR NOT IN (SELECT cname FROM tblname)\"\n  78 \"EXPR NOT IN (1)\"\n  79 \"EXPR NOT IN (1, 2, 3)\"\n  80 \"EXPR NOT IN tblname\"\n  81 \"EXPR NOT IN dbname.tblname\"\n  82 \"EXPR IN (SELECT cname FROM tblname)\"\n  83 \"EXPR IN (1)\"\n  84 \"EXPR IN (1, 2, 3)\"\n  85 \"EXPR IN tblname\"\n  86 \"EXPR IN dbname.tblname\"\n\n  87 \"EXISTS (SELECT cname FROM tblname)\"\n  88 \"NOT EXISTS (SELECT cname FROM tblname)\"\n\n  89 \"CASE EXPR WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  90 \"CASE EXPR WHEN EXPR1 THEN EXPR2 END\"\n  91 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  92 \"CASE EXPR WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"\n  93 \"CASE WHEN EXPR1 THEN EXPR2 ELSE EXPR END\"\n  94 \"CASE WHEN EXPR1 THEN EXPR2 END\"\n  95 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 ELSE EXPR2 END\"\n  96 \"CASE WHEN EXPR1 THEN EXPR2 WHEN EXPR THEN EXPR1 END\"")
 														for _idx13 := 0; _idx13+2 <= len(_items13); _idx13 += 2 {
@@ -1761,6 +1763,7 @@ func Test_e_expr(t *testing.T) {
 																			}
 																		}
 																	}
+																	// db function x (variable-reader, inlined)
 																	// proc definition (not transpiled)
 																	// foreach {tn x expr res nEval} "1  10  \"x() >= 5 AND x() <= 15\"  1  2\n  2  10  \"x() BETWEEN 5 AND 15\"    1  1\n\n  3   5  \"x() >= 5 AND x() <= 5\"   1  2\n  4   5  \"x() BETWEEN 5 AND 5\"     1  1\n\n  5   9  \"(x(),8) >= (9,7) AND (x(),8)<=(9,10)\"  1 2\n  6   9  \"(x(),8) BETWEEN (9,7) AND (9,10)\"      1 1"
 																	_items15 := tclSplitList("1  10  \"x() >= 5 AND x() <= 15\"  1  2\n  2  10  \"x() BETWEEN 5 AND 15\"    1  1\n\n  3   5  \"x() >= 5 AND x() <= 5\"   1  2\n  4   5  \"x() BETWEEN 5 AND 5\"     1  1\n\n  5   9  \"(x(),8) >= (9,7) AND (x(),8)<=(9,10)\"  1 2\n  6   9  \"(x(),8) BETWEEN (9,7) AND (9,10)\"      1 1")
@@ -2482,6 +2485,8 @@ func Test_e_expr(t *testing.T) {
 																			}
 																		}
 																		// proc definition (not transpiled)
+																		// db function like (variable-reader, inlined)
+																		// db function like (variable-reader, inlined)
 																		likeargs = "" // TCL namespace variable
 																		_ = likeargs // suppress unused warning
 																		{ // "e_expr-15.1.1"
@@ -2844,6 +2849,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		tcl_nullvalue = ""
 																		// proc definition (not transpiled)
+																		// db function glob (variable-reader, inlined)
 																		globargs = "" // TCL namespace variable
 																		_ = globargs // suppress unused warning
 																		{ // "e_expr-17.3.1"
@@ -2880,6 +2886,7 @@ func Test_e_expr(t *testing.T) {
 																		_ = _dbtmp16 // sqlite3 db connection
 																		if err != nil { t.Fatal(err) }
 																		// proc definition (not transpiled)
+																		// db function regexp (variable-reader, inlined)
 																		regexpargs = "" // TCL namespace variable
 																		_ = regexpargs // suppress unused warning
 																		{ // "e_expr-18.2.1"
@@ -2928,6 +2935,7 @@ func Test_e_expr(t *testing.T) {
 																			}
 																		}
 																		// proc definition (not transpiled)
+																		// db function match (variable-reader, inlined)
 																		matchargs = "" // TCL namespace variable
 																		_ = matchargs // suppress unused warning
 																		{ // "e_expr-19.2.1"
@@ -2988,13 +2996,14 @@ func Test_e_expr(t *testing.T) {
 																			}
 																		}
 																		// proc definition (not transpiled)
+																		// db function var (variable-reader, inlined)
 																		// foreach a,b,c "0 0 0" (no body)
 																		varlist = ""
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-21.1.1"
-																			r = db.Query("\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C' END\n")
+																			r = db.Query("\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C' END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C' END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C' END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3008,9 +3017,9 @@ func Test_e_expr(t *testing.T) {
 																		varlist = ""
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-21.1.3"
-																			r = db.Query("\n  SELECT CASE WHEN var('c') THEN 'C' \n              WHEN var('b') THEN 'B' \n              WHEN var('a') THEN 'A' \n              ELSE 'no result'\n  END\n")
+																			r = db.Query("\n  SELECT CASE WHEN " + sqlLiteral(c) + " THEN 'C' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(a) + " THEN 'A' \n              ELSE 'no result'\n  END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN var('c') THEN 'C' \n              WHEN var('b') THEN 'B' \n              WHEN var('a') THEN 'A' \n              ELSE 'no result'\n  END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN " + sqlLiteral(c) + " THEN 'C' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(a) + " THEN 'A' \n              ELSE 'no result'\n  END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3023,9 +3032,9 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// foreach a,b,c "0 1 0" (no body)
 																		{ // "e_expr-21.2.1"
-																			r = db.Query("\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C' \n              ELSE 'no result'\n  END\n")
+																			r = db.Query("\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C' \n              ELSE 'no result'\n  END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C' \n              ELSE 'no result'\n  END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C' \n              ELSE 'no result'\n  END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3036,9 +3045,9 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// foreach a,b,c "0 1 1" (no body)
 																		{ // "e_expr-21.2.2"
-																			r = db.Query("\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n              ELSE 'no result'\n  END\n")
+																			r = db.Query("\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C'\n              ELSE 'no result'\n  END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n              ELSE 'no result'\n  END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C'\n              ELSE 'no result'\n  END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3049,9 +3058,9 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// foreach a,b,c "0 0 1" (no body)
 																		{ // "e_expr-21.2.3"
-																			r = db.Query("\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n              ELSE 'no result'\n  END\n")
+																			r = db.Query("\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C'\n              ELSE 'no result'\n  END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n              ELSE 'no result'\n  END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C'\n              ELSE 'no result'\n  END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3062,9 +3071,9 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		// foreach a,b,c "0 0 0" (no body)
 																		{ // "e_expr-21.3.1"
-																			r = db.Query("\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n              ELSE 'no result'\n  END\n")
+																			r = db.Query("\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C'\n              ELSE 'no result'\n  END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n              ELSE 'no result'\n  END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C'\n              ELSE 'no result'\n  END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3075,9 +3084,9 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		tcl_nullvalue = "null"
 																		{ // "e_expr-21.3.2"
-																			r = db.Query("\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n  END\n")
+																			r = db.Query("\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C'\n  END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n  END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C'\n  END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3139,9 +3148,9 @@ func Test_e_expr(t *testing.T) {
 																		varlist = "" // TCL namespace variable
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-22.1.1"
-																			r = db.Query("\n  SELECT CASE var('a') WHEN 1 THEN 'A' WHEN 2 THEN 'B' WHEN 3 THEN 'C' END\n")
+																			r = db.Query("\n  SELECT CASE " + sqlLiteral(a) + " WHEN 1 THEN 'A' WHEN 2 THEN 'B' WHEN 3 THEN 'C' END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE var('a') WHEN 1 THEN 'A' WHEN 2 THEN 'B' WHEN 3 THEN 'C' END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE " + sqlLiteral(a) + " WHEN 1 THEN 'A' WHEN 2 THEN 'B' WHEN 3 THEN 'C' END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3347,9 +3356,9 @@ func Test_e_expr(t *testing.T) {
 																		_ = varlist // suppress unused warning
 																		// foreach a,b,c "0 1 0" (no body)
 																		{ // "e_expr-25.1.1"
-																			r = db.Query("\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C' \n  END\n")
+																			r = db.Query("\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C' \n  END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C' \n  END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE WHEN " + sqlLiteral(a) + " THEN 'A' \n              WHEN " + sqlLiteral(b) + " THEN 'B' \n              WHEN " + sqlLiteral(c) + " THEN 'C' \n  END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3364,9 +3373,9 @@ func Test_e_expr(t *testing.T) {
 																		varlist = ""
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-25.1.3"
-																			r = db.Query("\n  SELECT CASE '0' WHEN var('a') THEN 'A' \n                  WHEN var('b') THEN 'B' \n                  WHEN var('c') THEN 'C' \n  END\n")
+																			r = db.Query("\n  SELECT CASE '0' WHEN " + sqlLiteral(a) + " THEN 'A' \n                  WHEN " + sqlLiteral(b) + " THEN 'B' \n                  WHEN " + sqlLiteral(c) + " THEN 'C' \n  END\n")
 																			if r.Error != nil {
-																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE '0' WHEN var('a') THEN 'A' \n                  WHEN var('b') THEN 'B' \n                  WHEN var('c') THEN 'C' \n  END\n")
+																				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT CASE '0' WHEN " + sqlLiteral(a) + " THEN 'A' \n                  WHEN " + sqlLiteral(b) + " THEN 'B' \n                  WHEN " + sqlLiteral(c) + " THEN 'C' \n  END\n")
 																				return
 																			}
 																			got := flatten(r)
@@ -3379,6 +3388,7 @@ func Test_e_expr(t *testing.T) {
 																			_ = varlist // TCL namespace variable (query)
 																		}
 																		// proc definition (not transpiled)
+																		// db function ceval (variable-reader, inlined)
 																		evalcount = "0" // TCL namespace variable
 																		_ = evalcount // suppress unused warning
 																		{ // "e_expr-26.1.1"
@@ -3675,7 +3685,7 @@ func Test_e_expr(t *testing.T) {
 																				db.Close()
 																			}
 																			os.Remove("test.db")
-																			db, err = frigolite.Open("")
+																			db, err = frigolite.Open("test.db")
 																			if err != nil { t.Fatal(err) }
 																			{ // "e_expr-34.1"
 																				_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(NULL, 2);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(NULL, NULL);\n")
@@ -3736,7 +3746,7 @@ func Test_e_expr(t *testing.T) {
 																								db.Close()
 																							}
 																							os.Remove("test.db")
-																							db, err = frigolite.Open("")
+																							db, err = frigolite.Open("test.db")
 																							if err != nil { t.Fatal(err) }
 																							{ // do_test "e_expr-35.0"
 																								_res = db.Exec("\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('one', 'two');\n    INSERT INTO t2 VALUES('three', NULL);\n    INSERT INTO t2 VALUES(4, 5.0);\n  ")
@@ -3762,8 +3772,8 @@ func Test_e_expr(t *testing.T) {
 																								_ = _idx24
 																									{ // "e_expr-35.2." + tn
 																										_res = db.Exec(sql)
-																										if _res.Error != nil {
-																											t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
+																										if _res.Error == nil || !strings.Contains(_res.Error.Error(), M) {
+																											t.Errorf("expected error containing %q, got: %v\n  sql: %s", M, _res.Error, sql)
 																										}
 																									}
 																								}

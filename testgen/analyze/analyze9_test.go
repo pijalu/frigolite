@@ -237,6 +237,7 @@ func Test_analyze9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
+	// db function lindex (variable-reader, inlined)
 	{ // "3.3.1"
 		r = db.Query("\n  SELECT count(*) FROM t2 GROUP BY a;\n")
 		if r.Error != nil {
@@ -277,6 +278,8 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	// db function lindex (variable-reader, inlined)
+	// db function lrange (variable-reader, inlined)
 	{ // "4.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(c, b, a);\n")
 		if _res.Error != nil {
@@ -1158,6 +1161,8 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			// check_stat4 14.4.2 (unsupported command, not transpiled)
+			// db function lrange (variable-reader, inlined)
+			// db function lindex (variable-reader, inlined)
 			{ // "14.4.3"
 				r = db.Query("\n  SELECT lrange(test_decode(sample), 0, 1) AS s FROM sqlite_stat4\n  WHERE lindex(s, 1)=='1' ORDER BY rowid\n")
 				if r.Error != nil {
@@ -1473,6 +1478,8 @@ func Test_analyze9(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// proc definition (not transpiled)
+			// db function r (variable-reader, inlined)
+			// db function lrange (variable-reader, inlined)
 			{ // do_test "20.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
 				if _res.Error != nil {
@@ -1602,6 +1609,7 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 				// proc definition (not transpiled)
+				// db function int_to_char (variable-reader, inlined)
 				{ // "23.0"
 					r = db.Query("\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
 					if r.Error != nil {

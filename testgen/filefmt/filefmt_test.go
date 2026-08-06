@@ -94,7 +94,7 @@ func Test_filefmt(t *testing.T) {
 				_err_tcl = ""
 			}
 		}
-		x = tclListAppend(x, tclStr(err))
+		x = tclListAppend(x, _err_tcl)
 	}
 	{ // do_test "filefmt-1.3"
 		_res = db.Exec("\n    SELECT count(*) FROM sqlite_master\n  ")
@@ -115,7 +115,7 @@ func Test_filefmt(t *testing.T) {
 		{ // do_test "filefmt-1.5." + pagesize + ".1"
 			db.Close()
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA auto_vacuum=OFF")
 			if _res.Error != nil {
@@ -157,7 +157,7 @@ func Test_filefmt(t *testing.T) {
 	{ // do_test "filefmt-1.8"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA page_size=512; CREATE TABLE t1(x)")
 		if _res.Error != nil {
@@ -175,8 +175,9 @@ func Test_filefmt(t *testing.T) {
 	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	// db function a_string (variable-reader, inlined)
 	{ // "filefmt-2.1.1"
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
 		if r.Error != nil {
@@ -204,8 +205,9 @@ func Test_filefmt(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	// db function a_string (variable-reader, inlined)
 	{ // "filefmt-2.2.1"
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(a_string(3000));\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1);\n")
 		if r.Error != nil {
@@ -247,7 +249,7 @@ func Test_filefmt(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "filefmt-3.1"
 		r = db.Query("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a, b);\n")

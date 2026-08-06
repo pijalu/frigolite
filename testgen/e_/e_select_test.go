@@ -435,8 +435,8 @@ func Test_e_select(t *testing.T) {
 						_ = _idx4
 							{ // "e_select-4.2." + tn
 								_res = db.Exec(_select)
-								if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclStr(err)) {
-									t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclStr(err), _res.Error, _select)
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, _select)
 								}
 							}
 						}
@@ -551,8 +551,8 @@ func Test_e_select(t *testing.T) {
 										_ = res // suppress unused warning
 										{ // "e_select-4." + tn
 											_res = db.Exec(_select)
-											if _res.Error != nil {
-												t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, _select)
+											if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+												t.Errorf("expected error containing %q, got: %v\n  sql: %s", res, _res.Error, _select)
 											}
 										}
 									}
@@ -630,8 +630,8 @@ func Test_e_select(t *testing.T) {
 											_ = _err_tcl // suppress unused warning
 											{ // "e_select-7.2." + tn
 												_res = db.Exec(_select)
-												if _res.Error == nil || !strings.Contains(_res.Error.Error(), tclStr(err)) {
-													t.Errorf("expected error containing %q, got: %v\n  sql: %s", tclStr(err), _res.Error, _select)
+												if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, _select)
 												}
 											}
 										}

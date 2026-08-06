@@ -163,8 +163,8 @@ func Test_corruptL(t *testing.T) {
 	_ = res // suppress unused warning
 	{ // "4.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
-		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", res, _res.Error, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
 		}
 	}
 	db.Close()
@@ -243,8 +243,8 @@ func Test_corruptL(t *testing.T) {
 	_ = res // suppress unused warning
 	{ // "8.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
-		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", res, _res.Error, "\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")
 		}
 	}
 	db.Close()

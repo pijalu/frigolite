@@ -438,17 +438,20 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 	}
 	// Qualified column reference: check qualified name first
 	if v.Table != "" {
-		// Strip a schema prefix (main./temp.) from the qualifier so
-		// "main.txx.a" resolves against the "txx.a" key in the row map.
+		// Strip a schema prefix (main./temp./aux1.) from the qualifier so
+		// "main.txx.a" resolves against the "txx.a" key in the row map, and
+		// try both the full qualifier ("main.t4.a") and the stripped form
+		// ("t4.a") since join row maps may store either.
+		fullQual := v.Table
 		tableQual := v.Table
 		if dot := strings.Index(tableQual, "."); dot >= 0 {
-			prefix := strings.ToUpper(tableQual[:dot])
-			if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
-				tableQual = tableQual[dot+1:]
-			}
+			tableQual = tableQual[dot+1:]
 		}
 		// Try table-qualified key in the current row (e.g., "t1.a")
 		if row != nil {
+			if val, ok := row.Get(fullQual + "." + v.Name); ok {
+				return val, nil
+			}
 			if val, ok := row.Get(tableQual + "." + v.Name); ok {
 				return val, nil
 			}

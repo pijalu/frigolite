@@ -74,7 +74,7 @@ func Test_walsetlk_snapshot(t *testing.T) {
 	// tvfs filter xSleep (unsupported command, not transpiled)
 	sleep_count = "0" // TCL namespace variable
 	_ = sleep_count // suppress unused warning
-	// proc definition (not transpiled)
+	// proc sleep_callback increments counter var sleep_count (registered via db func)
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n")
 		if r.Error != nil {

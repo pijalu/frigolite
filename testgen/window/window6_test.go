@@ -145,10 +145,11 @@ func Test_window6(t *testing.T) {
 			}
 		}
 		// proc definition (not transpiled)
+		// db function window (variable-reader, inlined)
 		{ // "2.0"
-			r = db.Query("\n  SELECT window('hello world');\n")
+			r = db.Query("\n  SELECT " + sqlLiteral(hello_world) + ";\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT window('hello world');\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT " + sqlLiteral(hello_world) + ";\n")
 				return
 			}
 			got := flatten(r)

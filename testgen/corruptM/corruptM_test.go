@@ -65,7 +65,7 @@ func Test_corruptM(t *testing.T) {
 	// proc definition (not transpiled)
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "corruptM-100"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(111,222,333);\n  CREATE INDEX i1 ON t1(b);\n  CREATE VIEW v2 AS SELECT 15,22;\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN SELECT 5; END;\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")

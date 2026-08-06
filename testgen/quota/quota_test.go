@@ -349,7 +349,7 @@ func Test_quota(t *testing.T) {
 	}
 	{ // do_test "quota-4.1.6"
 		os.Remove("test2.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t2(x); INSERT INTO t2 VALUES('tab-t2');")
 		if _res.Error != nil {
@@ -443,7 +443,7 @@ func Test_quota(t *testing.T) {
 		_ = quota // suppress unused warning
 		// sqlite3_quota_set $::quotagroup 10000 quota_callback (unsupported command, not transpiled)
 		os.Remove("./quota-test-A1.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("./quota-test-A1.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		if _res.Error != nil {

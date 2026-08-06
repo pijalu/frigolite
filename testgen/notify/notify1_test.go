@@ -466,7 +466,7 @@ func Test_notify1(t *testing.T) {
 		db.Close()
 		db2.Close()
 		db3.Close()
-		// proc definition (not transpiled)
+		// proc unlock_notify increments counter var unlock_notify (registered via db func)
 		{ // do_test "notify1-7.1"
 			for _, conn := range tclSplitList("db db2 db3") {
 			_ = conn // suppress unused warning

@@ -141,7 +141,7 @@ func Test_sysfault(t *testing.T) {
 			}
 			// proc definition (not transpiled)
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "2.setup"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, PRIMARY KEY(a));\n    INSERT INTO t1 VALUES('abc', 'def', 'ghi');\n    ATTACH 'test.db2' AS 'aux';\n    CREATE TABLE aux.t2(x);\n    INSERT INTO t2 VALUES(1);\n  ")

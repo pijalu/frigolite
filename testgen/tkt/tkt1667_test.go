@@ -63,7 +63,7 @@ func Test_tkt1667(t *testing.T) {
 	first_ptrmap_page = "207.8"
 	_ = first_ptrmap_page // suppress unused warning
 	// sqlite3_test_control_pending_byte [expr 1024 * ($first_ptrmap_page-1)] (unsupported command, not transpiled)
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tkt1667-1"
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")

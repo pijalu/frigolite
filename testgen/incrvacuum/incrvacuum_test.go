@@ -389,7 +389,7 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-9.1"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum = 'incremental';\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randstr(500,500),randstr(500,500),randstr(500,500));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n  ")
 		if r.Error != nil {
@@ -470,7 +470,7 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "incrvacuum-11.1-av-dflt-on"
 		r = db.Query("\n      PRAGMA auto_vacuum;\n    ")
@@ -522,7 +522,7 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "incrvacuum-12.1"
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n  ")
@@ -573,7 +573,7 @@ func Test_incrvacuum(t *testing.T) {
 	db2.Close()
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db" // TCL namespace variable
 	_ = DB // suppress unused warning
@@ -623,7 +623,7 @@ func Test_incrvacuum(t *testing.T) {
 		db.Close()
 		db2.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		str = "\"abcdefghij\" 500"
 		_ = str // suppress unused warning

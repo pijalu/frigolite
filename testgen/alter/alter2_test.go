@@ -82,6 +82,11 @@ func Test_alter2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "alter2-1.0"
+		// db function substr (variable-reader, inlined)
+		// db function like (variable-reader, inlined)
+		// db function sqlite_rename_table (variable-reader, inlined)
+		// db function sqlite_rename_trigger (variable-reader, inlined)
+		// db function sqlite_rename_parent (variable-reader, inlined)
 		_res = db.Exec("SELECT substr('abcdefg',1,3)")
 		_ = _res // catchsql
 	}

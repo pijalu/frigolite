@@ -79,7 +79,7 @@ func Test_pagesize(t *testing.T) {
 	{ // do_test "pagesize-1.4"
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size=511;\n    PRAGMA page_size;\n  ")
 		if r.Error != nil {
@@ -154,7 +154,7 @@ func Test_pagesize(t *testing.T) {
 		{ // do_test "pagesize-2." + PGSZ + ".1"
 			db.Close()
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA page_size=" + PGSZ)
 			if r.Error != nil {
@@ -277,7 +277,7 @@ func Test_pagesize(t *testing.T) {
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "pagesize-2." + PGSZ + ".30"
 			r = db.Query("\n      CREATE TABLE t1(x);\n      PRAGMA temp.page_size=" + PGSZ + ";\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
@@ -287,7 +287,7 @@ func Test_pagesize(t *testing.T) {
 		}
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "pagesize-2." + PGSZ + ".40"
 			r = db.Query("\n      PRAGMA page_size=" + PGSZ + ";\n      CREATE TABLE t1(x);\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")

@@ -164,8 +164,11 @@ func Test_vtabH(t *testing.T) {
 	_ = x8 // suppress unused warning
 	x9 = "castle"
 	_ = x9 // suppress unused warning
+	// db function glob (variable-reader, inlined)
 	// proc definition (not transpiled)
+	// db function like (variable-reader, inlined)
 	// proc definition (not transpiled)
+	// db function regexp (variable-reader, inlined)
 	// proc definition (not transpiled)
 	for _, tclvar_set_omit := range tclSplitList("0 1") {
 	_ = tclvar_set_omit // suppress unused warning

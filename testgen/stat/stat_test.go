@@ -67,6 +67,7 @@ func Test_stat(t *testing.T) {
 	asc = "1" // TCL namespace variable
 	_ = asc // suppress unused warning
 	// proc definition (not transpiled)
+	// db function a_string (variable-reader, inlined)
 	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-0.0"
 		r = db.Query("\n  PRAGMA table_info(dbstat);\n")
@@ -100,8 +101,9 @@ func Test_stat(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	// db function a_string (variable-reader, inlined)
 	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-0.2"
 		r = db.Query("\n  PRAGMA auto_vacuum = OFF;\n  CREATE VIRTUAL TABLE temp.stat USING dbstat;\n  SELECT * FROM stat;\n")
@@ -233,7 +235,7 @@ func Test_stat(t *testing.T) {
 	}
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-5.1"

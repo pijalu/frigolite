@@ -164,7 +164,7 @@ func Test_incrblob(t *testing.T) {
 		}
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("PRAGMA mmap_size = 0")
 		if r.Error != nil {
@@ -816,7 +816,7 @@ func Test_incrblob(t *testing.T) {
 		// close $fd
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "incrblob-7.2.1"
 			r = db.Query("\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, " + sqlLiteral(data) + ");\n  ")

@@ -150,7 +150,7 @@ func Test_e_walckpt(t *testing.T) {
 		_ = tn // suppress unused warning
 			os.Remove("test.db")
 			// testvfs tvfs (unsupported command, not transpiled)
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
 			if r.Error != nil {

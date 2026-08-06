@@ -1961,25 +1961,46 @@ func isStrictTable(createSQL string) bool {
 	return hasStrictKeyword(upper)
 }
 
+// stripCTASSelect returns the CREATE TABLE text up to (but not including) an
+// "AS SELECT" clause. Table options such as STRICT and WITHOUT ROWID only
+// appear before AS SELECT, and the closing parenthesis of the column list
+// must not be confused with parentheses inside the SELECT body.
+func stripCTASSelect(createSQL string) string {
+	upper := strings.ToUpper(createSQL)
+	idx := strings.Index(upper, " AS SELECT")
+	if idx < 0 {
+		// Allow "AS" and "SELECT" separated by arbitrary whitespace.
+		re := regexp.MustCompile(`(?i)\s+AS\s+SELECT`)
+		loc := re.FindStringIndex(createSQL)
+		if loc == nil {
+			return createSQL
+		}
+		return createSQL[:loc[0]]
+	}
+	return createSQL[:idx]
+}
+
 // hasStrictKeyword checks if "STRICT" appears as a standalone keyword in the
 // CREATE TABLE SQL (not inside a string literal or column name).
 func hasStrictKeyword(upperSQL string) bool {
-	idx := strings.LastIndex(upperSQL, ")")
+	sql := stripCTASSelect(upperSQL)
+	idx := strings.LastIndex(sql, ")")
 	if idx < 0 {
 		return false
 	}
-	tail := upperSQL[idx:]
+	tail := sql[idx:]
 	return strings.Contains(tail, "STRICT")
 }
 
 // hasWithoutRowidKeyword checks if "WITHOUT ROWID" appears after the closing
 // parenthesis in the CREATE TABLE SQL.
 func hasWithoutRowidKeyword(upperSQL string) bool {
-	idx := strings.LastIndex(upperSQL, ")")
+	sql := stripCTASSelect(upperSQL)
+	idx := strings.LastIndex(sql, ")")
 	if idx < 0 {
 		return false
 	}
-	tail := upperSQL[idx:]
+	tail := sql[idx:]
 	return strings.Contains(tail, "WITHOUT")
 }
 
@@ -1987,11 +2008,12 @@ func hasWithoutRowidKeyword(upperSQL string) bool {
 // supports "STRICT" and "WITHOUT ROWID"; any other trailing token is an
 // "unknown table option" error).
 func validateWithoutOption(createSQL string) error {
-	idx := strings.LastIndex(createSQL, ")")
+	sql := stripCTASSelect(createSQL)
+	idx := strings.LastIndex(sql, ")")
 	if idx < 0 {
 		return nil
 	}
-	tail := strings.TrimSpace(createSQL[idx+1:])
+	tail := strings.TrimSpace(sql[idx+1:])
 	if tail == "" {
 		return nil
 	}

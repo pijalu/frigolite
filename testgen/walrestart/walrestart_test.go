@@ -68,7 +68,7 @@ func Test_walrestart(t *testing.T) {
 	}
 	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
-	// proc definition (not transpiled)
+	// proc faultsim returns constant 0 (registered via db func)
 	// sqlite3_test_control_fault_install faultsim (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
@@ -119,7 +119,7 @@ func Test_walrestart(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=randomblob(600);\n")
 		}
 	}
-	// proc definition (not transpiled)
+	// proc faultsim returns constant 0 (registered via db func)
 	{ // "1.4"
 		r = db.Query("\n  PRAGMA wal_checkpoint;\n")
 		if r.Error != nil {

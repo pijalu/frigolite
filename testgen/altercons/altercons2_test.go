@@ -100,8 +100,8 @@ func Test_altercons2(t *testing.T) {
 			}
 			{ // "1." + tn + ".2"
 				_res = db.Exec(alter)
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, alter)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", res, _res.Error, alter)
 				}
 			}
 			{ // "1." + tn + ".3"

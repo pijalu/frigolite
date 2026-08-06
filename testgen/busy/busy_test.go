@@ -140,7 +140,7 @@ func Test_busy(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT count(*) FROM sqlite_master;\n  ")
 		}
 	}
-	// proc definition (not transpiled)
+	// proc busy_handler returns constant 1 (registered via db func)
 	{ // do_test "3.5"
 		_res = db.Exec(" PRAGMA optimize ")
 		_ = _res // catchsql

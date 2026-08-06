@@ -76,6 +76,7 @@ func Test_rollbackfault(t *testing.T) {
 	testprefix = "rollbackfault"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
+	// db function int2hex (variable-reader, inlined)
 	{ // "1.0"
 		r = db.Query("\n  SELECT int2hex(0), int2hex(100), int2hex(255)\n")
 		if r.Error != nil {

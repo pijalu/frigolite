@@ -76,7 +76,7 @@ func Test_crash5(t *testing.T) {
 		_ = jj // suppress unused warning
 		for func() bool { jj_n, _jj_e := strconv.Atoi(jj); if _jj_e != nil { return false }; return jj_n < 100 }() {
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			c = "3 1500"
 			_ = c // suppress unused warning

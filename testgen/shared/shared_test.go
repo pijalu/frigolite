@@ -137,7 +137,7 @@ func Test_shared(t *testing.T) {
 	for _, av := range tclSplitList("0 1") {
 	_ = av // suppress unused warning
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "shared-" + tclExprWith("$av+1", map[string]string{"av": av}) + ".1.0"
 			r = db.Query("pragma auto_vacuum=" + av)
@@ -335,7 +335,7 @@ func Test_shared(t *testing.T) {
 			os.Remove("test.db")
 			os.Remove("test2.db")
 			os.Remove("test2.db-journal")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
@@ -783,7 +783,7 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".10.1"
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
@@ -856,7 +856,7 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".11.1"
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2
@@ -915,7 +915,7 @@ func Test_shared(t *testing.T) {
 				db2.Close()
 			}
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "shared-" + av + ".12.1"
 				r = db.Query("\n      PRAGMA cache_size = 10;\n      PRAGMA cache_size;\n    ")
@@ -1005,7 +1005,7 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + "-15.1"
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 				_ = db2

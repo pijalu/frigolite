@@ -56,7 +56,7 @@ func Test_t_8_3_names(t *testing.T) {
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	{ // do_test "8_3_names-1.0"
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
 		if _res.Error != nil {

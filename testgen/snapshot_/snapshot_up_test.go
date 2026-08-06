@@ -279,7 +279,7 @@ func Test_snapshot_up(t *testing.T) {
 	_ = db2
 	db3 = db // sqlite3 db3 test.db: alias to main in-memory db
 	_ = db3
-	// proc definition (not transpiled)
+	// proc xBusy returns constant 1 (registered via db func)
 	{ // do_test "2.1"
 		_res = db2.Exec(" INSERT INTO t1 VALUES(16, 17, 18) ")
 		if _res.Error != nil {

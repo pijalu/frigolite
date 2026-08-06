@@ -144,14 +144,14 @@ func Test_e_insert(t *testing.T) {
 		_ = _err_tcl // suppress unused warning
 		{ // "e_insert-5.1.1"
 			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
-			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
 			}
 		}
 		{ // "e_insert-5.1.2"
 			_res = db.Exec("\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
-			if _res.Error != nil {
-				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
 			}
 		}
 		{ // "e_insert-5.2.1"

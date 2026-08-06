@@ -282,7 +282,7 @@ func Test_syscall(t *testing.T) {
 			{ // do_test "8.3"
 				db.Close()
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// file_control_chunksize_test db main 16 (unsupported command, not transpiled)
 				// file size test.db

@@ -94,7 +94,7 @@ func Test_crash3(t *testing.T) {
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 				db.Close()
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "crash3-1." + tn + ".1"
 					r = db.Query("\n        PRAGMA page_size = 1024;\n        BEGIN;\n        CREATE TABLE abc(a, b, c);\n        INSERT INTO abc VALUES(1, 2, 3);\n        COMMIT;\n      ")
@@ -135,7 +135,7 @@ func Test_crash3(t *testing.T) {
 		}
 		db.Close()
 		os.Remove("test.db")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "crash3-2.0"
 			r = db.Query("\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    CREATE TABLE def(d PRIMARY KEY, e, f);\n    PRAGMA default_cache_size = 10;\n    INSERT INTO abc VALUES(randstr(10,1000),randstr(10,1000),randstr(10,1000));\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    COMMIT;\n  ")
@@ -192,7 +192,7 @@ func Test_crash3(t *testing.T) {
 				db.Close()
 				os.Remove("test.db")
 				// crashsql -file test.db -char {sequential atomic} {\n    CREATE TABLE abc(a, b, c);\n  } (unsupported command, not transpiled)
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "crash3-3." + ii
 					r = db.Query("PRAGMA integrity_check")

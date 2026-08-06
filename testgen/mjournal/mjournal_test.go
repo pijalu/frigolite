@@ -166,7 +166,7 @@ func Test_mjournal(t *testing.T) {
 	os.Remove("test.db")
 	os.Remove("test.db2")
 	os.Remove("test.db3")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS dbfile;\n  ATTACH ''         AS dbtemp;\n  ATTACH ':memory:'  AS dbmem;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE dbfile.t2(x);\n  CREATE TABLE dbtemp.t3(x);\n  CREATE TABLE dbmem.t4(x);\n")

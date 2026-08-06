@@ -227,8 +227,8 @@ func Test_upsert4(t *testing.T) {
 					_ = _idx2
 						{ // "2." + tn + ".2." + tn2
 							_res = db.Exec("\n      INSERT INTO xyz VALUES(11, 1, 1, 'one') " + oc + "\n    ")
-							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO xyz VALUES(11, 1, 1, 'one') " + oc + "\n    ")
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), rtbl_res) {
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", rtbl_res, _res.Error, "\n      INSERT INTO xyz VALUES(11, 1, 1, 'one') " + oc + "\n    ")
 							}
 						}
 					}
@@ -279,8 +279,8 @@ func Test_upsert4(t *testing.T) {
 							_ = _idx4
 								{ // "3." + tn + ".2." + tn2
 									_res = db.Exec("\n      INSERT INTO abc VALUES(2, 'one', NULL) " + oc + ";\n    ")
-									if _res.Error != nil {
-										t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO abc VALUES(2, 'one', NULL) " + oc + ";\n    ")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), rtbl_res) {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", rtbl_res, _res.Error, "\n      INSERT INTO abc VALUES(2, 'one', NULL) " + oc + ";\n    ")
 									}
 								}
 							}
@@ -331,8 +331,8 @@ func Test_upsert4(t *testing.T) {
 									_ = _idx6
 										{ // "4." + tn + ".2." + tn2
 											_res = db.Exec("\n      INSERT INTO abc VALUES(5, 'one', 10) " + oc + "\n    ")
-											if _res.Error != nil {
-												t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO abc VALUES(5, 'one', 10) " + oc + "\n    ")
+											if _res.Error == nil || !strings.Contains(_res.Error.Error(), rtbl_res) {
+												t.Errorf("expected error containing %q, got: %v\n  sql: %s", rtbl_res, _res.Error, "\n      INSERT INTO abc VALUES(5, 'one', 10) " + oc + "\n    ")
 											}
 										}
 									}
@@ -360,8 +360,8 @@ func Test_upsert4(t *testing.T) {
 										_ = _idx7
 											{ // "4." + tn + ".2." + tn2
 												_res = db.Exec("\n      INSERT INTO abc VALUES(5, 'xYz', 3) " + oc + "\n    ")
-												if _res.Error != nil {
-													t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO abc VALUES(5, 'xYz', 3) " + oc + "\n    ")
+												if _res.Error == nil || !strings.Contains(_res.Error.Error(), rtbl_res) {
+													t.Errorf("expected error containing %q, got: %v\n  sql: %s", rtbl_res, _res.Error, "\n      INSERT INTO abc VALUES(5, 'xYz', 3) " + oc + "\n    ")
 												}
 											}
 										}

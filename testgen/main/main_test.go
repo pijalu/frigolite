@@ -214,7 +214,7 @@ func Test_main(t *testing.T) {
 			os.Remove(f)
 		}
 		os.Remove("testdb")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("testdb")
 		if err != nil { t.Fatal(err) }
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
@@ -243,7 +243,7 @@ func Test_main(t *testing.T) {
 			os.Remove(f)
 		}
 		os.Remove("testdb")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("testdb")
 		if err != nil { t.Fatal(err) }
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
@@ -418,7 +418,7 @@ func Test_main(t *testing.T) {
 			os.Remove(f)
 		}
 		os.Remove("testdb")
-		db, err = frigolite.Open("")
+		db, err = frigolite.Open("testdb")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    create table T1(X REAL);  /* C-style comments allowed */\n    insert into T1 values(0.5);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5e-002);\n    insert into T1 values(5e-002);\n    insert into T1 values(-5.0e-2);\n    insert into T1 values(-5.1e-2);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5E+02);\n    insert into T1 values(5E+02);\n    insert into T1 values(5.0E+03);\n    select x*10 from T1 order by x*5;\n  ")
 		if r.Error != nil {

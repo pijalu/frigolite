@@ -2055,6 +2055,7 @@ func Test_func(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		{ // do_test "func-33.1"
+			// db function testdirectonly (variable-reader, inlined)
 			_res = db.Exec("SELECT testdirectonly(15)")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT testdirectonly(15)")
@@ -2165,7 +2166,9 @@ func Test_func(t *testing.T) {
 			}
 		}
 		// proc definition (not transpiled)
+		// db function -> (variable-reader, inlined)
 		// proc definition (not transpiled)
+		// db function ->> (variable-reader, inlined)
 		{ // "func-36.100"
 			r = db.Query("\n  SELECT 123 -> 456\n")
 			if r.Error != nil {

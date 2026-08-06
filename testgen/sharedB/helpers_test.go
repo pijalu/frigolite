@@ -127,12 +127,24 @@ func tclRenderCell(v interface{}) string {
 	case int64:
 		return strconv.FormatInt(x, 10)
 	case float64:
-		// SQLite displays REALs in a fixed-point format for moderate
-		// magnitudes (e.g. 12300000.0, not 1.23e+07).
-		s := strconv.FormatFloat(x, 'f', -1, 64)
-		// SQLite preserves trailing .0 for whole-number REALs
-		if !strings.ContainsAny(s, ".eE") {
-			s = s + ".0"
+		// SQLite renders REALs with its 15-significant-digit 'g' format
+		// (the alternate-form 'bang' flag): fixed-point for exponents in
+		// [-4, 14] (e.g. 12300000.0, 0.5, 123456789.123457), exponential
+		// otherwise (e.g. 9.22337203685478e+18, 1.0e-06). The decimal point
+		// is always present (the '!' alternate form).
+		s := strconv.FormatFloat(x, 'g', 15, 64)
+		if e := strings.IndexAny(s, "eE"); e >= 0 {
+			// Exponential: 9.22337203685478e+18 — keep at least one
+			// digit after the decimal point (1e+15 -> 1.0e+15).
+			mant := s[:e]
+			if !strings.Contains(mant, ".") {
+				mant += ".0"
+			}
+			return mant + s[e:]
+		}
+		// Fixed: SQLite preserves a trailing .0 for whole-number REALs
+		if !strings.Contains(s, ".") {
+			s += ".0"
 		}
 		return s
 	case string:
@@ -140,7 +152,7 @@ func tclRenderCell(v interface{}) string {
 	case []byte:
 		return string(x)
 	default:
-		return fmt.Sprintf("%!v(MISSING)", x)
+		return fmt.Sprint(x)
 	}
 }
 

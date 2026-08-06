@@ -180,7 +180,7 @@ func Test_e_walhook(t *testing.T) {
 		}
 		_ = old_wal_hook // TCL namespace variable (query)
 	}
-	// proc definition (not transpiled)
+	// proc my_new_wal_hook returns constant 0 (registered via db func)
 	{ // do_test "5.2"
 		_res = db.Exec(" INSERT INTO t1 VALUES(11) ")
 		if _res.Error != nil {

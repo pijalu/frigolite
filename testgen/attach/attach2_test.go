@@ -465,7 +465,7 @@ func Test_attach2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // "2.3"
 		r = db.Query("\n    ATTACH 'test.db3' AS aux;\n    SELECT * FROM t3;\n    SELECT * FROM t2;\n  ")

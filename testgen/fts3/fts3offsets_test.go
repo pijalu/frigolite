@@ -80,6 +80,7 @@ func Test_fts3offsets(t *testing.T) {
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
+	// db function extract (variable-reader, inlined)
 	{ // "1.1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE xx USING fts3(x);\n  INSERT INTO xx VALUES('A x x x B C x x');\n  INSERT INTO xx VALUES('A B C x B x x C');\n  INSERT INTO xx VALUES('A x x B C x x x');\n")
 		if _res.Error != nil {

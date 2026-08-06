@@ -58,7 +58,7 @@ func Test_wal8(t *testing.T) {
 	// do_not_use_codec (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -77,7 +77,7 @@ func Test_wal8(t *testing.T) {
 	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -96,7 +96,7 @@ func Test_wal8(t *testing.T) {
 	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db")
-	db, err = frigolite.Open("")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2

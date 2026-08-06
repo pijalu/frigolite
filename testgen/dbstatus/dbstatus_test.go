@@ -167,7 +167,7 @@ func Test_dbstatus(t *testing.T) {
 				_ = tn // suppress unused warning
 				db.Close()
 				os.Remove("test.db")
-				db, err = frigolite.Open("")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500 (unsupported command, not transpiled)
 				{
@@ -294,7 +294,7 @@ func Test_dbstatus(t *testing.T) {
 					_ = tn // suppress unused warning
 					db.Close()
 					os.Remove("test.db")
-					db, err = frigolite.Open("")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					// sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500 (unsupported command, not transpiled)
 					{

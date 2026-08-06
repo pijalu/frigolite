@@ -127,6 +127,7 @@ func Test_corruptN(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	// db function strreplace (variable-reader, inlined)
 	// proc definition (not transpiled)
 	{ // "5.0"
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';\n  ")

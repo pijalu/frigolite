@@ -73,6 +73,15 @@ func (db *DB) SetDQS(ddl, dml bool) {
 	}
 }
 
+// RegisterFunction registers a scalar SQL function for this database
+// connection. It is used by the test harness to reproduce SQLite's
+// TCL-defined test functions (e.g. `db func f f` where f returns a constant).
+func (db *DB) RegisterFunction(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int) {
+	if db != nil && db.engine != nil {
+		db.engine.RegisterFunction(name, fn, minArgs, maxArgs)
+	}
+}
+
 // Open opens a database file. Use ":memory:" for an in-memory database.
 func Open(path string) (*DB, error) {
 	var pg *pager.Pager

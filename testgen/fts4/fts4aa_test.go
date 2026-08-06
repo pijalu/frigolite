@@ -105,6 +105,7 @@ func Test_fts4aa(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function mit (variable-reader, inlined)
 	{ // do_test "fts4aa-1.3"
 		r = db.Query("\n    SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1 WHERE t1 MATCH 'melchizedek';\n  ")
 		if r.Error != nil {
@@ -217,7 +218,7 @@ func Test_fts4aa(t *testing.T) {
 		{ // do_test "fts4aa-3.0"
 			db.Close()
 			os.Remove("test.db")
-			db, err = frigolite.Open("")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA page_size=65536;\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
 			if _res.Error != nil {

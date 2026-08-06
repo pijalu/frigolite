@@ -7,6 +7,7 @@ package select6
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -473,7 +474,7 @@ func Test_select6(t *testing.T) {
 		}
 	}
 	var _err_tcl string
-	_err_tcl = "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+	_err_tcl = "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
 	_ = _err_tcl // suppress unused warning
 	{ // "10.2"
 		r = db.Query("\n  SELECT * FROM (SELECT * FROM t), j;\n")
@@ -483,38 +484,38 @@ func Test_select6(t *testing.T) {
 	}
 	{ // "10.3"
 		_res = db.Exec("\n  SELECT * FROM t UNION ALL SELECT * FROM j\n")
-		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t UNION ALL SELECT * FROM j\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "\n  SELECT * FROM t UNION ALL SELECT * FROM j\n")
 		}
 	}
 	{ // "10.4"
 		_res = db.Exec("\n  SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)\n")
-		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "\n  SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)\n")
 		}
 	}
 	{ // "10.5"
 		_res = db.Exec("\n  SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)\n")
-		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "\n  SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)\n")
 		}
 	}
 	{ // "10.6"
 		_res = db.Exec("\n  SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)\n")
-		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "\n  SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)\n")
 		}
 	}
 	{ // "10.7"
 		_res = db.Exec("\n  SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )\n")
-		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "\n  SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )\n")
 		}
 	}
 	{ // "10.8"
 		_res = db.Exec("\n  SELECT * FROM (\n    SELECT * FROM k UNION ALL\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j \n  )\n")
-		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM (\n    SELECT * FROM k UNION ALL\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j \n  )\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _err_tcl) {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", _err_tcl, _res.Error, "\n  SELECT * FROM (\n    SELECT * FROM k UNION ALL\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j \n  )\n")
 		}
 	}
 	{ // "11.1"

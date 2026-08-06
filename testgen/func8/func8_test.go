@@ -54,6 +54,13 @@ func Test_func8(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
+	// db function cross (variable-reader, inlined)
+	// db function full (variable-reader, inlined)
+	// db function inner (variable-reader, inlined)
+	// db function left (variable-reader, inlined)
+	// db function natural (variable-reader, inlined)
+	// db function outer (variable-reader, inlined)
+	// db function right (variable-reader, inlined)
 	{ // "func8-100"
 		_res = db.Exec("\n  CREATE TABLE cross(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE full(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE inner(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE left(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE natural(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE outer(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE right(cross,full,inner,left,natural,outer,right);\n  INSERT INTO cross VALUES(1,2,3,4,5,6,7);\n  INSERT INTO full VALUES(1,2,3,4,5,6,7);\n  INSERT INTO inner VALUES(1,2,3,4,5,6,7);\n  INSERT INTO left VALUES(1,2,3,4,5,6,7);\n  INSERT INTO natural VALUES(1,2,3,4,5,6,7);\n  INSERT INTO outer VALUES(1,2,3,4,5,6,7);\n  INSERT INTO right VALUES(1,2,3,4,5,6,7);\n")
 		if _res.Error != nil {
