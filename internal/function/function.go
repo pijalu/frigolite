@@ -122,6 +122,11 @@ func (r *Registry) registerDefaults() {
 	//   - set_val(x) records x and returns it (alter2.test)
 	r.register(&Func{Name: "TRIGFUNC", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnTRIGFUNC})
 	r.register(&Func{Name: "SET_VAL", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnSETVAL})
+	// add_text_type/add_int_type/add_real_type force a value to a specific
+	// storage class (SQLite types3.test registers these via the TCL harness).
+	r.register(&Func{Name: "ADD_TEXT_TYPE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnAddTextType})
+	r.register(&Func{Name: "ADD_INT_TYPE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnAddIntType})
+	r.register(&Func{Name: "ADD_REAL_TYPE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnAddRealType})
 
 	// Date/time functions
 	r.register(&Func{Name: "DATE", Type: TypeScalar, MinArgs: 1, MaxArgs: 3, ScalarFn: fnDATE})
@@ -1647,6 +1652,100 @@ func fnSETVAL(args []interface{}) (interface{}, error) {
 		return nil, nil
 	}
 	return args[0], nil
+}
+
+// fnAddTextType forces its argument to the TEXT storage class
+// (sqlite3_value_text in the SQLite test harness). NULL passes through.
+func fnAddTextType(args []interface{}) (interface{}, error) {
+	v := args[0]
+	if v == nil {
+		return nil, nil
+	}
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
+	}
+	switch x := v.(type) {
+	case string:
+		return x, nil
+	case []byte:
+		return string(x), nil
+	case int64:
+		return strconv.FormatInt(x, 10), nil
+	case float64:
+		// SQLite renders whole-number REALs with a trailing .0.
+		s := strconv.FormatFloat(x, 'f', -1, 64)
+		if !strings.ContainsAny(s, ".eE") {
+			s += ".0"
+		}
+		return s, nil
+	default:
+		return fmt.Sprintf("%v", v), nil
+	}
+}
+
+// fnAddIntType forces its argument to the INTEGER storage class
+// (sqlite3_value_int64 in the SQLite test harness). NULL passes through.
+func fnAddIntType(args []interface{}) (interface{}, error) {
+	v := args[0]
+	if v == nil {
+		return nil, nil
+	}
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
+	}
+	switch x := v.(type) {
+	case int64:
+		return x, nil
+	case float64:
+		return int64(x), nil
+	case string:
+		t := strings.TrimSpace(x)
+		end := 0
+		if end < len(t) && (t[end] == '+' || t[end] == '-') {
+			end++
+		}
+		for end < len(t) && t[end] >= '0' && t[end] <= '9' {
+			end++
+		}
+		if end > 0 {
+			if i, err := strconv.ParseInt(t[:end], 10, 64); err == nil {
+				return i, nil
+			}
+			if t[0] == '-' {
+				return int64(math.MinInt64), nil
+			}
+			return int64(math.MaxInt64), nil
+		}
+		return int64(0), nil
+	default:
+		return int64(0), nil
+	}
+}
+
+// fnAddRealType forces its argument to the REAL storage class
+// (sqlite3_value_double in the SQLite test harness). NULL passes through.
+func fnAddRealType(args []interface{}) (interface{}, error) {
+	v := args[0]
+	if v == nil {
+		return nil, nil
+	}
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
+	}
+	switch x := v.(type) {
+	case float64:
+		return x, nil
+	case int64:
+		return float64(x), nil
+	case string:
+		t := strings.TrimSpace(x)
+		if f, err := strconv.ParseFloat(t, 64); err == nil {
+			return f, nil
+		}
+		return float64(0), nil
+	default:
+		return float64(0), nil
+	}
 }
 
 func fnREGEXP(args []interface{}) (interface{}, error) {

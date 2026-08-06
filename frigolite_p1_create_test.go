@@ -478,10 +478,10 @@ func TestP1CreateMultiPKOrdering(t *testing.T) {
 	}
 
 	// Insert out of order
-	db.Exec("INSERT INTO t VALUES('journal','sherman','ammonia','helena')")
-	db.Exec("INSERT INTO t VALUES('dynamic','juliet','flipper','command')")
-	db.Exec("INSERT INTO t VALUES('journal','sherman','gamma','patriot')")
-	db.Exec("INSERT INTO t VALUES('arctic','sleep','ammonia','helena')")
+	db.Exec("INSERT INTO t VALUES('journal','sherman','ammonia')")
+	db.Exec("INSERT INTO t VALUES('dynamic','juliet','flipper')")
+	db.Exec("INSERT INTO t VALUES('journal','sherman','gamma')")
+	db.Exec("INSERT INTO t VALUES('arctic','sleep','ammonia')")
 
 	// SELECT without ORDER BY should return in PK order: (ammonia,arctic), (ammonia,journal), (flipper,dynamic), (gamma,journal)
 	r := db.Query("SELECT a FROM t")

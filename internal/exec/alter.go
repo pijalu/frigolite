@@ -1439,11 +1439,6 @@ func isCTEReferencedInMain(sel *sql.SelectStmt, cteName string) bool {
 // string-regex issues with aliases, string literals, and partial matches.
 // Falls back to string-regex when the SQL cannot be parsed.
 func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
-	entries, err := e.schema.GetEntries("")
-	if err != nil {
-		return
-	}
-
 	// Always quote the new name with double quotes, matching SQLite's behavior
 	// in ALTER TABLE RENAME (the replacement text is always quoted).
 	quotedNew := `"` + newName + `"`
@@ -1452,6 +1447,22 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 		NewName:   newName,
 		QuotedNew: quotedNew,
 		IsTable:   true,
+	}
+
+	// Update related entries in EVERY attached database (main, temp, and any
+	// ATTACHed schema). The rename target's schema owns the entry, but child
+	// tables/views/triggers referencing it may live in any database.
+	for _, dbCtx := range e.databases {
+		e.renameUpdateRelatedEntriesInSchema(dbCtx.Schema, oldName, newName, quotedNew, ctx)
+	}
+}
+
+// renameUpdateRelatedEntriesInSchema applies the table rename to every schema
+// entry in one database's schema manager.
+func (e *Engine) renameUpdateRelatedEntriesInSchema(schemaMgr *schema.Manager, oldName, newName, quotedNew string, ctx *RenameContext) {
+	entries, err := schemaMgr.GetEntries("")
+	if err != nil {
+		return
 	}
 
 	for _, entry := range entries {
@@ -1479,8 +1490,8 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 				entry.TblName = newName
 				// Persist the TblName change to the schema even in legacy mode.
 				// GetEntries returns copies, so modifications are lost without saving.
-				_ = e.schema.RemoveEntry(entry.Name)
-				_ = e.schema.AddEntry(entry)
+				_ = schemaMgr.RemoveEntry(entry.Name)
+				_ = schemaMgr.AddEntry(entry)
 			}
 			if e.legacyAlterTable {
 				continue
@@ -1511,8 +1522,8 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 				newSQL = replaceTableNameInSQL(newSQL, oldName, newName)
 				if newSQL != entry.SQL {
 					entry.SQL = newSQL
-					_ = e.schema.RemoveEntry(entry.Name)
-					_ = e.schema.AddEntry(entry)
+					_ = schemaMgr.RemoveEntry(entry.Name)
+					_ = schemaMgr.AddEntry(entry)
 					continue
 				}
 			}
@@ -1522,8 +1533,8 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 		newSQL := replaceTableNameInSQL(entry.SQL, oldName, newName)
 		if newSQL != entry.SQL && newSQL != "" {
 			entry.SQL = newSQL
-			_ = e.schema.RemoveEntry(entry.Name)
-			_ = e.schema.AddEntry(entry)
+			_ = schemaMgr.RemoveEntry(entry.Name)
+			_ = schemaMgr.AddEntry(entry)
 		}
 	}
 }

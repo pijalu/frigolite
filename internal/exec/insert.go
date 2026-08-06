@@ -318,7 +318,7 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	}
 
 	// Enforce FOREIGN KEY constraints (only when PRAGMA foreign_keys is ON).
-	if res := e.checkForeignKeyViolations(tableEntry, colDefs, values); res.Error != nil {
+	if res := e.checkForeignKeyViolations(tableEntry, colDefs, values, 0); res.Error != nil {
 		return res
 	}
 
@@ -1033,7 +1033,7 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 	updated := e.buildUpdatedRow(colDefs, colIndex, existingValues, values, oc)
 
 	// Enforce FOREIGN KEY constraints on the updated row.
-	if res := e.checkForeignKeyViolations(tableEntry, colDefs, updated); res.Error != nil {
+	if res := e.checkForeignKeyViolations(tableEntry, colDefs, updated, 0); res.Error != nil {
 		return res
 	}
 

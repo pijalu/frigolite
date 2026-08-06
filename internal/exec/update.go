@@ -71,7 +71,9 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	// Enforce FOREIGN KEY constraints on the new values (PRAGMA foreign_keys).
 	if e.foreignKeys {
 		for _, ch := range changes {
-			if res := e.checkForeignKeyViolations(tableEntry, colDefs, ch.values); res.Error != nil {
+			// Pass ch.rowID so a self-referential FK does not count the row's
+			// own OLD key value as a valid parent for the NEW child value.
+			if res := e.checkForeignKeyViolations(tableEntry, colDefs, ch.values, ch.rowID); res.Error != nil {
 				return res
 			}
 		}
@@ -630,7 +632,7 @@ func (e *Engine) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.Colum
 		// constraint (child direction: the new child value has no parent;
 		// parent direction: a child references the old key value).
 		if e.foreignKeys {
-			if res := e.checkForeignKeyViolations(tableEntry, colDefs, ch.values); res.Error != nil {
+			if res := e.checkForeignKeyViolations(tableEntry, colDefs, ch.values, ch.rowID); res.Error != nil {
 				continue
 			}
 			oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
@@ -919,7 +921,7 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 		// value that orphans a child (or a child value with no parent) is an
 		// error, matching SQLite.
 		if e.foreignKeys {
-			if res := e.checkForeignKeyViolations(tableEntry, colDefs, c.values); res.Error != nil {
+			if res := e.checkForeignKeyViolations(tableEntry, colDefs, c.values, c.rowID); res.Error != nil {
 				e.pager.Restore(snap)
 				e.invalidateRowIDCache(tableEntry.RootPage)
 				return res

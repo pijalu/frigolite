@@ -3865,12 +3865,17 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 				// Fast path: copy values into pre-allocated flat slice
 				outRowStarts = append(outRowStarts, len(outValues))
 				if affinityCols != nil {
-					// Need to unwrap ColumnValue wrappers
+					// Need to unwrap ColumnValue and collatedValue wrappers so
+					// internal comparison metadata never leaks into the output.
+					// (fillStructRowFromTypes wraps a column that has both an
+					// affinity and a declared collation as collatedValue around
+					// a ColumnValue; UnwrapColumnValue alone would leave the
+					// collatedValue pointer visible.)
 					for i, cd := range colDefs {
 						if cd.Dropped {
 							continue
 						}
-						outValues = append(outValues, util.UnwrapColumnValue(reuseSRow.values[i]))
+						outValues = append(outValues, util.UnwrapColumnValue(unwrapCollatedValue(reuseSRow.values[i])))
 					}
 				} else {
 					// No affinity wrappers — values are already raw

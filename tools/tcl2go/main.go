@@ -611,6 +611,33 @@ func tclExecSQL(db *frigolite.DB, sql string) string {
 	return strings.Join(parts, " ")
 }
 
+// tclCatchsqlMatches checks a catchsql result against a TCL do_test expected
+// list of the form "{count message}" (e.g. "1 {FOREIGN KEY constraint failed}"
+// or "0 {}"). count "0" means the statement must succeed; count "1" means it
+// must fail with an error whose text contains message (the braced message).
+func tclCatchsqlMatches(res *frigolite.Result, expected string) bool {
+	e := strings.TrimSpace(expected)
+	if e == "" {
+		return res.Error == nil
+	}
+	sp := strings.Index(e, " ")
+	count := e
+	msg := ""
+	if sp >= 0 {
+		count = e[:sp]
+		msg = strings.TrimSpace(e[sp+1:])
+		msg = strings.Trim(msg, "{}")
+		msg = strings.TrimSpace(msg)
+	}
+	switch count {
+	case "0":
+		return res.Error == nil
+	case "1":
+		return res.Error != nil && strings.Contains(res.Error.Error(), msg)
+	}
+	return false
+}
+
 // tclExprWith evaluates a TCL expression with $var values supplied at runtime.
 // The expr string may contain $name references; vars maps each name to its
 // current Go string value. Used by [expr $var + ...] calls where the variable

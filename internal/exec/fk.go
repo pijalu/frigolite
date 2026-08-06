@@ -274,7 +274,13 @@ func (e *Engine) fkParentAction(parentTable *schema.Entry, parentColDefs []sql.C
 			if err != nil || rec == nil {
 				break
 			}
-			if cell.RowID == skipRowID {
+			// skipRowID identifies the parent row being updated/deleted. It is
+			// only meaningful for self-referential FKs (child == parent table),
+			// where that row appears in the child scan. For normal FKs the
+			// parent rowid may coincide with a child rowid (both start at 1,
+			// especially on WITHOUT ROWID tables), so it must not skip child
+			// rows.
+			if strings.EqualFold(childEntry.Name, parentTable.Name) && cell.RowID == skipRowID {
 				ok, err := cursor.Next()
 				if err != nil || !ok {
 					break
@@ -640,8 +646,10 @@ func (e *Engine) fkParentPKColumns(parentEntry *schema.Entry, parentColDefs []sq
 // checkForeignKeyViolations verifies that every non-NULL column value with a
 // FOREIGN KEY clause references an existing parent row. It is only enforced
 // when PRAGMA foreign_keys is ON. Returns an error describing the first
-// violation.
-func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) *Result {
+// violation. excludeRowID is the rowid of the row being updated (for
+// self-referential FKs the row's OLD key value would otherwise falsely
+// satisfy the parent lookup); pass 0 for INSERT.
+func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, excludeRowID int64) *Result {
 	if !e.foreignKeys {
 		return &Result{}
 	}
@@ -666,6 +674,10 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 			if parentEntry, _, err := e.findTable(parentTableName); err == nil {
 				pcd := e.parseColumnDefs(parentEntry.Name, parentEntry.SQL)
 				parentCol = e.fkParentPKColumn(parentEntry, pcd)
+			} else {
+				// SQLite raises "no such table: main.X" at prepare time when an
+				// FK references a missing parent table and foreign_keys is ON.
+				return &Result{Error: fmt.Errorf("no such table: main.%s", parentTableName)}
 			}
 		}
 		if i >= len(values) || values[i] == nil {
@@ -689,13 +701,17 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 
 		parentEntry, _, err := e.findTable(parentTableName)
 		if err != nil {
-			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+			// SQLite raises "no such table: main.X" at prepare time when an
+			// FK references a missing parent table and foreign_keys is ON.
+			return &Result{Error: fmt.Errorf("no such table: main.%s", parentTableName)}
 		}
 		parentColDefs := e.parseColumnDefs(parentEntry.Name, parentEntry.SQL)
 		parentIndex := buildColumnIndex(parentColDefs)
 		parentIdx, ok := parentIndex[parentCol]
 		if !ok {
-			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+			// The referenced parent column does not exist — SQLite reports a
+			// foreign key mismatch naming the child and parent tables.
+			return &Result{Error: fmt.Errorf("foreign key mismatch - %q referencing %q", tableEntry.Name, parentTableName)}
 		}
 		// The FK comparison applies the parent column's affinity to the child
 		// value (e.g. '35.0' matches an INTEGER parent key 35) and compares
@@ -716,6 +732,13 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 			rec, err := storage.DecodeRecord(cell.Payload)
 			if err != nil || rec == nil {
 				break
+			}
+			if cell.RowID == excludeRowID {
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+				continue
 			}
 			if parentIdx < len(rec.Values) && rec.Values[parentIdx] != nil && util.CompareValuesCollate(rec.Values[parentIdx], val, parentColDef.Collate) == 0 {
 				found = true
@@ -757,7 +780,7 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 		}
 		parentEntry, err := e.schema.FindTable(tc.RefTable)
 		if err != nil {
-			return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+			return &Result{Error: fmt.Errorf("no such table: main.%s", tc.RefTable)}
 		}
 		parentColDefs := e.parseColumnDefs(parentEntry.Name, parentEntry.SQL)
 		parentIndex := buildColumnIndex(parentColDefs)
@@ -783,7 +806,7 @@ func (e *Engine) checkForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 			}
 			parentIdx, ok := parentIndex[parentCol]
 			if !ok || parentIdx < 0 || parentIdx >= len(parentColDefs) {
-				return &Result{Error: fmt.Errorf("FOREIGN KEY constraint failed")}
+				return &Result{Error: fmt.Errorf("foreign key mismatch - %q referencing %q", tableEntry.Name, tc.RefTable)}
 			}
 			parentDefs = append(parentDefs, parentColDefs[parentIdx])
 		}

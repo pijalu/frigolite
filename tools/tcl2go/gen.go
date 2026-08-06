@@ -2470,11 +2470,21 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		tp.dbVarFuncs = bodyTP.dbVarFuncs
 		// A multi-command body whose expected value is a variable holding an
 		// error message (e.g. foreach $error in "13.2.$tn.1"): the last
-		// statement must fail with that message.
+		// statement must fail with that message. When the body is a catchsql
+		// command, the expected value is a TCL {count message} list (e.g.
+		// "1 {FOREIGN KEY constraint failed}" or "0 {}"), so use the
+		// count-aware runtime comparison.
+		bodyIsCatchsql := len(bodyCmds) == 1 && len(bodyCmds[0]) >= 1 && bodyCmds[0][0].Text == "catchsql"
 		if isBareGoIdent(expectedExpr) {
-			tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
-			tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  body: do_test %%s\", %s, _res.Error, %s)", expectedExpr, nameExpr)
-			tp.emitLine("}")
+			if bodyIsCatchsql {
+				tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", expectedExpr)
+				tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  body: do_test %%s\", _res.Error, %s, %s)", expectedExpr, nameExpr)
+				tp.emitLine("}")
+			} else {
+				tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
+				tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  body: do_test %%s\", %s, _res.Error, %s)", expectedExpr, nameExpr)
+				tp.emitLine("}")
+			}
 		}
 	} else {
 		// String-bodied do_test: the body is a TCL script string, most
