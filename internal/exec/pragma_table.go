@@ -51,6 +51,10 @@ func (e *Engine) materializePragmaTable(ref sql.TableRef) ([]sql.ColumnDef, [][]
 		return e.materializeTableInfo(ref)
 	case "table_list":
 		return e.materializeTableList(ref)
+	case "cache_size":
+		// pragma_cache_size is a table-valued form of PRAGMA cache_size:
+		// a single row with the setting value.
+		return []sql.ColumnDef{{Name: "cache_size"}}, [][]interface{}{{int64(2000)}}, nil
 	default:
 		return nil, nil, fmt.Errorf("no such table-valued pragma: %s", ref.Name)
 	}

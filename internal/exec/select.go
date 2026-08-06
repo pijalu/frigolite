@@ -1213,6 +1213,9 @@ func (e *Engine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []sql.Col
 				rowMap[colDefs[j].Name] = val
 			}
 		}
+		// Materialized tables (subquery-in-FROM, pragma table-valued
+		// functions) have implicit rowids 1..N, like SQLite.
+		rowMap["rowid"] = int64(i + 1)
 		allRowMaps[i] = rowMap
 	}
 
