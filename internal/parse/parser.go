@@ -1934,24 +1934,33 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			Where:       getExpr(getRHS(p, ruleNo, 8)),
 		}
 
-	// Rule 275: trigger_cmd ::= with insert_cmd INTO nm idlist_opt select
-	case 275:
-		cmd := getString(getRHS(p, ruleNo, 2))
-		table := getString(getRHS(p, ruleNo, 4))
-		columns := getStringList(getRHS(p, ruleNo, 5))
-		sel := getSelectStmt(getRHS(p, ruleNo, 6))
-		var values [][]sql.Expr
-		if sel != nil && sel.ValuesChain {
-			values = valuesFromSelect(sel)
-			sel = nil
-		}
-		return &sql.InsertStmt{
-			Table:     table,
-			Columns:   columns,
-			Values:    values,
-			Select:    sel,
-			IsReplace: strings.EqualFold(cmd, "REPLACE"),
-		}
+	// Rule 275: trigger_cmd ::= with insert_cmd INTO nm idlist_opt select upsert
+		case 275:
+			cmd := getString(getRHS(p, ruleNo, 2))
+			table := getString(getRHS(p, ruleNo, 4))
+			columns := getStringList(getRHS(p, ruleNo, 5))
+			sel := getSelectStmt(getRHS(p, ruleNo, 6))
+			var values [][]sql.Expr
+			if sel != nil && sel.ValuesChain {
+				values = valuesFromSelect(sel)
+				sel = nil
+			}
+			stmt := &sql.InsertStmt{
+				Table:     table,
+				Columns:   columns,
+				Values:    values,
+				Select:    sel,
+				IsReplace: strings.EqualFold(cmd, "REPLACE"),
+			}
+			// The upsert nonterminal (RHS 7) carries an ON CONFLICT clause.
+			if uv := getUpsertVal(getRHS(p, ruleNo, 7)); uv != nil {
+				stmt.OnConflict = uv.onConflict
+				if len(uv.returning) > 0 {
+					stmt.HasReturning = true
+					stmt.Returning = foldReturning(uv.returning)
+				}
+			}
+			return stmt
 
 	// Rule 276: trigger_cmd ::= DELETE FROM xfullname tridxby where_opt scanpt
 	case 276:

@@ -452,12 +452,18 @@ parenLoop:
 			// original token's quoting style, e.g. "b" → "d").
 			quoteNew := sqlNameNeedsQuoting(newName)
 			wasQuoted := strings.HasPrefix(trimmed, `"`+colName+`"`)
+			wasSingleQuoted := strings.HasPrefix(trimmed, `'`+colName+`'`)
 			newToken := newName
-			if quoteNew || wasQuoted {
+			if quoteNew || wasQuoted || wasSingleQuoted {
 				newToken = `"` + newName + `"`
 			}
 			if wasQuoted {
 				parts[i] = leadWS + strings.Replace(trimmed, `"`+colName+`"`, newToken, 1)
+			} else if wasSingleQuoted {
+				// A DQS single-quoted identifier ('a'"b") is rewritten to the
+				// double-quoted new name followed by the rest (SQLite emits
+				// "x" "b" with a space separating the tokens).
+				parts[i] = leadWS + newToken + " " + strings.TrimSpace(trimmed[len(colName)+2:])
 			} else {
 				// For unquoted names, replace the first word
 				spaceIdx := strings.IndexAny(trimmed, " (\"")
@@ -539,6 +545,14 @@ func extractColumnName(def string) string {
 	// Handle backtick-quoted identifiers `name`
 	if def[0] == '`' {
 		end := strings.Index(def[1:], "`")
+		if end >= 0 {
+			return def[1 : 1+end]
+		}
+	}
+	// Handle single-quoted identifiers 'name' (DQS: SQLite accepts a string
+	// literal as an identifier in column definitions, e.g. 'a'"b").
+	if def[0] == '\'' {
+		end := strings.Index(def[1:], "'")
 		if end >= 0 {
 			return def[1 : 1+end]
 		}
@@ -938,6 +952,49 @@ func (e *Engine) checkTriggerColRefs(entry *schema.Entry) error {
 			return fmt.Errorf("error in trigger %s: no such column: %s", entry.Name, ref.Name)
 		}
 	}
+	// Validate ON CONFLICT conflict-target columns against the INSERT target
+	// table (not the ON table — the conflict target belongs to the table the
+	// INSERT writes into).
+	if err := e.checkTriggerConflictCols(entry); err != nil {
+		return err
+	}
+	return nil
+}
+
+// checkTriggerConflictCols validates ON CONFLICT (...) target columns in a
+// trigger's INSERT statements against the INSERT target table's columns.
+func (e *Engine) checkTriggerConflictCols(entry *schema.Entry) error {
+	stmts, perr := parse.ParseSQL(entry.SQL)
+	if perr != nil || len(stmts) == 0 {
+		return nil
+	}
+	for _, stmt := range stmts {
+		trig, ok := stmt.(*sql.CreateTriggerStmt)
+		if !ok {
+			continue
+		}
+		for _, bodyStmt := range trig.Statements {
+			ins, ok := bodyStmt.(*sql.InsertStmt)
+			if !ok || ins.OnConflict == nil || ins.OnConflict.ConflictColumn == "" {
+				continue
+			}
+			targetEntry, err := e.schema.FindTable(ins.Table)
+			if err != nil {
+				continue
+			}
+			targetCols := e.parseColumnDefs(targetEntry.Name, targetEntry.SQL)
+			found := false
+			for _, c := range targetCols {
+				if strings.EqualFold(c.Name, ins.OnConflict.ConflictColumn) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return fmt.Errorf("error in trigger %s: no such column: %s", entry.Name, ins.OnConflict.ConflictColumn)
+			}
+		}
+	}
 	return nil
 }
 
@@ -976,6 +1033,16 @@ func collectTriggerColRefs(stmt sql.Stmt, refs *[]*sql.ColumnRef, inSubquery boo
 	case *sql.InsertStmt:
 		if s.Select != nil {
 			collectSelectTriggerColRefs(s.Select, refs, true) // INSERT ... SELECT is a subquery
+		}
+		// ON CONFLICT ... DO UPDATE SET assignments and WHERE can reference
+		// columns of the conflict target table.
+		if s.OnConflict != nil {
+			for _, a := range s.OnConflict.Assignments {
+				collectExprTriggerColRefs(a.Value, refs, false)
+			}
+			if s.OnConflict.Where != nil {
+				collectExprTriggerColRefs(s.OnConflict.Where, refs, false)
+			}
 		}
 	case *sql.UpdateStmt:
 		// UPDATE SET values can reference columns from the FROM clause
@@ -1453,6 +1520,22 @@ func replaceTableNameInSQL(sql, oldName, newName string) string {
 //   - A CHECK constraint is evaluated against every existing row; if any row
 //     makes it false the add fails with "CHECK constraint failed".
 func (e *Engine) validateAddColumnConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, newCol sql.ColumnDef) *Result {
+	// SQLite: "Cannot add a REFERENCES column with non-NULL default value" —
+	// a column with a REFERENCES clause may not have a non-NULL constant
+	// default (the FK would be ambiguous for existing rows).
+	if newCol.References != "" && e.foreignKeys {
+		if newCol.Default != nil {
+			// DEFAULT NULL is allowed; any other non-NULL constant is not.
+			defVal, derr := e.evalColumnExpr(newCol)
+			if derr == nil && defVal != nil {
+				if s, ok := defVal.(string); ok && strings.EqualFold(strings.Trim(s, `'"`), "NULL") {
+					// NULL literal
+				} else {
+					return &Result{Error: fmt.Errorf("Cannot add a REFERENCES column with non-NULL default value")}
+				}
+			}
+		}
+	}
 	if newCol.Check == nil && !newCol.NotNull {
 		return &Result{}
 	}
