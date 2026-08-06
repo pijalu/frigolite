@@ -63,6 +63,12 @@ func (r *Registry) register(f *Func) {
 	r.funcs[strings.ToUpper(f.Name)] = f
 }
 
+// Register adds a scalar function to the registry (used for engine-specific
+// functions like SQLite's internal sqlite_rename_quotefix).
+func (r *Registry) Register(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int) {
+	r.register(&Func{Name: name, Type: TypeScalar, MinArgs: minArgs, MaxArgs: maxArgs, ScalarFn: fn})
+}
+
 func (r *Registry) registerDefaults() {
 	// Aggregate functions
 	r.register(&Func{Name: "COUNT", Type: TypeAggregate, MinArgs: 0, MaxArgs: 1, AggregateFn: func() Aggregator { return &countAgg{} }})

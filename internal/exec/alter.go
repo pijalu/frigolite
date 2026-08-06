@@ -2750,6 +2750,211 @@ func isIdentByte(b byte) bool {
 		(b >= '0' && b <= '9') || b == '_'
 }
 
+// quoteFixWithSchema rewrites non-column double-quoted tokens in a schema
+// object's SQL to single-quoted string literals, resolving valid-identifier
+// tokens against the referenced table's columns (SQLite's
+// sqlite_rename_quotefix behavior: "a" stays an identifier when a is a
+// column of the table, otherwise it becomes the string 'a').
+func (e *Engine) quoteFixWithSchema(schemaName, sqlStr string) string {
+	if sqlStr == "" {
+		return ""
+	}
+	// Determine the main table name from the SQL (CREATE TABLE x, CREATE
+	// INDEX ... ON x, CREATE TRIGGER ... ON x, SELECT ... FROM x).
+	tableName := mainTableFromSchemaSQL(sqlStr)
+	var colSet map[string]bool
+	if tableName != "" {
+		if entry, _, err := e.findTable(tableName); err == nil {
+			colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+			colSet = make(map[string]bool)
+			for _, cd := range colDefs {
+				colSet[strings.ToUpper(cd.Name)] = true
+			}
+		} else if strings.HasPrefix(strings.ToUpper(strings.TrimSpace(sqlStr)), "CREATE TABLE") {
+			// The table is being created: its columns are in the statement
+			// itself, so use them for identifier resolution.
+			if cols := createTableColumnNames(sqlStr); len(cols) > 0 {
+				colSet = make(map[string]bool)
+				for _, c := range cols {
+					colSet[strings.ToUpper(c)] = true
+				}
+			}
+		}
+	}
+	return quoteFixSQLWithColumns(sqlStr, colSet)
+}
+
+// createTableColumnNames extracts the bare column names from a CREATE TABLE
+// statement's parenthesized column list.
+func createTableColumnNames(sqlStr string) []string {
+	open := strings.Index(sqlStr, "(")
+	if open < 0 {
+		return nil
+	}
+	depth := 0
+	end := -1
+	for i := open; i < len(sqlStr); i++ {
+		switch sqlStr[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				end = i
+				i = len(sqlStr)
+			}
+		}
+	}
+	if end < 0 {
+		return nil
+	}
+	inner := sqlStr[open+1 : end]
+	var cols []string
+	for _, part := range strings.Split(inner, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		// First token is the column name (strip quotes).
+		name := part
+		if idx := strings.IndexAny(part, " \t\n"); idx > 0 {
+			name = part[:idx]
+		}
+		name = strings.Trim(name, "\"`")
+		if name != "" && !strings.Contains(strings.ToUpper(name), "PRIMARY") &&
+			!strings.Contains(strings.ToUpper(name), "UNIQUE") &&
+			!strings.Contains(strings.ToUpper(name), "CHECK") &&
+			!strings.Contains(strings.ToUpper(name), "FOREIGN") &&
+			!strings.Contains(strings.ToUpper(name), "CONSTRAINT") {
+			cols = append(cols, name)
+		}
+	}
+	return cols
+}
+
+// mainTableFromSchemaSQL extracts the primary table name referenced by a
+// schema-object CREATE statement (the table being created / indexed /
+// triggered on).
+func mainTableFromSchemaSQL(sqlStr string) string {
+	upper := strings.ToUpper(strings.TrimSpace(sqlStr))
+	switch {
+	case strings.HasPrefix(upper, "CREATE TABLE") || strings.HasPrefix(upper, "CREATE TEMP TABLE"):
+		// Table name after CREATE TABLE (skip TEMP/TEMPORARY).
+		re := regexp.MustCompile(`(?i)^CREATE\s+(?:TEMP|TEMPORARY\s+)?TABLE\s+([A-Za-z_][A-Za-z0-9_$]*)`)
+		if m := re.FindStringSubmatch(upper); len(m) > 1 {
+			return m[1]
+		}
+	case strings.HasPrefix(upper, "CREATE INDEX") || strings.HasPrefix(upper, "CREATE UNIQUE INDEX"):
+		re := regexp.MustCompile(`(?i)ON\s+([A-Za-z_][A-Za-z0-9_$]*)`)
+		if m := re.FindStringSubmatch(upper); len(m) > 1 {
+			return m[1]
+		}
+	case strings.HasPrefix(upper, "CREATE TRIGGER") || strings.HasPrefix(upper, "CREATE TEMP TRIGGER"):
+		re := regexp.MustCompile(`(?i)ON\s+([A-Za-z_][A-Za-z0-9_$]*)`)
+		if m := re.FindStringSubmatch(upper); len(m) > 1 {
+			return m[1]
+		}
+	case strings.HasPrefix(upper, "CREATE VIEW"):
+		// View body references the table in its FROM clause.
+		re := regexp.MustCompile(`(?i)\bFROM\s+([A-Za-z_][A-Za-z0-9_$]*)`)
+		if m := re.FindStringSubmatch(upper); len(m) > 1 {
+			return m[1]
+		}
+	}
+	return ""
+}
+
+// quoteFixSQLWithColumns rewrites double-quoted tokens: tokens that are not
+// valid identifiers, or that are valid identifiers but NOT columns of the
+// referenced table (when colSet is non-nil), become single-quoted strings.
+func quoteFixSQLWithColumns(sqlStr string, colSet map[string]bool) string {
+	var b strings.Builder
+	b.Grow(len(sqlStr))
+	for i := 0; i < len(sqlStr); i++ {
+		ch := sqlStr[i]
+		if ch != '"' {
+			b.WriteByte(ch)
+			continue
+		}
+		// Find the closing double quote, treating "" as an escaped quote
+		// (SQLite's double-quoted string escaping).
+		end := i + 1
+		for end < len(sqlStr) {
+			if sqlStr[end] == '"' {
+				if end+1 < len(sqlStr) && sqlStr[end+1] == '"' {
+					end += 2
+					continue
+				}
+				break
+			}
+			end++
+		}
+		if end >= len(sqlStr) {
+			b.WriteString(sqlStr[i:])
+			break
+		}
+		content := sqlStr[i+1 : end]
+		content = strings.ReplaceAll(content, "\"\"", "\"")
+		// Keep as identifier when it is a valid identifier AND (no column
+		// set to consult, or it names one of the table's columns).
+		if isSQLIdentifier(content) && (colSet == nil || colSet[strings.ToUpper(content)]) {
+			b.WriteString(sqlStr[i : end+1])
+		} else {
+			b.WriteByte('\'')
+			b.WriteString(strings.ReplaceAll(content, "'", "''"))
+			b.WriteByte('\'')
+			// Adjacent tokens (e.g. 'string''alias' from "string"'alias')
+			// need a space separator (SQLite emits 'string' 'alias').
+			if end+1 < len(sqlStr) && (sqlStr[end+1] == '\'' || sqlStr[end+1] == '"') {
+				b.WriteByte(' ')
+			}
+		}
+		i = end
+	}
+	return b.String()
+}
+
+// fnSQLiteRenameQuoteFix implements SQLite's internal sqlite_rename_quotefix
+// function used by ALTER TABLE RENAME machinery: it rewrites double-quoted
+// tokens that are NOT valid identifiers (e.g. "notacolumn!", "a;b") into
+// single-quoted string literals, leaving genuine double-quoted identifiers
+// ("a", "b") untouched. Single quotes inside converted strings are doubled.
+// The first argument (schema name) is ignored — the function only rewrites
+// the SQL text.
+func fnSQLiteRenameQuoteFix(args []interface{}) (interface{}, error) {
+	if len(args) < 2 || args[1] == nil {
+		return "", nil
+	}
+	sqlStr, ok := args[1].(string)
+	if !ok {
+		return "", nil
+	}
+	return quoteFixSQL(sqlStr), nil
+}
+
+// quoteFixSQL rewrites non-identifier double-quoted tokens to single-quoted
+// string literals, preserving everything else verbatim.
+func quoteFixSQL(sqlStr string) string {
+	return quoteFixSQLWithColumns(sqlStr, nil)
+}
+
+// isSQLIdentifier reports whether s is a valid unquoted SQL identifier
+// (letter or underscore first, then letters/digits/underscores).
+func isSQLIdentifier(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' ||
+			(i > 0 && c >= '0' && c <= '9') {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
 // vtabModuleName extracts the module name from a virtual table CREATE
 // statement ("CREATE VIRTUAL TABLE e1 USING echo(x1)" → "echo").
 func vtabModuleName(sqlStr string) string {

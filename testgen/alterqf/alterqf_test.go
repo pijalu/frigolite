@@ -62,8 +62,8 @@ func Test_alterqf(t *testing.T) {
 	testprefix = "alterqf"
 	_ = testprefix // suppress unused warning
 	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+	db.SetDQS(true, true)
+	db.SetDQS(true, true)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
 		if _res.Error != nil {
@@ -87,7 +87,7 @@ func Test_alterqf(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list $after"
+				want := tclListFlatten(after)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -96,8 +96,8 @@ func Test_alterqf(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
-		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+		db.SetDQS(true, true)
+		db.SetDQS(true, true)
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n")
 			if _res.Error != nil {
@@ -111,7 +111,7 @@ func Test_alterqf(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE x1(\n      one, \"four\", three, PRIMARY KEY(one), \n      CHECK (three!='xyz'), CHECK (\"four\"!=\"one\")\n  ) WITHOUT ROWID}\n  {CREATE INDEX x1i ON x1(one+\"four\"+'four') WHERE 'five'}\n  {CREATE TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET \"four\"=new.three || 'new' WHERE one=new.one||'';\n  END}\n"
+			want := "CREATE TABLE x1(\n      one, \"four\", three, PRIMARY KEY(one), \n      CHECK (three!='xyz'), CHECK (\"four\"!=\"one\")\n  ) WITHOUT ROWID CREATE INDEX x1i ON x1(one+\"four\"+'four') WHERE 'five' CREATE TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET \"four\"=new.three || 'new' WHERE one=new.one||'';\n  END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

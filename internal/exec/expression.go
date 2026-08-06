@@ -1562,6 +1562,18 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 	}
 
 	if fn.Type == function.TypeScalar {
+		// sqlite_rename_quotefix needs schema access (it resolves double-quoted
+		// tokens against table columns); route it through the engine.
+		if strings.EqualFold(f.Name, "sqlite_rename_quotefix") && len(args) >= 2 {
+			if sqlStr, ok := args[1].(string); ok {
+				schemaName := ""
+				if len(args) >= 1 && args[0] != nil {
+					schemaName, _ = args[0].(string)
+				}
+				return e.quoteFixWithSchema(schemaName, sqlStr), nil
+			}
+			return "", nil
+		}
 		return fn.ScalarFn(args)
 	}
 

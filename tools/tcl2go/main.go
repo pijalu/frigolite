@@ -311,6 +311,13 @@ func tclList(items []string) string {
 // that is not a braced list is returned unchanged (collapsing whitespace).
 func tclListFlatten(s string) string {
 	if !strings.Contains(s, "{") && !strings.Contains(s, "}") {
+		// A value with no list braces is either a single scalar (preserve it
+		// verbatim, including any internal newlines — SQL text) or a bare
+		// multi-field word (collapse runs of spaces). Preserve newlines since
+		// the query result's flatten() keeps SQL cell text intact.
+		if strings.Contains(s, "\n") {
+			return s
+		}
 		return strings.Join(strings.Fields(s), " ")
 	}
 	var elems []string

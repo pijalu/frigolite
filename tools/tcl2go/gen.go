@@ -1804,6 +1804,14 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 	if len(args) >= 3 {
 		expectedExpr = tp.goStringLiteral(normalizeExpectedWord(args[2]))
 	}
+	// TCL "[list $var]" expected values render as the runtime list variable
+	// (the list command wraps the value in list syntax; flatten() of the
+	// query result produces the same space-joined form).
+	if len(args) >= 3 {
+		if varExpr, ok := tp.listVarExpected(args[2].Text); ok {
+			expectedExpr = varExpr
+		}
+	}
 
 	// Determine query vs exec
 	sql := ""
@@ -1961,6 +1969,24 @@ func extractExpectedErrorFromLiteral(expected string) string {
 	msg := strings.TrimSpace(raw[2:])
 	msg = strings.Trim(msg, "{}")
 	return strings.TrimSpace(msg)
+}
+
+// listVarExpected detects the TCL "[list $var]" expected-value form used by
+// do_execsql_test / do_test (e.g. [list $after] where $after is a foreach
+// list variable). It returns the Go variable expression for the runtime
+// value, or ("", false) when the form does not match.
+func (tp *transpiler) listVarExpected(rawText string) (string, bool) {
+	text := strings.TrimSpace(rawText)
+	if !strings.HasPrefix(text, "[list ") || !strings.HasSuffix(text, "]") {
+		return "", false
+	}
+	inner := strings.TrimSpace(text[len("[list "):len(text)-1])
+	if inner == "" || !strings.HasPrefix(inner, "$") {
+		return "", false
+	}
+	// Render the $var as the Go variable expression.
+	expr := tp.buildStringExpr(inner)
+	return expr, true
 }
 
 // listExpectedErrorMsg detects the TCL "[list 1 <msg>]" form used as a
@@ -4408,6 +4434,11 @@ func tclListAppend(list string, items ...string) string {
 // that is not a braced list is returned unchanged.
 func tclListFlatten(s string) string {
 	if !strings.Contains(s, "{") && !strings.Contains(s, "}") {
+		// Preserve values with embedded newlines (SQL text); collapse only
+		// space-separated bare words.
+		if strings.Contains(s, "\n") {
+			return s
+		}
 		return strings.Join(strings.Fields(s), " ")
 	}
 	// Walk the string, splitting at top-level whitespace while treating

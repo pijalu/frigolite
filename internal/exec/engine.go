@@ -546,6 +546,8 @@ func NewEngine(pg *pager.Pager) *Engine {
 	e.vtabs.Register("fts3", ftsMod)
 	e.vtabs.Register("fts4", fts.NewFTS3Module("fts4"))
 	e.vtabs.Register("fts5", fts.NewFTS3Module("fts5"))
+	// SQLite-internal functions used by ALTER TABLE machinery.
+	e.funcs.Register("sqlite_rename_quotefix", fnSQLiteRenameQuoteFix, 2, 2)
 	return e
 }
 
