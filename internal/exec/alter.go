@@ -2060,6 +2060,57 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	return &Result{}
 }
 
+// removeLeadingConstraintClause removes the first CONSTRAINT <name> clause
+// from a constraint-chain fragment and returns what follows (e.g. from
+// "abc CONSTRAINT one CHECK(a!=b) CONSTRAINT three" it returns
+// "CONSTRAINT one CHECK(a!=b) CONSTRAINT three").
+func removeLeadingConstraintClause(rest, constraintName, quotedName, upperName, upperQuotedName string) string {
+	tailUpper := strings.ToUpper(rest)
+	nameEnd := 0
+	if strings.HasPrefix(tailUpper, upperQuotedName) {
+		nameEnd = len(quotedName)
+	} else if strings.HasPrefix(tailUpper, upperName) {
+		nameEnd = len(constraintName)
+	}
+	i := nameEnd
+	// Skip whitespace after the name.
+	for i < len(rest) && (rest[i] == ' ' || rest[i] == '\t') {
+		i++
+	}
+	// If the next token is CONSTRAINT, the removed clause had no type keyword
+	// (bare "CONSTRAINT abc" in a chain) — the remainder starts here.
+	if strings.HasPrefix(strings.ToUpper(rest[i:]), "CONSTRAINT") {
+		return strings.TrimSpace(rest[i:])
+	}
+	// The next token is the constraint type keyword (CHECK, UNIQUE, ...).
+	// Skip it.
+	for i < len(rest) && rest[i] != ' ' && rest[i] != '(' {
+		i++
+	}
+	// Skip whitespace, then the parenthesized expression (CHECK(...)).
+	for i < len(rest) && (rest[i] == ' ' || rest[i] == '\t') {
+		i++
+	}
+	if i < len(rest) && rest[i] == '(' {
+		pdepth := 0
+		for i < len(rest) {
+			if rest[i] == '(' {
+				pdepth++
+			} else if rest[i] == ')' {
+				pdepth--
+				if pdepth == 0 {
+					i++
+					break
+				}
+			}
+			i++
+		}
+	}
+	// Everything after the removed clause is the remainder (a following
+	// CONSTRAINT <name> ... chain or end of the part).
+	return strings.TrimSpace(rest[i:])
+}
+
 // sqlHasConstraintName reports whether a CREATE TABLE SQL contains a named
 // table-level or column-level constraint. Used to reject DROP CONSTRAINT for
 // a non-existent name.
@@ -2147,7 +2198,13 @@ parenLoop2:
 			rest := strings.TrimSpace(part[11:]) // after "CONSTRAINT "
 			restUpper := strings.ToUpper(rest)
 			if strings.HasPrefix(restUpper, upperName) || strings.HasPrefix(restUpper, upperQuotedName) {
-				// This is the constraint to drop - skip it entirely
+				// This is the constraint to drop. Remove the matched CONSTRAINT
+				// clause but keep any CONSTRAINT clauses that follow in the same
+				// comma-separated part (e.g. "CONSTRAINT abc CONSTRAINT one ...").
+				removed := removeLeadingConstraintClause(rest, constraintName, quotedName, upperName, upperQuotedName)
+				if strings.TrimSpace(removed) != "" {
+					keptParts = append(keptParts, removed)
+				}
 				continue
 			}
 		}
@@ -2158,9 +2215,57 @@ parenLoop2:
 			rest := strings.TrimSpace(part[conIdx+11:]) // after " CONSTRAINT "
 			restUpper := strings.ToUpper(rest)
 			if strings.HasPrefix(restUpper, upperName) || strings.HasPrefix(restUpper, upperQuotedName) {
-				// Column-level constraint match — remove from CONSTRAINT to end
-				// Keep only the column name and type, removing all constraints
+				// Column-level constraint match — remove the CONSTRAINT clause but
+				// keep any clauses that follow it (NOT NULL, DEFAULT, COLLATE,
+				// REFERENCES). Find where the constraint's CHECK expression ends:
+				// scan from the constraint name to the start of the next clause
+				// keyword (NOT NULL, DEFAULT, COLLATE, REFERENCES, UNIQUE, CHECK,
+				// PRIMARY KEY, CONSTRAINT, GENERATED, AS, or end of part).
+				tail := strings.TrimSpace(part[conIdx+11:]) // text after " CONSTRAINT "
+				tailUpper := strings.ToUpper(tail)
+				// Skip the constraint name.
+				nameEnd := 0
+				if strings.HasPrefix(tailUpper, upperQuotedName) {
+					nameEnd = len(quotedName)
+				} else if strings.HasPrefix(tailUpper, upperName) {
+					nameEnd = len(constraintName)
+				}
+				// After the name: optional CHECK (...)/UNIQUE/etc. Skip the first
+				// constraint keyword token and its parenthesized expression.
+				clauseStart := nameEnd
+				for clauseStart < len(tail) && (tail[clauseStart] == ' ' || tail[clauseStart] == '\t') {
+					clauseStart++
+				}
+				// Skip the constraint type keyword (CHECK, UNIQUE, ...).
+				kwStart := clauseStart
+				for kwStart < len(tail) && tail[kwStart] != ' ' && tail[kwStart] != '(' {
+					kwStart++
+				}
+				clauseStart = kwStart
+				// Skip any parenthesized expression.
+				for clauseStart < len(tail) && (tail[clauseStart] == ' ' || tail[clauseStart] == '\t') {
+					clauseStart++
+				}
+				if clauseStart < len(tail) && tail[clauseStart] == '(' {
+					pdepth := 0
+					for clauseStart < len(tail) {
+						if tail[clauseStart] == '(' {
+							pdepth++
+						} else if tail[clauseStart] == ')' {
+							pdepth--
+							if pdepth == 0 {
+								clauseStart++
+								break
+							}
+						}
+						clauseStart++
+					}
+				}
+				// clauseStart now points at the next clause keyword or end.
 				part = strings.TrimSpace(part[:conIdx])
+				if rest2 := strings.TrimSpace(tail[clauseStart:]); rest2 != "" {
+					part += " " + rest2
+				}
 			}
 		}
 		keptParts = append(keptParts, part)
