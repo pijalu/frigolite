@@ -148,6 +148,14 @@ func tclRenderCell(v interface{}) string {
 		}
 		return s
 	case string:
+		// TCL db eval renders the empty string as {} (the empty list
+		// element), independent of the nullvalue setting; the transpiler's
+		// expected values use {} for an empty string element. Render it as
+		// {} so flatten() matches the transpiled want instead of producing
+		// a bare empty element (NULL renders per tcl_nullvalue above).
+		if x == "" {
+			return "{}"
+		}
 		return x
 	case []byte:
 		return string(x)

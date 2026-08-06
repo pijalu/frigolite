@@ -188,7 +188,7 @@ func Test_multiplex4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		wantPattern := "String8 \\\\d \\\\d \\\\d off"
+		wantPattern := "String8 \\d \\d \\d off"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}

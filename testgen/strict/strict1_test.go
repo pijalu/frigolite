@@ -284,7 +284,7 @@ func Test_strict1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		wantPattern := "5.0 5.0 4.6116\\\\d*e\\\\+18 4.6116\\\\d+e\\\\+18 |"
+		wantPattern := "5.0 5.0 4.6116\\d*e\\+18 4.6116\\d+e\\+18 |"
 		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
