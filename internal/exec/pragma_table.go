@@ -94,7 +94,12 @@ func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 	}
 
 	rows := make([][]interface{}, 0, len(colDefs))
-	for i, cd := range colDefs {
+	cid := int64(0)
+	for _, cd := range colDefs {
+		// Skip dropped columns (removed via ALTER TABLE DROP COLUMN).
+		if cd.Dropped {
+			continue
+		}
 		notnull := int64(0)
 		if cd.NotNull {
 			notnull = 1
@@ -103,7 +108,8 @@ func (e *Engine) materializeTableInfo(ref sql.TableRef) ([]sql.ColumnDef, [][]in
 		if cd.PrimaryKey {
 			pk = 1
 		}
-		rows = append(rows, []interface{}{int64(i), cd.Name, cd.Type, notnull, nil, pk})
+		rows = append(rows, []interface{}{cid, cd.Name, cd.Type, notnull, nil, pk})
+		cid++
 	}
 	return cols, rows, nil
 }

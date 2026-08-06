@@ -324,9 +324,9 @@ type CreateIndexStmt struct {
 	// Terms are the full index key expressions (sortlist), kept alongside the
 	// flattened Columns so DDL DQS validation and ALTER TABLE DROP COLUMN
 	// dependency checks can inspect expression index keys (e.g. z||"abc").
-	Terms []OrderByTerm
-	Unique   bool
-	Where    Expr // optional WHERE clause for partial indexes
+	Terms  []OrderByTerm
+	Unique bool
+	Where  Expr // optional WHERE clause for partial indexes
 
 	// RawSQL is the original CREATE INDEX statement text as written by the
 	// user. It is stored verbatim in sqlite_schema (matching SQLite) so the
@@ -450,6 +450,10 @@ type AlterTableStmt struct {
 	ColumnTok      TokenInfo // byte position of the Column name in original SQL (for RENAME COLUMN)
 	ColDef         ColumnDef // for ADD
 	AlterColAction string    // "SET NOT NULL" or "DROP NOT NULL" for ALTER COLUMN
+
+	// NewConstraint carries the table-level constraint added by
+	// ALTER TABLE ... ADD [CONSTRAINT nm] CHECK(expr).
+	NewConstraint *TableConstraint
 }
 
 func (s *AlterTableStmt) stmt() {}

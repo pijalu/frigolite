@@ -2111,9 +2111,28 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 			AlterColAction: "SET NOT NULL",
 		}
 
-	// Rules 300-301: ALTER TABLE ADD [CONSTRAINT nm] CHECK(expr)
-	case 300, 301:
-		return nil // CHECK constraints at ALTER level not yet supported at runtime
+		// Rules 300-301: ALTER TABLE ADD [CONSTRAINT nm] CHECK(expr)
+	// Rule 300: cmd ::= ALTER TABLE fullname ADD CONSTRAINT nm CHECK LP expr RP onconf
+	case 300:
+		return &sql.AlterTableStmt{
+			Table:  getString(getRHS(p, ruleNo, 3)),
+			Action: "ADD",
+			NewConstraint: &sql.TableConstraint{
+				Type: sql.ConstraintCheck,
+				Name: getString(getRHS(p, ruleNo, 6)),
+				Expr: getExpr(getRHS(p, ruleNo, 9)),
+			},
+		}
+	// Rule 301: cmd ::= ALTER TABLE fullname ADD CHECK LP expr RP onconf
+	case 301:
+		return &sql.AlterTableStmt{
+			Table:  getString(getRHS(p, ruleNo, 3)),
+			Action: "ADD",
+			NewConstraint: &sql.TableConstraint{
+				Type: sql.ConstraintCheck,
+				Expr: getExpr(getRHS(p, ruleNo, 7)),
+			},
+		}
 
 	// Rule 302: cmd ::= create_vtab
 	case 302:

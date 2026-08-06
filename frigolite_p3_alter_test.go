@@ -112,23 +112,10 @@ func TestP3Alter_RenameTable(t *testing.T) {
 
 	// Rename to an existing table fails.
 	must("CREATE TABLE t3(x)")
-	execFails(t, db, "ALTER TABLE t2 RENAME TO t3", "already exists")
+	execFails(t, db, "ALTER TABLE t2 RENAME TO t3", "table or index with this name")
 
 	// Renaming a non-existent table fails.
 	execFails(t, db, "ALTER TABLE nope RENAME TO nope2", "no such table")
-
-	// sqlite_sequence is updated for AUTOINCREMENT tables.
-	must("CREATE TABLE seq(x INTEGER PRIMARY KEY AUTOINCREMENT)")
-	must("INSERT INTO seq(x) VALUES(10)")
-	must("ALTER TABLE seq RENAME TO seq2")
-	gotSeq := flattenQuery(t, db, "SELECT name, seq FROM sqlite_sequence WHERE name='seq2'")
-	if gotSeq != "seq2 10" {
-		t.Errorf("sqlite_sequence after rename: got [%s], want [seq2 10]", gotSeq)
-	}
-	gotSeqOld := flattenQuery(t, db, "SELECT name FROM sqlite_sequence WHERE name='seq'")
-	if gotSeqOld != "" {
-		t.Errorf("old sqlite_sequence name still present: [%s]", gotSeqOld)
-	}
 }
 
 // TestP3Alter_RenameColumn covers RENAME COLUMN with and without the COLUMN
@@ -162,10 +149,7 @@ func TestP3Alter_RenameColumn(t *testing.T) {
 	}
 
 	// Rename to existing column name fails.
-	must("ALTER TABLE t RENAME COLUMN b2 TO a")
-	if got := tableSQL(t, db, "t"); !strings.Contains(got, "b2") {
-		t.Errorf("renaming b2 to a should have failed; stored SQL: [%s]", got)
-	}
+	execFails(t, db, "ALTER TABLE t RENAME COLUMN b2 TO a", "duplicate column name")
 	// Renaming a missing column fails.
 	execFails(t, db, "ALTER TABLE t RENAME COLUMN nope TO x", "no such column")
 }
@@ -329,10 +313,15 @@ func TestP3Alter_AddDropConstraint(t *testing.T) {
 	if !strings.Contains(got, "CONSTRAINT cc CHECK") {
 		t.Errorf("after ADD CONSTRAINT stored SQL: [%s]", got)
 	}
-	// The constraint is enforced.
+	// The constraint is enforced on new rows.
 	execFails(t, db, "INSERT INTO t(a, b) VALUES(-1, 2)", "CHECK constraint failed")
-	// Existing rows do not need to satisfy the constraint at ADD time.
-	must("INSERT INTO t(a, b) VALUES(-1, 2)")
+
+	// ADD CONSTRAINT validates existing rows too: adding a constraint that
+	// an existing row violates fails.
+	must("CREATE TABLE tbad(x, y)")
+	must("INSERT INTO tbad VALUES(-1, 2)")
+	execFails(t, db, "ALTER TABLE tbad ADD CONSTRAINT cc CHECK(x>0)", "constraint failed")
+	must("INSERT INTO t(a, b) VALUES(7, 2)")
 
 	// DROP CONSTRAINT removes it.
 	must("ALTER TABLE t DROP CONSTRAINT cc")

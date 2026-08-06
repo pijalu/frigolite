@@ -46,6 +46,17 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	oldName := s.Table
 	newName := s.NewName
 
+	// Reject renaming to a name that already exists as a table or index.
+	// SQLite: "there is already another table or index with this name: %s"
+	if _, err := e.schema.FindTable(newName); err == nil {
+		return &Result{Error: fmt.Errorf("there is already another table or index with this name: %s", newName)}
+	}
+	if newName != oldName {
+		if _, err := e.schema.FindIndex(newName); err == nil {
+			return &Result{Error: fmt.Errorf("there is already another table or index with this name: %s", newName)}
+		}
+	}
+
 	// Find the table entry and validate it for broken references
 	if err := e.validateRename(oldName, newName); err != nil {
 		return &Result{Error: err}
@@ -233,6 +244,14 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 		colDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 	}
 
+	// Reject renaming to an existing column name (matches SQLite's
+	// "error in table %s after rename: duplicate column name: %s").
+	for _, c := range colDefs {
+		if !strings.EqualFold(c.Name, oldColName) && strings.EqualFold(c.Name, newColName) {
+			return &Result{Error: fmt.Errorf("error in table %s after rename: duplicate column name: %s", tableName, newColName)}
+		}
+	}
+
 	// Find and rename the column in colDefs
 	found := false
 	for i, c := range colDefs {
@@ -251,6 +270,7 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 	newSQL := renameColumnInCreateTableSQL(tableEntry.SQL, oldColName, newColName)
 	if newSQL != "" && newSQL != tableEntry.SQL {
 		tableEntry.SQL = newSQL
+		delete(e.tableCache, tableName)
 		_ = e.schema.RemoveEntry(tableEntry.Name)
 		if err := e.schema.AddEntry(tableEntry); err != nil {
 			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
@@ -302,6 +322,9 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 
 	// Update indexes that reference the old column name
 	e.renameColumnInIndexes(tableName, oldColName, newColName)
+
+	// Update views that reference the old column name
+	e.renameColumnInViews(tableName, oldColName, newColName)
 
 	return &Result{}
 }
@@ -454,6 +477,35 @@ func (e *Engine) renameColumnInIndexes(tableName, oldColName, newColName string)
 		TableName: tableName,
 	}
 	e.renameColumnInEntries(schema.TypeIndex, tableName, oldColName, newColName, ctx)
+}
+
+// renameColumnInViews updates view SQL for views that reference the given
+// table, replacing old column name references with the new column name.
+// Views store their own name in TblName, so they are matched by SQL content
+// referencing the table rather than by TblName.
+func (e *Engine) renameColumnInViews(tableName, oldColName, newColName string) {
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if entry.Type != schema.TypeView {
+			continue
+		}
+		if !refTableInTrigger(entry.SQL, tableName) {
+			continue
+		}
+		if !strings.Contains(entry.SQL, oldColName) &&
+			!strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(oldColName)) {
+			continue
+		}
+		newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
+		if newSQL != entry.SQL && newSQL != "" {
+			entry.SQL = newSQL
+			_ = e.schema.RemoveEntry(entry.Name)
+			_ = e.schema.AddEntry(entry)
+		}
+	}
 }
 
 // renameColumnInEntries applies column rename to schema entries of the given type.
@@ -1194,12 +1246,193 @@ func replaceTableNameInSQL(sql, oldName, newName string) string {
 	return re.ReplaceAllString(sql, quotedNew)
 }
 
+// validateAddColumnConstraints evaluates a newly added column's CHECK and
+// NOT NULL constraints against the table's existing rows, matching SQLite's
+// ALTER TABLE ADD COLUMN semantics:
+//   - A NOT NULL column with a NULL default cannot be added when the table
+//     already has rows (SQLite: "Cannot add a NOT NULL column with default
+//     value NULL").
+//   - A CHECK constraint is evaluated against every existing row; if any row
+//     makes it false the add fails with "CHECK constraint failed".
+func (e *Engine) validateAddColumnConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, newCol sql.ColumnDef) *Result {
+	if newCol.Check == nil && !newCol.NotNull {
+		return &Result{}
+	}
+	// Determine the default value for the new column.
+	defVal, err := e.evalColumnExpr(newCol)
+	if err != nil {
+		return &Result{Error: err}
+	}
+
+	if newCol.NotNull && defVal == nil {
+		// NOT NULL without a non-NULL default is only allowed when the table
+		// has no rows.
+		hasRows := e.tableHasRows(tableEntry)
+		if hasRows {
+			return &Result{Error: fmt.Errorf("Cannot add a NOT NULL column with default value NULL")}
+		}
+	}
+	if newCol.Check == nil {
+		return &Result{}
+	}
+
+	// Evaluate CHECK against existing rows. Each existing row gets the new
+	// column set to its default value (matching SQLite).
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return &Result{}
+	}
+	for {
+		cell, cerr := cursor.ReadCell()
+		if cerr != nil || cell == nil {
+			break
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr != nil || rec == nil {
+			break
+		}
+		row := e.buildRowMap(rec, colDefs, cell.RowID)
+		row[newCol.Name] = defVal
+		checkVal, verr := e.evalExpr(newCol.Check, row)
+		if verr == nil && checkVal != nil && !toBool(checkVal) {
+			checkText := e.checkConstraintText(tableEntry.SQL, newCol.Name, newCol.Check)
+			return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", checkText)}
+		}
+		ok, nerr := cursor.Next()
+		if nerr != nil || !ok {
+			break
+		}
+	}
+	return &Result{}
+}
+
+// validateAddConstraint evaluates a table-level constraint added by
+// ALTER TABLE ... ADD CONSTRAINT against the table's existing rows. SQLite
+// rejects the ALTER if any existing row violates the new constraint.
+func (e *Engine) validateAddConstraint(tableEntry *schema.Entry, tc *sql.TableConstraint) *Result {
+	if tc == nil || tc.Type != sql.ConstraintCheck || tc.Expr == nil {
+		return &Result{}
+	}
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return &Result{}
+	}
+	for {
+		cell, cerr := cursor.ReadCell()
+		if cerr != nil || cell == nil {
+			break
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr != nil || rec == nil {
+			break
+		}
+		row := e.buildRowMap(rec, colDefs, cell.RowID)
+		checkVal, verr := e.evalExpr(tc.Expr, row)
+		if verr == nil && checkVal != nil && !toBool(checkVal) {
+			name := tc.Name
+			if name == "" {
+				name = sql.ExprString(tc.Expr)
+			}
+			return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", name)}
+		}
+		ok, nerr := cursor.Next()
+		if nerr != nil || !ok {
+			break
+		}
+	}
+	return &Result{}
+}
+
+// evalColumnExpr evaluates a column's DEFAULT expression (with no row context)
+// to its concrete value.
+func (e *Engine) evalColumnExpr(col sql.ColumnDef) (interface{}, error) {
+	if col.Default == nil {
+		return nil, nil
+	}
+	return e.evalExpr(col.Default, nil)
+}
+
+// tableHasRows reports whether the table currently has at least one row.
+func (e *Engine) tableHasRows(entry *schema.Entry) bool {
+	tree := e.tableBTreeForName(entry.Name, entry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return false
+	}
+	cell, err := cursor.ReadCell()
+	if err != nil || cell == nil {
+		return false
+	}
+	return true
+}
+
+// columnHasNull reports whether any existing row of the table has NULL in the
+// named column. Used by ALTER TABLE ... ALTER COLUMN ... SET NOT NULL.
+func (e *Engine) columnHasNull(entry *schema.Entry, colDefs []sql.ColumnDef, colName string) bool {
+	tree := e.tableBTreeForName(entry.Name, entry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return false
+	}
+	for {
+		cell, cerr := cursor.ReadCell()
+		if cerr != nil || cell == nil {
+			break
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr != nil || rec == nil {
+			break
+		}
+		for i, cd := range colDefs {
+			if cd.Name == colName {
+				if i >= len(rec.Values) || rec.Values[i] == nil {
+					return true
+				}
+				break
+			}
+		}
+		ok, nerr := cursor.Next()
+		if nerr != nil || !ok {
+			break
+		}
+	}
+	return false
+}
+
 func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 	// ALTER TABLE ... ADD [COLUMN] column_def
 	tableName := s.Table
 	tableEntry, _, err := e.findTable(tableName)
 	if err != nil {
 		return &Result{Error: err}
+	}
+
+	// ALTER TABLE ... ADD [CONSTRAINT nm] CHECK(expr): append a table-level
+	// constraint to the stored CREATE TABLE SQL and invalidate caches.
+	if s.NewConstraint != nil {
+		// Validate the constraint against existing rows before committing.
+		if vres := e.validateAddConstraint(tableEntry, s.NewConstraint); vres.Error != nil {
+			return vres
+		}
+		newSQL := addConstraintToCreateTableSQL(tableEntry.SQL, s.NewConstraint)
+		if newSQL != "" && newSQL != tableEntry.SQL {
+			tableEntry.SQL = newSQL
+			delete(e.tableCache, tableName)
+			delete(e.tcCache, tableName)
+			_ = e.schema.RemoveEntry(tableEntry.Name)
+			if err := e.schema.AddEntry(tableEntry); err != nil {
+				return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
+			}
+			if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
+				if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+					return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
+				}
+			}
+		}
+		return &Result{}
 	}
 
 	// Validate column name
@@ -1232,6 +1465,10 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 		}
 
 		// Add column to cached column definitions
+		// Validate CHECK/NOT NULL against existing rows before committing.
+		if vres := e.validateAddColumnConstraints(tableEntry, colDefs, s.ColDef); vres.Error != nil {
+			return vres
+		}
 		colDefs = append(colDefs, s.ColDef)
 		e.colCache[tableName] = colDefs
 
@@ -1239,6 +1476,7 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 		newSQL := addColumnToCreateTableSQL(tableEntry.SQL, s.ColDef)
 		if newSQL != "" && newSQL != tableEntry.SQL {
 			tableEntry.SQL = newSQL
+			delete(e.tableCache, tableName)
 			_ = e.schema.RemoveEntry(tableEntry.Name)
 			if err := e.schema.AddEntry(tableEntry); err != nil {
 				return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
@@ -1269,12 +1507,16 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 			return &Result{Error: err}
 		}
 		// Remove the named constraint from the CREATE TABLE SQL
+		if !sqlHasConstraintName(tableEntry.SQL, constraintName) {
+			return &Result{Error: fmt.Errorf("no such constraint: %s", constraintName)}
+		}
 		newSQL := removeConstraintFromSQL(tableEntry.SQL, constraintName)
 		if newSQL != tableEntry.SQL {
 			tableEntry.SQL = newSQL
 			// Invalidate cached column/constraint info for this table.
 			delete(e.colCache, tableName)
 			delete(e.tcCache, tableName)
+			delete(e.tableCache, tableName)
 			_ = e.schema.RemoveEntry(tableEntry.Name)
 			if err := e.schema.AddEntry(tableEntry); err != nil {
 				return &Result{Error: fmt.Errorf("failed to re-add entry after DROP CONSTRAINT: %w", err)}
@@ -1393,6 +1635,7 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, sqlColDefs)
 	if updateSQL != "" {
 		tableEntry.SQL = updateSQL
+		delete(e.tableCache, tableName)
 		_ = e.schema.RemoveEntry(tableEntry.Name)
 		if err := e.schema.AddEntry(tableEntry); err != nil {
 			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
@@ -1430,6 +1673,11 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 		if c.Name == s.Column {
 			switch s.AlterColAction {
 			case "SET NOT NULL":
+				// SQLite: SET NOT NULL fails with "constraint failed" if any
+				// existing row has NULL in this column.
+				if e.columnHasNull(tableEntry, colDefs, c.Name) {
+					return &Result{Error: fmt.Errorf("constraint failed")}
+				}
 				colDefs[i].NotNull = true
 			case "DROP NOT NULL":
 				colDefs[i].NotNull = false
@@ -1454,6 +1702,7 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, sqlColDefs)
 	if updateSQL != "" {
 		tableEntry.SQL = updateSQL
+		delete(e.tableCache, tableName)
 		_ = e.schema.RemoveEntry(tableEntry.Name)
 		if err := e.schema.AddEntry(tableEntry); err != nil {
 			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
@@ -1467,6 +1716,19 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	}
 
 	return &Result{}
+}
+
+// sqlHasConstraintName reports whether a CREATE TABLE SQL contains a named
+// table-level or column-level constraint. Used to reject DROP CONSTRAINT for
+// a non-existent name.
+func sqlHasConstraintName(origSQL, constraintName string) bool {
+	if constraintName == "" {
+		return false
+	}
+	upper := strings.ToUpper(origSQL)
+	upperName := strings.ToUpper(constraintName)
+	re := regexp.MustCompile(`(?i)\bCONSTRAINT\s+"?` + regexp.QuoteMeta(constraintName) + `"?\b`)
+	return re.MatchString(upper) || re.MatchString(origSQL) || strings.Contains(upper, "CONSTRAINT "+upperName)
 }
 
 // removeConstraintFromSQL removes a named constraint from a CREATE TABLE SQL string.
@@ -1577,6 +1839,100 @@ parenLoop2:
 		buf.WriteString(trailingSQL)
 	}
 	return buf.String()
+}
+
+// addConstraintToCreateTableSQL appends a table-level constraint (e.g.
+// CONSTRAINT nm CHECK(expr)) to the stored CREATE TABLE SQL, inserting it
+// before the closing parenthesis of the column list.
+func addConstraintToCreateTableSQL(origSQL string, tc *sql.TableConstraint) string {
+	if tc == nil {
+		return origSQL
+	}
+	// Find the outer closing parenthesis of the CREATE TABLE column list.
+	parenStart := strings.Index(origSQL, "(")
+	if parenStart < 0 {
+		return origSQL
+	}
+	depth := 0
+	parenEnd := -1
+addLoop:
+	for i := parenStart; i < len(origSQL); i++ {
+		switch origSQL[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				parenEnd = i
+				break addLoop
+			}
+		}
+	}
+	if parenEnd < 0 {
+		return origSQL
+	}
+
+	trailingSQL := ""
+	if parenEnd+1 < len(origSQL) {
+		trailingSQL = strings.TrimSpace(origSQL[parenEnd+1:])
+	}
+
+	var buf strings.Builder
+	buf.WriteString(origSQL[:parenEnd])
+	if parenEnd > parenStart && !strings.HasSuffix(strings.TrimRight(origSQL[:parenEnd], " \t\n"), ",") {
+		buf.WriteString(",")
+	}
+	buf.WriteString("\n")
+	if tc.Name != "" {
+		buf.WriteString("CONSTRAINT ")
+		buf.WriteString(tc.Name)
+		buf.WriteString(" ")
+	}
+	switch tc.Type {
+	case sql.ConstraintCheck:
+		buf.WriteString("CHECK(")
+		if tc.Expr != nil {
+			buf.WriteString(sql.ExprString(tc.Expr))
+		}
+		buf.WriteString(")")
+	default:
+		if tc.Type != "" {
+			buf.WriteString(string(tc.Type))
+		}
+	}
+	buf.WriteString("\n)")
+	if trailingSQL != "" {
+		buf.WriteString(" ")
+		buf.WriteString(trailingSQL)
+	}
+	return buf.String()
+}
+
+// NULL keyword as a top-level constraint (not inside a DEFAULT string or
+// CHECK expression). Used by rebuildCreateTableSQL to decide whether to
+// reconstruct a column after ALTER COLUMN SET/DROP NOT NULL.
+func origHasNotNull(orig string) bool {
+	up := strings.ToUpper(orig)
+	// Remove parenthesised groups (DEFAULT expressions, CHECK(...)) so a
+	// "NOT NULL" inside them does not count as the column constraint.
+	var cleaned strings.Builder
+	depth := 0
+	for i := 0; i < len(up); i++ {
+		switch up[i] {
+		case '(':
+			depth++
+		case ')':
+			if depth > 0 {
+				depth--
+			}
+		default:
+			if depth == 0 {
+				cleaned.WriteByte(up[i])
+			}
+		}
+	}
+	re := regexp.MustCompile(`\bNOT\s+NULL\b`)
+	return re.MatchString(cleaned.String())
 }
 
 // rebuildCreateTableSQL rebuilds a CREATE TABLE SQL string with updated column definitions.
@@ -1709,7 +2065,13 @@ parenLoop3:
 		}
 		// Use original column text if available, otherwise reconstruct
 		if orig, ok := origColDefs[strings.ToUpper(col.Name)]; ok {
-			buf.WriteString(orig)
+			// Reconstruct when the column's NOT NULL constraint differs from the
+			// original text (e.g. after ALTER COLUMN SET/DROP NOT NULL).
+			if col.NotNull != origHasNotNull(orig) {
+				formatColumnDef(&buf, col)
+			} else {
+				buf.WriteString(orig)
+			}
 		} else {
 			formatColumnDef(&buf, col)
 		}
