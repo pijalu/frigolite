@@ -725,6 +725,13 @@ func replaceColumnNameInSQL(sqlStr, oldColName, newColName string) string {
 	last := 0
 	for _, idx := range idxs {
 		start, end := idx[0], idx[1]
+		// Skip matches that fall inside a larger double-quoted identifier
+		// (e.g. the f in "big f" after the definition was already renamed to
+		// the quoted new name) — unless the match IS the quoted identifier
+		// content ("b" → start-1 is the opening quote).
+		if insideDoubleQuoted(sqlStr, start) && !(start > 0 && sqlStr[start-1] == '"') {
+			continue
+		}
 		// A quoted occurrence is `"b"`; extend the span so the quotes are
 		// replaced together with the name (avoids `""d""` duplication).
 		wasQuoted := start > 0 && sqlStr[start-1] == '"' &&
@@ -743,6 +750,18 @@ func replaceColumnNameInSQL(sqlStr, oldColName, newColName string) string {
 	}
 	b.WriteString(sqlStr[last:])
 	return b.String()
+}
+
+// insideDoubleQuoted reports whether byte position pos in s is inside a
+// double-quoted span (counting unescaped " quotes before pos).
+func insideDoubleQuoted(s string, pos int) bool {
+	quotes := 0
+	for i := 0; i < pos; i++ {
+		if s[i] == '"' && (i == 0 || s[i-1] != '\\') {
+			quotes++
+		}
+	}
+	return quotes%2 == 1
 }
 
 // refTableInTrigger checks if a trigger's SQL references the given table name.
@@ -2572,7 +2591,20 @@ func extractIdentifierTokens(s string) []string {
 			cur = nil
 		}
 	}
-	for i, r := range s {
+	for i := 0; i < len(s); {
+		r := rune(s[i])
+		// A double-quoted identifier is an atomic token ("a;b" must not be
+		// split into a and b).
+		if r == '"' {
+			flush()
+			end := strings.Index(s[i+1:], "\"")
+			if end < 0 {
+				break
+			}
+			out = append(out, s[i+1:i+1+end])
+			i = i + 2 + end
+			continue
+		}
 		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
 			(r >= '0' && r <= '9') || r == '_' || r == '.' {
 			cur = append(cur, r)
@@ -2587,10 +2619,12 @@ func extractIdentifierTokens(s string) []string {
 					cur = nil
 				}
 				flush()
+				i++
 				continue
 			}
 			flush()
 		}
+		i++
 	}
 	flush()
 	return out
@@ -2600,6 +2634,22 @@ func extractIdentifierTokens(s string) []string {
 func isIdentByte(b byte) bool {
 	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') ||
 		(b >= '0' && b <= '9') || b == '_'
+}
+
+// vtabModuleName extracts the module name from a virtual table CREATE
+// statement ("CREATE VIRTUAL TABLE e1 USING echo(x1)" → "echo").
+func vtabModuleName(sqlStr string) string {
+	upper := strings.ToUpper(sqlStr)
+	idx := strings.Index(upper, " USING ")
+	if idx < 0 {
+		return ""
+	}
+	rest := strings.TrimSpace(sqlStr[idx+len(" USING "):])
+	end := strings.IndexAny(rest, " (")
+	if end < 0 {
+		return rest
+	}
+	return rest[:end]
 }
 
 // checkViewRenameDependencies checks whether any view that references the
@@ -2652,6 +2702,16 @@ func (e *Engine) checkViewRenameDependencies(tableName string, oldColName, newCo
 				}
 				continue
 			}
+			// A view that references a virtual table whose module is not
+			// registered cannot be re-validated; SQLite reports
+			// "no such module: %s" on rename.
+			if e.isVirtualTable(entry) {
+				if mod := vtabModuleName(entry.SQL); mod != "" {
+					if _, ok := e.vtabs.Find(mod); !ok {
+						return &Result{Error: fmt.Errorf("error in view %s: no such module: %s", view.Name, mod)}
+					}
+				}
+			}
 			colDefs := e.colCache[ft]
 			if colDefs == nil {
 				colDefs = e.parseColumnDefs(entry.Name, entry.SQL)
@@ -2700,8 +2760,30 @@ func (e *Engine) checkViewRenameDependencies(tableName string, oldColName, newCo
 			if strings.Contains(upperCol, ".") {
 				parts := strings.Split(upperCol, ".")
 				if len(parts) == 2 {
-					upperCol = parts[1]
+					if parts[1] == "" {
+						// Trailing dot (e1. from e1.*): the table name is parts[0].
+						upperCol = parts[0]
+					} else {
+						upperCol = parts[1]
+					}
 				}
+			}
+			// A token like "e1." (from e1.*) is a table-qualified wildcard;
+			// strip the trailing dot so the table name can be recognized.
+			if strings.HasSuffix(upperCol, ".") {
+				upperCol = strings.TrimSuffix(upperCol, ".")
+			}
+			// Skip tokens that are FROM table names (e.g. e1 in e1.* — a
+			// table-qualified wildcard reference, not a column).
+			isTableRef := false
+			for _, ft := range fromTables {
+				if strings.EqualFold(ft, upperCol) {
+					isTableRef = true
+					break
+				}
+			}
+			if isTableRef {
+				continue
 			}
 			if !validCols[strings.ToUpper(upperCol)] && upperCol != "*" {
 				return &Result{Error: fmt.Errorf("error in view %s: no such column: %s",
