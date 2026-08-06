@@ -1997,6 +1997,13 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// A malformed CREATE TABLE (e.g. schema edited via writable_schema into
+	// an unbalanced form) makes the ALTER fail with SQLite's corruption
+	// message rather than a misleading column error.
+	if isMalformedCreateTableSQL(tableEntry.SQL) {
+		return &Result{Error: fmt.Errorf("database disk image is malformed")}
+	}
+
 	colDefs := e.colCache[tableName]
 	if colDefs == nil {
 		colDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
@@ -2168,7 +2175,7 @@ parenLoop2:
 		}
 		buf.WriteString(part)
 	}
-	buf.WriteString("\n)")
+	buf.WriteString(")")
 	if trailingSQL != "" {
 		buf.WriteString(" ")
 		buf.WriteString(trailingSQL)
@@ -2235,7 +2242,7 @@ addLoop:
 			buf.WriteString(string(tc.Type))
 		}
 	}
-	buf.WriteString("\n)")
+	buf.WriteString(")")
 	if trailingSQL != "" {
 		buf.WriteString(" ")
 		buf.WriteString(trailingSQL)
@@ -2268,6 +2275,34 @@ func origHasNotNull(orig string) bool {
 	}
 	re := regexp.MustCompile(`\bNOT\s+NULL\b`)
 	return re.MatchString(cleaned.String())
+}
+
+// isMalformedCreateTableSQL reports whether a CREATE TABLE statement is
+// malformed (e.g. truncated by a writable_schema edit so the column list is
+// unbalanced). SQLite reports "database disk image is malformed" when ALTER
+// TABLE encounters such a schema.
+func isMalformedCreateTableSQL(sqlStr string) bool {
+	upper := strings.ToUpper(strings.TrimSpace(sqlStr))
+	if !strings.HasPrefix(upper, "CREATE TABLE") {
+		return true
+	}
+	parenStart := strings.Index(sqlStr, "(")
+	if parenStart < 0 {
+		return true
+	}
+	depth := 0
+	for i := parenStart; i < len(sqlStr); i++ {
+		switch sqlStr[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth < 0 {
+				return true
+			}
+		}
+	}
+	return depth != 0
 }
 
 // rebuildCreateTableSQL rebuilds a CREATE TABLE SQL string with updated column definitions.
