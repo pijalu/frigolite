@@ -56,13 +56,12 @@ go build ./...
 
 ## G0.TRIAGE — Reusable triage/oracle harness
 
-### Status (2026-08-06): PARTIAL
-The pure-Go triage test pattern is proven (see `triage_pk_test.go` —
-`TestTriageCompositePKAsc` / `TestTriageIsNull` isolate the composite-PK and
-IS-NULL engine behavior and compare against the sqlite3 oracle). The shared
-helpers (`runSQL`/`queryRows`/`oracleRows`) are **not yet written**; pre-tests
-currently roll their own. Write the helpers per the steps below, then extend
-`triage_pk_test.go` to use them.
+### Status (2026-08-06): DONE ✅
+The shared helpers exist in `frigolite_oracle_test.go` (`runSQL`/`queryRows`/
+`oracleRows`), `TestOracleHelperSmoke` passes, GUIDELINES.md §11 documents them
+with a worked example, and `triage_pk_test.go` now folds onto the helpers as
+oracle-comparing regression guards. Verify command green:
+`go test -run 'TestOracleHelper' -count=1 . && go build ./...`.
 
 ### Objective
 A tiny, shared test helper that any pre-test can call to:
@@ -72,7 +71,7 @@ A tiny, shared test helper that any pre-test can call to:
 3. Optionally shell out to `/usr/bin/sqlite3` to derive the expected value.
 
 ### Steps
-- [ ] **G0.TRIAGE.1** Add a helper (e.g. in a new `frigolite_oracle_test.go` at
+- [x] **G0.TRIAGE.1** Add a helper (e.g. in a new `frigolite_oracle_test.go` at
   repo root, build-tag-free so pre-tests import it) with:
   - `runSQL(t, db, stmts...)` — exec, fatal on error.
   - `queryRows(t, db, sql) [][]string` — render rows with a configurable NULL token.
@@ -80,9 +79,9 @@ A tiny, shared test helper that any pre-test can call to:
     output (pipe-separated); `t.Skip` if `sqlite3` is absent so CI without it
     still passes.
   Commit: `G0.TRIAGE.1: add oracle/triage test helpers`.
-- [ ] **G0.TRIAGE.2** Document usage in `portplan/GUIDELINES.md §11` and show a
+- [x] **G0.TRIAGE.2** Document usage in `portplan/GUIDELINES.md §11` and show a
   worked example. Commit: `G0.TRIAGE.2: document triage helpers`.
-- [ ] **G0.TRIAGE.3** (new, from session) Move the triage patterns proven in
+- [x] **G0.TRIAGE.3** (new, from session) Move the triage patterns proven in
   `triage_pk_test.go` onto the helpers; keep the pure-Go tests as regression
   guards. Commit: `G0.TRIAGE.3: fold triage_pk_test.go onto helpers`.
 

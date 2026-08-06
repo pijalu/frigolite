@@ -193,7 +193,65 @@ section number.
 
 ---
 
-## 11. Quick Command Reference
+## 11. Oracle / Triage Test Helpers
+
+Every pre-test (`frigolite_p<N>_*.go`) and triage test should use the shared
+helpers in `frigolite_oracle_test.go` instead of rolling its own
+DB-open/exec/render/oracle code:
+
+- `runSQL(t, db, stmts...)` — executes each statement via `db.Exec`, failing
+  the test on the first error. A single multi-statement string is fine
+  (`db.Exec` runs each prepared statement in order).
+- `queryRows(t, db, sql) [][]string` — runs `db.Query(sql)` and renders every
+  cell as a string. SQL NULL renders as the NULL token, default `{}` (the
+  harness `tcl_nullvalue` default); pass a different token as the fourth
+  argument, e.g. `queryRows(t, db, sql, "NULL")`.
+- `oracleRows(t, sql) [][]string` — pipes `sql` into the system `sqlite3` CLI
+  (`:memory:`, `-batch -noheader -separator '|' -nullvalue <token>`) and
+  parses the pipe-separated output with the same NULL-token convention.
+  It `t.Skip`s when no `sqlite3` CLI is available, so CI without one still
+  passes. To compare a query that needs setup, pass the setup statements
+  followed by the query in one string: sqlite3 runs them in order and only the
+  final SELECT's rows appear in the output.
+
+Worked example (the standard triage pattern):
+
+```go
+func TestP1Foo_Triage(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	setup := `CREATE TABLE t(a INTEGER, b TEXT);
+INSERT INTO t VALUES(1, 'one');
+INSERT INTO t VALUES(NULL, 'two');`
+	query := "SELECT a, b FROM t ORDER BY b"
+
+	runSQL(t, db, setup)
+	got := queryRows(t, db, query)      // [][]string{{"1","one"},{"{}","two"}}
+	want := oracleRows(t, setup+"\n"+query) // same expectation from sqlite3
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("rows mismatch:\n got %#v\nwant %#v", got, want)
+	}
+}
+```
+
+Notes:
+
+- The helpers never assert pass — they return data or fail the test on an
+  engine error. The *test* compares `queryRows` against `oracleRows` (or a
+  literal slice), so an engine bug shows up as a mismatch, never as a silent
+  helper pass.
+- Oracle pipe-format limitations: a `|` inside a value cannot be represented
+  (fall back to a manual `echo ... | sqlite3 :memory:` comparison if a query
+  can produce one), and an empty-string cell parses to `""` while NULL parses
+  to the NULL token.
+
+---
+
+## 12. Quick Command Reference
 
 ```bash
 # Build everything
