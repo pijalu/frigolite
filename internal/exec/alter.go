@@ -1997,16 +1997,16 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	// A malformed CREATE TABLE (e.g. schema edited via writable_schema into
-	// an unbalanced form) makes the ALTER fail with SQLite's corruption
-	// message rather than a misleading column error.
-	if isMalformedCreateTableSQL(tableEntry.SQL) {
-		return &Result{Error: fmt.Errorf("database disk image is malformed")}
-	}
-
+	// Use the cached column definitions (from the original CREATE) when
+	// available; a writable_schema edit may corrupt the stored SQL but the
+	// in-memory table definition stays valid. Only report malformed when the
+	// SQL is fundamentally broken AND no cached definition exists.
 	colDefs := e.colCache[tableName]
 	if colDefs == nil {
 		colDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	}
+	if len(colDefs) == 0 && isMalformedCreateTableSQL(tableEntry.SQL) {
+		return &Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
 
 	// Find and update the column

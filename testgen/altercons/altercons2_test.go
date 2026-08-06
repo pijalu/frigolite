@@ -110,7 +110,7 @@ func Test_altercons2(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list $final"
+				want := tclListFlatten(final)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -460,7 +460,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)"
+			want := "CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -484,7 +484,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)"
+			want := "CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

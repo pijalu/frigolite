@@ -1977,16 +1977,21 @@ func extractExpectedErrorFromLiteral(expected string) string {
 	return strings.TrimSpace(msg)
 }
 
-// listVarExpected detects the TCL "[list $var]" expected-value form used by
-// do_execsql_test / do_test (e.g. [list $after] where $after is a foreach
-// list variable). It returns the Go variable expression for the runtime
-// value, or ("", false) when the form does not match.
+// listVarExpected detects the TCL "[list $var]" (or "list $var") expected
+// value form used by do_execsql_test / do_test (e.g. [list $after] where
+// $after is a foreach list variable). It returns the Go variable expression
+// for the runtime value, or ("", false) when the form does not match.
 func (tp *transpiler) listVarExpected(rawText string) (string, bool) {
 	text := strings.TrimSpace(rawText)
-	if !strings.HasPrefix(text, "[list ") || !strings.HasSuffix(text, "]") {
+	// Accept both "[list $var]" and the bracket-stripped "list $var" form
+	// (the TCL tokenizer may consume the outer [ ]).
+	if strings.HasPrefix(text, "[list ") && strings.HasSuffix(text, "]") {
+		text = strings.TrimSpace(text[1 : len(text)-1]) // strip [ ]
+	}
+	if !strings.HasPrefix(text, "list ") {
 		return "", false
 	}
-	inner := strings.TrimSpace(text[len("[list "):len(text)-1])
+	inner := strings.TrimSpace(text[len("list "):])
 	if inner == "" || !strings.HasPrefix(inner, "$") {
 		return "", false
 	}
