@@ -494,6 +494,68 @@ func (m *Manager) RenameEntryWithSQL(oldName, newName, newSQL string) error {
 	return m.AddEntry(newEntry)
 }
 
+// UpdateEntry replaces the SQL text of an existing schema entry WITHOUT
+// moving its row in sqlite_schema. In SQLite, ALTER TABLE RENAME COLUMN
+// rewrites the schema row in place, so the entry keeps its original position
+// when sqlite_schema is scanned in rowid order. Replacements are matched by
+// name. Returns an error if no matching entry is found.
+func (m *Manager) UpdateEntry(name, newSQL string) error {
+	return m.UpdateEntryFull(name, name, newSQL)
+}
+
+// UpdateEntryFull updates an existing schema entry in place, preserving its
+// rowid and original type/rootpage. Used by ALTER TABLE operations that must
+// not reorder sqlite_schema rows (e.g. RENAME COLUMN, DROP COLUMN).
+func (m *Manager) UpdateEntryFull(oldName, newName, newSQL string) error {
+	m.cacheValid = false
+	m.entriesCache = nil
+
+	searchName := oldName
+	if dotIdx := strings.Index(oldName, "."); dotIdx >= 0 {
+		searchName = oldName[dotIdx+1:]
+	}
+
+	tree := btree.NewBTree(m.pager, 1, true)
+
+	// Locate the matching cell, capture its rowid, type, name, tbl_name and
+	// rootpage so the replacement can reuse them (the b-tree orders by rowid,
+	// so re-inserting with the same rowid keeps the row in its original
+	// position).
+	var foundRowID int64 = -1
+	var foundType, foundTbl, foundRoot interface{}
+	if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil || len(rec.Values) < 5 {
+			return false
+		}
+		if !strings.EqualFold(toString(rec.Values[1]), searchName) {
+			return false
+		}
+		foundRowID = cell.RowID
+		foundType = rec.Values[0]
+		foundTbl = rec.Values[2]
+		foundRoot = rec.Values[3]
+		return true
+	}); err != nil {
+		return err
+	}
+	if foundRowID < 0 {
+		return fmt.Errorf("no such table: %s", oldName)
+	}
+
+	values := []interface{}{foundType, newName, foundTbl, foundRoot, newSQL}
+	record, err := storage.EncodeRecord(values)
+	if err != nil {
+		return err
+	}
+	cell := &storage.Cell{
+		Type:    storage.CellTableLeaf,
+		RowID:   foundRowID,
+		Payload: record,
+	}
+	return tree.InsertCell(cell)
+}
+
 // RemoveEntry removes a schema entry by name.
 func (m *Manager) RemoveEntry(name string) error {
 	// Invalidate schema cache since the schema has changed

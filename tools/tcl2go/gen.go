@@ -907,7 +907,7 @@ func normalizeExpectedWord(w tcl.RawWord) tcl.RawWord {
 	// Preserve structural content.
 	if strings.Contains(text, "|") || strings.Contains(text, "~") ||
 		strings.HasPrefix(text, "/") || strings.HasSuffix(text, "/") ||
-		strings.Contains(text, "=") {
+		strings.Contains(text, "=") || strings.Contains(text, "\n") {
 		if unwrapped {
 			return tcl.RawWord{Text: text, Braced: true}
 		}
@@ -1783,6 +1783,12 @@ func min(a, b int) int {
 // ---- Test pattern handlers ----
 
 func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
+	// do_execsql_test may take an optional "-db NAME" prefix (e.g. "-db db2")
+	// selecting a different connection. In testgen all connections alias the
+	// main db, so the prefix is dropped and the SQL/expected args shift.
+	if len(args) >= 2 && args[0].Text == "-db" {
+		args = args[2:]
+	}
 	if len(args) < 2 {
 		return
 	}
@@ -1896,7 +1902,15 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 			tp.emitLine("}")
 		} else {
-			tp.emitLine("want := %s", expectedExpr)
+			// When the expected value is a TCL list variable (bare identifier),
+			// normalize it: multi-row expectations hold list braces that
+			// flatten() does not produce (TCL list equality is brace- and
+			// whitespace-insensitive).
+			if isBareGoIdent(expectedExpr) {
+				tp.emitLine("want := tclListFlatten(%s)", expectedExpr)
+			} else {
+				tp.emitLine("want := %s", expectedExpr)
+			}
 			tp.emitLine("if got != want {")
 			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 			tp.emitLine("}")
@@ -2126,7 +2140,12 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 				tp.emitLine("}")
 			} else {
-				tp.emitLine("want := %s", expectedExpr)
+				// Normalize TCL list variable expectations (see processDoExecSQLTest).
+				if isBareGoIdent(expectedExpr) {
+					tp.emitLine("want := tclListFlatten(%s)", expectedExpr)
+				} else {
+					tp.emitLine("want := %s", expectedExpr)
+				}
 				tp.emitLine("if got != want {")
 				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 				tp.emitLine("}")
@@ -2452,6 +2471,25 @@ func (tp *transpiler) collectSQLExpression(args []tcl.RawWord) string {
 		return fmt.Sprintf("%q", text)
 	}
 	return tp.goStringLiteral(tcl.RawWord{Text: sanitizeSQL(args[0].Text), Quoted: args[0].Quoted})
+}
+
+// isBareGoIdent reports whether s is a single Go identifier (a variable
+// reference emitted by buildStringExpr, not a quoted literal or expression).
+func isBareGoIdent(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		ch := s[i]
+		if (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_' {
+			continue
+		}
+		if i > 0 && ch >= '0' && ch <= '9' {
+			continue
+		}
+		return false
+	}
+	return true
 }
 
 func hasVarRef(s string) bool {
@@ -4333,6 +4371,62 @@ func tclListAppend(list string, items ...string) string {
 	existing := tclSplitList(list)
 	existing = append(existing, items...)
 	return tclList(existing)
+}
+
+// tclListFlatten converts a TCL-format list to the space-joined form that
+// flatten() produces for a multi-row query result. Only the list-rendering
+// braces ({element} {element}) are removed — quoted identifiers inside an
+// element (e.g. CREATE TABLE t(a, "d")) are preserved verbatim. A value
+// that is not a braced list is returned unchanged.
+func tclListFlatten(s string) string {
+	if !strings.Contains(s, "{") && !strings.Contains(s, "}") {
+		return strings.Join(strings.Fields(s), " ")
+	}
+	// Walk the string, splitting at top-level whitespace while treating
+	// braces and double-quotes as grouping characters.
+	var elems []string
+	depth := 0
+	inQuote := false
+	start := -1
+	flush := func(end int) {
+		if start >= 0 {
+			elem := s[start:end]
+			elem = strings.TrimSpace(elem)
+			if strings.HasPrefix(elem, "{") && strings.HasSuffix(elem, "}") {
+				elem = strings.TrimSpace(elem[1 : len(elem)-1])
+			}
+			elems = append(elems, elem)
+		}
+		start = -1
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case inQuote:
+			if c == '"' {
+				inQuote = false
+			}
+		case c == '"':
+			inQuote = true
+		case c == '{':
+			depth++
+		case c == '}':
+			if depth > 0 {
+				depth--
+			}
+		case (c == ' ' || c == '\t' || c == '\n' || c == '\r') && depth == 0:
+			flush(i)
+			continue
+		}
+		if start < 0 {
+			start = i
+		}
+	}
+	flush(len(s))
+	if len(elems) == 0 {
+		return strings.TrimSpace(s)
+	}
+	return strings.Join(elems, " ")
 }
 
 // tclList joins items into a TCL-format list string.

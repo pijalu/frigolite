@@ -21,6 +21,11 @@ func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
 	if err := e.ensureStatTable("sqlite_stat1", "tbl,idx,stat"); err != nil {
 		return &Result{Error: err}
 	}
+	// sqlite_stat4 is also created by ANALYZE (SQLite creates both stat
+	// tables together when statistics are collected).
+	if err := e.ensureStatTable("sqlite_stat4", "tbl,idx,nEq,nLt,nDLt,sample"); err != nil {
+		return &Result{Error: err}
+	}
 
 	// ANALYZE sqlite_master (or main.sqlite_master) — just ensures stats table exists.
 	// In SQLite this loads stats into memory for the planner; we read from sqlite_stat1 directly.

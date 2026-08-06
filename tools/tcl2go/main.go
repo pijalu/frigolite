@@ -304,6 +304,60 @@ func tclList(items []string) string {
 	return strings.Join(parts, " ")
 }
 
+// tclListFlatten converts a TCL-format list to the space-joined form that
+// flatten() produces for a multi-row query result. Only the list-rendering
+// braces ({element} {element}) are removed — quoted identifiers inside an
+// element (e.g. CREATE TABLE t(a, "d")) are preserved verbatim. A value
+// that is not a braced list is returned unchanged (collapsing whitespace).
+func tclListFlatten(s string) string {
+	if !strings.Contains(s, "{") && !strings.Contains(s, "}") {
+		return strings.Join(strings.Fields(s), " ")
+	}
+	var elems []string
+	depth := 0
+	inQuote := false
+	start := -1
+	flush := func(end int) {
+		if start >= 0 {
+			elem := s[start:end]
+			elem = strings.TrimSpace(elem)
+			if strings.HasPrefix(elem, "{") && strings.HasSuffix(elem, "}") {
+				elem = strings.TrimSpace(elem[1 : len(elem)-1])
+			}
+			elems = append(elems, elem)
+		}
+		start = -1
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case inQuote:
+			if c == '"' {
+				inQuote = false
+			}
+		case c == '"':
+			inQuote = true
+		case c == '{':
+			depth++
+		case c == '}':
+			if depth > 0 {
+				depth--
+			}
+		case (c == ' ' || c == '\t' || c == '\n' || c == '\r') && depth == 0:
+			flush(i)
+			continue
+		}
+		if start < 0 {
+			start = i
+		}
+	}
+	flush(len(s))
+	if len(elems) == 0 {
+		return strings.TrimSpace(s)
+	}
+	return strings.Join(elems, " ")
+}
+
 // tclSplitList splits a TCL-format list string into elements.
 func tclSplitList(s string) []string {
 	var result []string

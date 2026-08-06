@@ -1524,7 +1524,7 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
 
 	fn, ok := e.funcs.Find(f.Name)
 	if !ok {
-		return nil, fmt.Errorf("unknown function: %s", f.Name)
+		return nil, fmt.Errorf("no such function: %s", f.Name)
 	}
 
 	// Nested aggregate inside a wrapper expression of an aggregate query

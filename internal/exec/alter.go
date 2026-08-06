@@ -4,6 +4,7 @@ package exec
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
@@ -63,8 +64,11 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	}
 
 	// Find the table entry and validate it for broken references
-	if err := e.validateRename(oldName, newName); err != nil {
-		return &Result{Error: err}
+	// (writable_schema bypasses this validation).
+	if !e.writableSchema {
+		if err := e.validateRename(oldName, newName); err != nil {
+			return &Result{Error: err}
+		}
 	}
 
 	// Pre-process: apply token-level rename to the table's own CREATE SQL
@@ -238,15 +242,28 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 	}
 
 	// Validate triggers before proceeding - reject rename if any trigger
-	// references a non-existent table (matches SQLite behavior).
-	if err := e.validateRename(tableName, tableName); err != nil {
-		return &Result{Error: err}
+	// references a non-existent table (matches SQLite behavior). writable_schema
+	// bypasses this validation.
+	if !e.writableSchema {
+		if err := e.validateRename(tableName, tableName); err != nil {
+			return &Result{Error: err}
+		}
 	}
 
 	// Validate views that reference this table for broken column references
 	// before mutating anything (SQLite: "error in view %s: no such column: %s").
-	if depResult := e.checkViewRenameDependencies(tableName); depResult != nil {
-		return depResult
+	// writable_schema bypasses dependency validation (SQLite skips it when
+	// sqlite_schema is directly editable).
+	if !e.writableSchema {
+		if depResult := e.checkViewRenameDependencies(tableName, oldColName, newColName); depResult != nil {
+			return depResult
+		}
+
+		// Validate indexes on this table for broken column references
+		// (SQLite: "error in index %s: no such column: %s").
+		if depResult := e.checkIndexRenameDependencies(tableName); depResult != nil {
+			return depResult
+		}
 	}
 
 	// Find the table entry (searching all attached databases, matching
@@ -294,15 +311,10 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 	if newSQL != "" && newSQL != tableEntry.SQL {
 		tableEntry.SQL = newSQL
 		delete(e.tableCache, tableName)
-		_ = e.schema.RemoveEntry(tableEntry.Name)
-		if err := e.schema.AddEntry(tableEntry); err != nil {
-			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
-		}
-		// Verify the entry was re-added
-		if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
-			if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
-				return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
-			}
+		// In-place schema update keeps the row's position in sqlite_schema
+		// (matching SQLite, which rewrites the row rather than re-inserting).
+		if err := e.schema.UpdateEntry(tableEntry.Name, newSQL); err != nil {
+			return &Result{Error: fmt.Errorf("failed to update schema entry: %w", err)}
 		}
 	}
 
@@ -572,8 +584,7 @@ func (e *Engine) renameColumnInForeignKeys(parentTable, oldColName, newColName s
 		newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
 		if newSQL != entry.SQL && newSQL != "" {
 			entry.SQL = newSQL
-			_ = e.schema.RemoveEntry(entry.Name)
-			_ = e.schema.AddEntry(entry)
+			_ = e.schema.UpdateEntry(entry.Name, newSQL)
 		}
 	}
 }
@@ -629,8 +640,7 @@ func (e *Engine) renameColumnInViews(tableName, oldColName, newColName string) {
 		newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
 		if newSQL != entry.SQL && newSQL != "" {
 			entry.SQL = newSQL
-			_ = e.schema.RemoveEntry(entry.Name)
-			_ = e.schema.AddEntry(entry)
+			_ = e.schema.UpdateEntry(entry.Name, newSQL)
 		}
 	}
 }
@@ -677,8 +687,7 @@ func (e *Engine) renameColumnInEntries(entryType schema.SchemaType, tblName stri
 				newSQL = replaceColumnNameInSQL(newSQL, oldColName, newColName)
 				if newSQL != entry.SQL {
 					entry.SQL = newSQL
-					_ = e.schema.RemoveEntry(entry.Name)
-					_ = e.schema.AddEntry(entry)
+					_ = e.schema.UpdateEntry(entry.Name, newSQL)
 					continue
 				}
 			}
@@ -688,8 +697,7 @@ func (e *Engine) renameColumnInEntries(entryType schema.SchemaType, tblName stri
 		newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
 		if newSQL != entry.SQL && newSQL != "" {
 			entry.SQL = newSQL
-			_ = e.schema.RemoveEntry(entry.Name)
-			_ = e.schema.AddEntry(entry)
+			_ = e.schema.UpdateEntry(entry.Name, newSQL)
 		}
 	}
 }
@@ -797,6 +805,13 @@ func (e *Engine) validateRename(oldName, newName string) error {
 	// Only check references to tables OTHER than the one being renamed.
 	for _, entry := range entries {
 		if entry.Type == schema.TypeTrigger {
+			// Only triggers ON the renamed table or whose body references the
+			// renamed table are re-validated by SQLite; triggers on unrelated
+			// tables must not block the rename.
+			if !strings.EqualFold(entry.TblName, oldName) &&
+				!refTableInTrigger(entry.SQL, oldName) {
+				continue
+			}
 			// Extract the trigger body and check for table references
 			bodyRefs := findTableRefsInTrigger(entry.SQL)
 			for _, ref := range bodyRefs {
@@ -1148,7 +1163,9 @@ func findTableRefsInTrigger(triggerSQL string) []string {
 	matches = re.FindAllStringSubmatch(triggerSQL, -1)
 	for _, m := range matches {
 		t := m[1]
-		if strings.EqualFold(t, "SET") {
+		// "UPDATE OF col1, col2" (trigger event column list) is not a table
+		// reference; OF is a keyword in that clause.
+		if strings.EqualFold(t, "SET") || strings.EqualFold(t, "OF") {
 			continue
 		}
 		if isCTE(t) {
@@ -2333,6 +2350,94 @@ func (e *Engine) getFTSModuleForTable(tableName string) *fts.FTS3Module {
 	return nil
 }
 
+// checkIndexRenameDependencies validates that every index on the given table
+// references only existing columns. SQLite re-parses index definitions when
+// re-running ALTER TABLE RENAME COLUMN and rejects the rename if any indexed
+// column does not exist ("error in index %s: no such column: %s").
+func (e *Engine) checkIndexRenameDependencies(tableName string) *Result {
+	entries, err := e.schema.GetEntries(schema.TypeIndex)
+	if err != nil {
+		return nil
+	}
+	for _, entry := range entries {
+		if !strings.EqualFold(entry.TblName, tableName) {
+			continue
+		}
+		// Auto-generated indexes (sqlite_autoindex_*) have empty SQL and are
+		// not re-validated by SQLite.
+		if strings.HasPrefix(strings.ToLower(entry.Name), "sqlite_autoindex_") {
+			continue
+		}
+		// An index with empty SQL (e.g. edited via writable_schema) is
+		// malformed; SQLite reports "error in index %s: " on rename.
+		if strings.TrimSpace(entry.SQL) == "" {
+			return &Result{Error: fmt.Errorf("error in index %s: ", entry.Name)}
+		}
+		cols := indexColumnRefs(entry.SQL)
+		for _, col := range cols {
+			if !e.tableHasColumn(tableName, col) {
+				return &Result{Error: fmt.Errorf("error in index %s: no such column: %s", entry.Name, col)}
+			}
+		}
+	}
+	return nil
+}
+
+// indexColumnRefs extracts the column names referenced by a CREATE INDEX
+// statement's column list (the parenthesized expressions after ON).
+func indexColumnRefs(indexSQL string) []string {
+	upper := strings.ToUpper(indexSQL)
+	onIdx := strings.Index(upper, " ON ")
+	if onIdx < 0 {
+		return nil
+	}
+	tblStart := onIdx + 4
+	tblEnd := tblStart
+	for tblEnd < len(indexSQL) && indexSQL[tblEnd] != '(' {
+		tblEnd++
+	}
+	if tblEnd >= len(indexSQL) {
+		return nil
+	}
+	open := tblEnd + 1
+	depth := 1
+	i := open
+	for i < len(indexSQL) && depth > 0 {
+		if indexSQL[i] == '(' {
+			depth++
+		} else if indexSQL[i] == ')' {
+			depth--
+		}
+		i++
+	}
+	if depth != 0 {
+		return nil
+	}
+	inner := indexSQL[open : i-1]
+	// Strip double-quoted tokens (DQS string literals like "c" in
+	// "c"=b are not column references).
+	inner = regexp.MustCompile(`"[^"]*"`).ReplaceAllString(inner, " ")
+	return extractIdentifierTokens(inner)
+}
+
+// tableHasColumn reports whether the named table defines the given column.
+func (e *Engine) tableHasColumn(tableName, colName string) bool {
+	entry, _, err := e.findTable(tableName)
+	if err != nil {
+		return false
+	}
+	colDefs := e.colCache[tableName]
+	if colDefs == nil {
+		colDefs = e.parseColumnDefs(entry.Name, entry.SQL)
+	}
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, colName) {
+			return true
+		}
+	}
+	return false
+}
+
 // checkIndexDependencies checks if any indexes reference the given column and returns
 // an error if so. This prevents dropping columns that are used by indexes.
 func (e *Engine) checkIndexDependencies(tableName, columnName string) *Result {
@@ -2452,11 +2557,58 @@ func (e *Engine) checkViewDependencies(tableName, columnName string) *Result {
 	return nil
 }
 
+// extractIdentifierTokens splits a SELECT-list fragment into bare identifier
+// tokens, discarding operators, literals and punctuation. Function names
+// (identifiers immediately followed by an open parenthesis) are excluded —
+// they are callable, not column references. Used to validate view column
+// references: for "a+10, b*5.0, xyz" it yields [a, 10, b, 5, 0, xyz]
+// (numeric literals are later skipped as non-columns).
+func extractIdentifierTokens(s string) []string {
+	var out []string
+	var cur []rune
+	flush := func() {
+		if len(cur) > 0 {
+			out = append(out, string(cur))
+			cur = nil
+		}
+	}
+	for i, r := range s {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
+			(r >= '0' && r <= '9') || r == '_' || r == '.' {
+			cur = append(cur, r)
+		} else {
+			// An identifier immediately followed by '(' is a function name, not
+			// a column reference (e.g. group_concat(a ORDER BY b)).
+			if r == '(' && len(cur) > 0 {
+				// Skip any pending identifier that is directly attached to '('.
+				// There is no whitespace between the name and '(' (the tokenizer
+				// would otherwise have split it), so drop the current token.
+				if i > 0 && isIdentByte(s[i-1]) {
+					cur = nil
+				}
+				flush()
+				continue
+			}
+			flush()
+		}
+	}
+	flush()
+	return out
+}
+
+// isIdentByte reports whether b is a valid identifier character.
+func isIdentByte(b byte) bool {
+	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') ||
+		(b >= '0' && b <= '9') || b == '_'
+}
+
 // checkViewRenameDependencies checks whether any view that references the
-// given table has broken column references. ALTER TABLE RENAME COLUMN fails
-// if a view selects a column that does not exist on the referenced table
-// (SQLite: "error in view %s: no such column: %s").
-func (e *Engine) checkViewRenameDependencies(tableName string) *Result {
+// given table has broken column references or would become ambiguous after a
+// column rename. ALTER TABLE RENAME COLUMN fails if a view selects a column
+// that does not exist on the referenced tables (SQLite: "error in view %s: no
+// such column: %s") or if the rename makes a column reference ambiguous
+// ("error in view %s after rename: ambiguous column name: %s").
+func (e *Engine) checkViewRenameDependencies(tableName string, oldColName, newColName string) *Result {
 	views, err := e.schema.GetEntries(schema.TypeView)
 	if err != nil {
 		return nil
@@ -2467,44 +2619,82 @@ func (e *Engine) checkViewRenameDependencies(tableName string) *Result {
 		if fromIdx < 0 {
 			continue
 		}
+		// Parse the FROM clause table list (may be multi-table: "FROM t1, t2").
 		fromRest := strings.TrimSpace(upperSQL[fromIdx+6:])
-		spaceIdx := strings.IndexAny(fromRest, " \n\t\r")
-		refTable := ""
-		if spaceIdx > 0 {
-			refTable = fromRest[:spaceIdx]
-		} else {
-			refTable = fromRest
-		}
-		if refTable == "" || !strings.EqualFold(refTable, tableName) {
+		fromTables := splitFromTables(fromRest)
+		if len(fromTables) == 0 {
 			continue
 		}
-		entry, findErr := e.schema.FindTable(refTable)
-		if findErr != nil {
-			return &Result{Error: fmt.Errorf("error in view %s: %s", view.Name, findErr.Error())}
+		// The view only matters if the renamed table is one of its FROM tables.
+		renamedInFrom := false
+		for _, ft := range fromTables {
+			if strings.EqualFold(ft, tableName) {
+				renamedInFrom = true
+				break
+			}
 		}
-		colDefs := e.colCache[refTable]
-		if colDefs == nil {
-			colDefs = e.parseColumnDefs(entry.Name, entry.SQL)
+		if !renamedInFrom {
+			continue
 		}
+		// Build the union of columns across all FROM tables (for validating
+		// unqualified references) and a per-table map (for ambiguity checks).
 		validCols := make(map[string]bool)
-		for _, cd := range colDefs {
-			validCols[strings.ToUpper(cd.Name)] = true
+		tableCols := make(map[string]map[string]bool)
+		for _, ft := range fromTables {
+			entry, findErr := e.schema.FindTable(ft)
+			if findErr != nil {
+				// If the FROM table itself doesn't exist, the view is broken;
+				// SQLite reports this on rename.
+				if v, vErr := e.schema.FindView(ft); vErr != nil {
+					return &Result{Error: fmt.Errorf("error in view %s: %s", view.Name, findErr.Error())}
+				} else if v != nil {
+					continue
+				}
+				continue
+			}
+			colDefs := e.colCache[ft]
+			if colDefs == nil {
+				colDefs = e.parseColumnDefs(entry.Name, entry.SQL)
+			}
+			cols := make(map[string]bool)
+			for _, cd := range colDefs {
+				cols[strings.ToUpper(cd.Name)] = true
+				validCols[strings.ToUpper(cd.Name)] = true
+			}
+			tableCols[strings.ToUpper(ft)] = cols
 		}
 		selIdx := strings.Index(strings.ToUpper(view.SQL), "SELECT ")
 		if selIdx < 0 {
 			continue
 		}
 		afterSelect := view.SQL[selIdx+7 : fromIdx]
-		viewCols := strings.FieldsFunc(afterSelect, func(r rune) bool {
-			return r == ',' || r == ' ' || r == '\n' || r == '\t' || r == '\r'
-		})
-		for _, col := range viewCols {
+		// Extract bare identifier tokens (not whole comma/space chunks) so
+		// expressions like "a+10" yield the identifier "a" rather than the
+		// literal chunk "a+10". SQLite reports the first unresolvable
+		// identifier in the view's SELECT list.
+		viewCols := extractIdentifierTokens(afterSelect)
+		for i, col := range viewCols {
 			col = strings.TrimSpace(col)
 			if col == "" {
 				continue
 			}
+			// An identifier following AS is an output alias, not a column
+			// reference (e.g. "SELECT a AS d FROM t").
+			if i > 0 && strings.EqualFold(strings.TrimSpace(viewCols[i-1]), "AS") {
+				continue
+			}
+			// Skip function calls and expressions (e.g. group_concat(a ORDER BY
+			// b)); only bare column references need validation.
+			if strings.Contains(col, "(") || strings.Contains(col, ")") {
+				continue
+			}
 			upperCol := strings.ToUpper(col)
-			if upperCol == "DISTINCT" || upperCol == "ALL" || upperCol == "AS" {
+			if upperCol == "DISTINCT" || upperCol == "ALL" || upperCol == "AS" ||
+				upperCol == "ORDER" || upperCol == "BY" || upperCol == "COLLATE" {
+				continue
+			}
+			// Skip numeric literals extracted from expressions (e.g. 10 in a+10).
+			if _, err := strconv.ParseFloat(upperCol, 64); err == nil {
 				continue
 			}
 			if strings.Contains(upperCol, ".") {
@@ -2517,9 +2707,62 @@ func (e *Engine) checkViewRenameDependencies(tableName string) *Result {
 				return &Result{Error: fmt.Errorf("error in view %s: no such column: %s",
 					view.Name, col)}
 			}
+			// Post-rename ambiguity: if this reference is to the renamed column
+			// and the new name also exists in another FROM table, the rename
+			// makes the reference ambiguous. The renamed table itself will have
+			// the new name after the rename, so it counts toward ambiguity.
+			if oldColName != "" && strings.EqualFold(upperCol, oldColName) &&
+				newColName != "" && newColName != oldColName {
+				count := 1 // the renamed table will have the new column after rename
+				for _, ft := range fromTables {
+					if strings.EqualFold(ft, tableName) {
+						continue
+					}
+					if cols, ok := tableCols[strings.ToUpper(ft)]; ok && cols[strings.ToUpper(newColName)] {
+						count++
+					}
+				}
+				if count > 1 {
+					return &Result{Error: fmt.Errorf("error in view %s after rename: ambiguous column name: %s",
+						view.Name, newColName)}
+				}
+			}
 		}
 	}
 	return nil
+}
+
+// splitFromTables splits a FROM clause into its table names, handling commas
+// ("FROM t1, t2") and stopping at the first keyword that ends the list
+// (WHERE, JOIN, GROUP, ORDER, LIMIT, etc.).
+func splitFromTables(fromRest string) []string {
+	// Stop at common clause keywords.
+	stopIdx := len(fromRest)
+	for _, kw := range []string{" WHERE ", " JOIN ", " GROUP ", " ORDER ", " LIMIT ", " HAVING ", " ON "} {
+		if idx := strings.Index(fromRest, kw); idx >= 0 && idx < stopIdx {
+			stopIdx = idx
+		}
+	}
+	fromRest = fromRest[:stopIdx]
+	parts := strings.Split(fromRest, ",")
+	var out []string
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		// Strip trailing AS alias and schema prefixes.
+		fields := strings.Fields(p)
+		if len(fields) == 0 {
+			continue
+		}
+		name := fields[0]
+		if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
+			name = name[dotIdx+1:]
+		}
+		out = append(out, name)
+	}
+	return out
 }
 
 // checkViewDropDependencies checks if dropping the column would break

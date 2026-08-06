@@ -141,7 +141,7 @@ func Test_altercol(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := res
+				want := tclListFlatten(res)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -155,10 +155,10 @@ func Test_altercol(t *testing.T) {
 		}
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
-		{ // "-db"
-			_res = db.Exec("db2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+		{ // "2.1"
+			r = db.Query(" SELECT b FROM t3 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b FROM t3 ")
 			}
 		}
 		{ // "2.2"
@@ -173,10 +173,10 @@ func Test_altercol(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "-db"
-			_res = db.Exec("db2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+		{ // "2.3"
+			r = db.Query(" SELECT biglongname FROM t3 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT biglongname FROM t3 ")
 			}
 		}
 		{ // "3.0"
@@ -240,7 +240,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"silly name\"))} {CREATE TABLE p1(c, \"silly name\", PRIMARY KEY(c, \"silly name\"))}"
+			want := "CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"silly name\")) CREATE TABLE p1(c, \"silly name\", PRIMARY KEY(c, \"silly name\"))"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -264,7 +264,7 @@ func Test_altercol(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"reasonable\"))} {CREATE TABLE p1(c, \"reasonable\", PRIMARY KEY(c, \"reasonable\"))} {CREATE TABLE c2(a, b, FOREIGN KEY (a, b) REFERENCES p1)}"
+			want := "CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"reasonable\")) CREATE TABLE p1(c, \"reasonable\", PRIMARY KEY(c, \"reasonable\")) CREATE TABLE c2(a, b, FOREIGN KEY (a, b) REFERENCES p1)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -569,7 +569,7 @@ func Test_altercol(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "{CREATE TABLE x1(a, bbb, c)} {CREATE VIRTUAL TABLE e1 USING echo(x1)}"
+					want := "CREATE TABLE x1(a, bbb, c) CREATE VIRTUAL TABLE e1 USING echo(x1)"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -688,7 +688,7 @@ func Test_altercol(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+				// sqlite3_db_config DEFENSIVE (unhandled flag)
 				{ // "13.1.4"
 					r = db.Query("\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_master SET sql = 'CREATE INDEX x1i ON x1(j)' WHERE name='x1i';\n  PRAGMA writable_schema = OFF;\n")
 					if r.Error != nil {
@@ -762,7 +762,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{} {} {} {}"
+						want := "   "
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -1030,7 +1030,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN SELECT d NOT NULL FROM t1; END"
+						want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN\n    SELECT d NOT NULL FROM t1;\n  END"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -1045,7 +1045,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{CREATE TABLE t1(othername, b)} {CREATE TABLE t2(c, othername, extra AS (c + 1))}"
+						want := "CREATE TABLE t1(othername, b) CREATE TABLE t2(c, othername, extra AS (c + 1))"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -1053,8 +1053,8 @@ func Test_altercol(t *testing.T) {
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
-					// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
-					// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+					db.SetDQS(true, true)
+					db.SetDQS(true, true)
 					{ // "22.0"
 						r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX x1 on t1(\"c\"=b);\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n  INSERT INTO t1 VALUES('c', 'c');\n  ALTER TABLE t1 RENAME COLUMN a TO \"c\";\n  PRAGMA integrity_check;\n")
 						if r.Error != nil {
@@ -1077,7 +1077,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "ok {CREATE TABLE t1(\"x\" \"b\",c)}"
+						want := "ok CREATE TABLE t1(\"x\" \"b\",c)"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
