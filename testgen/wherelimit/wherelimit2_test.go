@@ -186,7 +186,7 @@ func Test_wherelimit2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a d} {a c} {a b} {a a}"
+		want := "a d a c a b a a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -198,7 +198,7 @@ func Test_wherelimit2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a d} {a c} {a b} {a a}"
+		want := "a d a c a b a a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -222,7 +222,7 @@ func Test_wherelimit2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a a} {a b} hello hello {a c} {a b} {a a}"
+		want := "a a a b hello hello a c a b a a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -234,7 +234,7 @@ func Test_wherelimit2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a a} {a b} {a c} hello hello {a b} {a a}"
+		want := "a a a b a c hello hello a b a a"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -337,7 +337,8 @@ func Test_wherelimit2(t *testing.T) {
 		_ = log // TCL namespace variable (query)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t2(x);  \n  INSERT INTO t2(x) VALUES(1),(2),(3),(5),(8),(13);\n")

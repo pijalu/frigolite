@@ -105,6 +105,7 @@ func Test_uri(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "uri"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	// foreach {tn uri file} "1      test.db                              test.db\n  2      file:test.db                         test.db\n  3      file://PWD/test.db                   test.db\n  4      file:PWD/test.db                     test.db\n  5      file:test.db?mork=1                  test.db\n  6      file:test.db?mork=1&tonglor=2        test.db\n  7      file:test.db?mork=1#boris            test.db\n  8      file:test.db#boris                   test.db\n  9      test.db#boris                        test.db#boris\n  10     file:test%2Edb                       test.db\n  11     file                                 file\n  12     http:test.db                         http:test.db\n  13     file:test.db%00extra                 test.db\n  14     file:testdb%00.db%00extra            testdb\n\n  15     test.db?mork=1#boris                 test.db?mork=1#boris\n  16     file://localhostPWD/test.db%3Fhello  test.db?hello"
@@ -155,6 +156,7 @@ func Test_uri(t *testing.T) {
 			{ // do_test "1." + tn + ".4"
 				// file exists file
 			}
+			db.Close()
 		}
 		// testvfs tvfs2 (unsupported command, not transpiled)
 		// testvfs tvfs -default 1 (unsupported command, not transpiled)
@@ -182,6 +184,9 @@ func Test_uri(t *testing.T) {
 				_ = DB // suppress unused warning
 				{ // do_test "2." + tn + ".1"
 					_ = arglist // TCL namespace variable (query)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), kvlist) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", kvlist, _res.Error, "2." + tn + ".1")
+					}
 				}
 				// sqlite3_close $DB (unsupported command, not transpiled)
 				_dbtmp3, err := frigolite.Open("xxx.db")
@@ -195,7 +200,11 @@ func Test_uri(t *testing.T) {
 				}
 				{ // do_test "2." + tn + ".2"
 					_ = arglist // TCL namespace variable (query)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), kvlist) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", kvlist, _res.Error, "2." + tn + ".2")
+					}
 				}
+				db.Close()
 			}
 			// tvfs delete (unsupported command, not transpiled)
 			// tvfs2 delete (unsupported command, not transpiled)
@@ -220,6 +229,7 @@ func Test_uri(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						db.Close()
 					}
 					os.Remove("test.db")
 					A_1 = "0 {}"
@@ -229,10 +239,14 @@ func Test_uri(t *testing.T) {
 					{ // do_test "4.1." + tn + ".1"
 						_list := tclList([]string{"0", msg})
 						_ = _list
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), A_create_ok) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", A_create_ok, _res.Error, "4.1." + tn + ".1")
+						}
 					}
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						db.Close()
 					}
 					os.Remove("test.db")
 					db, err = frigolite.Open("")
@@ -241,6 +255,7 @@ func Test_uri(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
 					}
+					db.Close()
 					A_1 = "0 {}"
 					_ = A_1 // suppress unused warning
 					A_0 = "1 {attempt to write a readonly database}"
@@ -251,6 +266,9 @@ func Test_uri(t *testing.T) {
 						if err != nil { t.Fatal(err) }
 						_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 						_ = _res // catchsql
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), A_write_ok) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", A_write_ok, _res.Error, "4.1." + tn + ".2")
+						}
 					}
 					A_1 = "0 {}"
 					_ = A_1 // suppress unused warning
@@ -259,6 +277,9 @@ func Test_uri(t *testing.T) {
 					{ // do_test "4.1." + tn + ".3"
 						_list := tclList([]string{"0", msg})
 						_ = _list
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), A_readonly_ok) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", A_readonly_ok, _res.Error, "4.1." + tn + ".3")
+						}
 					}
 				}
 				orig = "sqlite3_enable_shared_cache"
@@ -278,6 +299,7 @@ func Test_uri(t *testing.T) {
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
+							db.Close()
 						}
 						os.Remove("test.db")
 						// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
@@ -302,6 +324,9 @@ func Test_uri(t *testing.T) {
 							if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 							_res = db.Exec(" SELECT * FROM t1 ")
 							_ = _res // catchsql
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), A_is_shared) {
+								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", A_is_shared, _res.Error, "4.2." + tn)
+							}
 						}
 						_ = db2 // close db2: aliased to db, no-op
 					}
@@ -324,6 +349,7 @@ func Test_uri(t *testing.T) {
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						db.Close()
 					}
 					// eval (dynamic, not transpiled)
 					{ // do_test "5.1.1"
@@ -339,11 +365,13 @@ func Test_uri(t *testing.T) {
 					{ // do_test "5.1.2"
 						_ = tclSort("array names ::T2") // lsort result
 					}
+					db.Close()
 					// tvfs1 delete (unsupported command, not transpiled)
 					// tvfs2 delete (unsupported command, not transpiled)
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
+						db.Close()
 					}
 					// foreach {tn uri res} "1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}"
 					_items9 := tclSplitList("1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}")
@@ -366,6 +394,9 @@ func Test_uri(t *testing.T) {
 								DB = ""
 								_ = DB // suppress unused warning
 								// sqlite3_errmsg $DB (unsupported command, not transpiled)
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "6." + tn)
+								}
 							}
 							{
 								var _catchErr error
@@ -382,6 +413,7 @@ func Test_uri(t *testing.T) {
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
 							}
+							db.Close()
 						}
 						{ // do_test "7.2"
 							_dbtmp11, err := frigolite.Open("file:test.db?mode=ro")

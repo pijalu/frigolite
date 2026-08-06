@@ -86,7 +86,8 @@ func Test_dbfuzz001(t *testing.T) {
 	}
 	// extra_schema_checks 1 (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "dbfuzz001-430"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER, b INT, c DEFAULT 0);\n")

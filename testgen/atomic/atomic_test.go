@@ -55,13 +55,15 @@ func Test_atomic(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "atomic" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	db.Close()
 	if tclBool("atomic_batch_write test.db" + "==0") {
 		_putsMsg := "No f2fs atomic-batch-write support. Skipping tests..."
 		_ = _putsMsg
 		return
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n")

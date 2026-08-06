@@ -74,7 +74,7 @@ func Test_mallocAll(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// proc definition (not transpiled)
-	for tclBool("set arg [lshift argv]" + " != \"\"") {
+	for arg != "" {
 		// switch -- $arg {\n    -sharedpagercache {\n      sqlite3_enable_sh...} (test infra, not transpiled)
 	}
 	// set testdir: test directory (not used in Go test context)
@@ -83,7 +83,7 @@ func Test_mallocAll(t *testing.T) {
 	_ = G_isquick // suppress unused warning
 	EXCLUDE = "\n  mallocAll.test\n"
 	_ = EXCLUDE // suppress unused warning
-	if tclBool("sqlite3 -has-codec") {
+	if tclBool("") {
 	}
 	INCLUDE = "\n"
 	_ = INCLUDE // suppress unused warning
@@ -98,6 +98,7 @@ func Test_mallocAll(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		if func() bool { sqlite_open_file_count_n, _sqlite_open_file_count_e := strconv.Atoi(sqlite_open_file_count); if _sqlite_open_file_count_e != nil { return false }; return sqlite_open_file_count_n > 0 }() {
 			_putsMsg := tail + " did not close all files: " + sqlite_open_file_count

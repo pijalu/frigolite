@@ -74,7 +74,7 @@ func Test_where4(t *testing.T) {
 		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS NULL") // count (search count always 0)
 	}
 	{ // do_test "where4-1.1b"
-		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS " + sqlLiteral(null)) // count (search count always 0)
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS " + sqlLiteral(nil)) // count (search count always 0)
 	}
 	{ // do_test "where4-1.2"
 		_ = db.Exec("SELECT rowid FROM t1 WHERE +w IS NULL") // count (search count always 0)
@@ -158,9 +158,9 @@ func Test_where4(t *testing.T) {
 		}
 	}
 	{ // do_test "where4-3.4"
-		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS " + sqlLiteral(null) + ";\n  ")
+		r = db.Query("\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS " + sqlLiteral(nil) + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS " + sqlLiteral(null) + ";\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS " + sqlLiteral(nil) + ";\n  ")
 		}
 	}
 	{ // do_test "where4-4.1"
@@ -268,9 +268,9 @@ func Test_where4(t *testing.T) {
 		}
 	}
 	{ // "8.2"
-		r = db.Query(" SELECT * FROM u9 WHERE a IS " + sqlLiteral(null) + " ")
+		r = db.Query(" SELECT * FROM u9 WHERE a IS " + sqlLiteral(nil) + " ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM u9 WHERE a IS " + sqlLiteral(null) + " ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM u9 WHERE a IS " + sqlLiteral(nil) + " ")
 			return
 		}
 		got := flatten(r)

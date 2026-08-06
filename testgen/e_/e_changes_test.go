@@ -84,7 +84,8 @@ func Test_e_changes(t *testing.T) {
 		_ = schema // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(schema)
 			if _res.Error != nil {
@@ -126,7 +127,8 @@ func Test_e_changes(t *testing.T) {
 			// do_changes_test 1.$tn.12 COMMIT 0 (unsupported command, not transpiled)
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// do_changes_test 2.1 { CREATE TABLE t1(x)          } 0 (unsupported command, not transpiled)
 		// do_changes_test 2.2 { \n  WITH d(y) AS (SELECT 1 UNION ALL SELECT y+1 F...} 47 (unsupported command, not transpiled)
@@ -135,7 +137,8 @@ func Test_e_changes(t *testing.T) {
 		// do_changes_test 2.5 { CREATE TABLE t1(x)          } 47 (unsupported command, not transpiled)
 		// do_changes_test 2.6 { ALTER TABLE t1 ADD COLUMN b } 47 (unsupported command, not transpiled)
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.1.0"
 			_res = db.Exec("\n  CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_ai AFTER INSERT ON p1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  CREATE TRIGGER tr_au AFTER UPDATE ON p1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n")
@@ -217,7 +220,8 @@ func Test_e_changes(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.1"
 			_res = db.Exec("\n  CREATE TABLE log(log);\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER v1_i INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n  CREATE TRIGGER v1_u INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update'), ('update');\n  END;\n  CREATE TRIGGER v1_d INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete'), ('delete'), ('delete');\n  END;\n")
@@ -232,9 +236,10 @@ func Test_e_changes(t *testing.T) {
 		// do_changes_test 4.4.1 { INSERT INTO t1 SELECT * FROM t1 } 12 (unsupported command, not transpiled)
 		// do_changes_test 4.4.2 { DELETE FROM v1 WHERE x=5 } 0 (unsupported command, not transpiled)
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		changes = "list" // TCL namespace variable
+		changes = "" // TCL namespace variable
 		_ = changes // suppress unused warning
 		// proc definition (not transpiled)
 		{ // "5.1.0"
@@ -259,7 +264,8 @@ func Test_e_changes(t *testing.T) {
 			_ = changes // TCL namespace variable (query)
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "5.2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 0);\n  INSERT INTO t1 VALUES(3, 0);\n  CREATE TRIGGER t1_a_u AFTER UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.b || ' -> ' || new.b || ' c = ' || changes() );\n  END;\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1), (2), (3);\n  UPDATE t1 SET b = changes();\n")
@@ -286,13 +292,14 @@ func Test_e_changes(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{0 -> 3 c = 3} {0 -> 3 c = 3} {0 -> 3 c = 3}"
+			want := "0 -> 3 c = 3 0 -> 3 c = 3 0 -> 3 c = 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.0"
 			_res = db.Exec("\n\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(a, b);\n  CREATE TABLE log(x);\n\n  CREATE TRIGGER t1_i BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_i AFTER INSERT ON t2 BEGIN\n    INSERT INTO t3 VALUES(new.a, new.b), (new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_u AFTER UPDATE ON t1 BEGIN\n    UPDATE t2 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_u BEFORE UPDATE ON t2 BEGIN\n    UPDATE t3 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_d AFTER DELETE ON t1 BEGIN\n    DELETE FROM t2 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_d BEFORE DELETE ON t2 BEGIN\n    DELETE FROM t3 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n")
@@ -304,7 +311,8 @@ func Test_e_changes(t *testing.T) {
 		// do_changes_test 6.2 {\n  DELETE FROM log;\n  UPDATE t1 SET b='*';\n  SE...} {t3->6 t3->6 t2->2 1... (unsupported command, not transpiled)
 		// do_changes_test 6.3 {\n  DELETE FROM log;\n  DELETE FROM t1;\n  SELECT ...} {t3->6 t3->0 t2->2 1... (unsupported command, not transpiled)
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "7.1"
 			r = db.Query("\n  CREATE TABLE q1(t);\n  CREATE TABLE q2(u, v);\n  CREATE TABLE q3(w);\n\n  CREATE TRIGGER q2_insert BEFORE INSERT ON q2 BEGIN\n\n    /* changes() returns value from previous I/U/D in callers context */\n    INSERT INTO q1 VALUES('1:' || changes());\n\n    /* changes() returns value of previous I/U/D in this context */\n    INSERT INTO q3 VALUES(changes()), (2), (3);\n    INSERT INTO q1 VALUES('2:' || changes());\n    INSERT INTO q3 VALUES(changes() + 3), (changes()+4);\n    SELECT 'this does not affect things!';\n    INSERT INTO q1 VALUES('3:' || changes());\n    UPDATE q3 SET w = w+10 WHERE w%2;\n    INSERT INTO q1 VALUES('4:' || changes());\n    DELETE FROM q3;\n    INSERT INTO q1 VALUES('5:' || changes());\n  END;\n")

@@ -235,7 +235,7 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{four five six} {seven eight nine}"
+		want := "four five six seven eight nine"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -283,7 +283,8 @@ func Test_fts3prefix(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=0);\n  CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t1 VALUES('Twas Mulga Bill, from Eaglehawk, ');\n  INSERT INTO t2 VALUES('Twas Mulga Bill, from Eaglehawk, ');\n")
@@ -309,7 +310,8 @@ func Test_fts3prefix(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.2.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"1,0,2\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=\"1,2\");\n  INSERT INTO t1 VALUES('that caught the cycling craze;');\n  INSERT INTO t2 VALUES('that caught the cycling craze;');\n")
@@ -335,7 +337,8 @@ func Test_fts3prefix(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"1,3,2\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=\"1,2\");\n  INSERT INTO t1 VALUES('He turned away the good old horse');\n  INSERT INTO t2 VALUES('He turned away the good old horse');\n")
@@ -344,14 +347,17 @@ func Test_fts3prefix(t *testing.T) {
 		}
 	}
 	{ // do_test "6.3.2"
-		one = "db eval {SELECT md5sum(quote(root)) FROM t1_segdir}"
+		_dbeval2 := tclExecSQL(db, "{SELECT md5sum(quote(root)) FROM t1_segdir}")
+		one = _dbeval2
 		_ = one // suppress unused warning
-		two = "db eval {SELECT md5sum(quote(root)) FROM t2_segdir}"
+		_dbeval3 := tclExecSQL(db, "{SELECT md5sum(quote(root)) FROM t2_segdir}")
+		two = _dbeval3
 		_ = two // suppress unused warning
 		// expr $one == $two (not evaluated)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.4.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"1,600,2\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=\"1,2\");\n  INSERT INTO t1 VALUES('that served him many days;');\n  INSERT INTO t2 VALUES('that served him many days;');\n")
@@ -366,18 +372,19 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want2 := db.Query("SELECT md5sum(quote(root)) FROM t2_segdir")
-		if _want2.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "SELECT md5sum(quote(root)) FROM t2_segdir")
+		_want4 := db.Query("SELECT md5sum(quote(root)) FROM t2_segdir")
+		if _want4.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want4.Error, "SELECT md5sum(quote(root)) FROM t2_segdir")
 			return
 		}
-		want := flatten(_want2)
+		want := flatten(_want4)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.5.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"2147483647,2147483648,2147483649\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=);\n  INSERT INTO t1 VALUES('He dressed himself in cycling clothes');\n  INSERT INTO t2 VALUES('He dressed himself in cycling clothes');\n")
@@ -392,12 +399,12 @@ func Test_fts3prefix(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want3 := db.Query("SELECT md5sum(quote(root)) FROM t2_segdir")
-		if _want3.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want3.Error, "SELECT md5sum(quote(root)) FROM t2_segdir")
+		_want5 := db.Query("SELECT md5sum(quote(root)) FROM t2_segdir")
+		if _want5.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want5.Error, "SELECT md5sum(quote(root)) FROM t2_segdir")
 			return
 		}
-		want := flatten(_want3)
+		want := flatten(_want5)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

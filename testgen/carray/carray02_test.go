@@ -7,6 +7,7 @@ package carray
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -105,6 +106,9 @@ func Test_carray02(t *testing.T) {
 				_r = "run_stmt $STMT"
 				_ = _r // suppress unused warning
 				// sqlite3_finalize $STMT (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "2.2." + tn)
+				}
 			}
 		}
 		// foreach {tn sql res} "1 { SELECT value FROM carray(?, 5) } {1 2 3 4 5}\n  2 { SELECT value FROM carray(?, 3, 'int32') } {1 2 3}\n  3 { SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32') } \n    {1 {} 5 int32 2 {} 5 int32 3 {} 5 int32 4 {} 5 int32 5 {} 5 int32}\n  4 { SELECT rowid, value FROM carray(?, 5, 'int32') } \n    {1 1 2 2 3 3 4 4 5 5}"
@@ -124,6 +128,9 @@ func Test_carray02(t *testing.T) {
 					_r = "run_stmt $STMT"
 					_ = _r // suppress unused warning
 					// sqlite3_finalize $STMT (unsupported command, not transpiled)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "2.3." + tn)
+					}
 				}
 			}
 			// foreach {tn sql res} "1 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3 4 4 5 5}\n\n  2 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value AND a.value<3 AND b.value<3\n  } {1 1 2 2 3 3}\n\n  3 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value<3 AND b.value<3 AND a.value=b.value\n  } {1 1 2 2 3 3}\n\n  4 { \n    SELECT * FROM carray(?1) AS a, carray(?2, a.value) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3}"

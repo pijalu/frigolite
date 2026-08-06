@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -395,8 +396,8 @@ func Test_fts3expr(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH 'five four one' ORDER BY rowid")
 		}
 	}
-	// foreach {id expr res} "2 \"five four NOT one\" {24 26 28 30}\n\n  3 \"five AND four OR one\" \n      {1 3 5 7 9 11 13 15 17 19 21 23 24 25 26 27 28 29 30 31}\n\n  4 \"five AND (four OR one)\" {17 19 21 23 24 25 26 27 28 29 30 31}\n\n  5 \"five NOT (four OR one)\" {16 18 20 22}\n\n  6 \"(five NOT (four OR one)) OR (five AND (four OR one))\"\n      {16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  7 \"(five OR one) AND two AND three\" {7 15 22 23 30 31}\n\n  8 \"five OR one AND two AND three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  9 \"five OR one two three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  10 \"five OR \\\"one two three\\\"\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  11 \"one two OR four five NOT three\" {3 7 11 15 19 23 24 25 26 27 31}\n\n  12 \"(one two OR four five) NOT three\" {3 11 19 24 25 26 27}\n\n  13 \"((((((one two OR four five)))))) NOT three\" {3 11 19 24 25 26 27}"
-	_items0 := tclSplitList("2 \"five four NOT one\" {24 26 28 30}\n\n  3 \"five AND four OR one\" \n      {1 3 5 7 9 11 13 15 17 19 21 23 24 25 26 27 28 29 30 31}\n\n  4 \"five AND (four OR one)\" {17 19 21 23 24 25 26 27 28 29 30 31}\n\n  5 \"five NOT (four OR one)\" {16 18 20 22}\n\n  6 \"(five NOT (four OR one)) OR (five AND (four OR one))\"\n      {16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  7 \"(five OR one) AND two AND three\" {7 15 22 23 30 31}\n\n  8 \"five OR one AND two AND three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  9 \"five OR one two three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  10 \"five OR \\\"one two three\\\"\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  11 \"one two OR four five NOT three\" {3 7 11 15 19 23 24 25 26 27 31}\n\n  12 \"(one two OR four five) NOT three\" {3 11 19 24 25 26 27}\n\n  13 \"((((((one two OR four five)))))) NOT three\" {3 11 19 24 25 26 27}")
+	// foreach {id expr res} "2 \"five four NOT one\" {24 26 28 30}\n\n  3 \"five AND four OR one\" \n      {1 3 5 7 9 11 13 15 17 19 21 23 24 25 26 27 28 29 30 31}\n\n  4 \"five AND (four OR one)\" {17 19 21 23 24 25 26 27 28 29 30 31}\n\n  5 \"five NOT (four OR one)\" {16 18 20 22}\n\n  6 \"(five NOT (four OR one)) OR (five AND (four OR one))\"\n      {16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  7 \"(five OR one) AND two AND three\" {7 15 22 23 30 31}\n\n  8 \"five OR one AND two AND three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  9 \"five OR one two three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  10 \"five OR \"one two three\"\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  11 \"one two OR four five NOT three\" {3 7 11 15 19 23 24 25 26 27 31}\n\n  12 \"(one two OR four five) NOT three\" {3 11 19 24 25 26 27}\n\n  13 \"((((((one two OR four five)))))) NOT three\" {3 11 19 24 25 26 27}"
+	_items0 := tclSplitList("2 \"five four NOT one\" {24 26 28 30}\n\n  3 \"five AND four OR one\" \n      {1 3 5 7 9 11 13 15 17 19 21 23 24 25 26 27 28 29 30 31}\n\n  4 \"five AND (four OR one)\" {17 19 21 23 24 25 26 27 28 29 30 31}\n\n  5 \"five NOT (four OR one)\" {16 18 20 22}\n\n  6 \"(five NOT (four OR one)) OR (five AND (four OR one))\"\n      {16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  7 \"(five OR one) AND two AND three\" {7 15 22 23 30 31}\n\n  8 \"five OR one AND two AND three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  9 \"five OR one two three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  10 \"five OR \"one two three\"\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  11 \"one two OR four five NOT three\" {3 7 11 15 19 23 24 25 26 27 31}\n\n  12 \"(one two OR four five) NOT three\" {3 11 19 24 25 26 27}\n\n  13 \"((((((one two OR four five)))))) NOT three\" {3 11 19 24 25 26 27}")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		id := _items0[_idx0+0]
 		_ = id // suppress unused warning
@@ -409,6 +410,9 @@ func Test_fts3expr(t *testing.T) {
 				r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "fts3expr-6.1." + id)
 				}
 			}
 		}
@@ -428,6 +432,9 @@ func Test_fts3expr(t *testing.T) {
 					r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH " + sqlLiteral(expr) + " ORDER BY rowid ")
+					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "fts3expr-6.2." + id)
 					}
 				}
 			}

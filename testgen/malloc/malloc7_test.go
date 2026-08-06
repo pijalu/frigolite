@@ -71,6 +71,7 @@ func Test_malloc7(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 	_putsMsg := "open-file-count=" + sqlite_open_file_count

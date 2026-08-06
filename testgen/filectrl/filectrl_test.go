@@ -70,6 +70,7 @@ func Test_filectrl(t *testing.T) {
 		// file_control_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.3"
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// file_control_test db (unsupported command, not transpiled)
@@ -81,18 +82,19 @@ func Test_filectrl(t *testing.T) {
 		// file_control_lasterrno_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.5"
-		_dbtmp1, err := frigolite.Open("test_control_lockproxy.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test_control_lockproxy.db")
 		if err != nil { t.Fatal(err) }
 		// file_control_lockproxy_test db [get_pwd] (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.6"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		fn = "file_control_tempfilename db"
 		_ = fn // suppress unused warning
 	}
+	db.Close()
 	os.Remove(".test_control_lockproxy.db-conch")
 	os.Remove("test.db")
 	if tcl_platform_platform == "windows" {
@@ -104,6 +106,7 @@ func Test_filectrl(t *testing.T) {
 			_ = size // suppress unused warning
 			handle = "file_control_win32_get_handle db"
 			_ = handle // suppress unused warning
+			db.Close()
 			os.Remove("test2.db")
 			_list := tclList([]string{size, handle, tclExprWith("$handle != 0", map[string]string{"handle": handle})})
 			_ = _list
@@ -120,6 +123,7 @@ func Test_filectrl(t *testing.T) {
 			_ = size // suppress unused warning
 			handle = "file_control_win32_get_handle db"
 			_ = handle // suppress unused warning
+			db.Close()
 			os.Remove("test2.db")
 			_list := tclList([]string{size, handle, tclExprWith("$handle != 0", map[string]string{"handle": handle})})
 			_ = _list

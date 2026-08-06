@@ -86,9 +86,9 @@ func Test_update2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want0 := db.Query("SELECT a, repeat(b, 100) FROM t2")
+		_want0 := db.Query(" SELECT a, repeat(b, 100) FROM t2 ")
 		if _want0.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, "SELECT a, repeat(b, 100) FROM t2")
+			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, " SELECT a, repeat(b, 100) FROM t2 ")
 			return
 		}
 		want := flatten(_want0)
@@ -115,9 +115,9 @@ func Test_update2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want1 := db.Query("SELECT a, repeat(b, 100) FROM t2")
+		_want1 := db.Query(" SELECT a, repeat(b, 100) FROM t2 ")
 		if _want1.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT a, repeat(b, 100) FROM t2")
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, " SELECT a, repeat(b, 100) FROM t2 ")
 			return
 		}
 		want := flatten(_want1)

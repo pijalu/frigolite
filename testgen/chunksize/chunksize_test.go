@@ -71,7 +71,8 @@ func Test_chunksize(t *testing.T) {
 		_ = jrnlmode // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// file_control_chunksize_test db main 32768 (unsupported command, not transpiled)
 			{ // tn + ".0"
@@ -81,7 +82,7 @@ func Test_chunksize(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := jrnlmode
+				want := tclListFlatten(jrnlmode)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

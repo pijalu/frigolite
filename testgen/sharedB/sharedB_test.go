@@ -61,6 +61,7 @@ func Test_sharedB(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
+	db.Close()
 	testprefix = "sharedB" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable

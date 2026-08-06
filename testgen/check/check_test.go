@@ -58,8 +58,8 @@ func Test_check(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "check" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+	db.SetDQS(true, true)
+	db.SetDQS(true, true)
 	{ // do_test "check-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      x INTEGER CHECK( x<5 ),\n      y REAL CHECK( y>x )\n    );\n  ")
 		if _res.Error != nil {
@@ -160,11 +160,11 @@ func Test_check(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(1,2.2,'three');\n    SELECT * FROM t2;\n  ")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+	db.SetDQS(true, true)
+	db.SetDQS(true, true)
 	{ // do_test "check-2.3"
 		r = db.Query("\n    INSERT INTO t2 VALUES(NULL, NULL, NULL);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
@@ -406,7 +406,8 @@ func Test_check(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // "7.1"
@@ -479,6 +480,7 @@ func Test_check(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c-check", _res.Error, "\n  UPDATE t1 SET c=a*2 WHERE a=1;\n")
 		}
 	}
+	db.Close()
 	db2.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
@@ -496,7 +498,8 @@ func Test_check(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n")
@@ -541,7 +544,8 @@ func Test_check(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "12.10"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, CHECK(a=+a));\n  INSERT INTO t1(a) VALUES(NULL),('xyz'),(5),(x'303132'),(4.75);\n  SELECT quote(a) FROM t1 ORDER BY rowid;\n")
@@ -664,7 +668,8 @@ func Test_check(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "13.1.0"
 		_res = db.Exec("\n  CREATE TABLE Table0 (Col0 , CHECK(Table0.Col0 NOT NULL ) ) ;\n  REPLACE INTO Table0 VALUES (hex(randomblob(100000)));\n")

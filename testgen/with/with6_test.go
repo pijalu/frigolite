@@ -242,7 +242,8 @@ func Test_with6(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "-"
 	{ // "300"
@@ -306,7 +307,8 @@ func Test_with6(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n  CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));\n")
 	if _res.Error != nil {

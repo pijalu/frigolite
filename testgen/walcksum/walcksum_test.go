@@ -107,6 +107,7 @@ func Test_walcksum(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
@@ -117,6 +118,7 @@ func Test_walcksum(t *testing.T) {
 			}
 			tclFileCopy("test.db", "test2.db")
 			tclFileCopy("test.db-wal", "test2.db-wal")
+			db.Close()
 			_list := tclList([]string{"file size test2.db", "file size test2.db-wal"})
 			_ = _list
 		}
@@ -246,6 +248,7 @@ func Test_walcksum(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		{
 			var _catchErr error
@@ -273,6 +276,7 @@ func Test_walcksum(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	{
 		var _catchErr error
@@ -280,7 +284,8 @@ func Test_walcksum(t *testing.T) {
 		db2.Close()
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
@@ -328,7 +333,8 @@ func Test_walcksum(t *testing.T) {
 		db2.Close()
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
@@ -382,7 +388,8 @@ func Test_walcksum(t *testing.T) {
 		db2.Close()
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n  INSERT INTO t1 VALUES(2, randomblob(2048), 'two');\n  INSERT INTO t1 VALUES(3, randomblob(2048), 'three');\n  PRAGMA wal_checkpoint;\n")

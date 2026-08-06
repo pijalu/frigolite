@@ -156,6 +156,7 @@ func Test_savepoint7(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 253 }() {
 		{ // do_test "savepoint7-3." + i
+			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

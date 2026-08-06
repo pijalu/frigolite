@@ -64,6 +64,7 @@ func Test_tempfault(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// do_faultsim_test 2.1 -faults * -prep {\n  if {[info commands db]==""} {\n    sqlite3 db ...} -bod... (unsupported command, not transpiled)
 	// do_faultsim_test 3 -faults * -prep {\n  sqlite3 db ""\n  db eval {\n    PRAGMA page_si...} -body ... (unsupported command, not transpiled)

@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -110,13 +111,17 @@ func Test_interrupt(t *testing.T) {
 	}
 	origsize = "file size test.db"
 	_ = origsize // suppress unused warning
-	cksum = "db eval {SELECT md5sum(a || b) FROM t1}"
+	_dbeval0 := tclExecSQL(db, "{SELECT md5sum(a || b) FROM t1}")
+	cksum = _dbeval0
 	_ = cksum // suppress unused warning
 	// interrupt_test interrupt-2.2 {VACUUM} {} 100 (unsupported command, not transpiled)
 	{ // do_test "interrupt-2.3"
 		r = db.Query("\n    SELECT md5sum(a || b) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(a || b) FROM t1;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "interrupt-2.3")
 		}
 	}
 	{ // do_test "interrupt-2.4"

@@ -558,9 +558,9 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // "3.0"
-		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b" + sqlLiteral("1;31m123\\u001b[0mxyz'));"))
+		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b[1;31m123\\u001b[0mxyz'));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b" + sqlLiteral("1;31m123\\u001b[0mxyz'));"))
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b[1;31m123\\u001b[0mxyz'));\n")
 		}
 	}
 	{ // do_test "3.1"
@@ -615,9 +615,9 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // "5.0"
-		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":" + sqlLiteral("15,null,1333206973,\"fd8ffe000104a46494600010101\"") + "}'));\n")
+		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":[15,null,1333206973,\"fd8ffe000104a46494600010101\"]}'));\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":" + sqlLiteral("15,null,1333206973,\"fd8ffe000104a46494600010101\"") + "}'));\n")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p->pOut, -p->u.sLine.mxColWth);\",\n       \"zeta\":[15,null,1333206973,\"fd8ffe000104a46494600010101\"]}'));\n")
 		}
 	}
 	{ // do_test "5.1"
@@ -763,7 +763,8 @@ func Test_qrf01(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t13(a,b);\n    INSERT INTO t13(a,b) VALUES\n      (1,'NULL'),\n      (0,'-NULL-'),\n      (0,''),\n      (1,'''abcde'),\n      (1,'abcde'''),\n      (0,'abcde'),\n      (1,' abcde'),\n      (1,'abcde '),\n      (1,'+0'),\n      (1,'-0'),\n      (1,'012345'),\n      (0,'012xyz345'),\n      (1,'0123.45'),\n      (0,'12.34.56'),\n      (0,'12.3e'),\n      (1,'12.3e+123'),\n      (1,'12.3e-34'),\n      (1,'12.3E56'),\n      (1,'12E56'),\n      (0,'12.5E5.6'),\n      (0,'12.5e+'),\n      (0,'12.5e-'),\n      (1,'+Inf'),(1,'-Inf'),(1,'Inf');\n  ")
 		}
-		result = "\\n" + "db format -style box -text relaxed -null NULL \\\n                 -align {center left} \\\n                 {SELECT if(a,'yes','') AS 'quoted?', b AS string\n                   FROM t13 ORDER BY rowid}"
+		result = "\n" + "db format -style box -text relaxed -null NULL                  -align {center left}                  {SELECT if(a,'yes','') AS 'quoted?', b AS string\n                   FROM t13 ORDER BY rowid}"
 		_ = result // suppress unused warning
 	}
+	db.Close()
 }

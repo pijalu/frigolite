@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -245,6 +246,9 @@ func Test_fts3expr3(t *testing.T) {
 		_ = _idx0
 			{ // do_test "5.1." + tn
 				// test_fts3expr2 $expr (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "5.1." + tn)
+				}
 			}
 		}
 		sqlite_fts3_enable_parentheses = "0"

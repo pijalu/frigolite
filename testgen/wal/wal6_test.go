@@ -64,6 +64,7 @@ func Test_wal6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "wal6"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	os.Remove("test.db")
 	all_journal_modes = "delete persist truncate memory off"
 	_ = all_journal_modes // suppress unused warning
@@ -77,6 +78,9 @@ func Test_wal6(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode = " + jmode + ";")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), jmode) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", jmode, _res.Error, "wal6-1.0." + jmode)
+			}
 		}
 		{ // do_test "wal6-1.1." + jmode
 			r = db.Query("\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t1;\n    ")
@@ -86,6 +90,7 @@ func Test_wal6(t *testing.T) {
 		}
 		if tcl_platform_os == "Windows NT" {
 			if tclBool(jmode + "==\"persist\" || " + jmode + "==\"truncate\"") {
+				db.Close()
 			}
 		}
 		{ // do_test "wal6-1.2." + jmode
@@ -109,11 +114,13 @@ func Test_wal6(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1 ORDER BY a;\n    ")
 			}
 		}
+		db.Close()
 		db2.Close()
 		os.Remove("test.db")
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -180,7 +187,8 @@ func Test_wal6(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -217,7 +225,8 @@ func Test_wal6(t *testing.T) {
 		db2.Close()
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  PRAGMA wal_checkpoint = truncate;\n")
@@ -268,9 +277,11 @@ func Test_wal6(t *testing.T) {
 		_res = db2.Exec(" SELECT * FROM t2 ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2

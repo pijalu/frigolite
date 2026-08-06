@@ -7,6 +7,7 @@ package vtabH
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -191,9 +192,15 @@ func Test_vtabH(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name, value FROM vars WHERE name MATCH 'x*' AND " + expr)
 					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "2." + tclvar_set_omit + "." + tn + ".1")
+					}
 				}
 				{ // do_test "2." + tclvar_set_omit + "." + tn + ".2"
 					_ = gfunc // TCL namespace variable (query)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), cnt) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cnt, _res.Error, "2." + tclvar_set_omit + "." + tn + ".2")
+					}
 				}
 			}
 		}
@@ -204,7 +211,8 @@ func Test_vtabH(t *testing.T) {
 			_ = env_fstreeDrive // suppress unused warning
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// register_fs_module db (unsupported command, not transpiled)
 		if tclBool(tcl_platform_platform + " != \"windows\" || \\\n    " + "regexp -nocase -- {^[A-Z]:} $drive") {
@@ -297,7 +305,7 @@ func Test_vtabH(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "list \\\n      \"$pwd/subdir/x1.txt\" 143 \\\n      \"$pwd/subdir/x2.txt\" 153 \\"
+						want := "\"" + pwd + "/subdir/x1.txt\" 143 \"" + pwd + "/subdir/x2.txt\" 153"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -309,7 +317,7 @@ func Test_vtabH(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "list \\\n      \"$pwd/subdir/x1.txt\" 143 \\\n      \"$pwd/subdir/x2.txt\" 153 \\"
+						want := "\"" + pwd + "/subdir/x1.txt\" 143 \"" + pwd + "/subdir/x2.txt\" 153"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

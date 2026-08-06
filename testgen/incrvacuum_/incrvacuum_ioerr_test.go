@@ -88,6 +88,7 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable

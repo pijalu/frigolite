@@ -7,6 +7,7 @@ package init
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -68,6 +69,7 @@ func Test_init(t *testing.T) {
 	if tclBool("db eval {SELECT sqlite_compileoption_used('THREADSAFE=0')}") {
 		return
 	}
+	db.Close()
 	// foreach {t failed rc started} "1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}"
 	_items0 := tclSplitList("1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
@@ -83,9 +85,15 @@ func Test_init(t *testing.T) {
 			{ // do_test "init-" + _t + ".1"
 				// eval (dynamic, not transpiled)
 				// sqlite3_initialize (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, _res.Error, "init-" + _t + ".1")
+				}
 			}
 			{ // do_test "init-" + _t + ".2"
 				// init_wrapper_query (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), started) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", started, _res.Error, "init-" + _t + ".2")
+				}
 			}
 			{ // do_test "init-" + _t + ".3"
 				// sqlite3_shutdown (unsupported command, not transpiled)
@@ -93,9 +101,15 @@ func Test_init(t *testing.T) {
 			}
 			{ // do_test "init-" + _t + ".4"
 				// sqlite3_initialize (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, _res.Error, "init-" + _t + ".4")
+				}
 			}
 			{ // do_test "init-" + _t + ".5"
 				// init_wrapper_query (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), started) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", started, _res.Error, "init-" + _t + ".5")
+				}
 			}
 			{ // do_test "init-" + _t + ".6"
 				// init_wrapper_clear (unsupported command, not transpiled)

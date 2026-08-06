@@ -159,7 +159,8 @@ func Test_speed4p(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);\n")
 	}
 	// speed_trial speed4p-insert-ignore 50000 row {\n  INSERT OR IGNORE INTO t5 SELECT t, i FROM t... (unsupported command, not transpiled)
-	list = "db eval {SELECT t FROM t5}"
+	_dbeval0 := tclExecSQL(db, "{SELECT t FROM t5}")
+	list = _dbeval0
 	_ = list // suppress unused warning
 	script = "\n  db eval BEGIN\n  foreach t $::list {\n    db eval {UPDATE t5 SET i=i+1 WHERE t=$t}\n  }\n  db eval COMMIT\n"
 	_ = script // suppress unused warning

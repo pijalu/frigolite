@@ -62,6 +62,7 @@ func Test_multiplex4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "multiplex4" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_multiplex_initialize {} 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
@@ -216,6 +217,7 @@ func Test_multiplex4(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("mx4test.db")
 	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)

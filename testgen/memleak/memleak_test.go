@@ -86,7 +86,7 @@ func Test_memleak(t *testing.T) {
 	_ = EXCLUDE // suppress unused warning
 	EXCLUDE = tclListAppend(EXCLUDE, "btree2.test")
 	EXCLUDE = tclListAppend(EXCLUDE, "btree4.test")
-	if tclBool("sqlite3 -has-codec") {
+	if tclBool("") {
 	}
 	if tclBool("llength $argv" + ">0") {
 		FILELIST = argv

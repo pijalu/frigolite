@@ -85,7 +85,8 @@ func Test_fts4aa(t *testing.T) {
 		// fts_kjv_genesis (unsupported command, not transpiled)
 		for _, q := range tclSplitList(fts4aa_queries) {
 		_ = q // suppress unused warning
-			_r = "db eval {SELECT docid FROM t1 WHERE words MATCH $q ORDER BY docid}"
+			_dbeval0 := tclExecSQL(db, "{SELECT docid FROM t1 WHERE words MATCH " + sqlLiteral(q) + " ORDER BY docid}")
+			_r = _dbeval0
 			_ = _r // suppress unused warning
 			fts4aa_res_q = _r // TCL namespace variable
 			_ = fts4aa_res_q // suppress unused warning
@@ -111,7 +112,7 @@ func Test_fts4aa(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1014018 {1 1 1 1 1 1533 25 20}"
+		want := "1014018 1 1 1 1 1 1533 25 20"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -123,7 +124,7 @@ func Test_fts4aa(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1039014 {2 1 1 40 40 1 6 6 1533 25 42} 1039017 {2 1 1 40 40 1 6 6 1533 25 26}"
+		want := "1039014 2 1 1 40 40 1 6 6 1533 25 42 1039017 2 1 1 40 40 1 6 6 1533 25 26"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -135,7 +136,7 @@ func Test_fts4aa(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1031025 {3 1 2 54 46 1 3 3 2 181 160 1533 25 24}"
+		want := "1031025 3 1 2 54 46 1 3 3 2 181 160 1533 25 24"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -171,7 +172,7 @@ func Test_fts4aa(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1050026 {4 1 1 1 1 1 1 1 2 1 1 1 1 1 1 23 23}"
+		want := "1050026 4 1 1 1 1 1 1 1 2 1 1 1 1 1 1 23 23"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -186,13 +187,13 @@ func Test_fts4aa(t *testing.T) {
 	ii = "0"
 	_ = ii // suppress unused warning
 	// foreach {q r} "array get fts4aa_res"
-	_items0 := tclSplitList("array get fts4aa_res")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		q := _items0[_idx0+0]
+	_items1 := tclSplitList("array get fts4aa_res")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		q := _items1[_idx1+0]
 		_ = q // suppress unused warning
-		_r := _items0[_idx0+1]
+		_r := _items1[_idx1+1]
 		_ = _r // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
@@ -207,13 +208,14 @@ func Test_fts4aa(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := _r
+				want := tclListFlatten(_r)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}
 		{ // do_test "fts4aa-3.0"
+			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -226,13 +228,13 @@ func Test_fts4aa(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		// foreach {q r} "array get fts4aa_res"
-		_items1 := tclSplitList("array get fts4aa_res")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			q := _items1[_idx1+0]
+		_items2 := tclSplitList("array get fts4aa_res")
+		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+			q := _items2[_idx2+0]
 			_ = q // suppress unused warning
-			_r := _items1[_idx1+1]
+			_r := _items2[_idx2+1]
 			_ = _r // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
@@ -247,7 +249,7 @@ func Test_fts4aa(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := _r
+					want := tclListFlatten(_r)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -264,13 +266,13 @@ func Test_fts4aa(t *testing.T) {
 			ii = "0"
 			_ = ii // suppress unused warning
 			// foreach {q r} "array get fts4aa_res"
-			_items2 := tclSplitList("array get fts4aa_res")
-			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-				q := _items2[_idx2+0]
+			_items3 := tclSplitList("array get fts4aa_res")
+			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+				q := _items3[_idx3+0]
 				_ = q // suppress unused warning
-				_r := _items2[_idx2+1]
+				_r := _items3[_idx3+1]
 				_ = _r // suppress unused warning
-				_ = _idx2
+				_ = _idx3
 					// incr ii 1
 					{
 						_n, _err := strconv.Atoi(ii)
@@ -285,12 +287,13 @@ func Test_fts4aa(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := _r
+						want := tclListFlatten(_r)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 				}
+				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				{ // "fts4aa-5.10"
@@ -335,6 +338,7 @@ func Test_fts4aa(t *testing.T) {
 						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  UPDATE t1_stat SET value=x'' WHERE id=0;\n  SELECT quote(matchinfo(t1,'a')) FROM t1 WHERE t1 MATCH 'one two';\n")
 					}
 				}
+				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				if tcl_platform_byteOrder == "littleEndian" {
@@ -350,6 +354,7 @@ func Test_fts4aa(t *testing.T) {
 						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  CREATE VIRTUAL TABLE f USING fts4();\n  INSERT INTO f_segdir VALUES (77,91,0,0,'255 77',x'0001308000004d5c4ddddddd4d4d7b4d4d4d614d8019ff4d05000001204d4d2e4d6e4d4d4d4b4d6c4d004d4d4d4d4d4d3d000000004d5d4d4d645d4d004d4d4d4d4d4d4d4d4d454d6910004d05ffff054d646c4d004d5d4d4d4d4d3d000000004d4d4d4d4d4d4d4d4d4d4d69624d4d4d04004d4d4d4d4d604d4ce1404d554d45');\n  INSERT INTO f_segdir VALUES (77,108,0,0,'255 77',x'0001310000fa64004d4d4d3c5d4d654d4d4d614d8000ff4d05000001204d4d2e4d6e4d4d4dff4d4d4d4d4d4d00104d4d4d4d000000004d4d4d0400311d4d4d4d4d4d4d4d4d4d684d6910004d05ffff054d4d6c4d004d4d4d4d4d4d3d000000004d4d4d4d644d4d4d4d4d4d69624d4d4d03ed4d4d4d4d4d604d4ce1404d550080');\n  INSERT INTO f_stat VALUES (0,x'80808080100000000064004d4d4d3c4d4d654d4d4d614d8000ff4df6ff1a00204d4d2e4d6e4d4d4d104d4d4d4d4d4d00104d4d4d4d4d4d69574d4d4d000031044d4d4d3e4d4d4c4d05004d6910');\n  SELECT quote(matchinfo(f,'pnax')) from f where f match '0 1';\n")
 					}
 				}
+				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				{ // "fts4aa-7.10"

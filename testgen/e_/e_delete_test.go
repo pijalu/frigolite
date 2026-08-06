@@ -64,9 +64,21 @@ func Test_e_delete(t *testing.T) {
 		}
 	}
 	// do_delete_tests e_delete-0.1 {\n  1  "DELETE FROM t1"                           ...} (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // do_test "e_delete-1.0"
 		for _, _t := range tclSplitList("t1 t2 t3 t4 t5 t6") {
 		_ = _t // suppress unused warning
@@ -136,9 +148,21 @@ func Test_e_delete(t *testing.T) {
 	// do_delete_tests e_delete-2.4 -error {\n  the %s %s clause is not allowed on UPDATE or D...} {\n ... (unsupported command, not transpiled)
 	// do_delete_tests e_delete-2.5 -error { near "%s": syntax error } {\n  1 {\n    CREATE TRIGGER tr3... (unsupported command, not transpiled)
 	// do_delete_tests e_delete-3.1 {\n  1   "DELETE FROM t1 LIMIT 5"                  ...} (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	// proc definition (not transpiled)
 	// rebuild_t1 (unsupported command, not transpiled)
 	// do_delete_tests e_delete-3.2 -repair rebuild_t1 -query {\n  SELECT a FROM t1\n} {\n  1   "DELETE... (unsupported command, not transpiled)

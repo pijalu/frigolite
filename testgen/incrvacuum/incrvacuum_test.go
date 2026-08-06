@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -107,6 +108,9 @@ func Test_incrvacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma auto_vacuum;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sqlite_options_default_autovacuum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sqlite_options_default_autovacuum, _res.Error, "incrvacuum-1.1")
+		}
 	}
 	{ // do_test "incrvacuum-1.2.0"
 		// expr [file size test.db] > 1 (not evaluated)
@@ -163,8 +167,8 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-2.2.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -375,8 +379,8 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-8.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA incremental_vacuum(50);\n  ")
 		if r.Error != nil {
@@ -384,6 +388,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-9.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -464,6 +469,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		// expr [file size test.db] (not evaluated)
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -471,6 +477,9 @@ func Test_incrvacuum(t *testing.T) {
 		r = db.Query("\n      PRAGMA auto_vacuum;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum;\n    ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), AUTOVACUUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", AUTOVACUUM, _res.Error, "incrvacuum-11.1-av-dflt-on")
 		}
 	}
 	{ // do_test "incrvacuum-11.2"
@@ -489,8 +498,8 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db]>0 (not evaluated)
 	}
 	{ // do_test "incrvacuum-11.5"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum; ")
 		if r.Error != nil {
@@ -504,14 +513,15 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-11.7"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum; ")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -543,8 +553,8 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-12.4"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum ")
 		if r.Error != nil {
@@ -562,6 +572,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	db2.Close()
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -610,6 +621,7 @@ func Test_incrvacuum(t *testing.T) {
 		db3.Close()
 	}
 	{ // do_test "incrvacuum-15.1"
+		db.Close()
 		db2.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
@@ -628,7 +640,8 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "incrvacuum-16.0"
 		r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n  ")
@@ -636,8 +649,8 @@ func Test_incrvacuum(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n  ")
 		}
 	}
-	_dbtmp5, err := frigolite.Open("test.db")
-	_ = _dbtmp5 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "incrvacuum-16.1"
 		r = db.Query("\n    PRAGMA mmap_size = 1000000;\n    BEGIN;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum = 1000;\n  ")

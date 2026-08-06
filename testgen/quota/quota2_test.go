@@ -83,6 +83,7 @@ func Test_quota2(t *testing.T) {
 	_ = size // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	// sqlite3_quota_initialize  1 (unsupported command, not transpiled)
 	for _, dir := range tclSplitList("quota2a/x1 quota2a/x2 quota2a quota2b quota2c") {
 	_ = dir // suppress unused warning
@@ -92,9 +93,9 @@ func Test_quota2(t *testing.T) {
 	_ = dir // suppress unused warning
 		// file mkdir $dir
 	}
-	quota_pwd = strings.ReplaceAll("get_pwd", "\\\\", "/") // TCL namespace variable
+	quota_pwd = strings.ReplaceAll("get_pwd", "\\", "/") // TCL namespace variable
 	_ = quota_pwd // suppress unused warning
-	quota_mapping = "list $::quota_pwd PWD" // TCL namespace variable
+	quota_mapping = quota_pwd + " PWD" // TCL namespace variable
 	_ = quota_mapping // suppress unused warning
 	// proc definition (not transpiled)
 	quota = "" // TCL namespace variable
@@ -108,7 +109,7 @@ func Test_quota2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%10 == 0 }() {
-			bigtext += "format \"%06d\\n\" $i"
+			bigtext += "format \"%06d\n\" $i"
 		} else {
 			bigtext += "format \"%06d \" $i"
 		}

@@ -143,7 +143,8 @@ func Test_tkt2409(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-3.1"
-		DB = "sqlite3 db test.db; sqlite3_connection_pointer db" // TCL namespace variable
+		db.Close()
+		DB = func() string { db, err = frigolite.Open("test.db;"); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
 		_ = DB // suppress unused warning
 		// sqlite3_extended_result_codes $::DB 1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")

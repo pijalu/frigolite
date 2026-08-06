@@ -79,6 +79,7 @@ func Test_nockpt(t *testing.T) {
 		// file size test.db-wal
 	}
 	{ // do_test "1.3"
+		db.Close()
 	}
 	{ // do_test "1.4"
 		// file exists "test.db-wal"
@@ -96,12 +97,13 @@ func Test_nockpt(t *testing.T) {
 		// file exists "test.db-wal"
 	}
 	{ // do_test "1.7"
-		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
+		// sqlite3_db_config NO_CKPT_ON_CLOSE (unhandled flag)
 	}
 	{ // do_test "1.8"
 		// file size test.db-wal
 	}
 	{ // do_test "1.9"
+		db.Close()
 	}
 	{ // do_test "1.10"
 		// file exists "test.db-wal"
@@ -137,7 +139,7 @@ func Test_nockpt(t *testing.T) {
 		}
 	}
 	{ // do_test "1.14"
-		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
+		// sqlite3_db_config NO_CKPT_ON_CLOSE (unhandled flag)
 	}
 	{ // "1.14"
 		r = db.Query(" PRAGMA main.journal_mode = delete ")
@@ -156,8 +158,10 @@ func Test_nockpt(t *testing.T) {
 	}
 	if tcl_platform_platform != "windows" {
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		db.Close()
 		// set ::db1 (skipped, DB connection)
 		{ // do_test "2.0"
 			_ = tclLIndex("sqlite3_exec $::db1 {\n      PRAGMA journal_mode = wal;\n      CREATE TABLE t1(x PRIMARY KEY, y UNIQUE, z);\n      INSERT INTO t1 VALUES(1, 2, 3);\n      PRAGMA wal_checkpoint;\n    }", "0") // lindex result
@@ -180,8 +184,7 @@ func Test_nockpt(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db-shm")
 		}
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -197,10 +200,16 @@ func Test_nockpt(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "-db"
-			_res = db.Exec("db2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+		{ // "2.2"
+			r = db.Query("\n  BEGIN;\n    SELECT * FROM y1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    SELECT * FROM y1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a b c d e f"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "2.3"
@@ -215,10 +224,10 @@ func Test_nockpt(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "-db"
-			_res = db.Exec("db2")
+		{ // "2.4"
+			_res = db.Exec("\n  COMMIT\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT\n")
 			}
 		}
 		{ // do_test "2.5"

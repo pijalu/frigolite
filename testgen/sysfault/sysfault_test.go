@@ -111,7 +111,7 @@ func Test_sysfault(t *testing.T) {
 			_ = errs // suppress unused warning
 			for _, e := range tclSplitList(errlist) {
 			_ = e // suppress unused warning
-				errs = tclListAppend(errs, "list 1 $e")
+				errs = tclListAppend(errs, "1 " + e)
 			}
 			// do_faultsim_test 1.2.$tn -faults vfsfault-* -prep {\n    faultsim_restore\n  } -body \n    test_s... (unsupported command, not transpiled)
 		}
@@ -132,7 +132,7 @@ func Test_sysfault(t *testing.T) {
 					_ = errs // suppress unused warning
 					for _, e := range tclSplitList(errlist) {
 					_ = e // suppress unused warning
-						errs = tclListAppend(errs, "list 1 $e")
+						errs = tclListAppend(errs, "1 " + e)
 					}
 					body = ""
 					_ = body // suppress unused warning

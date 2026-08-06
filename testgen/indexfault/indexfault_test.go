@@ -142,6 +142,7 @@ func Test_indexfault(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
@@ -168,6 +169,7 @@ func Test_indexfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(x) ")
 		}
 	}
+	db.Close()
 	// tvfs delete (unsupported command, not transpiled)
 	custom_filter = "xRead" // TCL namespace variable
 	_ = custom_filter // suppress unused warning

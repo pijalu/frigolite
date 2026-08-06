@@ -79,7 +79,8 @@ func Test_indexexpr3(t *testing.T) {
 	// do_hasfunction_test 1.5 {\n  SELECT json_insert( '{}', '$.y', json_extract(...} {\n  2 {{"y":"two"}}... (unsupported command, not transpiled)
 	// do_hasfunction_test 1.6 {\n  SELECT json_insert( '{}', '$.y', coalesce( jso...} {\n  2 {{"y":"two"}}... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, j);\n  CREATE INDEX i1 ON t1( a, json_extract(j, '$.x') );\n")

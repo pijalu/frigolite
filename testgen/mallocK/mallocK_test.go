@@ -187,7 +187,8 @@ func Test_mallocK(t *testing.T) {
 	}
 	// do_faultsim_test 7.2 -faults oom* -body {\n  execsql { SELECT * FROM x1 WHERE a = (SELECT 1...} -... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // "8.0"

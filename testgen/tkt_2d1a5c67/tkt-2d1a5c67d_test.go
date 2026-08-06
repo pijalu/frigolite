@@ -71,6 +71,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n <= 10 }() {
 		{ // do_test "tkt-2d1a5c67d.1." + ii
+			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -91,6 +92,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -120,8 +122,8 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 			}
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  PRAGMA cache_size = 10;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t4(a);\n")

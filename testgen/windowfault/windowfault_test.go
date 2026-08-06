@@ -89,7 +89,8 @@ func Test_windowfault(t *testing.T) {
 	// do_faultsim_test 7 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n... (unsupported command, not transpiled)
 	// do_faultsim_test 8 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	big = "x 900"
 	_ = big // suppress unused warning
@@ -99,27 +100,30 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 512;\n  PRAGMA cache_size = 2;\n  CREATE TABLE t(x INTEGER PRIMARY KEY, y TEXT);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1900\n  )\n  INSERT INTO t(y) SELECT " + sqlLiteral(big) + " FROM s;\n")
 		}
 	}
+	db.Close()
 	// testvfs tvfs -default 1 (unsupported command, not transpiled)
 	// tvfs script vfs_callback (unsupported command, not transpiled)
 	// tvfs filter xRead (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	FAULTSIM_tmpread = "-injectstart   tmpread_injectstart          -injectstop    tmpread_injectstop           -injecterrlist {{1 {disk I/O error}}}"
 	_ = FAULTSIM_tmpread // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	L = "db eval {SELECT 0.0 FROM t}"
+	_dbeval0 := tclExecSQL(db, "{SELECT 0.0 FROM t}")
+	L = _dbeval0
 	_ = L // suppress unused warning
 	// do_faultsim_test 9 -end 25 -faults tmpread -body {\n  execsql {\n    SELECT sum(y) OVER win FROM ... (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// tvfs delete (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);\n")
@@ -129,7 +133,8 @@ func Test_windowfault(t *testing.T) {
 	}
 	// do_faultsim_test 10 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT row_number() OVER wi... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "11.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);\n")
@@ -140,7 +145,8 @@ func Test_windowfault(t *testing.T) {
 	// do_faultsim_test 11.1 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT * FROM t0 WHERE \n... (unsupported command, not transpiled)
 	// do_faultsim_test 11.2 -faults oom* -prep {\n} -body {\n  execsql {\n    VALUES(false),(current_da... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "12.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
@@ -150,7 +156,8 @@ func Test_windowfault(t *testing.T) {
 	}
 	// do_faultsim_test 12 -faults oom* -prep {\n} -body {\n  execsql {\n    WITH v(a, b, row_number) AS... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');\n")

@@ -209,6 +209,7 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "3.0"
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t2(y PRIMARY KEY);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n  ")
@@ -261,7 +262,8 @@ func Test_cacheflush(t *testing.T) {
 	}
 	{ // do_test "4.0"
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE ta(a, aa);\n    CREATE TABLE tb(b, bb);\n    INSERT INTO ta VALUES('a', randomblob(500));\n    INSERT INTO tb VALUES('b', randomblob(500));\n    BEGIN;\n      UPDATE ta SET a = 'A';\n      SAVEPOINT one;\n        UPDATE tb SET b = 'B';\n  ")
 		if _res.Error != nil {

@@ -136,7 +136,7 @@ func Test_e_vacuum(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := freelist
+					want := tclListFlatten(freelist)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -150,6 +150,9 @@ func Test_e_vacuum(t *testing.T) {
 			}
 			{ // do_test "e_vacuum-1.1." + tn + ".5"
 				// expr [file size test.db] / 1024 (not evaluated)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), sz) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sz, _res.Error, "e_vacuum-1.1." + tn + ".5")
+				}
 			}
 		}
 		// create_db (unsupported command, not transpiled)

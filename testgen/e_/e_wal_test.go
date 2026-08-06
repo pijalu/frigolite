@@ -56,10 +56,10 @@ func Test_e_wal(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "e_wal"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	os.Remove("test.db-shm")
 	// testvfs oldvfs -iversion 1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.1"
 		r = db.Query("\n  PRAGMA journal_mode = WAL;\n")
@@ -96,8 +96,8 @@ func Test_e_wal(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.2.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
@@ -117,8 +117,8 @@ func Test_e_wal(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.3.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
 		_ = _res // catchsql
@@ -141,8 +141,8 @@ func Test_e_wal(t *testing.T) {
 		_list := tclList([]string{"file exists test.db-shm", "file exists test.db-wal"})
 		_ = _list
 	}
-	_dbtmp3, err := frigolite.Open("test.db")
-	_ = _dbtmp3 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1.1"
 		r = db.Query("\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t1;\n")
@@ -216,18 +216,20 @@ func Test_e_wal(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db2.Close()
+	db.Close()
 	{ // do_test "3.0"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA journal_mode = WAL ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
 		}
+		db.Close()
 	}
 	{ // do_test "3.1"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
@@ -277,13 +279,15 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	db2.Close()
+	db.Close()
 	{ // do_test "3.4.1"
-		_dbtmp6, err := frigolite.Open("test.db")
-		_ = _dbtmp6 // sqlite3 db connection
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	{ // do_test "3.4.2"
 		os.Remove("test.db2")
 		db, err = frigolite.Open("")
@@ -292,7 +296,9 @@ func Test_e_wal(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1.1"
 		_res = db.Exec(" CREATE TABLE t1(x, y) ")

@@ -145,6 +145,7 @@ func Test_avfs(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
+	db.Close()
 	// load_static_extension db appendvfs (unsupported command, not transpiled)
 	fa = "avfs.adb" // TCL namespace variable
 	_ = fa // suppress unused warning

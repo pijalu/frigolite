@@ -697,8 +697,8 @@ func Test_capi2(t *testing.T) {
 		// check_origins {select * from (select * from (select * from view1)...} (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-12.10"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
@@ -735,8 +735,8 @@ func Test_capi2(t *testing.T) {
 		// check_origins {select * from (select * from (select * from view2)...} (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-13.10"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning

@@ -66,12 +66,12 @@ func Test_swarmvtab2(t *testing.T) {
 	testprefix = "swarmvtab2"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
+	db.Close()
 	for _, name := range tclSplitList("glob -nocomplain test*.db") {
 	_ = name // suppress unused warning
 		os.Remove(name)
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	// proc definition (not transpiled)

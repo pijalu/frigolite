@@ -7,6 +7,7 @@ package vacuum
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -97,7 +98,8 @@ func Test_vacuum2(t *testing.T) {
 	}
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
-	pageSize = "db eval {pragma page_size}"
+	_dbeval0 := tclExecSQL(db, "{pragma page_size}")
+	pageSize = _dbeval0
 	_ = pageSize // suppress unused warning
 	{ // do_test "vacuum2-3.1"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');\n  ")
@@ -110,6 +112,9 @@ func Test_vacuum2(t *testing.T) {
 	_ = cksum // suppress unused warning
 	{ // do_test "vacuum2-3.2"
 		// cksum db2 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum2-3.2")
+		}
 	}
 	{ // do_test "vacuum2-3.3"
 		_res = db.Exec("\n      PRAGMA auto_vacuum=FULL;\n      VACUUM;\n    ")
@@ -120,9 +125,15 @@ func Test_vacuum2(t *testing.T) {
 	}
 	{ // do_test "vacuum2-3.4"
 		// cksum db2 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum2-3.4")
+		}
 	}
 	{ // do_test "vacuum2-3.5"
 		// cksum (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum2-3.5")
+		}
 	}
 	{ // do_test "vacuum2-3.6"
 		r = db2.Query("PRAGMA integrity_check")
@@ -145,9 +156,15 @@ func Test_vacuum2(t *testing.T) {
 	}
 	{ // do_test "vacuum2-3.14"
 		// cksum db2 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum2-3.14")
+		}
 	}
 	{ // do_test "vacuum2-3.15"
 		// cksum (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum2-3.15")
+		}
 	}
 	{ // do_test "vacuum2-3.16"
 		r = db2.Query("PRAGMA integrity_check")
@@ -163,6 +180,7 @@ func Test_vacuum2(t *testing.T) {
 	}
 	_ = db2 // close db2: aliased to db, no-op
 	{ // do_test "vacuum2-4.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -184,8 +202,8 @@ func Test_vacuum2(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum2-4.4"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      pragma auto_vacuum;\n    ")
 		if r.Error != nil {
@@ -205,14 +223,15 @@ func Test_vacuum2(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum2-4.7"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n      pragma auto_vacuum;\n    ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      pragma auto_vacuum;\n    ")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

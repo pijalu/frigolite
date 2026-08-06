@@ -191,7 +191,8 @@ func Test_whereG(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n")
@@ -441,7 +442,8 @@ func Test_whereG(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.11"
 		_res = db.Exec("\n  CREATE TABLE t1(c0 INT);\n  INSERT INTO t1(c0) VALUES (NULL);\n  CREATE INDEX i46 ON t1(CAST( (c0 IS TRUE) AS TEXT));\n  CREATE VIEW v0(c2) AS SELECT CAST( (c0 IS TRUE) AS TEXT ) FROM t1;\n")
@@ -486,7 +488,8 @@ func Test_whereG(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "10.1"
 		r = db.Query("\n  CREATE TABLE a(b TEXT);  INSERT INTO a VALUES(0),(4),(9);\n  CREATE TABLE c(d NUM);\n  CREATE VIEW f(g, h) AS SELECT b, 0 FROM a UNION SELECT d, d FROM c;\n  SELECT g = g FROM f GROUP BY h;\n")
@@ -501,7 +504,8 @@ func Test_whereG(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES('AAA', 'BBB');\n\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('t2');\n\n  CREATE TABLE t3(x PRIMARY KEY, y);\n  INSERT INTO t3 VALUES('AAA', 'AAA');\n")
@@ -564,7 +568,8 @@ func Test_whereG(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "12.0"
 		r = db.Query("\n  CREATE TABLE t1(a REAL);\n  INSERT INTO t1(a) VALUES(123);\n  CREATE INDEX t1x1 ON t1(likely(a));\n  SELECT typeof(likely(a)) FROM t1 NOT INDEXED;\n  SELECT typeof(likely(a)) FROM t1 INDEXED BY t1x1;\n")

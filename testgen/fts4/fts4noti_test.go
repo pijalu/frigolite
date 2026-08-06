@@ -257,7 +257,7 @@ func Test_fts4noti(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{one two} {three four} {five six}"
+						want := "one two three four five six"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -269,7 +269,7 @@ func Test_fts4noti(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "{three four} {five six} {one two}"
+						want := "three four five six one two"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}

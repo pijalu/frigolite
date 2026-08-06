@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -232,6 +233,9 @@ func Test_fts3an(t *testing.T) {
 		_res = db.Exec("SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), ret) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ret, _res.Error, "fts3an-3.1")
 		}
 	}
 	_putsMsg := "This next test can take a little while (~ 30 seconds)..."

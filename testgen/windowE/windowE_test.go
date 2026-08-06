@@ -88,7 +88,8 @@ func Test_windowE(t *testing.T) {
 		_ = _res
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n")
@@ -106,7 +107,8 @@ func Test_windowE(t *testing.T) {
 		_ = _res
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  BEGIN TRANSACTION;\n    CREATE TABLE t2(c1 INT, c2 REAL);\n    INSERT INTO t2 VALUES\n    (447,0.0), (448,0.0), (449,0.0), (452,0.0), (453,0.0), (454,0.0), (455,0.0),\n    (456,0.0), (459,0.0), (460,0.0), (462,0.0), (463,0.0), (466,0.0), (467,0.0),\n    (468,0.0), (469,0.0), (470,0.0), (473,0.0), (474,0.0), (475,0.0), (476,0.0),\n    (477,0.0), (480,0.0), (481,0.0), (482,0.0), (483,0.0), (484,0.0), (487,0.0),\n    (488,0.0), (489,0.0), (490,0.0), (491,0.0), (494,0.0), (495,0.0), (496,0.0),\n    (497,0.0), (498,0.0), (501,0.0), (502,0.0), (503,0.0), (504,0.0), (505,0.0),\n    (508,0.0), (509,0.0), (510,0.0), (511,0.0), (512,0.0), (515,0.0), (516,0.0),\n    (517,0.0), (518,0.0), (519,0.0), (522,0.0), (523,0.0), (524,0.0), (525,0.0),\n    (526,0.0), (529,0.0), (530,0.0), (531,0.0), (532,0.0), (533,0.0), (536,0.0),\n    (537,1.0), (538,0.0), (539,0.0), (540,0.0), (543,0.0), (544,0.0);\n  COMMIT;\n")
@@ -119,7 +121,8 @@ func Test_windowE(t *testing.T) {
 		_ = _res
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 9223372036854775807);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n")
@@ -136,7 +139,8 @@ func Test_windowE(t *testing.T) {
 		_ = _res
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t(id, x);\n  INSERT INTO t VALUES(1, -1);\n  INSERT INTO t VALUES(2, 9223372036854775807);\n  INSERT INTO t VALUES(3, 1);\n  INSERT INTO t VALUES(4, 0.5);\n")

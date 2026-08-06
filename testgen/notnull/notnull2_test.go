@@ -72,7 +72,8 @@ func Test_notnull2(t *testing.T) {
 	// do_vmstep_test 1.5.1 {\n  SELECT count(*) FROM t2 WHERE EXISTS(\n    SEL...} 7000 {0} (unsupported command, not transpiled)
 	// do_vmstep_test 1.5.2 {\n  SELECT count(*) FROM t2 WHERE EXISTS(\n    SEL...} 5000 {0} (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE T1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE T3(k, v);\n")
@@ -87,7 +88,8 @@ func Test_notnull2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES (0);\n")
@@ -108,7 +110,8 @@ func Test_notnull2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		r = db.Query("\n  SELECT *, '/'\n  FROM (\n      SELECT NULL val FROM (SELECT 1)\n      UNION ALL\n      SELECT 'missing' FROM (SELECT 1)\n  ) a\n  LEFT JOIN (SELECT 1)\n      ON a.val IS NULL;\n")
@@ -135,7 +138,8 @@ func Test_notnull2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		r = db.Query("\n  CREATE TABLE t1(a INT NOT NULL);\n  SELECT a IS NULL, a IS NOT NULL, count(*) FROM t1;\n")

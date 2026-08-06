@@ -69,9 +69,9 @@ func Test_minmax3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y, z);\n  ")
 		}
+		db.Close()
 		// set_file_format 4 (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    INSERT INTO t1 VALUES('1', 'I',   'one');\n    INSERT INTO t1 VALUES('2', 'IV',  'four');\n    INSERT INTO t1 VALUES('2', NULL,  'three');\n    INSERT INTO t1 VALUES('2', 'II',  'two');\n    INSERT INTO t1 VALUES('2', 'V',   'five');\n    INSERT INTO t1 VALUES('3', 'VI',  'six');\n    COMMIT;\n    PRAGMA automatic_index=OFF;\n  ")
 		if r.Error != nil {

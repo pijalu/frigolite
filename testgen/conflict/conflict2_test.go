@@ -401,8 +401,8 @@ func Test_conflict2(t *testing.T) {
 									_ = t3 // suppress unused warning
 								}
 								{ // do_test "conflict2-6." + i
-									_dbtmp6, err := frigolite.Open("test.db")
-									_ = _dbtmp6 // sqlite3 db connection
+									db.Close()
+									db, err = frigolite.Open("test.db")
 									if err != nil { t.Fatal(err) }
 									if conf1 != "" {
 										conf1 = "ON CONFLICT " + conf1

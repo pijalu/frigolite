@@ -92,6 +92,7 @@ func Test_ioerr5(t *testing.T) {
 	_ = zSql // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	soft_limit = "sqlite3_soft_heap_limit 1048576" // TCL namespace variable
@@ -163,7 +164,7 @@ func Test_ioerr5(t *testing.T) {
 				// close $fd
 				// expr $zDatabase eq $zDatabase2 (not evaluated)
 			}
-			if tclBool(rc + " == " + "list 0 {}") {
+			if func() bool { l_n, l_e := strconv.Atoi(rc); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0 {}"); if r_e != nil { return false }; return l_n == r_n }() {
 				{ // do_test "ioerr5.1-" + locking_mode + "-" + iFail + ".3"
 					r = db.Query(" SELECT count(*) FROM a ")
 					if r.Error != nil {
@@ -185,6 +186,7 @@ func Test_ioerr5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		{
 			var _catchErr error
@@ -260,6 +262,7 @@ func Test_ioerr5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		{
 			var _catchErr error

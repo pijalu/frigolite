@@ -142,7 +142,8 @@ func Test_countofview(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1,'one'),(4,'four');\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t2 VALUES(2,'two'),(5,'five');\n  CREATE VIEW t3 AS SELECT a, b FROM t1 UNION ALL SELECT c, d FROM t2;\n  SELECT count(*) FROM t3 HAVING count(*)>0;\n")

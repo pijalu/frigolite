@@ -7,6 +7,7 @@ package journal
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -77,6 +78,7 @@ func Test_journal3(t *testing.T) {
 			permissions := _items0[_idx0+1]
 			_ = permissions // suppress unused warning
 			_ = _idx0
+				db.Close()
 				res = "/" + "regsub {^00} $permissions {0.}" + "/"
 				_ = res // suppress unused warning
 				if tcl_version >= "8.7" {
@@ -93,6 +95,9 @@ func Test_journal3(t *testing.T) {
 					}
 					// file attributes test.db -permissions $permissions
 					// file attributes test.db -permissions
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "journal3-1.2." + tn + ".1")
+					}
 				}
 				{ // do_test "journal3-1.2." + tn + ".2"
 					// file exists "test.db-journal"
@@ -109,6 +114,9 @@ func Test_journal3(t *testing.T) {
 				}
 				{ // do_test "journal3-1.2." + tn + ".4"
 					// file attr test.db-journal -perm
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "journal3-1.2." + tn + ".4")
+					}
 				}
 				{ // "journal3-1.2." + tn + ".5"
 					_res = db.Exec(" ROLLBACK ")

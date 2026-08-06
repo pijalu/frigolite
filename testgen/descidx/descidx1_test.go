@@ -68,7 +68,7 @@ func Test_descidx1(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
-	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
+	// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "descidx1-1.1"
@@ -255,14 +255,13 @@ func Test_descidx1(t *testing.T) {
 		_ = db.Exec("\n    SELECT a||b||c FROM t3 WHERE d=0 ORDER BY a DESC, b DESC, c ASC\n  ") // cksort
 	}
 	{ // do_test "descidx1-6.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config db LEGACY_FILE_FORMAT (unsupported command, not transpiled)
 	}
 	{ // do_test "descidx1-6.2"
-		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
-		// sqlite3_db_config db LEGACY_FILE_FORMAT (unsupported command, not transpiled)
+		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 	}
 	{ // do_test "descidx1-6.3"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n  ")
@@ -279,11 +278,11 @@ func Test_descidx1(t *testing.T) {
 		// get_file_format (unsupported command, not transpiled)
 	}
 	{ // do_test "descidx1-6.4"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
-		// sqlite3_db_config db LEGACY_FILE_FORMAT (unsupported command, not transpiled)
+		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 	}
 	{ // do_test "descidx1-6.5"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a ASC, b DESC, c ASC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,1,0);\n    INSERT INTO t1 VALUES(1,2,1);\n    INSERT INTO t1 VALUES(1,3,4);\n  ")
@@ -300,7 +299,7 @@ func Test_descidx1(t *testing.T) {
 		// get_file_format (unsupported command, not transpiled)
 	}
 	{ // do_test "descidx1-6.7"
-		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
+		// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 		_res = db.Exec("\n      VACUUM;\n    ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      VACUUM;\n    ")

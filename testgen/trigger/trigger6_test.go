@@ -63,6 +63,7 @@ func Test_trigger6(t *testing.T) {
 		trigger6_cnt = "0" // TCL namespace variable
 		_ = trigger6_cnt // suppress unused warning
 		// proc definition (not transpiled)
+		// db function counter (variable-reader, inlined)
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,counter());\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1,counter());\n    SELECT * FROM t1;\n  ")

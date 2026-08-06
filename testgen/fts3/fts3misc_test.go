@@ -232,7 +232,8 @@ func Test_fts3misc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		r = db.Query("\n    PRAGMA page_size = 512;\n    CREATE VIRTUAL TABLE t4 USING fts4;\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<8000 )\n    INSERT INTO t4 SELECT 'a b c a b c a b c' FROM s;\n  ")
@@ -264,7 +265,7 @@ func Test_fts3misc(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "4.3"
 		_res = db.Exec("\n    UPDATE t4_stat SET value = X'C03EC0B204C0A60800' WHERE id=0;\n  ")
 		if _res.Error != nil {
@@ -290,7 +291,8 @@ func Test_fts3misc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a x x x x b x x x x c');\n  INSERT INTO t5 VALUES('a x x x x b x x x x c');\n  INSERT INTO t5 VALUES('a x x x x b x x x x c');\n")
@@ -353,7 +355,8 @@ func Test_fts3misc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE t6 USING fts4;\n\n  BEGIN;\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n  COMMIT;\n")
@@ -374,7 +377,8 @@ func Test_fts3misc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE vt0 USING fts3(c0);\n  INSERT INTO vt0 VALUES (x'00');\n")
@@ -389,7 +393,8 @@ func Test_fts3misc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.0.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE vt0 USING fts4(c0, order=DESC);\n  INSERT INTO vt0(c0) VALUES (0), (0);\n")
@@ -404,7 +409,8 @@ func Test_fts3misc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE vt0 USING fts4(c0, order=ASC);\n  INSERT INTO vt0(c0) VALUES (0), (0);\n")
@@ -431,7 +437,8 @@ func Test_fts3misc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE vt0 USING fts4(c0, prefix=1);\n")
@@ -452,7 +459,8 @@ func Test_fts3misc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 using fts4(mailcontent);\n  insert into t1(rowid, mailcontent) values\n      (-4764623217061966105, 'we are going to upgrade'),\n      (8324454597464624651, 'we are going to upgrade');\n")
@@ -479,7 +487,8 @@ func Test_fts3misc(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_stat VALUES (1,x'3b3b3b3b3b3b3b28ffffffffffffffffff1807f9073481f1d43bc93b3b3b3b3b3b3b3b3b3b18073b3b3b3b3b3b3b9b003b');\n")

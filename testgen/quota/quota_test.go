@@ -7,6 +7,7 @@ package quota
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -80,6 +81,7 @@ func Test_quota(t *testing.T) {
 	os.Remove("bak.db")
 	defaultVfs = "file_control_vfsname db"
 	_ = defaultVfs // suppress unused warning
+	db.Close()
 	{ // do_test "quota-1.1"
 		// sqlite3_quota_initialize nosuchvfs 1 (unsupported command, not transpiled)
 	}
@@ -117,7 +119,7 @@ func Test_quota(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA journal_mode=DELETE;\n  ")
 		}
-		quota = "list" // TCL namespace variable
+		quota = "" // TCL namespace variable
 		_ = quota // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(1100));\n    INSERT INTO t1 VALUES(2, randomblob(1100));\n  ")
 		if _res.Error != nil {
@@ -140,7 +142,7 @@ func Test_quota(t *testing.T) {
 	}
 	quota_request_ok = "1" // TCL namespace variable
 	_ = quota_request_ok // suppress unused warning
-	quota = "list" // TCL namespace variable
+	quota = "" // TCL namespace variable
 	_ = quota // suppress unused warning
 	{ // do_test "quota-2.2.1"
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, randomblob(1100)) ")
@@ -162,7 +164,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-2.4.1"
 		// sqlite3_quota_shutdown (unsupported command, not transpiled)
 	}
-	quota = "list" // TCL namespace variable
+	quota = "" // TCL namespace variable
 	_ = quota // suppress unused warning
 	{ // do_test "quota-2.4.2"
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, randomblob(1100)) ")
@@ -175,6 +177,7 @@ func Test_quota(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "quota-2.4.99"
+		db.Close()
 		// sqlite3_quota_shutdown (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
@@ -196,7 +199,7 @@ func Test_quota(t *testing.T) {
 	{ // do_test "quota-3.1.3"
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
-		quota = "list" // TCL namespace variable
+		quota = "" // TCL namespace variable
 		_ = quota // suppress unused warning
 		_res = db.Exec(" CREATE TABLE t2(a, b) ")
 		if _res.Error != nil {
@@ -217,6 +220,7 @@ func Test_quota(t *testing.T) {
 		}
 	}
 	{ // do_test "quota-3.1.6"
+		db.Close()
 		db2.Close()
 		// sqlite3_quota_set *test.db 0 {} (unsupported command, not transpiled)
 	}
@@ -287,7 +291,7 @@ func Test_quota(t *testing.T) {
 		_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
 		_ = _res // catchsql
 	}
-	quota = "list" // TCL namespace variable
+	quota = "" // TCL namespace variable
 	_ = quota // suppress unused warning
 	// proc definition (not transpiled)
 	// sqlite3_quota_set * 4096 quota_callback (unsupported command, not transpiled)
@@ -376,6 +380,7 @@ func Test_quota(t *testing.T) {
 		// quota_list (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-4.1.12"
+		db.Close()
 		// quota_list (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-4.2.1"
@@ -419,10 +424,11 @@ func Test_quota(t *testing.T) {
 		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// sqlite3_quota_set A 0 quota_callback (unsupported command, not transpiled)
+		db.Close()
 		// quota_list (unsupported command, not transpiled)
 	}
 	if tcl_platform_platform == "windows" {
-		quotagroup = "*\\\\quota-test-A?.db"
+		quotagroup = "*\\quota-test-A?.db"
 		_ = quotagroup // suppress unused warning
 	} else {
 		quotagroup = "*/quota-test-A?.db"
@@ -444,31 +450,38 @@ func Test_quota(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		}
 		// quota_list (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), quotagroup) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", quotagroup, _res.Error, "quota-4.4.1")
+		}
 	}
 	{ // do_test "quota-4.4.2"
 		// expr $::quota=="" (not evaluated)
 	}
 	{ // do_test "quota-4.4.3"
-		_dbtmp3, err := frigolite.Open("./quota-test-A2.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("./quota-test-A2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t1(x);\n     INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		}
 		// quota_list (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), quotagroup) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", quotagroup, _res.Error, "quota-4.4.3")
+		}
 	}
 	{ // do_test "quota-4.4.4"
 		// expr $::quota!="" (not evaluated)
 	}
 	{ // do_test "quota-4.4.5"
+		db.Close()
 		// sqlite3_quota_set $::quotagroup 0 {} (unsupported command, not transpiled)
 		// sqlite3_quota_dump (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-4.4.6"
 		// sqlite3_quota_set $quotagroup 10000 quota_callback (unsupported command, not transpiled)
-		_dbtmp4, err := frigolite.Open("quota-test-A1.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		_dbtmp3, err := frigolite.Open("quota-test-A1.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT count(*) FROM sqlite_master")
 		if _res.Error != nil {
@@ -481,7 +494,7 @@ func Test_quota(t *testing.T) {
 		// quota_size $::quotagroup (unsupported command, not transpiled)
 	}
 	if tcl_platform_platform == "windows" {
-		quotagroup = "*\\\\quota-test-B*"
+		quotagroup = "*\\quota-test-B*"
 		_ = quotagroup // suppress unused warning
 	} else {
 		quotagroup = "*/quota-test-B*"
@@ -535,6 +548,7 @@ func Test_quota(t *testing.T) {
 		// quota_size $::quotagroup (unsupported command, not transpiled)
 	}
 	{ // do_test "quota-4.9.1"
+		db.Close()
 		// sqlite3_quota_set A 1000 quota_callback (unsupported command, not transpiled)
 		// sqlite3_quota_shutdown (unsupported command, not transpiled)
 	}
@@ -548,11 +562,12 @@ func Test_quota(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 	{ // do_test "quota-5.3.prep"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
 		if _res.Error != nil {
@@ -565,6 +580,7 @@ func Test_quota(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		os.Remove("test.db")
 		// file mkdir test.db
@@ -581,6 +597,7 @@ func Test_quota(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 }

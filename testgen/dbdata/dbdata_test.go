@@ -85,7 +85,7 @@ func Test_dbdata(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 0 -1 1 1 0 0 'table' 1 0 1 'T1' 1 0 2 'T1' 1 0 3 2 1 0 4 {'CREATE TABLE T1(a, b)'} 2 0 -1 5 2 0 0 'v' 2 0 1 'five' 2 1 -1 10 2 1 0 'x' 2 1 1 'ten'"
+		want := "1 0 -1 1 1 0 0 'table' 1 0 1 'T1' 1 0 2 'T1' 1 0 3 2 1 0 4 'CREATE TABLE T1(a, b)' 2 0 -1 5 2 0 0 'v' 2 0 1 'five' 2 1 -1 10 2 1 0 'x' 2 1 1 'ten'"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -99,7 +99,7 @@ func Test_dbdata(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := big
+		want := tclListFlatten(big)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -117,7 +117,8 @@ func Test_dbdata(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(" SELECT load_extension('../dbdata') ")
 	if _res.Error != nil {

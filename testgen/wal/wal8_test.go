@@ -56,6 +56,7 @@ func Test_wal8(t *testing.T) {
 	testprefix = "wal8" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -73,6 +74,7 @@ func Test_wal8(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 4096;\n  VACUUM;\n")
 		}
 	}
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
@@ -91,6 +93,7 @@ func Test_wal8(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 4096;\n  VACUUM;\n")
 		}
 	}
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db")
 	db, err = frigolite.Open("")

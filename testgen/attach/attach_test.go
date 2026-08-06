@@ -335,8 +335,8 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	{ // do_test "attach-2.16"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    ATTACH 'test2.db' AS db2;\n    SELECT type, name, tbl_name FROM db2.sqlite_master;\n  ")
 		if r.Error != nil {
@@ -344,9 +344,9 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	{ // do_test "attach-3.1"
+		db.Close()
 		db2.Close()
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
@@ -549,8 +549,8 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	{ // do_test "attach-5.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Close()
 		os.Remove("test2.db")
@@ -596,6 +596,7 @@ func Test_attach(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "attach-5.10"
+		db.Close()
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -659,6 +660,7 @@ func Test_attach(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	os.Remove("test2.db")
 	os.Remove("no-such-file")
 	{ // do_test "attach-7.1"
@@ -718,8 +720,8 @@ func Test_attach(t *testing.T) {
 	{ // do_test "attach-10.2"
 		_ = tclLRange(tclExecSQL(db, "{\n    PRAGMA database_list;\n  }"), "9", "end") // lrange result
 	}
-	_dbtmp3, err := frigolite.Open("test.db")
-	_ = _dbtmp3 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "attach-11.1"
 		r = db.Query("\n  ATTACH printf('file:%09000x/x.db?mode=memory&cache=shared',1) AS aux1;\n  CREATE TABLE aux1.t1(x,y);\n  INSERT INTO aux1.t1(x,y) VALUES(1,2),(3,4);\n  SELECT * FROM aux1.t1;\n")
@@ -733,6 +735,7 @@ func Test_attach(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "attach-12.1"
@@ -748,7 +751,8 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "attach-13.1"
 		db, err = frigolite.Open("")

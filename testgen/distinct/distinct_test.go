@@ -107,9 +107,21 @@ func Test_distinct(t *testing.T) {
 				// do_distinct_not_noop_test 1.$tn $sql (unsupported command, not transpiled)
 			}
 		}
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b COLLATE nocase, c COLLATE nocase);\n\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n")
 			if _res.Error != nil {
@@ -135,7 +147,7 @@ func Test_distinct(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := res
+					want := tclListFlatten(res)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -253,6 +265,7 @@ func Test_distinct(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
+			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "6.1"
@@ -280,7 +293,8 @@ func Test_distinct(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "7.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t3(a INTEGER PRIMARY KEY);\n\n  CREATE TABLE t4(x);\n  CREATE TABLE t5(y);\n  \n  INSERT INTO t5 VALUES(1), (2), (2);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t3 VALUES(2);\n  INSERT INTO t4 VALUES(2);\n")
@@ -301,7 +315,8 @@ func Test_distinct(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "8.0"
 				r = db.Query("\n  CREATE TABLE person ( pid INT) ;\n  CREATE UNIQUE INDEX idx ON person ( pid ) WHERE pid == 1;\n  INSERT INTO person VALUES (1), (10), (10);\n  SELECT DISTINCT pid FROM person where pid = 10;\n")
@@ -316,7 +331,8 @@ func Test_distinct(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "9.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('a', 'c');\n\n  INSERT INTO t1 VALUES('b', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n  INSERT INTO t1 VALUES('b', 'c');\n\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n\n  INSERT INTO t1 VALUES('A', 'A');\n  INSERT INTO t1 VALUES('B', 'B');\n")

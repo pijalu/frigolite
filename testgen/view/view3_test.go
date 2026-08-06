@@ -55,6 +55,7 @@ func Test_view3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "view3"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.1"

@@ -69,6 +69,7 @@ func Test_journal2(t *testing.T) {
 	_ = filename // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
 		return
 	}
@@ -81,7 +82,7 @@ func Test_journal2(t *testing.T) {
 	// tvfs script journal_op_catcher (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "journal2-1.1"
-		oplog = "list" // TCL namespace variable
+		oplog = "" // TCL namespace variable
 		_ = oplog // suppress unused warning
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
@@ -93,7 +94,7 @@ func Test_journal2(t *testing.T) {
 		_ = oplog // TCL namespace variable (query)
 	}
 	{ // do_test "journal2-1.2"
-		oplog = "list" // TCL namespace variable
+		oplog = "" // TCL namespace variable
 		_ = oplog // suppress unused warning
 		_res = db.Exec(" \n    PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
@@ -102,7 +103,7 @@ func Test_journal2(t *testing.T) {
 		_ = oplog // TCL namespace variable (query)
 	}
 	{ // do_test "journal2-1.3"
-		oplog = "list" // TCL namespace variable
+		oplog = "" // TCL namespace variable
 		_ = oplog // suppress unused warning
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
 		if _res.Error != nil {
@@ -117,7 +118,7 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.5"
-		oplog = "list" // TCL namespace variable
+		oplog = "" // TCL namespace variable
 		_ = oplog // suppress unused warning
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -208,10 +209,11 @@ func Test_journal2(t *testing.T) {
 	{ // do_test "journal2-1.21"
 		db2.Close()
 	}
+	db.Close()
 	if tclBool("wal_is_capable") {
 		{ // do_test "journal2-2.1"
 			// faultsim_delete_and_reopen (unsupported command, not transpiled)
-			oplog = "list" // TCL namespace variable
+			oplog = "" // TCL namespace variable
 			_ = oplog // suppress unused warning
 			r = db.Query(" PRAGMA journal_mode = persist ")
 			if r.Error != nil {
@@ -230,7 +232,7 @@ func Test_journal2(t *testing.T) {
 			// expr [file size test.db-journal] > 512 (not evaluated)
 		}
 		{ // do_test "journal2-2.4"
-			oplog = "list" // TCL namespace variable
+			oplog = "" // TCL namespace variable
 			_ = oplog // suppress unused warning
 			r = db.Query(" PRAGMA journal_mode = WAL ")
 			if r.Error != nil {
@@ -238,6 +240,7 @@ func Test_journal2(t *testing.T) {
 			}
 			_ = oplog // TCL namespace variable (query)
 		}
+		db.Close()
 	}
 	// tvfs delete (unsupported command, not transpiled)
 }

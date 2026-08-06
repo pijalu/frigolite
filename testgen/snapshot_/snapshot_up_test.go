@@ -237,9 +237,9 @@ func Test_snapshot_up(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
+	db.Close()
 	db2.Close()
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.15"
 		r = db.Query("\n  BEGIN;\n    SELECT * FROM t1\n")
@@ -270,9 +270,10 @@ func Test_snapshot_up(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -310,10 +311,10 @@ func Test_snapshot_up(t *testing.T) {
 		}
 		// set  (invalid identifier, skipped)
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
+	{ // "2.2"
+		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES(19, 20, 21);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(19, 20, 21);\n")
 		}
 	}
 	{ // do_test "2.3"

@@ -141,8 +141,7 @@ func Test_alter(t *testing.T) {
 	}
 	{ // do_test "alter-1.6"
 		db.Close()
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
@@ -533,8 +532,7 @@ func Test_alter(t *testing.T) {
 	_ = col_name2 // suppress unused warning
 	{ // do_test "alter-6.6"
 		db.Close()
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    ALTER TABLE " + tbl_name + " ADD COLUMN " + col_name2 + "\n  ")
 		if _res.Error != nil {
@@ -572,13 +570,13 @@ func Test_alter(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }"
-	_items2 := tclSplitList("1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }")
-	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-		tn := _items2[_idx2+0]
+	_items0 := tclSplitList("1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items2[_idx2+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx2
+		_ = _idx0
 			{ // do_test "alter-9.2." + tn
 				{
 					var _catchErr error
@@ -717,8 +715,7 @@ func Test_alter(t *testing.T) {
 		}
 		{ // do_test "alter-12.4"
 			db.Close()
-			_dbtmp3, err := frigolite.Open("test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT * FROM v1; ")
 			if r.Error != nil {
@@ -762,13 +759,13 @@ func Test_alter(t *testing.T) {
 		system_table_list = tclListAppend(system_table_list, "2", "sqlite_stat1")
 		system_table_list = tclListAppend(system_table_list, "4", "sqlite_stat4")
 		// foreach {tn tbl} system_table_list
-		_items4 := tclSplitList(system_table_list)
-		for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
-			tn := _items4[_idx4+0]
+		_items1 := tclSplitList(system_table_list)
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			tbl := _items4[_idx4+1]
+			tbl := _items1[_idx1+1]
 			_ = tbl // suppress unused warning
-			_ = _idx4
+			_ = _idx1
 				{ // do_test "alter-15." + tn + ".1"
 					_res = db.Exec("ALTER TABLE " + tbl + " RENAME TO xyz")
 					_ = _res // catchsql
@@ -818,7 +815,8 @@ func Test_alter(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "alter-18.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;\n")
@@ -827,7 +825,8 @@ func Test_alter(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "alter-19.1"
 				_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER TABLE t2 RENAME TO t3;\n")
@@ -854,7 +853,8 @@ func Test_alter(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "alter-20.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);\n")
@@ -881,7 +881,8 @@ func Test_alter(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "alter-21.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;\n")
@@ -920,7 +921,8 @@ func Test_alter(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "alter-22.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b);\n")

@@ -80,6 +80,7 @@ func Test_collate7(t *testing.T) {
 	}
 	{ // do_test "collate7-1.4"
 		// sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del} (unsupported command, not transpiled)
+		db.Close()
 		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.1"

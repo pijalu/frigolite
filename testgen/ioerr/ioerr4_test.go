@@ -58,6 +58,7 @@ func Test_ioerr4(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "ioerr4-1.1"
+		db.Close()
 		enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 		_ = enable_shared_cache // suppress unused warning
 	}
@@ -122,6 +123,7 @@ func Test_ioerr4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db2.Close()
 	tclFileCopy("test.db", "test.db-bu")
 	// do_ioerr_test ioerr4-2 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete t...} -tclbo... (unsupported command, not transpiled)

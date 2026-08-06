@@ -58,7 +58,8 @@ func Test_altercorrupt(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.0"
 		db, err = frigolite.Open("")
@@ -71,7 +72,8 @@ func Test_altercorrupt(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.0"
 		db, err = frigolite.Open("")

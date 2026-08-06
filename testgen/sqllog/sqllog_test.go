@@ -72,12 +72,12 @@ func Test_sqllog(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	env_SQLITE_SQLLOG_DIR = "pwd" // TCL namespace variable
 	_ = env_SQLITE_SQLLOG_DIR // suppress unused warning
 	// delete_all_sqllog_files (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	a = "a"
 	_ = a // suppress unused warning
@@ -95,6 +95,7 @@ func Test_sqllog(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	{ // do_test "1.1"
 		// readfile [lindex [glob sqllog_*.sql] 0] (unsupported command, not transpiled)
 	}
@@ -104,14 +105,14 @@ func Test_sqllog(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// delete_all_sqllog_files (unsupported command, not transpiled)
 	os.Remove("test.db-sqllog")
 	env_SQLITE_SQLLOG_CONDITIONAL = "1" // TCL namespace variable
 	_ = env_SQLITE_SQLLOG_CONDITIONAL // suppress unused warning
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  INSERT INTO t1 VALUES(4, 5);\n  SELECT * FROM t1;\n")
@@ -128,9 +129,9 @@ func Test_sqllog(t *testing.T) {
 	{ // do_test "2.2"
 		tclGlob("-nocomplain")
 	}
+	db.Close()
 	// touch test.db-sqllog (unsupported command, not transpiled)
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.3"
 		r = db.Query("\n  INSERT INTO t1 VALUES(6, 7);\n  SELECT * FROM t1;\n")
@@ -144,12 +145,14 @@ func Test_sqllog(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	{ // do_test "2.4"
 		// readfile [lindex [glob sqllog_*.sql] 0] (unsupported command, not transpiled)
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_sqllog (unsupported command, not transpiled)

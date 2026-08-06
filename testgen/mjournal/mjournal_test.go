@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -153,6 +154,7 @@ func Test_mjournal(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n")
 		}
 	}
+	db.Close()
 	// testvfs tvfs (unsupported command, not transpiled)
 	// tvfs filter xOpen (unsupported command, not transpiled)
 	// tvfs script open_cb (unsupported command, not transpiled)
@@ -176,7 +178,8 @@ func Test_mjournal(t *testing.T) {
 	// do_hasmj_test 2.2 {\n  BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INS...} {0} (unsupported command, not transpiled)
 	// do_hasmj_test 2.3 {\n  BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INS...} {0} (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA synchronous = OFF;\n  CREATE TABLE t1(x, y);\n")
@@ -191,6 +194,7 @@ func Test_mjournal(t *testing.T) {
 		}
 	}
 	// db_save (unsupported command, not transpiled)
+	db.Close()
 	// db_restore (unsupported command, not transpiled)
 	{ // do_test "3.2"
 		mjname = "file join [pwd] test.db-super"
@@ -235,8 +239,7 @@ func Test_mjournal(t *testing.T) {
 		_ = _putsMsg
 		// close $fd
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.3"
 		r = db.Query("\n  SELECT type, name, tbl_name, sql FROM sqlite_schema\n")
@@ -245,13 +248,14 @@ func Test_mjournal(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "table t1 t1 {CREATE TABLE t1(x, y)}"
+		want := "table t1 t1 CREATE TABLE t1(x, y)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n")
@@ -268,15 +272,15 @@ func Test_mjournal(t *testing.T) {
 	tests = "1 notamasterjournal   0\n  2 master.9FF          " + c + "\n  3 master-mj1234569AA  1\n  4 master-mj123456_AA  0\n  5 abc                 0\n  6 masterr9FF          0\n  7 master-fj123456_AA  0\n  8 -mj1234569AA        1\n  9 1-mj1234569AA       1\n  10 .9AB               0\n  11 master.9X2         0\n  12 master.92X         0\n  13 master-mj12G4569AA 0"
 	_ = tests // suppress unused warning
 	// foreach {tn mjname bDel} tests
-	_items1 := tclSplitList(tests)
-	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList(tests)
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mjname := _items1[_idx1+1]
+		mjname := _items0[_idx0+1]
 		_ = mjname // suppress unused warning
-		bDel := _items1[_idx1+2]
+		bDel := _items0[_idx0+2]
 		_ = bDel // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			content = "0"
 			_ = content // suppress unused warning
 			for func() bool { content_n, _content_e := strconv.Atoi(content); if _content_e != nil { return false }; return content_n < 2 }() {
@@ -310,8 +314,8 @@ func Test_mjournal(t *testing.T) {
 					_ = mjexists // suppress unused warning
 				}
 				// close $fd
-				_dbtmp2, err := frigolite.Open("test.db")
-				_ = _dbtmp2 // sqlite3 db connection
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				{ // do_test "4." + tn + "." + content + ".1"
 					r = db.Query(" SELECT * FROM t1 ")
@@ -319,6 +323,9 @@ func Test_mjournal(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 					}
 					// file exists mjname
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), mjexists) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", mjexists, _res.Error, "4." + tn + "." + content + ".1")
+					}
 				}
 				{ // do_test "4." + tn + "." + content + ".2"
 					// file exists "test.db-journal"

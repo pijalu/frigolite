@@ -105,6 +105,7 @@ func Test_backup_ioerr(t *testing.T) {
 		// expr [file size test.db] > $sqlite_pending_byte (not evaluated)
 	}
 	{ // do_test "backup_ioerr-1.3"
+		db.Close()
 		os.Remove("test.db")
 	}
 	// proc definition (not transpiled)
@@ -267,7 +268,7 @@ func Test_backup_ioerr(t *testing.T) {
 						continue
 					}
 					{ // do_test "backup_ioerr-" + iTest + "." + iError + ".17"
-						_list := tclList([]string{"set rc", "B finish"})
+						_list := tclList([]string{rc, "B finish"})
 						_ = _list
 					}
 					// clear_ioerr_simulation (unsupported command, not transpiled)

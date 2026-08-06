@@ -7,6 +7,7 @@ package fts3
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -63,10 +64,10 @@ func Test_fts3shared(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3shared" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -101,6 +102,7 @@ func Test_fts3shared(t *testing.T) {
 	{ // do_test "fts3shared-1.6"
 		// sqlite3_get_autocommit db2 (unsupported command, not transpiled)
 	}
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	LOCKED = "1 {database table is locked}"
 	_ = LOCKED // suppress unused warning
@@ -128,22 +130,37 @@ func Test_fts3shared(t *testing.T) {
 	{ // do_test "2.2.2"
 		_res = db.Exec("SELECT * FROM t1 WHERE rowid=1")
 		_ = _res // catchsql
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.2")
+		}
 	}
 	{ // do_test "2.2.3"
 		_res = db.Exec("SELECT * FROM t1 WHERE t1 MATCH 'a'")
 		_ = _res // catchsql
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.3")
+		}
 	}
 	{ // do_test "2.2.4"
 		_res = db.Exec("SELECT rowid FROM t1 WHERE t1 MATCH 'a'")
 		_ = _res // catchsql
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.4")
+		}
 	}
 	{ // do_test "2.2.5"
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.5")
+		}
 	}
 	{ // do_test "2.2.6"
 		_res = db.Exec("SELECT * FROM t1aux")
 		_ = _res // catchsql
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.2.6")
+		}
 	}
 	{ // do_test "2.2.7"
 		_res = db.Exec("COMMIT")
@@ -170,14 +187,23 @@ func Test_fts3shared(t *testing.T) {
 	{ // do_test "2.3.3"
 		_res = db.Exec("SELECT * FROM t2 WHERE t2 MATCH 'a'")
 		_ = _res // catchsql
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.3.3")
+		}
 	}
 	{ // do_test "2.3.4"
 		_res = db.Exec("SELECT rowid FROM t2 WHERE t2 MATCH 'a'")
 		_ = _res // catchsql
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.3.4")
+		}
 	}
 	{ // do_test "2.3.6"
 		_res = db.Exec("SELECT * FROM t2aux")
 		_ = _res // catchsql
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.3.6")
+		}
 	}
 	{ // do_test "2.3.7"
 		_res = db.Exec("COMMIT")
@@ -192,13 +218,13 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\""
-	_items1 := tclSplitList("1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items1[_idx1+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			{ // do_test "2.4." + tn
 				_res = db.Exec("BEGIN")
 				if _res.Error != nil {
@@ -214,6 +240,9 @@ func Test_fts3shared(t *testing.T) {
 				}
 				_res = db.Exec("INSERT INTO t1 VALUES('p q r')")
 				_ = _res // catchsql
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.4." + tn)
+				}
 			}
 			_res = db.Exec("ROLLBACK")
 			if _res.Error != nil {
@@ -225,13 +254,13 @@ func Test_fts3shared(t *testing.T) {
 			}
 		}
 		// foreach {tn sql} "2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\""
-		_items2 := tclSplitList("2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"")
-		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-			tn := _items2[_idx2+0]
+		_items1 := tclSplitList("2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items2[_idx2+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_ = _idx2
+			_ = _idx1
 				{ // do_test "2.5." + tn
 					_res = db.Exec("BEGIN")
 					if _res.Error != nil {
@@ -247,6 +276,9 @@ func Test_fts3shared(t *testing.T) {
 					}
 					_res = db.Exec("INSERT INTO t2(rowid, a, b) VALUES(3, 's t u', 'v w x')")
 					_ = _res // catchsql
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), LOCKED) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", LOCKED, _res.Error, "2.5." + tn)
+					}
 				}
 				_res = db.Exec("ROLLBACK")
 				if _res.Error != nil {

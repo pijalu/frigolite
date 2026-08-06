@@ -60,6 +60,7 @@ func Test_crashM(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "crashM"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	for _, f := range tclSplitList("glob -nocomplain test1.* test2.*") {
@@ -67,8 +68,7 @@ func Test_crashM(t *testing.T) {
 		os.Remove(f)
 	}
 	// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("file:test1.db?8_3_names=1")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("file:test1.db?8_3_names=1")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_multiplex_control db main chunk_size [expr 64*1024] (unsupported command, not transpiled)
 	{ // "1.0"
@@ -106,6 +106,7 @@ func Test_crashM(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
 }

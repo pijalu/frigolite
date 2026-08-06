@@ -192,6 +192,7 @@ func Test_schema2(t *testing.T) {
 		_ = sql // suppress unused warning
 		STMT = "" // TCL namespace variable
 		_ = STMT // suppress unused warning
+		// db function hello_function (variable-reader, inlined)
 		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-6.2"
@@ -290,6 +291,7 @@ func Test_schema2(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "schema2-11.1"
+		// db function tstfunc (variable-reader, inlined)
 		sql = "SELECT * FROM abc"
 		_ = sql // suppress unused warning
 		STMT = "" // TCL namespace variable
@@ -304,6 +306,7 @@ func Test_schema2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
+			// db function tstfunc (variable-reader, inlined)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

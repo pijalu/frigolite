@@ -251,8 +251,7 @@ func Test_alter2(t *testing.T) {
 	{ // do_test "alter2-5.1"
 		// set_file_format 2 (unsupported command, not transpiled)
 		db.Close()
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT 1 FROM sqlite_master LIMIT 1;")
 		if r.Error != nil {
@@ -275,8 +274,7 @@ func Test_alter2(t *testing.T) {
 	{ // do_test "alter2-6.1"
 		db.Close()
 		// set_file_format 2 (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// get_file_format (unsupported command, not transpiled)
 	}
@@ -335,6 +333,7 @@ func Test_alter2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;\n  ")
 		}
 	}
+	// db function set_val (variable-reader, inlined)
 	{ // do_test "alter2-8.1"
 		_res = db.Exec("\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n      SELECT set_val(\n          old.b||' '||typeof(old.b)||' '||old.c||' '||typeof(old.c)||' '||\n          new.b||' '||typeof(new.b)||' '||new.c||' '||typeof(new.c) \n      );\n      END;\n    ")
 		if _res.Error != nil {

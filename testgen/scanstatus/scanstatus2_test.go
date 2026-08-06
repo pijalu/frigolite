@@ -115,7 +115,7 @@ func Test_scanstatus2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "scanstatus2"
 	_ = testprefix // suppress unused warning
-	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n  INSERT INTO t2 VALUES('e', 'f');\n")
 		if _res.Error != nil {
@@ -135,9 +135,10 @@ func Test_scanstatus2(t *testing.T) {
 	// do_graph_test 1.3 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WH...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
 	// do_graph_test 1.4 {\n  WITH v2(x,y) AS MATERIALIZED (\n    SELECT x,y...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "2.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(a);\n    INSERT INTO ft VALUES('abc');\n    INSERT INTO ft VALUES('def');\n    INSERT INTO ft VALUES('ghi');\n  ")
 		if _res.Error != nil {
@@ -146,9 +147,10 @@ func Test_scanstatus2(t *testing.T) {
 	}
 	// do_graph_test 2.1 {\n    SELECT * FROM ft('def')\n  } {\nQUERY (nCycle=nnn)\n--SCAN ft VIRTUAL... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "3.0"
 		r = db.Query("\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
 		if r.Error != nil {
@@ -157,9 +159,10 @@ func Test_scanstatus2(t *testing.T) {
 	}
 	// do_graph_test 2.1 {\n  SELECT * FROM x1, x2 WHERE c=+a;\n} {\nQUERY (nCycle=nnn)\n--SCAN x1 (n... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE rt1 (id INTEGER PRIMARY KEY, x1, x2);\n  CREATE TABLE rt2 (id, x1, x2);\n")
 		if _res.Error != nil {
@@ -172,7 +175,8 @@ func Test_scanstatus2(t *testing.T) {
 	// do_graph_test 4.4 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
 	// do_graph_test 4.5 {\n  SELECT v1.cnt FROM rt1, (\n    SELECT count(*)...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      SELECT 1;\n    END;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
@@ -181,7 +185,7 @@ func Test_scanstatus2(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	trace_explain = "list" // TCL namespace variable
+	trace_explain = "" // TCL namespace variable
 	_ = trace_explain // suppress unused warning
 	{ // "5.1"
 		_res = db.Exec("\n    DELETE FROM t1 WHERE x=1;\n  ")
@@ -193,9 +197,10 @@ func Test_scanstatus2(t *testing.T) {
 		_ = trace_explain // TCL namespace variable (query)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  INSERT INTO t1 VALUES(7, 'seven');\n  INSERT INTO t1 VALUES(8, 'eight');\n")
 		if _res.Error != nil {
@@ -208,7 +213,8 @@ func Test_scanstatus2(t *testing.T) {
 	// do_graph_test 6.2 $sql {\nQUERY (nCycle=nnn)\n--CO-ROUTINE xy\n----SCAN t1...} (unsupported command, not transpiled)
 	// do_graph_test 6.3 {\n  WITH xy(x, y) AS ( SELECT (a % 2), group_conca...} {\nQUERY (nCycle=nnn... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "7.0"
 		_res = db.Exec("SELECT * FROM sqlite_schema")

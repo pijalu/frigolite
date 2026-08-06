@@ -124,7 +124,7 @@ func Test_autovacuum(t *testing.T) {
 				tn = strconv.Itoa(_n + 1)
 			}
 		}
-		tbl_data = "list" // TCL namespace variable
+		tbl_data = "" // TCL namespace variable
 		_ = tbl_data // suppress unused warning
 		for _, i := range tclSplitList("lsort -integer [eval concat $delete_order]") {
 		_ = i // suppress unused warning
@@ -165,6 +165,9 @@ func Test_autovacuum(t *testing.T) {
 				r = db.Query("\n        select a from av1 order by rowid\n      ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        select a from av1 order by rowid\n      ")
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), tbl_data) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", tbl_data, _res.Error, "autovacuum-1." + tn + ".(" + delete + ").3")
 				}
 			}
 		}
@@ -228,6 +231,9 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    select * from av1\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), av1_data) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", av1_data, _res.Error, "autovacuum-2.2.9")
+		}
 	}
 	{ // do_test "autovacuum-2.3.1"
 		_res = db.Exec("\n    INSERT INTO av2 SELECT 'av1' || x FROM av1;\n    INSERT INTO av3 SELECT 'av2' || x FROM av1;\n    INSERT INTO av4 SELECT 'av3' || x FROM av1;\n  ")
@@ -256,11 +262,17 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av3;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), av3_data) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", av3_data, _res.Error, "autovacuum-2.3.4")
+		}
 	}
 	{ // do_test "autovacuum-2.3.5"
 		r = db.Query("\n    SELECT x FROM av4;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM av4;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), av4_data) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", av4_data, _res.Error, "autovacuum-2.3.5")
 		}
 	}
 	{ // do_test "autovacuum-2.4.1"
@@ -304,7 +316,7 @@ func Test_autovacuum(t *testing.T) {
 	_ = root_page_list // suppress unused warning
 	pending_byte_page = tclExprWith("($::sqlite_pending_byte / 1024) + 1", map[string]string{"::sqlite_pending_byte": sqlite_pending_byte})
 	_ = pending_byte_page // suppress unused warning
-	if tclBool("sqlite3 -has-codec") {
+	if tclBool("") {
 	} else {
 	}
 	unusable_page_pending_byte_page = "1"
@@ -345,6 +357,9 @@ func Test_autovacuum(t *testing.T) {
 		r = db.Query("\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), root_page_list) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", root_page_list, _res.Error, "autovacuum-2.4.5")
 		}
 	}
 	{ // do_test "autovacuum-2.4.6"
@@ -479,8 +494,8 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-3.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -494,6 +509,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-3.4"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -501,11 +517,17 @@ func Test_autovacuum(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), AUTOVACUUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", AUTOVACUUM, _res.Error, "autovacuum-3.4")
+		}
 	}
 	{ // do_test "autovacuum-3.5"
 		r = db.Query("\n    CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), AUTOVACUUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", AUTOVACUUM, _res.Error, "autovacuum-3.5")
 		}
 	}
 	{ // do_test "autovacuum-3.6"
@@ -522,6 +544,7 @@ func Test_autovacuum(t *testing.T) {
 		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-4.0"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -576,6 +599,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-5.1"
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
@@ -584,6 +608,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-6.1"
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;\n  ")
@@ -592,6 +617,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-7.1"
+		db.Close()
 		os.Remove("test.db")
 		os.Remove("test.db-journal")
 		db, err = frigolite.Open("")
@@ -610,8 +636,8 @@ func Test_autovacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "autovacuum-7.3"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
@@ -620,8 +646,8 @@ func Test_autovacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 (not evaluated)
 	}
 	{ // do_test "autovacuum-8.1"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -681,6 +707,9 @@ func Test_autovacuum(t *testing.T) {
 			}
 		}
 		// file size test.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sqlite_pending_byte) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sqlite_pending_byte, _res.Error, "autovacuum-9.3")
+		}
 	}
 	{ // do_test "autovacuum-9.4"
 		_res = db.Exec(" INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1 ")
@@ -694,6 +723,9 @@ func Test_autovacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid > (SELECT max(a)/2 FROM t1) ")
 		}
 		// file size test.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sqlite_pending_byte) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sqlite_pending_byte, _res.Error, "autovacuum-9.5")
+		}
 	}
 	{ // "autovacuum-10.1"
 		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(25, randomblob(104));\n  REPLACE INTO t1 VALUES(25, randomblob(1117));\n  PRAGMA integrity_check;\n")

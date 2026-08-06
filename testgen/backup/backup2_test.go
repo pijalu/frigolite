@@ -7,6 +7,7 @@ package backup
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -81,8 +82,12 @@ func Test_backup2(t *testing.T) {
 		db2, err = frigolite.Open("bu1.db")
 		if err != nil { t.Fatal(err) }
 		// dbcksum db2 main (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "backup2-2")
+		}
 	}
 	{ // do_test "backup2-3.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -105,13 +110,20 @@ func Test_backup2(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "backup2-3.2"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// dbcksum db main (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "backup2-3.2")
+		}
 	}
 	{ // do_test "backup2-4"
 		// dbcksum db temp (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "backup2-4")
+		}
 	}
 	{ // do_test "backup2-5"
 		db2.Close()
@@ -119,6 +131,9 @@ func Test_backup2(t *testing.T) {
 		db2, err = frigolite.Open("bu2.db")
 		if err != nil { t.Fatal(err) }
 		// dbcksum db2 main (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "backup2-5")
+		}
 	}
 	{ // do_test "backup2-6"
 		db2.Close()

@@ -67,11 +67,11 @@ func Test_temptrigger(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "temptrigger"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -138,6 +138,7 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	{
 		var _catchErr error
@@ -145,8 +146,8 @@ func Test_temptrigger(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "temptrigger-2.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    DELETE FROM t1;\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;\n  ")
 		if _res.Error != nil {
@@ -179,6 +180,7 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	{
 		var _catchErr error
@@ -197,8 +199,8 @@ func Test_temptrigger(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db")
 		}
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
@@ -248,6 +250,7 @@ func Test_temptrigger(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	{
 		var _catchErr error
@@ -255,7 +258,8 @@ func Test_temptrigger(t *testing.T) {
 		db2.Close()
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN\n    SELECT 1,2,3;\n  END;\n")
@@ -270,7 +274,8 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END;\n")
@@ -293,14 +298,15 @@ func Test_temptrigger(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "trigger tr1 t1 0 {CREATE TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END}"
+		want := "trigger tr1 t1 0 CREATE TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // "6.0"
@@ -324,7 +330,7 @@ func Test_temptrigger(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "table t1 t1 {CREATE TABLE t1(a, b, c)}"
+		want := "table t1 t1 CREATE TABLE t1(a, b, c)"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -337,7 +343,8 @@ func Test_temptrigger(t *testing.T) {
 	}
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // "7.0"
@@ -413,7 +420,8 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("*")
 	os.Remove("test.db2")
@@ -496,7 +504,8 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	nDb = "8"
 	_ = nDb // suppress unused warning

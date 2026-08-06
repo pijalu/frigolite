@@ -291,11 +291,12 @@ func Test_transitive1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1 /tmp/tvshows/The.Big.Bang.Theory/ {The Big Bang Theory} {Leonard Hofstadter and Sheldon Cooper are brilliant physicists, the kind of \"beautiful minds\" that understand how the universe works. But none of that genius helps them interact with people, especially women. All this begins to change when a free-spirited beauty named Penny moves in next door. Sheldon, Leonard's roommate, is quite content spending his nights playing Klingon Boggle with their socially dysfunctional friends, fellow CalTech scientists Howard Wolowitz and Raj Koothrappali. However, Leonard sees in Penny a whole new universe of possibilities... including love.} 2007-09-24 Comedy CBS TV-PG 3 1 0"
+		want := "1 /tmp/tvshows/The.Big.Bang.Theory/ The Big Bang Theory Leonard Hofstadter and Sheldon Cooper are brilliant physicists, the kind of \"beautiful minds\" that understand how the universe works. But none of that genius helps them interact with people, especially women. All this begins to change when a free-spirited beauty named Penny moves in next door. Sheldon, Leonard's roommate, is quite content spending his nights playing Klingon Boggle with their socially dysfunctional friends, fellow CalTech scientists Howard Wolowitz and Raj Koothrappali. However, Leonard sees in Penny a whole new universe of possibilities... including love. 2007-09-24 Comedy CBS TV-PG 3 1 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -408,7 +409,8 @@ func Test_transitive1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "transitive1-600"
 		_res = db.Exec("\n  CREATE TABLE t0(a0 INT, b1 INT);\n  CREATE INDEX t0b1 ON t0(b1);\n  CREATE TABLE t1(w,x,y,z3 INT);\n  INSERT INTO t0(a0, b1) VALUES (0,1);\n  INSERT INTO t1(w,x,y,z3) VALUES (7,8,9,1);\n")
@@ -435,7 +437,8 @@ func Test_transitive1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "transitive1-700"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT PRIMARY KEY);\n  INSERT INTO t1(a) VALUES(1),(2),(3);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY,y INT);\n  INSERT INTO t2(y) VALUES(2),(3);\n")
@@ -456,7 +459,8 @@ func Test_transitive1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "transitive1-800"
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(0),(3);\n  CREATE TABLE t2(b INT UNIQUE, c INT);\n  INSERT INTO t2 VALUES(1,4)\t,(0,5);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a AND b IS a);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE a=c AND a IS b);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE a=c AND b IS a);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a AND a IS b);\n")
@@ -495,7 +499,8 @@ func Test_transitive1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "transitive1-900"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT COLLATE NOCASE);\n  INSERT INTO t1 VALUES('abc');\n  INSERT INTO t2 VALUES('abc');\n  SELECT * FROM t1 CROSS JOIN t2 WHERE a=b AND b='ABC';\n")
@@ -510,7 +515,8 @@ func Test_transitive1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1000"
 		r = db.Query("\n  PRAGMA automatic_index = 0;\n  \n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n\n  INSERT INTO t1 VALUES ('hello');\n  INSERT INTO t1 VALUES ('Hello');\n  INSERT INTO t1 VALUES ('HELLO');\n  INSERT INTO t1 VALUES ('HeLLo');\n\n  INSERT INTO t2 VALUES ('hello');\n  INSERT INTO t2 VALUES ('Hello');\n  INSERT INTO t2 VALUES ('HELLO');\n  INSERT INTO t2 VALUES ('HeLLo');\n")
@@ -545,7 +551,8 @@ func Test_transitive1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1100"
 		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');\n")
@@ -560,7 +567,8 @@ func Test_transitive1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1200"
 		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('ABC');\n")

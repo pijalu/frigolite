@@ -109,7 +109,7 @@ func Test_fts3defer3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list 1 8 2 $nDoclist"
+		want := "1 8 2 " + nDoclist
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -121,7 +121,7 @@ func Test_fts3defer3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "200 {a b}"
+		want := "200 a b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -140,7 +140,7 @@ func Test_fts3defer3(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "200 {a b}"
+		want := "200 a b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

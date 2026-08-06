@@ -85,7 +85,7 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	{ // do_test "200"
-		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n    UPDATE sqlite_dbpage SET data=randomblob(4096) WHERE pgno=1;\n    PRAGMA quick_check;\n  ")
 		_ = _res // catchsql
 	}
@@ -94,12 +94,12 @@ func Test_resetdb(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "210"
-		// sqlite3_db_config db RESET_DB 1 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		// sqlite3_db_config db RESET_DB 0 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 		if tclBool("permutation" + "==\"prepare\"") {
 			_res = db2.Exec("SELECT * FROM sqlite_master")
 			_ = _res // catchsql
@@ -107,6 +107,7 @@ func Test_resetdb(t *testing.T) {
 		_res = db2.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA quick_check;\n     PRAGMA journal_mode;\n  ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
@@ -131,7 +132,7 @@ func Test_resetdb(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_size;\n    PRAGMA page_count;\n  ")
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "320"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data=randomblob(8192) WHERE pgno=1;\n  PRAGMA quick_check\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "file is not a database") {
@@ -143,27 +144,27 @@ func Test_resetdb(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "400"
-		// sqlite3_db_config db RESET_DB 1 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		// sqlite3_db_config db RESET_DB 0 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 		_res = db2.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA journal_mode;\n     PRAGMA quick_check;\n  ")
 		_ = _res // catchsql
 	}
 	_ = db2 // close db2: aliased to db, no-op
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "500"
 		// sqlite3_finalize [\n    sqlite3_prepare db "SELECT 1 FROM sqlite_ma... (unsupported command, not transpiled)
-		// sqlite3_db_config db RESET_DB 1 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		// sqlite3_db_config db RESET_DB 0 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
 		_res = db.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA journal_mode;\n     PRAGMA quick_check;\n  ")
@@ -171,7 +172,8 @@ func Test_resetdb(t *testing.T) {
 	}
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -187,10 +189,16 @@ func Test_resetdb(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "610"
+		r = db.Query("\n  SELECT * FROM t1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "620"
@@ -199,15 +207,16 @@ func Test_resetdb(t *testing.T) {
 		_res = db2.Exec("SELECT a FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "630"
+		r = db.Query("\n  SELECT * FROM sqlite_master\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sqlite_master\n")
 		}
 	}
 	_ = db2 // close db2: aliased to db, no-op
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "700"
 		r = db.Query("\n  PRAGMA page_size=512;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c) SELECT x, randomblob(100),randomblob(100) FROM c;\n  PRAGMA page_count;\n  PRAGMA integrity_check;\n")
@@ -224,7 +233,7 @@ func Test_resetdb(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "710"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data=\n    X'53514C69746520666F726D61742033000200030100402020000000000000001300000000000000000000000300000004000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000D00000003017C0001D801AC017C00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002E03061715110145696E6465787431626374310443524541544520494E4445582074316263204F4E20743128622C63292A0206171311013F696E64657874316174310343524541544520494E44455820743161204F4E20743128612926010617111101397461626C657431743102435245415445205441424C4520743128612C622C6329' WHERE pgno=1;\n")
 		if _res.Error != nil {
@@ -244,12 +253,12 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	{ // do_test "730"
-		// sqlite3_db_config db RESET_DB 1 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		// sqlite3_db_config db RESET_DB 0 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 	}
 	{ // "740"
 		r = db.Query("\n  PRAGMA page_count;\n  PRAGMA integrity_check;\n")
@@ -264,7 +273,8 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "800"
 		r = db.Query("\n    PRAGMA encoding = 'utf8';\n    CREATE TABLE t1(a, b);\n    PRAGMA encoding;\n  ")
@@ -278,15 +288,21 @@ func Test_resetdb(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "810"
+		r = db.Query("\n    CREATE TEMP TABLE t2(x);\n    INSERT INTO t2 VALUES('hello world');\n    SELECT name FROM sqlite_schema;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE t2(x);\n    INSERT INTO t2 VALUES('hello world');\n    SELECT name FROM sqlite_schema;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "t1"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "820"
@@ -294,14 +310,14 @@ func Test_resetdb(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = 'utf16'")
 		}
-		// sqlite3_db_config db RESET_DB 1 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 	}
 	{ // do_test "830"
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		// sqlite3_db_config db RESET_DB 0 (unsupported command, not transpiled)
+		// sqlite3_db_config RESET_DB (unhandled flag)
 	}
 	{ // do_test "840"
 		_ = tclStringRange("db eval {\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('one', 'two');\n      PRAGMA encoding;\n    }", "0", "5") // string range result

@@ -163,7 +163,8 @@ func Test_skipscan5(t *testing.T) {
 			_ = coll // suppress unused warning
 			_ = _idx1
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// eval $coll (dynamic, not transpiled)
 				{ // "2." + tn + ".1"
@@ -233,7 +234,8 @@ func Test_skipscan5(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "3.1"
 					_res = db.Exec("\n  CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);\n")

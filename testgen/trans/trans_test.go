@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -916,11 +917,17 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(x,y,z) FROM t2")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.2")
+		}
 	}
 	{ // do_test "trans-7.2.1"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.2.1")
 		}
 	}
 	{ // do_test "trans-7.3"
@@ -928,11 +935,17 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.3")
+		}
 	}
 	{ // do_test "trans-7.4"
 		r = db.Query("\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.4")
 		}
 	}
 	{ // do_test "trans-7.5"
@@ -940,11 +953,17 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.5")
+		}
 	}
 	{ // do_test "trans-7.6"
 		r = db.Query("\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.6")
 		}
 	}
 	{ // do_test "trans-7.7"
@@ -952,11 +971,17 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t3;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.7")
+		}
 	}
 	{ // do_test "trans-7.8"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.8")
 		}
 	}
 	{ // do_test "trans-7.9"
@@ -964,11 +989,17 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.9")
+		}
 	}
 	{ // do_test "trans-7.10"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.10")
 		}
 	}
 	{ // do_test "trans-7.11"
@@ -976,11 +1007,17 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.11")
+		}
 	}
 	{ // do_test "trans-7.12"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.12")
 		}
 	}
 	{ // do_test "trans-7.13"
@@ -988,11 +1025,17 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;\n    ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-7.13")
+		}
 	}
 	{ // do_test "trans-7.14"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-7.14")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -1013,11 +1056,17 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(x,y,z) FROM t2")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-8.1")
+		}
 	}
 	{ // do_test "trans-8.2"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-8.2")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -1037,11 +1086,17 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(x,y,z) FROM t2")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum, _res.Error, "trans-8.4")
+		}
 	}
 	{ // do_test "trans-8.5"
 		r = db.Query("SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), checksum2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", checksum2, _res.Error, "trans-8.5")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -1052,8 +1107,8 @@ func Test_trans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA default_cache_size=10;\n  ")
 		}
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
 		if r.Error != nil {
@@ -1100,6 +1155,9 @@ func Test_trans(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "trans-9." + i + ".1-" + cnt)
+			}
 		}
 		{ // do_test "trans-9." + i + ".2-" + cnt
 			_res = db.Exec("\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
@@ -1107,6 +1165,9 @@ func Test_trans(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "trans-9." + i + ".2-" + cnt)
+			}
 		}
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			{ // do_test "trans-9." + i + ".3-" + cnt

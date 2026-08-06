@@ -94,7 +94,7 @@ func Test_basexx1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{AAECAwQF\n} {AAECAwQ=\n} {AAECAw==\n}"
+		want := "AAECAwQF AAECAwQ= AAECAw=="
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -142,7 +142,7 @@ func Test_basexx1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{##/2,#2/ } {##/2,#* } {##/2, }"
+		want := "##/2,#2/ ##/2,#* ##/2,"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -206,9 +206,9 @@ func Test_basexx1(t *testing.T) {
 	}
 	// sqlite3_limit db SQLITE_LIMIT_LENGTH $inLimit (unsupported command, not transpiled)
 	{ // "112"
-		r = db.Query("\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'" + sqlLiteral("\\") + "^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
+		r = db.Query("\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'[\\]^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'" + sqlLiteral("\\") + "^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'[\\]^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
 			return
 		}
 		got := flatten(r)

@@ -89,6 +89,7 @@ func Test_thread005(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
@@ -101,6 +102,7 @@ func Test_thread005(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
 		}
+		db.Close()
 	}
 	ii = "2"
 	_ = ii // suppress unused warning
@@ -139,13 +141,13 @@ func Test_thread005(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n  ")
 		}
+		db.Close()
 	}
 	ThreadProgram = "\n  proc execsql {zSql {db {}}} {\n    if {$db eq \"\"} {set db $::DB}\n\n    set lRes [list]\n    set rc SQLITE_OK\n\n    while {$rc==\"SQLITE_OK\" && $zSql ne \"\"} {\n      set STMT [sqlite3_prepare_v2 $db $zSql -1 zSql]\n      while {[set rc [sqlite3_step $STMT]] eq \"SQLITE_ROW\"} {\n        for {set i 0} {$i < [sqlite3_column_count $STMT]} {incr i} {\n          lappend lRes [sqlite3_column_text $STMT 0]\n        }\n      }\n      set rc [sqlite3_finalize $STMT]\n    }\n\n    if {$rc != \"SQLITE_OK\"} { error \"$rc [sqlite3_errmsg $db]\" }\n    return $lRes\n  }\n\n  if {$isWriter} {\n    set Sql {\n      BEGIN;\n        DELETE FROM t1 WHERE a = (SELECT max(a) FROM t1);\n        INSERT INTO t1 VALUES(NULL, NULL);\n        UPDATE t1 SET b = a WHERE a = (SELECT max(a) FROM t1);\n        SELECT count(*) FROM t1 WHERE b IS NULL;\n      COMMIT;\n    }\n  } else {\n    set Sql {\n      BEGIN;\n      SELECT count(*) FROM t1 WHERE b IS NULL;\n      COMMIT;\n    }\n  }\n\n  set ::DB [sqlite3_open test.db]\n\n  execsql { ATTACH 'test2.db' AS aux }\n\n  set result \"ok\"\n  set finish [expr [clock_seconds]+5]\n  while {$result eq \"ok\" && [clock_seconds] < $finish} {\n    set rc [catch {execsql $Sql} msg]\n    if {$rc} {\n      if {[string match \"SQLITE_LOCKED*\" $msg]} {\n        catch { execsql ROLLBACK }\n      } else {\n        sqlite3_close $::DB\n        error $msg\n      }\n    } elseif {$msg ne \"0\"} {\n      set result \"failed\"\n    }\n  }\n\n  sqlite3_close $::DB\n  set result\n"
 	_ = ThreadProgram // suppress unused warning
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	_dbtmp2, err := frigolite.Open("test2.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	db, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
 	_putsMsg := "Running thread-tests for ~20 seconds"
 	_ = _putsMsg
@@ -158,6 +160,7 @@ func Test_thread005(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	{
 		var _catchErr error
@@ -169,8 +172,8 @@ func Test_thread005(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "thread005-2.3"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" ATTACH 'test2.db' AS aux ")
 		if _res.Error != nil {

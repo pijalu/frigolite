@@ -86,6 +86,7 @@ func Test_func3(t *testing.T) {
 		// sqlite3_create_function_v2 db f3 -1 any -func f3 -destroy destroy (unsupported command, not transpiled)
 	}
 	{ // do_test "func3-3.2"
+		db.Close()
 	}
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection

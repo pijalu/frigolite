@@ -88,7 +88,8 @@ func Test_incrblob4(t *testing.T) {
 	}
 	{ // do_test "2.1"
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// create_t1 (unsupported command, not transpiled)
 		// populate_t1 (unsupported command, not transpiled)
@@ -116,7 +117,8 @@ func Test_incrblob4(t *testing.T) {
 	}
 	{ // do_test "3.1"
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// create_t1 (unsupported command, not transpiled)
 		// populate_t1 (unsupported command, not transpiled)
@@ -164,7 +166,8 @@ func Test_incrblob4(t *testing.T) {
 	}
 	// close $blob
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t2 VALUES(1000, 'abcdefghijklmnopqrstuvwxyz');\n  INSERT INTO t2 VALUES(2000, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');\n  INSERT INTO t2 VALUES(3000, 'abcdefghijklmnopqrstuvwxyz');\n")

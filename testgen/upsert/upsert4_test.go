@@ -83,7 +83,8 @@ func Test_upsert4(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -201,7 +202,8 @@ func Test_upsert4(t *testing.T) {
 			_ = sql // suppress unused warning
 			_ = _idx1
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(sql)
 				if _res.Error != nil {
@@ -252,7 +254,8 @@ func Test_upsert4(t *testing.T) {
 					_ = sql // suppress unused warning
 					_ = _idx3
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						_res = db.Exec(sql)
 						if _res.Error != nil {
@@ -303,7 +306,8 @@ func Test_upsert4(t *testing.T) {
 							_ = sql // suppress unused warning
 							_ = _idx5
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								_res = db.Exec(sql)
 								if _res.Error != nil {
@@ -377,7 +381,8 @@ func Test_upsert4(t *testing.T) {
 										_ = sql // suppress unused warning
 										_ = _idx8
 											db.Close()
-											db, err = frigolite.Open("")
+											os.Remove("test.db")
+											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
 											_res = db.Exec(sql)
 											if _res.Error != nil {
@@ -405,7 +410,8 @@ func Test_upsert4(t *testing.T) {
 											_ = sql // suppress unused warning
 											_ = _idx9
 												db.Close()
-												db, err = frigolite.Open("")
+												os.Remove("test.db")
+												db, err = frigolite.Open("test.db")
 												if err != nil { t.Fatal(err) }
 												_res = db.Exec(sql)
 												if _res.Error != nil {
@@ -475,7 +481,8 @@ func Test_upsert4(t *testing.T) {
 												_ = sql // suppress unused warning
 												_ = _idx10
 													db.Close()
-													db, err = frigolite.Open("")
+													os.Remove("test.db")
+													db, err = frigolite.Open("test.db")
 													if err != nil { t.Fatal(err) }
 													_res = db.Exec(sql)
 													if _res.Error != nil {
@@ -545,7 +552,8 @@ func Test_upsert4(t *testing.T) {
 													_ = sql // suppress unused warning
 													_ = _idx11
 														db.Close()
-														db, err = frigolite.Open("")
+														os.Remove("test.db")
+														db, err = frigolite.Open("test.db")
 														if err != nil { t.Fatal(err) }
 														_res = db.Exec(sql)
 														if _res.Error != nil {

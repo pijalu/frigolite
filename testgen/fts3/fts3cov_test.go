@@ -94,7 +94,7 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(t1) VALUES('optimize');\n    SELECT substr(hex(root), 1, 2) FROM t1_segdir;\n  ")
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // do_test "fts3cov-2.2"
 		root = "db one {SELECT root FROM t1_segdir}"
 		_ = root // suppress unused warning
@@ -197,8 +197,8 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t5_segdir ")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_write_test fts3cov-6.2 t5_content {\n  INSERT INTO t5 VALUES('segment number 16!');\n} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-6.3"
@@ -338,7 +338,7 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "16.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t16 USING fts4;\n  INSERT INTO t16 VALUES('theoretical work to examine the relationship');\n  INSERT INTO t16 VALUES('solution of our problems on the invisible');\n  DELETE FROM t16_content WHERE rowid = 2;\n")
 		if _res.Error != nil {

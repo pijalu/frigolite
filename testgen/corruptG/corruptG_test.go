@@ -69,9 +69,9 @@ func Test_corruptG(t *testing.T) {
 	}
 	idxroot = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1abc'}"
 	_ = idxroot // suppress unused warning
+	db.Close()
 	// hexio_write test.db [expr {$idxroot*512 - 15}] 888080807f (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.2"
 		_res = db.Exec("\n    SELECT c FROM t1 WHERE a>'abc';\n  ")
@@ -85,9 +85,9 @@ func Test_corruptG(t *testing.T) {
 		_res = db.Exec("\n    SELECT c FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	// hexio_write test.db [expr {$idxroot*512-15}] 0513ff7f01 (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.1"
 		_res = db.Exec("\n    SELECT rowid FROM t1 WHERE a='abc' and b='xyz123456789XYZ';\n  ")

@@ -148,7 +148,7 @@ func Test_rowvalue5(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := res
+				want := tclListFlatten(res)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

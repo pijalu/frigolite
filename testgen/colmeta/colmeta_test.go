@@ -7,6 +7,7 @@ package colmeta
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -102,19 +103,25 @@ func Test_colmeta(t *testing.T) {
 			tstbody = "concat sqlite3_table_column_metadata $::DB $params"
 			_ = tstbody // suppress unused warning
 			{ // do_test "colmeta-" + tn + ".1"
-				_list := tclList([]string{"0", "set msg"})
+				_list := tclList([]string{"0", msg})
 				_ = _list
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), results) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", results, _res.Error, "colmeta-" + tn + ".1")
+				}
 			}
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			DB = "sqlite3_connection_pointer db" // TCL namespace variable
 			_ = DB // suppress unused warning
 			tstbody = "concat sqlite3_table_column_metadata $::DB $params"
 			_ = tstbody // suppress unused warning
 			{ // do_test "colmeta-" + tn + ".2"
-				_list := tclList([]string{"0", "set msg"})
+				_list := tclList([]string{"0", msg})
 				_ = _list
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), results) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", results, _res.Error, "colmeta-" + tn + ".2")
+				}
 			}
 		}
 		{ // do_test "colmeta-300"

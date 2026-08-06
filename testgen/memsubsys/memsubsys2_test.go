@@ -7,6 +7,7 @@ package memsubsys
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -75,6 +76,9 @@ func Test_memsubsys2(t *testing.T) {
 	}
 	{ // do_test "memsubsys2-1.2"
 		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), highwater) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", highwater, _res.Error, "memsubsys2-1.2")
+		}
 	}
 	if tclBool("sqlite3_memory_used" + "!=0") {
 		// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
@@ -91,6 +95,7 @@ func Test_memsubsys2(t *testing.T) {
 			// expr [sqlite3_memory_highwater 0]>=$highwater+50000 (not evaluated)
 		}
 	}
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_memstatus 0 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)

@@ -64,7 +64,7 @@ func Test_securedel(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := DEFAULT_SECDEL
+		want := tclListFlatten(DEFAULT_SECDEL)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -77,7 +77,7 @@ func Test_securedel(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list 1 $DEFAULT_SECDEL"
+		want := "1 " + DEFAULT_SECDEL
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -89,7 +89,7 @@ func Test_securedel(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list 0 $DEFAULT_SECDEL"
+		want := "0 " + DEFAULT_SECDEL
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

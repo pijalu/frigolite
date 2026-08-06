@@ -83,7 +83,8 @@ func Test_altercons2(t *testing.T) {
 		_ = final // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c NOT NULL, CONSTRAINT xyz CHECK( a!=0 ));\n  ")
@@ -117,7 +118,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// proc definition (not transpiled)
 		_dbtmp1, err := frigolite.Open("test.db")
@@ -166,7 +168,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n")
@@ -181,7 +184,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CONSTRAINT two CHECK (b!=c));\n")
@@ -208,7 +212,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)\n")
@@ -223,7 +228,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b CONSTRAINT two COLLATE nocase CHECK (a!=b), c CONSTRAINT one DEFAULT 'abc');\n")
@@ -250,7 +256,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CHECK (a>b) FOREIGN KEY(a) REFERENCES abc);\n")
@@ -277,7 +284,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "8.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT one FOREIGN KEY(a) REFERENCES abc);\n")
@@ -304,7 +312,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "9.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b NOT NULL AS (a+1))\n")
@@ -325,7 +334,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "10.0"
 			r = db.Query("\n  CREATE TABLE abc(a, b GENERATED ALWAYS AS (a+1));\n  INSERT INTO abc VALUES(1), (2);\n  SELECT * FROM abc;\n")
@@ -364,7 +374,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "11.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
@@ -439,7 +450,8 @@ func Test_altercons2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "12.0"
 			_res = db.Exec("\n  CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );\n")
@@ -460,7 +472,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)"
+			want := "CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -484,7 +496,7 @@ func Test_altercons2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)"
+			want := "CREATE TABLE \"Test\" ( \"IsActive\" INTEGER)"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

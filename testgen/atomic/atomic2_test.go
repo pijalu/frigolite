@@ -69,13 +69,15 @@ func Test_atomic2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "atomic2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	db.Close()
 	if tclBool("atomic_batch_write test.db" + "==0") {
 		_putsMsg := "No f2fs atomic-batch-write support. Skipping tests..."
 		_ = _putsMsg
 		return
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1x ON t1(x);\n  CREATE INDEX i2x ON t1(y);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100 )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;\n")
@@ -97,5 +99,6 @@ func Test_atomic2(t *testing.T) {
 	// tvfs filter {xFileControl xWrite} (unsupported command, not transpiled)
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_one_faultsim_test 2.0 {*} $setup -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n ... (unsupported command, not transpiled)
+	db.Close()
 	// tvfs delete (unsupported command, not transpiled)
 }

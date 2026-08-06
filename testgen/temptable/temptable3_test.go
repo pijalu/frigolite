@@ -55,6 +55,7 @@ func Test_temptable3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "temptable3"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
@@ -69,6 +70,7 @@ func Test_temptable3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "1.2"

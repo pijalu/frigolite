@@ -99,7 +99,7 @@ func Test_skipscan6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "t2 t2_a {100 1} t2 t2_ba {100 20 1 1} t3 t3_a {100 1} t3 t3_ba {100 20 1 1}"
+		want := "t2 t2_a 100 1 t2 t2_ba 100 20 1 1 t3 t3_a 100 1 t3 t3_ba 100 20 1 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

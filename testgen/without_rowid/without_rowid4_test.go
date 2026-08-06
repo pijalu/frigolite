@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -247,34 +248,34 @@ func Test_without_rowid4(t *testing.T) {
 			tr_program_fixed = tr_program
 			_ = tr_program_fixed // suppress unused warning
 			if statement_type == "DELETE" {
-				tr_program_fixed = tclRegsubAll("new\\.a", tr_program_fixed, "''")
+				tr_program_fixed = tclRegsubAll("new.a", tr_program_fixed, "''")
 				_ = tr_program_fixed // suppress unused warning
-				tr_program_fixed = tclRegsubAll("new\\.b", tr_program_fixed, "''")
+				tr_program_fixed = tclRegsubAll("new.b", tr_program_fixed, "''")
 				_ = tr_program_fixed // suppress unused warning
-				tr_program_fixed = tclRegsubAll("new\\.c", tr_program_fixed, "''")
+				tr_program_fixed = tclRegsubAll("new.c", tr_program_fixed, "''")
 				_ = tr_program_fixed // suppress unused warning
 			}
 			if statement_type == "INSERT" {
-				tr_program_fixed = tclRegsubAll("old\\.a", tr_program_fixed, "''")
+				tr_program_fixed = tclRegsubAll("old.a", tr_program_fixed, "''")
 				_ = tr_program_fixed // suppress unused warning
-				tr_program_fixed = tclRegsubAll("old\\.b", tr_program_fixed, "''")
+				tr_program_fixed = tclRegsubAll("old.b", tr_program_fixed, "''")
 				_ = tr_program_fixed // suppress unused warning
-				tr_program_fixed = tclRegsubAll("old\\.c", tr_program_fixed, "''")
+				tr_program_fixed = tclRegsubAll("old.c", tr_program_fixed, "''")
 				_ = tr_program_fixed // suppress unused warning
 			}
 			tr_program_cooked = tr_program
 			_ = tr_program_cooked // suppress unused warning
-			tr_program_cooked = tclRegsubAll("new\\.a", tr_program_cooked, newA)
+			tr_program_cooked = tclRegsubAll("new.a", tr_program_cooked, newA)
 			_ = tr_program_cooked // suppress unused warning
-			tr_program_cooked = tclRegsubAll("new\\.b", tr_program_cooked, newB)
+			tr_program_cooked = tclRegsubAll("new.b", tr_program_cooked, newB)
 			_ = tr_program_cooked // suppress unused warning
-			tr_program_cooked = tclRegsubAll("new\\.c", tr_program_cooked, newC)
+			tr_program_cooked = tclRegsubAll("new.c", tr_program_cooked, newC)
 			_ = tr_program_cooked // suppress unused warning
-			tr_program_cooked = tclRegsubAll("old\\.a", tr_program_cooked, oldA)
+			tr_program_cooked = tclRegsubAll("old.a", tr_program_cooked, oldA)
 			_ = tr_program_cooked // suppress unused warning
-			tr_program_cooked = tclRegsubAll("old\\.b", tr_program_cooked, oldB)
+			tr_program_cooked = tclRegsubAll("old.b", tr_program_cooked, oldB)
 			_ = tr_program_cooked // suppress unused warning
-			tr_program_cooked = tclRegsubAll("old\\.c", tr_program_cooked, oldC)
+			tr_program_cooked = tclRegsubAll("old.c", tr_program_cooked, oldC)
 			_ = tr_program_cooked // suppress unused warning
 			_res = db.Exec("\n      DROP TABLE tbl;\n      DROP TABLE log;\n    ")
 			_ = _res // catchsql
@@ -370,6 +371,9 @@ func Test_without_rowid4(t *testing.T) {
 		_res = db.Exec(" \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 1 (ifcapable subquery)\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(0, 0, 0, 0);     -- 0\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n\n    INSERT INTO tbl VALUES(200, 0, 0, 0);     -- 1\n    SELECT * FROM log;\n    UPDATE log SET a = 0;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), t232) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", t232, _res.Error, "without_rowid4-3.2")
 		}
 	}
 	_res = db.Exec("\n  DROP TABLE tbl;\n  DROP TABLE log;\n")

@@ -152,6 +152,7 @@ func Test_misc2(t *testing.T) {
 		}
 	}
 	{ // do_test "misc2-6.1"
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;\n  ")
@@ -160,6 +161,7 @@ func Test_misc2(t *testing.T) {
 		}
 	}
 	{ // do_test "misc2-7.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -262,6 +264,7 @@ func Test_misc2(t *testing.T) {
 		}
 	}
 	{ // do_test "misc2-7.11"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -363,6 +366,7 @@ func Test_misc2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

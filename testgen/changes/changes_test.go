@@ -74,7 +74,8 @@ func Test_changes(t *testing.T) {
 		_ = wor // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			nBig = tclExprWith("$nRow", map[string]string{"nRow": nRow})
 			_ = nBig // suppress unused warning

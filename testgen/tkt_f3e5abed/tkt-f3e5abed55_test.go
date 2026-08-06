@@ -102,6 +102,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
+	db.Close()
 	db2.Close()
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
 		// testvfs tvfs -default 1 (unsupported command, not transpiled)
@@ -140,6 +141,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 			}
 		}
 		{ // do_test "tkt-f3e5abed55-2.5"
+			db.Close()
 			db2.Close()
 			// faultsim_restore_and_reopen (unsupported command, not transpiled)
 			r = db.Query("\n      ATTACH 'test.db2' AS aux;\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")

@@ -61,8 +61,8 @@ func Test_shared7(t *testing.T) {
 		// sqlite3_enable_shared_cache (unsupported command, not transpiled)
 	}
 	{ // do_test "shared7-1.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
 		if _res.Error != nil {

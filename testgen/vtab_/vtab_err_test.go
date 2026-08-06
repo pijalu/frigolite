@@ -57,7 +57,8 @@ func Test_vtab_err(t *testing.T) {
 	// do_malloc_test vtab_err-2 -tclprep { \n  register_echo_module [sqlite3_connection_poin...} -sql... (unsupported command, not transpiled)
 	// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // "vtab_err-3.0"

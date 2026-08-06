@@ -72,32 +72,38 @@ func Test_trigger7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TRIGGER r1 AFTER UPDATE OF x ON t1 BEGIN\n        SELECT '___update_t1.x___';\n      END;\n      CREATE TRIGGER r2 AFTER UPDATE OF y ON t1 BEGIN\n        SELECT '___update_t1.y___';\n      END;\n    ")
 		}
-		txt = "db eval {EXPLAIN UPDATE t1 SET x=5}"
+		_dbeval0 := tclExecSQL(db, "{EXPLAIN UPDATE t1 SET x=5}")
+		txt = _dbeval0
 		_ = txt // suppress unused warning
 		tclStringMatch("*___update_t1.x___*", txt)
 	}
 	{ // do_test "trigger7-2.2"
-		txt = "db eval {EXPLAIN UPDATE t1 SET x=5}"
+		_dbeval1 := tclExecSQL(db, "{EXPLAIN UPDATE t1 SET x=5}")
+		txt = _dbeval1
 		_ = txt // suppress unused warning
 		tclStringMatch("*___update_t1.y___*", txt)
 	}
 	{ // do_test "trigger7-2.3"
-		txt = "db eval {EXPLAIN UPDATE t1 SET y=5}"
+		_dbeval2 := tclExecSQL(db, "{EXPLAIN UPDATE t1 SET y=5}")
+		txt = _dbeval2
 		_ = txt // suppress unused warning
 		tclStringMatch("*___update_t1.x___*", txt)
 	}
 	{ // do_test "trigger7-2.4"
-		txt = "db eval {EXPLAIN UPDATE t1 SET y=5}"
+		_dbeval3 := tclExecSQL(db, "{EXPLAIN UPDATE t1 SET y=5}")
+		txt = _dbeval3
 		_ = txt // suppress unused warning
 		tclStringMatch("*___update_t1.y___*", txt)
 	}
 	{ // do_test "trigger7-2.5"
-		txt = "db eval {EXPLAIN UPDATE t1 SET rowid=5}"
+		_dbeval4 := tclExecSQL(db, "{EXPLAIN UPDATE t1 SET rowid=5}")
+		txt = _dbeval4
 		_ = txt // suppress unused warning
 		tclStringMatch("*___update_t1.x___*", txt)
 	}
 	{ // do_test "trigger7-2.6"
-		txt = "db eval {EXPLAIN UPDATE t1 SET rowid=5}"
+		_dbeval5 := tclExecSQL(db, "{EXPLAIN UPDATE t1 SET rowid=5}")
+		txt = _dbeval5
 		_ = txt // suppress unused warning
 		tclStringMatch("*___update_t1.x___*", txt)
 	}
@@ -108,11 +114,12 @@ func Test_trigger7(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger7-99.1"
-		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense';\n  ")
 		}
+		db.Close()
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning

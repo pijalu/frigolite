@@ -55,6 +55,7 @@ func Test_openv2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	os.Remove("test.db")
 	{ // do_test "openv2-1.1"
 	_ = rc // suppress unused warning
@@ -84,8 +85,8 @@ func Test_openv2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x)")
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT name FROM sqlite_master")
 		if _res.Error != nil {
@@ -97,6 +98,7 @@ func Test_openv2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "openv2-2.1"
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM sqlite_master")

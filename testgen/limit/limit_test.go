@@ -1121,7 +1121,8 @@ func Test_limit(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "limit-15.1"
 		r = db.Query("\n  CREATE TABLE t1(a PRIMARY KEY, b TEXT);\n  CREATE TABLE t4(c PRIMARY KEY, d);\n  CREATE TABLE t5(e PRIMARY KEY, f);\n  CREATE TABLE t6(g, h);\n  CREATE TABLE t3_a(k, v);\n  CREATE TABLE t3_b(k, v);\n  CREATE VIEW t3 AS SELECT * FROM t3_a UNION ALL SELECT * FROM t3_b;\n  INSERT INTO t5(e,f) VALUES(500000,'orange');\n  INSERT INTO t4(c,d) VALUES(300000,'blue'),(400,'green'),(8000,'grey');\n  INSERT INTO t1(a,b) VALUES(300000,'purple');\n  INSERT INTO t3_a VALUES(300000,'yellow'),(500,'pink'),(8000,'red');\n  INSERT INTO t6 default values;\n  SELECT (\n      SELECT 100000 FROM\n          (SELECT 200000 FROM t6 WHERE a = ( SELECT 300000 FROM t3 WHERE a ) ),\n          (SELECT 400000 FROM t5 WHERE e=500000),\n          (SELECT 600000 FROM t4 WHERE c=a)\n  ) FROM t1;\n")

@@ -74,11 +74,11 @@ func Test_win32lock(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "win32lock"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log xLog (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA mmap_size=0")
 	if _res.Error != nil {
@@ -224,6 +224,7 @@ func Test_win32lock(t *testing.T) {
 	}
 	// file_control_win32_av_retry db 10 25 (unsupported command, not transpiled)
 	// sqlite3_test_control_pending_byte $old_pending_byte (unsupported command, not transpiled)
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -258,6 +259,7 @@ func Test_win32lock(t *testing.T) {
 		_ = _list
 	}
 	_ = db2 // close db2: aliased to db, no-op
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)

@@ -99,7 +99,8 @@ func Test_auth(t *testing.T) {
 	}
 	// proc_real proc {name arguments script} {\n  proc_real $name $arguments $script\n  if {$nam... (unsupported command, not transpiled)
 	{ // do_test "auth-1.1.1"
-		DB = "sqlite3 db test.db" // TCL namespace variable
+		db.Close()
+		DB = func() string { db, err = frigolite.Open("test.db"); if err != nil { t.Fatal(err) }; return "" }() // TCL namespace variable
 		_ = DB // suppress unused warning
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
@@ -2073,7 +2074,7 @@ func Test_auth(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t5 ( x );\n      CREATE TRIGGER t5_tr1 AFTER INSERT ON t5 BEGIN \n        UPDATE t5 SET x = 1 WHERE NEW.x = 0;\n      END;\n    ")
 		}
 	}
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "auth-5.3.2"
@@ -2095,7 +2096,7 @@ func Test_auth(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a,b,c,d,e,f,g,h);\n    INSERT INTO t6 VALUES(1,2,3,4,5,6,7,8);\n  ")
 		}
 	}
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "auth-6.2"
@@ -2117,7 +2118,7 @@ func Test_auth(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(a, b, c);\n  CREATE VIEW v7 AS SELECT * FROM t7;\n")
 		}
 	}
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "auth-7.2"
@@ -2127,7 +2128,7 @@ func Test_auth(t *testing.T) {
 		}
 		_ = authargs // TCL namespace variable (query)
 	}
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	{ // do_test "auth-7.3"
 		r = db.Query("SELECT a, c FROM t7")
@@ -2136,7 +2137,7 @@ func Test_auth(t *testing.T) {
 		}
 		_ = authargs // TCL namespace variable (query)
 	}
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	{ // do_test "auth-7.4"
 		r = db.Query("SELECT a, c FROM t7 AS v7")
@@ -2145,7 +2146,7 @@ func Test_auth(t *testing.T) {
 		}
 		_ = authargs // TCL namespace variable (query)
 	}
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	{ // do_test "auth-8.1"
 		r = db.Query("SELECT count(*) FROM t7")
@@ -2154,7 +2155,7 @@ func Test_auth(t *testing.T) {
 		}
 		_ = authargs // TCL namespace variable (query)
 	}
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	{ // do_test "auth-8.2"
 		r = db.Query("SELECT t6.a FROM t6, t7")
@@ -2163,10 +2164,10 @@ func Test_auth(t *testing.T) {
 		}
 		_ = authargs // TCL namespace variable (query)
 	}
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	// proc definition (not transpiled)
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	{ // "auth-8.3"
 		_res = db.Exec("\n  SELECT count(*) FROM t7\n")
@@ -2184,7 +2185,7 @@ func Test_auth(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x,y1); INSERT INTO t1 VALUES(1,'a');\n  CREATE TABLE t2(x,y2); INSERT INTO t2 VALUES(99,'z');\n")
 		}
 	}
-	authargs = "list" // TCL namespace variable
+	authargs = "" // TCL namespace variable
 	_ = authargs // suppress unused warning
 	{ // "auth-9.2"
 		r = db.Query("\n  SELECT x,y2 FROM t1 FULL JOIN t2 USING(x);\n")

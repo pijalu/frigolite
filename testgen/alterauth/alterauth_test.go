@@ -61,7 +61,7 @@ func Test_alterauth(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "alterauth"
 	_ = testprefix // suppress unused warning
-	auth = "list" // TCL namespace variable
+	auth = "" // TCL namespace variable
 	_ = auth // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -71,7 +71,7 @@ func Test_alterauth(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		auth = "list" // TCL namespace variable
+		auth = "" // TCL namespace variable
 		_ = auth // suppress unused warning
 		_res = db.Exec(" ALTER TABLE t1 RENAME TO t2 ")
 		if _res.Error != nil {
@@ -80,7 +80,7 @@ func Test_alterauth(t *testing.T) {
 		_ = auth // TCL namespace variable (query)
 	}
 	{ // do_test "1.2"
-		auth = "list" // TCL namespace variable
+		auth = "" // TCL namespace variable
 		_ = auth // suppress unused warning
 		_res = db.Exec(" ALTER TABLE t2 RENAME c TO ccc ")
 		if _res.Error != nil {
@@ -89,7 +89,7 @@ func Test_alterauth(t *testing.T) {
 		_ = auth // TCL namespace variable (query)
 	}
 	{ // do_test "1.3"
-		auth = "list" // TCL namespace variable
+		auth = "" // TCL namespace variable
 		_ = auth // suppress unused warning
 		_res = db.Exec(" ALTER TABLE t2 ADD COLUMN d ")
 		if _res.Error != nil {

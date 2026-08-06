@@ -135,7 +135,8 @@ func Test_vtabK(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "200"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('Ebed-malech');\n  CREATE TABLE x(a);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n")
@@ -162,7 +163,8 @@ func Test_vtabK(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING rtree(a,b,c);\n  CREATE TABLE t2(x);\n  ALTER TABLE t2 ADD d GENERATED ALWAYS AS (c IN (SELECT 1 FROM t1)) VIRTUAL;\n")

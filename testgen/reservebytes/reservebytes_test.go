@@ -56,7 +56,8 @@ func Test_reservebytes(t *testing.T) {
 	testprefix = "reservebytes"
 	_ = testprefix // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// file_control_reservebytes db 0 (unsupported command, not transpiled)
 	{ // "1.0"
@@ -69,20 +70,32 @@ func Test_reservebytes(t *testing.T) {
 	_ = db2
 	if tclBool("permutation" + "==\"prepare\"") {
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.1"
+		r = db.Query(" PRAGMA integrity_check ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// file_control_reservebytes db 8 (unsupported command, not transpiled)
 	{ // do_test "1.2.1"
 		// hexio_read test.db 20 1 (unsupported command, not transpiled)
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.2.2"
+		r = db.Query(" PRAGMA integrity_check ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.3.2"
@@ -91,10 +104,16 @@ func Test_reservebytes(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.3.4"
+		r = db.Query(" PRAGMA integrity_check ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.3.5"
@@ -110,10 +129,16 @@ func Test_reservebytes(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.4.3"
+		r = db.Query(" PRAGMA integrity_check ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.4.4"

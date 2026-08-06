@@ -60,7 +60,8 @@ func Test_backup_malloc(t *testing.T) {
 	// do_malloc_test backup_malloc-1 -tclprep {\n  execsql {\n    PRAGMA cache_size = 10;\n    BE...}... (unsupported command, not transpiled)
 	// do_malloc_test backup_malloc-2 -tclprep {\n  sqlite3 db2 test2.db\n} -tclbody {\n  set rc [catc... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA page_size = 16384;\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  COMMIT;\n")

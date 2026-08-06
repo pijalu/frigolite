@@ -84,10 +84,11 @@ func Test_corrupt8(t *testing.T) {
 		}
 		// hexio_write test.db $i 00 (unsupported command, not transpiled)
 		{ // do_test "corrupt8-2." + i + ".0"
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			x = "db eval {PRAGMA integrity_check}"
+			_dbeval0 := tclExecSQL(db, "{PRAGMA integrity_check}")
+			x = _dbeval0
 			_ = x // suppress unused warning
 			// expr $x!="ok" (not evaluated)
 		}
@@ -98,10 +99,11 @@ func Test_corrupt8(t *testing.T) {
 			}
 			// hexio_write test.db $i 0$k (unsupported command, not transpiled)
 			{ // do_test "corrupt8-2." + i + "." + k
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
+				db.Close()
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				x = "db eval {PRAGMA integrity_check}"
+				_dbeval1 := tclExecSQL(db, "{PRAGMA integrity_check}")
+				x = _dbeval1
 				_ = x // suppress unused warning
 				// expr $x!="ok" (not evaluated)
 			}
@@ -115,10 +117,11 @@ func Test_corrupt8(t *testing.T) {
 		}
 		// hexio_write test.db $i 06 (unsupported command, not transpiled)
 		{ // do_test "corrupt8-2." + i + ".6"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			x = "db eval {PRAGMA integrity_check}"
+			_dbeval2 := tclExecSQL(db, "{PRAGMA integrity_check}")
+			x = _dbeval2
 			_ = x // suppress unused warning
 			// expr $x!="ok" (not evaluated)
 		}
@@ -130,10 +133,11 @@ func Test_corrupt8(t *testing.T) {
 			_ = oldval // suppress unused warning
 			// hexio_write test.db $i2 [format %02x [expr {($oldval+1)&0xff}]] (unsupported command, not transpiled)
 			{ // do_test "corrupt8-2." + i + ".7"
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
+				db.Close()
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				x = "db eval {PRAGMA integrity_check}"
+				_dbeval0 := tclExecSQL(db, "{PRAGMA integrity_check}")
+				x = _dbeval0
 				_ = x // suppress unused warning
 				// expr $x!="ok" (not evaluated)
 			}

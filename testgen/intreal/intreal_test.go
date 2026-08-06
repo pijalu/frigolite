@@ -205,7 +205,7 @@ func Test_intreal(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := D
+		want := tclListFlatten(D)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -217,7 +217,7 @@ func Test_intreal(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list a $D"
+		want := "a " + D
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -229,11 +229,12 @@ func Test_intreal(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list a $D"
+		want := "a " + D
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
@@ -249,7 +250,8 @@ func Test_intreal(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a REAL, b AS ('expr') ); \n")

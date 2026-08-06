@@ -69,6 +69,7 @@ func Test_malloc6(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 }

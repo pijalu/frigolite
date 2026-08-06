@@ -86,11 +86,11 @@ func Test_sort(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "sort"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sort-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(\n       n int,\n       v varchar(10),\n       log int,\n       roman varchar(10),\n       flt real\n    );\n    INSERT INTO t1 VALUES(1,'one',0,'I',3.141592653);\n    INSERT INTO t1 VALUES(2,'two',1,'II',2.15);\n    INSERT INTO t1 VALUES(3,'three',1,'III',4221.0);\n    INSERT INTO t1 VALUES(4,'four',2,'IV',-0.0013442);\n    INSERT INTO t1 VALUES(5,'five',2,'V',-11);\n    INSERT INTO t1 VALUES(6,'six',2,'VI',0.123);\n    INSERT INTO t1 VALUES(7,'seven',2,'VII',123.0);\n    INSERT INTO t1 VALUES(8,'eight',3,'VIII',-1.6);\n  ")
@@ -516,12 +516,12 @@ func Test_sort(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want1 := db.Query("SELECT a, b FROM t10 ORDER BY a, b")
-		if _want1.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT a, b FROM t10 ORDER BY a, b")
+		_want0 := db.Query("SELECT a, b FROM t10 ORDER BY a, b")
+		if _want0.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want0.Error, "SELECT a, b FROM t10 ORDER BY a, b")
 			return
 		}
-		want := flatten(_want1)
+		want := flatten(_want0)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -533,34 +533,35 @@ func Test_sort(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		_want2 := db.Query("SELECT a, b FROM t10 ORDER BY a, b")
-		if _want2.Error != nil {
-			t.Errorf("expected query error: %v\n  sql: %s", _want2.Error, "SELECT a, b FROM t10 ORDER BY a, b")
+		_want1 := db.Query("SELECT a, b FROM t10 ORDER BY a, b")
+		if _want1.Error != nil {
+			t.Errorf("expected query error: %v\n  sql: %s", _want1.Error, "SELECT a, b FROM t10 ORDER BY a, b")
 			return
 		}
-		want := flatten(_want2)
+		want := flatten(_want1)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore coremutex fakeheap softheaplimit} "1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000"
-	_items3 := tclSplitList("1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000")
-	for _idx3 := 0; _idx3+7 <= len(_items3); _idx3 += 7 {
-		tn := _items3[_idx3+0]
+	_items2 := tclSplitList("1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000")
+	for _idx2 := 0; _idx2+7 <= len(_items2); _idx2 += 7 {
+		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning
-		mmap_limit := _items3[_idx3+1]
+		mmap_limit := _items2[_idx2+1]
 		_ = mmap_limit // suppress unused warning
-		nWorker := _items3[_idx3+2]
+		nWorker := _items2[_idx2+2]
 		_ = nWorker // suppress unused warning
-		tmpstore := _items3[_idx3+3]
+		tmpstore := _items2[_idx2+3]
 		_ = tmpstore // suppress unused warning
-		coremutex := _items3[_idx3+4]
+		coremutex := _items2[_idx2+4]
 		_ = coremutex // suppress unused warning
-		fakeheap := _items3[_idx3+5]
+		fakeheap := _items2[_idx2+5]
 		_ = fakeheap // suppress unused warning
-		softheaplimit := _items3[_idx3+6]
+		softheaplimit := _items2[_idx2+6]
 		_ = softheaplimit // suppress unused warning
-		_ = _idx3
+		_ = _idx2
+			db.Close()
 			// sqlite3_shutdown (unsupported command, not transpiled)
 			if tclBool(coremutex) {
 				// sqlite3_config multithread (unsupported command, not transpiled)
@@ -571,7 +572,8 @@ func Test_sort(t *testing.T) {
 			// sorter_test_fakeheap $fakeheap (unsupported command, not transpiled)
 			// sqlite3_soft_heap_limit $softheaplimit (unsupported command, not transpiled)
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit (unsupported command, not transpiled)
 			r = db.Query("PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
@@ -600,7 +602,7 @@ func Test_sort(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list 1 $ten 2 $one 3 $one 4 $ten"
+				want := "1 " + ten + " 2 " + one + " 3 " + one + " 4 " + ten
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -624,13 +626,14 @@ func Test_sort(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list 2 $one 4 $ten"
+				want := "2 " + one + " 4 " + ten
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			// sorter_test_fakeheap 0 (unsupported command, not transpiled)
 		}
+		db.Close()
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		t_0 = "singlethread"
 		_ = t_0 // suppress unused warning
@@ -642,7 +645,8 @@ func Test_sort(t *testing.T) {
 		// sqlite3_initialize (unsupported command, not transpiled)
 		// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "16.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
@@ -651,7 +655,8 @@ func Test_sort(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "16.2"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
@@ -660,7 +665,8 @@ func Test_sort(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "17.1"
 			r = db.Query("\n  SELECT * FROM sqlite_master ORDER BY sql;\n")
@@ -669,7 +675,8 @@ func Test_sort(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "18.1"
 			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")

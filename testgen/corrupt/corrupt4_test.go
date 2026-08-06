@@ -109,14 +109,15 @@ func Test_corrupt4(t *testing.T) {
 	}
 	{ // do_test "corrupt4-1.4"
 		// hexio_write test.db [expr {$::baseaddr+4}] [hexio_render_int32 -100000000] (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    DROP TABLE t2\n  ")
 		_ = _res // catchsql
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  PRAGMA page_size = 512;\n  CREATE TABLE t1(a, b, c);\n")
@@ -151,6 +152,7 @@ func Test_corrupt4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
+	db.Close()
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)

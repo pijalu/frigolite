@@ -120,7 +120,8 @@ func Test_bestindexF(t *testing.T) {
 		_ = _list
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // "2.0"

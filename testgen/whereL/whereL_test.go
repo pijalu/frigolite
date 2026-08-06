@@ -147,7 +147,8 @@ func Test_whereL(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "500"
 		r = db.Query("\n  PRAGMA automatic_index=OFF;\n  CREATE TABLE t0(c0);\n  INSERT INTO t0 VALUES('0');\n  CREATE VIEW v0(c0) AS SELECT CAST(0 AS INT) FROM t0;\n  SELECT 200, * FROM t0, v0 WHERE 0 = t0.c0 AND t0.c0 = v0.c0;\n")
@@ -174,7 +175,8 @@ func Test_whereL(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "600"
 		r = db.Query("\n  CREATE TABLE t1(x TEXT);\n  CREATE TABLE t2(y TEXT);\n  INSERT INTO t1 VALUES('good'),('bad');\n  INSERT INTO t2 VALUES('good'),('bad');\n  SELECT * FROM t1 JOIN t2 ON x=y\n   WHERE x='good' AND y='good';\n")
@@ -201,7 +203,8 @@ func Test_whereL(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "700"
 		r = db.Query("\n  CREATE TABLE t1(v INTEGER);\n  WITH RECURSIVE c(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(v) SELECT x FROM c;\n  CREATE INDEX idx ON t1( abs(v) );\n  SELECT v FROM t1 WHERE abs(v)=1 and v=1;\n")
@@ -222,7 +225,8 @@ func Test_whereL(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "NULL"
 	{ // "800"
@@ -250,7 +254,8 @@ func Test_whereL(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "900"
 		r = db.Query("\n  SELECT * FROM (SELECT 1.0 AS abc) WHERE abc=1;\n")

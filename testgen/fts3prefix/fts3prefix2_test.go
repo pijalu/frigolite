@@ -80,7 +80,7 @@ func Test_fts3prefix2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{T TX T TX T TX T TX T TX} {T TX T TX T TX T TX T TX} {T TX T TX T TX T TX T TX} {T TX T TX T TX T TX T TX} {T TX T TX T TX T TX T TX}"
+		want := "T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX T TX"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

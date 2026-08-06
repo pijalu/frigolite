@@ -235,7 +235,7 @@ func Test_without_rowid1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "t1 t1 {4 2 1} t1 t1bd {4 2 2}"
+		want := "t1 t1 4 2 1 t1 t1bd 4 2 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -329,7 +329,8 @@ func Test_without_rowid1(t *testing.T) {
 	}
 	// do_execsql_test_if_vtab 2.4.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo...} {b BINARY 1 a noca... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(b);\n\n  CREATE TABLE t2(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i2 ON t2(b);\n\n  INSERT INTO t1 VALUES('one', 'two');\n  INSERT INTO t2 VALUES('three', 'two');\n")
@@ -466,7 +467,7 @@ func Test_without_rowid1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := cnt
+				want := tclListFlatten(cnt)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -497,7 +498,7 @@ func Test_without_rowid1(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := cnt
+					want := tclListFlatten(cnt)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -551,6 +552,7 @@ func Test_without_rowid1(t *testing.T) {
 					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
 				}
 			}
+			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			{ // "8.1"
@@ -578,7 +580,8 @@ func Test_without_rowid1(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "10.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);\n")
@@ -665,7 +668,8 @@ func Test_without_rowid1(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "14.1"
 				r = db.Query("\n    CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1(a) VALUES(10);\n    ALTER TABLE t1 ADD COLUMN b INT;\n    SELECT * FROM t1 WHERE a=20 OR (a=10 AND b=10);\n  ")
@@ -686,7 +690,8 @@ func Test_without_rowid1(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "15.1"
 				r = db.Query("\n    PRAGMA writable_schema=ON;\n    CREATE TABLE sqlite_sequence (name PRIMARY KEY) WITHOUT ROWID;\n    PRAGMA writable_schema=OFF;\n    CREATE TABLE c1(x);\n    INSERT INTO sqlite_sequence(name) VALUES('c0'),('c1'),('c2');\n    ALTER TABLE c1 RENAME TO a;\n    SELECT name FROM sqlite_sequence ORDER BY +name;\n  ")
@@ -701,7 +706,8 @@ func Test_without_rowid1(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_limit db SQLITE_LIMIT_COLUMN 8 (unsupported command, not transpiled)
 			{ // "16.1"

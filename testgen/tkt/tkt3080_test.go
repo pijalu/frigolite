@@ -56,9 +56,10 @@ func Test_tkt3080(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3080.1"
-		_res = db.Exec("\n    SELECT execsql('CREATE TABLE t1(x)');\n  ")
+		// db function execsql (variable-reader, inlined)
+		_res = db.Exec("\n    SELECT " + sqlLiteral(CREATE_TABLE_t1_x) + ";\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT execsql('CREATE TABLE t1(x)');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT " + sqlLiteral(CREATE_TABLE_t1_x) + ";\n  ")
 		}
 		r = db.Query("SELECT name FROM sqlite_master")
 		if r.Error != nil {

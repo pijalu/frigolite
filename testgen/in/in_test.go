@@ -369,7 +369,7 @@ func Test_in(t *testing.T) {
 		}
 	}
 	{ // do_test "in-8.4"
-		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+		db.SetDQS(false, true)
 		r = db.Query("\n    SELECT b FROM t1 WHERE a IN (\"hello\",'there')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a IN (\"hello\",'there')\n  ")
@@ -704,7 +704,8 @@ func Test_in(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "in-16.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1(a) VALUES(1), (2), (3), (4), (5), (6);\n  CREATE INDEX x1i ON x1(a, b);\n")
@@ -869,7 +870,8 @@ func Test_in(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "in-21.1"
 		r = db.Query("\n  CREATE TABLE t0(c0);\n  SELECT COUNT(*) FROM t0 ORDER BY (t0.c0 IN ());\n")

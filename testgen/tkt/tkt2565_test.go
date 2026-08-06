@@ -68,6 +68,7 @@ func Test_tkt2565(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_alt_pcache 1 100 0 1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
@@ -122,6 +123,7 @@ func Test_tkt2565(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)

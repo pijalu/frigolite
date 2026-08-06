@@ -52,6 +52,7 @@ func Test_tkt_3fe897352e(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-3fe89-1.1"
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex_to_utf16be('D800'));\n    SELECT hex(x) FROM t1;\n  ")

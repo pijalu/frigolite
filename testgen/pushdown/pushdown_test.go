@@ -127,7 +127,8 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW v0 AS SELECT CAST(t0.c0 AS INTEGER) AS c0 FROM t0;\n  CREATE VIEW v1(a,b) AS SELECT a, b FROM t1_a UNION ALL SELECT c, 0 FROM t1_b;\n  SELECT v1.a, quote(v1.b), t0.c0 AS cd FROM t0 LEFT JOIN v0 ON v0.c0!=0,v1;\n")
@@ -208,7 +209,8 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "-"
 	{ // "4.1"
@@ -248,7 +250,8 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "-"
 	{ // "5.0"
@@ -264,7 +267,8 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t01(w,x,y,z);\n  CREATE TABLE t02(w,x,y,z);\n  CREATE VIEW t0(w,x,y,z) AS\n    SELECT w,x,y,z FROM t01 UNION ALL SELECT w,x,y,z FROM t02;\n  CREATE INDEX t01x ON t01(w,x,y);\n  CREATE INDEX t02x ON t02(w,x,y);\n  CREATE VIEW v1(k) AS VALUES(77),(88),(99);\n  CREATE TABLE k1(k);\n  INSERT INTO k1 SELECT * FROM v1;\n")
@@ -291,7 +295,8 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE  TABLE  t0_1(a INT , b INT, c INT);\n  CREATE  TABLE  t0_2(a INT , b INT, c INT);\n\n  INSERT INTO t0_1 (a, b, c) VALUES (1, 0, 1);\n  INSERT INTO t0_2 (a, b, c) VALUES (1, 0, 1);\n\n  CREATE  TABLE  empty1(x);\n  CREATE  TABLE  empty2(y);\n")

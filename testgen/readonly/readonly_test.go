@@ -68,9 +68,9 @@ func Test_readonly(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4), (5, 6);\n")
 		}
 	}
+	db.Close()
 	// file attributes test.db -permissions r--r--r--
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8);\n")

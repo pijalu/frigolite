@@ -71,7 +71,8 @@ func Test_upsert5(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -535,7 +536,8 @@ func Test_upsert5(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);\n")
@@ -550,7 +552,8 @@ func Test_upsert5(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			r = db.Query("\n  CREATE TABLE t1(aa INTEGER PRIMARY KEY, bb INT);\n  INSERT INTO t1 VALUES(11,22);\n  CREATE UNIQUE INDEX t1bb ON t1(bb);\n  REPLACE INTO t1 VALUES(11,33)\n    ON CONFLICT(bb) DO UPDATE SET aa = 44\n    ON CONFLICT(bb) DO UPDATE SET aa = 44;\n  PRAGMA integrity_check;\n")
@@ -637,7 +640,8 @@ func Test_upsert5(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// foreach {tn WO} "1 \"\"\n  2 \"WITHOUT ROWID\""
 		_items1 := tclSplitList("1 \"\"\n  2 \"WITHOUT ROWID\"")
@@ -648,7 +652,8 @@ func Test_upsert5(t *testing.T) {
 			_ = WO // suppress unused warning
 			_ = _idx1
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "4." + tn + ".0"
 					_res = db.Exec("\n    CREATE TABLE t1(a, b, c REAL, d UNIQUE, e PRIMARY KEY) " + WO + " ;\n    INSERT INTO t1 VALUES(555, 555, 555, 555, 555);\n  ")

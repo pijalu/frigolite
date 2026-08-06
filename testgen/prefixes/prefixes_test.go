@@ -66,8 +66,8 @@ func Test_prefixes(t *testing.T) {
 	testprefix = "prefixes"
 	_ = testprefix // suppress unused warning
 	// load_static_extension db prefixes (unsupported command, not transpiled)
-	// foreach {tn zLeft zRight expected} "1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3"
-	_items0 := tclSplitList("1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3")
+	// foreach {tn zLeft zRight expected} "1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyzu1234xz\" \"xyzu1234xy\" 5\n  6 \"xyzu1234\"   \"xyzu1234xy\" 4\n  7 \"xyzu1234\"   \"xyzu1234\"   4\n  8 \"xyzu1234xy\" \"xyzu1234\"   4\n  9 \"xyzu1234xy\" \"xyzu1233\"   3\n 10 \"xyzu1234xy\" \"xyzu1235\"   3"
+	_items0 := tclSplitList("1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyzu1234xz\" \"xyzu1234xy\" 5\n  6 \"xyzu1234\"   \"xyzu1234xy\" 4\n  7 \"xyzu1234\"   \"xyzu1234\"   4\n  8 \"xyzu1234xy\" \"xyzu1234\"   4\n  9 \"xyzu1234xy\" \"xyzu1233\"   3\n 10 \"xyzu1234xy\" \"xyzu1235\"   3")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -85,7 +85,7 @@ func Test_prefixes(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := expected
+				want := tclListFlatten(expected)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -114,7 +114,7 @@ func Test_prefixes(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := expected
+					want := tclListFlatten(expected)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

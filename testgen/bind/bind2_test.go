@@ -81,7 +81,7 @@ func Test_bind2(t *testing.T) {
 	// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.2"
-		reslist = "list" // TCL namespace variable
+		reslist = "" // TCL namespace variable
 		_ = reslist // suppress unused warning
 		_res = db.Exec(" UPDATE t1 SET a=43; ")
 		if _res.Error != nil {

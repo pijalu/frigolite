@@ -438,7 +438,8 @@ func Test_like3(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "like3-7.0"
 		r = db.Query("\n    PRAGMA encoding = 'UTF-16be';\n  \n    CREATE TABLE Example(word TEXT NOT NULL);\n    CREATE INDEX Example_word on Example(word);\n  \n    INSERT INTO Example VALUES(char(0x307F));\n  ")
@@ -483,7 +484,8 @@ func Test_like3(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	for _, enc := range tclSplitList("UTF-8\n  UTF-16le \n  UTF-16be") {
 	_ = enc // suppress unused warning
@@ -499,7 +501,8 @@ func Test_like3(t *testing.T) {
 			_ = expr // suppress unused warning
 			_ = _idx0
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("PRAGMA encoding = '" + enc + "'")
 				if r.Error != nil {
@@ -520,7 +523,7 @@ func Test_like3(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := enc
+					want := tclListFlatten(enc)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

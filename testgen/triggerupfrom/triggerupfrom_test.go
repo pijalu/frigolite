@@ -123,6 +123,7 @@ func Test_triggerupfrom(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.4"
@@ -132,7 +133,8 @@ func Test_triggerupfrom(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // "3.0"
@@ -148,7 +150,8 @@ func Test_triggerupfrom(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(k, a, b);\n  INSERT INTO t1 VALUES('a', 1, 'one');\n  INSERT INTO t1 VALUES('b', 2, 'two');\n  INSERT INTO t1 VALUES('c', 3, 'three');\n  INSERT INTO t1 VALUES('d', 4, 'four');\n\n  CREATE TABLE log(x);\n  CREATE VIEW v1 AS SELECT k, a, b AS __hidden__b FROM t1;\n  CREATE TRIGGER tr1 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES(\n      '('||old.a||','||old.__hidden__b||')->('||new.a||','||new.__hidden__b||')'\n    );\n  END;\n")

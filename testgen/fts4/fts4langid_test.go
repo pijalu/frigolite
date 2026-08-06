@@ -281,7 +281,8 @@ func Test_fts4langid(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "2.0"
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// build_multilingual_db_1 db (unsupported command, not transpiled)
 	}
@@ -308,7 +309,8 @@ func Test_fts4langid(t *testing.T) {
 	// do_test_query1 2.2.4 {"zero one" OR "one two"} {\n  or_merge_lists [rowid_list "zero one"] [row... (unsupported command, not transpiled)
 	{ // do_test "2.3"
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// build_multilingual_db_1 db (unsupported command, not transpiled)
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('rebuild') ")
@@ -322,7 +324,8 @@ func Test_fts4langid(t *testing.T) {
 	// do_test_query1 2.3.4 {"zero one" OR "one two"} {\n  or_merge_lists [rowid_list "zero one"] [row... (unsupported command, not transpiled)
 	{ // do_test "3.0"
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// build_multilingual_db_1 db (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t3_data(l, x, y);\n    INSERT INTO t3_data(rowid, l, x, y) SELECT docid, l, x, y FROM t2;\n    DROP TABLE t2;\n  ")
@@ -377,11 +380,12 @@ func Test_fts4langid(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "4.1.0"
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		ptr = "fts3_test_tokenizer"
 		_ = ptr // suppress unused warning
-		// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
+		// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 		r = db.Query(" SELECT fts3_tokenizer('testtokenizer', " + sqlLiteral(ptr) + ") ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT fts3_tokenizer('testtokenizer', " + sqlLiteral(ptr) + ") ")
@@ -450,7 +454,8 @@ func Test_fts4langid(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "5.1.0"
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// build_multilingual_db_3 db (unsupported command, not transpiled)
 	}
@@ -461,7 +466,7 @@ func Test_fts4langid(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list 0 1024 2048 [expr 1<<40]"
+		want := "0 1024 2048 " + "1099511627776"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -487,7 +492,7 @@ func Test_fts4langid(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := langid
+			want := tclListFlatten(langid)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -624,7 +629,8 @@ func Test_fts4langid(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE vt0 USING fts4(c0, languageid=\"lid\");\n  INSERT INTO vt0 VALUES ('a'), ('b');\n  BEGIN;\n    UPDATE vt0 SET lid = 1 WHERE lid=0;\n")

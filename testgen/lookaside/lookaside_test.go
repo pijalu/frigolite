@@ -74,6 +74,7 @@ func Test_lookaside(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
@@ -167,6 +168,7 @@ func Test_lookaside(t *testing.T) {
 		// sqlite3_db_status db 99999 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "lookaside-4.1"
+		db.Close()
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// catch (non-braced)
 	}

@@ -7,7 +7,6 @@ package fts3
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -83,9 +82,15 @@ func Test_fts3f(t *testing.T) {
 		}
 	}
 	{ // "1.3"
-		_res = db.Exec("\n  SELECT docid, optimize(ft) FROM ft WHERE ft MATCH 'one'\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "Index optimized} 2 {Index already optimal} 3 {Index already optimal} 4 {Index already optimal} 5 {Index already optimal} 6 {Index already optimal") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "Index optimized} 2 {Index already optimal} 3 {Index already optimal} 4 {Index already optimal} 5 {Index already optimal} 6 {Index already optimal", _res.Error, "\n  SELECT docid, optimize(ft) FROM ft WHERE ft MATCH 'one'\n")
+		r = db.Query("\n  SELECT docid, optimize(ft) FROM ft WHERE ft MATCH 'one'\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid, optimize(ft) FROM ft WHERE ft MATCH 'one'\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 Index optimized 2 Index already optimal 3 Index already optimal 4 Index already optimal 5 Index already optimal 6 Index already optimal"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 }

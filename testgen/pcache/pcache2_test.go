@@ -55,6 +55,7 @@ func Test_pcache2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	{ // do_test "pcache2-1.1"
+		db.Close()
 		// sqlite3_reset_auto_extension (unsupported command, not transpiled)
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_pagecache 6000 100 (unsupported command, not transpiled)
@@ -95,6 +96,7 @@ func Test_pcache2(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
+		db.Close()
 		// sqlite3_reset_auto_extension (unsupported command, not transpiled)
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_pagecache 0 -1 (unsupported command, not transpiled)
@@ -103,7 +105,8 @@ func Test_pcache2(t *testing.T) {
 		// autoinstall_test_functions (unsupported command, not transpiled)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "pcache2-2.2"
 		r = db.Query("\n  PRAGMA page_size = 4096;\n  CREATE TABLE t1(x);\n")
@@ -111,6 +114,7 @@ func Test_pcache2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 4096;\n  CREATE TABLE t1(x);\n")
 		}
 	}
+	db.Close()
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

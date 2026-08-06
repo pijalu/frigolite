@@ -107,14 +107,14 @@ func Test_enc3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t2\n       WHERE CAST(a AS text) LIKE CAST(x'610062002500' AS text);\n    ")
 		}
 	}
+	db.Close()
 	os.Remove("test8.db")
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	dbaux, err := frigolite.Open("test8.db")
 	defer dbaux.Close()
 	if err != nil { t.Fatal(err) }
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("SELECT 1 FROM sqlite_master LIMIT 1")
 	if _res.Error != nil {

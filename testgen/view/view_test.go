@@ -125,8 +125,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-1.3.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -154,8 +154,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-1.8"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -395,8 +395,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-7.2"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM test;\n  ")
 		if r.Error != nil {
@@ -410,8 +410,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-7.4"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM test;\n  ")
 		if r.Error != nil {
@@ -425,8 +425,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-7.6"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM test;\n  ")
 		if r.Error != nil {
@@ -440,8 +440,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-8.2"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM v6 ORDER BY xyz;\n  ")
 		if r.Error != nil {
@@ -641,6 +641,7 @@ func Test_view(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP VIEW IF EXISTS v1;\n    CREATE TABLE t1(c1);\n    CREATE VIEW v1 AS SELECT c1 FROM (SELECT t1.c1 FROM t1);\n  ")
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "view-22.1"
@@ -685,6 +686,9 @@ func Test_view(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t25;")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "view-25.2")
+		}
 	}
 	{ // "view-26.0"
 		r = db.Query("\n  CREATE TABLE t16(a, b, c UNIQUE);\n  INSERT INTO t16 VALUES(1, 1, 1);\n  INSERT INTO t16 VALUES(2, 2, 2);\n  INSERT INTO t16 VALUES(3, 3, 3);\n  CREATE VIEW v16 AS SELECT max(a) AS mx, min(b) AS mn FROM t16 GROUP BY c;\n\n  SELECT * FROM v16 AS one, v16 AS two WHERE one.mx=1;\n")
@@ -711,7 +715,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "view-27.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 TEXT, c1);\n  INSERT INTO t0(c0, c1) VALUES (-1, 0);\n  CREATE VIEW v0(c0, c1) AS SELECT t0.c0, AVG(t0.c1) FROM t0;\n")
@@ -816,7 +821,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "view-28.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0) AS SELECT t0.c0 FROM t0;\n  INSERT INTO t0(c0) VALUES ('0');\n")
@@ -849,7 +855,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "view-29.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE VIEW IF NOT EXISTS IF AS SELECT null;\n")
@@ -864,7 +871,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "view-30.0"
 		_res = db.Exec("\n  CREATE TABLE t0(a INT, b TEXT);\n\n  INSERT INTO t0 VALUES(1,'one');\n\n  CREATE VIEW t1      AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n  CREATE VIEW t2(a,b) AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n")
@@ -897,7 +905,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "view-31.1"
 		r = db.Query("\n  CREATE TABLE x2(b TEXT);\n  CREATE TABLE x1(a TEXT);\n  INSERT INTO x1 VALUES('123');\n  -- Two queries get the same result even though the order of terms\n  -- in the CTE is reversed\n  WITH c(x) AS ( SELECT b FROM x2 UNION SELECT 123 )\n    SELECT count(*) FROM x1 WHERE a IN c; \n  WITH c(x) AS ( SELECT 123 UNION SELECT b FROM x2 )\n    SELECT count(*) FROM x1 WHERE a IN c;\n")
@@ -924,7 +933,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "view-32.1"
 		_res = db.Exec("\n  CREATE TABLE t0(a);\n  INSERT INTO t0 VALUES(0);\n  CREATE VIEW v1(a) AS SELECT a+1 FROM t0;\n  CREATE VIEW v2(a) AS SELECT a+1 FROM v1;\n  CREATE VIEW v3(a) AS SELECT a+1 FROM v2;\n  CREATE VIEW v4(a) AS SELECT a+1 FROM v3;\n  CREATE VIEW v5(a) AS SELECT a+1 FROM v4;\n  CREATE VIEW v6(a) AS SELECT a+1 FROM v5;\n  CREATE VIEW v7(a) AS SELECT a+1 FROM v6;\n")

@@ -113,7 +113,7 @@ func Test_json103(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0 {[3,6,9]} 1 {[1,4,7]} 2 {[2,5,8]}"
+		want := "0 [3,6,9] 1 [1,4,7] 2 [2,5,8]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -167,7 +167,7 @@ func Test_json103(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0 {{\"n3\":3,\"n6\":6}} 1 {{\"n1\":1,\"n4\":4}} 2 {{\"n2\":2,\"n5\":5}}"
+		want := "0 {\"n3\":3,\"n6\":6} 1 {\"n1\":1,\"n4\":4} 2 {\"n2\":2,\"n5\":5}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -179,7 +179,7 @@ func Test_json103(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{[1,\"abc\"]} {[{\"x\":1},{\"x\":\"abc\"}]}"
+		want := "[1,\"abc\"] [{\"x\":1},{\"x\":\"abc\"}]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

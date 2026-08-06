@@ -91,6 +91,7 @@ func Test_gencol1(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -231,6 +232,7 @@ func Test_gencol1(t *testing.T) {
 				}
 			}
 		}
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-3.100"
@@ -251,6 +253,7 @@ func Test_gencol1(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  UPDATE t0 SET c1 = c0, c3 = c0+1;\n")
 			}
 		}
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-4.100"
@@ -265,6 +268,7 @@ func Test_gencol1(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  REPLACE INTO t0(c0,c2,c3) VALUES(0,0,0),(0,0,0);\n")
 			}
 		}
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-5.100"
@@ -286,7 +290,8 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-7.10"
 			r = db.Query("\n  CREATE TABLE t0 (c0 GENERATED ALWAYS AS (1), c1 UNIQUE, c2 UNIQUE);\n  INSERT INTO t0(c1) VALUES (1);\n  SELECT quote(0 = t0.c2 OR t0.c1 BETWEEN t0.c2 AND 1) FROM t0;\n")
@@ -439,7 +444,8 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-9.10"
 			r = db.Query("\n  PRAGMA foreign_keys=OFF;\n  CREATE TABLE t1(aa , bb AS (17) UNIQUE);\n  INSERT INTO t1 VALUES(17);\n  CREATE TABLE t2(cc);\n  INSERT INTO t2 VALUES(41);\n  SELECT * FROM t2 JOIN t1 WHERE t1.bb=t1.aa AND t1.bb=17;\n")
@@ -636,7 +642,8 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "gencol1-15.10"
 			db, err = frigolite.Open("")
@@ -655,7 +662,8 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-16.10"
 			r = db.Query("\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c1, c2 AS(1));\n  INSERT INTO t0 VALUES(0);\n  SELECT c0, c1, c2 FROM t0 LEFT JOIN t1;\n")
@@ -706,7 +714,8 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-17.10"
 			r = db.Query("\n  CREATE TABLE t0(c0 REAL AS(1) UNIQUE, c1 INT);\n  INSERT INTO t0 VALUES('');\n  SELECT quote(c0), quote(c1) from t0;\n")
@@ -763,7 +772,8 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-18.10"
 			r = db.Query("\n  CREATE TABLE t0(c0 UNIQUE AS(0), c1, c2);\n  INSERT INTO t0(c1) VALUES(0);\n  SELECT * FROM t0;\n")
@@ -790,7 +800,8 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-19.10"
 			_res = db.Exec("\n  CREATE TABLE t0(\n    c0 INT AS(2) UNIQUE,\n    c1 TEXT UNIQUE,\n    FOREIGN KEY(c0) REFERENCES t0(c1)\n  );\n  INSERT INTO t0(c1) VALUES(0.16334143182538696), (0);\n")
@@ -823,7 +834,8 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-21.1"
 			r = db.Query("\n    CREATE TABLE t1(\n      a integer primary key,\n      b int generated always as (a+5),\n      c text    GENERATED   ALWAYS as (printf('%08x',a)),\n      d Generated\n        Always\n        AS ('xyzzy'),\n      e int                         Always default(5)\n    );\n    INSERT INTO t1(a) VALUES(5);\n    SELECT name, type FROM pragma_table_xinfo('t1');\n  ")
@@ -838,7 +850,8 @@ func Test_gencol1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-22.1"
 			r = db.Query("\n  CREATE TABLE t0(a PRIMARY KEY,b TEXT AS ('2') UNIQUE);\n  INSERT INTO t0(a) VALUES(2);\n  SELECT * FROM t0 AS x JOIN t0 AS y\n   WHERE x.b='2'\n     AND (y.a=2 OR (x.b LIKE '2*' AND y.a=x.b));\n")
@@ -875,6 +888,9 @@ func Test_gencol1(t *testing.T) {
 				_ = x1 // suppress unused warning
 				{ // do_test "gencol1-23.1." + cnt
 					_ = tclSort("db eval {SELECT typeof(b) FROM t1 INDEXED BY x2}") // lsort result
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), x1) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", x1, _res.Error, "gencol1-23.1." + cnt)
+					}
 				}
 			}
 		}

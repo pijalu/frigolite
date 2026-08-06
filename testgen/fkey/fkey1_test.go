@@ -142,7 +142,7 @@ func Test_fkey1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0 {\"2} TEXT 0 {} 1 1 {\"3} TEXT 0 {} 0"
+		want := "0 \"2 TEXT 0 {} 1 1 \"3 TEXT 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -199,7 +199,8 @@ func Test_fkey1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.1"
 		r = db.Query("\n  PRAGMA foreign_keys=OFF;\n  CREATE TABLE t1(a,b,c,FOREIGN KEY(a,a,a,a,a,a,a,a,a,a,a,a,a,a) REFERENCES t0);\n  INSERT INTO t1 VALUES(1,2,3);\n  PRAGMA foreign_key_check;\n")
@@ -220,7 +221,8 @@ func Test_fkey1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
 		r = db.Query("\n  PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  DROP table \"sqlsim4\";\n")
@@ -229,7 +231,8 @@ func Test_fkey1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "8.2"
@@ -245,7 +248,8 @@ func Test_fkey1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "9.1"
 		r = db.Query("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\", \"\"\"3\" PRIMARY KEY);\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" REFERENCES \"\"\"1\" ON DELETE RESTRICT);\n  DELETE FROM \"\"\"1\";\n")

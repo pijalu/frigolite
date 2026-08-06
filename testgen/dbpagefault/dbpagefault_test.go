@@ -65,7 +65,8 @@ func Test_dbpagefault(t *testing.T) {
 	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTAC...} -body {\n  execs... (unsupported command, not transpiled)
 	// do_faultsim_test 2 -prep {\n  sqlite3 db "xyz.db" -vfs memdb\n  execsql { AT...} -body {\n  execs... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE x1(z, b);\n  CREATE TRIGGER BEFORE INSERT ON x1 BEGIN\n    DELETE FROM sqlite_dbpage WHERE pgno=100;\n    UPDATE sqlite_dbpage SET data=null WHERE pgno=100;\n  END;\n")
@@ -86,7 +87,8 @@ func Test_dbpagefault(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // "4.0"

@@ -56,6 +56,7 @@ func Test_lock7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
 		}
+		db.Close()
 		db1 = db // sqlite3 db1 test.db: alias to main in-memory db
 		_ = db1
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db

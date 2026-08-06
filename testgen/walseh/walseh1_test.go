@@ -111,15 +111,18 @@ func Test_walseh1(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// do_faultsim_test 5 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reo...} -bod... (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// do_faultsim_test 6 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reo...} -bod... (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 }

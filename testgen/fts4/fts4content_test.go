@@ -103,7 +103,7 @@ func Test_fts4content(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{w x} {x y} {y z} 1"
+		want := "w x x y y z 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -115,7 +115,7 @@ func Test_fts4content(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{w x} {y z}"
+		want := "w x y z"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -163,7 +163,7 @@ func Test_fts4content(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{x y} 1"
+		want := "x y 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -197,7 +197,7 @@ func Test_fts4content(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := rowidlist
+				want := tclListFlatten(rowidlist)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -209,7 +209,7 @@ func Test_fts4content(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := rowidlist
+				want := tclListFlatten(rowidlist)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -232,7 +232,7 @@ func Test_fts4content(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := result
+					want := tclListFlatten(result)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -249,13 +249,13 @@ func Test_fts4content(t *testing.T) {
 				_ = result // suppress unused warning
 				_ = _idx2
 					{ // "2.4." + tn
-						r = db.Query("\n    SELECT snippet(ft2, '" + sqlLiteral("', '") + "', '..', -1, 6) FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
+						r = db.Query("\n    SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(ft2, '" + sqlLiteral("', '") + "', '..', -1, 6) FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH " + sqlLiteral(match) + "\n  ")
 							return
 						}
 						got := flatten(r)
-						want := result
+						want := tclListFlatten(result)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -278,7 +278,7 @@ func Test_fts4content(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := result
+							want := tclListFlatten(result)
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -373,7 +373,7 @@ func Test_fts4content(t *testing.T) {
 									return
 								}
 								got := flatten(r)
-								want := res
+								want := tclListFlatten(res)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
@@ -385,7 +385,7 @@ func Test_fts4content(t *testing.T) {
 									return
 								}
 								got := flatten(r)
-								want := res
+								want := tclListFlatten(res)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
@@ -420,7 +420,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := res
+									want := tclListFlatten(res)
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -432,7 +432,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := res
+									want := tclListFlatten(res)
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -467,7 +467,7 @@ func Test_fts4content(t *testing.T) {
 											return
 										}
 										got := flatten(r)
-										want := res
+										want := tclListFlatten(res)
 										if got != want {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
@@ -479,7 +479,7 @@ func Test_fts4content(t *testing.T) {
 											return
 										}
 										got := flatten(r)
-										want := res
+										want := tclListFlatten(res)
 										if got != want {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
@@ -684,7 +684,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "{A B} {B A} {C D} {A A}"
+									want := "A B B A C D A A"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -695,8 +695,8 @@ func Test_fts4content(t *testing.T) {
 										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  DROP TABLE t7;\n  SELECT * FROM ft7;\n")
 									}
 								}
-								_dbtmp7, err := frigolite.Open("test.db")
-								_ = _dbtmp7 // sqlite3 db connection
+								db.Close()
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "6.2.3"
 									r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t7%'\n")
@@ -723,7 +723,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "{A B} {B A} {C D} {A A}"
+									want := "A B B A C D A A"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -758,8 +758,8 @@ func Test_fts4content(t *testing.T) {
 										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									}
 								}
-								_dbtmp8, err := frigolite.Open("test.db")
-								_ = _dbtmp8 // sqlite3 db connection
+								db.Close()
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "6.2.10"
 									_res = db.Exec("\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
@@ -882,7 +882,8 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 								{ // "9.1"
@@ -898,15 +899,21 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "2 {e f} {a b}"
+									want := "2 e f a b"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "9.3"
-									_res = db.Exec("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a b} {c d} 2 {e f} {a b") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a b} {c d} 2 {e f} {a b", _res.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+									r = db.Query("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+										return
+									}
+									got := flatten(r)
+									want := "1 a b c d 2 e f a b"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "9.4"
@@ -922,19 +929,26 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "2 {e f} {a b}"
+									want := "2 e f a b"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "9.6"
-									_res = db.Exec("\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a b} {c d} 2 {e f} {a b") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a b} {c d} 2 {e f} {a b", _res.Error, "\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+									r = db.Query("\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+										return
+									}
+									got := flatten(r)
+									want := "1 a b c d 2 e f a b"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								// register_fs_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 								// proc definition (not transpiled)
@@ -942,9 +956,15 @@ func Test_fts4content(t *testing.T) {
 								// write_file t2.txt {a b c d e f g h i j k l m a b c d e f g h i j k l ...} (unsupported command, not transpiled)
 								// write_file t3.txt {n o p q r s t u v w x y z n o p q r s t u v w x y ...} (unsupported command, not transpiled)
 								{ // "10.1"
-									_res = db.Exec("\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
-									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "a b c d e f g h i j k l m n o p q r s t u v w x y z} 2 {a b c d e f g h i j k l m a b c d e f g h i j k l m} 3 {n o p q r s t u v w x y z n o p q r s t u v w x y z") {
-										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "a b c d e f g h i j k l m n o p q r s t u v w x y z} 2 {a b c d e f g h i j k l m a b c d e f g h i j k l m} 3 {n o p q r s t u v w x y z n o p q r s t u v w x y z", _res.Error, "\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
+									r = db.Query("\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
+										return
+									}
+									got := flatten(r)
+									want := "1 a b c d e f g h i j k l m n o p q r s t u v w x y z 2 a b c d e f g h i j k l m a b c d e f g h i j k l m 3 n o p q r s t u v w x y z n o p q r s t u v w x y z"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "10.2"
@@ -954,7 +974,7 @@ func Test_fts4content(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := "2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}"
+									want := "2 a b c d e f g h i j k l m a b c d e f g h i j k l m"
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -966,25 +986,25 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // "10.4"
-									r = db.Query("\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+									r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
 									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
 										return
 									}
 									got := flatten(r)
-									want := "{...c d [e] f g...} {...c d [e] f g...}"
+									want := "...c d [e] f g... ...c d [e] f g..."
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // "10.5"
-									r = db.Query("\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
+									r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
 									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
 										return
 									}
 									got := flatten(r)
-									want := "{...r s [t] u v...} {...r s [t] u v...}"
+									want := "...r s [t] u v... ...r s [t] u v..."
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
@@ -996,9 +1016,9 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // "10.7"
-									r = db.Query("\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+									r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
 									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '" + sqlLiteral("', '") + "', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
 										return
 									}
 									got := flatten(r)
@@ -1008,7 +1028,8 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "11.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(content=x1);\n")
@@ -1017,7 +1038,8 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "12.1.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
@@ -1044,7 +1066,8 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "12.2.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
@@ -1071,7 +1094,8 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "13.0"
 									r = db.Query("\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
@@ -1100,7 +1124,7 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // do_test "13.2.2"
-									stmt = "sqlite3_prepare_v3 db \\\n    \"INSERT INTO aa VALUES('one two three');\" -1 0x00" // TCL namespace variable
+									stmt = "sqlite3_prepare_v3 db     \"INSERT INTO aa VALUES('one two three');\" -1 0x00" // TCL namespace variable
 									_ = stmt // suppress unused warning
 									// sqlite3_finalize $::stmt (unsupported command, not transpiled)
 								}

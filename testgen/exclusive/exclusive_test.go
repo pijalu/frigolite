@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -344,6 +345,9 @@ func Test_exclusive(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
 		}
 		// signature (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), X) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", X, _res.Error, "exclusive-4.1")
+		}
 	}
 	{ // do_test "exclusive-4.2"
 		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;\n  ")
@@ -351,6 +355,9 @@ func Test_exclusive(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;\n  ")
 		}
 		// signature (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), X) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", X, _res.Error, "exclusive-4.2")
+		}
 	}
 	{ // do_test "exclusive-4.3"
 		_res = db.Exec("\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;\n  ")
@@ -373,19 +380,19 @@ func Test_exclusive(t *testing.T) {
 		}
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items1 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			name := _items1[_idx1+0]
+		_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			name := _items0[_idx0+0]
 			_ = name // suppress unused warning
-			value := _items1[_idx1+1]
+			value := _items0[_idx0+1]
 			_ = value // suppress unused warning
-			_ = _idx1
+			_ = _idx0
 				using_proxy = value
 				_ = using_proxy // suppress unused warning
 			}
@@ -467,6 +474,7 @@ func Test_exclusive(t *testing.T) {
 				}
 			}
 			{ // do_test "exclusive-6.4"
+				db.Close()
 				os.Remove("test.db")
 				fd = "open test.db-journal w"
 				_ = fd // suppress unused warning
@@ -490,6 +498,7 @@ func Test_exclusive(t *testing.T) {
 			}
 			if tclBool("permutation" + "!=\"journaltest\"") {
 				{ // do_test "exclusive-7.1"
+					db.Close()
 					os.Remove("test.db")
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }

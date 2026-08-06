@@ -68,14 +68,15 @@ func Test_fts_9fd058691(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    UPDATE fts SET tags = 'tag1' WHERE rowid = 1;\n    SELECT * FROM fts WHERE tags MATCH 'tag1';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE fts SET tags = 'tag1' WHERE rowid = 1;\n    SELECT * FROM fts WHERE tags MATCH 'tag1';\n  ")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

@@ -68,7 +68,8 @@ func Test_upfrom3(t *testing.T) {
 		_ = wo // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// eval (dynamic, not transpiled)
 		}
@@ -123,13 +124,15 @@ func Test_upfrom3(t *testing.T) {
 			_ = wo // suppress unused warning
 			_ = _idx1
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				os.Remove("test.db2")
 				// eval (dynamic, not transpiled)
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// foreach {tn wo} "1 \"\"\n  2 \"WITHOUT ROWID\""
 			_items2 := tclSplitList("1 \"\"\n  2 \"WITHOUT ROWID\"")
@@ -140,7 +143,8 @@ func Test_upfrom3(t *testing.T) {
 				_ = wo // suppress unused warning
 				_ = _idx2
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					os.Remove("test.db2")
 					// eval (dynamic, not transpiled)

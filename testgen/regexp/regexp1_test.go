@@ -646,7 +646,8 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db regexp (unsupported command, not transpiled)
 	{ // "regexp1-3.1"

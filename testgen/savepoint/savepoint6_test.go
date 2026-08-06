@@ -155,6 +155,7 @@ func Test_savepoint6(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		os.Remove("test.db")
 		// eval $zSetup (dynamic, not transpiled)

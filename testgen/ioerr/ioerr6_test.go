@@ -81,6 +81,7 @@ func Test_ioerr6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
 	}
+	db.Close()
 	// shmfault delete (unsupported command, not transpiled)
 	// do_faultsim_test 2 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n ...} -b... (unsupported command, not transpiled)
 	// do_faultsim_test 3 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n ...} -b... (unsupported command, not transpiled)

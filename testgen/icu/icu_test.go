@@ -88,15 +88,15 @@ func Test_icu(t *testing.T) {
 	// test_expr icu-1.3 {i1='hello'} {i1 REGEXP '.ell'} 0 (expr test, not transpiled)
 	// test_expr icu-1.4 {i1='hello'} {i1 REGEXP '.ell.*'} 1 (expr test, not transpiled)
 	// test_expr icu-1.5 {i1=NULL} {i1 REGEXP '.ell.*'} {} (expr test, not transpiled)
-	EGRAVE = "xC8" // TCL namespace variable
+	EGRAVE = "\xc8" // TCL namespace variable
 	_ = EGRAVE // suppress unused warning
-	egrave = "xE8" // TCL namespace variable
+	egrave = "\xe8" // TCL namespace variable
 	_ = egrave // suppress unused warning
-	OGRAVE = "xD2" // TCL namespace variable
+	OGRAVE = "\xd2" // TCL namespace variable
 	_ = OGRAVE // suppress unused warning
-	ograve = "xF2" // TCL namespace variable
+	ograve = "\xf2" // TCL namespace variable
 	_ = ograve // suppress unused warning
-	szlig = "xDF" // TCL namespace variable
+	szlig = "\xdf" // TCL namespace variable
 	_ = szlig // suppress unused warning
 	// test_expr icu-2.1 {i1='HellO WorlD'} {upper(i1)} {HELLO WORLD} (expr test, not transpiled)
 	// test_expr icu-2.2 {i1='HellO WorlD'} {lower(i1)} {hello world} (expr test, not transpiled)
@@ -150,27 +150,27 @@ func Test_icu(t *testing.T) {
 		}
 	}
 	{ // "icu-5.1"
-		_res = db.Exec(" SELECT regexp('a" + sqlLiteral("abc") + "c.*', 'abc') ")
+		_res = db.Exec(" SELECT regexp('a[abc]c.*', 'abc') ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT regexp('a" + sqlLiteral("abc") + "c.*', 'abc') ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " SELECT regexp('a[abc]c.*', 'abc') ")
 		}
 	}
 	{ // "icu-5.2"
-		_res = db.Exec(" \n    SELECT regexp('a" + sqlLiteral("abc") + "c.*') \n  ")
+		_res = db.Exec(" \n    SELECT regexp('a[abc]c.*') \n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function regexp()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function regexp()", _res.Error, " \n    SELECT regexp('a" + sqlLiteral("abc") + "c.*') \n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function regexp()", _res.Error, " \n    SELECT regexp('a[abc]c.*') \n  ")
 		}
 	}
 	{ // "icu-5.3"
-		_res = db.Exec(" \n    SELECT regexp('a" + sqlLiteral("abc") + "c.*', 'abc', 'c') \n  ")
+		_res = db.Exec(" \n    SELECT regexp('a[abc]c.*', 'abc', 'c') \n  ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function regexp()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function regexp()", _res.Error, " \n    SELECT regexp('a" + sqlLiteral("abc") + "c.*', 'abc', 'c') \n  ")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function regexp()", _res.Error, " \n    SELECT regexp('a[abc]c.*', 'abc', 'c') \n  ")
 		}
 	}
 	{ // "icu-5.4"
-		_res = db.Exec(" \n    SELECT 'abc' REGEXP 'a" + sqlLiteral("abc") + "c.*'\n  ")
+		_res = db.Exec(" \n    SELECT 'abc' REGEXP 'a[abc]c.*'\n  ")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    SELECT 'abc' REGEXP 'a" + sqlLiteral("abc") + "c.*'\n  ")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, " \n    SELECT 'abc' REGEXP 'a[abc]c.*'\n  ")
 		}
 	}
 	{ // "icu-5.5"
@@ -211,7 +211,8 @@ func Test_icu(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "icu-7.1"
 		_res = db.Exec("\n  SELECT icu_load_collation('en_US','error','xyzzy');\n")
@@ -244,7 +245,8 @@ func Test_icu(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "icu-8.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  INSERT INTO t1 VALUES('abcdefg');\n  INSERT INTO t1 VALUES('1234567');\n")

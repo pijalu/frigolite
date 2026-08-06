@@ -69,9 +69,9 @@ func Test_vtab_shared(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "vtab_shared"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -142,15 +142,15 @@ func Test_vtab_shared(t *testing.T) {
 		}
 	}
 	// foreach {iTest dbSelect dbClose} "1 db  db2\n  2 db  db2\n  3 db2 db"
-	_items1 := tclSplitList("1 db  db2\n  2 db  db2\n  3 db2 db")
-	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-		iTest := _items1[_idx1+0]
+	_items0 := tclSplitList("1 db  db2\n  2 db  db2\n  3 db2 db")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		iTest := _items0[_idx0+0]
 		_ = iTest // suppress unused warning
-		dbSelect := _items1[_idx1+1]
+		dbSelect := _items0[_idx0+1]
 		_ = dbSelect // suppress unused warning
-		dbClose := _items1[_idx1+2]
+		dbClose := _items0[_idx0+2]
 		_ = dbClose // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			{ // do_test "vtab_shared-1.9." + iTest
 				res = ""
 				_ = res // suppress unused warning
@@ -177,14 +177,15 @@ func Test_vtab_shared(t *testing.T) {
 			}
 		}
 		{ // do_test "vtab_shared-1.12.1"
+			db.Close()
 			r = db2.Query(" \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
 			}
 		}
 		{ // do_test "vtab_shared-1.12.2"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 			r = db.Query(" \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
@@ -296,13 +297,15 @@ func Test_vtab_shared(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
 			}
 		}
+		db.Close()
 		_ = db2 // close db2: aliased to db, no-op
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "2.1.1"
-			_dbtmp3, err := frigolite.Open("test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2
@@ -314,14 +317,16 @@ func Test_vtab_shared(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE rt ")
 			}
+			db.Close()
 		}
 		db2.Close()
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "2.2.1"
-			_dbtmp4, err := frigolite.Open("test.db")
-			_ = _dbtmp4 // sqlite3 db connection
+			_dbtmp3, err := frigolite.Open("test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 			_ = db2
@@ -333,6 +338,7 @@ func Test_vtab_shared(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE ft ")
 			}
+			db.Close()
 		}
 		db2.Close()
 		// sqlite3_enable_shared_cache 0 (unsupported command, not transpiled)

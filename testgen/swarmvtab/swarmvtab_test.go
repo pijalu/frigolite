@@ -196,6 +196,7 @@ func Test_swarmvtab(t *testing.T) {
 	{ // do_test "1.x"
 	}
 	{ // do_test "1.y"
+		db.Close()
 	}
 	i = "0"
 	_ = i // suppress unused warning
@@ -210,7 +211,8 @@ func Test_swarmvtab(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	{ // do_test "2.0.1"

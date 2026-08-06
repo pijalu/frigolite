@@ -60,9 +60,9 @@ func Test_mallocD(t *testing.T) {
 		_ = _putsMsg
 		return
 	}
+	db.Close()
 	// sqlite3_simulate_device -char atomic (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	PREP = " \n  PRAGMA page_size = 1024;\n  CREATE TABLE abc(a, b, c);\n"
 	_ = PREP // suppress unused warning

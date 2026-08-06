@@ -58,11 +58,13 @@ func Test_mmapcorrupt(t *testing.T) {
 	testprefix = "mmapcorrupt"
 	_ = testprefix // suppress unused warning
 	// database_may_be_corrupt (unsupported command, not transpiled)
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA page_size = 16384;\n  CREATE TABLE tn1(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t0(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('B');\n")
@@ -70,11 +72,11 @@ func Test_mmapcorrupt(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 16384;\n  CREATE TABLE tn1(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t0(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('B');\n")
 		}
 	}
+	db.Close()
 	sz = "file size test.db"
 	_ = sz // suppress unused warning
 	// hexio_write test.db [expr $sz-3] 800380 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA mmap_size = 1000000;\n  SELECT sql FROM sqlite_schema LIMIT 1;\n  SELECT * FROM t0;\n")
@@ -83,7 +85,7 @@ func Test_mmapcorrupt(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "1000000 {CREATE TABLE tn1(a PRIMARY KEY) WITHOUT ROWID}"
+		want := "1000000 CREATE TABLE tn1(a PRIMARY KEY) WITHOUT ROWID"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

@@ -61,6 +61,7 @@ func Test_shared2(t *testing.T) {
 	_ = tn // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "shared2-1.1"
@@ -111,8 +112,8 @@ func Test_shared2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a, b);\n    CREATE TABLE t1(a, b DEFAULT 'hello world');\n  ")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -128,10 +129,11 @@ func Test_shared2(t *testing.T) {
 	}
 	{ // do_test "shared2-4.3"
 		db2.Close()
+		db.Close()
 	}
 	{ // do_test "shared2-5.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
@@ -144,6 +146,7 @@ func Test_shared2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t2(a) ")
 		}
 	}
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	// do_multiclient_test {tn} {\n  sql1 { CREATE TABLE t1(a, b) }\n  sql2 { CREAT...} (unsupported command, not transpiled)
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)

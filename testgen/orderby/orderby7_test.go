@@ -80,7 +80,7 @@ func Test_orderby7(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "11 {a row that occurs twice} 12 {a row that occurs twice}"
+		want := "11 a row that occurs twice 12 a row that occurs twice"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -104,7 +104,7 @@ func Test_orderby7(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a row that occurs twice} {a row that occurs twice}"
+		want := "a row that occurs twice a row that occurs twice"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -128,7 +128,7 @@ func Test_orderby7(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a row that occurs twice} {a row that occurs twice}"
+		want := "a row that occurs twice a row that occurs twice"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -152,7 +152,7 @@ func Test_orderby7(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a row that occurs twice} 111"
+		want := "a row that occurs twice 111"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -164,7 +164,7 @@ func Test_orderby7(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a row that occurs twice} 111"
+		want := "a row that occurs twice 111"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

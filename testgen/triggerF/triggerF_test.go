@@ -72,7 +72,8 @@ func Test_triggerF(t *testing.T) {
 		_ = log // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "1." + tn + ".0"
 				r = db.Query("\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
@@ -97,7 +98,7 @@ func Test_triggerF(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := log
+				want := tclListFlatten(log)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

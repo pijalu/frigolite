@@ -552,7 +552,8 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-5.2"
-		_res = db.Exec("\n    INSERT INTO t1(a,b) SELECT 3, tx_exec('SELECT y FROM t2 LIMIT 1');\n  ")
+		// db function tx_exec (variable-reader, inlined)
+		_res = db.Exec("\n    INSERT INTO t1(a,b) SELECT 3, " + sqlLiteral(SELECT_y_FROM_t2_LIMIT_1) + ";\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-5.3"

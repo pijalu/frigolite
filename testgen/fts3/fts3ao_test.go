@@ -163,6 +163,7 @@ func Test_fts3ao(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b, c FROM fts_t1 WHERE c MATCH 'four'; ")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -258,13 +259,13 @@ func Test_fts3ao(t *testing.T) {
 		}
 	}
 	{ // "fts3ao-4.8"
-		r = db.Query("\n  SELECT snippet(t5, '" + sqlLiteral("', '") + "') FROM t5 WHERE t5 MATCH 'the'\n")
+		r = db.Query("\n  SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH 'the'\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t5, '" + sqlLiteral("', '") + "') FROM t5 WHERE t5 MATCH 'the'\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH 'the'\n")
 			return
 		}
 		got := flatten(r)
-		want := "{[the] quick brown fox} {jumped over [the]}"
+		want := "[the] quick brown fox jumped over [the]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -302,7 +303,8 @@ func Test_fts3ao(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6." + tn + ".1"
 				_res = db.Exec("\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n    " + sql + "\n  ")
@@ -310,8 +312,8 @@ func Test_fts3ao(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n    " + sql + "\n  ")
 				}
 			}
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6." + tn + ".2"
 				r = db.Query(" SELECT * FROM t1 ")
@@ -329,5 +331,6 @@ func Test_fts3ao(t *testing.T) {
 				_ = stmt // suppress unused warning
 				// sqlite3_finalize $stmt (unsupported command, not transpiled)
 			}
+			db.Close()
 		}
 }

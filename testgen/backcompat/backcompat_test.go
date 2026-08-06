@@ -143,6 +143,7 @@ func Test_backcompat(t *testing.T) {
 	_ = d // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	if tclBool("\"\" == " + "bc_find_binaries backcompat.test") {
 		return
 	}

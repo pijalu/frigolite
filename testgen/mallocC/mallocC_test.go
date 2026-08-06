@@ -81,12 +81,12 @@ func Test_mallocC(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE t0(a, b, c);\n")
 	}
 	if false {
+		db.Close()
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_lookaside 50 500 (unsupported command, not transpiled)
 		// sqlite3_initialize (unsupported command, not transpiled)
 		// autoinstall_test_functions (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	// do_mallocC_test 1 -sql {\n  BEGIN;\n  -- Allocate 32 new root pages. This ...} (unsupported command, not transpiled)

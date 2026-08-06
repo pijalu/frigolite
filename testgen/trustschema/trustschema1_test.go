@@ -60,6 +60,9 @@ func Test_trustschema1(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "1.100"
+		// db function f1 (variable-reader, inlined)
+		// db function f2 (variable-reader, inlined)
+		// db function f3 (variable-reader, inlined)
 		_res = db.Exec("\n    CREATE TABLE t1(a, b AS (f1(a+1)), c AS (f2(a+2)));\n    INSERT INTO t1 VALUES(100),(200);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b AS (f1(a+1)), c AS (f2(a+2)));\n    INSERT INTO t1 VALUES(100),(200);\n  ")
@@ -312,8 +315,12 @@ func Test_trustschema1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	// db function f1 (variable-reader, inlined)
+	// db function f2 (variable-reader, inlined)
+	// db function f3 (variable-reader, inlined)
 	{ // "2.100"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),(100,50,75),(-11,22,-33);\n  CREATE VIEW v1a AS SELECT f3(a+b) FROM t1;\n  SELECT f3(a+b) FROM t1;\n")
 		if r.Error != nil {

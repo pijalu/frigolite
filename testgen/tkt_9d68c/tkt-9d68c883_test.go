@@ -63,9 +63,9 @@ func Test_tkt_9d68c883(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+		db.Close()
 		// sqlite3_simulate_device -sectorsize 8192 (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "tkt-9d68c88-2." + i
 			_res = db.Exec("\n      BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');\n    ")
@@ -94,6 +94,7 @@ func Test_tkt_9d68c883(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// unregister_devsim (unsupported command, not transpiled)
 }

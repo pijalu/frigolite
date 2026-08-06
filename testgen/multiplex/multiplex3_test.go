@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -72,6 +73,7 @@ func Test_multiplex3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "multiplex3" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	// autoinstall_test_functions (unsupported command, not transpiled)
@@ -118,6 +120,9 @@ func Test_multiplex3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT md5sum(a, b) FROM t1 ORDER BY a")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum1) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum1, _res.Error, "2." + iTest)
+			}
 		}
 		db2.Close()
 		// incr iTest 1
@@ -131,6 +136,7 @@ func Test_multiplex3(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	{ // do_test "3.0"
 		// setup_and_save_db (unsupported command, not transpiled)
@@ -139,6 +145,7 @@ func Test_multiplex3(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
 }

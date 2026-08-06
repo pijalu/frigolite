@@ -7,6 +7,7 @@ package badutf
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -86,6 +87,7 @@ func Test_badutf2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "badutf2-1.0"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -99,8 +101,8 @@ func Test_badutf2(t *testing.T) {
 		_ = S // suppress unused warning
 		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
-	// foreach {i len uval xstr ustr u2u} "1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}"
-	_items0 := tclSplitList("1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}")
+	// foreach {i len uval xstr ustr u2u} "1 1 00     \x00         {}        {}\n2 1 01     \x01         \"\\u0001\" 01\n3 1 3F     ?         \"\\u003F\" 3F\n4 1 7F     \x7f         \"\\u007F\" 7F\n5 1 80     \x80         \"\\u0080\" C280\n6 1 C3BF   \xff         \"\\u00FF\" C3BF\n7 3 EFBFBD � \"\\uFFFD\" {}"
+	_items0 := tclSplitList("1 1 00     \x00         {}        {}\n2 1 01     \x01         \"\\u0001\" 01\n3 1 3F     ?         \"\\u003F\" 3F\n4 1 7F     \x7f         \"\\u007F\" 7F\n5 1 80     \x80         \"\\u0080\" C280\n6 1 C3BF   \xff         \"\\u00FF\" C3BF\n7 3 EFBFBD � \"\\uFFFD\" {}")
 	for _idx0 := 0; _idx0+6 <= len(_items0); _idx0 += 6 {
 		i := _items0[_idx0+0]
 		_ = i // suppress unused warning
@@ -139,6 +141,9 @@ func Test_badutf2(t *testing.T) {
 				res = "sqlite3_exec db $sql"
 				_ = res // suppress unused warning
 				_ = tclLIndex(tclLIndex(res, "1"), "1") // lindex result
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), uval) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", uval, _res.Error, "badutf2-2.3." + i)
+				}
 			}
 			{ // do_test "badutf2-2.4." + i
 				sql = "SELECT hex(CAST(x'" + uval + "' AS text)) AS x;"
@@ -146,6 +151,9 @@ func Test_badutf2(t *testing.T) {
 				res = "sqlite3_exec db $sql"
 				_ = res // suppress unused warning
 				_ = tclLIndex(tclLIndex(res, "1"), "1") // lindex result
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), uval) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", uval, _res.Error, "badutf2-2.4." + i)
+				}
 			}
 			if hstr != "%00" {
 				{ // do_test "badutf2-3.1." + i
@@ -154,6 +162,9 @@ func Test_badutf2(t *testing.T) {
 					res = "sqlite3_exec db $sql"
 					_ = res // suppress unused warning
 					_ = tclLIndex(tclLIndex(res, "1"), "1") // lindex result
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), uval) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", uval, _res.Error, "badutf2-3.1." + i)
+					}
 				}
 			}
 			if tclBool(i + "==5 && " + tcl_version + ">=8.7") {
@@ -163,10 +174,16 @@ func Test_badutf2(t *testing.T) {
 					// sqlite3_bind_text $S 1 $xstr $len (unsupported command, not transpiled)
 					// sqlite3_step $S (unsupported command, not transpiled)
 					// utf8_to_ustr2 [ sqlite3_column_text $S 0 ] (unsupported command, not transpiled)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), ustr) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ustr, _res.Error, "badutf2-4.1." + i)
+					}
 				}
 			}
 			{ // do_test "badutf2-5.1." + i
 				// utf8_to_utf8 $uval (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), u2u) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", u2u, _res.Error, "badutf2-5.1." + i)
+				}
 			}
 		}
 		{ // do_test "badutf2-4.2"

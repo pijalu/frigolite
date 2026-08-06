@@ -143,7 +143,7 @@ func Test_malloc3(t *testing.T) {
 	}
 	run_test_sql_id = "0" // TCL namespace variable
 	_ = run_test_sql_id // suppress unused warning
-	run_test_script = "list" // TCL namespace variable
+	run_test_script = "" // TCL namespace variable
 	_ = run_test_script // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -258,6 +258,7 @@ func Test_malloc3(t *testing.T) {
 	// proc definition (not transpiled)
 	// sqlite3_extended_result_codes db 1 (unsupported command, not transpiled)
 	// run_test $::run_test_script 1 (unsupported command, not transpiled)
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

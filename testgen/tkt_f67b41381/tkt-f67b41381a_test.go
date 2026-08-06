@@ -102,9 +102,9 @@ func Test_tkt_f67b41381a(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " EXPLAIN INSERT INTO t1 SELECT * FROM t2 ")
 			}
 			{ // do_test "2." + tn
-				_res = db.Exec("list set res")
+				_res = db.Exec("set res")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list set res")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "set res")
 				}
 			}
 		}

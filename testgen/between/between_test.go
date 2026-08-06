@@ -155,7 +155,8 @@ func Test_between(t *testing.T) {
 		// queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND +z O...} (test infra, not transpiled)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "between-2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT, y TEXT COLLATE nocase);\n  INSERT INTO t1 VALUES('0', 'abc');\n")
@@ -183,7 +184,8 @@ func Test_between(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "between-3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);\n")

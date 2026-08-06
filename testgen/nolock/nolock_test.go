@@ -72,6 +72,7 @@ func Test_nolock(t *testing.T) {
 	// tvfs script tvfs_callback (unsupported command, not transpiled)
 	// tvfs filter {xLock xUnlock xCheckReservedLock xAccess} (unsupported command, not transpiled)
 	{ // do_test "nolock-1.0"
+		db.Close()
 		os.Remove("test.db")
 		// tvfs_reset (unsupported command, not transpiled)
 		// sqlite db test.db -vfs tvfs (unsupported command, not transpiled)
@@ -83,6 +84,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-1.1"
+		db.Close()
 		os.Remove("test.db")
 		// tvfs_reset (unsupported command, not transpiled)
 		// sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1 (unsupported command, not transpiled)
@@ -94,6 +96,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-1.2"
+		db.Close()
 		os.Remove("test.db")
 		// tvfs_reset (unsupported command, not transpiled)
 		// sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1 (unsupported command, not transpiled)
@@ -105,6 +108,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-1.3"
+		db.Close()
 		// tvfs_reset (unsupported command, not transpiled)
 		// sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1 -readonly 1 (unsupported command, not transpiled)
 		_res = db.Exec("SELECT * FROM t1")
@@ -115,6 +119,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-1.4"
+		db.Close()
 		// tvfs_reset (unsupported command, not transpiled)
 		// sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1 -readonly 1 (unsupported command, not transpiled)
 		_res = db.Exec("SELECT * FROM t1")
@@ -125,6 +130,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-2.0"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -206,6 +212,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	db2.Close()
+	db.Close()
 	// tvfs delete (unsupported command, not transpiled)
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
 		{ // do_test "nolock-4.1"
@@ -218,6 +225,7 @@ func Test_nolock(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       PRAGMA journal_mode=WAL;\n       CREATE TABLE t1(x);\n       INSERT INTO t1 VALUES('youngling');\n       SELECT * FROM t1;\n    ")
 			}
 		}
+		db.Close()
 		{ // do_test "nolock-4.2"
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
@@ -228,8 +236,8 @@ func Test_nolock(t *testing.T) {
 			}
 		}
 		{ // do_test "nolock-4.3"
-			_dbtmp1, err := frigolite.Open("file:test.db?nolock=1")
-			_ = _dbtmp1 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("file:test.db?nolock=1")
 			if err != nil { t.Fatal(err) }
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning

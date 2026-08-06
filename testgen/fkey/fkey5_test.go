@@ -167,7 +167,7 @@ func Test_fkey5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0 0 p1 x {} {NO ACTION} {NO ACTION} NONE"
+		want := "0 0 p1 x {} NO ACTION NO ACTION NONE"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -572,7 +572,8 @@ func Test_fkey5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "10.1"
 		_res = db.Exec("\n  CREATE TABLE p30 (id INTEGER PRIMARY KEY);\n  CREATE TABLE IF NOT EXISTS c30 (\n      line INTEGER, \n      master REFERENCES p30(id), \n      PRIMARY KEY(master)\n  ) WITHOUT ROWID;\n\n  INSERT INTO p30 (id) VALUES (1);\n  INSERT INTO c30 (master, line)  VALUES (1, 999);\n")
@@ -599,7 +600,8 @@ func Test_fkey5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE tt(y);\n  CREATE TABLE c11(x REFERENCES tt(y));\n")
@@ -614,7 +616,8 @@ func Test_fkey5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "12.0"
 		r = db.Query("\n  ATTACH ':memory:' as aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n  CREATE TABLE main.t2(x TEXT PRIMARY KEY, y INT);\n  INSERT INTO main.t2 VALUES('abc',11),('def',22),('xyz',99);\n  INSERT INTO aux.t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n  PRAGMA foreign_key_check=t1;\n")
@@ -671,7 +674,8 @@ func Test_fkey5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "13.10"
 		r = db.Query("\n      PRAGMA foreign_keys=OFF;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n      CREATE TABLE t2(x TEXT PRIMARY KEY, y INT);\n      CREATE TABLE t3(w TEXT, z INT REFERENCES t1);\n      INSERT INTO t2 VALUES('abc',11),('def',22),('xyz',99);\n      INSERT INTO t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n      INSERT INTO t3 VALUES(11,7),(22,19);\n    ")

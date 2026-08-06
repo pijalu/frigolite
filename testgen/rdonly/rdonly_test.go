@@ -66,6 +66,7 @@ func Test_rdonly(t *testing.T) {
 		// sqlite3_db_readonly db main (unsupported command, not transpiled)
 	}
 	{ // do_test "rdonly-1.2"
+		db.Close()
 		// hexio_get_int [hexio_read test.db 18 1] (unsupported command, not transpiled)
 	}
 	{ // do_test "rdonly-1.3"
@@ -86,9 +87,9 @@ func Test_rdonly(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "rdonly-1.5"
+		db.Close()
 		// hexio_write test.db 18 01 (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql

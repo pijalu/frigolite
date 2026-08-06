@@ -284,7 +284,8 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		r = db.Query("\n  CREATE TABLE p1(a INTEGER PRIMARY KEY, b UNIQUE);\n  CREATE TABLE c1(x REFERENCES p1(b));\n\n  INSERT INTO p1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO c1 VALUES('two');\n\n  PRAGMA foreign_keys = 1;\n  PRAGMA defer_foreign_keys = 1;\n")
@@ -305,7 +306,8 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		r = db.Query("\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n")
@@ -320,7 +322,8 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
 		{ // "6.1"
@@ -329,8 +332,8 @@ func Test_fkey6(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');\n  ")
 			}
 		}
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.1"
 			r = db.Query("\n    PRAGMA foreign_keys = 1;\n    PRAGMA writable_schema = 1;\n  ")

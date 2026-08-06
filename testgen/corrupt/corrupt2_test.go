@@ -203,7 +203,7 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config db2 DEFENSIVE 0 (unsupported command, not transpiled)
+		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		r = db2.Query("\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
@@ -300,7 +300,8 @@ func Test_corrupt2(t *testing.T) {
 	// corruption_test -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TA...} -corrupt {\n  s... (unsupported command, not transpiled)
 	// corruption_test -tclprep {\n    db eval { \n      PRAGMA auto_vacuum = full;...} -corrupt {\n   ... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "14.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(randomblob(3500));\n  DELETE FROM t1;\n")
@@ -321,9 +322,9 @@ func Test_corrupt2(t *testing.T) {
 		}
 	}
 	{ // do_test "14.2"
+		db.Close()
 		// hexio_write test.db 36 [hexio_render_int32 2] (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA freelist_count ")
 		if r.Error != nil {

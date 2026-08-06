@@ -100,7 +100,8 @@ func Test_fts3fault2(t *testing.T) {
 	}
 	// do_faultsim_test 5.1 -faults oom* -prep {\n    faultsim_restore_and_reopen\n    db eval {SE...} -... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "6.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t6 USING fts4(x,order=DESC);\n    INSERT INTO t6(docid, x) VALUES(-1,'a b');\n    INSERT INTO t6(docid, x) VALUES(1, 'b');\n  ")
@@ -111,7 +112,8 @@ func Test_fts3fault2(t *testing.T) {
 	}
 	// do_faultsim_test 6.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT...} -... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t7 USING fts4(x,prefix=2);\n  INSERT INTO t7 VALUES('the quick brown fox');\n  INSERT INTO t7 VALUES('jumped over the');\n  INSERT INTO t7 VALUES('lazy dog');\n")
@@ -121,7 +123,8 @@ func Test_fts3fault2(t *testing.T) {
 	}
 	// do_faultsim_test 7.1 -faults oom* -body {\n  execsql { SELECT docid FROM t7 WHERE t7 MATCH ...} -... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE t8 USING fts3;\n  INSERT INTO t8 VALUES('the quick brown fox');\n  INSERT INTO t8 VALUES('jumped over the');\n  INSERT INTO t8 VALUES('lazy dog');\n  INSERT INTO t8(t8) VALUES('automerge=8');\n  SELECT name FROM sqlite_master WHERE name LIKE 't8%';\n")
@@ -137,11 +140,12 @@ func Test_fts3fault2(t *testing.T) {
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 8.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ... (unsupported command, not transpiled)
-	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	TMPDBERROR = "1 {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
 	// do_faultsim_test 8.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	chunkconfig = "fts3_configure_incr_load 1 1"
 	_ = chunkconfig // suppress unused warning

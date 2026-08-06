@@ -89,7 +89,8 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TEMP TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 2);\n")
@@ -122,7 +123,8 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1.1"
 		r = db.Query("\n  PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000 )\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n\n  SELECT count(*) FROM t1;\n")
@@ -185,7 +187,8 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1.1"
 		r = db.Query("\n  PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<10 )\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n\n  SELECT count(*) FROM t1;\n  PRAGMA temp.page_count;\n")
@@ -235,7 +238,8 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1.1"
 		r = db.Query("\n  PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
@@ -285,7 +289,8 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.1"
 		r = db.Query("\n  PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n\n  CREATE TEMP TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x;\n")
@@ -306,7 +311,8 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -323,7 +329,8 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
 		r = db.Query("\n  PRAGMA auto_vacuum = OFF;\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<20 )\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM x ORDER BY 1, 2;\n  PRAGMA page_count;\n")
@@ -375,7 +382,8 @@ func Test_temptable2(t *testing.T) {
 		_ = mode // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

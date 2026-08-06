@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -87,8 +88,8 @@ func Test_thread001(t *testing.T) {
 	_ = enable_shared_cache // suppress unused warning
 	NTHREAD = "10" // TCL namespace variable
 	_ = NTHREAD // suppress unused warning
-	// foreach {tn same_db shared_cache} "\\\n         1  1       0                   \\\n         2  0       0                   \\\n         3  0       1                   \\\n"
-	_items0 := tclSplitList("\\\n         1  1       0                   \\\n         2  0       0                   \\\n         3  0       1                   \\\n")
+	// foreach {tn same_db shared_cache} "         1  1       0                            2  0       0                            3  0       1                   "
+	_items0 := tclSplitList("         1  1       0                            2  0       0                            3  0       1                   ")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -100,8 +101,12 @@ func Test_thread001(t *testing.T) {
 			_res = db.Exec(" DROP TABLE ab; ")
 			_ = _res // catchsql
 			{ // do_test "thread001." + tn + ".0"
+				db.Close()
 				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
 				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), shared_cache) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", shared_cache, _res.Error, "thread001." + tn + ".0")
+				}
 			}
 			_dbtmp1, err := frigolite.Open("test.db")
 			_ = _dbtmp1 // sqlite3 db connection
@@ -183,6 +188,7 @@ func Test_thread001(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		sqlite_open_file_count = "0"
 		_ = sqlite_open_file_count // suppress unused warning

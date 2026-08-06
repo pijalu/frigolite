@@ -71,6 +71,7 @@ func Test_mallocA(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a COLLATE NOCASE,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t1 VALUES(1,2,4);\n  INSERT INTO t1 VALUES(2,3,4);\n  CREATE INDEX t1i1 ON t1(a);\n  CREATE INDEX t1i2 ON t1(b,c);\n  CREATE TABLE t2(x,y,z);\n")
 	}
+	db.Close()
 	// copy_file test.db test.db.bu (unsupported command, not transpiled)
 	// do_malloc_test mallocA-1 -testdb test.db.bu -sqlbody {\n  ANALYZE\n} (unsupported command, not transpiled)
 	// do_malloc_test mallocA-1.1 -testdb test.db.bu -sqlbody {\n  ANALYZE t1\n} (unsupported command, not transpiled)
@@ -81,7 +82,8 @@ func Test_mallocA(t *testing.T) {
 	// do_malloc_test mallocA-4 -testdb test.db.bu -sqlbody {\n    REINDEX main.t1;\n  } (unsupported command, not transpiled)
 	// do_malloc_test mallocA-5 -testdb test.db.bu -sqlbody {\n    REINDEX nocase;\n  } (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	{ // "6-prep"
@@ -103,6 +105,7 @@ func Test_mallocA(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 	os.Remove("test.db.bu")

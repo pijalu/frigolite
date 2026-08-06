@@ -92,6 +92,7 @@ func Test_crash4(t *testing.T) {
 	fin = "0"
 	_ = fin // suppress unused warning
 	for tclBool("!" + fin) {
+		db.Close()
 		os.Remove("test.db")
 		{ // do_test "crash4-1." + cnt + ".1"
 			seed = "0"
@@ -102,7 +103,7 @@ func Test_crash4(t *testing.T) {
 			_ = file // suppress unused warning
 			c = "crashsql -delay $delay -file $file -seed $seed -tclbody {\n      db eval {CREATE TABLE a(id INTEGER, name CHAR(50))}\n      db eval {INSERT INTO a(id,name) VALUES(1,'one')}\n      db eval {INSERT INTO a(id,name) VALUES(2,'two')}\n      db eval {INSERT INTO a(id,name) VALUES(3,'three')}\n      db eval {INSERT INTO a(id,name) VALUES(4,'four')}\n      db eval {INSERT INTO a(id,name) VALUES(5,'five')}\n      db eval {INSERT INTO a(id,name) VALUES(6,'six')}\n      db eval {INSERT INTO a(id,name) VALUES(7,'seven')}\n      db eval {INSERT INTO a(id,name) VALUES(8,'eight')}\n      db eval {INSERT INTO a(id,name) VALUES(9,'nine')}\n      db eval {INSERT INTO a(id,name) VALUES(10,'ten')}\n      db close\n      sqlite3 db test.db\n      db eval {UPDATE A SET name='new text for row 3' WHERE id=3}\n      db close\n    } {}"
 			_ = c // suppress unused warning
-			if tclBool(c + "==" + "list 0 {}") {
+			if func() bool { l_n, l_e := strconv.Atoi(c); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0 {}"); if r_e != nil { return false }; return l_n == r_n }() {
 				fin = "1" // TCL namespace variable
 				_ = fin // suppress unused warning
 				c = "1 {child process exited abnormally}"

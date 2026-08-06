@@ -81,7 +81,8 @@ func Test_orderby6(t *testing.T) {
 		_ = rowidclause // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test tn + ".1"
 				_res = db.Exec("CREATE TABLE t1(a,b,c,PRIMARY KEY(b,c)) " + rowidclause + ";")

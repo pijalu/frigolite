@@ -63,6 +63,7 @@ func Test_corruptM(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	// proc definition (not transpiled)
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

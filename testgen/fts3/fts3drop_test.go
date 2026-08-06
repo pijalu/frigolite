@@ -74,7 +74,7 @@ func Test_fts3drop(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a b c} {d e f}"
+		want := "a b c d e f"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -92,7 +92,7 @@ func Test_fts3drop(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a b c} {d e f}"
+		want := "a b c d e f"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

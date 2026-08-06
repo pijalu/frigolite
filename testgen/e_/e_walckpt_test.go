@@ -7,6 +7,7 @@ package e_
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -139,8 +140,12 @@ func Test_e_walckpt(t *testing.T) {
 			{ // do_test "4." + tn
 				_list := tclList([]string{"0", msg})
 				_ = _list
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "4." + tn)
+				}
 			}
 		}
+		db.Close()
 		for _, tn := range tclSplitList("1 2 3") {
 		_ = tn // suppress unused warning
 			os.Remove("test.db")
@@ -154,10 +159,12 @@ func Test_e_walckpt(t *testing.T) {
 			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
 			// switch -- $tn {\n    1 {\n      # EVIDENCE-OF: R-41299-52117 If n...} (test infra, not transpiled)
+			db.Close()
 			db2.Close()
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2

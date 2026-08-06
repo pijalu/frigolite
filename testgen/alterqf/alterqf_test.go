@@ -94,7 +94,8 @@ func Test_alterqf(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db.SetDQS(true, true)
 		db.SetDQS(true, true)

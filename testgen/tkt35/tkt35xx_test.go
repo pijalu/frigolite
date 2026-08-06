@@ -71,9 +71,9 @@ func Test_tkt35xx(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n  ")
 		}
 	}
+	db.Close()
 	// delete_file test.db (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	big = "abcdefghij 22"
 	_ = big // suppress unused warning

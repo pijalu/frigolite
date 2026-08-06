@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -85,8 +86,8 @@ func Test_vacuum3(t *testing.T) {
 	}
 	I = "4"
 	_ = I // suppress unused warning
-	// foreach {request actual database} "\\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\\n"
-	_items0 := tclSplitList("\\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\\n")
+	// foreach {request actual database} "  2048 2048 4096                          1024 1024 2048                          1170 1024 2048                          256  1024 2048                          512  512  1024                          4096 4096 8192                          1024 1024 2048                        "
+	_items0 := tclSplitList("  2048 2048 4096                          1024 1024 2048                          1170 1024 2048                          256  1024 2048                          512  512  1024                          4096 4096 8192                          1024 1024 2048                        ")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
 		request := _items0[_idx0+0]
 		_ = request // suppress unused warning
@@ -104,9 +105,15 @@ func Test_vacuum3(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), actual) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", actual, _res.Error, "vacuum3-1." + I + ".1")
+				}
 			}
 			{ // do_test "vacuum3-1." + I + ".2"
 				// file size test.db
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), database) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", database, _res.Error, "vacuum3-1." + I + ".2")
+				}
 			}
 			{ // do_test "vacuum3-1." + I + ".3"
 				r = db.Query(" SELECT * FROM t1 ")
@@ -152,8 +159,8 @@ func Test_vacuum3(t *testing.T) {
 		}
 		I = "4"
 		_ = I // suppress unused warning
-		// foreach {request actual database} "\\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\\n"
-		_items1 := tclSplitList("\\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\\n")
+		// foreach {request actual database} "  2048 2048 4096                          1024 1024 3072                          1170 1024 3072                          256  1024 3072                          512  512  2048                          4096 4096 8192                          1024 1024 3072                        "
+		_items1 := tclSplitList("  2048 2048 4096                          1024 1024 3072                          1170 1024 3072                          256  1024 3072                          512  512  2048                          4096 4096 8192                          1024 1024 3072                        ")
 		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 			request := _items1[_idx1+0]
 			_ = request // suppress unused warning
@@ -171,9 +178,15 @@ func Test_vacuum3(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
 					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), actual) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", actual, _res.Error, "vacuum3-2." + I + ".1")
+					}
 				}
 				{ // do_test "vacuum3-2." + I + ".2"
 					// file size test.db
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), database) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", database, _res.Error, "vacuum3-2." + I + ".2")
+					}
 				}
 				{ // do_test "vacuum3-2." + I + ".3"
 					r = db.Query(" SELECT * FROM t1 ")
@@ -208,8 +221,8 @@ func Test_vacuum3(t *testing.T) {
 			_ = sig // suppress unused warning
 			I = "3"
 			_ = I // suppress unused warning
-			// foreach {request actual} "\\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\\n"
-			_items2 := tclSplitList("\\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\\n")
+			// foreach {request actual} "  2048 2048                      1024 1024                      1170 1024                      256  1024                      512  512                       4096 4096                      1024 1024                    "
+			_items2 := tclSplitList("  2048 2048                      1024 1024                      1170 1024                      256  1024                      512  512                       4096 4096                      1024 1024                    ")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				request := _items2[_idx2+0]
 				_ = request // suppress unused warning
@@ -225,9 +238,15 @@ func Test_vacuum3(t *testing.T) {
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
 						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), actual) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", actual, _res.Error, "vacuum3-3." + I + ".1")
+						}
 					}
 					{ // do_test "vacuum3-3." + I + ".2"
 						// signature (unsupported command, not transpiled)
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "vacuum3-3." + I + ".2")
+						}
 					}
 					_res = db.Exec("PRAGMA integrity_check")
 					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -240,9 +259,9 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.1"
+					db.Close()
 					// delete_file test.db (unsupported command, not transpiled)
-					_dbtmp3, err := frigolite.Open("test.db")
-					_ = _dbtmp3 // sqlite3 db connection
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
 					if _res.Error != nil {

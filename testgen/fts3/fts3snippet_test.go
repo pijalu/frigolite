@@ -135,6 +135,7 @@ func Test_fts3snippet(t *testing.T) {
 		enc := _items0[_idx0+1]
 		_ = enc // suppress unused warning
 		_ = _idx0
+			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -169,7 +170,7 @@ func Test_fts3snippet(t *testing.T) {
 			off = "\"onehundred \" $numbers"
 			_ = off // suppress unused warning
 			// do_offsets_test $T.2.2 {onehundred} [list 0 0 $off 10 1 0 $off 10] [list 0 0 $off 10] (unsupported command, not transpiled)
-			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+			// sqlite3_db_config DEFENSIVE (unhandled flag)
 			_res = db.Exec(" UPDATE ft_content SET c1b = 'hello world' WHERE c1b = " + sqlLiteral(numbers) + " ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ft_content SET c1b = 'hello world' WHERE c1b = " + sqlLiteral(numbers) + " ")
@@ -328,25 +329,25 @@ func Test_fts3snippet(t *testing.T) {
 			}
 		}
 		{ // "2.2"
-			r = db.Query("\n  SELECT snippet(t2, '" + sqlLiteral("', '") + "') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'\n")
+			r = db.Query("\n  SELECT snippet(t2, '[', ']') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t2, '" + sqlLiteral("', '") + "') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t2, '[', ']') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'\n")
 				return
 			}
 			got := flatten(r)
-			want := "{[one] two three [four] five} {two three [four] five [one]} {three [four] five [one] two} {[four] five [one] two three} {five [one] two three [four]}"
+			want := "[one] two three [four] five two three [four] five [one] three [four] five [one] two [four] five [one] two three five [one] two three [four]"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "2.3"
-			r = db.Query("\n  SELECT snippet(t2, '" + sqlLiteral("', '") + "') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC\n")
+			r = db.Query("\n  SELECT snippet(t2, '[', ']') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t2, '" + sqlLiteral("', '") + "') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t2, '[', ']') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC\n")
 				return
 			}
 			got := flatten(r)
-			want := "{five [one] two three [four]} {[four] five [one] two three} {three [four] five [one] two} {two three [four] five [one]} {[one] two three [four] five}"
+			want := "five [one] two three [four] [four] five [one] two three three [four] five [one] two two three [four] five [one] [one] two three [four] five"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -358,33 +359,33 @@ func Test_fts3snippet(t *testing.T) {
 			}
 		}
 		{ // "2.5"
-			r = db.Query("\n  SELECT snippet(t2, '" + sqlLiteral("', '") + "') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'\n")
+			r = db.Query("\n  SELECT snippet(t2, '[', ']') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t2, '" + sqlLiteral("', '") + "') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t2, '[', ']') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'\n")
 				return
 			}
 			got := flatten(r)
-			want := "{[one] two three [four] five} {two three [four] five [one]} {three [four] five [one] two} {[four] five [one] two three} {five [one] two three [four]}"
+			want := "[one] two three [four] five two three [four] five [one] three [four] five [one] two [four] five [one] two three five [one] two three [four]"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "2.6"
-			r = db.Query("\n  SELECT snippet(t2, '" + sqlLiteral("', '") + "') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC\n")
+			r = db.Query("\n  SELECT snippet(t2, '[', ']') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t2, '" + sqlLiteral("', '") + "') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t2, '[', ']') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC\n")
 				return
 			}
 			got := flatten(r)
-			want := "{five [one] two three [four]} {[four] five [one] two three} {three [four] five [one] two} {two three [four] five [one]} {[one] two three [four] five}"
+			want := "five [one] two three [four] [four] five [one] two three three [four] five [one] two two three [four] five [one] [one] two three [four] five"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "3"
-			_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('" + sqlLiteral("one two three") + "');\n")
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('[one two three]');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('" + sqlLiteral("one two three") + "');\n")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('[one two three]');\n")
 			}
 		}
 		{ // "3.1"
@@ -436,9 +437,9 @@ func Test_fts3snippet(t *testing.T) {
 			}
 		}
 		{ // "4.1"
-			r = db.Query("\n  CREATE VIRTUAL TABLE t4 USING fts4;\n  INSERT INTO t4 VALUES('a b c d');\n  SELECT snippet(t4, '" + sqlLiteral("', '") + "', '...', 0, 0) FROM t4 WHERE t4 MATCH 'b';\n")
+			r = db.Query("\n  CREATE VIRTUAL TABLE t4 USING fts4;\n  INSERT INTO t4 VALUES('a b c d');\n  SELECT snippet(t4, '[', ']', '...', 0, 0) FROM t4 WHERE t4 MATCH 'b';\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4;\n  INSERT INTO t4 VALUES('a b c d');\n  SELECT snippet(t4, '" + sqlLiteral("', '") + "', '...', 0, 0) FROM t4 WHERE t4 MATCH 'b';\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4;\n  INSERT INTO t4 VALUES('a b c d');\n  SELECT snippet(t4, '[', ']', '...', 0, 0) FROM t4 WHERE t4 MATCH 'b';\n")
 				return
 			}
 			got := flatten(r)
@@ -466,21 +467,21 @@ func Test_fts3snippet(t *testing.T) {
 			}
 		}
 		{ // "5.1"
-			r = db.Query("\n  SELECT snippet(t5, '" + sqlLiteral("', '") + "') FROM t5 WHERE t5 MATCH \n  'a1 OR a2 OR a3 OR a4 OR a5 OR a6 OR a7 OR a8 OR a9 OR a10 OR ' ||\n  'a11 OR a12 OR a13 OR a14 OR a15 OR a16 OR a17 OR a18 OR a19 OR a10 OR ' ||\n  'a21 OR a22 OR a23 OR a24 OR a25 OR a26 OR a27 OR a28 OR a29 OR a20 OR ' ||\n  'a31 OR a32 OR a33 OR a34 OR a35 OR a36 OR a37 OR a38 OR a39 OR a30 OR ' ||\n  'a41 OR a42 OR a43 OR a44 OR a45 OR a46 OR a47 OR a48 OR a49 OR a40 OR ' ||\n  'a51 OR a52 OR a53 OR a54 OR a55 OR a56 OR a57 OR a58 OR a59 OR a50 OR ' ||\n  'a61 OR a62 OR a63 OR a64 OR a65 OR a66 OR a67 OR a68 OR a69 OR a60 OR ' ||\n  'a71 OR a72 OR a73 OR a74 OR a75 OR a76 OR a77 OR a78 OR a79 OR a70'\n")
+			r = db.Query("\n  SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH \n  'a1 OR a2 OR a3 OR a4 OR a5 OR a6 OR a7 OR a8 OR a9 OR a10 OR ' ||\n  'a11 OR a12 OR a13 OR a14 OR a15 OR a16 OR a17 OR a18 OR a19 OR a10 OR ' ||\n  'a21 OR a22 OR a23 OR a24 OR a25 OR a26 OR a27 OR a28 OR a29 OR a20 OR ' ||\n  'a31 OR a32 OR a33 OR a34 OR a35 OR a36 OR a37 OR a38 OR a39 OR a30 OR ' ||\n  'a41 OR a42 OR a43 OR a44 OR a45 OR a46 OR a47 OR a48 OR a49 OR a40 OR ' ||\n  'a51 OR a52 OR a53 OR a54 OR a55 OR a56 OR a57 OR a58 OR a59 OR a50 OR ' ||\n  'a61 OR a62 OR a63 OR a64 OR a65 OR a66 OR a67 OR a68 OR a69 OR a60 OR ' ||\n  'a71 OR a72 OR a73 OR a74 OR a75 OR a76 OR a77 OR a78 OR a79 OR a70'\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t5, '" + sqlLiteral("', '") + "') FROM t5 WHERE t5 MATCH \n  'a1 OR a2 OR a3 OR a4 OR a5 OR a6 OR a7 OR a8 OR a9 OR a10 OR ' ||\n  'a11 OR a12 OR a13 OR a14 OR a15 OR a16 OR a17 OR a18 OR a19 OR a10 OR ' ||\n  'a21 OR a22 OR a23 OR a24 OR a25 OR a26 OR a27 OR a28 OR a29 OR a20 OR ' ||\n  'a31 OR a32 OR a33 OR a34 OR a35 OR a36 OR a37 OR a38 OR a39 OR a30 OR ' ||\n  'a41 OR a42 OR a43 OR a44 OR a45 OR a46 OR a47 OR a48 OR a49 OR a40 OR ' ||\n  'a51 OR a52 OR a53 OR a54 OR a55 OR a56 OR a57 OR a58 OR a59 OR a50 OR ' ||\n  'a61 OR a62 OR a63 OR a64 OR a65 OR a66 OR a67 OR a68 OR a69 OR a60 OR ' ||\n  'a71 OR a72 OR a73 OR a74 OR a75 OR a76 OR a77 OR a78 OR a79 OR a70'\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH \n  'a1 OR a2 OR a3 OR a4 OR a5 OR a6 OR a7 OR a8 OR a9 OR a10 OR ' ||\n  'a11 OR a12 OR a13 OR a14 OR a15 OR a16 OR a17 OR a18 OR a19 OR a10 OR ' ||\n  'a21 OR a22 OR a23 OR a24 OR a25 OR a26 OR a27 OR a28 OR a29 OR a20 OR ' ||\n  'a31 OR a32 OR a33 OR a34 OR a35 OR a36 OR a37 OR a38 OR a39 OR a30 OR ' ||\n  'a41 OR a42 OR a43 OR a44 OR a45 OR a46 OR a47 OR a48 OR a49 OR a40 OR ' ||\n  'a51 OR a52 OR a53 OR a54 OR a55 OR a56 OR a57 OR a58 OR a59 OR a50 OR ' ||\n  'a61 OR a62 OR a63 OR a64 OR a65 OR a66 OR a67 OR a68 OR a69 OR a60 OR ' ||\n  'a71 OR a72 OR a73 OR a74 OR a75 OR a76 OR a77 OR a78 OR a79 OR a70'\n")
 				return
 			}
 			got := flatten(r)
-			want := "{[a1] [a2] [a3]} {[a4] [a5] [a6]} {[a70] [a71] [a72]}"
+			want := "[a1] [a2] [a3] [a4] [a5] [a6] [a70] [a71] [a72]"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "5.2"
-			r = db.Query("\n  SELECT snippet(t5, '" + sqlLiteral("', '") + "', -1, 0) FROM t5 WHERE t5 MATCH 'a5'\n")
+			r = db.Query("\n  SELECT snippet(t5, '[', ']', -1, 0) FROM t5 WHERE t5 MATCH 'a5'\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t5, '" + sqlLiteral("', '") + "', -1, 0) FROM t5 WHERE t5 MATCH 'a5'\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t5, '[', ']', -1, 0) FROM t5 WHERE t5 MATCH 'a5'\n")
 				return
 			}
 			got := flatten(r)

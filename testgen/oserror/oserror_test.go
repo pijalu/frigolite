@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -75,6 +76,7 @@ func Test_oserror(t *testing.T) {
 	}
 	testprefix = "oserror" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log xLog (unsupported command, not transpiled)
 	// proc definition (not transpiled)
@@ -83,7 +85,7 @@ func Test_oserror(t *testing.T) {
 		nOpen = "20000"
 		_ = nOpen // suppress unused warning
 		{ // do_test "1.1.1"
-			log = "list" // TCL namespace variable
+			log = "" // TCL namespace variable
 			_ = log // suppress unused warning
 			rc = "0" // TCL namespace variable
 			_ = rc // suppress unused warning
@@ -115,6 +117,9 @@ func Test_oserror(t *testing.T) {
 					}
 				}
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, _res.Error, "1.1.2")
+			}
 		}
 		if tclBool(rc) {
 			// do_re_test 1.1.3 { \n      lindex $::log 0 \n    } {^os_unix.c:\d+: \(\d+\) (open|getcwd)\(... (unsupported command, not transpiled)
@@ -122,28 +127,28 @@ func Test_oserror(t *testing.T) {
 	}
 	{ // do_test "1.2.1"
 		// file mkdir dir.db
-		log = "list" // TCL namespace variable
+		log = "" // TCL namespace variable
 		_ = log // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	// do_re_test 1.2.2 { lindex $::log 0 } {^os_unix.c:\d+: \(\d+\) open\(.*dir.db\) - } (unsupported command, not transpiled)
 	{ // do_test "1.3.1"
-		log = "list" // TCL namespace variable
+		log = "" // TCL namespace variable
 		_ = log // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	// do_re_test 1.3.2 { lindex $::log 0 } {^os_unix.c:\d+: \(\d+\) open\(.*test.db\) - } (unsupported command, not transpiled)
 	{ // do_test "1.4.1"
-		log = "list" // TCL namespace variable
+		log = "" // TCL namespace variable
 		_ = log // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	// do_re_test 1.4.2 { \n  lindex $::log 0\n} {^os_unix.c:\d*: \(\d+\) (open|readlink|lstat)\(.... (unsupported command, not transpiled)
 	{ // do_test "2.1.1"
-		log = "list" // TCL namespace variable
+		log = "" // TCL namespace variable
 		_ = log // suppress unused warning
 		// file mkdir test.db-wal
 		os.Remove("test.db")

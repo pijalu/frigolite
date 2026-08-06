@@ -90,6 +90,7 @@ func Test_backup4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	os.Remove("test.db2")
 	db, err = frigolite.Open("")
@@ -113,6 +114,7 @@ func Test_backup4(t *testing.T) {
 	{ // do_test "2.4"
 		// file size test.db2
 	}
+	db.Close()
 	os.Remove("test.db")
 	os.Remove("test.db2")
 	db, err = frigolite.Open("")

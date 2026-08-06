@@ -86,8 +86,8 @@ func Test_snapshot(t *testing.T) {
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}
-	// foreach {tn tcl} "1 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "list sqlite3_snapshot_get $DB $DBNAME" + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "list sqlite3_snapshot_open $DB $DBNAME $SNAPSHOT" + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n      uplevel " + "list sqlite3_snapshot_free $SNAPSHOT" + "\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "list sqlite3_snapshot_cmp $SNAPSHOT1 $SNAPSHOT2" + "\n    }\n  }\n\n  2 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "list sqlite3_snapshot_get_blob $DB $DBNAME" + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "list sqlite3_snapshot_open_blob $DB $DBNAME $SNAPSHOT" + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "list sqlite3_snapshot_cmp_blob $SNAPSHOT1 $SNAPSHOT2" + "\n    }\n  }"
-	_items0 := tclSplitList("1 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "list sqlite3_snapshot_get $DB $DBNAME" + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "list sqlite3_snapshot_open $DB $DBNAME $SNAPSHOT" + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n      uplevel " + "list sqlite3_snapshot_free $SNAPSHOT" + "\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "list sqlite3_snapshot_cmp $SNAPSHOT1 $SNAPSHOT2" + "\n    }\n  }\n\n  2 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "list sqlite3_snapshot_get_blob $DB $DBNAME" + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "list sqlite3_snapshot_open_blob $DB $DBNAME $SNAPSHOT" + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "list sqlite3_snapshot_cmp_blob $SNAPSHOT1 $SNAPSHOT2" + "\n    }\n  }")
+	// foreach {tn tcl} "1 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "sqlite3_snapshot_get " + DB + " " + DBNAME + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "sqlite3_snapshot_open " + DB + " " + DBNAME + " " + SNAPSHOT + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n      uplevel " + "sqlite3_snapshot_free " + SNAPSHOT + "\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "sqlite3_snapshot_cmp " + SNAPSHOT1 + " " + SNAPSHOT2 + "\n    }\n  }\n\n  2 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "sqlite3_snapshot_get_blob " + DB + " " + DBNAME + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "sqlite3_snapshot_open_blob " + DB + " " + DBNAME + " " + SNAPSHOT + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "sqlite3_snapshot_cmp_blob " + SNAPSHOT1 + " " + SNAPSHOT2 + "\n    }\n  }"
+	_items0 := tclSplitList("1 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "sqlite3_snapshot_get " + DB + " " + DBNAME + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "sqlite3_snapshot_open " + DB + " " + DBNAME + " " + SNAPSHOT + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n      uplevel " + "sqlite3_snapshot_free " + SNAPSHOT + "\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "sqlite3_snapshot_cmp " + SNAPSHOT1 + " " + SNAPSHOT2 + "\n    }\n  }\n\n  2 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel " + "sqlite3_snapshot_get_blob " + DB + " " + DBNAME + "\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel " + "sqlite3_snapshot_open_blob " + DB + " " + DBNAME + " " + SNAPSHOT + "\n    }\n    proc snapshot_free {SNAPSHOT} {\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel " + "sqlite3_snapshot_cmp_blob " + SNAPSHOT1 + " " + SNAPSHOT2 + "\n    }\n  }")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -95,7 +95,8 @@ func Test_snapshot(t *testing.T) {
 		_ = tcl // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// eval $tcl (dynamic, not transpiled)
 			{ // tn + ".1.0"
@@ -409,11 +410,12 @@ func Test_snapshot(t *testing.T) {
 				// snapshot_free $snapshot (unsupported command, not transpiled)
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			db.Close()
 			// testvfs tvfs (unsupported command, not transpiled)
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // tn + ".5.1"
 				r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      SELECT * FROM x1;\n  ")
@@ -444,11 +446,13 @@ func Test_snapshot(t *testing.T) {
 			// tvfs script write_callback (unsupported command, not transpiled)
 			_res = db2.Exec(" PRAGMA wal_checkpoint ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			db.Close()
 			db2.Close()
 			// tvfs delete (unsupported command, not transpiled)
 			// snapshot_free $snapshot (unsupported command, not transpiled)
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // tn + ".6.1"
 				r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      PRAGMA user_version;\n  ")
@@ -508,7 +512,8 @@ func Test_snapshot(t *testing.T) {
 				db2.Close()
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // tn + ".7.1"
 				r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);\n  ")

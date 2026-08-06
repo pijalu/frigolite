@@ -82,8 +82,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.3"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
@@ -91,8 +91,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.4"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
 		if _res.Error != nil {
@@ -124,8 +124,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.7"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    VACUUM;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
@@ -271,7 +271,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "whereA-6.1"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1aa ON t1(a,a);\n  INSERT INTO t1 VALUES(1,2);\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='27 3 3' WHERE idx='t1aa';\n  ANALYZE sqlite_schema;\n  PRAGMA reverse_unordered_selects (1) ;\n  SELECT a FROM t1 WHERE  a=1 OR a=2;\n")

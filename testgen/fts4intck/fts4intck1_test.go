@@ -58,6 +58,7 @@ func Test_fts4intck1(t *testing.T) {
 	testprefix = "fts4intck1" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
+	// db function slang (variable-reader, inlined)
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT AS (slang(b)));\n  INSERT INTO t1(b) VALUES('the quick fox jumps over the lazy brown dog');\n  SELECT c FROM t1;\n")
 		if r.Error != nil {
@@ -94,8 +95,8 @@ func Test_fts4intck1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA integrity_check(t2);\n")
@@ -109,6 +110,7 @@ func Test_fts4intck1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	// db function slang (variable-reader, inlined)
 	{ // "2.2"
 		r = db.Query("\n  PRAGMA integrity_check(t2);\n")
 		if r.Error != nil {
@@ -135,7 +137,8 @@ func Test_fts4intck1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('one', 'two');\n  INSERT INTO x1 VALUES('three', 'four');\n")
@@ -143,8 +146,8 @@ func Test_fts4intck1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('one', 'two');\n  INSERT INTO x1 VALUES('three', 'four');\n")
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  PRAGMA integrity_check;\n")

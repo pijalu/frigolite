@@ -72,7 +72,8 @@ func Test_fts3dropmod(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_drop_modules db fts4 (unsupported command, not transpiled)
 	{ // "2.0"

@@ -1005,7 +1005,7 @@ func Test_tabfunc01(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := res
+				want := tclListFlatten(res)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -1416,7 +1416,8 @@ func Test_tabfunc01(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// load_static_extension db series (unsupported command, not transpiled)
 			{ // "1400"

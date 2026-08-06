@@ -7,6 +7,7 @@ package corruptH
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -87,9 +88,9 @@ func Test_corruptH(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
+		db.Close()
 		// hexio_write test.db [expr {($r(t2)-1)*1024 + 11}] [format %.2X $r(t1)] (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "1.3"
@@ -101,7 +102,8 @@ func Test_corruptH(t *testing.T) {
 		_ = _list
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA auto_vacuum=0;\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t3(x);\n\n  CREATE TABLE t2(x PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(randomblob(100));\n\n  DROP TABLE t3;\n")
@@ -114,14 +116,14 @@ func Test_corruptH(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
+		db.Close()
 		fl = "hexio_get_int [hexio_read test.db 32 4]"
 		_ = fl // suppress unused warning
 		// hexio_write test.db [expr {($fl-1) * 1024 + 0}] 00000000 (unsupported command, not transpiled)
 		// hexio_write test.db [expr {($fl-1) * 1024 + 4}] 00000001 (unsupported command, not transpiled)
 		// hexio_write test.db [expr {($fl-1) * 1024 + 8}] [format %.8X $r(t1)] (unsupported command, not transpiled)
 		// hexio_write test.db 36 00000002 (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	res23 = "1 {database disk image is malformed}"
@@ -129,9 +131,13 @@ func Test_corruptH(t *testing.T) {
 	{ // do_test "2.3"
 		_list := tclList([]string{"0", msg})
 		_ = _list
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), res23) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res23, _res.Error, "2.3")
+		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(c INTEGER PRAGMA KEY, d);\n  INSERT INTO t2 VALUES(1, randomblob(1100));\n")
@@ -144,9 +150,9 @@ func Test_corruptH(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
+		db.Close()
 		// hexio_write test.db [expr {($r(t2)-1) * 1024 + 1020}] 00000002 (unsupported command, not transpiled)
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "3.3"

@@ -80,7 +80,7 @@ func Test_walprotocol(t *testing.T) {
 		// testvfs T (unsupported command, not transpiled)
 		// T filter xShmLock (unsupported command, not transpiled)
 		// T script lock_callback (unsupported command, not transpiled)
-		locks = "list" // TCL namespace variable
+		locks = "" // TCL namespace variable
 		_ = locks // suppress unused warning
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
@@ -92,10 +92,10 @@ func Test_walprotocol(t *testing.T) {
 		_ = tclLRange(locks, "0", "11") // lrange result
 	}
 	{ // do_test "1.2"
-		locks = "list" // TCL namespace variable
+		db.Close()
+		locks = "" // TCL namespace variable
 		_ = locks // suppress unused warning
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM x ")
 		if r.Error != nil {
@@ -111,10 +111,10 @@ func Test_walprotocol(t *testing.T) {
 	_putsMsg = "# is built on unix without HAVE_USLEEP defined, it may be much longer."
 	_ = _putsMsg
 	{ // do_test "1.3"
-		locks = "list" // TCL namespace variable
+		db.Close()
+		locks = "" // TCL namespace variable
 		_ = locks // suppress unused warning
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM x ")
 		_ = _res // catchsql
@@ -123,10 +123,10 @@ func Test_walprotocol(t *testing.T) {
 	_ = _putsMsg
 	// proc definition (not transpiled)
 	{ // do_test "1.4"
-		locks = "list" // TCL namespace variable
+		db.Close()
+		locks = "" // TCL namespace variable
 		_ = locks // suppress unused warning
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM x ")
 		_ = _res // catchsql
@@ -135,14 +135,15 @@ func Test_walprotocol(t *testing.T) {
 	_ = _putsMsg
 	// proc definition (not transpiled)
 	{ // do_test "1.5"
-		locks = "list" // TCL namespace variable
+		db.Close()
+		locks = "" // TCL namespace variable
 		_ = locks // suppress unused warning
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM x ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	// T delete (unsupported command, not transpiled)
 	{ // do_test "2.1"
 		os.Remove("test.db")
@@ -180,8 +181,7 @@ func Test_walprotocol(t *testing.T) {
 	// T filter xShmLock (unsupported command, not transpiled)
 	// T script lock_callback (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	_dbtmp5, err := frigolite.Open("test.db")
-	_ = _dbtmp5 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -196,6 +196,7 @@ func Test_walprotocol(t *testing.T) {
 	{ // do_test "2.6"
 		_ = _r // TCL namespace variable (query)
 	}
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	// faultsim_restore_and_reopen (unsupported command, not transpiled)
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
@@ -214,6 +215,7 @@ func Test_walprotocol(t *testing.T) {
 	{ // do_test "2.8"
 		_ = _r // TCL namespace variable (query)
 	}
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	// T delete (unsupported command, not transpiled)
 }

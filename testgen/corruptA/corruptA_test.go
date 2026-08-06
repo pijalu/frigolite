@@ -66,6 +66,7 @@ func Test_corruptA(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	db.Close()
 	tclFileCopy("test.db", "test.db-template")
 	unreadable_version = "02"
 	_ = unreadable_version // suppress unused warning
@@ -81,28 +82,28 @@ func Test_corruptA(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptA-2.2"
+		db.Close()
 		tclFileCopy("test.db-template", "test.db")
 		// hexio_write test.db 21 41 (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptA-2.3"
+		db.Close()
 		tclFileCopy("test.db-template", "test.db")
 		// hexio_write test.db 22 1f (unsupported command, not transpiled)
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptA-2.4"
+		db.Close()
 		tclFileCopy("test.db-template", "test.db")
 		// hexio_write test.db 23 21 (unsupported command, not transpiled)
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM t1")
 		_ = _res // catchsql

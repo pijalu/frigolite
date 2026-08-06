@@ -61,6 +61,7 @@ func Test_shell3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -69,7 +70,7 @@ func Test_shell3(t *testing.T) {
 	}
 	{ // do_test "shell3-1.1"
 		os.Remove("foo.db")
-		rc = "catchcmd \"foo.db \\\"CREATE TABLE t1(a);\\\"\""
+		rc = "catchcmd \"foo.db \"CREATE TABLE t1(a);\"\""
 		_ = rc // suppress unused warning
 		fexist = "file exist foo.db"
 		_ = fexist // suppress unused warning

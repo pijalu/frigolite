@@ -128,6 +128,7 @@ func Test_selectC(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
+	// db function uppercaseconversionfunctionwithaverylongname (variable-reader, inlined)
 	{ // do_test "selectC-1.12.1"
 		r = db.Query("\n    SELECT DISTINCT upper(b) AS x\n      FROM t1\n     ORDER BY x\n  ")
 		if r.Error != nil {
@@ -189,6 +190,7 @@ func Test_selectC(t *testing.T) {
 	// proc definition (not transpiled)
 	udf = "0" // TCL namespace variable
 	_ = udf // suppress unused warning
+	// db function udf (variable-reader, inlined)
 	{ // "selectC-4.1"
 		_res = db.Exec("\n  create table t_distinct_bug (a, b, c);\n  insert into t_distinct_bug values ('1', '1', 'a');\n  insert into t_distinct_bug values ('1', '2', 'b');\n  insert into t_distinct_bug values ('1', '3', 'c');\n  insert into t_distinct_bug values ('1', '1', 'd');\n  insert into t_distinct_bug values ('1', '2', 'e');\n  insert into t_distinct_bug values ('1', '3', 'f');\n")
 		if _res.Error != nil {

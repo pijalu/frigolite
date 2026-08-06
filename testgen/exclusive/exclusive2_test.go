@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -117,11 +118,17 @@ func Test_exclusive2(t *testing.T) {
 	}
 	{ // do_test "exclusive2-1.3"
 		// t1sig (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "exclusive2-1.3")
+		}
 	}
 	{ // do_test "exclusive2-1.4"
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
 		// t1sig db2 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "exclusive2-1.4")
+		}
 	}
 	{ // do_test "exclusive2-1.5"
 		_res = db2.Exec("\n    UPDATE t1 SET b=a, a=0;\n  ")
@@ -181,6 +188,9 @@ func Test_exclusive2(t *testing.T) {
 	}
 	{ // do_test "exclusive2-2.3"
 		// t1sig (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "exclusive2-2.3")
+		}
 	}
 	{ // do_test "exclusive2-2.4"
 		fd = "open test.db RDWR" // TCL namespace variable
@@ -190,12 +200,18 @@ func Test_exclusive2(t *testing.T) {
 		_putsMsg := "-nonewline"
 		_ = _putsMsg
 		// t1sig (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "exclusive2-2.4")
+		}
 	}
 	{ // do_test "exclusive2-2.5"
 		// pagerChangeCounter test.db 5 $::fd (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-2.6"
 		// t1sig (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "exclusive2-2.6")
+		}
 	}
 	{ // do_test "exclusive2-2.7"
 		r = db.Query("PRAGMA locking_mode = normal")
@@ -203,6 +219,9 @@ func Test_exclusive2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA locking_mode = normal")
 		}
 		// t1sig (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "exclusive2-2.7")
+		}
 	}
 	{ // do_test "exclusive2-2.8"
 	_ = rc // suppress unused warning
@@ -221,6 +240,7 @@ func Test_exclusive2(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
+	db.Close()
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

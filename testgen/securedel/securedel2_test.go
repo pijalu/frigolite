@@ -147,9 +147,9 @@ func Test_securedel2(t *testing.T) {
 	{ // do_test "1.3.3"
 		// detect_blob test.db 1 (unsupported command, not transpiled)
 	}
+	db.Close()
 	tclFileCopy("test.db.bak", "test.db")
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.4.1"
 		r = db.Query(" PRAGMA secure_delete = 1 ")
@@ -201,8 +201,8 @@ func Test_securedel2(t *testing.T) {
 			}
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.6.1"
 		r = db.Query("\n    PRAGMA cache_size = 200;\n    PRAGMA secure_delete = 1;\n    CREATE TABLE t2(x);\n    SELECT * FROM t1;\n  ")

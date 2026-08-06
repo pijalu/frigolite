@@ -92,6 +92,7 @@ func Test_mutex1(t *testing.T) {
 		// install_mutex_counters 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.1"
+		db.Close()
 		// install_mutex_counters 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.2"
@@ -147,6 +148,7 @@ func Test_mutex1(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					db.Close()
 				}
 				// sqlite3_shutdown (unsupported command, not transpiled)
 				// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
@@ -205,6 +207,7 @@ func Test_mutex1(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					db.Close()
 				}
 				_dbtmp3, err := frigolite.Open("test.db")
 				_ = _dbtmp3 // sqlite3 db connection
@@ -226,6 +229,7 @@ func Test_mutex1(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					db.Close()
 				}
 				_dbtmp4, err := frigolite.Open("test.db")
 				_ = _dbtmp4 // sqlite3 db connection
@@ -247,6 +251,7 @@ func Test_mutex1(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					db.Close()
 				}
 				// sqlite3_shutdown (unsupported command, not transpiled)
 				// clear_mutex_counters (unsupported command, not transpiled)

@@ -55,10 +55,10 @@ func Test_walnoshm(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walnoshm"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// testvfs tvfsshm (unsupported command, not transpiled)
 	// testvfs tvfs -default 1 -iversion 1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n")
@@ -240,9 +240,10 @@ func Test_walnoshm(t *testing.T) {
 		}
 	}
 	db2.Close()
+	db.Close()
 	{ // do_test "3.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" \n    SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 		if _res.Error != nil {
@@ -255,10 +256,11 @@ func Test_walnoshm(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
+	db.Close()
 	db2.Close()
 	{ // do_test "3.2"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" \n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);\n  ")
 		if _res.Error != nil {
@@ -269,6 +271,7 @@ func Test_walnoshm(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	db2.Close()
 	// tvfs delete (unsupported command, not transpiled)
 	// tvfsshm delete (unsupported command, not transpiled)

@@ -104,6 +104,7 @@ func Test_thread003(t *testing.T) {
 		// expr ([file size test.db] / 1024) > 2000 (not evaluated)
 	}
 	{ // do_test "thread003.1.3"
+		db.Close()
 		os.Remove("test2.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -137,6 +138,7 @@ func Test_thread003(t *testing.T) {
 		// expr ([file size test.db] / 1024) > 2000 (not evaluated)
 	}
 	{ // do_test "thread003.1.6"
+		db.Close()
 	}
 	nSecond = "30"
 	_ = nSecond // suppress unused warning

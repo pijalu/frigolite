@@ -188,13 +188,14 @@ func Test_misc4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM abc LEFT JOIN def ON (abc.a=def.d);\n  ")
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "misc4-7.1"
-		_res = db.Exec("\n  CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE " + sqlLiteral("M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;"))
+		_res = db.Exec("\n  CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE [M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \"[M%s%s%s%s%s%s%s%s%s%s%s%s%s\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"[M%s%s%s%s%s%s%s%s%s%s%s%s%s\"", _res.Error, "\n  CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE " + sqlLiteral("M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;"))
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unrecognized token: \"[M%s%s%s%s%s%s%s%s%s%s%s%s%s\"", _res.Error, "\n  CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE [M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;\n")
 		}
 	}
 	{ // "misc4-7.2"

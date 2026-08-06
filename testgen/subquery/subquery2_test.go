@@ -175,7 +175,8 @@ func Test_subquery2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');\n")
@@ -196,7 +197,8 @@ func Test_subquery2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
@@ -271,7 +273,8 @@ func Test_subquery2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);\n")

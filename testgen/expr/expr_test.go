@@ -884,7 +884,7 @@ func Test_expr(t *testing.T) {
 	// do_realnum_test expr-13.5 {\n    execsql {\n      SELECT '9223372036854775808...} {9.22337203685478e+18} (expr test, not transpiled)
 	// do_realnum_test expr-13.6 {\n  execsql {\n    SELECT 0+'9223372036854775807.0...} {9.22337203685478e+18} (expr test, not transpiled)
 	// do_realnum_test expr-13.7 {\n  execsql {\n    SELECT '9223372036854775807.0'+...} {9.22337203685478e+18} (expr test, not transpiled)
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+	db.SetDQS(true, true)
 	{ // "expr-13.8"
 		r = db.Query("\n  SELECT \"\" <= '';\n")
 		if r.Error != nil {
@@ -1029,7 +1029,8 @@ func Test_expr(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 		{ // "expr-16.1"

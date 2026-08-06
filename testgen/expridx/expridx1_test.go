@@ -183,7 +183,7 @@ func Test_expridx1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{row 2 missing from index i1} {row 3 missing from index i1} {row 4 missing from index i1} {row 5 missing from index i1} {row 6 missing from index i1}"
+		want := "row 2 missing from index i1 row 3 missing from index i1 row 4 missing from index i1 row 5 missing from index i1 row 6 missing from index i1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -228,7 +228,8 @@ func Test_expridx1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		nRow = "1000"
 		_ = nRow // suppress unused warning
@@ -302,7 +303,8 @@ func Test_expridx1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE y1(a, b, c GENERATED ALWAYS AS (a*b) VIRTUAL);\n  CREATE INDEX i1 ON y1(c);\n  INSERT INTO y1 VALUES(2, 3);\n  INSERT INTO y1 VALUES(4, 5);\n")
@@ -347,7 +349,8 @@ func Test_expridx1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE z1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX z1b ON z1(b+0.0);\n  INSERT INTO z1 VALUES(1, 1.0);\n  INSERT INTO z1 VALUES(2, 4.0);\n  INSERT INTO z1 VALUES(3, 4.0);\n  INSERT INTO z1 VALUES(4, 4.0);\n  INSERT INTO z1 VALUES(5, 4.0);\n  INSERT INTO z1 VALUES(6, 4.0);\n  INSERT INTO z1 VALUES(7, 4.0);\n  INSERT INTO z1 VALUES(8, 1.0);\n")
@@ -378,7 +381,7 @@ func Test_expridx1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{index z1b stores an imprecise floating-point value for row 2} {index z1b stores an imprecise floating-point value for row 3} {row 4 missing from index z1b} {index z1b stores an imprecise floating-point value for row 5} {index z1b stores an imprecise floating-point value for row 6} {row 7 missing from index z1b}"
+			want := "index z1b stores an imprecise floating-point value for row 2 index z1b stores an imprecise floating-point value for row 3 row 4 missing from index z1b index z1b stores an imprecise floating-point value for row 5 index z1b stores an imprecise floating-point value for row 6 row 7 missing from index z1b"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -408,7 +411,7 @@ func Test_expridx1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{index z1b stores an imprecise floating-point value for row 2} {index z1b stores an imprecise floating-point value for row 3} {row 4 missing from index z1b} {index z1b stores an imprecise floating-point value for row 5} {index z1b stores an imprecise floating-point value for row 6} {row 7 missing from index z1b}"
+			want := "index z1b stores an imprecise floating-point value for row 2 index z1b stores an imprecise floating-point value for row 3 row 4 missing from index z1b index z1b stores an imprecise floating-point value for row 5 index z1b stores an imprecise floating-point value for row 6 row 7 missing from index z1b"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

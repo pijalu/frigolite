@@ -117,58 +117,42 @@ var _ = dirname
 // tcl_nullvalue controls how SQL NULL renders in query results (TCL "db null").
 var tcl_nullvalue = "{}"
 
+// tclRenderCell converts a single query-result cell to its TCL string
+// rendering, honoring the nullvalue setting and SQLite's REAL formatting.
+func tclRenderCell(v interface{}) string {
+	if v == nil {
+		return tcl_nullvalue
+	}
+	switch x := v.(type) {
+	case int64:
+		return strconv.FormatInt(x, 10)
+	case float64:
+		// SQLite displays REALs in a fixed-point format for moderate
+		// magnitudes (e.g. 12300000.0, not 1.23e+07).
+		s := strconv.FormatFloat(x, 'f', -1, 64)
+		// SQLite preserves trailing .0 for whole-number REALs
+		if !strings.ContainsAny(s, ".eE") {
+			s = s + ".0"
+		}
+		return s
+	case string:
+		return x
+	case []byte:
+		return string(x)
+	default:
+		return fmt.Sprintf("%!v(MISSING)", x)
+	}
+}
+
 // flatten converts a query result to a space-separated string.
 func flatten(res *frigolite.Result) string {
 	var parts []string
 	for _, row := range res.Rows {
 		for _, val := range row {
-			if val == nil {
-				parts = append(parts, tcl_nullvalue)
-			} else {
-				switch x := val.(type) {
-				case int64:
-					parts = append(parts, strconv.FormatInt(x, 10))
-				case float64:
-					parts = append(parts, formatReal(x))
-				case string:
-					parts = append(parts, x)
-				case []byte:
-					parts = append(parts, string(x))
-				default:
-					parts = append(parts, fmt.Sprintf("%v", x))
-				}
-			}
+			parts = append(parts, tclRenderCell(val))
 		}
 	}
 	return strings.Join(parts, " ")
-}
-
-// formatReal renders a float64 the way the SQLite shell does (%.15g with the
-// SQLite "!" flag): fixed-point for decimal exponents in [-4, 14], scientific
-// notation with 15 significant digits for exponents < -4 or >= 15, and a
-// trailing ".0" for whole numbers (SQLite always shows the decimal point).
-func formatReal(x float64) string {
-	if x == 0 {
-		return "0.0"
-	}
-	exp := int(math.Floor(math.Log10(math.Abs(x))))
-	if exp < -4 || exp >= 15 {
-		// Scientific: %.15g with the decimal point always shown.
-		s := strconv.FormatFloat(x, 'g', 15, 64)
-		if idx := strings.IndexAny(s, "eE"); idx >= 0 {
-			mantissa := s[:idx]
-			if !strings.Contains(mantissa, ".") {
-				return mantissa + ".0" + s[idx:]
-			}
-		}
-		return s
-	}
-	// Fixed-point format.
-	s := strconv.FormatFloat(x, 'f', -1, 64)
-	if !strings.ContainsAny(s, ".eE") {
-		s = s + ".0"
-	}
-	return s
 }
 
 // sqlLiteral renders a Go value as a SQL literal: numeric strings and numbers
@@ -220,6 +204,67 @@ func tclList(items []string) string {
 		}
 	}
 	return strings.Join(parts, " ")
+}
+
+// tclListFlatten converts a TCL-format list to the space-joined form that
+// flatten() produces for a multi-row query result. Only the list-rendering
+// braces ({element} {element}) are removed — quoted identifiers inside an
+// element (e.g. CREATE TABLE t(a, "d")) are preserved verbatim. A value
+// that is not a braced list is returned unchanged (collapsing whitespace).
+func tclListFlatten(s string) string {
+	if !strings.Contains(s, "{") && !strings.Contains(s, "}") {
+		// A value with no list braces is either a single scalar (preserve it
+		// verbatim, including any internal newlines — SQL text) or a bare
+		// multi-field word (collapse runs of spaces). Preserve newlines since
+		// the query result's flatten() keeps SQL cell text intact.
+		if strings.Contains(s, "\n") {
+			return s
+		}
+		return strings.Join(strings.Fields(s), " ")
+	}
+	var elems []string
+	depth := 0
+	inQuote := false
+	start := -1
+	flush := func(end int) {
+		if start >= 0 {
+			elem := s[start:end]
+			elem = strings.TrimSpace(elem)
+			if strings.HasPrefix(elem, "{") && strings.HasSuffix(elem, "}") {
+				elem = strings.TrimSpace(elem[1 : len(elem)-1])
+			}
+			elems = append(elems, elem)
+		}
+		start = -1
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case inQuote:
+			if c == '"' {
+				inQuote = false
+			}
+		case c == '"':
+			inQuote = true
+		case c == '{':
+			depth++
+		case c == '}':
+			if depth > 0 {
+				depth--
+			}
+		case (c == ' ' || c == '\t' || c == '\n' || c == '\r') && depth == 0:
+			flush(i)
+			continue
+		}
+		if start < 0 {
+			start = i
+		}
+	}
+	flush(len(s))
+	if len(elems) == 0 {
+		return strings.TrimSpace(s)
+	}
+	return strings.Join(elems, " ")
 }
 
 // tclSplitList splits a TCL-format list string into elements.
@@ -458,7 +503,7 @@ func tclExecSQL(db *frigolite.DB, sql string) string {
 	var parts []string
 	for _, row := range r.Rows {
 		for _, v := range row {
-			parts = append(parts, fmt.Sprintf("%v", v))
+			parts = append(parts, tclRenderCell(v))
 		}
 	}
 	return strings.Join(parts, " ")

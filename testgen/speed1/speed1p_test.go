@@ -86,13 +86,15 @@ func Test_speed1p(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	old_lookaside = "sqlite3_config_lookaside 2048 300"
 	_ = old_lookaside // suppress unused warning
 	// set testdir: test directory (not used in Go test context)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// speed_trial_init speed1 (unsupported command, not transpiled)
 	// sqlite3_memdebug_vfs_oom_test 0 (unsupported command, not transpiled)
@@ -316,7 +318,8 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	list = "db eval {SELECT c FROM t1 ORDER BY random() LIMIT 50000}"
+	_dbeval0 := tclExecSQL(db, "{SELECT c FROM t1 ORDER BY random() LIMIT 50000}")
+	list = _dbeval0
 	_ = list // suppress unused warning
 	script = "\n  foreach c $::list {\n    db eval {SELECT c FROM t1 WHERE c=$c}\n  }\n"
 	_ = script // suppress unused warning
@@ -436,6 +439,7 @@ func Test_speed1p(t *testing.T) {
 	{ // do_test "speed1p-1.2"
 	}
 	// speed_trial_summary speed1 (unsupported command, not transpiled)
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// eval (dynamic, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)

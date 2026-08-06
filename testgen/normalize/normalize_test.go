@@ -7,6 +7,7 @@ package normalize
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -84,9 +85,9 @@ func Test_normalize(t *testing.T) {
 		_ = norm // suppress unused warning
 		_ = _idx0
 			{ // do_test tnum
-				_res = db.Exec("list sqlite3_normalize $sql")
+				_res = db.Exec("sqlite3_normalize " + sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list sqlite3_normalize $sql")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "sqlite3_normalize " + sql)
 				}
 			}
 		}
@@ -97,7 +98,7 @@ func Test_normalize(t *testing.T) {
 			}
 		}
 		{ // do_test "201"
-			STMT = "sqlite3_prepare_v3 $DB \\\n      \"SELECT a, b FROM t1 WHERE b = ? ORDER BY a;\" -1 0 TAIL"
+			STMT = "sqlite3_prepare_v3 $DB       \"SELECT a, b FROM t1 WHERE b = ? ORDER BY a;\" -1 0 TAIL"
 			_ = STMT // suppress unused warning
 			// sqlite3_bind_null $STMT 1 (unsupported command, not transpiled)
 		}
@@ -108,7 +109,7 @@ func Test_normalize(t *testing.T) {
 			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "210"
-			STMT = "sqlite3_prepare_v3 $DB \\\n      \"SELECT a, b FROM t1 WHERE b = ? ORDER BY a;\" -1 2 TAIL"
+			STMT = "sqlite3_prepare_v3 $DB       \"SELECT a, b FROM t1 WHERE b = ? ORDER BY a;\" -1 2 TAIL"
 			_ = STMT // suppress unused warning
 			// sqlite3_bind_null $STMT 1 (unsupported command, not transpiled)
 		}
@@ -119,7 +120,7 @@ func Test_normalize(t *testing.T) {
 			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "220"
-			STMT = "sqlite3_prepare_v3 $DB \\\n      \"SELECT a, b FROM t1 WHERE b = 'a' ORDER BY a;\" -1 2 TAIL"
+			STMT = "sqlite3_prepare_v3 $DB       \"SELECT a, b FROM t1 WHERE b = 'a' ORDER BY a;\" -1 2 TAIL"
 			_ = STMT // suppress unused warning
 		}
 		{ // do_test "221"
@@ -176,6 +177,9 @@ func Test_normalize(t *testing.T) {
 					}
 					_list := tclList([]string{code, res})
 					_ = _list
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), norm) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", norm, _res.Error, tnum)
+					}
 				}
 			}
 }

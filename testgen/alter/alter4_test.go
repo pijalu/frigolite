@@ -369,7 +369,7 @@ func Test_alter4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "\n  integer -9223372036854775808\n  real     9.22337203685478e+18\n"
+		want := "integer -9223372036854775808 real 9.22337203685478e+18"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -397,7 +397,8 @@ func Test_alter4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "alter4-11.0"
 		r = db.Query("\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d);\n  INSERT INTO t1(c,d) VALUES(1,2);\n  PRAGMA foreign_keys = on;\n  ALTER TABLE t1 ADD COLUMN e;\n")

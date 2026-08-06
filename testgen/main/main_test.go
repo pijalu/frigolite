@@ -174,6 +174,7 @@ func Test_main(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			os.Remove("test.db")
 			fd = "open test.db w"
@@ -206,6 +207,7 @@ func Test_main(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		for _, f := range tclSplitList("glob -nocomplain testdb/*") {
 		_ = f // suppress unused warning
@@ -234,6 +236,7 @@ func Test_main(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		for _, f := range tclSplitList("glob -nocomplain testdb/*") {
 		_ = f // suppress unused warning
@@ -408,6 +411,7 @@ func Test_main(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		for _, f := range tclSplitList("glob -nocomplain testdb/*") {
 		_ = f // suppress unused warning

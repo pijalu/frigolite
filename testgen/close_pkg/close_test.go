@@ -68,6 +68,7 @@ func Test_close(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('two');\n  INSERT INTO t1 VALUES('three');\n")
 		}
 	}
+	db.Close()
 	{ // do_test "1.1"
 		DB = ""
 		_ = DB // suppress unused warning

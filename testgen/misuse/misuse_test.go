@@ -71,6 +71,7 @@ func Test_misuse(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "misuse-1.1"
+		db.Close()
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -81,8 +82,7 @@ func Test_misuse(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test2.db-journal")
 		}
-		_dbtmp0, err := frigolite.Open("test2.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
@@ -110,8 +110,8 @@ func Test_misuse(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "misuse-2.1"
-		_dbtmp1, err := frigolite.Open("test2.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
@@ -148,8 +148,8 @@ func Test_misuse(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "misuse-3.1"
-		_dbtmp2, err := frigolite.Open("test2.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
@@ -186,8 +186,8 @@ func Test_misuse(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "misuse-4.1"
-		_dbtmp3, err := frigolite.Open("test2.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
@@ -226,8 +226,8 @@ func Test_misuse(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "misuse-5.1"
-			_dbtmp0, err := frigolite.Open("test2.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			DB = "sqlite3_connection_pointer db" // TCL namespace variable
 			_ = DB // suppress unused warning
@@ -240,6 +240,7 @@ func Test_misuse(t *testing.T) {
 			// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
 		}
 		{ // do_test "misuse-5.3"
+			db.Close()
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
@@ -257,7 +258,8 @@ func Test_misuse(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misuse-6.0"
 		// sqlite3_set_errmsg db 1 an error has occurred (unsupported command, not transpiled)

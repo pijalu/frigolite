@@ -185,6 +185,7 @@ func Test_like(t *testing.T) {
 	}
 	{ // do_test "like-2.1"
 		// proc definition (not transpiled)
+		// db function regexp (variable-reader, inlined)
 		r = db.Query("\n    SELECT x FROM t1 WHERE x REGEXP 'abc' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x REGEXP 'abc' ORDER BY 1;\n  ")
@@ -198,6 +199,7 @@ func Test_like(t *testing.T) {
 	}
 	{ // do_test "like-2.3"
 		// proc definition (not transpiled)
+		// db function match (variable-reader, inlined)
 		r = db.Query("\n    SELECT x FROM t1 WHERE x MATCH '*abc*' ORDER BY 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x FROM t1 WHERE x MATCH '*abc*' ORDER BY 1;\n  ")
@@ -242,7 +244,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.3.104"
 		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		// sqlite3_db_config db QPSG 1 (unsupported command, not transpiled)
+		// sqlite3_db_config QPSG (unhandled flag)
 		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE $::likepat ORD...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.3.105"
@@ -254,7 +256,7 @@ func Test_like(t *testing.T) {
 	}
 	{ // do_test "like-3.3.106"
 	}
-	// sqlite3_db_config db QPSG 0 (unsupported command, not transpiled)
+	// sqlite3_db_config QPSG (unhandled flag)
 	{ // do_test "like-3.4.2"
 		// queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'a' ORDER BY 1...} (test infra, not transpiled)
 	}
@@ -542,25 +544,28 @@ func Test_like(t *testing.T) {
 	}
 	{ // do_test "like-8.2"
 		// proc definition (not transpiled)
+		// db function like (variable-reader, inlined)
 		_res = db.Exec("\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		}
 	}
 	{ // do_test "like-8.3"
+		// db function like (variable-reader, inlined)
 		_res = db.Exec("\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		}
 	}
 	{ // do_test "like-8.4"
+		// db function like (variable-reader, inlined)
 		_res = db.Exec("\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';\n  ")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // do_test "like-9.1"
@@ -603,8 +608,8 @@ func Test_like(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "like-10.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      CREATE TABLE t10(\n        a INTEGER PRIMARY KEY,\n        b INTEGER COLLATE nocase UNIQUE,\n        c NUMBER COLLATE nocase UNIQUE,\n        d BLOB COLLATE nocase UNIQUE,\n        e COLLATE nocase UNIQUE,\n        f TEXT COLLATE nocase UNIQUE\n      );\n      INSERT INTO t10 VALUES(1,1,1,1,1,1);\n      INSERT INTO t10 VALUES(12,12,12,12,12,12);\n      INSERT INTO t10 VALUES(123,123,123,123,123,123);\n      INSERT INTO t10 VALUES(234,234,234,234,234,234);\n      INSERT INTO t10 VALUES(345,345,345,345,345,345);\n      INSERT INTO t10 VALUES(45,45,45,45,45,45);\n    ")
 		if _res.Error != nil {
@@ -923,7 +928,8 @@ func Test_like(t *testing.T) {
 		// expr $x<$tlimit (not evaluated)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "16.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER COLLATE NOCASE);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(' 1x');\n  INSERT INTO t1 VALUES(' 1-');\n")
@@ -938,7 +944,7 @@ func Test_like(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{ 1x} { 1-}"
+		want := "1x 1-"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -992,9 +998,10 @@ func Test_like(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db DEFENSIVE 1 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	_res = db.Exec("PRAGMA trusted_schema=OFF")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA trusted_schema=OFF")

@@ -64,9 +64,11 @@ func Test_lock5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "lock5"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	if false {
 		return
 	}
+	db.Close()
 	os.Remove("test.db.lock")
 	using_proxy = "0" // TCL namespace variable
 	_ = using_proxy // suppress unused warning
@@ -142,6 +144,7 @@ func Test_lock5(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN EXCLUSIVE")
 			}
+			db.Close()
 			// file exists "test.db.lock"
 		}
 		os.Remove("test.db")
@@ -193,6 +196,7 @@ func Test_lock5(t *testing.T) {
 				_ = _res // catchsql
 			}
 			{ // do_test "lock5-flock.7"
+				db.Close()
 				_res = db2.Exec(" SELECT * FROM t1 ")
 				_ = _res // catchsql
 			}
@@ -238,10 +242,12 @@ func Test_lock5(t *testing.T) {
 					// file exists "test.db2-journal"
 				}
 			}
+			db.Close()
 			db2.Close()
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "lock5-none.1"
 			_dbtmp2, err := frigolite.Open("test.db")
@@ -296,12 +302,14 @@ func Test_lock5(t *testing.T) {
 			}
 		}
 		{ // do_test "lock5-none.X"
+			db.Close()
 			db2.Close()
 		}
 		env_SQLITE_FORCE_PROXY_LOCKING = using_proxy
 		_ = env_SQLITE_FORCE_PROXY_LOCKING // suppress unused warning
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		if tclBool("permutation" + "!=\"inmemory_journal\"") {
 			{ // do_test "2.dotfile.1"

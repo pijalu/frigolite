@@ -82,7 +82,7 @@ func Test_date4(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "list [strftime $FMT $TS]"
+			want := "strftime $FMT $TS"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

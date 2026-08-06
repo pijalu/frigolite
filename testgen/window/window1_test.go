@@ -191,7 +191,8 @@ func Test_window1(t *testing.T) {
 				_ = _res
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6.1" — skipped: window functions not supported
 				_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(7), (6), (5), (4), (3), (2), (1);\n\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('b'), ('a');\n\n  SELECT x, count(*) OVER (ORDER BY x) FROM t1;\n")
@@ -206,7 +207,8 @@ func Test_window1(t *testing.T) {
 				_ = _res
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "7.0"
 				_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n")
@@ -288,8 +290,8 @@ func Test_window1(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "8.2.1"
 				r = db.Query("\n  SELECT * FROM v1\n")
@@ -526,7 +528,8 @@ func Test_window1(t *testing.T) {
 				_ = _res
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "18.0"
 				_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d INTEGER);\n  INSERT INTO t1 VALUES(1, 'odd',  'one',   1);\n  INSERT INTO t1 VALUES(2, 'even', 'two',   2);\n  INSERT INTO t1 VALUES(3, 'odd',  'three', 3);\n  INSERT INTO t1 VALUES(4, 'even', 'four',  4);\n  INSERT INTO t1 VALUES(5, 'odd',  'five',  5);\n  INSERT INTO t1 VALUES(6, 'even', 'six',   6);\n")
@@ -535,36 +538,36 @@ func Test_window1(t *testing.T) {
 				}
 			}
 			// foreach {tn sql error} "1 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING), \n             win2 AS (win1 ORDER BY b)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win4 ORDER BY b)\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win1 PARTITION BY d)\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ORDER BY b),\n             win2 AS (win1 ORDER BY d)\n  } {cannot override ORDER BY clause of window: win1}"
-			_items3 := tclSplitList("1 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING), \n             win2 AS (win1 ORDER BY b)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win4 ORDER BY b)\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win1 PARTITION BY d)\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ORDER BY b),\n             win2 AS (win1 ORDER BY d)\n  } {cannot override ORDER BY clause of window: win1}")
-			for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-				tn := _items3[_idx3+0]
+			_items2 := tclSplitList("1 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING), \n             win2 AS (win1 ORDER BY b)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win4 ORDER BY b)\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win1 PARTITION BY d)\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ORDER BY b),\n             win2 AS (win1 ORDER BY d)\n  } {cannot override ORDER BY clause of window: win1}")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				sql := _items3[_idx3+1]
+				sql := _items2[_idx2+1]
 				_ = sql // suppress unused warning
-				_error := _items3[_idx3+2]
+				_error := _items2[_idx2+2]
 				_ = _error // suppress unused warning
-				_ = _idx3
+				_ = _idx2
 					{ // "18.1." + tn
 						_res = db.Exec(sql)
-						if _res.Error != nil {
-							t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", _error, _res.Error, sql)
 						}
 					}
 				}
 				// foreach {tn sql error} "1 {\n    SELECT c, sum(d) OVER (win1 ORDER BY b) FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER (win4 ORDER BY b) FROM t1\n      WINDOW win1 AS ()\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER (win1 PARTITION BY d) FROM t1\n      WINDOW win1 AS ()\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER (win1 ORDER BY d) FROM t1\n      WINDOW win1 AS (ORDER BY b)\n  } {cannot override ORDER BY clause of window: win1}"
-				_items4 := tclSplitList("1 {\n    SELECT c, sum(d) OVER (win1 ORDER BY b) FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER (win4 ORDER BY b) FROM t1\n      WINDOW win1 AS ()\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER (win1 PARTITION BY d) FROM t1\n      WINDOW win1 AS ()\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER (win1 ORDER BY d) FROM t1\n      WINDOW win1 AS (ORDER BY b)\n  } {cannot override ORDER BY clause of window: win1}")
-				for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-					tn := _items4[_idx4+0]
+				_items3 := tclSplitList("1 {\n    SELECT c, sum(d) OVER (win1 ORDER BY b) FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER (win4 ORDER BY b) FROM t1\n      WINDOW win1 AS ()\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER (win1 PARTITION BY d) FROM t1\n      WINDOW win1 AS ()\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER (win1 ORDER BY d) FROM t1\n      WINDOW win1 AS (ORDER BY b)\n  } {cannot override ORDER BY clause of window: win1}")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					sql := _items4[_idx4+1]
+					sql := _items3[_idx3+1]
 					_ = sql // suppress unused warning
-					_error := _items4[_idx4+2]
+					_error := _items3[_idx3+2]
 					_ = _error // suppress unused warning
-					_ = _idx4
+					_ = _idx3
 						{ // "18.2." + tn
 							_res = db.Exec(sql)
-							if _res.Error != nil {
-								t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
+								t.Errorf("expected error containing %q, got: %v\n  sql: %s", _error, _res.Error, sql)
 							}
 						}
 					}
@@ -589,7 +592,8 @@ func Test_window1(t *testing.T) {
 						_ = _res
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "19.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES\n    (1, 1), (2, 2), (3, 3), (4, 4), (5, 5),\n    ('a', 6), ('b', 7), ('c', 8), ('d', 9), ('e', 10);\n")
@@ -618,7 +622,8 @@ func Test_window1(t *testing.T) {
 						_ = _res
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "20.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES\n    (NULL, 100), (NULL, 100), \n    (1, 1), (2, 2), (3, 3), (4, 4), (5, 5),\n    ('a', 6), ('b', 7), ('c', 8), ('d', 9), ('e', 10);\n")
@@ -659,15 +664,15 @@ func Test_window1(t *testing.T) {
 						}
 					}
 					// foreach {tn expr err} "1   4.5      0\n  2   NULL     1\n  3   0.0      0\n  4   0.1      0\n  5  -0.1      1\n  6  ''        1\n  7  '2.0'     0\n  8  '2.0x'    1\n  9  x'1234'   1\n 10  '1.2'     0"
-					_items5 := tclSplitList("1   4.5      0\n  2   NULL     1\n  3   0.0      0\n  4   0.1      0\n  5  -0.1      1\n  6  ''        1\n  7  '2.0'     0\n  8  '2.0x'    1\n  9  x'1234'   1\n 10  '1.2'     0")
-					for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
-						tn := _items5[_idx5+0]
+					_items4 := tclSplitList("1   4.5      0\n  2   NULL     1\n  3   0.0      0\n  4   0.1      0\n  5  -0.1      1\n  6  ''        1\n  7  '2.0'     0\n  8  '2.0x'    1\n  9  x'1234'   1\n 10  '1.2'     0")
+					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
-						expr := _items5[_idx5+1]
+						expr := _items4[_idx4+1]
 						_ = expr // suppress unused warning
-						err := _items5[_idx5+2]
+						err := _items4[_idx4+2]
 						_ = err // suppress unused warning
-						_ = _idx5
+						_ = _idx4
 							res = "0 1"
 							_ = res // suppress unused warning
 							if tclBool(tclStr(err)) {
@@ -690,7 +695,8 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "23.0"
 							_res = db.Exec("\n  CREATE TABLE t5(a, b, c);\n  CREATE INDEX t5ab ON t5(a, b);\n")
@@ -714,7 +720,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "25.0"
 							_res = db.Exec("\n  CREATE TABLE t1 ( t1_id INTEGER PRIMARY KEY );\n  CREATE TABLE t2 ( t2_id INTEGER PRIMARY KEY );\n  CREATE TABLE t3 ( t3_id INTEGER PRIMARY KEY );\n\n  INSERT INTO t1 VALUES(1),  (3), (5);\n  INSERT INTO t2 VALUES      (3), (5);\n  INSERT INTO t3 VALUES(10), (11), (12);\n")
@@ -731,7 +738,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "26.0"
 							_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n")
@@ -770,7 +778,8 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "27.0"
 							_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(NULL), (1), (2), (3), (4), (5);\n")
@@ -795,7 +804,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "28.1.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b CHAR(1), c CHAR(2), d ANY);\n  INSERT INTO t1 VALUES (3, 'C', 'cc', 1.0);\n  INSERT INTO t1 VALUES (13,'M', 'cc', NULL);\n")
@@ -824,7 +834,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "29.1"
 							_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b CHAR(1), c CHAR(2), d ANY);\n  INSERT INTO t1 VALUES\n    (1, 'A', 'aa', 2.5),\n    (2, 'B', 'bb', 3.75),\n    (3, 'C', 'cc', 1.0),\n    (4, 'D', 'cc', 8.25),\n    (5, 'E', 'bb', 6.5),\n    (6, 'F', 'aa', 6.5),\n    (7, 'G', 'aa', 6.0),\n    (8, 'H', 'bb', 9.0),\n    (9, 'I', 'aa', 3.75),\n    (10,'J', 'cc', NULL),\n    (11,'K', 'cc', 'xyz'),\n    (12,'L', 'cc', 'xyZ'),\n    (13,'M', 'cc', NULL);\n")
@@ -841,7 +852,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "31.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 1);\n")
@@ -865,6 +877,7 @@ func Test_window1(t *testing.T) {
 							_res = db.Exec("\n  SELECT d IN (\n    SELECT sum(c) OVER ( ROWS BETWEEN CURRENT ROW AND c FOLLOWING) \n    FROM t3\n  )\n  FROM (\n    SELECT * FROM t2\n  );\n")
 							_ = _res
 						}
+						db.Close()
 						db, err = frigolite.Open("")
 						if err != nil { t.Fatal(err) }
 						{ // "32.10" — skipped: window functions not supported
@@ -872,7 +885,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "33.1"
 							_res = db.Exec("\n  CREATE TABLE t1(aa, bb);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(5, 6);\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(1);\n")
@@ -885,7 +899,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "34.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n")
@@ -898,7 +913,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "35.0"
 							_res = db.Exec("\n  SELECT * WINDOW f AS () ORDER BY name COLLATE nocase;\n")
@@ -941,7 +957,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "37.10" — skipped: window functions not supported
 							_res = db.Exec("\n  CREATE TABLE t0(a UNIQUE, b PRIMARY KEY);\n  CREATE VIEW v0(c) AS SELECT max((SELECT count(a)OVER(ORDER BY 1))) FROM t0;\n  SELECT c FROM v0 WHERE c BETWEEN 10 AND 20;\n")
@@ -952,7 +969,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "38.10"
 							_res = db.Exec("\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0, c1 UNIQUE);\n  INSERT INTO t0(c0) VALUES(1);\n  INSERT INTO t1(c0,c1) VALUES(2,3);\n  SELECT COUNT(*) FROM t0, t1 WHERE (SELECT AVG(0) FILTER(WHERE t1.c1));\n")
@@ -979,7 +997,8 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "39.1"
 							_res = db.Exec("\n  CREATE TABLE t0(c0 UNIQUE);\n")
@@ -1000,14 +1019,16 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "40.1" — skipped: window functions not supported
 							_res = db.Exec("\n    CREATE VIRTUAL TABLE t0 USING rtree(c0, c1, c2);\n    SELECT * FROM t0\n     WHERE ((0,0) IN (SELECT COUNT(*),LAG(5)OVER(PARTITION BY 0) FROM t0),0)<=(c1,0);\n  ")
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "41.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',355);\n  INSERT INTO t1 VALUES('CC','aa',158);\n  INSERT INTO t1 VALUES('GG','bb',929);\n  INSERT INTO t1 VALUES('FF','Rb',574);\n")
@@ -1028,7 +1049,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "42.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2);\n")
@@ -1077,7 +1099,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "43.1.1"
 							_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES (10);\n")
@@ -1090,7 +1113,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "43.2.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  INSERT INTO t1(a, b) VALUES(1,  10); -- 10\n  INSERT INTO t1(a, b) VALUES(2,  15); -- 25\n  INSERT INTO t1(a, b) VALUES(3,  -5); -- 20\n  INSERT INTO t1(a, b) VALUES(4,  -5); -- 15\n  INSERT INTO t1(a, b) VALUES(5,  20); -- 35\n  INSERT INTO t1(a, b) VALUES(6, -11); -- 24\n")
@@ -1119,7 +1143,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "44.1"
 							_res = db.Exec("\n  CREATE TABLE t0(c0);\n")
@@ -1148,7 +1173,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "45.1"
 							_res = db.Exec("\n  CREATE TABLE t0(x);\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1000);\n  INSERT INTO t1 VALUES(1000);\n  INSERT INTO t0 VALUES(10000);\n")
@@ -1161,7 +1187,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "46.1"
 							_res = db.Exec("\n  CREATE TABLE t1 (a);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES (10);\n")
@@ -1182,7 +1209,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "47.0"
 							_res = db.Exec("\n  CREATE TABLE t1(\n      a,\n      e,\n      f,\n      g UNIQUE,\n      h UNIQUE\n  );\n")
@@ -1201,7 +1229,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "48.0" — skipped: window functions not supported
 							_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  SELECT (SELECT max(x)OVER(ORDER BY x) + min(x)OVER(ORDER BY x))\n    FROM (SELECT (SELECT sum(a) FROM t1) AS x FROM t1);\n")
@@ -1212,7 +1241,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "49.1"
 							_res = db.Exec("\n  CREATE TABLE t1 (a PRIMARY KEY);\n  INSERT INTO t1 VALUES(1);\n")
@@ -1225,7 +1255,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "50.0"
 							_res = db.Exec("\n  CREATE TABLE t1 (a DOUBLE PRIMARY KEY);\n  INSERT INTO t1 VALUES(10.0);\n")
@@ -1254,14 +1285,16 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "51.1" — skipped: window functions not supported
 							_res = db.Exec("\n  CREATE TABLE a(b, c);\n  SELECT c FROM a GROUP BY c\n    HAVING(SELECT(sum(b) OVER(ORDER BY b),\n                  sum(b) OVER(PARTITION BY min(DISTINCT c), c ORDER BY b)));\n")
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "52.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('AA','bb',356);\n  INSERT INTO t1 VALUES('CC','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);\n")
@@ -1282,14 +1315,16 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "53.0" — skipped: window functions not supported
 							_res = db.Exec("\n  CREATE TABLE a(c UNIQUE);\n  INSERT INTO a VALUES(4),(0),(9),(-9);\n  SELECT a.c\n    FROM a\n    JOIN a AS b ON a.c=4\n    JOIN a AS e ON a.c=e.c\n   WHERE a.c=(SELECT (SELECT coalesce(lead(2) OVER(),0) + sum(d.c))\n                FROM a AS d\n               WHERE a.c);\n")
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "54.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a VARCHAR(20), b FLOAT);\n  INSERT INTO t1 VALUES('1',10.0);\n")
@@ -1312,14 +1347,16 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "55.1" — skipped: window functions not supported
 							_res = db.Exec("\n   CREATE TABLE a(b);\n   SELECT\n      (SELECT b FROM a\n        GROUP BY b\n        HAVING (SELECT COUNT()OVER() + lead(b)OVER(ORDER BY SUM(DISTINCT b) + b))\n      ) \n    FROM a\n  UNION\n   SELECT 99\n    ORDER BY 1;\n")
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "56.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a, b INTEGER); \n  CREATE TABLE t2(c, d); \n")
@@ -1332,7 +1369,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "57.1"
 							_res = db.Exec("\n  CREATE TABLE t4(a, b, c, d, e);\n")
@@ -1345,7 +1383,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "57.1" — skipped: window functions not supported
 							_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  SELECT \n    sum(a),\n    min(b) OVER (),\n    count(c) OVER (ORDER BY b)\n  FROM t1;\n")
@@ -1360,7 +1399,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "58.1" — skipped: window functions not supported
 							_res = db.Exec("\n  CREATE TABLE a(a, b, c);\n  INSERT INTO a VALUES(1, 2, 3);\n  INSERT INTO a VALUES(4, 5, 6);\n  SELECT sum(345+b)      OVER (ORDER BY b),\n         sum(avg(678)) OVER (ORDER BY c) FROM a;\n")
@@ -1375,7 +1415,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "61.1" — skipped: window functions not supported
 							_res = db.Exec("\nCREATE TABLE t1(a);\nINSERT INTO t1 VALUES(5),(NULL),('seventeen');\nSELECT (SELECT max(x)OVER(ORDER BY x) % min(x)OVER(ORDER BY CASE x WHEN 889 THEN x WHEN x THEN x END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST((SELECT (SELECT max(x)OVER(ORDER BY x) / min(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN -true THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x) & sum ( a )OVER(ORDER BY CASE x WHEN -8 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a AS )) FROM t1) AS x FROM t1)) AS t1 )) FROM t1) AS x FROM t1)) AS x )) FROM t1) AS x FROM t1)) AS real)) FROM t1) AS x FROM t1);\n")
@@ -1392,7 +1433,8 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						// optimization_control db all 0 (unsupported command, not transpiled)
 						{ // "61.3.0"
@@ -1418,7 +1460,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "62.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a VARCHAR(20), b FLOAT);\n  INSERT INTO t1 VALUES('1',10.0);\n")
@@ -1441,7 +1484,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "63.1"
 							_res = db.Exec("\n  CREATE TABLE t1(b, x);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
@@ -1458,7 +1502,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "64.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'abcd');\n  INSERT INTO t1 VALUES(2, 'BCDE');\n  INSERT INTO t1 VALUES(3, 'cdef');\n  INSERT INTO t1 VALUES(4, 'DEFG');\n")
@@ -1487,7 +1532,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "65.1"
 							_res = db.Exec("\n  CREATE TABLE t1(c1);\n  INSERT INTO t1 VALUES('abcd');\n")
@@ -1516,7 +1562,8 @@ func Test_window1(t *testing.T) {
 							_ = _res
 						}
 						db.Close()
-						db, err = frigolite.Open("")
+						os.Remove("test.db")
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						{ // "66.1"
 							_res = db.Exec("\n  CREATE TABLE t1(a INTEGER);\n  INSERT INTO t1 VALUES(3578824042033200656);\n  INSERT INTO t1 VALUES(3029012920382354029);\n")
@@ -1525,13 +1572,13 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						// foreach {tn spec} "1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\""
-						_items6 := tclSplitList("1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\"")
-						for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
-							tn := _items6[_idx6+0]
+						_items5 := tclSplitList("1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\"")
+						for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
-							spec := _items6[_idx6+1]
+							spec := _items5[_idx5+1]
 							_ = spec // suppress unused warning
-							_ = _idx6
+							_ = _idx5
 								{ // "66.2." + tn — skipped: window functions not supported
 									_res = db.Exec("\n    SELECT total(a) OVER ( " + spec + " ) FROM t1 ORDER BY a\n  ")
 									_ = _res
@@ -1544,22 +1591,23 @@ func Test_window1(t *testing.T) {
 								}
 							}
 							// foreach {tn spec res} "1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"   {30.0 45.0}\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"  {0.0 0.0}\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"   {0.0 0.0}\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\" {0.0 0.0}"
-							_items7 := tclSplitList("1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"   {30.0 45.0}\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"  {0.0 0.0}\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"   {0.0 0.0}\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\" {0.0 0.0}")
-							for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
-								tn := _items7[_idx7+0]
+							_items6 := tclSplitList("1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"   {30.0 45.0}\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"  {0.0 0.0}\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"   {0.0 0.0}\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\" {0.0 0.0}")
+							for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
+								tn := _items6[_idx6+0]
 								_ = tn // suppress unused warning
-								spec := _items7[_idx7+1]
+								spec := _items6[_idx6+1]
 								_ = spec // suppress unused warning
-								res := _items7[_idx7+2]
+								res := _items6[_idx6+2]
 								_ = res // suppress unused warning
-								_ = _idx7
+								_ = _idx6
 									{ // "66.2." + tn — skipped: window functions not supported
 										_res = db.Exec("\n    SELECT total(a) OVER ( " + spec + " ) FROM t2 ORDER BY a\n  ")
 										_ = _res
 									}
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "67.0"
 									_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, b, c);\n")
@@ -1576,14 +1624,16 @@ func Test_window1(t *testing.T) {
 									_ = _res
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "68.0" — skipped: window functions not supported
 									_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1(a,b) VALUES(0,0),(1,1),(2,4),(3,9),(4,99);\n  SELECT rowid, a, b, sum(a)OVER() FROM t1 ORDER BY count(b);\n")
 									_ = _res
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "69.0" — skipped: window functions not supported
 									_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  CREATE INDEX t1ba ON t1(b,a);\n  SELECT * FROM t1 WHERE b = (SELECT b FROM t1 ORDER BY lead(b) OVER () AND sum(a));\n")
@@ -1598,7 +1648,8 @@ func Test_window1(t *testing.T) {
 									_ = _res
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "70.0"
 									_res = db.Exec("\n  CREATE TABLE t1(a);\n")
@@ -1615,7 +1666,8 @@ func Test_window1(t *testing.T) {
 									_ = _res
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "71.0" — skipped: window functions not supported
 									_res = db.Exec("\n  CREATE TABLE t0(a);\n  SELECT a FROM t0, (SELECT a AS b FROM t0)\n   WHERE (a,1)=(SELECT 2,2 UNION SELECT sum(b),max(b) OVER(ORDER BY b) ORDER BY 2)\n     AND b=4\n   ORDER BY b;\n")
@@ -1626,7 +1678,8 @@ func Test_window1(t *testing.T) {
 									_ = _res
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "72.0" — skipped: window functions not supported
 									_res = db.Exec("\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v0(c0) AS SELECT TOTAL(0) OVER (PARTITION BY t0.c0) FROM t0;\n")
@@ -1637,7 +1690,8 @@ func Test_window1(t *testing.T) {
 									_ = _res
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "73.0" — skipped: window functions not supported
 									_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1(a) VALUES(1),(2),(4);\n  CREATE VIEW t2(b,c) AS SELECT * FROM t1 JOIN t1 A ORDER BY sum(0) OVER(PARTITION BY 0);\n  CREATE TRIGGER x1 INSTEAD OF UPDATE ON t2 BEGIN SELECT true; END;\n")
@@ -1692,7 +1746,8 @@ func Test_window1(t *testing.T) {
 									_ = _res
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "74.0"
 									_res = db.Exec("\n  CREATE TABLE t1 (a INT, b INT);\n  CREATE TABLE t2 (c INT, d INT);\n  CREATE INDEX idx ON t1(abs(a));\n  INSERT INTO t1 VALUES(1,2),(3,4);\n  INSERT INTO t2 VALUES(5,6),(7,8);\n")
@@ -1743,7 +1798,8 @@ func Test_window1(t *testing.T) {
 									_ = _res
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "76.0"
 									_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1(a,b) VALUES (111,222),(111,223),(118,229);\n  CREATE INDEX t1a ON t1(a);\n  CREATE TABLE t2(x INT);\n  INSERT INTO t2 VALUES (333),(444),(555);\n")
@@ -1774,7 +1830,8 @@ func Test_window1(t *testing.T) {
 									_ = _res
 								}
 								db.Close()
-								db, err = frigolite.Open("")
+								os.Remove("test.db")
+								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								{ // "77.1"
 									_res = db.Exec("\n  CREATE TABLE t1(x INT);\n  CREATE INDEX t1x ON t1(likely(x));\n  INSERT INTO t1 VALUES(1),(2),(4),(8);\n")

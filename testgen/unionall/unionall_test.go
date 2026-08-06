@@ -99,7 +99,8 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// database_never_corrupt (unsupported command, not transpiled)
 	// optimization_control db all 0 (unsupported command, not transpiled)
@@ -128,7 +129,8 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(1, 'ONE');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(2, 'TWO');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(3, 'THREE');\n")
@@ -281,7 +283,8 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(2,'ii');\n  CREATE TABLE t3_b(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS\n    SELECT * FROM t3_a\n    UNION ALL\n    SELECT * FROM t3_b;\n")
@@ -302,7 +305,8 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(123, 't1_a');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n\n  CREATE VIEW t1 AS\n    SELECT a, b FROM t1_a\n    UNION ALL\n    SELECT c, d FROM t1_b;\n\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(456, 't3_a');\n  CREATE TABLE t3_b(k INTEGER PRIMARY KEY, v TEXT);\n\n  CREATE VIEW t3 AS\n    SELECT * FROM t3_a\n    UNION ALL\n    SELECT * FROM t3_b;\n")
@@ -355,7 +359,8 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  INSERT INTO t1_a VALUES(0,NULL);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  INSERT INTO t1_b VALUES(5,'five');\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n  INSERT INTO t1_c VALUES(3,'three');\n  INSERT INTO t1_c VALUES(6,'six');\n  CREATE TABLE t2(k,v);\n  INSERT INTO t2 VALUES(5,'v');\n  INSERT INTO t2 VALUES(4,'iv');\n  INSERT INTO t2 VALUES(3,'iii');\n  INSERT INTO t2 VALUES(2,'ii');\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(2,'ii');\n  INSERT INTO t3_a VALUES(4,'iv');\n  CREATE TABLE t3_b(k INTEG5R PRIMARY KEY, v TEXT);\n  INSERT INTO t3_b VALUES(NULL,'iii');\n  INSERT INTO t3_b VALUES(NULL,'v');\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n  CREATE VIEW t3 AS \n      SELECT * FROM t3_a \n      UNION ALL \n      SELECT * FROM t3_b;\n  CREATE TRIGGER t3_insert INSTEAD OF INSERT ON t3 BEGIN\n      INSERT INTO t3_a SELECT new.k, new.v WHERE (new.k%2)==0;\n      INSERT INTO t3_b SELECT new.k, new.v WHERE (new.k%2)==1;\n  END;\n")
@@ -394,7 +399,8 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(a,b);\n  INSERT INTO t2 VALUES(3,4);\n\n  CREATE TABLE t3(a,b);\n  INSERT INTO t3 VALUES(5,6);\n  CREATE TABLE t4(a,b);\n  INSERT INTO t4 VALUES(7,8);\n\n  CREATE TABLE t5(a,b);\n  INSERT INTO t5 VALUES(9,10);\n")
@@ -415,7 +421,8 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.1"
 		r = db.Query("\n  WITH c1(x) AS (VALUES(0) UNION ALL SELECT 100+x FROM c1 WHERE x<100 UNION ALL SELECT 1+x FROM c1 WHERE x<1)\n  SELECT x, y, '|'\n    FROM c1 AS x1, (SELECT x+1 AS y FROM c1 WHERE x<1 UNION ALL SELECT 1+x FROM c1 WHERE 1<x) AS x2\n   ORDER BY x, y;\n")
@@ -430,7 +437,8 @@ func Test_unionall(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
 		r = db.Query("\n  CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  INSERT INTO t1_a VALUES(4,'four');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  INSERT INTO t1_b VALUES(5,'five');\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n  INSERT INTO t1_c VALUES(3,'three');\n  INSERT INTO t1_c VALUES(6,'six');\n  CREATE VIEW v0(c0) AS SELECT CAST(t0.c0 AS INTEGER) FROM t0;\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, c FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n  SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1;\n")

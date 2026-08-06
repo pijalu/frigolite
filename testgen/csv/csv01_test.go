@@ -121,7 +121,7 @@ func Test_csv01(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "a b mix-bloom-eel {soft opinion}"
+		want := "a b mix-bloom-eel soft opinion"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -133,7 +133,7 @@ func Test_csv01(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "a b mix-bloom-eel {soft opinion}"
+		want := "a b mix-bloom-eel soft opinion"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -365,7 +365,8 @@ func Test_csv01(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 200 }() {
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// load_static_extension db csv (unsupported command, not transpiled)
 		fd = "open csv.data w"
@@ -405,7 +406,8 @@ func Test_csv01(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20 }() {
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// load_static_extension db csv (unsupported command, not transpiled)
 		T = "randomtext $ii"
@@ -430,7 +432,7 @@ func Test_csv01(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "list abcd $T"
+			want := "abcd " + T
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -444,7 +446,8 @@ func Test_csv01(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db csv (unsupported command, not transpiled)
 	{ // "8.1"

@@ -199,8 +199,8 @@ func Test_whereJ(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE \n    a = 5 AND b BETWEEN 20 AND 80           -- Matches 1 row\n      AND\n    c BETWEEN 150 AND 160                   -- Matches 10 rows\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE le(\n    le_id largeint,\n    xid char(31),\n    type smallint,\n    name char(255) DEFAULT '',\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE TABLE cx(\n    cx_id largeint,\n    code char(31),\n    type smallint,\n    name char(31),\n    description varchar,\n    role smallint,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0,\n    le_id largeint DEFAULT 0,\n    imco smallint DEFAULT 0\n  );\n  CREATE TABLE px(\n    px_id largeint,\n    cx_id largeint,\n    px_tid largeint,\n    name char(31),\n    description varchar DEFAULT '',\n    ia smallint,\n    sl smallint,\n    le_id largeint DEFAULT 0,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE INDEX le_id on le (le_id);\n  CREATE INDEX c_id on cx (cx_id);\n  CREATE INDEX c_leid on cx (le_id);\n  CREATE INDEX p_id on px (px_id);\n  CREATE INDEX p_cid0 on px (cx_id);\n  CREATE INDEX p_pt on px (px_tid);\n  CREATE INDEX p_leid on px (le_id);\n")
@@ -227,7 +227,8 @@ func Test_whereJ(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1"
-		res = "db eval {\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a,b,c,d,e,f,g,h);\n    CREATE INDEX t1abc ON t1(a,b,c);\n    CREATE INDEX t1abe ON t1(a,b,e);\n    CREATE INDEX t1abf ON t1(a,b,f);\n    ANALYZE;\n    DROP TABLE IF EXISTS sqlite_stat4;\n    DROP TABLE IF EXISTS sqlite_stat3;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1(tbl,idx,stat)\n      VALUES('t1','t1abc','2000000 8000 1600 800'),\n            ('t1','t1abe','2000000 8000 1600 150'),\n            ('t1','t1abf','2000000 8000 1600 150');\n    ANALYZE sqlite_master;\n  \n    EXPLAIN QUERY PLAN\n    SELECT * FROM t1\n     WHERE (a=1 OR a=2)\n       AND (b=3 OR b=4)\n       AND (d>=5 AND d<=5)\n       AND ((e>=7 AND e<=7) OR (f>=8 AND f<=8))\n       AND g>0;\n  }"
+		_dbeval0 := tclExecSQL(db, "{\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a,b,c,d,e,f,g,h);\n    CREATE INDEX t1abc ON t1(a,b,c);\n    CREATE INDEX t1abe ON t1(a,b,e);\n    CREATE INDEX t1abf ON t1(a,b,f);\n    ANALYZE;\n    DROP TABLE IF EXISTS sqlite_stat4;\n    DROP TABLE IF EXISTS sqlite_stat3;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1(tbl,idx,stat)\n      VALUES('t1','t1abc','2000000 8000 1600 800'),\n            ('t1','t1abe','2000000 8000 1600 150'),\n            ('t1','t1abf','2000000 8000 1600 150');\n    ANALYZE sqlite_master;\n  \n    EXPLAIN QUERY PLAN\n    SELECT * FROM t1\n     WHERE (a=1 OR a=2)\n       AND (b=3 OR b=4)\n       AND (d>=5 AND d<=5)\n       AND ((e>=7 AND e<=7) OR (f>=8 AND f<=8))\n       AND g>0;\n  }")
+		res = _dbeval0
 		_ = res // suppress unused warning
 	}
 	{ // do_test "5.2"

@@ -155,9 +155,21 @@ func Test_eqp(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t3 JOIN (SELECT 1 UNION ALL SELECT a FROM t3 LIMIT 17) abc\n")
 		}
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x INT, y INT, ex TEXT);\n\n  CREATE TABLE t2(x INT, y INT, ex TEXT);\n  CREATE INDEX t2i1 ON t2(x);\n")
 		if _res.Error != nil {
@@ -277,9 +289,21 @@ func Test_eqp(t *testing.T) {
 		}
 	}
 	if false {
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		{ // "5.1.0"
 			_res = db.Exec(" CREATE TABLE t1(a INT, b INT, ex TEXT) ")
 			if _res.Error != nil {
@@ -336,9 +360,21 @@ func Test_eqp(t *testing.T) {
 			// do_peqp_test 6.1 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, 99 FROM...} [string trimleft {\n... (unsupported command, not transpiled)
 		}
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, ex CHAR(100));\n  CREATE TABLE t2(a INT, b INT, ex CHAR(100));\n  CREATE INDEX i1 ON t2(a);\n")
 		if _res.Error != nil {
@@ -353,14 +389,26 @@ func Test_eqp(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1(a,b) VALUES(1, 2);\n  INSERT INTO t1(a,b) VALUES(3, 4);\n\n  INSERT INTO t2(a,b) VALUES(1, 2);\n  INSERT INTO t2(a,b) VALUES(3, 4);\n  INSERT INTO t2(a,b) VALUES(5, 6);\n \n  ANALYZE;\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// det 7.4 SELECT count(*) FROM t1 {\n  QUERY PLAN\n  `--SCAN t1\n} (unsupported command, not transpiled)
 	// det 7.5 SELECT count(*) FROM t2 {\n  QUERY PLAN\n  `--SCAN t2 USING COVERING INDEX .... (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE TABLE t2(a, b, c);\n")
 		if _res.Error != nil {

@@ -64,12 +64,13 @@ func Test_altermalloc2(t *testing.T) {
 		}
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
-	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	TMPDBERROR = "1 {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
 	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABL... (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
@@ -83,7 +84,8 @@ func Test_altermalloc2(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABL... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(abcd, efgh);\n  CREATE VIEW v1 AS SELECT * FROM t1 WHERE abcd>efgh;\n")
@@ -94,7 +96,8 @@ func Test_altermalloc2(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABL... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM rr;\n\n  CREATE TRIGGER vv1 INSTEAD OF INSERT ON vv BEGIN\n    SELECT 1, 2, 3;\n  END;\n  CREATE TRIGGER tr1 AFTER INSERT ON rr BEGIN\n    INSERT INTO vv VALUES(new.a, new.b);\n  END;\n")
@@ -105,7 +108,8 @@ func Test_altermalloc2(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 4 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELEC...} -b... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM (\n    WITH abc(d, e) AS (SELECT * FROM rr)\n    SELECT * FROM abc\n  );\n")

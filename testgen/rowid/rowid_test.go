@@ -1034,8 +1034,8 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-12.2"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// save_prng_state (unsupported command, not transpiled)
 		r = db.Query("\n    INSERT INTO t7 VALUES(NULL,'b');\n    SELECT x, y FROM t7 ORDER BY x;\n  ")
@@ -1060,6 +1060,9 @@ func Test_rowid(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t7 VALUES(NULL,'x');\n      SELECT count(*) FROM t7 WHERE y=='x';\n    ")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), i) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", i, _res.Error, "rowid-12.3." + i)
+			}
 		}
 		// incr i 1
 		{
@@ -1079,6 +1082,7 @@ func Test_rowid(t *testing.T) {
 		_ = _res // catchsql
 	}
 	// proc definition (not transpiled)
+	// db function addrow (variable-reader, inlined)
 	{ // "rowid-13.1"
 		r = db.Query("\n  CREATE TABLE t13(x);\n  INSERT INTO t13(rowid,x) VALUES(1234,5);\n  SELECT rowid, x, addrow(rowid+1000), '|' FROM t13 LIMIT 3;\n  SELECT last_insert_rowid();\n")
 		if r.Error != nil {
@@ -1134,7 +1138,8 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "rowid-15.0"
 		r = db.Query("\n  PRAGMA reverse_unordered_selects=true;\n  CREATE TABLE t1 (c0, c1);\n  CREATE TABLE t2 (c0 INT UNIQUE);\n  INSERT INTO t1(c0, c1) VALUES (0, 0), (0, NULL);\n  INSERT INTO t2(c0) VALUES (1);\n")
@@ -1161,7 +1166,8 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "16.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT x FROM t1;\n  CREATE TABLE t3(z);\n\n  INSERT INTO t1(rowid, x) VALUES(1, 1);\n  INSERT INTO t2(y) VALUES(2);\n  INSERT INTO t3(rowid, z) VALUES(3, 3);\n")

@@ -182,7 +182,8 @@ func Test_fordelete(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');\n  DELETE FROM p1 WHERE one = 'a';\n")
@@ -191,7 +192,8 @@ func Test_fordelete(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "4.1"
 				_res = db.Exec("\n  BEGIN TRANSACTION;\n  CREATE TABLE tbl(a PRIMARY KEY, b, c);\n  CREATE TABLE log(a, b, c);\n  INSERT INTO \"tbl\" VALUES(1,2,3);\n  CREATE TRIGGER the_trigger BEFORE DELETE ON tbl BEGIN \n    INSERT INTO log VALUES(1, 2,3);\n  END;\n  COMMIT;\n  DELETE FROM tbl WHERE a=1;\n")
@@ -200,7 +202,8 @@ func Test_fordelete(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "5.1"
 				r = db.Query("\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n  );\n")

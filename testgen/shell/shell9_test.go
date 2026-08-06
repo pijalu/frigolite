@@ -73,6 +73,7 @@ func Test_shell9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts5(a, b, c);\n  INSERT INTO t1 VALUES('one', 'two', 'three');\n")
 		}
 	}
+	db.Close()
 	out = "open testdump.txt w"
 	_ = out // suppress unused warning
 	_putsMsg := out
@@ -82,8 +83,7 @@ func Test_shell9(t *testing.T) {
 		os.Remove("test.db")
 		// catchcmd test.db .read testdump.txt (unsupported command, not transpiled)
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.2"
 		r = db.Query("\n  SELECT * FROM t1;\n")
@@ -98,7 +98,8 @@ func Test_shell9(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.2.1"
 		_res = db.Exec("\n  CREATE TABLE t4(hello);\n")
@@ -106,6 +107,7 @@ func Test_shell9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(hello);\n")
 		}
 	}
+	db.Close()
 	{ // do_test "1.2.2"
 		// catchcmd test.db .read testdump.txt (unsupported command, not transpiled)
 	}
@@ -128,7 +130,8 @@ func Test_shell9(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t2 VALUES('two');\n")
@@ -155,15 +158,17 @@ func Test_shell9(t *testing.T) {
 		// contains_warning [catchcmd test.db ".dump r1"] (unsupported command, not transpiled)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db DQS_DDL 1 (unsupported command, not transpiled)
+	db.SetDQS(true, true)
 	{ // "3.1.0"
 		_res = db.Exec("\n  CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );\n")
 		}
 	}
+	db.Close()
 	out = "open testdump.txt w"
 	_ = out // suppress unused warning
 	_putsMsg = out

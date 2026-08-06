@@ -93,7 +93,7 @@ func Test_scanstatus(t *testing.T) {
 		}
 	}
 	// do_scanstatus_test 1.1b { \n  nLoop 1 nVisit 2 nEst 1048576.0 zName t1 zExp...} (unsupported command, not transpiled)
-	// sqlite3_db_config db STMT_SCANSTATUS 0 (unsupported command, not transpiled)
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "1.2a"
 		r = db.Query(" SELECT count(*) FROM t1, t2; ")
 		if r.Error != nil {
@@ -107,7 +107,7 @@ func Test_scanstatus(t *testing.T) {
 		}
 	}
 	// do_scanstatus_test 1.2b { \n} (unsupported command, not transpiled)
-	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "1.3"
 		r = db.Query("\n  ANALYZE;\n  SELECT count(*) FROM t1, t2;\n")
 		if r.Error != nil {
@@ -158,9 +158,10 @@ func Test_scanstatus(t *testing.T) {
 	}
 	// do_scanstatus_test 1.10 {\n  nLoop 0 nVisit 0 nEst 2.0 zName t2 zExplain \n...} (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "2.1"
 		r = db.Query("\n  CREATE TABLE x1(i INTEGER PRIMARY KEY, j);\n  INSERT INTO x1 VALUES(1, 'one');\n  INSERT INTO x1 VALUES(2, 'two');\n  INSERT INTO x1 VALUES(3, 'three');\n  INSERT INTO x1 VALUES(4, 'four');\n  CREATE INDEX x1j ON x1(j);\n\n  SELECT * FROM x1 WHERE i=2;\n")
 		if r.Error != nil {
@@ -233,7 +234,7 @@ func Test_scanstatus(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "3 three {3 three} 2 two {2 two}"
+		want := "3 three 3 three 2 two 2 two"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -260,7 +261,7 @@ func Test_scanstatus(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "3 three {3 three}"
+		want := "3 three 3 three"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -364,9 +365,10 @@ func Test_scanstatus(t *testing.T) {
 	}
 	// do_scanstatus_test 4.2.2 { \n  nLoop 1 nVisit 1 nEst 1.0 zName sqlite_autoin...} (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
+	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	// proc definition (not transpiled)
 	{ // "5.0"
 		r = db.Query("\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(0, 1, 'a');\n  INSERT INTO t1 VALUES(1, 0, 'b');\n  INSERT INTO t1 VALUES(2, 1, 'c');\n  INSERT INTO t1 VALUES(3, 0, 'd');\n  INSERT INTO t1 VALUES(4, 1, 'e');\n  INSERT INTO t1 VALUES(5, 0, 'a');\n  INSERT INTO t1 VALUES(6, 1, 'b');\n  INSERT INTO t1 VALUES(7, 0, 'c');\n  INSERT INTO t1 VALUES(8, 1, 'd');\n  INSERT INTO t1 VALUES(9, 0, 'e');\n  CREATE INDEX t1bc ON t1(b, c);\n\n  CREATE TABLE t2(x, y);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH data(i, x, y) AS (\n    SELECT 0, 0, tochar(0) \n    UNION ALL\n    SELECT i+1, (i+1)%2, tochar(i+1) FROM data WHERE i<500\n  ) INSERT INTO t2 SELECT x, y FROM data;\n\n  CREATE TABLE t3(x, y);\n  INSERT INTO t3 SELECT * FROM t2;\n\n  ANALYZE;\n")

@@ -66,6 +66,7 @@ func Test_mutex2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
 	// sqlite3_shutdown (unsupported command, not transpiled)

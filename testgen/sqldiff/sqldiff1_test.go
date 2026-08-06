@@ -59,6 +59,7 @@ func Test_sqldiff1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	PROG = "test_find_sqldiff"
 	_ = PROG // suppress unused warning
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -92,6 +93,7 @@ func Test_sqldiff1(t *testing.T) {
 	{ // do_test "sqldiff-1.1"
 		_ = MSG // TCL namespace variable (query)
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -100,13 +102,14 @@ func Test_sqldiff1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  ")
 		}
-		_dbtmp0, err := frigolite.Open("test2.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
 		}
+		db.Close()
 		line = "exec " + PROG + " test.db test2.db"
 		_ = line // suppress unused warning
 		{

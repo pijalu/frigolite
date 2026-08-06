@@ -85,6 +85,7 @@ func Test_tkt3992(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET a = 'one';\n      SELECT * FROM t1;\n    ")
 		}
 	}
+	// db function tcl (variable-reader, inlined)
 	{ // do_test "tkt3992-2.3"
 		_res = db.Exec("\n      CREATE TABLE t2(a REAL, b REAL, c REAL);\n      INSERT INTO t2 VALUES(1, 2, 3);\n      CREATE TRIGGER tr2 BEFORE UPDATE ON t2 BEGIN\n        SELECT tcl('set res', typeof(new.c));\n      END;\n  \n      UPDATE t2 SET a = 'I';\n    ")
 		if _res.Error != nil {

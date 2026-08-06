@@ -76,9 +76,9 @@ func Test_crash7(t *testing.T) {
 		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 64 }() {
+			db.Close()
 			// delete_file test.db (unsupported command, not transpiled)
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			from_size = tclExprWith("1024 << ($ii&3)", map[string]string{"ii": ii})
 			_ = from_size // suppress unused warning
@@ -90,11 +90,11 @@ func Test_crash7(t *testing.T) {
 			}
 			sig = "signature"
 			_ = sig // suppress unused warning
+			db.Close()
 			{ // do_test "crash7-1." + ii + ".crash"
 				// crashsql -file $f \n         PRAGMA page_size = $to_size;\n         ... (unsupported command, not transpiled)
 			}
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -107,6 +107,7 @@ func Test_crash7(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

@@ -68,7 +68,7 @@ func Test_descidx2(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
-	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
+	// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "descidx2-1.1"
@@ -87,8 +87,8 @@ func Test_descidx2(t *testing.T) {
 	}
 	{ // do_test "descidx2-2.0"
 		// set_file_format 3 (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// get_file_format (unsupported command, not transpiled)
 	}

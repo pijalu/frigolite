@@ -234,7 +234,8 @@ func Test_upfrom1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  UPDATE t1 SET b=sum(a) FROM t0;\n  SELECT * FROM t0, t1;\n")
@@ -243,7 +244,8 @@ func Test_upfrom1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		r = db.Query("\n  CREATE TABLE t1(x INT);  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(y INT);  INSERT INTO t2 VALUES(2);\n  WITH t1 AS (SELECT y+100 AS x FROM t2) \n    UPDATE t1 SET x=(SELECT x FROM t1);\n  SELECT x, y FROM t1, t2;\n")
@@ -270,7 +272,8 @@ func Test_upfrom1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(5);\n  CREATE VIEW t2 AS SELECT a FROM t1 UNION ALL SELECT a FROM t1;\n  CREATE TABLE t3(b,c);\n  INSERT INTO t3(b,c) VALUES(1,2);\n  UPDATE t3 SET (c,b) = (SELECT 3,4) FROM t1, t2;\n  SELECT * FROM t3;\n")

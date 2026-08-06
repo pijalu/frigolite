@@ -131,6 +131,7 @@ func Test_shared(t *testing.T) {
 	_ = c // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	for _, av := range tclSplitList("0 1") {
@@ -146,6 +147,9 @@ func Test_shared(t *testing.T) {
 			r = db.Query("pragma auto_vacuum")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma auto_vacuum")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), av) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", av, _res.Error, "shared-" + tclExprWith("$av+1", map[string]string{"av": av}) + ".1.0")
 			}
 		}
 		using_proxy = "0"
@@ -316,6 +320,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			{
 				var _catchErr error
@@ -459,6 +464,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			for _, db_iter := range tclSplitList("test.db test1.db test2.db test3.db") {
 			_ = db_iter // suppress unused warning
@@ -603,7 +609,7 @@ func Test_shared(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(:a, :b);\n    ")
 					}
-					contents = tclListAppend(contents, "list [expr $i+1] $a $b")
+					contents = tclListAppend(contents, tclExprWith("$i+1", map[string]string{"i": i}) + " " + a + " " + b)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -635,6 +641,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			{
 				var _catchErr error
@@ -694,6 +701,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			{
 				var _catchErr error
@@ -715,7 +723,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".8.3.3"
-				zDb16 = "encoding convertto unicode test.db" + "x00x00"
+				zDb16 = "encoding convertto unicode test.db" + "\x00\x00"
 				_ = zDb16 // suppress unused warning
 				db16 = ""
 				_ = db16 // suppress unused warning
@@ -744,6 +752,7 @@ func Test_shared(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			{
 				var _catchErr error
@@ -769,6 +778,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".9.3"
+				db.Close()
 				db2.Close()
 			}
 			{ // do_test "shared-" + av + ".10.1"
@@ -841,6 +851,7 @@ func Test_shared(t *testing.T) {
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 			{ // do_test "shared-" + av + ".10.11"
+				db.Close()
 				db3.Close()
 			}
 			{ // do_test "shared-" + av + ".11.1"
@@ -900,6 +911,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".11.11"
+				db.Close()
 				db2.Close()
 			}
 			os.Remove("test.db")
@@ -912,7 +924,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".12.2"
-				db_handles = "list" // TCL namespace variable
+				db_handles = "" // TCL namespace variable
 				_ = db_handles // suppress unused warning
 				i = "1"
 				_ = i // suppress unused warning
@@ -939,12 +951,13 @@ func Test_shared(t *testing.T) {
 			}
 			// proc definition (not transpiled)
 			{ // do_test "shared-" + av + ".12.3"
-				res = "list" // TCL namespace variable
+				res = "" // TCL namespace variable
 				_ = res // suppress unused warning
 				// nested_select $::db_handles (unsupported command, not transpiled)
 				_ = res // TCL namespace variable (query)
 			}
 			{ // do_test "shared-" + av + ".12.X"
+				db.Close()
 				for _, h := range tclSplitList(db_handles) {
 				_ = h // suppress unused warning
 					// $h close (unsupported command, not transpiled)
@@ -966,6 +979,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".13.3"
+				db.Close()
 			}
 			{ // do_test "shared-" + av + ".14.1"
 				_dbtmp5, err := frigolite.Open("test.db")
@@ -987,6 +1001,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".14.3"
+				db.Close()
 			}
 			{ // do_test "shared-" + av + "-15.1"
 				os.Remove("test.db")
@@ -1005,6 +1020,7 @@ func Test_shared(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 				}
 			}
+			db.Close()
 			db2.Close()
 			{ // do_test "shared-" + av + "-16.1"
 				db1, err = frigolite.Open("file::memory:")
@@ -1072,7 +1088,7 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + "-16.8"
 				// file exists "test1.db"
 			}
-			if tclBool("!" + "sqlite3 -has-codec") {
+			if tclBool("!" + "") {
 				{ // do_test "shared-" + av + "-16.8.1"
 					db1.Close()
 					db2.Close()
@@ -1083,6 +1099,7 @@ func Test_shared(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      CREATE TABLE yy(a, b);\n      INSERT INTO yy VALUES(77, 88);\n    ")
 					}
+					db.Close()
 					db1, err = frigolite.Open("test1.db")
 					if err != nil { t.Fatal(err) }
 					db2, err = frigolite.Open("test2.db")

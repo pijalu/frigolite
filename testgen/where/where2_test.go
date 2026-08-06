@@ -151,11 +151,14 @@ func Test_where2(t *testing.T) {
 		}
 		sql = "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()"
 		_ = sql // suppress unused warning
-		out1 = "db eval $sql"
+		_dbeval0 := tclExecSQL(db, sqlLiteral(sql))
+		out1 = _dbeval0
 		_ = out1 // suppress unused warning
-		out2 = "db eval $sql"
+		_dbeval1 := tclExecSQL(db, sqlLiteral(sql))
+		out2 = _dbeval1
 		_ = out2 // suppress unused warning
-		out3 = "db eval $sql"
+		_dbeval2 := tclExecSQL(db, sqlLiteral(sql))
+		out3 = _dbeval2
 		_ = out3 // suppress unused warning
 		// expr $out1!=$out2 && $out2!=$out3 (not evaluated)
 	}
@@ -727,7 +730,8 @@ func Test_where2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "where2-16.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t3(e INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t4(g INTEGER PRIMARY KEY, h INT);\n")

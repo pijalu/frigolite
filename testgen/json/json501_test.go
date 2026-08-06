@@ -70,15 +70,15 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "5 {{\"a\":5,\"b\":6}} 0 1"
+		want := "5 {\"a\":5,\"b\":6} 0 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.2"
-		r = db.Query("\n  SELECT '" + sqlLiteral("7,null,{a:5,b:6},[8,9]") + "'->>'$" + sqlLiteral("2") + ".b';\n")
+		r = db.Query("\n  SELECT '[7,null,{a:5,b:6},[8,9]]'->>'$[2].b';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '" + sqlLiteral("7,null,{a:5,b:6},[8,9]") + "'->>'$" + sqlLiteral("2") + ".b';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[7,null,{a:5,b:6},[8,9]]'->>'$[2].b';\n")
 			return
 		}
 		got := flatten(r)
@@ -100,9 +100,9 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "1.4"
-		r = db.Query("\n  SELECT '{ _123" + sqlLiteral(xyz) + " : 789 }'->>'$.\"_123" + sqlLiteral(xyz) + "\"';\n")
+		r = db.Query("\n  SELECT '{ _123$xyz : 789 }'->>'$.\"_123$xyz\"';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{ _123" + sqlLiteral(xyz) + " : 789 }'->>'$.\"_123" + sqlLiteral(xyz) + "\"';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{ _123$xyz : 789 }'->>'$.\"_123$xyz\"';\n")
 			return
 		}
 		got := flatten(r)
@@ -112,9 +112,9 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "1.5"
-		r = db.Query("\n  SELECT '{ MNO_123" + sqlLiteral(xyz) + " : 789 }'->>'$.\"MNO_123" + sqlLiteral(xyz) + "\"';\n")
+		r = db.Query("\n  SELECT '{ MNO_123$xyz : 789 }'->>'$.\"MNO_123$xyz\"';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{ MNO_123" + sqlLiteral(xyz) + " : 789 }'->>'$.\"MNO_123" + sqlLiteral(xyz) + "\"';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{ MNO_123$xyz : 789 }'->>'$.\"MNO_123$xyz\"';\n")
 			return
 		}
 		got := flatten(r)
@@ -124,13 +124,13 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "1.6"
-		r = db.Query("\n  SELECT json('{ MNO_123" + sqlLiteral(xyz) + " : 789 }');\n")
+		r = db.Query("\n  SELECT json('{ MNO_123$xyz : 789 }');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json('{ MNO_123" + sqlLiteral(xyz) + " : 789 }');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json('{ MNO_123$xyz : 789 }');\n")
 			return
 		}
 		got := flatten(r)
-		want := "list {{\"MNO_123$xyz\":789}}"
+		want := "{{\"MNO_123" + xyz + "\":789}}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -160,7 +160,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "6 {{\"a\":5,\"b\":6}} 0 1"
+		want := "6 {\"a\":5,\"b\":6} 0 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -190,21 +190,21 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "3.1"
-		r = db.Query("\n  WITH c(x) AS (VALUES('" + sqlLiteral("5, 6,") + "'))\n  SELECT x->>1, json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+		r = db.Query("\n  WITH c(x) AS (VALUES('[5, 6,]'))\n  SELECT x->>1, json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('" + sqlLiteral("5, 6,") + "'))\n  SELECT x->>1, json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES('[5, 6,]'))\n  SELECT x->>1, json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
 			return
 		}
 		got := flatten(r)
-		want := "6 {[5,6]} 0 1"
+		want := "6 [5,6] 0 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "3.2"
-		r = db.Query("\n  SELECT '" + sqlLiteral("5, 6 ,") + "'->>1;\n")
+		r = db.Query("\n  SELECT '[5, 6 , ]'->>1;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '" + sqlLiteral("5, 6 ,") + "'->>1;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[5, 6 , ]'->>1;\n")
 			return
 		}
 		got := flatten(r)
@@ -214,15 +214,15 @@ func Test_json501(t *testing.T) {
 		}
 	}
 	{ // "3.3"
-		_res = db.Exec("\n  SELECT '" + sqlLiteral("5, 6,,") + "'->>1;\n")
+		_res = db.Exec("\n  SELECT '[5, 6,,]'->>1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '" + sqlLiteral("5, 6,,") + "'->>1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '[5, 6,,]'->>1;\n")
 		}
 	}
 	{ // "3.4"
-		_res = db.Exec("\n  SELECT '" + sqlLiteral("5, 6 , ,") + "'->>1;\n")
+		_res = db.Exec("\n  SELECT '[5, 6 , , ]'->>1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '" + sqlLiteral("5, 6 , ,") + "'->>1;\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '[5, 6 , , ]'->>1;\n")
 		}
 	}
 	{ // "4.1"
@@ -232,7 +232,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "abcd {{\"a\":\"abcd\"}} 0 1"
+		want := "abcd {\"a\":\"abcd\"} 0 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -256,7 +256,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "abcxyz {{\"a\":\"abcxyz\"}} 0 1"
+		want := "abcxyz {\"a\":\"abcxyz\"} 0 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -484,7 +484,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "4.0 {{\"x\":4.0}}"
+		want := "4.0 {\"x\":4.0}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -496,7 +496,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "4.0 {{\"x\":4.0}}"
+		want := "4.0 {\"x\":4.0}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -508,7 +508,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "-4.0 {{\"x\":-4.0}}"
+		want := "-4.0 {\"x\":-4.0}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -520,7 +520,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0.5 {{\"x\":0.5}}"
+		want := "0.5 {\"x\":0.5}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -532,7 +532,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "-0.5 {{\"x\":-0.5}}"
+		want := "-0.5 {\"x\":-0.5}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -544,7 +544,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0.5 {{\"x\":0.5}}"
+		want := "0.5 {\"x\":0.5}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -556,7 +556,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "4.0 {{\"x\":4.0e0}}"
+		want := "4.0 {\"x\":4.0e0}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -568,7 +568,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "40.0 {{\"x\":4.0e1}}"
+		want := "40.0 {\"x\":4.0e1}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -580,7 +580,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "-400.0 {{\"x\":-4.0e2}}"
+		want := "-400.0 {\"x\":-4.0e2}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -592,7 +592,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "500.0 {{\"x\":0.5e3}}"
+		want := "500.0 {\"x\":0.5e3}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -604,7 +604,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "-0.05 {{\"x\":-0.5e-1}}"
+		want := "-0.05 {\"x\":-0.5e-1}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -616,7 +616,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0.005 {{\"x\":0.5e-2}}"
+		want := "0.005 {\"x\":0.5e-2}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -628,7 +628,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "Inf {{\"x\":9e999}}"
+		want := "Inf {\"x\":9e999}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -640,7 +640,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "-Inf {{\"x\":-9e999}}"
+		want := "-Inf {\"x\":-9e999}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -652,7 +652,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "Inf {{\"x\":9e999}}"
+		want := "Inf {\"x\":9e999}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -664,7 +664,7 @@ func Test_json501(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{} {{\"x\":null}}"
+		want := "{} {\"x\":null}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

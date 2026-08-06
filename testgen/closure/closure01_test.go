@@ -404,7 +404,8 @@ func Test_closure01(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db closure (unsupported command, not transpiled)
 	{ // "7.1"

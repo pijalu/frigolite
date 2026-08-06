@@ -233,7 +233,7 @@ func Test_fuzz(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);\n  ")
 		}
 	}
-	TableList = "list abc def ghi" // TCL namespace variable
+	TableList = "abc def ghi" // TCL namespace variable
 	_ = TableList // suppress unused warning
 	// do_fuzzy_test fuzz-3.2 -template {[Select]} (unsupported command, not transpiled)
 	{ // do_test "fuzz-4.1"
@@ -260,7 +260,7 @@ func Test_fuzz(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	ColumnList = "list a b c" // TCL namespace variable
+	ColumnList = "a b c" // TCL namespace variable
 	_ = ColumnList // suppress unused warning
 	E = "{no such col} {ambiguous column name}"
 	_ = E // suppress unused warning

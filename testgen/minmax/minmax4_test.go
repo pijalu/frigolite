@@ -320,7 +320,8 @@ func Test_minmax4(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "3." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);\n  ")
@@ -388,7 +389,8 @@ func Test_minmax4(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE t0 (c0, c1);\n  CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);\n  INSERT INTO t0(c0) VALUES (1);\n")
@@ -409,7 +411,8 @@ func Test_minmax4(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE t1 (a, b);\n  INSERT INTO t1 VALUES(123, NULL);\n  CREATE INDEX i1 ON t1(a, b DESC);\n")
@@ -430,7 +433,8 @@ func Test_minmax4(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.1.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL, 1, 'x');\n  CREATE INDEX i1 ON t1(a);\n")

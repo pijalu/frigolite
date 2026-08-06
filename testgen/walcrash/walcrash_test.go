@@ -60,6 +60,7 @@ func Test_walcrash(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	seed = "0"
 	_ = seed // suppress unused warning
 	REPEATS = "100"
@@ -82,6 +83,7 @@ func Test_walcrash(t *testing.T) {
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+		db.Close()
 		{ // do_test "walcrash-1." + i + ".4"
 			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {\n      INSERT INTO t1 VALUES(4, (... (unsupported command, not transpiled)
 		}
@@ -102,6 +104,7 @@ func Test_walcrash(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 			}
 		}
+		db.Close()
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -128,6 +131,7 @@ func Test_walcrash(t *testing.T) {
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+		db.Close()
 		{ // do_test "walcrash-2." + i + ".4"
 			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {\n      INSERT INTO t1 VALUES(6, (... (unsupported command, not transpiled)
 		}
@@ -148,6 +152,7 @@ func Test_walcrash(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 			}
 		}
+		db.Close()
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -185,6 +190,7 @@ func Test_walcrash(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 			}
 		}
+		db.Close()
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -222,6 +228,7 @@ func Test_walcrash(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 			}
 		}
+		db.Close()
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -259,6 +266,7 @@ func Test_walcrash(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 			}
 		}
+		db.Close()
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -297,6 +305,7 @@ func Test_walcrash(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
 			}
 		}
+		db.Close()
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

@@ -273,7 +273,7 @@ func Test_hook(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(a UNIQUE, b);\n    INSERT INTO t4 VALUES(1, 'a');\n    INSERT INTO t4 VALUES(2, 'b');\n  ")
 		}
-		update_hook = "list" // TCL namespace variable
+		update_hook = "" // TCL namespace variable
 		_ = update_hook // suppress unused warning
 		_res = db.Exec("\n    REPLACE INTO t4 VALUES(1, 'c');\n  ")
 		if _res.Error != nil {
@@ -294,7 +294,7 @@ func Test_hook(t *testing.T) {
 		}
 	}
 	{ // do_test "hook-4.4.2"
-		update_hook = "list" // TCL namespace variable
+		update_hook = "" // TCL namespace variable
 		_ = update_hook // suppress unused warning
 		_res = db.Exec("\n    PRAGMA recursive_triggers = on;\n    REPLACE INTO t4 VALUES(1, 'd');\n  ")
 		if _res.Error != nil {
@@ -343,7 +343,7 @@ func Test_hook(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "hook-6.1"
-		hooks = "list" // TCL namespace variable
+		hooks = "" // TCL namespace variable
 		_ = hooks // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES('two', 'II');\n    COMMIT;\n  ")
 		_ = _res // catchsql
@@ -357,6 +357,7 @@ func Test_hook(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -463,6 +464,7 @@ func Test_hook(t *testing.T) {
 	}
 	// do_preupdate_test 7.6.2 {\n  INSERT INTO t9 VALUES(1, 2, 3);\n  UPDATE t9 S...} {\n  INSERT main t... (unsupported command, not transpiled)
 	// proc definition (not transpiled)
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -491,7 +493,8 @@ func Test_hook(t *testing.T) {
 	// do_preupdate_test 8.5 { CREATE VIEW v1 AS SELECT * FROM y1 } { } (unsupported command, not transpiled)
 	// do_preupdate_test 8.6 { DROP TABLE y1 } { } (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "9.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE t2(a, b INTEGER PRIMARY KEY);\n  ")
@@ -531,7 +534,8 @@ func Test_hook(t *testing.T) {
 	}
 	// do_preupdate_test 10.3 {\n  DELETE FROM t3 WHERE b=1\n} {DELETE main t3 1 1 0 {} 1} (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "11.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX idx1 ON t1(a);\n    CREATE INDEX idx2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n  ")
@@ -541,7 +545,7 @@ func Test_hook(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	res = "list" // TCL namespace variable
+	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
 	{ // do_test "11.2"
 		_res = db.Exec("ANALYZE")
@@ -556,7 +560,7 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t1 VALUES(15, 16);\n  ")
 		}
 	}
-	res = "list" // TCL namespace variable
+	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
 	{ // do_test "11.4"
 		_res = db.Exec("ANALYZE")
@@ -566,7 +570,8 @@ func Test_hook(t *testing.T) {
 		_ = res // TCL namespace variable (query)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "12.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES(5, 6);\n  INSERT INTO t2 VALUES(7, 8);\n\n  CREATE TABLE t3 (a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n")
@@ -576,7 +581,7 @@ func Test_hook(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	res = "list" // TCL namespace variable
+	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
 	{ // do_test "12.2"
 		_res = db.Exec("VACUUM")
@@ -586,7 +591,7 @@ func Test_hook(t *testing.T) {
 		_ = res // TCL namespace variable (query)
 	}
 	{ // do_test "12.3"
-		res = "list" // TCL namespace variable
+		res = "" // TCL namespace variable
 		_ = res // suppress unused warning
 		_res = db.Exec(" INSERT INTO t3 SELECT a, b FROM t2 ")
 		if _res.Error != nil {
@@ -599,7 +604,7 @@ func Test_hook(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t3 ")
 		}
-		res = "list" // TCL namespace variable
+		res = "" // TCL namespace variable
 		_ = res // suppress unused warning
 		_res = db.Exec(" INSERT INTO t3 SELECT * FROM t2 ")
 		if _res.Error != nil {
@@ -613,7 +618,7 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);\n")
 		}
 	}
-	res = "list" // TCL namespace variable
+	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
 	{ // do_test "12.6"
 		_res = db.Exec("VACUUM")
@@ -629,7 +634,8 @@ func Test_hook(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(100), (200), (300), (400);\n")

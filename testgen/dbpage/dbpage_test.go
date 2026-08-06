@@ -67,7 +67,7 @@ func Test_dbpage(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "dbpage"
 	_ = testprefix // suppress unused warning
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // do_test "100"
 		r = db.Query("\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;\n  ")
 		if r.Error != nil {
@@ -216,6 +216,7 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  PRAGMA aux1.integrity_check;\n")
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "300"
@@ -225,7 +226,8 @@ func Test_dbpage(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "400"
 		_res = db.Exec("\n  ATTACH ':memory:' AS aux1;\n  BEGIN;\n    CREATE VIRTUAL TABLE aux1.t1 USING sqlite_dbpage;\n    INSERT INTO t1 VALUES(17, NULL);\n  COMMIT;\n")
@@ -234,7 +236,8 @@ func Test_dbpage(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
@@ -267,8 +270,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "520"
 		r = db.Query("\n  PRAGMA page_count;\n  SELECT * FROM t1;\n")
@@ -284,7 +287,8 @@ func Test_dbpage(t *testing.T) {
 	}
 	db2.Close()
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // "610"
@@ -313,8 +317,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=" + sqlLiteral(pgno) + "-1\n  ) WHERE pgno = " + sqlLiteral(pgno) + ";\n")
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "640"
 		r = db.Query("\n  SELECT * FROM t2;\n")
@@ -330,7 +334,8 @@ func Test_dbpage(t *testing.T) {
 	}
 	db2.Close()
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "700"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n")
@@ -372,8 +377,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT abc;\n        INSERT INTO sqlite_dbpage VALUES(2, NULL);\n      ROLLBACK TO abc;\n    COMMIT;\n  ")
 		}
 	}
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "720"
 		r = db.Query("\n  PRAGMA integrity_check\n")
@@ -388,7 +393,8 @@ func Test_dbpage(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "800"
 		_res = db.Exec("\n  CREATE TABLE x1(x);\n")

@@ -7,6 +7,7 @@ package tkt
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -173,6 +174,9 @@ func Test_tkt3718(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t2 ORDER BY a+0")
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), results) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", results, _res.Error, "tkt3718-3." + tn)
+				}
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -205,6 +209,9 @@ func Test_tkt3718(t *testing.T) {
 					r = db.Query(" SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0")
+					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), results) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", results, _res.Error, "tkt3718-4." + tn)
 					}
 				}
 				{ // do_test "tkt3718-4." + tn + ".extra"

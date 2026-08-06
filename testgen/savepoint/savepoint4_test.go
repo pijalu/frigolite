@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -96,6 +97,9 @@ func Test_savepoint4(t *testing.T) {
 				ret = "crashsql -delay $iDelay -file test.db-journal {\n        PRAGMA cache_size = 20;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE random()%2==0;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,10)||x FROM t1;\n           ROLLBACK TO two;\n            UPDATE t1 SET x = randstr(10, 400) WHERE random()%10;\n          RELEASE two;\n        ROLLBACK TO one;\n        RELEASE one;\n      }"
 				_ = ret // suppress unused warning
 				// signature (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "savepoint4-1." + ii + ".1." + iDelay)
+				}
 			}
 			crashed = tclLIndex(ret, "0")
 			_ = crashed // suppress unused warning
@@ -150,6 +154,9 @@ func Test_savepoint4(t *testing.T) {
 					// signature (unsupported command, not transpiled)
 				} else {
 					_ = sig // TCL namespace variable (query)
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "savepoint4-2." + ii + ".1." + iDelay)
 				}
 			}
 			_res = db.Exec("PRAGMA integrity_check")

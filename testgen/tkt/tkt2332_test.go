@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -77,7 +78,7 @@ func Test_tkt2332(t *testing.T) {
 		{ // do_test "tkt2332." + Len + ".1"
 			val = "6.099e-320"
 			_ = val // suppress unused warning
-			blobstr = tclStringRange("\\", "", "repeat") // TCL namespace variable
+			blobstr = tclStringRange("", "repeat", val) // TCL namespace variable
 			_ = blobstr // suppress unused warning
 			_res = db.Exec(" INSERT INTO blobs VALUES(" + sqlLiteral(iKey) + ", zeroblob(" + sqlLiteral(Len) + ")) ")
 			if _res.Error != nil {
@@ -88,6 +89,9 @@ func Test_tkt2332(t *testing.T) {
 			r = db.Query("\n      SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + ";\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + ";\n    ")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), Len) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", Len, _res.Error, "tkt2332." + Len + ".2")
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".3"
@@ -102,9 +106,15 @@ func Test_tkt2332(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT length(v) FROM blobs WHERE k = " + sqlLiteral(iKey) + "; ")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), Len) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", Len, _res.Error, "tkt2332." + Len + ".4")
+			}
 		}
 		{ // do_test "tkt2332." + Len + ".5"
 			_ = tclLIndex(tclExecSQL(db, "{SELECT v FROM blobs WHERE k = " + iKey + "}"), "0") // lindex result
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), blobstr) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", blobstr, _res.Error, "tkt2332." + Len + ".5")
+			}
 		}
 		// incr iKey 1
 		{

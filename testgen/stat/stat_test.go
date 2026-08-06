@@ -98,6 +98,7 @@ func Test_stat(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -159,7 +160,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list \\\n  sqlite_autoindex_t3_1 / 3 internal 3 368 623 125       \\\n  sqlite_autoindex_t3_1 /000/ 8 leaf 8 946 46 123        \\\n  sqlite_autoindex_t3_1 /001/ 9 leaf 8 988 2 131         \\\n  sqlite_autoindex_t3_1 /002/ 15 leaf 7 857 137 132      \\\n  sqlite_autoindex_t3_1 /003/ 20 leaf 6 739 257 129      \\\n  t3 / 2 internal 15 0 907 0                             \\\n  t3 /000/ 4 leaf 2 678 328 340                          \\\n  t3 /001/ 5 leaf 2 682 324 342                          \\\n  t3 /002/ 6 leaf 2 682 324 342                          \\\n  t3 /003/ 7 leaf 2 690 316 346                          \\\n  t3 /004/ 10 leaf 2 682 324 342                         \\\n  t3 /005/ 11 leaf 2 690 316 346                         \\\n  t3 /006/ 12 leaf 2 698 308 350                         \\\n  t3 /007/ 13 leaf 2 706 300 354                         \\\n  t3 /008/ 14 leaf 2 682 324 342                         \\\n  t3 /009/ 16 leaf 2 690 316 346                         \\\n  t3 /00a/ 17 leaf 2 698 308 350                         \\\n  t3 /00b/ 18 leaf 2 706 300 354                         \\\n  t3 /00c/ 19 leaf 2 714 292 358                         \\\n  t3 /00d/ 21 leaf 2 722 284 362                         \\\n  t3 /00e/ 22 leaf 2 730 276 366                         \\\n  t3 /00f/ 23 leaf 2 738 268 370                         \\"
+		want := "sqlite_autoindex_t3_1 / 3 internal 3 368 623 125 sqlite_autoindex_t3_1 /000/ 8 leaf 8 946 46 123 sqlite_autoindex_t3_1 /001/ 9 leaf 8 988 2 131 sqlite_autoindex_t3_1 /002/ 15 leaf 7 857 137 132 sqlite_autoindex_t3_1 /003/ 20 leaf 6 739 257 129 t3 / 2 internal 15 0 907 0 t3 /000/ 4 leaf 2 678 328 340 t3 /001/ 5 leaf 2 682 324 342 t3 /002/ 6 leaf 2 682 324 342 t3 /003/ 7 leaf 2 690 316 346 t3 /004/ 10 leaf 2 682 324 342 t3 /005/ 11 leaf 2 690 316 346 t3 /006/ 12 leaf 2 698 308 350 t3 /007/ 13 leaf 2 706 300 354 t3 /008/ 14 leaf 2 682 324 342 t3 /009/ 16 leaf 2 690 316 346 t3 /00a/ 17 leaf 2 698 308 350 t3 /00b/ 18 leaf 2 706 300 354 t3 /00c/ 19 leaf 2 714 292 358 t3 /00d/ 21 leaf 2 722 284 362 t3 /00e/ 22 leaf 2 730 276 366 t3 /00f/ 23 leaf 2 738 268 370"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -171,7 +172,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list \\\n  sqlite_autoindex_t3_1 {}  5 {} 32  3898 1065 132 {}  5120 \\\n  sqlite_schema         {}  1 {}  2    84  824  49 {}  1024 \\\n  t3                    {} 17 {} 47 11188 5815 370 {} 17408 \\"
+		want := "sqlite_autoindex_t3_1 {} 5 {} 32 3898 1065 132 {} 5120 sqlite_schema {} 1 {} 2 84 824 49 {} 1024 t3 {} 17 {} 47 11188 5815 370 {} 17408"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -201,7 +202,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list \\\n  i4 / 3 leaf 1 103 905 7782                 \\\n  i4 /000+000000 4 overflow 0 1020 0 0       \\\n  i4 /000+000001 5 overflow 0 1020 0 0      \\\n  i4 /000+000002 6 overflow 0 1020 0 0      \\\n  i4 /000+000003 7 overflow 0 1020 0 0      \\\n  i4 /000+000004 8 overflow 0 1020 0 0      \\\n  i4 /000+000005 9 overflow 0 1020 0 0      \\\n  i4 /000+000006 10 overflow 0 1020 0 0      \\\n  i4 /000+000007 11 overflow 0 539 481 0     \\\n  t4 / 2 leaf 1 640 367 7780                 \\\n  t4 /000+000000 12 overflow 0 1020 0 0      \\\n  t4 /000+000001 13 overflow 0 1020 0 0      \\\n  t4 /000+000002 14 overflow 0 1020 0 0      \\\n  t4 /000+000003 15 overflow 0 1020 0 0      \\\n  t4 /000+000004 16 overflow 0 1020 0 0      \\\n  t4 /000+000005 17 overflow 0 1020 0 0      \\\n  t4 /000+000006 18 overflow 0 1020 0 0      \\"
+		want := "i4 / 3 leaf 1 103 905 7782 i4 /000+000000 4 overflow 0 1020 0 0 i4 /000+000001 5 overflow 0 1020 0 0 i4 /000+000002 6 overflow 0 1020 0 0 i4 /000+000003 7 overflow 0 1020 0 0 i4 /000+000004 8 overflow 0 1020 0 0 i4 /000+000005 9 overflow 0 1020 0 0 i4 /000+000006 10 overflow 0 1020 0 0 i4 /000+000007 11 overflow 0 539 481 0 t4 / 2 leaf 1 640 367 7780 t4 /000+000000 12 overflow 0 1020 0 0 t4 /000+000001 13 overflow 0 1020 0 0 t4 /000+000002 14 overflow 0 1020 0 0 t4 /000+000003 15 overflow 0 1020 0 0 t4 /000+000004 16 overflow 0 1020 0 0 t4 /000+000005 17 overflow 0 1020 0 0 t4 /000+000006 18 overflow 0 1020 0 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -213,7 +214,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list \\\n  i4            {} 9 {} 1 7782 1386 7782 {} 9216 | \\\n  sqlite_schema {} 1 {} 2   74  834   40 {} 1024 | \\\n  t4            {} 8 {} 1 7780  367 7780 {} 8192 | \\"
+		want := "i4 {} 9 {} 1 7782 1386 7782 {} 9216 | sqlite_schema {} 1 {} 2 74 834 40 {} 1024 | t4 {} 8 {} 1 7780 367 7780 {} 8192 |"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -225,11 +226,12 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list  \\\n  i5 / 20 leaf 0 0 1016 0 \\\n  t5 / 19 leaf 0 0 1016 0 \\"
+		want := "i5 / 20 leaf 0 0 1016 0 t5 / 19 leaf 0 0 1016 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -241,7 +243,7 @@ func Test_stat(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list \\\n  t1 / 2 leaf 2 993 5 1517                \\\n  t1 /000+000000 3 overflow 0 1020 0 0    \\\n  t1 /001+000000 4 overflow 0 1020 0 0    \\"
+		want := "t1 / 2 leaf 2 993 5 1517 t1 /000+000000 3 overflow 0 1020 0 0 t1 /001+000000 4 overflow 0 1020 0 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -404,7 +406,8 @@ func Test_stat(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")

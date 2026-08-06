@@ -536,6 +536,7 @@ func Test_wherelimit(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1 WHERE y=1")
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "wherelimit-4.1"

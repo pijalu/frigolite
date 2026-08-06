@@ -7,6 +7,7 @@ package vtab
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -120,13 +121,16 @@ func Test_vtab2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			result = tclListAppend(result, _var, "set $var")
+			result = tclListAppend(result, _var, _var)
 		}
 	}
 	{ // do_test "vtab2-2.3"
 		r = db.Query("\n    SELECT name, value FROM vars\n      WHERE name MATCH 'tcl_*' AND arrayname = '' \n      ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, value FROM vars\n      WHERE name MATCH 'tcl_*' AND arrayname = '' \n      ORDER BY name;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", result, _res.Error, "vtab2-2.3")
 		}
 	}
 	{ // do_test "vtab2-3.1"
@@ -178,7 +182,8 @@ func Test_vtab2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1"
 		r = db.Query("\n    PRAGMA encoding='UTF16';\n  ")

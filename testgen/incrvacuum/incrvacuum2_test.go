@@ -154,6 +154,7 @@ func Test_incrvacuum2(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	if tclBool("wal_is_capable") {
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -177,8 +178,8 @@ func Test_incrvacuum2(t *testing.T) {
 			// file size test.db-wal
 		}
 		{ // do_test "4.3"
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			maxsz = "0"
 			_ = maxsz // suppress unused warning

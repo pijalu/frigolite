@@ -184,9 +184,21 @@ func Test_e_select2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "e_select-2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES(2, 'B');\n  INSERT INTO t1 VALUES(1, 'A');\n  INSERT INTO t1 VALUES(4, 'D');\n  INSERT INTO t1 VALUES(NULL, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n\n  INSERT INTO t2 VALUES(1, 'A');\n  INSERT INTO t2 VALUES(2, NULL);\n  INSERT INTO t2 VALUES(5, 'E');\n  INSERT INTO t2 VALUES(NULL, NULL);\n  INSERT INTO t2 VALUES(3, 'C');\n\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('c');\n  INSERT INTO t3 VALUES('b');\n")
 		if _res.Error != nil {
@@ -261,7 +273,7 @@ func Test_e_select2(t *testing.T) {
 			// te_dataset_eq_unordered $tn.28a [\n    te_read_sql db "SELECT * FROM t3 NATURAL LE... [te_join $t3_natur... (unsupported command, not transpiled)
 			// te_dataset_eq_unordered $tn.28b [\n    te_read_sql db "SELECT * FROM (t3 NATURAL L... [te_join $t3_natur... (unsupported command, not transpiled)
 			// te_dataset_ne_unordered $tn.28c [\n    te_read_sql db "SELECT * FROM (t3 NATURAL L... [\n    te_read_sql... (unsupported command, not transpiled)
-			t2_natural_join_t1 = "te_tbljoin db t2 t1 -using {a b}                 \\\n        -using {a b} -on {te_and {te_equals a a} {te_equals -nocase b b}}  \\"
+			t2_natural_join_t1 = "te_tbljoin db t2 t1 -using {a b}                         -using {a b} -on {te_and {te_equals a a} {te_equals -nocase b b}}"
 			_ = t2_natural_join_t1 // suppress unused warning
 			t3 = "te_read_tbl db t3"
 			_ = t3 // suppress unused warning

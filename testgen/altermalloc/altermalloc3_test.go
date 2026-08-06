@@ -57,9 +57,9 @@ func Test_altermalloc3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "altermalloc3"
 	_ = testprefix // suppress unused warning
-	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	TMPDBERROR = "1 {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
+	db.SetDQS(true, true)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n  CREATE TABLE t1(a, b, c, d, PRIMARY KEY(d, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n")
 		if _res.Error != nil {
@@ -69,7 +69,8 @@ func Test_altermalloc3(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ALTER TABLE t1 ... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(k,v);\n  CREATE TRIGGER r2 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (k,v)= (\n       (WITH cte1(a) AS ( SELECT 1 FROM ( SELECT * FROM t2 ) )\n       SELECT a FROM cte1\n    ), 1);\n  END;\n\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET k=1 FROM t2 AS one, t2 AS two NATURAL JOIN t2 AS three \n    WHERE one.k=two.v;\n  END;\n")

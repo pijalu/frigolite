@@ -138,12 +138,12 @@ func Test_misc7(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE abc(a PRIMARY KEY, b, c); ")
 	}
+	db.Close()
 	if tcl_platform_platform != "windows" {
 		// do_fileopen_test misc7-6.1 {\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);...} (unsupported command, not transpiled)
 		// do_fileopen_test misc7-6.2 {\n    PRAGMA temp.cache_size = 1000;\n  } (unsupported command, not transpiled)
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n  DELETE FROM abc;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INSERT INTO abc VALUES(2, 3, 4);\n  INSERT INTO abc SELECT a+2, b, c FROM abc;\n")
 	if _res.Error != nil {
@@ -181,8 +181,8 @@ func Test_misc7(t *testing.T) {
 		}
 	}
 	{ // do_test "misc7-7.3"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    SELECT name FROM aux.sqlite_master;\n    SELECT name FROM aux.sqlite_master;\n  ")
 		if r.Error != nil {
@@ -190,8 +190,8 @@ func Test_misc7(t *testing.T) {
 		}
 	}
 	{ // do_test "misc7-7.3"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = DB // suppress unused warning
@@ -228,8 +228,8 @@ func Test_misc7(t *testing.T) {
 	}
 	// do_ioerr_test misc7-12 -tclprep {\n    sqlite3 db2 test.db\n    register_echo_modul...} -tclbo... (unsupported command, not transpiled)
 	{ // do_test "misc7-13"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		echo_module_cost = "2.0e+99" // TCL namespace variable
@@ -239,6 +239,7 @@ func Test_misc7(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 WHERE a = 1;")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
 	db, err = frigolite.Open("")
@@ -267,6 +268,7 @@ func Test_misc7(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM abc AS t2 ORDER BY a;\n  ")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
 	db, err = frigolite.Open("")
@@ -284,13 +286,13 @@ func Test_misc7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM abc WHERE rowid > 12;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n  ")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// do_ioerr_test misc7-16 -sqlprep {\n   PRAGMA cache_size = 10;\n   PRAGMA default_ca...} -tclbo... (unsupported command, not transpiled)
-	_dbtmp4, err := frigolite.Open("test.db")
-	_ = _dbtmp4 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc7-16.X"
 		r = db.Query("\n    SELECT count(*) FROM t3;\n  ")
@@ -312,10 +314,10 @@ func Test_misc7(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        COMMIT;\n      ")
 				}
+				db.Close()
 				tclFileCopy("bak.db", "test.db")
 				tclFileCopy("bak.db-journal", "test.db-journal")
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{
 					var _catchErr error
@@ -348,7 +350,7 @@ func Test_misc7(t *testing.T) {
 			_ = pending_byte_page // suppress unused warning
 			// sqlite3_test_control_pending_byte $::sqlite_pending_byte (unsupported command, not transpiled)
 			{ // do_test "misc7-17.3"
-				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+				// sqlite3_db_config DEFENSIVE (unhandled flag)
 				_res = db.Exec("\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + sqlLiteral(pending_byte_page) + "\n          WHERE type = 'table' AND name = 't3';\n      ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + sqlLiteral(pending_byte_page) + "\n          WHERE type = 'table' AND name = 't3';\n      ")
@@ -357,10 +359,13 @@ func Test_misc7(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT rootpage FROM sqlite_master WHERE type = 'table' AND name = 't3';\n      ")
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), pending_byte_page) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", pending_byte_page, _res.Error, "misc7-17.3")
+				}
 			}
 			{ // do_test "misc7-17.4"
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
+				db.Close()
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n        SELECT count(*) FROM t3;\n      ")
 				_ = _res // catchsql
@@ -368,7 +373,8 @@ func Test_misc7(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc7-18.1"
 		r = db.Query("\n    CREATE TABLE table_1 (col_10);\n    CREATE TABLE table_2 (\n      col_1, col_2, col_3, col_4, col_5,\n      col_6, col_7, col_8, col_9, col_10\n    );\n    SELECT a.col_10\n    FROM\n      (SELECT table_1.col_10 AS col_10 FROM table_1) a,\n      (SELECT table_1.col_10, table_2.col_9 AS qcol_9\n         FROM table_1, table_2\n        GROUP BY table_1.col_10, qcol_9);\n  ")
@@ -406,6 +412,7 @@ func Test_misc7(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "misc7-22.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -413,8 +420,8 @@ func Test_misc7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		}
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(5, 6);\n  ")
 		_ = _res // catchsql
@@ -440,11 +447,13 @@ func Test_misc7(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 	if tclBool(tcl_platform_platform + " == \"unix\"\n && " + "atomic_batch_write test.db" + "==0") {
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "23.0"
 			_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
@@ -453,6 +462,7 @@ func Test_misc7(t *testing.T) {
 			}
 		}
 		{ // do_test "23.1"
+			db.Close()
 			os.Remove("tst")
 			// file mkdir tst
 			tclFileCopy("test.db", "tst/test.db")
@@ -483,6 +493,7 @@ func Test_misc7(t *testing.T) {
 			// sqlite3_extended_errcode db (unsupported command, not transpiled)
 		}
 		{ // do_test "23.5"
+			db.Close()
 			os.Remove("tst")
 		}
 	}

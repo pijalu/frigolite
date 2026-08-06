@@ -62,6 +62,7 @@ func Test_tempdb(t *testing.T) {
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tempdb-1.1"
@@ -83,8 +84,8 @@ func Test_tempdb(t *testing.T) {
 		_ = jrnl_in_memory // suppress unused warning
 		subj_in_memory = tclExprWith("$jrnl_in_memory || $TEMP_STORE>=2", map[string]string{"jrnl_in_memory": jrnl_in_memory, "TEMP_STORE": TEMP_STORE})
 		_ = subj_in_memory // suppress unused warning
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "tempdb-2.2"

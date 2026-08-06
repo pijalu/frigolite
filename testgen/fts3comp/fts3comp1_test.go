@@ -93,6 +93,7 @@ func Test_fts3comp1(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
@@ -110,7 +111,7 @@ func Test_fts3comp1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{one two three} {two four six}"
+				want := "one two three two four six"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -134,7 +135,7 @@ func Test_fts3comp1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{one two three} {two four six} {three six nine} {four eight twelve}"
+				want := "one two three two four six three six nine four eight twelve"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -158,7 +159,7 @@ func Test_fts3comp1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{three six nine} {four eight twelve}"
+				want := "three six nine four eight twelve"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -170,7 +171,7 @@ func Test_fts3comp1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{one two three} {two four six}"
+				want := "one two three two four six"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -225,7 +226,8 @@ func Test_fts3comp1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			r = db.Query("\n  PRAGMA trusted_schema = OFF;\n")
@@ -276,7 +278,8 @@ func Test_fts3comp1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE v1 USING fts4(x, compress=comp, uncompress=uncomp);\n")
@@ -292,8 +295,8 @@ func Test_fts3comp1(t *testing.T) {
 				t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.2"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")

@@ -64,7 +64,8 @@ func Test_wherefault(t *testing.T) {
 	// do_malloc_test 1 -sqlprep {\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 O...} -sqlbody {\n ... (unsupported command, not transpiled)
 	// do_malloc_test 2 -tclprep {\n  db eval {\n    BEGIN;\n    CREATE TABLE t1(a, ...} -sqlbody {\n ... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA writable_schema = 1;\n  BEGIN TRANSACTION;    \n    CREATE TABLE t1(\n      a INT AS (c*11),\n      b TEXT AS (substr(d,1,3)) STORED, \n      c INTEGEB PRIMARI KEY, d TEXT\n    );\n    CREATE INDEX t1a ON t1(a);\n  COMMIT;\n")

@@ -81,8 +81,8 @@ func Test_crash3(t *testing.T) {
 	// proc definition (not transpiled)
 	tn = "1"
 	_ = tn // suppress unused warning
-	// foreach {sql res2} "\\\n  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6} \\\n  {DELETE FROM abc}                                    {}    \\\n  {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3} \\\n  {UPDATE abc SET a = 2}                               {2 2 3}       \\\n  {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a} \\\n  {CREATE TABLE def(d, e, f)}                          {n/a} \\\n"
-	_items0 := tclSplitList("\\\n  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6} \\\n  {DELETE FROM abc}                                    {}    \\\n  {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3} \\\n  {UPDATE abc SET a = 2}                               {2 2 3}       \\\n  {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a} \\\n  {CREATE TABLE def(d, e, f)}                          {n/a} \\\n")
+	// foreach {sql res2} "  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6}   {DELETE FROM abc}                                    {}      {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3}   {UPDATE abc SET a = 2}                               {2 2 3}         {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a}   {CREATE TABLE def(d, e, f)}                          {n/a} "
+	_items0 := tclSplitList("  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6}   {DELETE FROM abc}                                    {}      {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3}   {UPDATE abc SET a = 2}                               {2 2 3}         {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a}   {CREATE TABLE def(d, e, f)}                          {n/a} ")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		sql := _items0[_idx0+0]
 		_ = sql // suppress unused warning
@@ -92,6 +92,7 @@ func Test_crash3(t *testing.T) {
 			ii = "0"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
+				db.Close()
 				os.Remove("test.db")
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
@@ -101,6 +102,7 @@ func Test_crash3(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        PRAGMA page_size = 1024;\n        BEGIN;\n        CREATE TABLE abc(a, b, c);\n        INSERT INTO abc VALUES(1, 2, 3);\n        COMMIT;\n      ")
 					}
 				}
+				db.Close()
 				crashfile = "test.db"
 				_ = crashfile // suppress unused warning
 				if func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return (ii_n%2) == 0 }() {
@@ -131,6 +133,7 @@ func Test_crash3(t *testing.T) {
 				}
 			}
 		}
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -159,8 +162,8 @@ func Test_crash3(t *testing.T) {
 					_ = SQL // suppress unused warning
 					{ // do_test "crash3-2." + tn + "." + ii
 						// crashsql -file $::crashfile -delay $::delay -char $::char $::SQL (unsupported command, not transpiled)
-						_dbtmp2, err := frigolite.Open("test.db")
-						_ = _dbtmp2 // sqlite3 db connection
+						db.Close()
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						r = db.Query("PRAGMA integrity_check")
 						if r.Error != nil {
@@ -186,6 +189,7 @@ func Test_crash3(t *testing.T) {
 			ii = "0"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
+				db.Close()
 				os.Remove("test.db")
 				// crashsql -file test.db -char {sequential atomic} {\n    CREATE TABLE abc(a, b, c);\n  } (unsupported command, not transpiled)
 				db, err = frigolite.Open("")

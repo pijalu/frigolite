@@ -205,6 +205,7 @@ func Test_attach2(t *testing.T) {
 		// sqlite3_step $VM (unsupported command, not transpiled)
 		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
+	db.Close()
 	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
@@ -351,6 +352,7 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
+	db.Close()
 	db2.Close()
 	os.Remove("test2.db")
 	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
@@ -399,38 +401,40 @@ func Test_attach2(t *testing.T) {
 		_res = db.Exec("\n    DETACH aux;\n  ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	os.Remove("test.db2")
 	os.Remove("test.db3")
 	os.Remove("test.db4")
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.1"
+		r = db.Query("\n    PRAGMA encoding = 'utf16';\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES('text2');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'utf16';\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES('text2');\n  ")
 		}
 	}
 	db2.Close()
 	db3, err = frigolite.Open("test.db3")
 	if err != nil { t.Fatal(err) }
-	{ // "-db"
-		_res = db.Exec("db3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db3")
+	{ // "1.2"
+		r = db.Query("\n    PRAGMA encoding = 'utf16';\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES('text3');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'utf16';\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES('text3');\n  ")
 		}
 	}
 	db3.Close()
 	db4, err = frigolite.Open("test.db4")
 	if err != nil { t.Fatal(err) }
-	{ // "-db"
-		_res = db.Exec("db4")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db4")
+	{ // "1.3"
+		r = db.Query("\n    PRAGMA encoding = 'utf8';\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES('text4');\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding = 'utf8';\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES('text4');\n  ")
 		}
 	}
 	db4.Close()
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n    PRAGMA encoding = 'utf16';\n    ATTACH 'test.db2' AS aux;\n    SELECT * FROM t2;\n  ")
@@ -445,7 +449,8 @@ func Test_attach2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.2"
 		r = db.Query("\n    ATTACH 'test.db4' AS aux;\n    SELECT * FROM t4;\n  ")
@@ -459,6 +464,7 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.3"
@@ -473,8 +479,8 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp2, err := frigolite.Open("test.db2")
-	_ = _dbtmp2 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // "2.4"
 		_res = db.Exec("\n    ATTACH 'test.db4' AS aux;\n  ")
@@ -482,4 +488,5 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n    ATTACH 'test.db4' AS aux;\n  ")
 		}
 	}
+	db.Close()
 }

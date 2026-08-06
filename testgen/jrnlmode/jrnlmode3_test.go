@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -86,6 +87,7 @@ func Test_jrnlmode3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -130,6 +132,7 @@ func Test_jrnlmode3(t *testing.T) {
 					cnt = strconv.Itoa(_n + 1)
 				}
 			}
+			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -140,7 +143,7 @@ func Test_jrnlmode3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := fromjmode
+				want := tclListFlatten(fromjmode)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -152,7 +155,7 @@ func Test_jrnlmode3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := fromjmode
+				want := tclListFlatten(fromjmode)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -165,6 +168,9 @@ func Test_jrnlmode3(t *testing.T) {
 				_res = db.Exec("PRAGMA journal_mode=" + tojmode)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=" + tojmode)
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), fromjmode) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", fromjmode, _res.Error, "jrnlmode3-3." + cnt + ".3")
 				}
 			}
 			{ // do_test "jrnlmode3-3." + cnt + ".4"
@@ -180,7 +186,7 @@ func Test_jrnlmode3(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := tojmode
+				want := tclListFlatten(tojmode)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

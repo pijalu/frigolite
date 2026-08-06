@@ -76,12 +76,12 @@ func Test_walprotocol2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	// proc definition (not transpiled)
 	// testvfs T (unsupported command, not transpiled)
 	// T filter xShmLock (unsupported command, not transpiled)
 	// T script lock_callback (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -97,10 +97,16 @@ func Test_walprotocol2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "2.1"
+		r = db.Query("\n  SELECT * FROM x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "z"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// proc definition (not transpiled)

@@ -91,6 +91,7 @@ func Test_savepoint(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SAVEPOINT sp1 ")
 		}
+		db.Close()
 	}
 	_dbtmp0, err := frigolite.Open("test.db")
 	_ = _dbtmp0 // sqlite3 db connection
@@ -529,6 +530,7 @@ func Test_savepoint(t *testing.T) {
 		}
 	}
 	// wal_check_journal_mode savepoint-5.5 (unsupported command, not transpiled)
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -575,6 +577,7 @@ func Test_savepoint(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// wal_check_journal_mode savepoint-6.5 (unsupported command, not transpiled)
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -624,6 +627,7 @@ func Test_savepoint(t *testing.T) {
 	}
 	// wal_check_journal_mode savepoint-7.3.3 (unsupported command, not transpiled)
 	{ // do_test "savepoint-7.4.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -676,7 +680,7 @@ func Test_savepoint(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "savepoint-9.1"
-		authdata = "list" // TCL namespace variable
+		authdata = "" // TCL namespace variable
 		_ = authdata // suppress unused warning
 		_res = db.Exec(" SAVEPOINT sp1 ")
 		if _res.Error != nil {
@@ -685,7 +689,7 @@ func Test_savepoint(t *testing.T) {
 		_ = authdata // TCL namespace variable (query)
 	}
 	{ // do_test "savepoint-9.2"
-		authdata = "list" // TCL namespace variable
+		authdata = "" // TCL namespace variable
 		_ = authdata // suppress unused warning
 		_res = db.Exec(" ROLLBACK TO sp1 ")
 		if _res.Error != nil {
@@ -694,7 +698,7 @@ func Test_savepoint(t *testing.T) {
 		_ = authdata // TCL namespace variable (query)
 	}
 	{ // do_test "savepoint-9.3"
-		authdata = "list" // TCL namespace variable
+		authdata = "" // TCL namespace variable
 		_ = authdata // suppress unused warning
 		_res = db.Exec(" RELEASE sp1 ")
 		if _res.Error != nil {
@@ -704,7 +708,7 @@ func Test_savepoint(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "savepoint-9.4"
-		authdata = "list" // TCL namespace variable
+		authdata = "" // TCL namespace variable
 		_ = authdata // suppress unused warning
 		res = "catchsql { SAVEPOINT sp1 }"
 		_ = res // suppress unused warning
@@ -715,7 +719,7 @@ func Test_savepoint(t *testing.T) {
 		_ = _r_tcl
 	}
 	{ // do_test "savepoint-9.5"
-		authdata = "list" // TCL namespace variable
+		authdata = "" // TCL namespace variable
 		_ = authdata // suppress unused warning
 		res = "catchsql { ROLLBACK TO sp1 }"
 		_ = res // suppress unused warning
@@ -726,7 +730,7 @@ func Test_savepoint(t *testing.T) {
 		_ = _r_tcl
 	}
 	{ // do_test "savepoint-9.6"
-		authdata = "list" // TCL namespace variable
+		authdata = "" // TCL namespace variable
 		_ = authdata // suppress unused warning
 		res = "catchsql { RELEASE sp1 }"
 		_ = res // suppress unused warning
@@ -887,6 +891,7 @@ func Test_savepoint(t *testing.T) {
 		}
 	}
 	{ // do_test "savepoint-11.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -986,13 +991,13 @@ func Test_savepoint(t *testing.T) {
 	// wal_check_journal_mode savepoint-12.5 (unsupported command, not transpiled)
 	if tclBool("wal_is_wal_mode" + "==0") {
 		{ // do_test "savepoint-13.1"
+			db.Close()
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 				os.Remove("test.db")
 			}
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n      BEGIN;\n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 2);\n      COMMIT;\n      PRAGMA journal_mode = off;\n    ")
 			if r.Error != nil {
@@ -1018,12 +1023,12 @@ func Test_savepoint(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	// delete_file test.db (unsupported command, not transpiled)
 	// do_multiclient_test tn {\n  do_test savepoint-14.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
 	// do_multiclient_test tn {\n  do_test savepoint-15.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
 	// do_multiclient_test tn {\n  do_test savepoint-16.$tn.1 {\n    sql1 {\n    ...} (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "savepoint-17.1"
 		r = db.Query("\n  BEGIN;\n    CREATE TABLE t6(a, b);\n    INSERT INTO t6 VALUES(1, 2);\n    SAVEPOINT one;\n      INSERT INTO t6 VALUES(3, 4);\n    ROLLBACK TO one;\n    SELECT * FROM t6;\n  ROLLBACK;\n")

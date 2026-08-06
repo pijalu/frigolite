@@ -92,7 +92,8 @@ func Test_upfrom4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "-"
 	{ // "200"
@@ -132,7 +133,8 @@ func Test_upfrom4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "-"
 	{ // "400"
@@ -148,7 +150,8 @@ func Test_upfrom4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "500"
 		_res = db.Exec("\n    CREATE TABLE t1(abc INT, def INT);  \n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    CREATE TABLE dual(dummy TEXT);  \n    INSERT INTO dual(dummy) VALUES('X');\n  ")

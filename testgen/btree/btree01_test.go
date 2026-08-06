@@ -231,6 +231,7 @@ func Test_btree01(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "btree01-2.1"

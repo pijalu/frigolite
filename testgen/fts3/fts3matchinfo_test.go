@@ -145,7 +145,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{1 1 1 2 2} {1 1 1 2 2}"
+		want := "1 1 1 2 2 1 1 1 2 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -157,7 +157,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{1 1 1 2 2} {1 1 1 2 2}"
+		want := "1 1 1 2 2 1 1 1 2 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -258,7 +258,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t5(t5) VALUES('optimize') ")
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "4.4.0.2"
 		_res = db.Exec("\n    UPDATE t5_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n  ")
 		if _res.Error != nil {
@@ -320,7 +320,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "6.2"
 		_res = db.Exec("\n  UPDATE t9_content SET c0content = 'this record is used to'; \n  SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -403,12 +403,12 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{204 1 3 3 0} {204 1 3 3 0} {204 1 3 3 0}"
+		want := "204 1 3 3 0 204 1 3 3 0 204 1 3 3 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "8.4.1.1"
 		_res = db.Exec(" UPDATE t11_stat SET value = X'0000'; ")
 		if _res.Error != nil {
@@ -464,7 +464,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{0 1 1 0 1 1 1 2 2} {1 1 1 1 1 1 1 2 2}"
+		want := "0 1 1 0 1 1 1 2 2 1 1 1 1 1 1 1 2 2"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -476,19 +476,19 @@ func Test_fts3matchinfo(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{0 3 2 0 3 2 1 4 3} {1 3 2 1 3 2 1 4 3} {2 3 2 2 3 2 2 4 3}"
+		want := "0 3 2 0 3 2 1 4 3 1 3 2 1 3 2 1 4 3 2 3 2 2 3 2 2 4 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "9.1"
-		r = db.Query("\n  CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '" + sqlLiteral("', '") + "', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';\n")
+		r = db.Query("\n  CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '[', ']', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '" + sqlLiteral("', '") + "', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '[', ']', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';\n")
 			return
 		}
 		got := flatten(r)
-		want := "{[c]} {[c]}"
+		want := "[c] [c]"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -508,7 +508,8 @@ func Test_fts3matchinfo(t *testing.T) {
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE tt USING fts3(x, y);\n  INSERT INTO tt VALUES('c d a c d d', 'e a g b d a');   -- 1\n  INSERT INTO tt VALUES('c c g a e b', 'c g d g e c');   -- 2\n  INSERT INTO tt VALUES('b e f d e g', 'b a c b c g');   -- 3\n  INSERT INTO tt VALUES('a c f f g d', 'd b f d e g');   -- 4\n  INSERT INTO tt VALUES('g a c f c f', 'd g g b c c');   -- 5\n  INSERT INTO tt VALUES('g a c e b b', 'd b f b g g');   -- 6\n  INSERT INTO tt VALUES('f d a a f c', 'e e a d c f');   -- 7\n  INSERT INTO tt VALUES('a c b b g f', 'a b a e d f');   -- 8\n  INSERT INTO tt VALUES('b a f e c c', 'f d b b a b');   -- 9\n  INSERT INTO tt VALUES('f d c e a c', 'f a f a a f');   -- 10\n")
@@ -533,7 +534,7 @@ func Test_fts3matchinfo(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := res
+				want := tclListFlatten(res)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -570,7 +571,7 @@ func Test_fts3matchinfo(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := r2
+						want := tclListFlatten(r2)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -582,7 +583,7 @@ func Test_fts3matchinfo(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := r2
+						want := tclListFlatten(r2)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -593,7 +594,8 @@ func Test_fts3matchinfo(t *testing.T) {
 				sqlite_fts3_enable_parentheses = "1"
 				_ = sqlite_fts3_enable_parentheses // suppress unused warning
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "12.0"
 					cols = ""
@@ -622,7 +624,7 @@ func Test_fts3matchinfo(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "list [list [expr 1<<4] [expr 1<<(45-32)]]"
+					want := "16" + " " + "8192"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

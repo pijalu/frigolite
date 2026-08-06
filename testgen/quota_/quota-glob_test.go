@@ -7,6 +7,7 @@ package quota_
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -89,9 +90,15 @@ func Test_quota_glob(t *testing.T) {
 		_ = _idx0
 			{ // do_test "quota-glob-" + testnum + ".1"
 				// sqlite3_quota_glob $::pattern $::text (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), ans) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ans, _res.Error, "quota-glob-" + testnum + ".1")
+				}
 			}
 			{ // do_test "quota-glob-" + testnum + ".2"
 				// sqlite3_quota_glob $::pattern [string map {/ \\} $::text] (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), ans) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ans, _res.Error, "quota-glob-" + testnum + ".2")
+				}
 			}
 		}
 }

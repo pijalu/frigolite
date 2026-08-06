@@ -65,15 +65,15 @@ func Test_json502(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{$} {$.a} {$.a.b} {$.a.b.c}"
+		want := "$ $.a $.a.b $.a.b.c"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "2.1"
-		r = db.Query("\n  SELECT json_error_position('{a:null,{\"h\":" + sqlLiteral("1,[1,2,3]") + ",\"j\":\"abc\"}:true}');\n")
+		r = db.Query("\n  SELECT json_error_position('{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}');\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position('{a:null,{\"h\":" + sqlLiteral("1,[1,2,3]") + ",\"j\":\"abc\"}:true}');\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position('{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}');\n")
 			return
 		}
 		got := flatten(r)
@@ -83,15 +83,15 @@ func Test_json502(t *testing.T) {
 		}
 	}
 	{ // "2.2"
-		_res = db.Exec("\n  SELECT json('{a:null,{\"h\":" + sqlLiteral("1,[1,2,3]") + ",\"j\":\"abc\"}:true}');\n")
+		_res = db.Exec("\n  SELECT json('{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT json('{a:null,{\"h\":" + sqlLiteral("1,[1,2,3]") + ",\"j\":\"abc\"}:true}');\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT json('{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}');\n")
 		}
 	}
 	{ // "2.3"
-		_res = db.Exec("\n  SELECT '{a:null,{\"h\":" + sqlLiteral("1,[1,2,3]") + ",\"j\":\"abc\"}:true}'->'" + sqlLiteral(h) + sqlLiteral("#-1") + "';\n")
+		_res = db.Exec("\n  SELECT '{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}'->'$h[#-1]';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '{a:null,{\"h\":" + sqlLiteral("1,[1,2,3]") + ",\"j\":\"abc\"}:true}'->'" + sqlLiteral(h) + sqlLiteral("#-1") + "';\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT '{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}'->'$h[#-1]';\n")
 		}
 	}
 	{ // "3.1"
@@ -150,7 +150,7 @@ func Test_json502(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{\\x17} 1 integer 1 1 null {$.\"\\x17\"} {$}"
+		want := "\\x17 1 integer 1 1 null $.\"\\x17\" $"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

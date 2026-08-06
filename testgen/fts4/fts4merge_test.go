@@ -87,7 +87,8 @@ func Test_fts4merge(t *testing.T) {
 		testprefix = "fts4merge-" + mod // TCL namespace variable
 		_ = testprefix // suppress unused warning
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "1.0"
 			// fts3_build_db_1 -module $mod 1004 (unsupported command, not transpiled)
@@ -102,7 +103,7 @@ func Test_fts4merge(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "0 {0 1 2 3 4 5 6 7 8 9 10 11} 1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 2 {0 1 2}"
+			want := "0 0 1 2 3 4 5 6 7 8 9 10 11 1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 2 0 1 2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -146,7 +147,7 @@ func Test_fts4merge(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "2 {0 1 2 3}"
+			want := "2 0 1 2 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -218,7 +219,8 @@ func Test_fts4merge(t *testing.T) {
 			}
 			{ // do_test "3.0"
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" PRAGMA page_size = 512 ")
 				if r.Error != nil {
@@ -236,7 +238,7 @@ func Test_fts4merge(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "0 {0 1 2 3 4 5 6} 1 {0 1 2 3 4} 2 {0 1 2 3 4} 3 {0 1 2 3 4 5 6}"
+				want := "0 0 1 2 3 4 5 6 1 0 1 2 3 4 2 0 1 2 3 4 3 0 1 2 3 4 5 6"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -254,7 +256,8 @@ func Test_fts4merge(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "4.1"
 				r = db.Query("\n    PRAGMA page_size = 512;\n    CREATE VIRTUAL TABLE t4 USING " + mod + ";\n    PRAGMA main.page_size;\n  ")
@@ -296,7 +299,7 @@ func Test_fts4merge(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := expect
+						want := tclListFlatten(expect)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -314,7 +317,7 @@ func Test_fts4merge(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+				// sqlite3_db_config DEFENSIVE (unhandled flag)
 				{ // "4.4.2"
 					r = db.Query("\n    DELETE FROM t4_stat WHERE rowid=1;\n    INSERT INTO t4(t4) VALUES('merge=1,12');\n    SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level;\n  ")
 					if r.Error != nil {
@@ -329,7 +332,8 @@ func Test_fts4merge(t *testing.T) {
 				}
 				{ // do_test "5.1"
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					// fts3_build_db_1 -module $mod 1000 (unsupported command, not transpiled)
 				}
@@ -340,15 +344,21 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "0 {0 1 2 3 4 5 6 7} 1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 2 {0 1 2}"
+					want := "0 0 1 2 3 4 5 6 7 1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 2 0 1 2"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "5.3"
-					_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14} 2 {0 1 2 3") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14} 2 {0 1 2 3", _res.Error, "\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
+					r = db.Query("\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 2 0 1 2 3"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "5.4"
@@ -391,7 +401,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "0 {0 1 2 3 4 5 6 7} 1 {0 1 2 3 4 5 6 7 8 9 10 11 12} 2 {0 1 2 3 4 5 6 7} X'010F'"
+					want := "0 0 1 2 3 4 5 6 7 1 0 1 2 3 4 5 6 7 8 9 10 11 12 2 0 1 2 3 4 5 6 7 X'010F'"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -403,7 +413,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 2 {0 1 2 3 4 5 6 7 8} X'010E'"
+					want := "1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 2 0 1 2 3 4 5 6 7 8 X'010E'"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -429,7 +439,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "0 {0 1 2 3 4 5 6 7 8 9 10 11} 1 0 2 0 3 0 X'010E'"
+					want := "0 0 1 2 3 4 5 6 7 8 9 10 11 1 0 2 0 3 0 X'010E'"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -441,14 +451,15 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "1 {0 1} 2 0 3 0 X'010E'"
+					want := "1 0 1 2 0 3 0 X'010E'"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // do_test "6.1"
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					a = "a 900"
 					_ = a // suppress unused warning
@@ -473,7 +484,8 @@ func Test_fts4merge(t *testing.T) {
 				}
 				{ // do_test "7.0"
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					// fts3_build_db_1 -module $mod 1000 (unsupported command, not transpiled)
 				}
@@ -484,7 +496,7 @@ func Test_fts4merge(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "0 {0 1 2 3 4 5 6 7} 1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 2 {0 1 2}"
+					want := "0 0 1 2 3 4 5 6 7 1 0 1 2 3 4 5 6 7 8 9 10 11 12 13 2 0 1 2"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -529,7 +541,8 @@ func Test_fts4merge(t *testing.T) {
 			testprefix = "fts4merge"
 			_ = testprefix // suppress unused warning
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "8.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, order=DESC);\n  INSERT INTO t1(a) VALUES (0);\n  INSERT INTO t1(a) VALUES (0);\n  UPDATE t1 SET a = NULL;\n")

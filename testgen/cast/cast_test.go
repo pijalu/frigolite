@@ -851,7 +851,8 @@ func Test_cast(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	r = db.Query(" PRAGMA encoding='utf16' ")
 	if r.Error != nil {
@@ -882,7 +883,8 @@ func Test_cast(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "cast-9.0" — skipped: window functions not supported
 		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v1(c0, c1) AS \n    SELECT CAST(0.0 AS NUMERIC), COUNT(*) OVER () FROM t0;\n  SELECT v1.c0 FROM v1, t0 WHERE v1.c0=0; \n")

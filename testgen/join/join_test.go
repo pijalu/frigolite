@@ -472,7 +472,7 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-7.1"
-		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+		db.SetDQS(false, true)
 		r = db.Query("\n    CREATE TABLE t7 (x, y);\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    CREATE TABLE t8 (a integer primary key, b);\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7 (x, y);\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    CREATE TABLE t8 (a integer primary key, b);\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
@@ -543,9 +543,21 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-11.1"
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t2 VALUES(1,'abc');\n    INSERT INTO t2 VALUES(2,'def');\n    SELECT * FROM t1 NATURAL JOIN t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t2 VALUES(1,'abc');\n    INSERT INTO t2 VALUES(2,'def');\n    SELECT * FROM t1 NATURAL JOIN t2;\n  ")
@@ -576,9 +588,21 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-11.5"
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		_res = db.Exec("\n    CREATE TABLE t1(a COLLATE nocase, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES('ONE', 1);\n    INSERT INTO t1 VALUES('two', 2);\n    INSERT INTO t2 VALUES('one', 1);\n    INSERT INTO t2 VALUES('two', 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a COLLATE nocase, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES('ONE', 1);\n    INSERT INTO t1 VALUES('two', 2);\n    INSERT INTO t2 VALUES('one', 1);\n    INSERT INTO t2 VALUES('two', 2);\n  ")
@@ -597,9 +621,21 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-11.8"
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		_res = db.Exec("\n    CREATE TABLE t1(a, b TEXT);\n    CREATE TABLE t2(b INTEGER, a);\n    INSERT INTO t1 VALUES('one', '1.0');\n    INSERT INTO t1 VALUES('two', '2');\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b TEXT);\n    CREATE TABLE t2(b INTEGER, a);\n    INSERT INTO t1 VALUES('one', '1.0');\n    INSERT INTO t1 VALUES('two', '2');\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');\n  ")
@@ -805,6 +841,7 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "join-14.10"
@@ -843,6 +880,7 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "join-14.20"
@@ -857,6 +895,7 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "join-15.100"
@@ -956,7 +995,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "join-18.1"
 		_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  CREATE VIEW v0 AS SELECT a FROM t1 LEFT JOIN t0;\n  INSERT INTO t1 VALUES (1);\n")
@@ -995,7 +1035,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "join-19.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  INSERT INTO t1(a) VALUES(0);\n  CREATE VIEW v0(c) AS SELECT t2.b FROM t1 LEFT JOIN t2;\n")
@@ -1063,6 +1104,7 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "join-20.1"
@@ -1102,7 +1144,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "join-22.10"
 		r = db.Query("\n  CREATE TABLE t0(a, b);\n  CREATE INDEX t0a ON t0(a);\n  INSERT INTO t0 VALUES(10,10),(10,11),(10,12);\n  SELECT DISTINCT c FROM t0 LEFT JOIN (SELECT a+1 AS c FROM t0) ORDER BY c ;\n")
@@ -1117,7 +1160,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "join-23.10"
 		r = db.Query("\n    CREATE TABLE t0(c0);\n    INSERT INTO t0(c0) VALUES(123);\n    CREATE VIEW v0(c0) AS SELECT 0 GROUP BY 1;\n    SELECT t0.c0, v0.c0, vt0.name\n     FROM v0, t0 LEFT JOIN pragma_table_info('t0') AS vt0\n       ON vt0.name LIKE 'c0'\n     WHERE v0.c0 == 0;\n  ")
@@ -1132,9 +1176,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.20"
-		r = db.Query("\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('" + sqlLiteral("\"a\", \"c\", null") + "');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
+		r = db.Query("\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('[\"a\", \"b\", null]');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('[\"a\", \"c\", null]');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('" + sqlLiteral("\"a\", \"c\", null") + "');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('[\"a\", \"b\", null]');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('[\"a\", \"c\", null]');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1156,9 +1200,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.22"
-		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b\n           LEFT JOIN\n           json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a ON a.value = b.value;\n  ")
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"c\", null]') AS b\n           LEFT JOIN\n           json_each('[\"a\", \"b\", null]') AS a ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b\n           LEFT JOIN\n           json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"c\", null]') AS b\n           LEFT JOIN\n           json_each('[\"a\", \"b\", null]') AS a ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1168,9 +1212,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.23"
-		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a\n           RIGHT JOIN\n           json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b ON a.value = b.value;\n  ")
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a\n           RIGHT JOIN\n           json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1180,9 +1224,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.24"
-		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('" + sqlLiteral("\"a\", \"b\", null") + "') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM json_each('[\"a\", \"b\", null]') AS a\n           RIGHT JOIN\n           b ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1192,9 +1236,9 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // "join-23.25"
-		r = db.Query("\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b ON a.value = b.value;\n  ")
+		r = db.Query("\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('" + sqlLiteral("\"a\", \"c\", null") + "') AS b ON a.value = b.value;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a.value, b.value \n      FROM a\n           RIGHT JOIN\n           json_each('[\"a\", \"c\", null]') AS b ON a.value = b.value;\n  ")
 			return
 		}
 		got := flatten(r)
@@ -1204,7 +1248,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "join-24.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, x);\n  CREATE TABLE t2(b INT);\n  CREATE INDEX t1aa ON t1(a, a);\n\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t2 VALUES(1);\n")
@@ -1237,7 +1282,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "join-25.1"
 		r = db.Query("\n  CREATE TABLE t0(c0 INT);\n  CREATE VIEW v0 AS SELECT (NULL AND 5) as c0 FROM t0;\n  INSERT INTO t0(c0) VALUES (NULL);\n  SELECT count(*)  FROM v0 LEFT JOIN t0 ON v0.c0;\n")
@@ -1252,7 +1298,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "join-26.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a,b);\n  CREATE TABLE t5(a,c);\n  CREATE TABLE t6(a,d);\n  SELECT * FROM t5 JOIN ((t4 JOIN (t5 JOIN t6)) t7);\n")
@@ -1261,7 +1308,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "join-27.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT,b INT,c INT);  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  CREATE TABLE t2(d INT,e INT);        INSERT INTO t2 VALUES(NULL,NULL);\n  CREATE INDEX x2 ON t1(c,b);\n  CREATE TABLE t3(x INT);              INSERT INTO t3 VALUES(NULL);\n")
@@ -1337,7 +1385,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "join-28.1"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT);\n  CREATE TABLE t2(d INTEGER PRIMARY KEY, e INT);\n  CREATE VIEW t3(a,b,c,d,e) AS SELECT * FROM t1 LEFT JOIN t2 ON d=c;\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t2 VALUES(1,5);\n  INSERT INTO t4 VALUES(1,4);\n  SELECT a, b, y FROM t4 JOIN t3 ON a=x;\n")
@@ -1358,7 +1407,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "NULL"
 	{ // "join-29.1"
@@ -1398,7 +1448,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "NULL"
 	{ // "join-30.1"
@@ -1420,7 +1471,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "NULL"
 	{ // "join-31.1"
@@ -1514,7 +1566,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "NULL"
 	{ // "join-32.1"
@@ -1548,7 +1601,8 @@ func Test_join(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "NULL"
 	{ // "join-33.1"

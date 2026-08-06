@@ -68,7 +68,8 @@ func Test_nulls2(t *testing.T) {
 		_ = idx // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c);\n\n    INSERT INTO t1 VALUES(1, 1, NULL);\n    INSERT INTO t1 VALUES(2, 2, NULL);\n\n    CREATE TABLE t2(d NOT NULL, e NOT NULL, f);\n    INSERT INTO t2 VALUES(1, 1, NULL);\n    INSERT INTO t2 VALUES(2, 2, NULL);\n  ")
@@ -96,7 +97,8 @@ func Test_nulls2(t *testing.T) {
 			_ = idx // suppress unused warning
 			_ = _idx1
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "2." + tn + ".0"
 					_res = db.Exec("\n    CREATE TABLE t1(a, b, c COLLATE nocase);\n    INSERT INTO t1 VALUES('one', 'two', 'THREE');\n    INSERT INTO t1 VALUES('four', 'five', 'SIX');\n  ")

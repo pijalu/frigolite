@@ -63,6 +63,7 @@ func Test_shell4(t *testing.T) {
 	_ = CLI // suppress unused warning
 	CLI_ONLY = "test_find_cli"
 	_ = CLI_ONLY // suppress unused warning
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

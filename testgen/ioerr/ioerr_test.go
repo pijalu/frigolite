@@ -100,6 +100,7 @@ func Test_ioerr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// unregister_devsim (unsupported command, not transpiled)
 	// do_ioerr_test ioerr-13 -ckrefcount true -erc 1 -sqlprep {\n  PRAGMA auto_vacuum = incremental;... (unsupported command, not transpiled)

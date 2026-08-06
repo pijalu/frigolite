@@ -171,7 +171,8 @@ func Test_quote(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db.SetDQS(false, true)
 	db.SetDQS(false, true)
@@ -204,8 +205,8 @@ func Test_quote(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = 1;\n  CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") );\n  CREATE INDEX i2 ON t1(x, y, z||\"abc\");\n  CREATE INDEX i3 ON t1(\"w\"||\"\");\n  CREATE INDEX i4 ON t1(x) WHERE z=\"w\";\n")
 			}
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "2.3.1"
 			_res = db.Exec("\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
@@ -244,7 +245,8 @@ func Test_quote(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			_res = db.Exec("\n      CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;\n    ")

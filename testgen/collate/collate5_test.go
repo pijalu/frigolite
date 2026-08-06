@@ -168,7 +168,7 @@ func Test_collate5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM collate5t2 INTERSECT select a, b FROM collate5t1;\n  ")
 		}
 	}
-	lens = "list \\\n  0 1 2 3 4 5 6 7 8 9 \\\n  240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 \\\n  257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 \\\n  65520 65521 65522 65523 65524 65525 65526 65527 65528 65529 65530 \\\n  65531 65532 65533 65534 65535 65536 65537 65538 65539 65540 65541 \\\n  65542 65543 65544 65545 65546 65547 65548 65549 65550 65551" // TCL namespace variable
+	lens = "0 1 2 3 4 5 6 7 8 9 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 65520 65521 65522 65523 65524 65525 65526 65527 65528 65529 65530 65531 65532 65533 65534 65535 65536 65537 65538 65539 65540 65541 65542 65543 65544 65545 65546 65547 65548 65549 65550 65551" // TCL namespace variable
 	_ = lens // suppress unused warning
 	{ // do_test "collate5-2.4.0"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE collate5t3(a, b);\n  ")
@@ -254,7 +254,8 @@ func Test_collate5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b COLLATE nocase);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2 VALUES(1, 'bbb');\n")
@@ -275,7 +276,8 @@ func Test_collate5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.2"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c COLLATE NOCASE);\n  INSERT INTO t1 VALUES(NULL,'C','c');\n  CREATE VIEW v2 AS\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,b FROM t1\n    WHERE 'eT\"3qRkL+oJMJjQ9z0'>=b\n    ORDER BY a,b,c;\n")

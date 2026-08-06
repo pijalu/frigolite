@@ -76,7 +76,8 @@ func Test_pragma4(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// do_pragma_ncol_test 1.$tn.1 [lindex [split $sql =] 0] 1 (unsupported command, not transpiled)
 			// do_pragma_ncol_test 1.$tn.2 $sql 0 (unsupported command, not transpiled)
@@ -94,6 +95,7 @@ func Test_pragma4(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
@@ -106,7 +108,8 @@ func Test_pragma4(t *testing.T) {
 				// string map {\[ x \] x \173 {} \175 {}} [db eval {EXPLAIN PRAGMA integrity_check}]
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			os.Remove("test.db2")
 			{ // "4.1.1"
@@ -176,7 +179,8 @@ func Test_pragma4(t *testing.T) {
 			db2.Close()
 			db3.Close()
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			os.Remove("test.db2")
 			{ // "4.2.1"
@@ -238,7 +242,8 @@ func Test_pragma4(t *testing.T) {
 			db2.Close()
 			db3.Close()
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			os.Remove("test.db2")
 			{ // "4.3.1"
@@ -378,7 +383,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "0 0 t1 c a {NO ACTION} {NO ACTION} NONE"
+				want := "0 0 t1 c a NO ACTION NO ACTION NONE"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -390,7 +395,7 @@ func Test_pragma4(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "0 0 t2 r d {NO ACTION} {NO ACTION} NONE"
+				want := "0 0 t2 r d NO ACTION NO ACTION NONE"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -502,7 +507,8 @@ func Test_pragma4(t *testing.T) {
 				db3.Close()
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6.0"
 				r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INT PRIMARY KEY, b INT);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT REFERENCES t1);\n    SELECT t.name, f.\"table\", f.\"from\", i.name, i.pk\n      FROM pragma_table_list() AS t\n           JOIN pragma_foreign_key_list(t.name, t.schema) AS f\n           JOIN pragma_table_info(f.\"table\", t.schema) AS i\n     WHERE i.pk;\n  ")

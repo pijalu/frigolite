@@ -197,7 +197,8 @@ func Test_crash8(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test2.db")
 	{ // do_test "crash8-4.1"
@@ -224,9 +225,11 @@ func Test_crash8(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE aux.ab SET b = randstr(1000,1000) WHERE a>=1;\n      UPDATE ab SET b = randstr(1000,1000) WHERE a>=1;\n    ")
 		}
 	}
-	contents_main = "db eval {SELECT b FROM main.ab WHERE a = 1}"
+	_dbeval0 := tclExecSQL(db, "{SELECT b FROM main.ab WHERE a = 1}")
+	contents_main = _dbeval0
 	_ = contents_main // suppress unused warning
-	contents_aux = "db eval {SELECT b FROM  aux.ab WHERE a = 1}"
+	_dbeval1 := tclExecSQL(db, "{SELECT b FROM  aux.ab WHERE a = 1}")
+	contents_aux = _dbeval1
 	_ = contents_aux // suppress unused warning
 	{ // do_test "crash8-4.4"
 		// crashsql -file test2.db -delay 1 {\n      ATTACH 'test2.db' AS aux;\n      BEGIN;\n ...} (unsupported command, not transpiled)
@@ -276,6 +279,7 @@ func Test_crash8(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
@@ -294,6 +298,7 @@ func Test_crash8(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
@@ -306,6 +311,7 @@ func Test_crash8(t *testing.T) {
 				os.Remove("testX.db")
 				tclFileCopy("test.db", "testX.db")
 				tclFileCopy("test.db-journal", "testX.db-journal")
+				db.Close()
 				// crashsql -file test.db -delay [expr ($::i%2) + 1] {\n        SELECT * FROM sqlite_master;... (unsupported command, not transpiled)
 				db2, err = frigolite.Open("testX.db")
 				if err != nil { t.Fatal(err) }

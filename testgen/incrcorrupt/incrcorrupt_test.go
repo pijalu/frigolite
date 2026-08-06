@@ -137,7 +137,8 @@ func Test_incrcorrupt(t *testing.T) {
 		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT i, randomblob(600) FROM data LIMIT 20;\n  PRAGMA page_count;\n")

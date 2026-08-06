@@ -334,6 +334,7 @@ func Test_incrblob2(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "incrblob2-5.1"
@@ -399,6 +400,7 @@ func Test_incrblob2(t *testing.T) {
 		// close $blob
 	}
 	db2.Close()
+	db.Close()
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	_dbtmp1, err := frigolite.Open("test.db")
 	_ = _dbtmp1 // sqlite3 db connection

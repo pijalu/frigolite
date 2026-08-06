@@ -7,6 +7,7 @@ package vacuum
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -93,6 +94,9 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n  ")
 		}
 		// cksum (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum-1.2")
+		}
 	}
 	{ // do_test "vacuum-1.3"
 		// expr [file size test.db]<$::size1 (not evaluated)
@@ -116,6 +120,9 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n  ")
 		}
 		// cksum (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum-1.5")
+		}
 	}
 	{ // do_test "vacuum-1.6"
 		// expr [file size test.db]<$::size1 (not evaluated)
@@ -147,6 +154,9 @@ func Test_vacuum(t *testing.T) {
 	}
 	{ // do_test "vacuum-2.3"
 		// cksum (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum-2.3")
+		}
 	}
 	{ // do_test "vacuum-2.4"
 		{
@@ -156,6 +166,9 @@ func Test_vacuum(t *testing.T) {
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
 		// cksum db2 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum-2.4")
+		}
 	}
 	{ // do_test "vacuum-2.5"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t6 AS SELECT * FROM t1;\n    CREATE TABLE t7 AS SELECT * FROM t1;\n    COMMIT;\n  ")
@@ -207,10 +220,10 @@ func Test_vacuum(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	db3.Close()
 	{ // do_test "vacuum-3.1"
+		db.Close()
 		db2.Close()
 		// delete_file test.db (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA empty_result_callbacks=on;\n    VACUUM;\n  ")
 		if _res.Error != nil {
@@ -218,8 +231,8 @@ func Test_vacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum-4.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
@@ -231,6 +244,7 @@ func Test_vacuum(t *testing.T) {
 		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum-5.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -349,6 +363,9 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      VACUUM;\n    ")
 		}
 		// cksum (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum-9.2")
+		}
 	}
 	{ // do_test "vacuum-9.3"
 		_res = db.Exec("\n      INSERT INTO autoinc(b) VALUES('one');\n      INSERT INTO autoinc(b) VALUES('two');\n    ")
@@ -365,9 +382,13 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      VACUUM;\n    ")
 		}
 		// cksum (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "vacuum-9.4")
+		}
 	}
 	os.Remove("a'z.db")
 	{ // do_test "vacuum-10.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -394,7 +415,7 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db ATTACH_CREATE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config ATTACH_CREATE (unhandled flag)
 	{ // "vacuum-11.2"
 		r = db.Query("\n  PRAGMA page_size=2048;\n  VACUUM;\n  PRAGMA page_size;\n")
 		if r.Error != nil {
@@ -407,8 +428,8 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db ATTACH_CREATE 1 (unsupported command, not transpiled)
-	// sqlite3_db_config db ATTACH_WRITE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config ATTACH_CREATE (unhandled flag)
+	// sqlite3_db_config ATTACH_WRITE (unhandled flag)
 	{ // "vacuum-11.3"
 		r = db.Query("\n  PRAGMA page_size=4096;\n  VACUUM;\n  PRAGMA page_size;\n")
 		if r.Error != nil {

@@ -132,6 +132,7 @@ func Test_misc5(t *testing.T) {
 	}
 	if tclBool("permutation" + " == \"\"") {
 		{ // do_test "misc5-4.1"
+			db.Close()
 			os.Remove("test.db")
 			fd = "open test.db w"
 			_ = fd // suppress unused warning
@@ -144,7 +145,8 @@ func Test_misc5(t *testing.T) {
 			_ = _res // catchsql
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "misc5-5.1"
@@ -171,6 +173,7 @@ func Test_misc5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT .4e+1")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -241,7 +244,7 @@ func Test_misc5(t *testing.T) {
 	{ // do_test "misc5-7.2"
 		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
-		// sqlite3_db_config db2 DEFENSIVE 0 (unsupported command, not transpiled)
+		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db2.Exec("\n    CREATE TABLE t1(x UNIQUE);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE table t(o CHECK(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((;VALUES(o)';\n    BEGIN;\n    CREATE TABLE t2(y);\n    ROLLBACK;\n    DROP TABLE IF EXISTS D;\n  ")
 		_ = _res // catchsql
 	}

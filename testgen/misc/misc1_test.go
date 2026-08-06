@@ -720,28 +720,31 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "misc1-23.1"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t3;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t3;\n")
 		}
 	}
+	db.Close()
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "misc1-23.2"
 		_res = db.Exec("\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: F") {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: F", _res.Error, "\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;\n")
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "misc1-23.3"
 		_res = db.Exec("\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table y(a TEXT, a TEXT)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t;\n")
 		if _res.Error != nil {

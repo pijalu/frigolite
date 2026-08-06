@@ -172,7 +172,7 @@ func Test_pager2(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "list $x ok"
+					want := x + " ok"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -180,6 +180,7 @@ func Test_pager2(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	// tv delete (unsupported command, not transpiled)
 	{ // do_test "pager2-2.1"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -196,6 +197,7 @@ func Test_pager2(t *testing.T) {
 		}
 		// file size test.db
 	}
+	db.Close()
 	{ // do_test "pager2-3.1"
 		os.Remove("test.db")
 		// sqlite3_shutdown (unsupported command, not transpiled)

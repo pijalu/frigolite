@@ -79,7 +79,7 @@ func Test_fts4check(t *testing.T) {
 		disruption := _items0[_idx0+1]
 		_ = disruption // suppress unused warning
 		_ = _idx0
-			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+			// sqlite3_db_config DEFENSIVE (unhandled flag)
 			{ // "1.2.1." + tn
 				_res = db.Exec("BEGIN; " + disruption)
 				if _res.Error != nil {
@@ -128,7 +128,7 @@ func Test_fts4check(t *testing.T) {
 			disruption := _items1[_idx1+1]
 			_ = disruption // suppress unused warning
 			_ = _idx1
-				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+				// sqlite3_db_config DEFENSIVE (unhandled flag)
 				{ // "2.2.1." + tn
 					_res = db.Exec("BEGIN; " + disruption)
 					if _res.Error != nil {
@@ -162,7 +162,8 @@ func Test_fts4check(t *testing.T) {
 			}
 			{ // do_test "3.0"
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// fts3_build_db_1 5000 (unsupported command, not transpiled)
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE t3 USING fts4(x, y, prefix=\"2,3\", languageid=langid);\n  ")
@@ -188,7 +189,7 @@ func Test_fts4check(t *testing.T) {
 				disruption := _items2[_idx2+1]
 				_ = disruption // suppress unused warning
 				_ = _idx2
-					// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+					// sqlite3_db_config DEFENSIVE (unhandled flag)
 					{ // "3.2.1." + tn
 						_res = db.Exec("BEGIN; " + disruption)
 						if _res.Error != nil {
@@ -214,7 +215,7 @@ func Test_fts4check(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(a, b, c, notindexed=b);\n  INSERT INTO t4 VALUES('text one', 'text two', 'text three');\n  INSERT INTO t4(t4) VALUES('integrity-check');\n")
 					}
 				}
-				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+				// sqlite3_db_config DEFENSIVE (unhandled flag)
 				{ // "4.1"
 					r = db.Query("\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';\n")
 					if r.Error != nil {
@@ -222,14 +223,15 @@ func Test_fts4check(t *testing.T) {
 					}
 				}
 				{ // do_test "4.2"
-					_dbtmp3, err := frigolite.Open("test.db")
-					_ = _dbtmp3 // sqlite3 db connection
+					db.Close()
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    INSERT INTO t4(t4) VALUES('integrity-check');\n  ")
 					_ = _res // catchsql
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "5.0"
 					_res = db.Exec("\n  BEGIN;\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5 VALUES('And down by Kosiosko, where the reed-banks sweep');\n  INSERT INTO t5 VALUES('and sway, and the rolling plains are wide, the');\n  INSERT INTO t5 VALUES('man from snowy river is a household name today,');\n  INSERT INTO t5 VALUES('and the stockmen tell the story of his ride');\n")
@@ -243,7 +245,7 @@ func Test_fts4check(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					}
 				}
-				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+				// sqlite3_db_config DEFENSIVE (unhandled flag)
 				{ // "5.2"
 					_res = db.Exec("\n  INSERT INTO t5_content VALUES(5, 'his hardy mountain pony');\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {

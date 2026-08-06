@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -89,10 +90,16 @@ func Test_walsetlk(t *testing.T) {
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	// db2.timeout (db command)
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.1"
+		r = db.Query("\n  SELECT * FROM t1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	fd = "open test.db-shm r+"
@@ -105,10 +112,16 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.3"
+		r = db.Query("\n  SELECT * FROM t1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.4"
@@ -121,28 +134,42 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.6"
+		r = db.Query("\n  SELECT * FROM t1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_putsMsg = fd
 	_ = _putsMsg
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.7"
+		r = db.Query("\n  PRAGMA wal_checkpoint = TRUNCATE\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA wal_checkpoint = TRUNCATE\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "1.8"
 		// file size test.db-wal
 	}
 	// close $fd
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	// do_multiclient_test tn {\n\n  testvfs tvfs -fullshm 1\n  db close\n  sqlit...} (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
 	// tvfs script xSleep_callback (unsupported command, not transpiled)
@@ -165,10 +192,10 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "3.1a"
+		r = db.Query("\n  SELECT * FROM x1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x1\n")
 		}
 	}
 	{ // do_test "3.1b"
@@ -183,6 +210,9 @@ func Test_walsetlk(t *testing.T) {
 	}
 	{ // do_test "3.2"
 		// expr $::sleep_count > 0 (not evaluated)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), bExpect) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bExpect, _res.Error, "3.2")
+		}
 	}
 	sleep_count = "0" // TCL namespace variable
 	_ = sleep_count // suppress unused warning
@@ -209,11 +239,20 @@ func Test_walsetlk(t *testing.T) {
 	}
 	{ // do_test "3.5"
 		// expr $::sleep_count > 0 (not evaluated)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), bExpect) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bExpect, _res.Error, "3.5")
+		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "3.6"
+		r = db.Query("\n  INSERT INTO x1 VALUES(5, 6);\n  COMMIT;\n  SELECT * FROM x1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO x1 VALUES(5, 6);\n  COMMIT;\n  SELECT * FROM x1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
@@ -233,11 +272,20 @@ func Test_walsetlk(t *testing.T) {
 	}
 	{ // do_test "3.8"
 		// expr $::sleep_count > 0 (not evaluated)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), bExpect) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bExpect, _res.Error, "3.8")
+		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "3.9"
+		r = db.Query("\n  INSERT INTO x1 VALUES(9, 10);\n  COMMIT;\n  SELECT * FROM x1;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO x1 VALUES(9, 10);\n  COMMIT;\n  SELECT * FROM x1;\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4 5 6 7 8 9 10"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	_ = db2 // close db2: aliased to db, no-op

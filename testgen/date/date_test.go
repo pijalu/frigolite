@@ -530,7 +530,8 @@ func Test_date(t *testing.T) {
 	// datetest 7.14 {strftime('%s',null)} NULL (unsupported command, not transpiled)
 	// datetest 7.15 {strftime('%s','now',null)} NULL (unsupported command, not transpiled)
 	// datetest 7.16 {strftime('%s','now','localtime',null)} NULL (unsupported command, not transpiled)
-	sqlite_current_time = "db eval {SELECT strftime('%s','2003-10-22 12:34:00')}"
+	_dbeval0 := tclExecSQL(db, "{SELECT strftime('%s','2003-10-22 12:34:00')}")
+	sqlite_current_time = _dbeval0
 	_ = sqlite_current_time // suppress unused warning
 	// datetest 8.1 {datetime('now','weekday 0')} {2003-10-26 12:34:00} (unsupported command, not transpiled)
 	// datetest 8.2 {datetime('now','weekday 1')} {2003-10-27 12:34:00} (unsupported command, not transpiled)
@@ -610,15 +611,15 @@ func Test_date(t *testing.T) {
 	// datetest 13.35 {date('2023-02-28')} {2023-02-28} (unsupported command, not transpiled)
 	// datetest 13.36 {date('2023-02-29')} {2023-03-01} (unsupported command, not transpiled)
 	// datetest 13.37 {date('2023-04-31')} {2023-05-01} (unsupported command, not transpiled)
-	if tclBool("0==" + "sqlite3 -has-codec") {
+	if tclBool("0==" + "") {
 		{ // do_test "date-14.1"
 			_res = db.Exec("\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);\n    ")
 			}
+			db.Close()
 			// hexio_write test.db 2040 4142ba32bffffff9 (unsupported command, not transpiled)
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT * FROM t1")
 			if _res.Error != nil {
@@ -628,9 +629,9 @@ func Test_date(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 255 }() {
+			db.Close()
 			// hexio_write test.db 2047 [format %02x $i] (unsupported command, not transpiled)
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "date-14.2." + i
 				date = "db one {SELECT datetime(x) FROM t1}"

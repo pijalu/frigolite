@@ -624,7 +624,7 @@ func Test_fts3aux1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := res
+				want := tclListFlatten(res)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -684,6 +684,7 @@ func Test_fts3aux1(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table terms may not be modified", _res.Error, "\n  UPDATE terms set documents = documents+1;\n")
 			}
 		}
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

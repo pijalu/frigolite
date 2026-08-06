@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -91,6 +92,9 @@ func Test_cache(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 			}
 			// pager_cache_size db (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), cache_size) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cache_size, _res.Error, "cache-1.3." + ii)
+			}
 		}
 		// incr ii 1
 		{
@@ -129,7 +133,7 @@ func Test_cache(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := i
+			want := tclListFlatten(i)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -153,7 +157,7 @@ func Test_cache(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := i
+			want := tclListFlatten(i)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -182,7 +186,7 @@ func Test_cache(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := i
+			want := tclListFlatten(i)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -206,7 +210,7 @@ func Test_cache(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := i
+			want := tclListFlatten(i)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

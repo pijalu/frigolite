@@ -61,6 +61,7 @@ func Test_win32heap(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_heap_size 1048576 (unsupported command, not transpiled)
@@ -85,6 +86,7 @@ func Test_win32heap(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_heap_size 0 (unsupported command, not transpiled)

@@ -491,7 +491,8 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "where9-11.1"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2_a(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t2_b(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE VIEW t2 AS SELECT * FROM t2_a UNION ALL SELECT * FROM t2_b;\n  SELECT 1 FROM t1 JOIN t1 USING(a)\n   WHERE (a=1)\n      OR (a=2 AND (SELECT 4 FROM t2,(SELECT 5 FROM t1 ORDER BY a) WHERE a));\n")

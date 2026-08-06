@@ -128,9 +128,9 @@ func Test_bestindex6(t *testing.T) {
 		}
 	}
 	{ // "1.3"
-		r = db.Query("\n  select * from vt2 left join vt1 on vt1.id=vt2.ctx where vt1.value is " + sqlLiteral(xxx) + "; \n")
+		r = db.Query("\n  select * from vt2 left join vt1 on vt1.id=vt2.ctx where vt1.value is " + sqlLiteral(nil) + "; \n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  select * from vt2 left join vt1 on vt1.id=vt2.ctx where vt1.value is " + sqlLiteral(xxx) + "; \n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  select * from vt2 left join vt1 on vt1.id=vt2.ctx where vt1.value is " + sqlLiteral(nil) + "; \n")
 			return
 		}
 		got := flatten(r)

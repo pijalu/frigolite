@@ -73,7 +73,7 @@ func Test_insert4(t *testing.T) {
 	testprefix = "insert4"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
+	// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 	_res = db.Exec("\n  CREATE TABLE t1(a int, b int, check(b>a));\n  CREATE TABLE t2(x int, y int);\n  CREATE VIEW v2 AS SELECT y, x FROM t2;\n  CREATE TABLE t3(a int, b int);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a int, b int, check(b>a));\n  CREATE TABLE t2(x int, y int);\n  CREATE VIEW v2 AS SELECT y, x FROM t2;\n  CREATE TABLE t3(a int, b int);\n")

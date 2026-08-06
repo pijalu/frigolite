@@ -57,9 +57,9 @@ func Test_json109(t *testing.T) {
 	testprefix = "json109"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
-		r = db.Query("\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("0") + "',999,'$" + sqlLiteral("0") + "',888);\n")
+		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[0]',999,'$[0]',888);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("0") + "',999,'$" + sqlLiteral("0") + "',888);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('[1,2,3]','$[0]',999,'$[0]',888);\n")
 			return
 		}
 		got := flatten(r)
@@ -69,9 +69,9 @@ func Test_json109(t *testing.T) {
 		}
 	}
 	{ // "1.2"
-		r = db.Query("\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("0") + "',999,'$" + sqlLiteral("#") + "',888);\n")
+		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[0]',999,'$[#]',888);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("0") + "',999,'$" + sqlLiteral("#") + "',888);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('[1,2,3]','$[0]',999,'$[#]',888);\n")
 			return
 		}
 		got := flatten(r)
@@ -81,9 +81,9 @@ func Test_json109(t *testing.T) {
 		}
 	}
 	{ // "1.3"
-		r = db.Query("\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("1") + "',888);\n")
+		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[1]',888);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("1") + "',888);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('[1,2,3]','$[1]',888);\n")
 			return
 		}
 		got := flatten(r)
@@ -93,9 +93,9 @@ func Test_json109(t *testing.T) {
 		}
 	}
 	{ // "1.4"
-		r = db.Query("\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("2") + "',888);\n")
+		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[2]',888);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("2") + "',888);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('[1,2,3]','$[2]',888);\n")
 			return
 		}
 		got := flatten(r)
@@ -105,9 +105,9 @@ func Test_json109(t *testing.T) {
 		}
 	}
 	{ // "1.5"
-		r = db.Query("\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("3") + "',888);\n")
+		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[3]',888);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("3") + "',888);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('[1,2,3]','$[3]',888);\n")
 			return
 		}
 		got := flatten(r)
@@ -117,9 +117,9 @@ func Test_json109(t *testing.T) {
 		}
 	}
 	{ // "1.6"
-		r = db.Query("\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("#-1") + "',888);\n")
+		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[#-1]',888);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("#-1") + "',888);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('[1,2,3]','$[#-1]',888);\n")
 			return
 		}
 		got := flatten(r)
@@ -129,9 +129,9 @@ func Test_json109(t *testing.T) {
 		}
 	}
 	{ // "1.7"
-		r = db.Query("\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("#-2") + "',888);\n")
+		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[#-2]',888);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("#-2") + "',888);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('[1,2,3]','$[#-2]',888);\n")
 			return
 		}
 		got := flatten(r)
@@ -141,9 +141,9 @@ func Test_json109(t *testing.T) {
 		}
 	}
 	{ // "1.8"
-		r = db.Query("\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("#-3") + "',888);\n")
+		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[#-3]',888);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("#-3") + "',888);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('[1,2,3]','$[#-3]',888);\n")
 			return
 		}
 		got := flatten(r)
@@ -153,9 +153,9 @@ func Test_json109(t *testing.T) {
 		}
 	}
 	{ // "1.9"
-		r = db.Query("\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("#-4") + "',888);\n")
+		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[#-4]',888);\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('" + sqlLiteral("1,2,3") + "','$" + sqlLiteral("#-4") + "',888);\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array_insert('[1,2,3]','$[#-4]',888);\n")
 			return
 		}
 		got := flatten(r)
@@ -165,51 +165,51 @@ func Test_json109(t *testing.T) {
 		}
 	}
 	{ // "2.1"
-		_res = db.Exec("\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.a',888);\n")
+		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$.a',888);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not an array element: '$.a'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.a'", _res.Error, "\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.a',888);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.a'", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$.a',888);\n")
 		}
 	}
 	{ // "2.2"
-		_res = db.Exec("\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b',888);\n")
+		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$.b',888);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not an array element: '$.b'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.b'", _res.Error, "\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b',888);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.b'", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b',888);\n")
 		}
 	}
 	{ // "2.3"
-		_res = db.Exec("\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b" + sqlLiteral("0") + "',888);\n")
+		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$.b[0]',888);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b" + sqlLiteral("0") + "',888);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b[0]',888);\n")
 		}
 	}
 	{ // "2.4"
-		_res = db.Exec("\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b.c.d" + sqlLiteral("0") + "',888);\n")
+		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$.b.c.d[0]',888);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b.c.d" + sqlLiteral("0") + "',888);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b.c.d[0]',888);\n")
 		}
 	}
 	{ // "2.5"
-		_res = db.Exec("\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b.c.d" + sqlLiteral("0',888);"))
+		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$.b.c.d[0',888);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not an array element: '$.b.c.d[0'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.b.c.d[0'", _res.Error, "\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b.c.d" + sqlLiteral("0',888);"))
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.b.c.d[0'", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b.c.d[0',888);\n")
 		}
 	}
 	{ // "2.6"
-		_res = db.Exec("\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b.c.d',888);\n")
+		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$.b.c.d',888);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not an array element: '$.b.c.d'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.b.c.d'", _res.Error, "\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b.c.d',888);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.b.c.d'", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b.c.d',888);\n")
 		}
 	}
 	{ // "2.7"
-		_res = db.Exec("\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$" + sqlLiteral("0") + "',888);\n")
+		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$[0]',888);\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$" + sqlLiteral("0") + "',888);\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$[0]',888);\n")
 		}
 	}
 	{ // "2.8"
-		_res = db.Exec("\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b" + sqlLiteral("0") + "',888,'$.a" + sqlLiteral("1") + "','999','$.c',0);\n")
+		_res = db.Exec("\n  SELECT json_array_insert('{a:[1,2,3]}','$.b[0]',888,'$.a[1]','999','$.c',0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not an array element: '$.c'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.c'", _res.Error, "\n  SELECT json_array_insert('{a:" + sqlLiteral("1,2,3") + "}','$.b" + sqlLiteral("0") + "',888,'$.a" + sqlLiteral("1") + "','999','$.c',0);\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "not an array element: '$.c'", _res.Error, "\n  SELECT json_array_insert('{a:[1,2,3]}','$.b[0]',888,'$.a[1]','999','$.c',0);\n")
 		}
 	}
 }

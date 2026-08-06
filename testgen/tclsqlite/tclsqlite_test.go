@@ -141,7 +141,7 @@ func Test_tclsqlite(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	_r = "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?"
 	_ = _r // suppress unused warning
-	if tclBool("sqlite3 -has-codec") {
+	if tclBool("") {
 		_r += " ?-key CODECKEY?"
 	}
 	{ // do_test "tcl-1.1"
@@ -816,6 +816,7 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "tcl-8.2"
+		// db function concat (variable-reader, inlined)
 		_res = db.Exec("SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL")
@@ -832,24 +833,28 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-8.5"
+		// db function concat (variable-reader, inlined)
 		_res = db.Exec("SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL")
 		}
 	}
 	{ // do_test "tcl-9.1"
+		// db function ret_str (variable-reader, inlined)
 		r = db.Query("SELECT typeof(ret_str())")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(ret_str())")
 		}
 	}
 	{ // do_test "tcl-9.2"
+		// db function ret_dbl (variable-reader, inlined)
 		r = db.Query("SELECT typeof(ret_dbl())")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(ret_dbl())")
 		}
 	}
 	{ // do_test "tcl-9.3"
+		// db function ret_int (variable-reader, inlined)
 		r = db.Query("SELECT typeof(ret_int())")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(ret_int())")
@@ -857,6 +862,7 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "tcl-9.4"
+		// db function banu (variable-reader, inlined)
 		r = db.Query("SELECT typeof(banu()), typeof(banu(1))")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(banu()), typeof(banu(1))")
@@ -871,6 +877,7 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // do_test "tcl-9.10"
 		// proc definition (not transpiled)
+		// db function r1 (variable-reader, inlined)
 		r = db.Query("SELECT r1(10)")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT r1(10)")
@@ -1284,6 +1291,7 @@ func Test_tclsqlite(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -1315,6 +1323,7 @@ func Test_tclsqlite(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
@@ -1359,10 +1368,21 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	// db function add_i (variable-reader, inlined)
+	// db function add_r (variable-reader, inlined)
+	// db function add_t (variable-reader, inlined)
+	// db function add_b (variable-reader, inlined)
+	// db function add_a (variable-reader, inlined)
+	// db function ret_i (variable-reader, inlined)
+	// db function ret_r (variable-reader, inlined)
+	// db function ret_t (variable-reader, inlined)
+	// db function ret_b (variable-reader, inlined)
+	// db function ret_a (variable-reader, inlined)
 	{ // "17.0"
 		r = db.Query("\n  SELECT quote( add_i(2, 3) );\n  SELECT quote( add_r(2, 3) );\n  SELECT quote( add_t(2, 3) );\n  SELECT quote( add_b(2, 3) );\n  SELECT quote( add_a(2, 3) );\n")
 		if r.Error != nil {
@@ -1400,9 +1420,9 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // "17.3"
-		r = db.Query("\n  SELECT quote( ret_i('2.5') );\n  SELECT quote( ret_r('2.5') );\n  SELECT quote( ret_t('2.5') );\n  SELECT quote( ret_b('2.5') );\n  SELECT quote( ret_a('2.5') );\n")
+		r = db.Query("\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT quote( ret_i('2.5') );\n  SELECT quote( ret_r('2.5') );\n  SELECT quote( ret_t('2.5') );\n  SELECT quote( ret_b('2.5') );\n  SELECT quote( ret_a('2.5') );\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n  SELECT quote( " + sqlLiteral(v_2_5) + " );\n")
 			return
 		}
 		got := flatten(r)
@@ -1412,9 +1432,9 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // "17.4"
-		r = db.Query("\n  SELECT quote( ret_i('abc') );\n  SELECT quote( ret_r('abc') );\n  SELECT quote( ret_t('abc') );\n  SELECT quote( ret_b('abc') );\n  SELECT quote( ret_a('abc') );\n")
+		r = db.Query("\n  SELECT quote( " + sqlLiteral(abc) + " );\n  SELECT quote( " + sqlLiteral(abc) + " );\n  SELECT quote( " + sqlLiteral(abc) + " );\n  SELECT quote( " + sqlLiteral(abc) + " );\n  SELECT quote( " + sqlLiteral(abc) + " );\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT quote( ret_i('abc') );\n  SELECT quote( ret_r('abc') );\n  SELECT quote( ret_t('abc') );\n  SELECT quote( ret_b('abc') );\n  SELECT quote( ret_a('abc') );\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT quote( " + sqlLiteral(abc) + " );\n  SELECT quote( " + sqlLiteral(abc) + " );\n  SELECT quote( " + sqlLiteral(abc) + " );\n  SELECT quote( " + sqlLiteral(abc) + " );\n  SELECT quote( " + sqlLiteral(abc) + " );\n")
 			return
 		}
 		got := flatten(r)
@@ -1455,9 +1475,9 @@ func Test_tclsqlite(t *testing.T) {
 		bindings_ghi = "3.1415926"
 		_ = bindings_ghi // suppress unused warning
 		// proc definition (not transpiled)
-		_res = db.Exec("SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ")")
+		_res = db.Exec("SELECT " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + ")")
 		}
 	}
 	{ // do_test "18.110"
@@ -1473,9 +1493,9 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // "18.120"
-		r = db.Query("\n  SELECT typeof(" + sqlLiteral(mno) + ");\n")
+		r = db.Query("\n  SELECT typeof(" + sqlLiteral(nil) + ");\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof(" + sqlLiteral(mno) + ");\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof(" + sqlLiteral(nil) + ");\n")
 			return
 		}
 		got := flatten(r)
@@ -1485,24 +1505,24 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // "18.130"
-		_res = db.Exec("\n  SELECT " + sqlLiteral(e01) + ";\n")
+		_res = db.Exec("\n  SELECT " + sqlLiteral(nil) + ";\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such variable: $e01") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such variable: $e01", _res.Error, "\n  SELECT " + sqlLiteral(e01) + ";\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such variable: $e01", _res.Error, "\n  SELECT " + sqlLiteral(nil) + ";\n")
 		}
 	}
 	{ // do_test "18.140"
 	}
 	{ // do_test "18.200"
-		_res = db.Exec("SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ")")
+		_res = db.Exec("SELECT " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + ")")
 		}
 	}
 	{ // do_test "18.300"
 		// proc definition (not transpiled)
-		_res = db.Exec("SELECT " + sqlLiteral(abc) + ", @def, " + sqlLiteral(ghi_123) + ", :mno")
+		_res = db.Exec("SELECT " + sqlLiteral(nil) + ", @def, " + sqlLiteral(ghi_123) + ", :mno")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(abc) + ", @def, " + sqlLiteral(ghi_123) + ", :mno")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + sqlLiteral(nil) + ", @def, " + sqlLiteral(ghi_123) + ", :mno")
 		}
 	}
 	{ // do_test "18.900"
@@ -1523,9 +1543,9 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "18.910"
 	}
 	{ // "19.911"
-		_res = db.Exec("\n  SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ");\n")
+		_res = db.Exec("\n  SELECT " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + ");\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid command name \"bind_fallback_does_not_exist\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid command name \"bind_fallback_does_not_exist\"", _res.Error, "\n  SELECT " + sqlLiteral(abc) + ", typeof(" + sqlLiteral(abc) + "), " + sqlLiteral(def) + ", typeof(" + sqlLiteral(def) + "), " + sqlLiteral(ghi) + ", typeof(" + sqlLiteral(ghi) + ");\n")
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid command name \"bind_fallback_does_not_exist\"", _res.Error, "\n  SELECT " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + "), " + sqlLiteral(nil) + ", typeof(" + sqlLiteral(nil) + ");\n")
 		}
 	}
 	{ // do_test "20.0"
@@ -1568,6 +1588,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "21.0"
+		db.Close()
 	}
 	{ // do_test "21.1"
 		_dbtmp0, err := frigolite.Open("test.db")

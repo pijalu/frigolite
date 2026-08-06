@@ -290,8 +290,8 @@ func Test_colname(t *testing.T) {
 		_ = tclLReplace("db eval {\n    SELECT x.* FROM sqlite_master X LIMIT 1;\n  }", "3", "3", "x") // lreplace result
 	}
 	{ // do_test "colname-6.1"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t6(a, " + sqlLiteral("'a'") + ", " + sqlLiteral("\"a\"") + ", \"" + sqlLiteral("a") + "\", " + sqlLiteral("`a`") + ");\n    INSERT INTO t6 VALUES(1,2,3,4,5);\n  ")
 		if _res.Error != nil {
@@ -396,6 +396,7 @@ func Test_colname(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "colname-9.100"
@@ -505,7 +506,7 @@ func Test_colname(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0 {with space} TEXT 0 {} 0"
+		want := "0 with space TEXT 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -517,7 +518,7 @@ func Test_colname(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0 {with space} TEXT 0 {} 0"
+		want := "0 with space TEXT 0 {} 0"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

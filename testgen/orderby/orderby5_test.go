@@ -375,8 +375,8 @@ func Test_orderby5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.3.2"
 		_res = db.Exec("\n  SELECT a FROM t5 WHERE b='def' ORDER BY b;\n")

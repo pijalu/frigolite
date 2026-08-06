@@ -70,7 +70,8 @@ func Test_walfault2(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 1 -prep {\n  catch { db close }\n  faultsim_restore\n  sqli...} -body {\n  execs... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 30\n  )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;\n")

@@ -67,6 +67,7 @@ func Test_mmap2(t *testing.T) {
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log xLog (unsupported command, not transpiled)
 	// proc definition (not transpiled)
@@ -79,7 +80,8 @@ func Test_mmap2(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA mmap_size = 8000000 ")
 			if r.Error != nil {
@@ -124,6 +126,7 @@ func Test_mmap2(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	// test_syscall uninstall (unsupported command, not transpiled)
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log (unsupported command, not transpiled)

@@ -1044,7 +1044,8 @@ func Test_update(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "update-18.10"
 		r = db.Query("\n  PRAGMA encoding = 'UTF16';\n  CREATE TABLE t0(c0 REAL, c1);\n  INSERT INTO t0(c0,c1) VALUES('xyz',11),('uvw',22);\n  CREATE INDEX i0 ON t0(c1) WHERE c0 GLOB 3;\n  CREATE INDEX i1 ON t0(c0,c1) WHERE typeof(c0)='text' AND typeof(c1)='integer';\n  UPDATE t0 SET c1=345;\n  SELECT * FROM t0;\n")
@@ -1059,7 +1060,8 @@ func Test_update(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "update-18.20"
 		r = db.Query("\n  PRAGMA encoding = 'utf16';\n  CREATE TABLE t0(c0 TEXT);\n  CREATE INDEX i0 ON t0(0 LIKE COALESCE(c0, 0));\n  INSERT INTO t0(c0) VALUES (0), (0);\n  SELECT * FROM t0;\n")
@@ -1074,7 +1076,8 @@ func Test_update(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "update-19.10"
 		r = db.Query("\n  CREATE TABLE t1(\n   a TEXT,\n   b INTEGER PRIMARY KEY UNIQUE\n  ); \n  INSERT INTO t1 VALUES(1,2);\n  UPDATE t1 SET a = quote(b) WHERE b>=2;\n  SELECT * FROM t1;\n")
@@ -1089,7 +1092,8 @@ func Test_update(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "update-20.10"
 		r = db.Query("\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t1(a UNIQUE ON CONFLICT REPLACE, b);\n  INSERT INTO t1(a,b) VALUES(4,12),(9,13);\n  CREATE INDEX i0 ON t1(b);\n  CREATE TRIGGER tr0 DELETE ON t1 BEGIN\n    UPDATE t1 SET b = a;\n  END;\n  PRAGMA integrity_check;\n")
@@ -1122,7 +1126,8 @@ func Test_update(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "update-21.1"
 		_res = db.Exec("\n  CREATE TABLE t1 (vkey INTEGER, c5 INTEGER);\n  INSERT INTO t1 VALUES(3,NULL),(6,-54);\n")

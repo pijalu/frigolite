@@ -70,7 +70,7 @@ func Test_fts3rank(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{one two} one {one two} three {one two} two"
+		want := "one two one one two three one two two"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -82,7 +82,7 @@ func Test_fts3rank(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{one two} two {one two} one {one two} three"
+		want := "one two two one two one one two three"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

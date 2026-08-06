@@ -179,6 +179,9 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), origres) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", origres, _res.Error, "trans2-" + i + ".1")
+			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -227,8 +230,8 @@ func Test_trans2(t *testing.T) {
 				// foreach id,u1,z,u2 rec (no body)
 				s = "INSERT INTO t1 VALUES(" + id + ",'" + u1 + "',zeroblob(" + z + "),'" + u2 + "');"
 				_ = s // suppress unused warning
-				modsql += s + "\\n"
-				inssql += s + "\\n"
+				modsql += s + "\n"
+				inssql += s + "\n"
 				_res = db.Exec(s)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, s)
@@ -237,6 +240,9 @@ func Test_trans2(t *testing.T) {
 			_res = db.Exec("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), newres) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", newres, _res.Error, "trans2-" + i + ".3")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -252,7 +258,7 @@ func Test_trans2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := newres
+			want := tclListFlatten(newres)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -260,7 +266,7 @@ func Test_trans2(t *testing.T) {
 		{ // do_test "trans2-" + i + ".20"
 			s = "DELETE FROM t1 WHERE id IN (" + strings.Join(tclSplitList(todel), ",") + ");"
 			_ = s // suppress unused warning
-			modsql += s + "\\n"
+			modsql += s + "\n"
 			_res = db.Exec(s)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, s)
@@ -268,6 +274,9 @@ func Test_trans2(t *testing.T) {
 			_res = db.Exec("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), origres) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", origres, _res.Error, "trans2-" + i + ".20")
 			}
 		}
 		{ // do_test "trans2-" + i + ".30"
@@ -281,7 +290,7 @@ func Test_trans2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := origres
+			want := tclListFlatten(origres)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -296,6 +305,9 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), newres) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", newres, _res.Error, "trans2-" + i + ".40")
+			}
 		}
 		{ // do_test "trans2-" + i + ".90"
 			_res = db.Exec("ROLLBACK")
@@ -305,6 +317,9 @@ func Test_trans2(t *testing.T) {
 			_res = db.Exec("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), origres) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", origres, _res.Error, "trans2-" + i + ".90")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
@@ -329,6 +344,9 @@ func Test_trans2(t *testing.T) {
 			_res = db.Exec("SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), newres) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", newres, _res.Error, "trans2-" + i + ".92")
 			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")

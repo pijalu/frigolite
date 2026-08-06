@@ -94,10 +94,12 @@ func Test_tkt_80ba201079(t *testing.T) {
 	// optimization_control db all 1 (unsupported command, not transpiled)
 	{ // do_test "tkt-80ba2-150"
 		// optimization_control db factor-constants 1 (unsupported command, not transpiled)
-		x1 = "db eval {EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}"
+		_dbeval0 := tclExecSQL(db, "{EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}")
+		x1 = _dbeval0
 		_ = x1 // suppress unused warning
 		// optimization_control db factor-constants 0 (unsupported command, not transpiled)
-		x2 = "db eval {EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}"
+		_dbeval1 := tclExecSQL(db, "{EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}")
+		x2 = _dbeval1
 		_ = x2 // suppress unused warning
 		// expr $x1==$x2 (not evaluated)
 	}
@@ -132,9 +134,21 @@ func Test_tkt_80ba201079(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
 		}
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "301"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(d, e);\n\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t2 VALUES('D', 'E');\n")
 		if _res.Error != nil {

@@ -7,6 +7,7 @@ package bind
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -229,7 +230,7 @@ func Test_bind(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n    ")
 		}
-		VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES($one,$::two,$x(-z-))}\\\n            -1 TX"
+		VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES($one,$::two,$x(-z-))}            -1 TX"
 		_ = VM // suppress unused warning
 	}
 	v1 = "$one"
@@ -243,12 +244,21 @@ func Test_bind(t *testing.T) {
 	}
 	{ // do_test "bind-2.1.2"
 		// sqlite3_bind_parameter_name $VM 1 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), v1) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", v1, _res.Error, "bind-2.1.2")
+		}
 	}
 	{ // do_test "bind-2.1.3"
 		// sqlite3_bind_parameter_name $VM 2 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), v2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", v2, _res.Error, "bind-2.1.3")
+		}
 	}
 	{ // do_test "bind-2.1.4"
 		// sqlite3_bind_parameter_name $VM 3 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), v3) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", v3, _res.Error, "bind-2.1.4")
+		}
 	}
 	{ // do_test "bind-2.1.5"
 		// sqlite3_bind_parameter_index $VM $v1 (unsupported command, not transpiled)
@@ -425,7 +435,8 @@ func Test_bind(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	enc = "db eval {PRAGMA encoding}"
+	_dbeval0 := tclExecSQL(db, "{PRAGMA encoding}")
+	enc = _dbeval0
 	_ = enc // suppress unused warning
 	if tclBool(enc + "==\"UTF-8\" || " + enc + "==\"\"") {
 		{ // do_test "bind-6.5"
@@ -663,6 +674,9 @@ func Test_bind(t *testing.T) {
 		VM = "sqlite3_prepare $DB \"\n      INSERT INTO t2(a,b) VALUES(?1,?$iMaxVar)\n    \" -1 TAIL"
 		_ = VM // suppress unused warning
 		// sqlite3_bind_parameter_count $VM (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), iMaxVar) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", iMaxVar, _res.Error, "bind-9.3.1")
+		}
 	}
 	{
 		var _catchErr error
@@ -683,6 +697,9 @@ func Test_bind(t *testing.T) {
 		VM = "sqlite3_prepare $DB \"\n      INSERT INTO t2(a,b,c,d) VALUES(?1,?[expr $iMaxVar - 2],?,?)\n    \" -1 TAIL"
 		_ = VM // suppress unused warning
 		// sqlite3_bind_parameter_count $VM (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), iMaxVar) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", iMaxVar, _res.Error, "bind-9.4")
+		}
 	}
 	{ // do_test "bind-9.5"
 		// sqlite3_bind_int $VM 1 1 (unsupported command, not transpiled)
@@ -723,9 +740,15 @@ func Test_bind(t *testing.T) {
 	}
 	{ // do_test "bind-10.6"
 		// sqlite3_bind_parameter_name $VM 2 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), v1) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", v1, _res.Error, "bind-10.6")
+		}
 	}
 	{ // do_test "bind-10.7"
 		// sqlite3_bind_parameter_name $VM 3 (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), v2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", v2, _res.Error, "bind-10.7")
+		}
 	}
 	{ // do_test "bind-10.7.1"
 		// sqlite3_bind_parameter_name 0 1 (unsupported command, not transpiled)

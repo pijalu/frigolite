@@ -131,6 +131,7 @@ func Test_notify2(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	nThread = "6"
@@ -162,6 +163,7 @@ func Test_notify2(t *testing.T) {
 				}
 			}
 			{ // do_test "notify2-" + iTest + ".1.2"
+				db.Close()
 			}
 			_putsMsg := "Running " + xStep + " test for " + nSecond + " seconds"
 			_ = _putsMsg
@@ -217,6 +219,7 @@ func Test_notify2(t *testing.T) {
 				}
 				anWrite_xStep = tclExecSQL(db, "{\n      SELECT (SELECT max(a) FROM t1)\n           + (SELECT max(a) FROM t2)\n           + (SELECT max(a) FROM t3)\n    }")
 				_ = anWrite_xStep // suppress unused warning
+				db.Close()
 			}
 		}
 		_putsMsg := "The following test seeks to demonstrate that the sqlite3_unlock_notify()"

@@ -305,7 +305,7 @@ func Test_window2(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "4.10" — skipped: window functions not supported
@@ -347,7 +347,7 @@ func Test_window2(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "6.0"

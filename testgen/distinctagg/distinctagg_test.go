@@ -7,6 +7,7 @@ package distinctagg
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -112,7 +113,8 @@ func Test_distinctagg(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  INSERT INTO t1 VALUES (1, 1, 1);\n  INSERT INTO t1 VALUES (2, 2, 2);\n  INSERT INTO t1 VALUES (3, 3, 3);\n  INSERT INTO t1 VALUES (4, 1, 4);\n  INSERT INTO t1 VALUES (5, 2, 1);\n  INSERT INTO t1 VALUES (5, 3, 2);\n  INSERT INTO t1 VALUES (4, 1, 3);\n  INSERT INTO t1 VALUES (3, 2, 4);\n  INSERT INTO t1 VALUES (2, 3, 1);\n  INSERT INTO t1 VALUES (1, 1, 2);\n\n  INSERT INTO t2 VALUES('a', 'a', 'a');\n  INSERT INTO t2 VALUES('b', 'b', 'b');\n  INSERT INTO t2 VALUES('c', 'c', 'c');\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n")
@@ -133,11 +135,15 @@ func Test_distinctagg(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // do_test "3." + tn + ".1"
-				prg = "db eval \"EXPLAIN $sql\""
+				_dbeval1 := tclExecSQL(db, "EXPLAIN " + sqlLiteral(sql))
+				prg = _dbeval1
 				_ = prg // suppress unused warning
 				idx = "lsearch $prg OpenEphemeral"
 				_ = idx // suppress unused warning
 				// expr $idx>=0 (not evaluated)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), use_eph) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", use_eph, _res.Error, "3." + tn + ".1")
+				}
 			}
 			{ // "3." + tn + ".2"
 				_res = db.Exec(sql)
@@ -159,7 +165,8 @@ func Test_distinctagg(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(1, 'B', 1);\n  INSERT INTO t1 VALUES(2, 'B', 2);\n  INSERT INTO t1 VALUES(3, 'B', 3);\n  INSERT INTO t1 VALUES(NULL, 'B', NULL);\n  INSERT INTO t1 VALUES(NULL, 'C', NULL);\n  INSERT INTO t1 VALUES('d', 'D', 'd');\n\n  CREATE TABLE t2(d, e, f);\n  CREATE INDEX t2def ON t2(d, e, f);\n\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'a');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(2, 3, 'x');\n  INSERT INTO t2 VALUES(2, 3, 'y');\n  INSERT INTO t2 VALUES(2, 3, 'z');\n\n  CREATE TABLE t3(x, y, z);\n  INSERT INTO t3 VALUES(1,1,1);\n  INSERT INTO t3 VALUES(2,2,2);\n\n  CREATE TABLE t4(a);\n  CREATE INDEX t4a ON t4(a);\n  INSERT INTO t4 VALUES(1), (2), (2), (3), (1);\n")
@@ -168,23 +175,27 @@ func Test_distinctagg(t *testing.T) {
 			}
 		}
 		// foreach {tn use_eph sql res} "1 0  \"SELECT count(DISTINCT c) FROM t1 GROUP BY b\"   {2 3 0 1}\n  2 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b\"   {2 3 0 1}\n  3 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b+c\" {0 1 1 1 1}\n\n  4 0  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d, e\" {1 2 2 3}\n  5 1  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d\" {2 3}\n  6 0  \"SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e\" {1 2 2}\n\n  7 0  \"SELECT count(DISTINCT a) FROM t1\" {4}\n  8 0  \"SELECT count(DISTINCT a) FROM t4\" {3}"
-		_items1 := tclSplitList("1 0  \"SELECT count(DISTINCT c) FROM t1 GROUP BY b\"   {2 3 0 1}\n  2 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b\"   {2 3 0 1}\n  3 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b+c\" {0 1 1 1 1}\n\n  4 0  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d, e\" {1 2 2 3}\n  5 1  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d\" {2 3}\n  6 0  \"SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e\" {1 2 2}\n\n  7 0  \"SELECT count(DISTINCT a) FROM t1\" {4}\n  8 0  \"SELECT count(DISTINCT a) FROM t4\" {3}")
-		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
-			tn := _items1[_idx1+0]
+		_items2 := tclSplitList("1 0  \"SELECT count(DISTINCT c) FROM t1 GROUP BY b\"   {2 3 0 1}\n  2 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b\"   {2 3 0 1}\n  3 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b+c\" {0 1 1 1 1}\n\n  4 0  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d, e\" {1 2 2 3}\n  5 1  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d\" {2 3}\n  6 0  \"SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e\" {1 2 2}\n\n  7 0  \"SELECT count(DISTINCT a) FROM t1\" {4}\n  8 0  \"SELECT count(DISTINCT a) FROM t4\" {3}")
+		for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			use_eph := _items1[_idx1+1]
+			use_eph := _items2[_idx2+1]
 			_ = use_eph // suppress unused warning
-			sql := _items1[_idx1+2]
+			sql := _items2[_idx2+2]
 			_ = sql // suppress unused warning
-			res := _items1[_idx1+3]
+			res := _items2[_idx2+3]
 			_ = res // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				{ // do_test "4." + tn + ".1"
-					prg = "db eval \"EXPLAIN $sql\""
+					_dbeval3 := tclExecSQL(db, "EXPLAIN " + sqlLiteral(sql))
+					prg = _dbeval3
 					_ = prg // suppress unused warning
 					idx = "lsearch $prg OpenEphemeral"
 					_ = idx // suppress unused warning
 					// expr $idx>=0 (not evaluated)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), use_eph) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", use_eph, _res.Error, "4." + tn + ".1")
+					}
 				}
 				{ // "4." + tn + ".2"
 					_res = db.Exec(sql)
@@ -196,23 +207,26 @@ func Test_distinctagg(t *testing.T) {
 			t3root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t3'}"
 			_ = t3root // suppress unused warning
 			// foreach {tn use_t3 sql res} "1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0"
-			_items2 := tclSplitList("1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0")
-			for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
-				tn := _items2[_idx2+0]
+			_items4 := tclSplitList("1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0")
+			for _idx4 := 0; _idx4+4 <= len(_items4); _idx4 += 4 {
+				tn := _items4[_idx4+0]
 				_ = tn // suppress unused warning
-				use_t3 := _items2[_idx2+1]
+				use_t3 := _items4[_idx4+1]
 				_ = use_t3 // suppress unused warning
-				sql := _items2[_idx2+2]
+				sql := _items4[_idx4+2]
 				_ = sql // suppress unused warning
-				res := _items2[_idx2+3]
+				res := _items4[_idx4+3]
 				_ = res // suppress unused warning
-				_ = _idx2
+				_ = _idx4
 					{ // do_test "5." + tn + ".1"
 						bUse = "0"
 						_ = bUse // suppress unused warning
 						_res = db.Exec("EXPLAIN " + sql)
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN " + sql)
+						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), use_t3) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", use_t3, _res.Error, "5." + tn + ".1")
 						}
 					}
 					{ // "5." + tn + ".2"
@@ -223,7 +237,8 @@ func Test_distinctagg(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "6.0"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES(123,456);\n  INSERT INTO t2 VALUES(123,456);\n")

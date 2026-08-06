@@ -135,12 +135,13 @@ func Test_shmlock(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // do_test "1.3." + tn
-				_res = db.Exec("list vfs_shmlock $dbhandle main {*}$cmd")
+				_res = db.Exec("vfs_shmlock " + dbhandle + " main {*}" + cmd)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list vfs_shmlock $dbhandle main {*}$cmd")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "vfs_shmlock " + dbhandle + " main {*}" + cmd)
 				}
 			}
 		}
+		db.Close()
 		_ = db2 // close db2: aliased to db, no-op
 		_ = db3 // close db3: aliased to db, no-op
 		if tclBool("permutation" + "==\"unix-excl\"") {

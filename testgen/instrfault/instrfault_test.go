@@ -72,7 +72,8 @@ func Test_instrfault(t *testing.T) {
 	for _, enc := range tclSplitList("utf8\n  utf16") {
 	_ = enc // suppress unused warning
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 		r = db.Query("PRAGMA encoding = " + enc)

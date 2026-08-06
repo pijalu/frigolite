@@ -78,6 +78,7 @@ func Test_shell5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
+	db.Close()
 	os.Remove("test.db")
 	{ // do_test "shell5-1.1.1"
 		// catchcmd test.db .import (unsupported command, not transpiled)
@@ -101,21 +102,21 @@ func Test_shell5(t *testing.T) {
 		// catchcmd test.db .separator ONE TWO THREE (unsupported command, not transpiled)
 	}
 	{ // do_test "shell5-1.3.1.1"
-		res = "catchcmd \"test.db\" \".mode list\\n.show\""
+		res = "catchcmd \"test.db\" \".mode list\n.show\""
 		_ = res // suppress unused warning
-		_list := tclList([]string{"regexp {colseparator: \\\"\\|\\\"} $res"})
+		_list := tclList([]string{"regexp {colseparator: \"|\"} $res"})
 		_ = _list
 	}
 	{ // do_test "shell5-1.3.1.2"
-		res = "catchcmd \"test.db\" \".mode list\\n.show\""
+		res = "catchcmd \"test.db\" \".mode list\n.show\""
 		_ = res // suppress unused warning
-		_list := tclList([]string{"regexp {rowseparator: \\\"\\\\n\\\"} $res"})
+		_list := tclList([]string{"regexp {rowseparator: \"\\n\"} $res"})
 		_ = _list
 	}
 	{ // do_test "shell5-1.3.2"
 		res = "catchcmd \"test.db\" {.separator ,\n.show}"
 		_ = res // suppress unused warning
-		_list := tclList([]string{"regexp {separator: \\\",\\\"} $res"})
+		_list := tclList([]string{"regexp {separator: \",\"} $res"})
 		_ = _list
 	}
 	{ // do_test "shell5-1.4.1"
@@ -352,6 +353,7 @@ func Test_shell5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		os.Remove("test.db")
 		// catchcmd test.db {.mode csv\n    CREATE TABLE t1(a,b,c);\n.import sh...} (unsupported command, not transpiled)
@@ -362,6 +364,7 @@ func Test_shell5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT *, '|' FROM t1 ORDER BY rowid")
 		}
 	}
+	db.Close()
 	{ // do_test "shell5-1.10"
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning
@@ -391,6 +394,7 @@ func Test_shell5(t *testing.T) {
 		_putsMsg = out
 		_ = _putsMsg
 		// close $out
+		db.Close()
 		os.Remove("test.db")
 		// catchcmd test.db {\n    CREATE TABLE t1(a,b,c,d);\n.import --csv --q...} (unsupported command, not transpiled)
 		db, err = frigolite.Open("")
@@ -416,6 +420,7 @@ func Test_shell5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		os.Remove("test.db")
 		// catchcmd test.db {.mode csv\n.import shell5.csv t1\n  } (unsupported command, not transpiled)
@@ -427,7 +432,9 @@ func Test_shell5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	db.Close()
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -572,6 +579,7 @@ func Test_shell5(t *testing.T) {
 		// close $fd
 		// catchcmd test.db [string trim {\n.mode csv\nCREATE TEMP TABLE t8(a,... (unsupported command, not transpiled)
 	}
+	db.Close()
 	{ // do_test "shell5-5.1"
 		out = "open shell5.csv w"
 		_ = out // suppress unused warning

@@ -109,7 +109,8 @@ func Test_recover(t *testing.T) {
 	}
 	// do_recover_test 1.3.2 (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
@@ -140,11 +141,13 @@ func Test_recover(t *testing.T) {
 	}
 	// do_recover_test 2.4.1 {\n  SELECT name FROM sqlite_master;\n  SELECT * FR...} {lost_and_found lo... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_recover_test 3.0 (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	r = db.Query(" PRAGMA secure_delete = 0 ")
 	if r.Error != nil {
@@ -163,32 +166,56 @@ func Test_recover(t *testing.T) {
 	// recover_with_opts  (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "4.1.1"
+		r = db.Query("\n  SELECT name FROM sqlite_schema\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema\n")
+			return
+		}
+		got := flatten(r)
+		want := "t3 lost_and_found"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "4.1.2"
+		r = db.Query("\n  SELECT id, c0, c1, c2 FROM lost_and_found\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT id, c0, c1, c2 FROM lost_and_found\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 1 2 3 2 a b c"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db2.Close()
 	// recover_with_opts -ignore-freelist (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "4.2.1"
+		r = db.Query("\n  SELECT name FROM sqlite_schema\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema\n")
+			return
+		}
+		got := flatten(r)
+		want := "t3"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "4.2.2"
+		r = db.Query("\n  SELECT * FROM t3\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t3\n")
+			return
+		}
+		got := flatten(r)
+		want := "one two three"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db2.Close()

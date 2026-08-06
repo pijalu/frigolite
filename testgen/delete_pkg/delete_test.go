@@ -602,6 +602,7 @@ func Test_delete(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=OFF;\n    INSERT INTO t3 VALUES(123);\n    SELECT * FROM t3;\n  ")
 		}
 	}
+	db.Close()
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -617,8 +618,7 @@ func Test_delete(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		// file attributes test.db -readonly 1
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db" // TCL namespace variable
 	_ = DB // suppress unused warning
@@ -659,10 +659,11 @@ func Test_delete(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		// file attributes test.db -readonly 0
 	}
+	db.Close()
 	os.Remove("test.db")
 	{ // do_test "delete-9.1"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(c, d);\n    INSERT INTO t5 VALUES(1, 2);\n    INSERT INTO t5 VALUES(3, 4);\n    INSERT INTO t5 VALUES(5, 6);\n    INSERT INTO t6 VALUES('a', 'b');\n    INSERT INTO t6 VALUES('c', 'd');\n    CREATE INDEX i5 ON t5(a);\n    CREATE INDEX i6 ON t6(c);\n  ")
 		if _res.Error != nil {
@@ -762,7 +763,8 @@ func Test_delete(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "delete-12.0"
 		r = db.Query("\n  CREATE TABLE t0(vkey INTEGER, pkey INTEGER,c1 INTEGER);\n  INSERT INTO t0 VALUES(2,1,-20),(2,2,NULL),(2,3,0),(8,4,95);\n  DELETE FROM t0 WHERE NOT (\n    (t0.vkey <= t0.c1) AND\n    (t0.vkey <> (SELECT vkey FROM t0 ORDER BY vkey LIMIT 1 OFFSET 2))\n  );\n  SELECT * FROM t0;\n")

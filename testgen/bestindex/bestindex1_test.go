@@ -145,7 +145,8 @@ func Test_bestindex1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
@@ -237,6 +238,7 @@ func Test_bestindex1(t *testing.T) {
 		G_nulls = "NULL"
 		_ = G_nulls // suppress unused warning
 		// proc definition (not transpiled)
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -297,7 +299,7 @@ func Test_bestindex1(t *testing.T) {
 			}
 		}
 		{ // do_test "4.1"
-			bestindex_calls = "list" // TCL namespace variable
+			bestindex_calls = "" // TCL namespace variable
 			_ = bestindex_calls // suppress unused warning
 			r = db.Query("\n    SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);\n  ")
 			if r.Error != nil {

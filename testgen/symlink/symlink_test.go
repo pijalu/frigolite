@@ -124,6 +124,7 @@ func Test_symlink(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
+		db.Close()
 		os.Remove("test.db")
 		// file exists "test.db"
 	}
@@ -160,6 +161,7 @@ func Test_symlink(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		{
 			var _catchErr error
@@ -239,6 +241,7 @@ func Test_symlink(t *testing.T) {
 			}
 		}
 		{ // do_test "3.1"
+			db.Close()
 			{
 				var res string // catch result ("0"=ok, "1"=error)
 				var _catchErrMsg string // catch error message
@@ -273,8 +276,8 @@ func Test_symlink(t *testing.T) {
 			}
 		}
 		{ // do_test "4.2.1"
-			_dbtmp2, err := frigolite.Open("y/test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("y/test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -286,8 +289,8 @@ func Test_symlink(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "4.3.1"
-			_dbtmp3, err := frigolite.Open("z/test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("z/test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -305,8 +308,8 @@ func Test_symlink(t *testing.T) {
 			// set  (invalid identifier, skipped)
 		}
 		{ // do_test "4.4.1"
-			_dbtmp4, err := frigolite.Open("w/test.db")
-			_ = _dbtmp4 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("w/test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -318,7 +321,8 @@ func Test_symlink(t *testing.T) {
 			_ = _list
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE xyz(x, y, z);\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
@@ -334,20 +338,33 @@ func Test_symlink(t *testing.T) {
 		_ = path // suppress unused warning
 		db2, err = frigolite.Open(path)
 		if err != nil { t.Fatal(err) }
-		{ // "-db"
-			_res = db.Exec("db2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+		{ // "5.1"
+			r = db.Query("\n  SELECT * FROM xyz;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM xyz;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		db.Close()
 		os.Remove("test.db2")
 		// file link test.db2 $path
 		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
-		{ // "-db"
-			_res = db.Exec("db2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+		{ // "5.2"
+			r = db.Query("\n  SELECT * FROM xyz;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM xyz;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		os.Remove("test.db2")

@@ -68,7 +68,8 @@ func Test_alterfault(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE x1(d, e CONSTRAINT abc NOT NULL, f);\n")

@@ -68,6 +68,7 @@ func Test_corruptJ(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,b) SELECT i, zeroblob(700) FROM c;\n")
 		}
 	}
+	db.Close()
 	{ // do_test "1.2"
 		// hexio_write test.db [expr {2*1024-2}] 02 (unsupported command, not transpiled)
 		_dbtmp0, err := frigolite.Open("test.db")
@@ -77,6 +78,7 @@ func Test_corruptJ(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "2.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -86,6 +88,7 @@ func Test_corruptJ(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
+		db.Close()
 		// hexio_read test.db [expr {9*1024+391}] 8 (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2b"

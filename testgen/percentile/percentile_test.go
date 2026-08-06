@@ -92,17 +92,26 @@ func Test_percentile(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x," + sqlLiteral(in) + ") FROM t1")
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.1." + in + ".1")
+				}
 			}
 			{ // do_test "percentile-1.1." + in + ".2"
 				r = db.Query("SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t1")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t1")
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.1." + in + ".2")
+				}
 			}
 			{ // do_test "percentile-1.1." + in + ".3"
 				r = db.Query("SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t1")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t1")
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), disc) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", disc, _res.Error, "percentile-1.1." + in + ".3")
 				}
 			}
 			if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -111,6 +120,9 @@ func Test_percentile(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median(x) FROM t1")
 					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.1." + in + ".4")
+					}
 				}
 			}
 			{ // do_test "percentile-1.1." + in + ".5"
@@ -118,11 +130,17 @@ func Test_percentile(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(" + sqlLiteral(in) + ")WITHIN GROUP(ORDER BY x) FROM t1")
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.1." + in + ".5")
+				}
 			}
 			{ // do_test "percentile-1.1." + in + ".6"
 				r = db.Query("SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.1." + in + ".6")
 				}
 			}
 			{ // do_test "percentile-1.1." + in + ".7"
@@ -130,12 +148,18 @@ func Test_percentile(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), disc) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", disc, _res.Error, "percentile-1.1." + in + ".7")
+				}
 			}
 			if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
 				{ // do_test "percentile-1.1." + in + ".8"
 					r = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
+					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.1." + in + ".8")
 					}
 				}
 			}
@@ -203,17 +227,26 @@ func Test_percentile(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x," + sqlLiteral(in) + ") FROM t1")
 					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.3." + in + ".1")
+					}
 				}
 				{ // do_test "percentile-1.3." + in + ".2"
 					r = db.Query("SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t1")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t1")
 					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.3." + in + ".2")
+					}
 				}
 				{ // do_test "percentile-1.3." + in + ".3"
 					r = db.Query("SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t1")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t1")
+					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), disc) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", disc, _res.Error, "percentile-1.3." + in + ".3")
 					}
 				}
 				if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -222,6 +255,9 @@ func Test_percentile(t *testing.T) {
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median(x) FROM t1")
 						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.3." + in + ".4")
+						}
 					}
 				}
 				{ // do_test "percentile-1.3." + in + ".5"
@@ -229,11 +265,17 @@ func Test_percentile(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(" + sqlLiteral(in) + ")WITHIN GROUP(ORDER BY x) FROM t1")
 					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.3." + in + ".5")
+					}
 				}
 				{ // do_test "percentile-1.3." + in + ".6"
 					r = db.Query("SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
+					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.3." + in + ".6")
 					}
 				}
 				{ // do_test "percentile-1.3." + in + ".7"
@@ -241,12 +283,18 @@ func Test_percentile(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1")
 					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), disc) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", disc, _res.Error, "percentile-1.3." + in + ".7")
+					}
 				}
 				if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
 					{ // do_test "percentile-1.3." + in + ".8"
 						r = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1")
+						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.3." + in + ".8")
 						}
 					}
 				}
@@ -296,17 +344,26 @@ func Test_percentile(t *testing.T) {
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(x," + sqlLiteral(in) + ") FROM t2")
 						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.7." + in + ".1")
+						}
 					}
 					{ // do_test "percentile-1.7." + in + ".2"
 						r = db.Query("SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t2")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(x," + sqlLiteral(in) + "*0.01) FROM t2")
 						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.7." + in + ".2")
+						}
 					}
 					{ // do_test "percentile-1.7." + in + ".3"
 						r = db.Query("SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t2")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(x," + sqlLiteral(in) + "*0.01) FROM t2")
+						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), disc) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", disc, _res.Error, "percentile-1.7." + in + ".3")
 						}
 					}
 					if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
@@ -315,6 +372,9 @@ func Test_percentile(t *testing.T) {
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median(x) FROM t2")
 							}
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.7." + in + ".4")
+							}
 						}
 					}
 					{ // do_test "percentile-1.7." + in + ".5"
@@ -322,11 +382,17 @@ func Test_percentile(t *testing.T) {
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile(" + sqlLiteral(in) + ")WITHIN GROUP(ORDER BY x) FROM t2")
 						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.7." + in + ".5")
+						}
 					}
 					{ // do_test "percentile-1.7." + in + ".6"
 						r = db.Query("SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_cont(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
+						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.7." + in + ".6")
 						}
 					}
 					{ // do_test "percentile-1.7." + in + ".7"
@@ -334,12 +400,18 @@ func Test_percentile(t *testing.T) {
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT percentile_disc(" + sqlLiteral(in) + "*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2")
 						}
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), disc) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", disc, _res.Error, "percentile-1.7." + in + ".7")
+						}
 					}
 					if func() bool { in_n, _in_e := strconv.Atoi(in); if _in_e != nil { return false }; return in_n == 50 }() {
 						{ // do_test "percentile-1.7." + in + ".8"
 							r = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t2")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT median() WITHIN GROUP (ORDER BY x) FROM t2")
+							}
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-1.7." + in + ".8")
 							}
 						}
 					}
@@ -523,6 +595,9 @@ func Test_percentile(t *testing.T) {
 							r = db.Query("\n        SELECT round(percentile(x, " + sqlLiteral(in) + "),1) from t3;\n      ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT round(percentile(x, " + sqlLiteral(in) + "),1) from t3;\n      ")
+							}
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), out) {
+								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", out, _res.Error, "percentile-2.1." + in)
 							}
 						}
 					}

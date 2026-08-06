@@ -97,6 +97,7 @@ func Test_memdb1(t *testing.T) {
 	_putsMsg := "-nonewline"
 	_ = _putsMsg
 	// close $fd
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "110"
@@ -189,6 +190,7 @@ func Test_memdb1(t *testing.T) {
 		_res = db.Exec("INSERT INTO t1 VALUES(5,randomblob(100000))")
 		_ = _res // catchsql
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -222,6 +224,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "300"
@@ -246,6 +249,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "400"
@@ -284,6 +288,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "500"
@@ -353,7 +358,8 @@ func Test_memdb1(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "650"
 		_res = db.Exec("\n    CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT random() FROM c;\n  ")
@@ -376,7 +382,8 @@ func Test_memdb1(t *testing.T) {
 		rc = tclListAppend(rc, "err")
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "700"
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    PRAGMA schema_version = 0;\n  ")
@@ -387,6 +394,7 @@ func Test_memdb1(t *testing.T) {
 	{ // do_test "710"
 		ser = "db serialize main"
 		_ = ser // suppress unused warning
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n      CREATE VIRTUAL TABLE t1 USING rtree(id, a, b, c, d);\n    ")
@@ -394,7 +402,8 @@ func Test_memdb1(t *testing.T) {
 	}
 	if tclBool("wal_is_capable") {
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "800"
 			r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n  ")
@@ -408,6 +417,7 @@ func Test_memdb1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		db.Close()
 		fd = "open test.db"
 		_ = fd // suppress unused warning
 		// fconfigure $fd -translation binary (unsupported command, not transpiled)
@@ -448,7 +458,8 @@ func Test_memdb1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	dbempty, err := frigolite.Open(":memory:")
 	defer dbempty.Close()
@@ -487,7 +498,8 @@ func Test_memdb1(t *testing.T) {
 	}
 	db2.Close()
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1100"
 		_res = db.Exec("\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")

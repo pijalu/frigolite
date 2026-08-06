@@ -56,7 +56,7 @@ func Test_thread1(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	if tclBool("llength [info command thread_step]" + "==0 || " + "sqlite3 -has-codec") {
+	if tclBool("llength [info command thread_step]" + "==0 || " + "") {
 		return
 	}
 	{ // do_test "thread1-1.1"

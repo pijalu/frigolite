@@ -56,7 +56,7 @@ func Test_thread2(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	if tclBool("llength [info command thread_step]" + "==0 || " + "sqlite3 -has-codec") {
+	if tclBool("llength [info command thread_step]" + "==0 || " + "") {
 		return
 	}
 	{ // do_test "thread1-1.1"
@@ -66,6 +66,7 @@ func Test_thread2(t *testing.T) {
 		}
 	}
 	{ // do_test "thread2-1.2"
+		db.Close()
 		// thread_create A test.db (unsupported command, not transpiled)
 		// thread_create B test.db (unsupported command, not transpiled)
 		// thread_swap A B (unsupported command, not transpiled)

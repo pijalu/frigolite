@@ -79,8 +79,8 @@ func Test_corrupt6(t *testing.T) {
 		// hexio_read test.db 1987 2 (unsupported command, not transpiled)
 	}
 	{ // do_test "corrupt6-1.6"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -88,25 +88,25 @@ func Test_corrupt6(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "corrupt6-1.8.1"
+		db.Close()
 		// hexio_write test.db 1923 8105 (unsupported command, not transpiled)
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.8.2"
+		db.Close()
 		// hexio_write test.db 1923 8101 (unsupported command, not transpiled)
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.8.3"
+		db.Close()
 		// hexio_write test.db 1923 8103 (unsupported command, not transpiled)
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -114,25 +114,25 @@ func Test_corrupt6(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "corrupt6-1.9.1"
+		db.Close()
 		// hexio_write test.db 1987 8105 (unsupported command, not transpiled)
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.9.2"
+		db.Close()
 		// hexio_write test.db 1987 8101 (unsupported command, not transpiled)
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.9.3"
+		db.Close()
 		// hexio_write test.db 1987 8103 (unsupported command, not transpiled)
-		_dbtmp6, err := frigolite.Open("test.db")
-		_ = _dbtmp6 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
@@ -140,73 +140,73 @@ func Test_corrupt6(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "corrupt6-1.10.1"
+		db.Close()
 		// hexio_write test.db 1923 FF7F (unsupported command, not transpiled)
-		_dbtmp7, err := frigolite.Open("test.db")
-		_ = _dbtmp7 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.10.2"
+		db.Close()
 		// hexio_write test.db 1923 FFFF7F (unsupported command, not transpiled)
-		_dbtmp8, err := frigolite.Open("test.db")
-		_ = _dbtmp8 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.10.3"
+		db.Close()
 		// hexio_write test.db 1923 FFFFFF7F (unsupported command, not transpiled)
-		_dbtmp9, err := frigolite.Open("test.db")
-		_ = _dbtmp9 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.10.4"
+		db.Close()
 		// hexio_write test.db 1923 FFFFFFFF7F (unsupported command, not transpiled)
-		_dbtmp10, err := frigolite.Open("test.db")
-		_ = _dbtmp10 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.10.5"
+		db.Close()
 		// hexio_write test.db 1923 FFFFFFFFFF7F (unsupported command, not transpiled)
-		_dbtmp11, err := frigolite.Open("test.db")
-		_ = _dbtmp11 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.10.6"
+		db.Close()
 		// hexio_write test.db 1923 FFFFFFFFFFFF7F (unsupported command, not transpiled)
-		_dbtmp12, err := frigolite.Open("test.db")
-		_ = _dbtmp12 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.10.7"
+		db.Close()
 		// hexio_write test.db 1923 FFFFFFFFFFFFFF7F (unsupported command, not transpiled)
-		_dbtmp13, err := frigolite.Open("test.db")
-		_ = _dbtmp13 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.10.8"
+		db.Close()
 		// hexio_write test.db 1923 FFFFFFFFFFFFFFFF7F (unsupported command, not transpiled)
-		_dbtmp14, err := frigolite.Open("test.db")
-		_ = _dbtmp14 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt6-1.10.9"
+		db.Close()
 		// hexio_write test.db 1923 FFFFFFFFFFFFFFFFFF7F (unsupported command, not transpiled)
-		_dbtmp15, err := frigolite.Open("test.db")
-		_ = _dbtmp15 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT substr(x,1,8) FROM t1\n  ")
 		_ = _res // catchsql

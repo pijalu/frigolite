@@ -88,6 +88,9 @@ func Test_fts4onepass(t *testing.T) {
 		_ = _idx0
 			{ // do_test "1." + tn
 				// sql_uses_stmt db $sql (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), uses) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", uses, _res.Error, "1." + tn)
+				}
 			}
 		}
 		{ // "2.0"
@@ -108,6 +111,9 @@ func Test_fts4onepass(t *testing.T) {
 			_ = _idx1
 				{ // do_test "2." + tn
 					// sql_uses_stmt db $sql (unsupported command, not transpiled)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), uses) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", uses, _res.Error, "2." + tn)
+					}
 				}
 			}
 			// foreach {tn tcl1 tcl2} "1 {} {}\n\n  2 {\n    execsql BEGIN\n  } {\n    if {" + "sqlite3_get_autocommit db" + "==1} { error \"transaction rolled back!\" }\n    execsql COMMIT\n  }"
@@ -150,7 +156,7 @@ func Test_fts4onepass(t *testing.T) {
 									return
 								}
 								got := flatten(r)
-								want := content
+								want := tclListFlatten(content)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}

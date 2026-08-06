@@ -118,6 +118,7 @@ func Test_malloc(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 	// do_malloc_test 2 -sqlbody {\n    CREATE TABLE t1(a int, b int default 'abc', ...} (unsupported command, not transpiled)
@@ -125,6 +126,7 @@ func Test_malloc(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 	// do_malloc_test 3 -sqlbody {\n  BEGIN TRANSACTION;\n  CREATE TABLE t1(a int, b...} (unsupported command, not transpiled)
@@ -132,6 +134,7 @@ func Test_malloc(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 	// do_malloc_test 4 -sqlbody {\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a in...} (unsupported command, not transpiled)
@@ -139,6 +142,7 @@ func Test_malloc(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 	// do_malloc_test 5 -sqlbody {\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a,b)...} (unsupported command, not transpiled)
@@ -146,6 +150,7 @@ func Test_malloc(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 	// do_malloc_test 6 -sqlprep {\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a);\...} -sqlbody {\n ... (unsupported command, not transpiled)
@@ -167,7 +172,7 @@ func Test_malloc(t *testing.T) {
 	// do_malloc_test 16 -tclbody {\n  db complete {SELECT "hello """||'world"' [micr...} (unsupported command, not transpiled)
 	// do_malloc_test 17 -tclbody {\n    set DB2 0\n    set STMT 0\n  \n    # open da...} -cleanup {\n... (unsupported command, not transpiled)
 	// do_malloc_test 18 -tclprep {\n    catch {\n      db eval "SELECT [string repea...} -tclbody {\n... (unsupported command, not transpiled)
-	static_string = "x00hx00ex00lx00lx00o"
+	static_string = "\x00h\x00e\x00l\x00l\x00o"
 	_ = static_string // suppress unused warning
 	l = "0"
 	_ = l // suppress unused warning
@@ -181,7 +186,7 @@ func Test_malloc(t *testing.T) {
 			}
 		}
 	}
-	static_string += "x00x00"
+	static_string += "\x00\x00"
 	// do_malloc_test 19 -tclprep {\n  execsql {\n    PRAGMA encoding = "UTF16be";\n ...} -tclbody {\n... (unsupported command, not transpiled)
 	// do_malloc_test 20 -tclprep {\n    db close\n    forcedelete test2.db test2.db-...} -tclbody {\n... (unsupported command, not transpiled)
 	// do_malloc_test 21 -sqlbody {\n    CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REF...} (unsupported command, not transpiled)
@@ -213,7 +218,8 @@ func Test_malloc(t *testing.T) {
 	}
 	// do_malloc_test 39 -tclprep {\n  sqlite3 db test.db\n} -sqlbody {\n  SELECT test_auxdata('abc', ... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// add_test_utf16bin_collate db (unsupported command, not transpiled)
 	{ // "40.1"
@@ -236,7 +242,8 @@ func Test_malloc(t *testing.T) {
 	}
 	// do_faultsim_test 40.3 -faults oom-trans* -body {\n  execsql {\n    SELECT * FROM t1 ORDER BY 1 CO... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// add_test_utf16bin_collate db (unsupported command, not transpiled)
 	big = "x 200"
@@ -249,7 +256,8 @@ func Test_malloc(t *testing.T) {
 	}
 	// do_faultsim_test 41.2 -faults oom* -body {\n  execsql { SELECT * FROM t1 WHERE a = ('abcde' ...} ... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "42.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TABLE t2(a, b);\n  CREATE VIEW a002 AS SELECT *, sum(b) AS m FROM t2 GROUP BY a;\n")
@@ -263,6 +271,7 @@ func Test_malloc(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 	_putsMsg = "open-file-count=" + sqlite_open_file_count

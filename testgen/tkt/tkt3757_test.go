@@ -65,7 +65,7 @@ func Test_tkt3757(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "t1 t1i1 {1 1 1} t2 {} 1"
+		want := "t1 t1i1 1 1 1 t2 {} 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

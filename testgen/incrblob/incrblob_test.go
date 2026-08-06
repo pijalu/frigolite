@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -161,6 +162,7 @@ func Test_incrblob(t *testing.T) {
 	_ = AutoVacuumMode // suppress unused warning
 		if func() bool { AutoVacuumMode_n, _AutoVacuumMode_e := strconv.Atoi(AutoVacuumMode); if _AutoVacuumMode_e != nil { return false }; return AutoVacuumMode_n > 0 }() {
 		}
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -206,10 +208,13 @@ func Test_incrblob(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        PRAGMA auto_vacuum;\n      ")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), AutoVacuumMode) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", AutoVacuumMode, _res.Error, "incrblob-2." + AutoVacuumMode + ".2")
+			}
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".3"
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA mmap_size = 0")
 			if r.Error != nil {
@@ -225,10 +230,13 @@ func Test_incrblob(t *testing.T) {
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".4"
 			_ = tclStringRange("db one {SELECT v FROM blobs}", "end-19", "end") // string range result
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), fragment) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", fragment, _res.Error, "incrblob-2." + AutoVacuumMode + ".4")
+			}
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".5"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA mmap_size = 0")
 			if r.Error != nil {
@@ -249,8 +257,8 @@ func Test_incrblob(t *testing.T) {
 			_ = tclStringRange("db one {SELECT v FROM blobs}", "end-39", "end-20") // string range result
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".8"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA mmap_size = 0 ")
 			if r.Error != nil {
@@ -625,6 +633,9 @@ func Test_incrblob(t *testing.T) {
 		_ = data // suppress unused warning
 		// close $fd2
 		_ = data // TCL namespace variable (query)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), text) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", text, _res.Error, "incrblob-5.2")
+		}
 	}
 	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	if tclBool("permutation" + " != \"memsubsys1\"") {
@@ -728,13 +739,13 @@ func Test_incrblob(t *testing.T) {
 		}
 	}
 	// foreach {tn arg} "1 \"\" 2 -readonly"
-	_items3 := tclSplitList("1 \"\" 2 -readonly")
-	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-		tn := _items3[_idx3+0]
+	_items0 := tclSplitList("1 \"\" 2 -readonly")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		arg := _items3[_idx3+1]
+		arg := _items0[_idx0+1]
 		_ = arg // suppress unused warning
-		_ = _idx3
+		_ = _idx0
 			_res = db.Exec("\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
@@ -803,6 +814,7 @@ func Test_incrblob(t *testing.T) {
 		data = "read $fd 14000" // TCL namespace variable
 		_ = data // suppress unused warning
 		// close $fd
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -815,6 +827,9 @@ func Test_incrblob(t *testing.T) {
 			_ = b // suppress unused warning
 			// fconfigure $::b -translation binary (unsupported command, not transpiled)
 			// read $::b (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), data) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", data, _res.Error, "incrblob-7.2.1")
+			}
 		}
 		{ // do_test "incrblob-7.2.2"
 			_res = db.Exec("\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);        -- root@page4\n  ")
@@ -823,6 +838,9 @@ func Test_incrblob(t *testing.T) {
 			}
 			// seek $::b 0 (unsupported command, not transpiled)
 			// read $::b (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), data) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", data, _res.Error, "incrblob-7.2.2")
+			}
 		}
 		{ // do_test "incrblob-7.2.3"
 			// close $::b
@@ -842,6 +860,9 @@ func Test_incrblob(t *testing.T) {
 			_ = b // suppress unused warning
 			// fconfigure $::b -translation binary (unsupported command, not transpiled)
 			// read $::b (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), otherdata) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", otherdata, _res.Error, "incrblob-7.3.1")
+			}
 		}
 		{ // do_test "incrblob-7.3.2"
 			// expr [file size test.db]/1024 (not evaluated)
@@ -853,6 +874,9 @@ func Test_incrblob(t *testing.T) {
 			}
 			// seek $::b 0 (unsupported command, not transpiled)
 			// read $::b (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), otherdata) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", otherdata, _res.Error, "incrblob-7.3.3")
+			}
 		}
 		{ // do_test "incrblob-7.4"
 	_ = rc // suppress unused warning

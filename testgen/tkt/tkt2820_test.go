@@ -68,6 +68,7 @@ func Test_tkt2820(t *testing.T) {
 	// test_schema_change 2 {\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n} {\n  DROP TABLE t2\n} {t1 t... (unsupported command, not transpiled)
 	// test_schema_change 3 {\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a...} {\n  DROP INDEX i1\n} ... (unsupported command, not transpiled)
 	{ // do_test "tkt2820-4.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

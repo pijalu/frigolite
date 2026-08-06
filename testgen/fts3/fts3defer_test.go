@@ -112,7 +112,7 @@ func Test_fts3defer(t *testing.T) {
 	tests = "\n  1  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a dog\"'}                 {1}\n  2  {SELECT rowid FROM t1 WHERE t1 MATCH '\"is a dog\"'}              {1}\n  3  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}       {3}\n  4  {SELECT snippet(t1) FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}  \n     {\"an instance of <b>a</b> <b>longer</b> <b>phrase</b>\"}\n  5  {SELECT rowid FROM t1 WHERE t1 MATCH 'a dog'}                   {1}\n"
 	_ = tests // suppress unused warning
 	// do_select_tests 1.2 $tests (unsupported command, not transpiled)
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "1.3"
 		r = db.Query("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n")
 		if r.Error != nil {
@@ -285,7 +285,7 @@ func Test_fts3defer(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "{a b c} {}"
+					want := "a b c {}"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -298,7 +298,8 @@ func Test_fts3defer(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts4(\n      c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19\n  );\n")
@@ -335,8 +336,8 @@ func Test_fts3defer(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n        " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ",\n        " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + ", " + sqlLiteral(val) + "\n      );\n    COMMIT;\n  ")
 				}
 			}
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6.3"
 				r = db.Query("\n  SELECT count(*) FROM ft WHERE ft MATCH '\"common rare\"';\n")

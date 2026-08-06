@@ -157,13 +157,13 @@ func Test_vacuum_into(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: target2", _res.Error, "\n  VACUUM INTO target2()\n")
 		}
 	}
+	db.Close()
 	if tcl_platform_platform == "windows" {
 		// file attributes test.db -readonly 1
 	} else {
 		// file attributes test.db -permissions 292
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	{ // "vacuum-into-500"
@@ -184,6 +184,7 @@ func Test_vacuum_into(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()
+	db.Close()
 	if tclBool("wal_is_capable") {
 		os.Remove("test.db")
 		os.Remove("test.db2")
@@ -229,7 +230,8 @@ func Test_vacuum_into(t *testing.T) {
 	// tvfs script xSyncCb (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "vacuum-into-700"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
@@ -238,15 +240,15 @@ func Test_vacuum_into(t *testing.T) {
 		}
 	}
 	// foreach {tn pragma res} "710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}"
-	_items1 := tclSplitList("710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}")
-	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		pragma := _items1[_idx1+1]
+		pragma := _items0[_idx0+1]
 		_ = pragma // suppress unused warning
-		res := _items1[_idx1+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			os.Remove("test.db2")
 			{ // "vacuum-into-" + tn + ".1"
 				_res = db.Exec("\n    " + pragma + " ;\n    VACUUM INTO 'test.db2'\n  ")
@@ -255,7 +257,11 @@ func Test_vacuum_into(t *testing.T) {
 				}
 			}
 			{ // do_test "vacuum-into-" + tn + ".2"
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "vacuum-into-" + tn + ".2")
+				}
 			}
 		}
+		db.Close()
 		// tvfs delete (unsupported command, not transpiled)
 }

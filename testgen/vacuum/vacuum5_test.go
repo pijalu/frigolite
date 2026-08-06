@@ -98,9 +98,15 @@ func Test_vacuum5(t *testing.T) {
 	}
 	{ // do_test "vacuum5-1.2.3"
 		// file size test2.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), size2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", size2, _res.Error, "vacuum5-1.2.3")
+		}
 	}
 	{ // do_test "vacuum5-1.2.4"
 		// file size test3.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), size3) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", size3, _res.Error, "vacuum5-1.2.4")
+		}
 	}
 	size1 = "file size test.db"
 	_ = size1 // suppress unused warning
@@ -124,12 +130,18 @@ func Test_vacuum5(t *testing.T) {
 	}
 	{ // do_test "vacuum5-1.3.2"
 		// file size test.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), size1) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", size1, _res.Error, "vacuum5-1.3.2")
+		}
 	}
 	{ // do_test "vacuum5-1.3.3"
 		// expr [file size test2.db]<$size2 (not evaluated)
 	}
 	{ // do_test "vacuum5-1.3.4"
 		// file size test3.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), size3) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", size3, _res.Error, "vacuum5-1.3.4")
+		}
 	}
 	size2 = "file size test2.db"
 	_ = size2 // suppress unused warning
@@ -153,9 +165,15 @@ func Test_vacuum5(t *testing.T) {
 	}
 	{ // do_test "vacuum5-1.3.2"
 		// file size test.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), size1) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", size1, _res.Error, "vacuum5-1.3.2")
+		}
 	}
 	{ // do_test "vacuum5-1.3.3"
 		// file size test2.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), size2) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", size2, _res.Error, "vacuum5-1.3.3")
+		}
 	}
 	{ // do_test "vacuum5-1.3.4"
 		// expr [file size test3.db]<$size3 (not evaluated)
@@ -175,7 +193,7 @@ func Test_vacuum5(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := sizeTemp
+		want := tclListFlatten(sizeTemp)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -187,11 +205,12 @@ func Test_vacuum5(t *testing.T) {
 		}
 	}
 	if tclBool(TEMP_STORE + "<3 && " + "permutation" + "!=\"inmemory_journal\"") {
+		db.Close()
 		// testvfs tvfs (unsupported command, not transpiled)
 		// tvfs filter xOpen (unsupported command, not transpiled)
 		// tvfs script open_cb (unsupported command, not transpiled)
 		os.Remove("test.db")
-		openfiles = "list" // TCL namespace variable
+		openfiles = "" // TCL namespace variable
 		_ = openfiles // suppress unused warning
 		// proc definition (not transpiled)
 		db, err = frigolite.Open("")
@@ -208,6 +227,7 @@ func Test_vacuum5(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 			}
 		}
+		db.Close()
 		// tvfs delete (unsupported command, not transpiled)
 		if tclBool("atomic_batch_write test.db" + "==0") {
 			{ // do_test "3.2"

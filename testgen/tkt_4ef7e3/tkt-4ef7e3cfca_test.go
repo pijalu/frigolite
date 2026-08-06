@@ -63,7 +63,8 @@ func Test_tkt_4ef7e3cfca(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE w(a);\n  CREATE TABLE x(a);\n  CREATE TABLE y(a);\n  CREATE TABLE z(a);\n\n  INSERT INTO x(a) VALUES(5);\n  INSERT INTO y(a) VALUES(10);\n\n  CREATE TRIGGER t AFTER INSERT ON w BEGIN\n    INSERT INTO z\n    SELECT (SELECT x.a + y.a FROM y) FROM x;\n  END;\n  INSERT INTO w VALUES('incorrect');\n")
@@ -84,7 +85,8 @@ func Test_tkt_4ef7e3cfca(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE w(a);\n  CREATE TABLE x(b);\n  CREATE TABLE y(a);\n  CREATE TABLE z(a);\n\n  INSERT INTO x(b) VALUES(5);\n  INSERT INTO y(a) VALUES(10);\n\n  CREATE TRIGGER t AFTER INSERT ON w BEGIN\n    INSERT INTO z\n    SELECT (SELECT x.b + y.a FROM y) FROM x;\n  END;\n  INSERT INTO w VALUES('assert');\n")

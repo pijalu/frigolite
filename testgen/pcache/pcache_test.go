@@ -55,6 +55,7 @@ func Test_pcache(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// do_not_use_codec (unsupported command, not transpiled)
 	{ // do_test "pcache-1.1"
+		db.Close()
 		// pcache_stats (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache-1.2"

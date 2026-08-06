@@ -99,7 +99,7 @@ func Test_date5(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := date
+				want := tclListFlatten(date)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -111,7 +111,7 @@ func Test_date5(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := jd
+				want := tclListFlatten(jd)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -132,7 +132,7 @@ func Test_date5(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := date2
+					want := tclListFlatten(date2)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -144,7 +144,7 @@ func Test_date5(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := jd2
+					want := tclListFlatten(jd2)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -178,7 +178,7 @@ func Test_date5(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := date2
+					want := tclListFlatten(date2)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -190,7 +190,7 @@ func Test_date5(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := jd2
+					want := tclListFlatten(jd2)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

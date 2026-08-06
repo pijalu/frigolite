@@ -107,7 +107,7 @@ func Test_e_walhook(t *testing.T) {
 		}
 		_ = read_ok // TCL namespace variable (query)
 	}
-	wal_hook_args = "list" // TCL namespace variable
+	wal_hook_args = "" // TCL namespace variable
 	_ = wal_hook_args // suppress unused warning
 	// proc definition (not transpiled)
 	os.Remove("test.db2")

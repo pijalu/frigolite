@@ -108,7 +108,7 @@ func Test_fts3first(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := res
+					want := tclListFlatten(res)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -120,7 +120,7 @@ func Test_fts3first(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := rev
+					want := tclListFlatten(rev)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -146,25 +146,25 @@ func Test_fts3first(t *testing.T) {
 				rev = "lreverse $res"
 				_ = rev // suppress unused warning
 				{ // "1.3." + tn + ".1"
-					r = db.Query("\n    SELECT snippet(x1, '" + sqlLiteral("', '") + "', '...') FROM x1 WHERE x1 MATCH " + sqlLiteral(match) + "\n  ")
+					r = db.Query("\n    SELECT snippet(x1, '[', ']', '...') FROM x1 WHERE x1 MATCH " + sqlLiteral(match) + "\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(x1, '" + sqlLiteral("', '") + "', '...') FROM x1 WHERE x1 MATCH " + sqlLiteral(match) + "\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(x1, '[', ']', '...') FROM x1 WHERE x1 MATCH " + sqlLiteral(match) + "\n  ")
 						return
 					}
 					got := flatten(r)
-					want := res
+					want := tclListFlatten(res)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 				{ // "1.3." + tn + ".2"
-					r = db.Query("\n    SELECT snippet(x2, '" + sqlLiteral("', '") + "', '...') FROM x2 WHERE x2 MATCH " + sqlLiteral(match) + "\n  ")
+					r = db.Query("\n    SELECT snippet(x2, '[', ']', '...') FROM x2 WHERE x2 MATCH " + sqlLiteral(match) + "\n  ")
 					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(x2, '" + sqlLiteral("', '") + "', '...') FROM x2 WHERE x2 MATCH " + sqlLiteral(match) + "\n  ")
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(x2, '[', ']', '...') FROM x2 WHERE x2 MATCH " + sqlLiteral(match) + "\n  ")
 						return
 					}
 					got := flatten(r)
-					want := rev
+					want := tclListFlatten(rev)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -189,7 +189,7 @@ func Test_fts3first(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := res
+						want := tclListFlatten(res)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -201,7 +201,7 @@ func Test_fts3first(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := rev
+						want := tclListFlatten(rev)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -220,7 +220,7 @@ func Test_fts3first(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := "{A B C} {B A C}"
+					want := "A B C B A C"
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

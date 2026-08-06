@@ -163,7 +163,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.7.2"
@@ -183,7 +183,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.7.3"
@@ -203,7 +203,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.7.4"
@@ -223,7 +223,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.7.5"
@@ -243,7 +243,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.7.6"
@@ -263,7 +263,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.1"
@@ -283,7 +283,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.2"
@@ -303,7 +303,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.3"
@@ -323,7 +323,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.4"
@@ -343,7 +343,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.5"
@@ -363,7 +363,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.6"
@@ -383,7 +383,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.1"
@@ -403,7 +403,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.2"
@@ -423,7 +423,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.3"
@@ -443,7 +443,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.4"
@@ -463,7 +463,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.5"
@@ -483,7 +483,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.6"
@@ -503,7 +503,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.1.8.7"
@@ -523,7 +523,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.1.9.1" — skipped: window functions not supported
@@ -787,7 +787,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.7.2"
@@ -807,7 +807,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.7.3"
@@ -827,7 +827,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.7.4"
@@ -847,7 +847,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.7.5"
@@ -867,7 +867,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.7.6"
@@ -887,7 +887,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.1"
@@ -907,7 +907,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.2"
@@ -927,7 +927,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.3"
@@ -947,7 +947,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.4"
@@ -967,7 +967,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.5"
@@ -987,7 +987,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.6"
@@ -1007,7 +1007,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.1"
@@ -1027,7 +1027,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.2"
@@ -1047,7 +1047,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.3"
@@ -1067,7 +1067,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.4"
@@ -1087,7 +1087,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.5"
@@ -1107,7 +1107,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.6"
@@ -1127,7 +1127,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2.8.7"
@@ -1147,7 +1147,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.2.9.1" — skipped: window functions not supported
@@ -1411,7 +1411,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.7.2"
@@ -1431,7 +1431,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.7.3"
@@ -1451,7 +1451,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.7.4"
@@ -1471,7 +1471,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.7.5"
@@ -1491,7 +1491,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.7.6"
@@ -1511,7 +1511,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.1"
@@ -1531,7 +1531,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.2"
@@ -1551,7 +1551,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.3"
@@ -1571,7 +1571,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.4"
@@ -1591,7 +1591,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.5"
@@ -1611,7 +1611,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.6"
@@ -1631,7 +1631,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.1"
@@ -1651,7 +1651,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.2"
@@ -1671,7 +1671,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.3"
@@ -1691,7 +1691,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.4"
@@ -1711,7 +1711,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.5"
@@ -1731,7 +1731,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.6"
@@ -1751,7 +1751,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.3.8.7"
@@ -1771,7 +1771,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.3.9.1" — skipped: window functions not supported
@@ -2035,7 +2035,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.7.2"
@@ -2055,7 +2055,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.7.3"
@@ -2075,7 +2075,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.7.4"
@@ -2095,7 +2095,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.7.5"
@@ -2115,7 +2115,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.7.6"
@@ -2135,7 +2135,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.1"
@@ -2155,7 +2155,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.2"
@@ -2175,7 +2175,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.3"
@@ -2195,7 +2195,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.4"
@@ -2215,7 +2215,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.5"
@@ -2235,7 +2235,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.6"
@@ -2255,7 +2255,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.1"
@@ -2275,7 +2275,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.2"
@@ -2295,7 +2295,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.3"
@@ -2315,7 +2315,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.4"
@@ -2335,7 +2335,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.5"
@@ -2355,7 +2355,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.6"
@@ -2375,7 +2375,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.4.8.7"
@@ -2395,7 +2395,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.4.9.1" — skipped: window functions not supported
@@ -2659,7 +2659,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.7.2"
@@ -2679,7 +2679,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.7.3"
@@ -2699,7 +2699,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.7.4"
@@ -2719,7 +2719,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.7.5"
@@ -2739,7 +2739,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.7.6"
@@ -2759,7 +2759,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.1"
@@ -2779,7 +2779,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.2"
@@ -2799,7 +2799,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.3"
@@ -2819,7 +2819,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.4"
@@ -2839,7 +2839,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.5"
@@ -2859,7 +2859,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.6"
@@ -2879,7 +2879,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.1"
@@ -2899,7 +2899,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.2"
@@ -2919,7 +2919,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.3"
@@ -2939,7 +2939,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.4"
@@ -2959,7 +2959,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.5"
@@ -2979,7 +2979,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.6"
@@ -2999,7 +2999,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.5.8.7"
@@ -3019,7 +3019,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.5.9.1" — skipped: window functions not supported
@@ -3283,7 +3283,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.7.2"
@@ -3303,7 +3303,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.7.3"
@@ -3323,7 +3323,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.7.4"
@@ -3343,7 +3343,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.7.5"
@@ -3363,7 +3363,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.7.6"
@@ -3383,7 +3383,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.1"
@@ -3403,7 +3403,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.2"
@@ -3423,7 +3423,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.3"
@@ -3443,7 +3443,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.4"
@@ -3463,7 +3463,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.5"
@@ -3483,7 +3483,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.6"
@@ -3503,7 +3503,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.1"
@@ -3523,7 +3523,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.2"
@@ -3543,7 +3543,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.3"
@@ -3563,7 +3563,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.4"
@@ -3583,7 +3583,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.5"
@@ -3603,7 +3603,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.6"
@@ -3623,7 +3623,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.6.8.7"
@@ -3643,7 +3643,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.6.9.1" — skipped: window functions not supported
@@ -3907,7 +3907,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.7.2"
@@ -3927,7 +3927,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.7.3"
@@ -3947,7 +3947,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.7.4"
@@ -3967,7 +3967,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.7.5"
@@ -3987,7 +3987,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.7.6"
@@ -4007,7 +4007,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.1"
@@ -4027,7 +4027,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.2"
@@ -4047,7 +4047,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.3"
@@ -4067,7 +4067,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.4"
@@ -4087,7 +4087,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.5"
@@ -4107,7 +4107,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.6"
@@ -4127,7 +4127,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.1"
@@ -4147,7 +4147,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.2"
@@ -4167,7 +4167,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.3"
@@ -4187,7 +4187,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.4"
@@ -4207,7 +4207,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.5"
@@ -4227,7 +4227,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.6"
@@ -4247,7 +4247,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.7.8.7"
@@ -4267,7 +4267,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.7.9.1" — skipped: window functions not supported
@@ -4531,7 +4531,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.7.2"
@@ -4551,7 +4551,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.7.3"
@@ -4571,7 +4571,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.7.4"
@@ -4591,7 +4591,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.7.5"
@@ -4611,7 +4611,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.7.6"
@@ -4631,7 +4631,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.1"
@@ -4651,7 +4651,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.2"
@@ -4671,7 +4671,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.3"
@@ -4691,7 +4691,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.4"
@@ -4711,7 +4711,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.5"
@@ -4731,7 +4731,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.6"
@@ -4751,7 +4751,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.1"
@@ -4771,7 +4771,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.2"
@@ -4791,7 +4791,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.3"
@@ -4811,7 +4811,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.4"
@@ -4831,7 +4831,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.5"
@@ -4851,7 +4851,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.6"
@@ -4871,7 +4871,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.8.8.7"
@@ -4891,7 +4891,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.8.9.1" — skipped: window functions not supported
@@ -5155,7 +5155,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.7.2"
@@ -5175,7 +5175,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.7.3"
@@ -5195,7 +5195,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.7.4"
@@ -5215,7 +5215,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.7.5"
@@ -5235,7 +5235,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.7.6"
@@ -5255,7 +5255,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.1"
@@ -5275,7 +5275,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.2"
@@ -5295,7 +5295,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.3"
@@ -5315,7 +5315,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.4"
@@ -5335,7 +5335,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.5"
@@ -5355,7 +5355,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.6"
@@ -5375,7 +5375,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.1"
@@ -5395,7 +5395,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.2"
@@ -5415,7 +5415,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.3"
@@ -5435,7 +5435,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.4"
@@ -5455,7 +5455,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.5"
@@ -5475,7 +5475,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.6"
@@ -5495,7 +5495,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.9.8.7"
@@ -5515,7 +5515,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.9.9.1" — skipped: window functions not supported
@@ -5779,7 +5779,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.7.2"
@@ -5799,7 +5799,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.7.3"
@@ -5819,7 +5819,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.7.4"
@@ -5839,7 +5839,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.7.5"
@@ -5859,7 +5859,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.7.6"
@@ -5879,7 +5879,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.1"
@@ -5899,7 +5899,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.2"
@@ -5919,7 +5919,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.3"
@@ -5939,7 +5939,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.4"
@@ -5959,7 +5959,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.5"
@@ -5979,7 +5979,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.6"
@@ -5999,7 +5999,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.1"
@@ -6019,7 +6019,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.2"
@@ -6039,7 +6039,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.3"
@@ -6059,7 +6059,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.4"
@@ -6079,7 +6079,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.5"
@@ -6099,7 +6099,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.6"
@@ -6119,7 +6119,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.10.8.7"
@@ -6139,7 +6139,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.10.9.1" — skipped: window functions not supported
@@ -6403,7 +6403,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.7.2"
@@ -6423,7 +6423,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.7.3"
@@ -6443,7 +6443,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.7.4"
@@ -6463,7 +6463,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.7.5"
@@ -6483,7 +6483,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.7.6"
@@ -6503,7 +6503,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.1"
@@ -6523,7 +6523,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.2"
@@ -6543,7 +6543,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.3"
@@ -6563,7 +6563,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.4"
@@ -6583,7 +6583,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.5"
@@ -6603,7 +6603,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.6"
@@ -6623,7 +6623,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.1"
@@ -6643,7 +6643,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.2"
@@ -6663,7 +6663,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.3"
@@ -6683,7 +6683,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.4"
@@ -6703,7 +6703,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.5"
@@ -6723,7 +6723,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.6"
@@ -6743,7 +6743,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.11.8.7"
@@ -6763,7 +6763,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.11.9.1" — skipped: window functions not supported
@@ -7027,7 +7027,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.7.2"
@@ -7047,7 +7047,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.7.3"
@@ -7067,7 +7067,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.7.4"
@@ -7087,7 +7087,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.7.5"
@@ -7107,7 +7107,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.7.6"
@@ -7127,7 +7127,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.1"
@@ -7147,7 +7147,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.2"
@@ -7167,7 +7167,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.3"
@@ -7187,7 +7187,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.4"
@@ -7207,7 +7207,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.5"
@@ -7227,7 +7227,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.6"
@@ -7247,7 +7247,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.1"
@@ -7267,7 +7267,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.2"
@@ -7287,7 +7287,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.3"
@@ -7307,7 +7307,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.4"
@@ -7327,7 +7327,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.5"
@@ -7347,7 +7347,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.6"
@@ -7367,7 +7367,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.12.8.7"
@@ -7387,7 +7387,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.12.9.1" — skipped: window functions not supported
@@ -7651,7 +7651,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.7.2"
@@ -7671,7 +7671,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.7.3"
@@ -7691,7 +7691,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.7.4"
@@ -7711,7 +7711,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.7.5"
@@ -7731,7 +7731,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.7.6"
@@ -7751,7 +7751,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.1"
@@ -7771,7 +7771,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.2"
@@ -7791,7 +7791,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.3"
@@ -7811,7 +7811,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.4"
@@ -7831,7 +7831,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.5"
@@ -7851,7 +7851,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.6"
@@ -7871,7 +7871,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.1"
@@ -7891,7 +7891,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.2"
@@ -7911,7 +7911,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.3"
@@ -7931,7 +7931,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.4"
@@ -7951,7 +7951,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.5"
@@ -7971,7 +7971,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.6"
@@ -7991,7 +7991,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.13.8.7"
@@ -8011,7 +8011,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.13.9.1" — skipped: window functions not supported
@@ -8275,7 +8275,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.7.2"
@@ -8295,7 +8295,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.7.3"
@@ -8315,7 +8315,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.7.4"
@@ -8335,7 +8335,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.7.5"
@@ -8355,7 +8355,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.7.6"
@@ -8375,7 +8375,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.1"
@@ -8395,7 +8395,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.2"
@@ -8415,7 +8415,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.3"
@@ -8435,7 +8435,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.4"
@@ -8455,7 +8455,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.5"
@@ -8475,7 +8475,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.6"
@@ -8495,7 +8495,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.1"
@@ -8515,7 +8515,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.2"
@@ -8535,7 +8535,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.3"
@@ -8555,7 +8555,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.4"
@@ -8575,7 +8575,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.5"
@@ -8595,7 +8595,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.6"
@@ -8615,7 +8615,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.14.8.7"
@@ -8635,7 +8635,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.14.9.1" — skipped: window functions not supported
@@ -8899,7 +8899,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.7.2"
@@ -8919,7 +8919,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.7.3"
@@ -8939,7 +8939,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.7.4"
@@ -8959,7 +8959,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.7.5"
@@ -8979,7 +8979,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.7.6"
@@ -8999,7 +8999,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.1"
@@ -9019,7 +9019,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.2"
@@ -9039,7 +9039,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.3"
@@ -9059,7 +9059,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.4"
@@ -9079,7 +9079,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.5"
@@ -9099,7 +9099,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.6"
@@ -9119,7 +9119,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.1"
@@ -9139,7 +9139,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.2"
@@ -9159,7 +9159,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.3"
@@ -9179,7 +9179,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.4"
@@ -9199,7 +9199,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.5"
@@ -9219,7 +9219,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.6"
@@ -9239,7 +9239,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.15.8.7"
@@ -9259,7 +9259,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.15.9.1" — skipped: window functions not supported
@@ -9523,7 +9523,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.7.2"
@@ -9543,7 +9543,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.7.3"
@@ -9563,7 +9563,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.7.4"
@@ -9583,7 +9583,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.7.5"
@@ -9603,7 +9603,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.7.6"
@@ -9623,7 +9623,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.1"
@@ -9643,7 +9643,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.2"
@@ -9663,7 +9663,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.3"
@@ -9683,7 +9683,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.4"
@@ -9703,7 +9703,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.5"
@@ -9723,7 +9723,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.6"
@@ -9743,7 +9743,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.1"
@@ -9763,7 +9763,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.2"
@@ -9783,7 +9783,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.3"
@@ -9803,7 +9803,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.4"
@@ -9823,7 +9823,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.5"
@@ -9843,7 +9843,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.6"
@@ -9863,7 +9863,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.16.8.7"
@@ -9883,7 +9883,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.16.9.1" — skipped: window functions not supported
@@ -10147,7 +10147,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.7.2"
@@ -10167,7 +10167,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.7.3"
@@ -10187,7 +10187,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.7.4"
@@ -10207,7 +10207,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.7.5"
@@ -10227,7 +10227,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.7.6"
@@ -10247,7 +10247,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.1"
@@ -10267,7 +10267,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.2"
@@ -10287,7 +10287,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.3"
@@ -10307,7 +10307,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.4"
@@ -10327,7 +10327,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.5"
@@ -10347,7 +10347,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.6"
@@ -10367,7 +10367,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.1"
@@ -10387,7 +10387,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.2"
@@ -10407,7 +10407,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.3"
@@ -10427,7 +10427,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.4"
@@ -10447,7 +10447,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.5"
@@ -10467,7 +10467,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.6"
@@ -10487,7 +10487,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.17.8.7"
@@ -10507,7 +10507,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.17.9.1" — skipped: window functions not supported
@@ -10771,7 +10771,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.7.2"
@@ -10791,7 +10791,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.7.3"
@@ -10811,7 +10811,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.7.4"
@@ -10831,7 +10831,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.7.5"
@@ -10851,7 +10851,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.7.6"
@@ -10871,7 +10871,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.1"
@@ -10891,7 +10891,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.2"
@@ -10911,7 +10911,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.3"
@@ -10931,7 +10931,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.4"
@@ -10951,7 +10951,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.5"
@@ -10971,7 +10971,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.6"
@@ -10991,7 +10991,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.1"
@@ -11011,7 +11011,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.2"
@@ -11031,7 +11031,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.3"
@@ -11051,7 +11051,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.4"
@@ -11071,7 +11071,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.5"
@@ -11091,7 +11091,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.6"
@@ -11111,7 +11111,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.18.8.7"
@@ -11131,7 +11131,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.18.9.1" — skipped: window functions not supported
@@ -11395,7 +11395,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.7.2"
@@ -11415,7 +11415,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.7.3"
@@ -11435,7 +11435,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.7.4"
@@ -11455,7 +11455,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.7.5"
@@ -11475,7 +11475,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.7.6"
@@ -11495,7 +11495,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.1"
@@ -11515,7 +11515,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.2"
@@ -11535,7 +11535,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.3"
@@ -11555,7 +11555,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.4"
@@ -11575,7 +11575,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.5"
@@ -11595,7 +11595,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.6"
@@ -11615,7 +11615,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.1"
@@ -11635,7 +11635,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.2"
@@ -11655,7 +11655,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.3"
@@ -11675,7 +11675,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.4"
@@ -11695,7 +11695,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.5"
@@ -11715,7 +11715,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.6"
@@ -11735,7 +11735,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.19.8.7"
@@ -11755,7 +11755,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.19.9.1" — skipped: window functions not supported
@@ -12019,7 +12019,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.7.2"
@@ -12039,7 +12039,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.7.3"
@@ -12059,7 +12059,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.7.4"
@@ -12079,7 +12079,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.7.5"
@@ -12099,7 +12099,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.7.6"
@@ -12119,7 +12119,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.1"
@@ -12139,7 +12139,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.2"
@@ -12159,7 +12159,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.3"
@@ -12179,7 +12179,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.4"
@@ -12199,7 +12199,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.5"
@@ -12219,7 +12219,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.6"
@@ -12239,7 +12239,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.1"
@@ -12259,7 +12259,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.2"
@@ -12279,7 +12279,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.3"
@@ -12299,7 +12299,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.4"
@@ -12319,7 +12319,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.5"
@@ -12339,7 +12339,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.6"
@@ -12359,7 +12359,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.20.8.7"
@@ -12379,7 +12379,7 @@ func Test_window3(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.20.9.1" — skipped: window functions not supported

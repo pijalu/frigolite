@@ -63,6 +63,7 @@ func Test_uri2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "uri2"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	// foreach {tn uri} "1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def"
@@ -114,10 +115,12 @@ func Test_uri2(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "2.0"
 			// expr [lsearch [execsql {PRAGMA compile_options}] ENABLE_URI_00_ERROR] >= 0 (not evaluated)

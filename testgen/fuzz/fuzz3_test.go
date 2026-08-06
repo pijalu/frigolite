@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -127,6 +128,9 @@ func Test_fuzz3(t *testing.T) {
 	_ = cksum // suppress unused warning
 	{ // do_test "fuzz3-2"
 		// db_checksum (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "fuzz3-2")
+		}
 	}
 	ii = "0"
 	_ = ii // suppress unused warning
@@ -152,6 +156,9 @@ func Test_fuzz3(t *testing.T) {
 		// modify_database $iOld (unsupported command, not transpiled)
 		{ // do_test "fuzz3-" + ii + "." + iNew + "." + "incr iTest"
 			// db_checksum (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), cksum) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", cksum, _res.Error, "fuzz3-" + ii + "." + iNew + "." + "incr iTest")
+			}
 		}
 		// incr ii 1
 		{

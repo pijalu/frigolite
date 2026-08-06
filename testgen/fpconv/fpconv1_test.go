@@ -75,7 +75,7 @@ func Test_fpconv1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db FP_DIGITS 15 (unsupported command, not transpiled)
+	// sqlite3_db_config FP_DIGITS (unhandled flag)
 	{ // "fpconv1-1.2"
 		r = db.Query("\n  SELECT 1.23 - 2.34;\n")
 		if r.Error != nil {
@@ -100,7 +100,7 @@ func Test_fpconv1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db FP_DIGITS 17 (unsupported command, not transpiled)
+	// sqlite3_db_config FP_DIGITS (unhandled flag)
 	if false {
 		_putsMsg := "Skipping decimal tests, hit load error: " + _error
 		_ = _putsMsg

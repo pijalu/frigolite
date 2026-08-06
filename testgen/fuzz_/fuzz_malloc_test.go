@@ -104,9 +104,9 @@ func Test_fuzz_malloc(t *testing.T) {
 	// do_fuzzy_malloc_test fuzzy_malloc-2 -template {[Select]} (unsupported command, not transpiled)
 	SQLPREP = "\n  BEGIN;\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);\n    INSERT INTO abc VALUES(1.5, 3, 'a short string');\n    INSERT INTO def VALUES(NULL, X'ABCDEF', \n        'a longer string. Long enough that it doesn''t fit in Mem.zShort');\n    INSERT INTO ghi VALUES(zeroblob(1000), 'hello world', -1257900987654321);\n  COMMIT;\n" // TCL namespace variable
 	_ = SQLPREP // suppress unused warning
-	TableList = "list abc def ghi" // TCL namespace variable
+	TableList = "abc def ghi" // TCL namespace variable
 	_ = TableList // suppress unused warning
-	ColumnList = "list a b c" // TCL namespace variable
+	ColumnList = "a b c" // TCL namespace variable
 	_ = ColumnList // suppress unused warning
 	// do_fuzzy_malloc_test fuzzy_malloc-3 -template {[Select]} -sqlprep $::SQLPREP (unsupported command, not transpiled)
 }

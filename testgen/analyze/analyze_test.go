@@ -227,8 +227,8 @@ func Test_analyze(t *testing.T) {
 		_res = db2.Exec("\n    CREATE TABLE t4(x,y,z);\n    CREATE INDEX t4i1 ON t4(x);\n    CREATE INDEX t4i2 ON t4(y);\n    INSERT INTO t4 SELECT a,b,c FROM t3;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_ = db2 // close db2: aliased to db, no-op
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
@@ -240,8 +240,8 @@ func Test_analyze(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema=on;\n    INSERT INTO sqlite_stat1 VALUES(null,null,null);\n    PRAGMA writable_schema=off;\n  ")
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
 		if r.Error != nil {
@@ -253,8 +253,8 @@ func Test_analyze(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema=on;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i1','nonsense');\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i2','120897349817238741092873198273409187234918720394817209384710928374109827172901827349871928741910');\n    PRAGMA writable_schema=off;\n  ")
 		}
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
 		if r.Error != nil {
@@ -266,8 +266,8 @@ func Test_analyze(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO sqlite_stat1 VALUES('t4','xyzzy','0 1 2 3');\n  ")
 		}
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
 		if r.Error != nil {
@@ -311,11 +311,12 @@ func Test_analyze(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze-5.99"
-		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		_res = db.Exec("\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';\n  ")
 		}
+		db.Close()
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -326,6 +327,7 @@ func Test_analyze(t *testing.T) {
 		_res = db.Exec("\n    ANALYZE\n  ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "analyze-6.1"
@@ -341,7 +343,8 @@ func Test_analyze(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "analyze-7.1"

@@ -70,6 +70,7 @@ func Test_walblock(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
 	for _, f := range tclSplitList("glob test.db*") {
@@ -100,7 +101,7 @@ func Test_walblock(t *testing.T) {
 		// testfixture $C {\n    sqlite3 db test.db\n    db eval { SELECT * F...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.1.3"
-		out = "list" // TCL namespace variable
+		out = "" // TCL namespace variable
 		_ = out // suppress unused warning
 		// testfixture $C {\n    db eval { SELECT * FROM t1 }\n  } [list set ::out] (unsupported command, not transpiled)
 		_ = out // TCL namespace variable (query)

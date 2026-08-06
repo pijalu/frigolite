@@ -55,10 +55,10 @@ func Test_walrofault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "walro2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_uri 1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(b);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES('hello');\n  INSERT INTO t1 VALUES('world');\n  INSERT INTO t1 VALUES('!');\n  INSERT INTO t1 VALUES('world');\n  INSERT INTO t1 VALUES('hello');\n  PRAGMA cache_size = 10;\n  BEGIN;\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<30 ) \n    INSERT INTO t1(b) SELECT randomblob(800) FROM s;\n")
@@ -73,6 +73,7 @@ func Test_walrofault(t *testing.T) {
 		}
 	}
 	// file_control_persist_wal db 1 (unsupported command, not transpiled)
+	db.Close()
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 1 -faults oom* -prep {\n  catch { db close }\n  faultsim_restore\n  sqli...} -bo... (unsupported command, not transpiled)
 }

@@ -907,7 +907,7 @@ func Test_window4(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "9.4" — skipped: window functions not supported
@@ -935,7 +935,7 @@ func Test_window4(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "9.7"
@@ -955,7 +955,7 @@ func Test_window4(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "10.0"
@@ -1049,7 +1049,7 @@ func Test_window4(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "12.3"
@@ -1069,7 +1069,7 @@ func Test_window4(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 }

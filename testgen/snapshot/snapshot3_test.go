@@ -7,6 +7,7 @@ package snapshot
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -125,6 +126,9 @@ func Test_snapshot3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint = truncate ")
 		}
 		// file size test.db-wal
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sz) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sz, _res.Error, "1.3")
+		}
 	}
 	{ // do_test "1.4"
 		_res = db3.Exec("BEGIN")
@@ -160,7 +164,8 @@ func Test_snapshot3(t *testing.T) {
 	db3.Close()
 	db2.Close()
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
@@ -178,22 +183,40 @@ func Test_snapshot3(t *testing.T) {
 	_ = db2
 	db3 = db // sqlite3 db3 test.db: alias to main in-memory db
 	_ = db3
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "2.0.1"
+		r = db.Query("\n  SELECT * FROM t1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db3")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db3")
+	{ // "2.0.2"
+		r = db.Query("\n  SELECT * FROM t1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 2 3 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "2.2"
+		r = db.Query("\n  PRAGMA wal_checkpoint;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA wal_checkpoint;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 4 4"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "2.1"
@@ -205,10 +228,10 @@ func Test_snapshot3(t *testing.T) {
 		_ = snap // suppress unused warning
 		// set  (invalid identifier, skipped)
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
+	{ // "2.3"
+		_res = db.Exec("\n  INSERT INTO t1 VALUES(5, 6);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(5, 6);\n")
 		}
 	}
 	{ // do_test "2.2"

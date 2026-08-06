@@ -54,6 +54,7 @@ func Test_wal7(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "wal7-1.0"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -78,6 +79,7 @@ func Test_wal7(t *testing.T) {
 		// expr [file size test.db-wal]>50*1100 (not evaluated)
 	}
 	{ // do_test "wal7-2.0"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -88,6 +90,7 @@ func Test_wal7(t *testing.T) {
 		// file size test.db-wal
 	}
 	{ // do_test "wal7-3.0"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -100,6 +103,7 @@ func Test_wal7(t *testing.T) {
 		// expr $sz>0 && $sz<13700 (not evaluated)
 	}
 	{ // do_test "wal7-4.0"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

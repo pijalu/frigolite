@@ -974,7 +974,8 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "24.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT max(a), min(b) FROM t1 GROUP BY c;\n")
@@ -983,7 +984,8 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // do_test "24.1"
-		program = "db eval {EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc}"
+		_dbeval0 := tclExecSQL(db, "{EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc}")
+		program = _dbeval0
 		_ = program // suppress unused warning
 		// expr [lsearch $program OpenDup]>0 (not evaluated)
 	}
@@ -1000,15 +1002,16 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// foreach {id dual} "1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}"
-	_items0 := tclSplitList("1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		id := _items0[_idx0+0]
+	_items1 := tclSplitList("1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		id := _items1[_idx1+0]
 		_ = id // suppress unused warning
-		dual := _items0[_idx0+1]
+		dual := _items1[_idx1+1]
 		_ = dual // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(dual)
 			if _res.Error != nil {
@@ -1034,7 +1037,8 @@ func Test_with1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "26.1"
 			r = db.Query("\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
@@ -1073,7 +1077,8 @@ func Test_with1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "27.1"
 			r = db.Query("\n  CREATE TABLE t1(k);\n  CREATE TABLE log(k, cte_map, main_map);\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'main1'), (2, 'main2');\n  \n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log\n        WITH map(k,v) AS (VALUES(1,'cte1'),(2,'cte2'))\n        SELECT\n          new.k,\n          (SELECT v FROM map WHERE k=new.k),\n          (SELECT v FROM main.map WHERE k=new.k);\n  END;\n  \n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  SELECT k, cte_map, main_map, '|' FROM log ORDER BY k;\n")

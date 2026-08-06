@@ -112,7 +112,8 @@ func Test_cursorhint2(t *testing.T) {
 	}
 	// do_extract_hints_test 2.12 {\n  SELECT * FROM x1 LEFT JOIN x2 ON (a=x) WHERE c...} {\n  x2 {EQ(c0,r[2]... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (i1 TEXT);    \n  CREATE TABLE t2 (i2 TEXT UNIQUE);    \n  INSERT INTO t1 VALUES('0');\n  INSERT INTO t2 VALUES('0');\n")

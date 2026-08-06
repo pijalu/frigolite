@@ -429,8 +429,8 @@ func Test_fts3auto(t *testing.T) {
 						}
 						chunkconfig = "fts3_configure_incr_load 1 1"
 						_ = chunkconfig // suppress unused warning
-						// foreach {tn create pending} "1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0"
-						_items5 := tclSplitList("1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0")
+						// foreach {tn create pending} "1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\"1,3\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\"2,4\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\"1\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\"1,3\")\"      0"
+						_items5 := tclSplitList("1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\"1,3\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\"2,4\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\"1\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\"1,3\")\"      0")
 						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
 							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning

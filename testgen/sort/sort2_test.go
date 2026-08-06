@@ -59,11 +59,11 @@ func Test_sort2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "sort2"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// skip: foreach over unresolved TCL command
 }

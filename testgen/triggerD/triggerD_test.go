@@ -160,6 +160,7 @@ func Test_triggerD(t *testing.T) {
 		}
 	}
 	{ // do_test "triggerD-4.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

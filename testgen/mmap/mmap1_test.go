@@ -7,6 +7,7 @@ package mmap
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -119,7 +120,8 @@ func Test_mmap1(t *testing.T) {
 		_ = rcnt // suppress unused warning
 		// proc definition (not transpiled)
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "2.1"
 			r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   16\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   32\n    PRAGMA wal_checkpoint;\n  ")
@@ -170,7 +172,8 @@ func Test_mmap1(t *testing.T) {
 			db2.Close()
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA mmap_size = 67108864; ")
 		if r.Error != nil {
@@ -191,7 +194,8 @@ func Test_mmap1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA mmap_size = 67108864; ")
 		if r.Error != nil {
@@ -214,7 +218,7 @@ func Test_mmap1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "list $aaa $bbb $ccc $ddd"
+			want := aaa + " " + bbb + " " + ccc + " " + ddd
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -224,6 +228,9 @@ func Test_mmap1(t *testing.T) {
 			_ = STMT // suppress unused warning
 			// sqlite3_step $::STMT (unsupported command, not transpiled)
 			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), aaa) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", aaa, _res.Error, "4.2")
+			}
 		}
 		{ // do_test "4.3"
 			for _, _r := range tclSplitList("2 3 4") {
@@ -250,7 +257,8 @@ func Test_mmap1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA mmap_size = 67108864; ")
 		if r.Error != nil {
@@ -263,7 +271,7 @@ func Test_mmap1(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "list 2 $aaa $bbb $ccc $ddd"
+			want := "2 " + aaa + " " + bbb + " " + ccc + " " + ddd
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -273,6 +281,9 @@ func Test_mmap1(t *testing.T) {
 			_ = STMT // suppress unused warning
 			// sqlite3_step $::STMT (unsupported command, not transpiled)
 			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), aaa) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", aaa, _res.Error, "5.2")
+			}
 		}
 		{ // "5.3"
 			_res = db.Exec("\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');\n")
@@ -283,6 +294,9 @@ func Test_mmap1(t *testing.T) {
 		{ // do_test "5.4"
 			// sqlite3_step $::STMT (unsupported command, not transpiled)
 			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), bbb) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bbb, _res.Error, "5.4")
+			}
 		}
 		{ // do_test "5.5"
 			// sqlite3_finalize $::STMT (unsupported command, not transpiled)

@@ -63,12 +63,12 @@ func Test_cksumvfs(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "cksumvfs"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// sqlite3_register_cksumvfs (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// file_control_reservebytes db 8 (unsupported command, not transpiled)
 	r = db.Query("\n  PRAGMA page_size = 4096;\n")
@@ -90,7 +90,7 @@ func Test_cksumvfs(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list 1 $text {}"
+		want := "1 " + text + " {}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -188,8 +188,8 @@ func Test_cksumvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.9"
 		r = db.Query("\n  SELECT count(*) FROM t1;\n")

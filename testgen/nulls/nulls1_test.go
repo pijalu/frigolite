@@ -149,7 +149,8 @@ func Test_nulls1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX i2 ON t2(a, b);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(1, NULL, 2);\n  INSERT INTO t2 VALUES(1, NULL, 3);\n  INSERT INTO t2 VALUES(1, 4, 4);\n")
@@ -182,7 +183,8 @@ func Test_nulls1(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, UNIQUE (b));\n")
@@ -202,8 +204,8 @@ func Test_nulls1(t *testing.T) {
 			_ = _idx1
 				{ // "3.1." + tn
 					_res = db.Exec(sql)
-					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, sql)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported use of NULLS " + tclStr(err)) {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported use of NULLS " + tclStr(err), _res.Error, sql)
 					}
 				}
 			}
@@ -334,9 +336,11 @@ func Test_nulls1(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;\n")
 				}
 			}
-			res1 = "db eval { SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c }"
+			_dbeval2 := tclExecSQL(db, "{ SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c }")
+			res1 = _dbeval2
 			_ = res1 // suppress unused warning
-			res2 = "db eval { \n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC \n}"
+			_dbeval3 := tclExecSQL(db, "{ \n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC \n}")
+			res2 = _dbeval3
 			_ = res2 // suppress unused warning
 			{ // "6.1.1"
 				r = db.Query("\n  CREATE INDEX t5ab ON t5(a, b, c);\n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c;\n")
@@ -345,7 +349,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := res1
+				want := tclListFlatten(res1)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -363,7 +367,7 @@ func Test_nulls1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := res2
+				want := tclListFlatten(res2)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -387,7 +391,8 @@ func Test_nulls1(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "9.0"
 				_res = db.Exec("\n  CREATE TABLE v0 (c1, c2, c3);\n  CREATE INDEX v3 ON v0 (c1, c2, c3);\n")
@@ -426,7 +431,8 @@ func Test_nulls1(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "10.10"
 				r = db.Query("\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES('X');\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT c FROM t1 LEFT JOIN t2 ON d=NULL ORDER BY d, c NULLS LAST;\n")
@@ -525,15 +531,16 @@ func Test_nulls1(t *testing.T) {
 				}
 			}
 			// foreach {tn idx} "1 {}\n  2 { CREATE INDEX i1 ON t1(a, b) }\n  3 { CREATE INDEX i1 ON t1(b, a) }"
-			_items2 := tclSplitList("1 {}\n  2 { CREATE INDEX i1 ON t1(a, b) }\n  3 { CREATE INDEX i1 ON t1(b, a) }")
-			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-				tn := _items2[_idx2+0]
+			_items4 := tclSplitList("1 {}\n  2 { CREATE INDEX i1 ON t1(a, b) }\n  3 { CREATE INDEX i1 ON t1(b, a) }")
+			for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+				tn := _items4[_idx4+0]
 				_ = tn // suppress unused warning
-				idx := _items2[_idx2+1]
+				idx := _items4[_idx4+1]
 				_ = idx // suppress unused warning
-				_ = _idx2
+				_ = _idx4
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "11." + tn + ".1"
 						_res = db.Exec("\n    CREATE TABLE t1(a TEXT COLLATE NOCASE, b TEXT);\n    INSERT INTO t1 VALUES('Hello', 'world');\n  ")
@@ -548,15 +555,15 @@ func Test_nulls1(t *testing.T) {
 						}
 					}
 					// foreach {tn sql res} "0 \"SELECT null\" NULL\n  \n    1 \"SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    2 \"SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n  \n    3 \"SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    4 \"SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)\"  NULL\n    5 \"SELECT ('hello', 'world') IN (SELECT a, b FROM t1)\" 1\n  \n    6 \"SELECT ('hi', NULL) IN (SELECT a, b FROM t1)\" 0\n     \n    7 \"SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  0\n    8 \"SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1\"  NULL\n  \n    9 \"SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  NULL"
-					_items3 := tclSplitList("0 \"SELECT null\" NULL\n  \n    1 \"SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    2 \"SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n  \n    3 \"SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    4 \"SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)\"  NULL\n    5 \"SELECT ('hello', 'world') IN (SELECT a, b FROM t1)\" 1\n  \n    6 \"SELECT ('hi', NULL) IN (SELECT a, b FROM t1)\" 0\n     \n    7 \"SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  0\n    8 \"SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1\"  NULL\n  \n    9 \"SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  NULL")
-					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-						tn := _items3[_idx3+0]
+					_items5 := tclSplitList("0 \"SELECT null\" NULL\n  \n    1 \"SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    2 \"SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n  \n    3 \"SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    4 \"SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)\"  NULL\n    5 \"SELECT ('hello', 'world') IN (SELECT a, b FROM t1)\" 1\n  \n    6 \"SELECT ('hi', NULL) IN (SELECT a, b FROM t1)\" 0\n     \n    7 \"SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  0\n    8 \"SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1\"  NULL\n  \n    9 \"SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  NULL")
+					for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
+						tn := _items5[_idx5+0]
 						_ = tn // suppress unused warning
-						sql := _items3[_idx3+1]
+						sql := _items5[_idx5+1]
 						_ = sql // suppress unused warning
-						res := _items3[_idx3+2]
+						res := _items5[_idx5+2]
 						_ = res // suppress unused warning
-						_ = _idx3
+						_ = _idx5
 							tcl_nullvalue = "NULL"
 							{ // "11." + tn + ".3." + tn
 								_res = db.Exec(sql)

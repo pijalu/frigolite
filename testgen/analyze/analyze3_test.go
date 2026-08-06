@@ -95,6 +95,7 @@ func Test_analyze3(t *testing.T) {
 		return
 	}
 	// proc definition (not transpiled)
+	// db function var (variable-reader, inlined)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "analyze3-1.1.1"
@@ -176,14 +177,14 @@ func Test_analyze3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		}
 	}
-	// sqlite3_db_config db ENABLE_QPSG 1 (unsupported command, not transpiled)
+	// sqlite3_db_config ENABLE_QPSG (unhandled flag)
 	{ // "analyze3-1.1.3.103"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		}
 	}
-	// sqlite3_db_config db ENABLE_QPSG 0 (unsupported command, not transpiled)
+	// sqlite3_db_config ENABLE_QPSG (unhandled flag)
 	{ // "analyze3-1.1.3.104"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		if r.Error != nil {
@@ -352,9 +353,21 @@ func Test_analyze3(t *testing.T) {
 		_ = u // suppress unused warning
 		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // do_test "analyze3-2.1"
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
 		if _res.Error != nil {
@@ -434,9 +447,21 @@ func Test_analyze3(t *testing.T) {
 		_ = like // suppress unused warning
 		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	// proc definition (not transpiled)
 	{ // do_test "analyze3-3.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
@@ -687,9 +712,21 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-5.1.1"
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		_res = db.Exec("\n    CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');\n  ")
@@ -819,7 +856,8 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.2"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;\n")
@@ -828,7 +866,8 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, v) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','1 1');\n  INSERT INTO sqlite_stat4 VALUES('t1','t1','1','0','0',X'021b76657273696f6e');\n  INSERT INTO sqlite_stat4 VALUES('T1','T1','1','0','0',X'021b76657273696f6e');\n  ANALYZE sqlite_schema;\n")
@@ -837,7 +876,8 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat4 VALUES\n     ('t1','t1','1','2','2',X'03000103'),\n     ('t1','sqlite_autoindex_t1_1','1','2','2',X'03000103');\n  ANALYZE sqlite_schema;\n  PRAGMA integrity_check;\n")

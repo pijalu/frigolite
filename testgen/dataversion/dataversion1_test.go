@@ -7,6 +7,7 @@ package dataversion
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -78,6 +79,9 @@ func Test_dataversion1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t2(y);\n    CREATE TEMP TABLE t3(z);\n  ")
 		}
 		// file_control_data_version db main (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), dv1) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dv1, _res.Error, "dataversion1-101")
+		}
 	}
 	{ // do_test "dataversion1-110"
 		_res = db.Exec("\n    UPDATE t1 SET x=x+1;\n  ")
@@ -96,6 +100,9 @@ func Test_dataversion1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t2 SET y=y+1;\n  ")
 		}
 		// file_control_data_version db (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), dv1) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dv1, _res.Error, "dataversion1-120")
+		}
 	}
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -105,6 +112,9 @@ func Test_dataversion1(t *testing.T) {
 	}
 	{ // do_test "dataversion1-131"
 		// file_control_data_version db (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), dv1) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dv1, _res.Error, "dataversion1-131")
+		}
 	}
 	{ // do_test "dataversion1-132"
 		_res = db2.Exec("\n    UPDATE t1 SET x=x+1;\n  ")

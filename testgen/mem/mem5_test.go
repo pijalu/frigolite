@@ -58,6 +58,7 @@ func Test_mem5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_heap 25000000 0 (unsupported command, not transpiled)
@@ -68,6 +69,7 @@ func Test_mem5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_heap 1 1073741824 (unsupported command, not transpiled)
@@ -78,6 +80,7 @@ func Test_mem5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_heap 1 1073741825 (unsupported command, not transpiled)
@@ -88,6 +91,7 @@ func Test_mem5(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_heap 0 0 (unsupported command, not transpiled)

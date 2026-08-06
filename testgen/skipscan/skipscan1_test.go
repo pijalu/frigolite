@@ -448,6 +448,7 @@ func Test_skipscan1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -627,6 +628,7 @@ func Test_skipscan1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a,b,c,d,'|' FROM t6 WHERE d<>99 AND b=345 ORDER BY a DESC;\n")
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "skipscan1-3.1"
@@ -648,7 +650,8 @@ func Test_skipscan1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "skipscan1-4.10"
 		r = db.Query("\n  CREATE TABLE t1(a,b INT);\n  INSERT INTO t1(a,b) VALUES(1,2),(3,3),(4,5);\n  CREATE UNIQUE INDEX i1 ON t1(b,b,a,a,a,a,a,b,a);\n  ANALYZE;\n  DROP TABLE IF EXISTS sqlite_stat4;\n  INSERT INTO sqlite_stat1 VALUES('t1','i1','30 30 30 2 2 2 2 2 2 2');\n  ANALYZE sqlite_master;\n\n  SELECT DISTINCT a\n    FROM t1\n   WHERE a = b\n     AND a = 3\n     AND b IN (1,3,2,4)\n     AND b >= 0\n     AND a <= 10;\n")
@@ -663,7 +666,8 @@ func Test_skipscan1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "skipscan1-5.0"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, UNIQUE(a,a,a));\n  INSERT INTO t1 VALUES (hex(zeroblob(241))),(1),(2),(3);\n  ANALYZE;\n  SELECT max(a) FROM t1 WHERE a IN t1;\n")

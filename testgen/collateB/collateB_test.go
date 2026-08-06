@@ -206,7 +206,8 @@ func Test_collateB(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a COLLATE binary);\n  CREATE INDEX i4 ON t4(a);\n  INSERT INTO t4 VALUES('one'), ('two'), ('three');\n  VACUUM;\n")

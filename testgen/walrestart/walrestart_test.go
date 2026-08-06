@@ -66,11 +66,13 @@ func Test_walrestart(t *testing.T) {
 	if tclBool("permutation" + "==\"memsubsys1\"") {
 		return
 	}
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// sqlite3_test_control_fault_install faultsim (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20\n  ) \n  INSERT INTO t1 SELECT NULL, randomblob(600) FROM s;\n  CREATE INDEX i1 ON t1(b);\n  PRAGMA wal_checkpoint;\n")
@@ -111,10 +113,10 @@ func Test_walrestart(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
+	{ // "1.3"
+		_res = db.Exec("\n  UPDATE t1 SET b=randomblob(600);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE t1 SET b=randomblob(600);\n")
 		}
 	}
 	// proc definition (not transpiled)

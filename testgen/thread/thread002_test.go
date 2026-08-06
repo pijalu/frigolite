@@ -87,6 +87,7 @@ func Test_thread002(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	NTHREAD = "10" // TCL namespace variable
@@ -102,6 +103,7 @@ func Test_thread002(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);\n    ")
 			}
+			db.Close()
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
@@ -154,6 +156,7 @@ func Test_thread002(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			res = tclExecSQL(db, "{SELECT count(*) FROM t1}") + "        " + tclExecSQL(db, "{PRAGMA integrity_check}")
 			_ = res // suppress unused warning
+			db.Close()
 		}
 		// incr ii 1
 		{

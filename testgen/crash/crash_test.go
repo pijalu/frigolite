@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -95,6 +96,9 @@ func Test_crash(t *testing.T) {
 		}
 		{ // do_test "crash-1.3." + i
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-1.3." + i)
+			}
 		}
 		// incr i 1
 		{
@@ -109,6 +113,9 @@ func Test_crash(t *testing.T) {
 	}
 	{ // do_test "crash-1.5"
 		// signature (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-1.5")
+		}
 	}
 	{ // do_test "crash-1.6"
 		// crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a = 1;\n  } (unsupported command, not transpiled)
@@ -170,12 +177,18 @@ func Test_crash(t *testing.T) {
 	}
 	{ // do_test "crash-2.4"
 		// signature (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-2.4")
+		}
 	}
 	{ // do_test "crash-2.5"
 		// crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a<800;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-2.6"
 		// signature (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-2.6")
+		}
 	}
 	{ // do_test "crash-3.0"
 		_res = db.Exec("\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
@@ -196,6 +209,9 @@ func Test_crash(t *testing.T) {
 		}
 		{ // do_test "crash-3." + i + ".2"
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-3." + i + ".2")
+			}
 		}
 		// incr i 1
 		{
@@ -239,9 +255,15 @@ func Test_crash(t *testing.T) {
 		}
 		{ // do_test "crash-4.1." + i + ".2"
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-4.1." + i + ".2")
+			}
 		}
 		{ // do_test "crash-4.1." + i + ".3"
 			// signature2 (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig2) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig2, _res.Error, "crash-4.1." + i + ".3")
+			}
 		}
 		// incr i 1
 		{
@@ -278,9 +300,15 @@ func Test_crash(t *testing.T) {
 		}
 		{ // do_test "crash-4.2." + i + ".2"
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-4.2." + i + ".2")
+			}
 		}
 		{ // do_test "crash-4.2." + i + ".3"
 			// signature2 (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig2) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig2, _res.Error, "crash-4.2." + i + ".3")
+			}
 		}
 	}
 	i = "1"
@@ -295,9 +323,15 @@ func Test_crash(t *testing.T) {
 		}
 		{ // do_test "crash-4.3." + i + ".2"
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-4.3." + i + ".2")
+			}
 		}
 		{ // do_test "crash-4.3." + i + ".3"
 			// signature2 (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig2) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig2, _res.Error, "crash-4.3." + i + ".3")
+			}
 		}
 		// incr i 1
 		{
@@ -307,6 +341,7 @@ func Test_crash(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -328,12 +363,18 @@ func Test_crash(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "crash-5.5"
 		// signature (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-5.5")
+		}
 	}
 	{ // do_test "crash-6.1"
 		// crashsql -delay 1 -file test.db {\n    DROP TABLE abc;\n  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-6.2"
 		// signature (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-6.2")
+		}
 	}
 	{ // do_test "crash-7.1"
 		// crashsql -delay 1 -file test.db {\n    ATTACH 'test2.db' AS aux;\n    BEGIN;\n    I...} (unsupported command, not transpiled)
@@ -347,5 +388,8 @@ func Test_crash(t *testing.T) {
 	}
 	{ // do_test "crash-7.2"
 		// signature (unsupported command, not transpiled)
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash-7.2")
+		}
 	}
 }

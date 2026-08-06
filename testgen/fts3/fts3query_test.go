@@ -197,7 +197,7 @@ func Test_fts3query(t *testing.T) {
 	}
 	// do_select_tests 5.2 -errorformat {\n  wrong number of arguments to function %s()\n} {\n  1 "SELE... (unsupported command, not transpiled)
 	// do_select_tests 5.3 -errorformat {\n  illegal first argument to %s\n} {\n  1 "SELECT matchinfo(c... (unsupported command, not transpiled)
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "5.4.0"
 		_res = db.Exec(" UPDATE t2_content SET c0content = X'1234' ")
 		if _res.Error != nil {
@@ -272,7 +272,8 @@ func Test_fts3query(t *testing.T) {
 			iLast := _items1[_idx1+2]
 			_ = iLast // suppress unused warning
 			_ = _idx1
-				res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n  }"
+				_dbeval2 := tclExecSQL(db, "{ \n    SELECT rowid FROM t4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + " \n  }")
+				res = _dbeval2
 				_ = res // suppress unused warning
 				{ // "7.2." + tn + ".1." + "llength $res"
 					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + "\n  ")
@@ -281,12 +282,13 @@ func Test_fts3query(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := res
+					want := tclListFlatten(res)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n     ORDER BY +rowid DESC\n  }"
+				_dbeval3 := tclExecSQL(db, "{ \n    SELECT rowid FROM t4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + " \n     ORDER BY +rowid DESC\n  }")
+				res = _dbeval3
 				_ = res // suppress unused warning
 				{ // "7.2." + tn + ".2." + "llength $res"
 					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN " + sqlLiteral(iFirst) + " AND " + sqlLiteral(iLast) + "\n    ORDER BY rowid DESC\n  ")
@@ -295,27 +297,31 @@ func Test_fts3query(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := res
+					want := tclListFlatten(res)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 			}
-			_rows2 := db.Query("SELECT rowid FROM t4")
-			if _rows2.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", _rows2.Error, "SELECT rowid FROM t4")
+			_rows4 := db.Query("SELECT rowid FROM t4")
+			if _rows4.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT rowid FROM t4")
 			}
-			for _, _row2 := range _rows2.Rows {
-			_ = _row2 // suppress unused warning
-			ii := fmt.Sprint(_row2[0])
+			for _, _row4 := range _rows4.Rows {
+			_ = _row4 // suppress unused warning
+			ii := fmt.Sprint(_row4[0])
 			_ = ii // suppress unused warning
-				res1 = "db eval {SELECT rowid FROM t4 WHERE rowid > $ii}"
+				_dbeval5 := tclExecSQL(db, "{SELECT rowid FROM t4 WHERE rowid > " + sqlLiteral(ii) + "}")
+				res1 = _dbeval5
 				_ = res1 // suppress unused warning
-				res2 = "db eval {SELECT rowid FROM t4 WHERE rowid < $ii}"
+				_dbeval6 := tclExecSQL(db, "{SELECT rowid FROM t4 WHERE rowid < " + sqlLiteral(ii) + "}")
+				res2 = _dbeval6
 				_ = res2 // suppress unused warning
-				res1s = "db eval {SELECT rowid FROM t4 WHERE rowid > $ii ORDER BY +rowid DESC}"
+				_dbeval7 := tclExecSQL(db, "{SELECT rowid FROM t4 WHERE rowid > " + sqlLiteral(ii) + " ORDER BY +rowid DESC}")
+				res1s = _dbeval7
 				_ = res1s // suppress unused warning
-				res2s = "db eval {SELECT rowid FROM t4 WHERE rowid < $ii ORDER BY +rowid DESC}"
+				_dbeval8 := tclExecSQL(db, "{SELECT rowid FROM t4 WHERE rowid < " + sqlLiteral(ii) + " ORDER BY +rowid DESC}")
+				res2s = _dbeval8
 				_ = res2s // suppress unused warning
 				{ // "7.3." + ii + ".1"
 					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > " + sqlLiteral(ii) + "\n  ")
@@ -324,7 +330,7 @@ func Test_fts3query(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := res1
+					want := tclListFlatten(res1)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -336,7 +342,7 @@ func Test_fts3query(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := res2
+					want := tclListFlatten(res2)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -348,7 +354,7 @@ func Test_fts3query(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := res1s
+					want := tclListFlatten(res1s)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -360,7 +366,7 @@ func Test_fts3query(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := res2s
+					want := tclListFlatten(res2s)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

@@ -316,9 +316,9 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	{ // "aggorderby-9.0"
-		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY y) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY y) FROM c;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY y) FROM c;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY y) FROM c;\n")
 			return
 		}
 		got := flatten(r)
@@ -328,9 +328,9 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	{ // "aggorderby-9.1"
-		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{a:3}', 3),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY y) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('[4,4]', 4),\n    ('{a:3}', 3),\n    ('[4,4]', 4),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY y) FROM c;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{a:3}', 3),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY y) FROM c;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('[4,4]', 4),\n    ('{a:3}', 3),\n    ('[4,4]', 4),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY y) FROM c;\n")
 			return
 		}
 		got := flatten(r)
@@ -340,9 +340,9 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	{ // "aggorderby-9.2"
-		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY json(x)) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY json(x)) FROM c;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY json(x)) FROM c;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('{a:3}', 3),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(json(x) ORDER BY json(x)) FROM c;\n")
 			return
 		}
 		got := flatten(r)
@@ -352,9 +352,9 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	{ // "aggorderby-9.3"
-		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{a:3}', 3),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY json(x)) FROM c;\n")
+		r = db.Query("\n  WITH c(x,y) AS (VALUES\n    ('[4,4]', 4),\n    ('{a:3}', 3),\n    ('[4,4]', 4),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY json(x)) FROM c;\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{a:3}', 3),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('" + sqlLiteral("1,1") + "', 1),\n    ('" + sqlLiteral("4,4") + "', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY json(x)) FROM c;\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES\n    ('[4,4]', 4),\n    ('{a:3}', 3),\n    ('[4,4]', 4),\n    ('[1,1]', 1),\n    ('[4,4]', 4),\n    ('{x:2}', 2))\n  SELECT json_group_array(DISTINCT json(x) ORDER BY json(x)) FROM c;\n")
 			return
 		}
 		got := flatten(r)
@@ -364,7 +364,8 @@ func Test_aggorderby(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "aggorderby-10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(w, x);\n  INSERT INTO t1 VALUES(1, 2);\n")

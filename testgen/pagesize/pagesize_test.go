@@ -7,6 +7,7 @@ package pagesize
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -76,6 +77,7 @@ func Test_pagesize(t *testing.T) {
 		}
 	}
 	{ // do_test "pagesize-1.4"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -115,6 +117,7 @@ func Test_pagesize(t *testing.T) {
 		if tclBool("info exists SQLITE_MAX_PAGE_SIZE" + "\n           && " + SQLITE_MAX_PAGE_SIZE + "<" + PGSZ) {
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".0.1"
+			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA page_size=" + PGSZ + ";")
@@ -124,6 +127,9 @@ func Test_pagesize(t *testing.T) {
 			r = db.Query("PRAGMA page_size")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".0.1")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".0.2"
@@ -135,6 +141,9 @@ func Test_pagesize(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".0.2")
+			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".0.3"
 			r = db.Query("\n        INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;\n      ")
@@ -143,6 +152,7 @@ func Test_pagesize(t *testing.T) {
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".1"
+			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -154,14 +164,20 @@ func Test_pagesize(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x);\n      PRAGMA page_size;\n    ")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".1")
+			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".2"
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n      PRAGMA page_size\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size\n    ")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".2")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".3"
@@ -176,12 +192,15 @@ func Test_pagesize(t *testing.T) {
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "pagesize-2." + PGSZ + ".6"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA page_size")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".6")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".7"
@@ -199,12 +218,15 @@ func Test_pagesize(t *testing.T) {
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "pagesize-2." + PGSZ + ".10"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA page_size")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), PGSZ) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", PGSZ, _res.Error, "pagesize-2." + PGSZ + ".10")
 			}
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".11"
@@ -253,6 +275,7 @@ func Test_pagesize(t *testing.T) {
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -262,6 +285,7 @@ func Test_pagesize(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(x);\n      PRAGMA temp.page_size=" + PGSZ + ";\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;\n    ")
 			}
 		}
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -273,7 +297,8 @@ func Test_pagesize(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "pagesize-3.1"
 		r = db.Query("\n  BEGIN;\n  SELECT * FROM sqlite_master;\n  PRAGMA page_size=2048;\n  PRAGMA main.page_size;\n")

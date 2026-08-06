@@ -64,7 +64,8 @@ func Test_walsetlk2(t *testing.T) {
 	testprefix = "walsetlk2"
 	_ = testprefix // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
@@ -78,14 +79,14 @@ func Test_walsetlk2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	// testvfs tvfs (unsupported command, not transpiled)
 	// tvfs script xShmLock_callback (unsupported command, not transpiled)
 	// tvfs filter xShmLock (unsupported command, not transpiled)
-	xshmlock = "list" // TCL namespace variable
+	xshmlock = "" // TCL namespace variable
 	_ = xshmlock // suppress unused warning
 	// proc definition (not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		r = db.Query("\n  SELECT * FROM t1\n")
@@ -105,7 +106,7 @@ func Test_walsetlk2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
 		}
 	}
-	xshmlock = "list" // TCL namespace variable
+	xshmlock = "" // TCL namespace variable
 	_ = xshmlock // suppress unused warning
 	{ // "1.3"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
@@ -128,7 +129,7 @@ func Test_walsetlk2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	xshmlock = "list" // TCL namespace variable
+	xshmlock = "" // TCL namespace variable
 	_ = xshmlock // suppress unused warning
 	{ // "1.5.2"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(10, 11, 12);\n")
@@ -139,12 +140,14 @@ func Test_walsetlk2(t *testing.T) {
 	{ // do_test "1.5.3"
 		_ = xshmlock // TCL namespace variable (query)
 	}
+	db.Close()
 	// tvfs delete (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
@@ -191,8 +194,8 @@ func Test_walsetlk2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.5"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(9, 10);\n")
@@ -223,7 +226,8 @@ func Test_walsetlk2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	if func() bool { sqlite_options_setlk_timeout_n, _sqlite_options_setlk_timeout_e := strconv.Atoi(sqlite_options_setlk_timeout); if _sqlite_options_setlk_timeout_e != nil { return false }; return sqlite_options_setlk_timeout_n == 1 }() {
 		{ // "3.0"
@@ -265,9 +269,9 @@ func Test_walsetlk2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		db.Close()
 		// testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXC...} (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_setlk_timeout db -1 (unsupported command, not transpiled)
 		{ // "3.4"

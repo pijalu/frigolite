@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -84,7 +85,8 @@ func Test_sort5(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// testvfs tvfs -iversion 1 -default true (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA mmap_size = 10000000;\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n")
@@ -129,6 +131,7 @@ func Test_sort5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(b);\n")
 		}
 	}
+	db.Close()
 	// tvfs delete (unsupported command, not transpiled)
 	// testvfs tvfs (unsupported command, not transpiled)
 	// tvfs script tv_callback (unsupported command, not transpiled)
@@ -137,6 +140,7 @@ func Test_sort5(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
@@ -186,6 +190,9 @@ func Test_sort5(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")
 				}
 				// expr [array names F]!="" (not evaluated)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), bTemp) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bTemp, _res.Error, "2." + tn + ".1")
+				}
 			}
 		}
 }

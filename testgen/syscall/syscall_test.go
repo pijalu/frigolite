@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -160,8 +161,8 @@ func Test_syscall(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        BEGIN;\n          INSERT INTO t1 VALUES(5, 6);\n          INSERT INTO t2 VALUES(7, 8);\n        COMMIT;\n      ")
 				}
-				_dbtmp1, err := frigolite.Open("test.db")
-				_ = _dbtmp1 // sqlite3 db connection
+				db.Close()
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" ATTACH 'test.db2' AS aux ")
 				if _res.Error != nil {
@@ -184,12 +185,14 @@ func Test_syscall(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 	// do_multiclient_test tn {\n  code1 {\n    sqlite3 dbX1 test.db\n    sqlite3...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	{ // do_test "6.1"
 		db1, err = frigolite.Open("test.db1")
@@ -207,66 +210,77 @@ func Test_syscall(t *testing.T) {
 		db1.Close()
 	}
 	{ // do_test "6.2"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA temp_store = file;\n\n    PRAGMA main.cache_size = 10;\n    PRAGMA temp.cache_size = 10;\n    CREATE TABLE temp.tt(a, b);\n    INSERT INTO tt VALUES(randomblob(500), randomblob(600));\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA temp_store = file;\n\n    PRAGMA main.cache_size = 10;\n    PRAGMA temp.cache_size = 10;\n    CREATE TABLE temp.tt(a, b);\n    INSERT INTO tt VALUES(randomblob(500), randomblob(600));\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n  ")
 		}
+		db.Close()
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove("test.db")
 	// proc definition (not transpiled)
 	// foreach {nByte res} "1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}"
-	_items3 := tclSplitList("1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}")
-	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-		nByte := _items3[_idx3+0]
+	_items2 := tclSplitList("1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}")
+	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+		nByte := _items2[_idx2+0]
 		_ = nByte // suppress unused warning
-		res := _items3[_idx3+1]
+		res := _items2[_idx2+1]
 		_ = res // suppress unused warning
-		_ = _idx3
+		_ = _idx2
 			{ // do_test "7." + nByte
 				// create_db_file $nByte (unsupported command, not transpiled)
 				_list := tclList([]string{"0", msg})
 				_ = _list
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "7." + nByte)
+				}
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		os.Remove("test.db")
 		{ // do_test "8.1"
-			_dbtmp4, err := frigolite.Open("test.db")
-			_ = _dbtmp4 // sqlite3 db connection
+			_dbtmp3, err := frigolite.Open("test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// file_control_chunksize_test db main 4096 (unsupported command, not transpiled)
 			// file size test.db
 		}
 		// foreach {tn hint size} "1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192"
-		_items5 := tclSplitList("1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192")
-		for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
-			tn := _items5[_idx5+0]
+		_items4 := tclSplitList("1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192")
+		for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+			tn := _items4[_idx4+0]
 			_ = tn // suppress unused warning
-			hint := _items5[_idx5+1]
+			hint := _items4[_idx4+1]
 			_ = hint // suppress unused warning
-			size := _items5[_idx5+2]
+			size := _items4[_idx4+2]
 			_ = size // suppress unused warning
-			_ = _idx5
+			_ = _idx4
 				{ // do_test "8.2." + tn
 					// file_control_sizehint_test db main $hint (unsupported command, not transpiled)
 					// file size test.db
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), size) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", size, _res.Error, "8.2." + tn)
+					}
 				}
 			}
 			{ // do_test "8.3"
+				db.Close()
 				os.Remove("test.db")
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
@@ -274,18 +288,21 @@ func Test_syscall(t *testing.T) {
 				// file size test.db
 			}
 			// foreach {tn hint size} "1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64"
-			_items6 := tclSplitList("1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64")
-			for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
-				tn := _items6[_idx6+0]
+			_items5 := tclSplitList("1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64")
+			for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
+				tn := _items5[_idx5+0]
 				_ = tn // suppress unused warning
-				hint := _items6[_idx6+1]
+				hint := _items5[_idx5+1]
 				_ = hint // suppress unused warning
-				size := _items6[_idx6+2]
+				size := _items5[_idx5+2]
 				_ = size // suppress unused warning
-				_ = _idx6
+				_ = _idx5
 					{ // do_test "8.4." + tn
 						// file_control_sizehint_test db main $hint (unsupported command, not transpiled)
 						// file size test.db
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), size) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", size, _res.Error, "8.4." + tn)
+						}
 					}
 				}
 				// test_syscall reset (unsupported command, not transpiled)

@@ -58,6 +58,7 @@ func Test_selectD(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 2 }() {
+		db.Close()
 		os.Remove("test" + i + ".db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

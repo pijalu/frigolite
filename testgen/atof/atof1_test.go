@@ -83,7 +83,8 @@ func Test_atof1(t *testing.T) {
 		xf = "format %.32e $x"
 		_ = xf // suppress unused warning
 		{ // do_test "atof1-1." + i + ".1"
-			y = "db eval \"SELECT $xf=\\$x\""
+			_dbeval0 := tclExecSQL(db, "SELECT " + sqlLiteral(xf) + "=\\$x")
+			y = _dbeval0
 			_ = y // suppress unused warning
 			if tclBool("!" + y) {
 				_putsMsg := "-nonewline"
@@ -95,7 +96,8 @@ func Test_atof1(t *testing.T) {
 			}
 		}
 		{ // do_test "atof1-1." + i + ".2"
-			y = "db eval {SELECT $x=CAST(quote($x) AS real)}"
+			_dbeval1 := tclExecSQL(db, "{SELECT " + sqlLiteral(x) + "=CAST(quote(" + sqlLiteral(x) + ") AS real)}")
+			y = _dbeval1
 			_ = y // suppress unused warning
 			if tclBool("!" + y) {
 				_res = db.Exec("SELECT real2hex(" + sqlLiteral(x) + ") a, real2hex(CAST(quote(" + sqlLiteral(x) + ") AS real)) b")
@@ -132,7 +134,8 @@ func Test_atof1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "atof1-2.10"
 		r = db.Query("\n  PRAGMA encoding = 'UTF16be';\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1(rowid,a) VALUES (1,x'00'),(2,3);\n  SELECT substr(a,',') is true FROM t1 ORDER BY rowid;\n")
@@ -183,9 +186,9 @@ func Test_atof1(t *testing.T) {
 		}
 	}
 	{ // "atof-3.1"
-		r = db.Query("\n  WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709" + sqlLiteral("56") + "*';\n")
+		r = db.Query("\n  WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709[56]*';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709" + sqlLiteral("56") + "*';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709[56]*';\n")
 		}
 	}
 	{ // "atof-3.2"

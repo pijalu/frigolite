@@ -7,6 +7,7 @@ package numcast
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -66,28 +67,33 @@ func Test_numcast(t *testing.T) {
 	for _, enc := range tclSplitList("utf8 utf16le utf16be") {
 	_ = enc // suppress unused warning
 		{ // do_test "numcast-" + enc + ".0"
+			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA encoding='" + enc + "'")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding='" + enc + "'")
 			}
-			x = "db eval {PRAGMA encoding}"
+			_dbeval0 := tclExecSQL(db, "{PRAGMA encoding}")
+			x = _dbeval0
 			_ = x // suppress unused warning
 			// string map {- {}} [string tolower $x]
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), enc) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", enc, _res.Error, "numcast-" + enc + ".0")
+			}
 		}
 		// foreach {idx str rval ival} "1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0"
-		_items0 := tclSplitList("1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0")
-		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-			idx := _items0[_idx0+0]
+		_items1 := tclSplitList("1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			idx := _items1[_idx1+0]
 			_ = idx // suppress unused warning
-			str := _items0[_idx0+1]
+			str := _items1[_idx1+1]
 			_ = str // suppress unused warning
-			rval := _items0[_idx0+2]
+			rval := _items1[_idx1+2]
 			_ = rval // suppress unused warning
-			ival := _items0[_idx0+3]
+			ival := _items1[_idx1+3]
 			_ = ival // suppress unused warning
-			_ = _idx0
+			_ = _idx1
 				{ // do_test "numcast-" + enc + "." + idx + ".1"
 					r = db.Query("SELECT CAST(" + sqlLiteral(str) + " AS real)")
 					if r.Error != nil {
@@ -95,7 +101,7 @@ func Test_numcast(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := rval
+					want := tclListFlatten(rval)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -107,7 +113,7 @@ func Test_numcast(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := ival
+					want := tclListFlatten(ival)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}

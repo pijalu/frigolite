@@ -65,7 +65,8 @@ func Test_snapshot_fault(t *testing.T) {
 	// do_faultsim_test 2.0 -prep {\n  faultsim_delete_and_reopen\n  db eval { \n    ...} -body {\n  db ... (unsupported command, not transpiled)
 	// do_faultsim_test 3.0 -prep {\n  faultsim_delete_and_reopen\n  db eval { \n    ...} -body {\n  if ... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES('abc');\n  INSERT INTO t1 VALUES('def');\n")
@@ -88,9 +89,11 @@ func Test_snapshot_fault(t *testing.T) {
 		}
 		// sqlite3_snapshot_recover db main (unsupported command, not transpiled)
 	}
+	db.Close()
 	// do_faultsim_test 4.0 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELEC...} -... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1.0"
 		r = db.Query("\n  PRAGMA page_size = 512;\n  PRAGMA journal_mode = wal;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES(randomblob( 500 * 9500 ));\n  PRAGMA user_version = 211;\n")
@@ -111,7 +114,8 @@ func Test_snapshot_fault(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 4.1 -faults shm* -prep {\n  catch { db2 close } \n  catch { db close } \n ...} -... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		r = db.Query("\n  PRAGMA page_size = 512;\n  PRAGMA journal_mode = wal;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES(randomblob( 5000 ));\n  PRAGMA user_version = 211;\n")

@@ -227,7 +227,7 @@ func Test_fts3d(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // do_test "fts3d-5.1"
 		r = db.Query("\n    UPDATE t1_segdir SET level = 2 WHERE level = 1 AND idx = 0;\n    SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;\n  ")
 		if r.Error != nil {
@@ -235,6 +235,7 @@ func Test_fts3d(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3d-6.0"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -256,6 +257,7 @@ func Test_fts3d(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3d-6.2"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -277,6 +279,7 @@ func Test_fts3d(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3d-6.4"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

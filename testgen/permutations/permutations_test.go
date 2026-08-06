@@ -192,6 +192,7 @@ func Test_permutations(t *testing.T) {
 
 	if tclBool("info vars ::trd::tcltest" + "==\"\"") {
 		// set testdir: test directory (not used in Go test context)
+		db.Close()
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -201,7 +202,7 @@ func Test_permutations(t *testing.T) {
 	_ = f // suppress unused warning
 		alltests = tclListAppend(alltests, "file tail $f")
 	}
-	for _, f := range tclSplitList("glob -nocomplain            \\\n    $testdir/../ext/rtree/*.test       \\\n    $testdir/../ext/fts5/test/*.test   \\\n    $testdir/../ext/expert/*.test      \\\n    $testdir/../ext/lsm1/test/*.test   \\\n    $testdir/../ext/recover/*.test     \\\n    $testdir/../ext/rbu/*.test         \\\n    $testdir/../ext/intck/*.test       \\") {
+	for _, f := range tclSplitList("glob -nocomplain                $testdir/../ext/rtree/*.test           $testdir/../ext/fts5/test/*.test       $testdir/../ext/expert/*.test          $testdir/../ext/lsm1/test/*.test       $testdir/../ext/recover/*.test         $testdir/../ext/rbu/*.test             $testdir/../ext/intck/*.test") {
 	_ = f // suppress unused warning
 		alltests = tclListAppend(alltests, f)
 	}

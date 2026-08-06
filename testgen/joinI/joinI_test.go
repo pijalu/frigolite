@@ -82,7 +82,8 @@ func Test_joinI(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "2.0"
 			r = db.Query("\n  CREATE TABLE t0(c0 INT, c1 INT);\n  CREATE TABLE t1 (c0 INT);\n\n  CREATE VIEW v1(c0) AS SELECT t0.c0 FROM t0 NATURAL RIGHT JOIN t1;\n  CREATE VIEW v2(c0) AS SELECT 0 FROM v1;\n\n  INSERT INTO t0(c0, c1) VALUES (-1, 0);\n  INSERT INTO t1(c0) VALUES (NULL);\n\n  SELECT * FROM v1 INNER JOIN (v2 CROSS JOIN t0) ON (t0.c0 < t0.c1);\n")
@@ -97,7 +98,8 @@ func Test_joinI(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t0(c0, c1);\n  CREATE TABLE t1(v);\n  CREATE TABLE t2(w);\n  CREATE TABLE t3(x);\n  CREATE TABLE t4(y);\n  CREATE TABLE t5(z);\n")
@@ -142,7 +144,8 @@ func Test_joinI(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  CREATE TABLE t3(c, d);\n")
@@ -157,7 +160,8 @@ func Test_joinI(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE parent1(parent1key, child1key, Child2key, child3key);\n  CREATE TABLE child1 ( child1key NVARCHAR, value NVARCHAR );\n  CREATE TABLE child2 ( child2key NVARCHAR, value NVARCHAR );\n")
@@ -172,7 +176,8 @@ func Test_joinI(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t5(a, d);\n  CREATE TABLE t6(a, e);\n  INSERT INTO t5 VALUES(1, 'red');\n  INSERT INTO t6 VALUES(0, 1000);\n\n  CREATE TABLE t7(x);\n  CREATE TABLE t8(y);\n")
@@ -217,7 +222,8 @@ func Test_joinI(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(d, e);\n  CREATE INDEX t2def ON t2(d, (e+1));\n  INSERT INTO t2 VALUES(1, 3);\n  INSERT INTO t2 VALUES(2, 555);\n  INSERT INTO t2 VALUES(3, 3);\n")
@@ -238,7 +244,8 @@ func Test_joinI(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "7.2"
 			_res = db.Exec("\n  CREATE TABLE rt0(c0 INTEGER PRIMARY KEY, c1, c2);\n  CREATE TABLE t1 (c1 INTEGER, c2 BLOB, c4 INTEGER);\n  CREATE UNIQUE INDEX i81 ON t1(c1, c4, +c2);\n\n  INSERT INTO t1(c4) VALUES ('a');\n  INSERT INTO rt0(c1, c2) VALUES (0.0, 0.0);\n  INSERT INTO t1(c2, c1) VALUES (1, 'b');\n")
@@ -271,7 +278,8 @@ func Test_joinI(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "8.0"
 			r = db.Query("\n  CREATE TABLE t1(x REAL);\n  CREATE TABLE t2(x REAL);\n  INSERT INTO t1 VALUES(2.5);\n  INSERT INTO t2 VALUES(2.5);\n  SELECT x FROM t1 JOIN t2 USING(x) WHERE x='2.5';\n")

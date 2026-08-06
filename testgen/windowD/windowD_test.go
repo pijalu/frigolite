@@ -120,7 +120,8 @@ func Test_windowD(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('value');\n  CREATE VIEW v1(a, b, c, d) AS SELECT 1, 2, TRUE, FALSE FROM t1;\n")

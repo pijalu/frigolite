@@ -71,7 +71,7 @@ func Test_schema4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{after insert} 1 2 {after update} 2 3 {after delete} 2 3"
+		want := "after insert 1 2 after update 2 3 after delete 2 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -83,13 +83,13 @@ func Test_schema4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{after insert} 1 2 {after update} 2 3 {after delete} 2 3"
+		want := "after insert 1 2 after update 2 3 after delete 2 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "schema4-1.5"
 		r = db.Query("\n  DELETE FROM log;\n  INSERT INTO tbl VALUES(1, 2);\n  UPDATE tbl SET b=a+b, a=a+1;\n  DELETE FROM tbl;\n  SELECT x, a, b FROM log;\n")
@@ -98,7 +98,7 @@ func Test_schema4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{after insert} 1 2 {after update} 2 3 {after delete} 2 3"
+		want := "after insert 1 2 after update 2 3 after delete 2 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -122,14 +122,26 @@ func Test_schema4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{after insert} 1 2 {after update} 2 3 {after delete} 2 3"
+		want := "after insert 1 2 after update 2 3 after delete 2 3"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "schema4-2.1"
 		_res = db.Exec("\n    CREATE TABLE log(x, a, b);\n    CREATE TABLE tbl(a, b);\n  \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 		if _res.Error != nil {
@@ -155,13 +167,13 @@ func Test_schema4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{after insert} a b {after delete} a b"
+		want := "after insert a b after delete a b"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "schema4-2.5"
 		r = db.Query(" \n    DELETE FROM log;\n    INSERT INTO tbl VALUES('c', 'd');\n    DELETE FROM tbl;\n    SELECT * FROM log;\n  ")
@@ -170,7 +182,7 @@ func Test_schema4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{after insert} c d {after delete} c d"
+		want := "after insert c d after delete c d"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -218,7 +230,7 @@ func Test_schema4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{after insert} e f {after update} g h {after delete} g h"
+		want := "after insert e f after update g h after delete g h"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

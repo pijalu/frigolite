@@ -65,10 +65,10 @@ func Test_fts3integrity(t *testing.T) {
 	}
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
-	{ // "-db"
-		_res = db.Exec("db2")
+	{ // "1.1"
+		_res = db.Exec("\n  CREATE TABLE t3(x, y);\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x, y);\n")
 		}
 	}
 	{ // "1.2"

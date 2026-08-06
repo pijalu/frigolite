@@ -58,6 +58,7 @@ func Test_pragma5(t *testing.T) {
 	if false {
 		return
 	}
+	// db function external (variable-reader, inlined)
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA table_info(pragma_function_list)\n")
 		if r.Error != nil {

@@ -95,7 +95,8 @@ func Test_altercol(t *testing.T) {
 		_ = after // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "1." + tn + ".0"
 				_res = db.Exec(before)
@@ -317,9 +318,11 @@ func Test_altercol(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT \"where\" FROM blob;\n")
 			}
 		}
+		db.Close()
 		_ = db2 // close db2: aliased to db, no-op
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE c(x);\n  INSERT INTO c VALUES(0);\n  CREATE TABLE t6(\"col a\", \"col b\", \"col c\");\n  CREATE TRIGGER zzz AFTER UPDATE OF \"col a\", \"col c\" ON t6 BEGIN\n    UPDATE c SET x=x+1;\n  END;\n")
@@ -358,7 +361,8 @@ func Test_altercol(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "8.0"
 			_res = db.Exec("\n  CREATE TABLE a1(x INTEGER, y TEXT, z BLOB, PRIMARY KEY(x));\n  CREATE TABLE a2(a, b, c);\n  CREATE VIEW v1 AS SELECT x, y, z FROM a1;\n")
@@ -532,7 +536,8 @@ func Test_altercol(t *testing.T) {
 				// do_rename_column_test 9.$tn $old $new $lSchema (unsupported command, not transpiled)
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// foreach {tn old new lSchema} "1 _x_ _xxx_ {\n      { CREATE TABLE t1(a, b, _x_) }\n      { CREATE VIEW s1 AS SELECT a, b, _x_ FROM t1 WHERE _x_='abc' COLLATE xyz }\n    }\n  \n    2 _x_ _xxx_ {\n      { CREATE TABLE t1(a, b, _x_) }\n      { CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE scalar(_x_) }\n    }\n  \n    3 _x_ _xxx_ {\n      { CREATE TABLE t1(a, b, _x_) }\n      { CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE _x_ = unicode(1, 2, 3) }\n    }\n  \n    4 _x_ _xxx_ {\n      { CREATE TABLE t1(a, b, _x_) }\n      { CREATE VIRTUAL TABLE e1 USING echo(t1) }\n    }"
 			_items2 := tclSplitList("1 _x_ _xxx_ {\n      { CREATE TABLE t1(a, b, _x_) }\n      { CREATE VIEW s1 AS SELECT a, b, _x_ FROM t1 WHERE _x_='abc' COLLATE xyz }\n    }\n  \n    2 _x_ _xxx_ {\n      { CREATE TABLE t1(a, b, _x_) }\n      { CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE scalar(_x_) }\n    }\n  \n    3 _x_ _xxx_ {\n      { CREATE TABLE t1(a, b, _x_) }\n      { CREATE VIEW v1 AS SELECT a, b, _x_ FROM t1 WHERE _x_ = unicode(1, 2, 3) }\n    }\n  \n    4 _x_ _xxx_ {\n      { CREATE TABLE t1(a, b, _x_) }\n      { CREATE VIRTUAL TABLE e1 USING echo(t1) }\n    }")
@@ -550,7 +555,8 @@ func Test_altercol(t *testing.T) {
 					// do_rename_column_test 10.$tn $old $new $lSchema (unsupported command, not transpiled)
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// register_echo_module db (unsupported command, not transpiled)
 				{ // "11.0"
@@ -559,8 +565,8 @@ func Test_altercol(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a, b, c);\n    CREATE VIRTUAL TABLE e1 USING echo(x1);\n  ")
 					}
 				}
-				_dbtmp3, err := frigolite.Open("test.db")
-				_ = _dbtmp3 // sqlite3 db connection
+				db.Close()
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "11.1"
 					r = db.Query("\n    ALTER TABLE x1 RENAME b TO bbb;\n    SELECT sql FROM sqlite_master;\n  ")
@@ -587,7 +593,8 @@ func Test_altercol(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "12.1.1"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  INSERT INTO t1 VALUES(1, 1), (2, 2), (3, 4);\n  ANALYZE;\n")
@@ -662,7 +669,8 @@ func Test_altercol(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "13.1.1"
 					_res = db.Exec("\n  CREATE TABLE x1(i INTEGER, t TEXT UNIQUE);\n  CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n    SELECT * FROM nosuchtable;\n  END;\n")
@@ -726,15 +734,15 @@ func Test_altercol(t *testing.T) {
 					}
 				}
 				// foreach {tn trigger error} "1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}"
-				_items4 := tclSplitList("1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}")
-				for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-					tn := _items4[_idx4+0]
+				_items3 := tclSplitList("1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					trigger := _items4[_idx4+1]
+					trigger := _items3[_idx3+1]
 					_ = trigger // suppress unused warning
-					_error := _items4[_idx4+2]
+					_error := _items3[_idx3+2]
 					_ = _error // suppress unused warning
-					_ = _idx4
+					_ = _idx3
 						{ // "13.2." + tn + ".1"
 							_res = db.Exec("\n    DROP TRIGGER IF EXISTS tr1;\n    " + trigger + "\n  ")
 							if _res.Error != nil {
@@ -762,7 +770,7 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "   "
+						want := "{} {} {} {}"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -775,7 +783,8 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "15.0"
 						r = db.Query("\n  CREATE TABLE xxx(a, b, c);\n  SELECT a AS d FROM xxx WHERE d=0;\n")
@@ -928,7 +937,8 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					os.Remove("test.db2")
 					{ // "18.0"
@@ -950,7 +960,8 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "19.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE VIEW v2(e) AS SELECT coalesce(t2.c,t1.a) FROM t1, t2 WHERE t1.b=t2.d;\n")
@@ -1009,7 +1020,8 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "21.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a, b, c NOT NULL);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.c IS NOT NULL BEGIN\n    SELECT c NOT NULL FROM t1;\n  END;\n")
@@ -1030,13 +1042,14 @@ func Test_altercol(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN\n    SELECT d NOT NULL FROM t1;\n  END"
+						want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN SELECT d NOT NULL FROM t1; END"
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "22.0"
 						r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, othername, extra AS (c + 1));\n  ALTER TABLE t1 RENAME a to othername;\n  SELECT sql FROM sqlite_schema;\n")
@@ -1051,7 +1064,8 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					db.SetDQS(true, true)
 					db.SetDQS(true, true)
@@ -1068,7 +1082,8 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "23.0"
 						r = db.Query("\n  CREATE TABLE t1('a'\"b\",c);\n  CREATE INDEX i1 ON t1('a');\n  INSERT INTO t1 VALUES(1,2), (3,4);\n  ALTER TABLE t1 RENAME COLUMN a TO x;\n  PRAGMA integrity_check;\n  SELECT sql FROM sqlite_schema WHERE name='t1';\n\n")
@@ -1083,7 +1098,8 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "23.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a INT, b REAL, c TEXT, d BLOB, e ANY);\n  CREATE INDEX t1abx ON t1(a, b, a+b) WHERE c IS NOT NULL;\n  CREATE VIEW t2 AS SELECT a+10, b*5.0, xyz FROM t1; -- unknown column \"xyz\"\n  CREATE TABLE schema_copy(name TEXT, sql TEXT);\n  INSERT INTO schema_copy(name,sql) SELECT name, sql FROM sqlite_schema WHERE sql IS NOT NULL;\n")
@@ -1158,7 +1174,8 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "24.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 1, 1);\n")

@@ -118,7 +118,7 @@ func Test_func6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := offset
+		want := tclListFlatten(offset)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -137,7 +137,7 @@ func Test_func6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := z100
+		want := tclListFlatten(z100)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -161,7 +161,7 @@ func Test_func6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := z100
+		want := tclListFlatten(z100)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -173,7 +173,7 @@ func Test_func6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := z100
+		want := tclListFlatten(z100)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -209,13 +209,14 @@ func Test_func6(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := z100
+		want := tclListFlatten(z100)
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "func6-300"
 		r = db.Query("\n  CREATE TABLE t2(a INT, b INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX x3 ON t2(b);\n  CREATE TABLE t1(a INT PRIMARY KEY, b TEXT);\n  SELECT * FROM t1 WHERE a IN (SELECT sqlite_offset(b) FROM t2);\n")

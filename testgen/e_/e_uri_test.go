@@ -7,6 +7,7 @@ package e_
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -138,6 +139,7 @@ func Test_e_uri(t *testing.T) {
 	testprefix = "e_uri"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
+	db.Close()
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -238,6 +240,9 @@ func Test_e_uri(t *testing.T) {
 					e = ""
 					_ = e // suppress unused warning
 					// sqlite3_close $DB (unsupported command, not transpiled)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _error, _res.Error, "2." + tn)
+					}
 				}
 			}
 		}
@@ -295,6 +300,9 @@ func Test_e_uri(t *testing.T) {
 								_ = flags // suppress unused warning
 								// sqlite3_close [\n      sqlite3_open_v2 $uri $flags $defvfs\n    ... (unsupported command, not transpiled)
 								_ = vfs // TCL namespace variable (query)
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), vfs) {
+									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", vfs, _res.Error, "5." + tn)
+								}
 							}
 						}
 						// vfs1 delete (unsupported command, not transpiled)
@@ -309,37 +317,40 @@ func Test_e_uri(t *testing.T) {
 							_ = errmsg // suppress unused warning
 							// sqlite3_close $DB (unsupported command, not transpiled)
 						}
-						_dbtmp4, err := frigolite.Open("test.db")
-						_ = _dbtmp4 // sqlite3 db connection
+						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
+						db.Close()
 						// foreach {tn uri error} "1    {file:test.db?mode=ro}    {not an error}\n  2    {file:test.db?mode=rw}    {not an error}\n  3    {file:test.db?mode=rwc}   {not an error}\n  4    {file:test.db?mode=Ro}    {no such access mode: Ro}\n  5    {file:test.db?mode=Rw}    {no such access mode: Rw}\n  6    {file:test.db?mode=Rwc}   {no such access mode: Rwc}\n  7    {file:test.db?mode=memory} {not an error}\n  8    {file:test.db?mode=MEMORY} {no such access mode: MEMORY}"
-						_items5 := tclSplitList("1    {file:test.db?mode=ro}    {not an error}\n  2    {file:test.db?mode=rw}    {not an error}\n  3    {file:test.db?mode=rwc}   {not an error}\n  4    {file:test.db?mode=Ro}    {no such access mode: Ro}\n  5    {file:test.db?mode=Rw}    {no such access mode: Rw}\n  6    {file:test.db?mode=Rwc}   {no such access mode: Rwc}\n  7    {file:test.db?mode=memory} {not an error}\n  8    {file:test.db?mode=MEMORY} {no such access mode: MEMORY}")
-						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
-							tn := _items5[_idx5+0]
+						_items4 := tclSplitList("1    {file:test.db?mode=ro}    {not an error}\n  2    {file:test.db?mode=rw}    {not an error}\n  3    {file:test.db?mode=rwc}   {not an error}\n  4    {file:test.db?mode=Ro}    {no such access mode: Ro}\n  5    {file:test.db?mode=Rw}    {no such access mode: Rw}\n  6    {file:test.db?mode=Rwc}   {no such access mode: Rwc}\n  7    {file:test.db?mode=memory} {not an error}\n  8    {file:test.db?mode=MEMORY} {no such access mode: MEMORY}")
+						for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+							tn := _items4[_idx4+0]
 							_ = tn // suppress unused warning
-							uri := _items5[_idx5+1]
+							uri := _items4[_idx4+1]
 							_ = uri // suppress unused warning
-							_error := _items5[_idx5+2]
+							_error := _items4[_idx4+2]
 							_ = _error // suppress unused warning
-							_ = _idx5
+							_ = _idx4
 								{ // do_test "7." + tn
 									// open_uri_error $uri (unsupported command, not transpiled)
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
+										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _error, _res.Error, "7." + tn)
+									}
 								}
 							}
 							// foreach {tn uri read write create} "1    {file:test.db?mode=ro}     1 0 0\n  2    {file:test.db?mode=rw}     1 1 0\n  3    {file:test.db?mode=rwc}    1 1 1"
-							_items6 := tclSplitList("1    {file:test.db?mode=ro}     1 0 0\n  2    {file:test.db?mode=rw}     1 1 0\n  3    {file:test.db?mode=rwc}    1 1 1")
-							for _idx6 := 0; _idx6+5 <= len(_items6); _idx6 += 5 {
-								tn := _items6[_idx6+0]
+							_items5 := tclSplitList("1    {file:test.db?mode=ro}     1 0 0\n  2    {file:test.db?mode=rw}     1 1 0\n  3    {file:test.db?mode=rwc}    1 1 1")
+							for _idx5 := 0; _idx5+5 <= len(_items5); _idx5 += 5 {
+								tn := _items5[_idx5+0]
 								_ = tn // suppress unused warning
-								uri := _items6[_idx6+1]
+								uri := _items5[_idx5+1]
 								_ = uri // suppress unused warning
-								read := _items6[_idx6+2]
+								read := _items5[_idx5+2]
 								_ = read // suppress unused warning
-								write := _items6[_idx6+3]
+								write := _items5[_idx5+3]
 								_ = write // suppress unused warning
-								create := _items6[_idx6+4]
+								create := _items5[_idx5+4]
 								_ = create // suppress unused warning
-								_ = _idx6
+								_ = _idx5
 									RES_c_0 = "1 {unable to open database file}"
 									_ = RES_c_0 // suppress unused warning
 									RES_c_1 = "0 {}"
@@ -356,10 +367,14 @@ func Test_e_uri(t *testing.T) {
 									{ // do_test "8." + tn + ".c"
 										_list := tclList([]string{"0", msg})
 										_ = _list
+										if _res.Error == nil || !strings.Contains(_res.Error.Error(), RES_c_create) {
+											t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", RES_c_create, _res.Error, "8." + tn + ".c")
+										}
 									}
 									{
 										var _catchErr error
 										_ = _catchErr // suppress unused warning
+										db.Close()
 									}
 									db, err = frigolite.Open("")
 									if err != nil { t.Fatal(err) }
@@ -367,40 +382,49 @@ func Test_e_uri(t *testing.T) {
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES('a', 'b') ;")
 									}
+									db.Close()
 									{ // do_test "8." + tn + ".r"
-										_dbtmp7, err := frigolite.Open(uri)
-										_ = _dbtmp7 // sqlite3 db connection
+										_dbtmp6, err := frigolite.Open(uri)
+										_ = _dbtmp6 // sqlite3 db connection
 										if err != nil { t.Fatal(err) }
 										_res = db.Exec(" SELECT * FROM t1 ")
 										_ = _res // catchsql
+										if _res.Error == nil || !strings.Contains(_res.Error.Error(), RES_r_read) {
+											t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", RES_r_read, _res.Error, "8." + tn + ".r")
+										}
 									}
 									{ // do_test "8." + tn + ".w"
-										_dbtmp8, err := frigolite.Open(uri)
-										_ = _dbtmp8 // sqlite3 db connection
+										_dbtmp7, err := frigolite.Open(uri)
+										_ = _dbtmp7 // sqlite3 db connection
 										if err != nil { t.Fatal(err) }
 										_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 										_ = _res // catchsql
+										if _res.Error == nil || !strings.Contains(_res.Error.Error(), RES_w_write) {
+											t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", RES_w_write, _res.Error, "8." + tn + ".w")
+										}
 									}
 									{
 										var _catchErr error
 										_ = _catchErr // suppress unused warning
+										db.Close()
 									}
 								}
 								os.Remove("test.db")
 								db, err = frigolite.Open("")
 								if err != nil { t.Fatal(err) }
+								db.Close()
 								// foreach {tn uri flags error} "1   {file:test.db?mode=ro}   ro    {not an error}\n  2   {file:test.db?mode=ro}   rw    {not an error}\n  3   {file:test.db?mode=ro}   rwc   {not an error}\n\n  4   {file:test.db?mode=rw}   ro    {access mode not allowed: rw}\n  5   {file:test.db?mode=rw}   rw    {not an error}\n  6   {file:test.db?mode=rw}   rwc   {not an error}\n\n  7   {file:test.db?mode=rwc}  ro    {access mode not allowed: rwc}\n  8   {file:test.db?mode=rwc}  rw    {access mode not allowed: rwc}\n  9   {file:test.db?mode=rwc}  rwc   {not an error}"
-								_items9 := tclSplitList("1   {file:test.db?mode=ro}   ro    {not an error}\n  2   {file:test.db?mode=ro}   rw    {not an error}\n  3   {file:test.db?mode=ro}   rwc   {not an error}\n\n  4   {file:test.db?mode=rw}   ro    {access mode not allowed: rw}\n  5   {file:test.db?mode=rw}   rw    {not an error}\n  6   {file:test.db?mode=rw}   rwc   {not an error}\n\n  7   {file:test.db?mode=rwc}  ro    {access mode not allowed: rwc}\n  8   {file:test.db?mode=rwc}  rw    {access mode not allowed: rwc}\n  9   {file:test.db?mode=rwc}  rwc   {not an error}")
-								for _idx9 := 0; _idx9+4 <= len(_items9); _idx9 += 4 {
-									tn := _items9[_idx9+0]
+								_items8 := tclSplitList("1   {file:test.db?mode=ro}   ro    {not an error}\n  2   {file:test.db?mode=ro}   rw    {not an error}\n  3   {file:test.db?mode=ro}   rwc   {not an error}\n\n  4   {file:test.db?mode=rw}   ro    {access mode not allowed: rw}\n  5   {file:test.db?mode=rw}   rw    {not an error}\n  6   {file:test.db?mode=rw}   rwc   {not an error}\n\n  7   {file:test.db?mode=rwc}  ro    {access mode not allowed: rwc}\n  8   {file:test.db?mode=rwc}  rw    {access mode not allowed: rwc}\n  9   {file:test.db?mode=rwc}  rwc   {not an error}")
+								for _idx8 := 0; _idx8+4 <= len(_items8); _idx8 += 4 {
+									tn := _items8[_idx8+0]
 									_ = tn // suppress unused warning
-									uri := _items9[_idx9+1]
+									uri := _items8[_idx8+1]
 									_ = uri // suppress unused warning
-									flags := _items9[_idx9+2]
+									flags := _items8[_idx8+2]
 									_ = flags // suppress unused warning
-									_error := _items9[_idx9+3]
+									_error := _items8[_idx8+3]
 									_ = _error // suppress unused warning
-									_ = _idx9
+									_ = _idx8
 										f_ro = "SQLITE_OPEN_READONLY SQLITE_OPEN_URI"
 										_ = f_ro // suppress unused warning
 										f_rw = "SQLITE_OPEN_READWRITE SQLITE_OPEN_URI"
@@ -413,41 +437,47 @@ func Test_e_uri(t *testing.T) {
 										_ = e // suppress unused warning
 										// sqlite3_close $DB (unsupported command, not transpiled)
 										{ // do_test "9." + tn
+											if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
+												t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _error, _res.Error, "9." + tn)
+											}
 										}
 									}
-									_dbtmp10, err := frigolite.Open("test.db")
-									_ = _dbtmp10 // sqlite3 db connection
+									db, err = frigolite.Open("test.db")
 									if err != nil { t.Fatal(err) }
+									db.Close()
 									// foreach {tn uri error} "1    {file:test.db?cache=private}    {not an error}\n  2    {file:test.db?cache=shared}     {not an error}\n  3    {file:test.db?cache=yes}        {no such cache mode: yes}\n  4    {file:test.db?cache=}           {no such cache mode: }"
-									_items11 := tclSplitList("1    {file:test.db?cache=private}    {not an error}\n  2    {file:test.db?cache=shared}     {not an error}\n  3    {file:test.db?cache=yes}        {no such cache mode: yes}\n  4    {file:test.db?cache=}           {no such cache mode: }")
-									for _idx11 := 0; _idx11+3 <= len(_items11); _idx11 += 3 {
-										tn := _items11[_idx11+0]
+									_items9 := tclSplitList("1    {file:test.db?cache=private}    {not an error}\n  2    {file:test.db?cache=shared}     {not an error}\n  3    {file:test.db?cache=yes}        {no such cache mode: yes}\n  4    {file:test.db?cache=}           {no such cache mode: }")
+									for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
+										tn := _items9[_idx9+0]
 										_ = tn // suppress unused warning
-										uri := _items11[_idx11+1]
+										uri := _items9[_idx9+1]
 										_ = uri // suppress unused warning
-										_error := _items11[_idx11+2]
+										_error := _items9[_idx9+2]
 										_ = _error // suppress unused warning
-										_ = _idx11
+										_ = _idx9
 											{ // do_test "10." + tn
 												// open_uri_error $uri (unsupported command, not transpiled)
+												if _res.Error == nil || !strings.Contains(_res.Error.Error(), _error) {
+													t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _error, _res.Error, "10." + tn)
+												}
 											}
 										}
 										orig = "sqlite3_enable_shared_cache"
 										_ = orig // suppress unused warning
 										// foreach {tn uri flags shared_default isshared} "1.1   \"file:test.db\"                  \"\"         0    0\n  1.2   \"file:test.db\"                  \"\"         1    1\n  1.3   \"file:test.db\"                  private    0    0\n  1.4   \"file:test.db\"                  private    1    0\n  1.5   \"file:test.db\"                  shared     0    1\n  1.6   \"file:test.db\"                  shared     1    1\n\n  2.1   \"file:test.db?cache=private\"    \"\"         0    0\n  2.2   \"file:test.db?cache=private\"    \"\"         1    0\n  2.3   \"file:test.db?cache=private\"    private    0    0\n  2.4   \"file:test.db?cache=private\"    private    1    0\n  2.5   \"file:test.db?cache=private\"    shared     0    0\n  2.6   \"file:test.db?cache=private\"    shared     1    0\n\n  3.1   \"file:test.db?cache=shared\"     \"\"         0    1\n  3.2   \"file:test.db?cache=shared\"     \"\"         1    1\n  3.3   \"file:test.db?cache=shared\"     private    0    1\n  3.4   \"file:test.db?cache=shared\"     private    1    1\n  3.5   \"file:test.db?cache=shared\"     shared     0    1\n  3.6   \"file:test.db?cache=shared\"     shared     1    1"
-										_items12 := tclSplitList("1.1   \"file:test.db\"                  \"\"         0    0\n  1.2   \"file:test.db\"                  \"\"         1    1\n  1.3   \"file:test.db\"                  private    0    0\n  1.4   \"file:test.db\"                  private    1    0\n  1.5   \"file:test.db\"                  shared     0    1\n  1.6   \"file:test.db\"                  shared     1    1\n\n  2.1   \"file:test.db?cache=private\"    \"\"         0    0\n  2.2   \"file:test.db?cache=private\"    \"\"         1    0\n  2.3   \"file:test.db?cache=private\"    private    0    0\n  2.4   \"file:test.db?cache=private\"    private    1    0\n  2.5   \"file:test.db?cache=private\"    shared     0    0\n  2.6   \"file:test.db?cache=private\"    shared     1    0\n\n  3.1   \"file:test.db?cache=shared\"     \"\"         0    1\n  3.2   \"file:test.db?cache=shared\"     \"\"         1    1\n  3.3   \"file:test.db?cache=shared\"     private    0    1\n  3.4   \"file:test.db?cache=shared\"     private    1    1\n  3.5   \"file:test.db?cache=shared\"     shared     0    1\n  3.6   \"file:test.db?cache=shared\"     shared     1    1")
-										for _idx12 := 0; _idx12+5 <= len(_items12); _idx12 += 5 {
-											tn := _items12[_idx12+0]
+										_items10 := tclSplitList("1.1   \"file:test.db\"                  \"\"         0    0\n  1.2   \"file:test.db\"                  \"\"         1    1\n  1.3   \"file:test.db\"                  private    0    0\n  1.4   \"file:test.db\"                  private    1    0\n  1.5   \"file:test.db\"                  shared     0    1\n  1.6   \"file:test.db\"                  shared     1    1\n\n  2.1   \"file:test.db?cache=private\"    \"\"         0    0\n  2.2   \"file:test.db?cache=private\"    \"\"         1    0\n  2.3   \"file:test.db?cache=private\"    private    0    0\n  2.4   \"file:test.db?cache=private\"    private    1    0\n  2.5   \"file:test.db?cache=private\"    shared     0    0\n  2.6   \"file:test.db?cache=private\"    shared     1    0\n\n  3.1   \"file:test.db?cache=shared\"     \"\"         0    1\n  3.2   \"file:test.db?cache=shared\"     \"\"         1    1\n  3.3   \"file:test.db?cache=shared\"     private    0    1\n  3.4   \"file:test.db?cache=shared\"     private    1    1\n  3.5   \"file:test.db?cache=shared\"     shared     0    1\n  3.6   \"file:test.db?cache=shared\"     shared     1    1")
+										for _idx10 := 0; _idx10+5 <= len(_items10); _idx10 += 5 {
+											tn := _items10[_idx10+0]
 											_ = tn // suppress unused warning
-											uri := _items12[_idx12+1]
+											uri := _items10[_idx10+1]
 											_ = uri // suppress unused warning
-											flags := _items12[_idx12+2]
+											flags := _items10[_idx10+2]
 											_ = flags // suppress unused warning
-											shared_default := _items12[_idx12+3]
+											shared_default := _items10[_idx10+3]
 											_ = shared_default // suppress unused warning
-											isshared := _items12[_idx12+4]
+											isshared := _items10[_idx10+4]
 											_ = isshared // suppress unused warning
-											_ = _idx12
+											_ = _idx10
 												os.Remove("test.db")
 												// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 												db, err = frigolite.Open("")
@@ -480,22 +510,26 @@ func Test_e_uri(t *testing.T) {
 												_ = RES_1 // suppress unused warning
 												{ // do_test "11." + tn
 													// sqlite3_errmsg $DB (unsupported command, not transpiled)
+													if _res.Error == nil || !strings.Contains(_res.Error.Error(), RES_isshared) {
+														t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", RES_isshared, _res.Error, "11." + tn)
+													}
 												}
 												// sqlite3_close $DB (unsupported command, not transpiled)
+												db.Close()
 											}
 											// sqlite3_enable_shared_cache $orig (unsupported command, not transpiled)
 											// do_filepath_test 12.1 {\n  parse_uri file://localhost/test.db?an=unknown&...} {/test.db {an unkno... (unsupported command, not transpiled)
 											// do_filepath_test 12.2 {\n  parse_uri file://localhost/test.db?an&unknown&...} {/test.db {an {} un... (unsupported command, not transpiled)
-											// foreach {tn uri parse} "1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}"
-											_items13 := tclSplitList("1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}")
-											for _idx13 := 0; _idx13+3 <= len(_items13); _idx13 += 3 {
-												tn := _items13[_idx13+0]
+											// foreach {tn uri parse} "1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\xff.db {}}"
+											_items11 := tclSplitList("1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\xff.db {}}")
+											for _idx11 := 0; _idx11+3 <= len(_items11); _idx11 += 3 {
+												tn := _items11[_idx11+0]
 												_ = tn // suppress unused warning
-												uri := _items13[_idx13+1]
+												uri := _items11[_idx11+1]
 												_ = uri // suppress unused warning
-												parse := _items13[_idx13+2]
+												parse := _items11[_idx11+2]
 												_ = parse // suppress unused warning
-												_ = _idx13
+												_ = _idx11
 													// do_filepath_test 13.$tn { parse_uri $uri } $parse (unsupported command, not transpiled)
 												}
 }

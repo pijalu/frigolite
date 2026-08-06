@@ -67,6 +67,7 @@ func Test_tkt2854(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "tkt2854-1.1"
@@ -201,6 +202,7 @@ func Test_tkt2854(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 		}
 	}
+	db.Close()
 	db2.Close()
 	db3.Close()
 	db4.Close()

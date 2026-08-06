@@ -143,7 +143,8 @@ func Test_altertab2(t *testing.T) {
 		_ = schema // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "3." + tn + ".1"
 				_res = db.Exec(schema)
@@ -169,7 +170,8 @@ func Test_altertab2(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "3." + tn + ".3"
 				_res = db.Exec(schema)
@@ -196,7 +198,8 @@ func Test_altertab2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,e,f);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN new.a NOT NULL BEGIN\n    UPDATE t1 SET (c,d)=(a,b);\n  END;\n")
@@ -257,7 +260,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.a NOT NULL BEGIN\n    SELECT a, sum(a) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY a ORDER BY a \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY a\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END"
+			want := "CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.a NOT NULL BEGIN SELECT a, sum(a) OVER w1 FROM \"t2x\" WINDOW w1 AS ( PARTITION BY a ORDER BY a ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING ), w2 AS ( PARTITION BY a ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ); END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -269,7 +272,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.aaaa NOT NULL BEGIN\n    SELECT aaaa, sum(aaaa) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY aaaa ORDER BY aaaa \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY aaaa\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END"
+			want := "CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.aaaa NOT NULL BEGIN SELECT aaaa, sum(aaaa) OVER w1 FROM \"t2x\" WINDOW w1 AS ( PARTITION BY aaaa ORDER BY aaaa ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING ), w2 AS ( PARTITION BY aaaa ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ); END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -293,7 +296,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM \"t3x\" EXCEPT SELECT a,b,c FROM \"t3x\" ORDER BY a;\n    SELECT rowid, * FROM \"t3x\";\n  END"
+			want := "CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.a NOT NULL BEGIN SELECT a,b,c FROM \"t3x\" EXCEPT SELECT a,b,c FROM \"t3x\" ORDER BY a; SELECT rowid, * FROM \"t3x\"; END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -305,13 +308,14 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.abcd NOT NULL BEGIN\n    SELECT abcd,b,c FROM \"t3x\" EXCEPT SELECT abcd,b,c FROM \"t3x\" ORDER BY abcd;\n    SELECT rowid, * FROM \"t3x\";\n  END"
+			want := "CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.abcd NOT NULL BEGIN SELECT abcd,b,c FROM \"t3x\" EXCEPT SELECT abcd,b,c FROM \"t3x\" ORDER BY abcd; SELECT rowid, * FROM \"t3x\"; END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,e,f);\n  INSERT INTO t1 VALUES(1,2,3,4,5,6);\n  CREATE TABLE t2(x,y,z);\n")
@@ -350,7 +354,7 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,c FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,c;\n  END"
+			want := "CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN INSERT INTO t2 SELECT a,b,c FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,c; END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -362,13 +366,14 @@ func Test_altertab2(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,ccc FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,ccc;\n  END"
+			want := "CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN INSERT INTO t2 SELECT a,b,ccc FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,ccc; END"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "8.0"
 			r = db.Query("\n  CREATE TABLE t1(a, b, c); \n  CREATE TABLE t2(a, b, c); \n  CREATE TABLE t3(d, e, f);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER tr AFTER INSERT ON t3 BEGIN\n    UPDATE t2 SET a = new.d;\n    SELECT a, b, c FROM v1;\n  END;\n")
@@ -413,7 +418,8 @@ func Test_altertab2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "8.6"
 			_res = db.Exec("\n  CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(likelihood(1,2) AND 0);\n  ALTER TABLE t0 RENAME TO t1;\n  SELECT sql FROM sqlite_master WHERE name='i0';\n")
@@ -422,7 +428,8 @@ func Test_altertab2(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "9.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n\n  CREATE TRIGGER AFTER INSERT ON t2 BEGIN\n\n    SELECT group_conct(\n        123 ORDER BY (\n          SELECT 1 FROM ( VALUES(a, 'b'), ('c') )\n          )) \n    FROM t1;\n\n  END;\n")

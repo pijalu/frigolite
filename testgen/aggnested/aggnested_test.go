@@ -284,7 +284,8 @@ func Test_aggnested(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);\n  CREATE TABLE x2(x);\n  INSERT INTO x2 VALUES(NULL), (NULL), (NULL);\n")
@@ -341,7 +342,8 @@ func Test_aggnested(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n\n  INSERT INTO t1 VALUES('x');\n  INSERT INTO t2 VALUES(1);\n")
@@ -404,7 +406,8 @@ func Test_aggnested(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE invoice (\n      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,\n      amount DOUBLE PRECISION DEFAULT NULL,\n      name VARCHAR(100) DEFAULT NULL\n  );\n\n  INSERT INTO invoice (amount, name) VALUES \n      (4.0, 'Michael'), (15.0, 'Bara'), (4.0, 'Michael'), (6.0, 'John');\n")
@@ -473,7 +476,8 @@ func Test_aggnested(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "9.1"
 		r = db.Query("\n  WITH out(i, j, k) AS ( \n      VALUES(1234, 5678, 9012) \n  )\n  SELECT (\n    SELECT (\n      SELECT min(abc) = ( SELECT ( SELECT 1234 fROM (SELECT abc) ) ) \n      FROM (\n        SELECT sum( out.i ) + ( SELECT sum( out.i ) ) AS abc FROM (SELECT out.j)\n      )\n    ) \n  ) FROM out;\n")

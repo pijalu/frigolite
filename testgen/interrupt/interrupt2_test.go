@@ -79,6 +79,7 @@ func Test_interrupt2(t *testing.T) {
 	if tclBool("permutation" + "==\"journaltest\" || " + "permutation" + "==\"inmemory_journal\"") {
 		return
 	}
+	db.Close()
 	// testvfs tvfs -default 1 (unsupported command, not transpiled)
 	// tvfs filter xWrite (unsupported command, not transpiled)
 	// tvfs script write_cb (unsupported command, not transpiled)
@@ -87,8 +88,7 @@ func Test_interrupt2(t *testing.T) {
 	dbpointer = "" // TCL namespace variable
 	_ = dbpointer // suppress unused warning
 	// proc definition (not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  PRAGMA journal_mode = wal;\n\n  WITH ii(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM ii WHERE i<1000 )\n  INSERT INTO t1 SELECT i, i FROM ii;\n")
@@ -180,6 +180,7 @@ func Test_interrupt2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM sqlite_master ")
 		}
+		db.Close()
 		dbpointer = "" // TCL namespace variable
 		_ = dbpointer // suppress unused warning
 		// set  (invalid identifier, skipped)
@@ -194,6 +195,7 @@ func Test_interrupt2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM sqlite_master ")
 		}
+		db.Close()
 		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "3.2.2"

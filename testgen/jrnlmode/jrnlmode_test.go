@@ -108,14 +108,14 @@ func Test_jrnlmode(t *testing.T) {
 		}
 	}
 	{ // do_test "jrnlmode-1.4a"
-		// sqlite3_db_config db DEFENSIVE 1 (unsupported command, not transpiled)
+		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		r = db.Query("\n    PRAGMA journal_mode = off;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n  ")
 		}
 	}
 	{ // do_test "jrnlmode-1.4b"
-		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		r = db.Query("\n    PRAGMA journal_mode = off;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n  ")
@@ -270,6 +270,7 @@ func Test_jrnlmode(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM def;\n    ")
 		}
 	}
+	db.Close()
 	os.Remove("test2.db")
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
@@ -290,6 +291,7 @@ func Test_jrnlmode(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      BEGIN IMMEDIATE;\n      INSERT OR IGNORE INTO main.x SELECT * FROM a.x;\n      COMMIT;\n    ")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -324,6 +326,7 @@ func Test_jrnlmode(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	if tclBool("atomic_batch_write test.db" + "==0") {
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -533,6 +536,7 @@ func Test_jrnlmode(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	{ // do_test "jrnlmode-7.1"
 		for _, f := range tclSplitList("glob -nocomplain test.db*") {

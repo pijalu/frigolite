@@ -101,7 +101,7 @@ func Test_literal2(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "3.0.0"

@@ -82,13 +82,15 @@ func Test_speed1(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	old_lookaside = "sqlite3_config_lookaside 1000 300"
 	_ = old_lookaside // suppress unused warning
 	// set testdir: test directory (not used in Go test context)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// speed_trial_init speed1 (unsupported command, not transpiled)
 	// expr srand(0) (not evaluated)
@@ -412,6 +414,7 @@ func Test_speed1(t *testing.T) {
 	{ // do_test "speed1-1.2"
 	}
 	// speed_trial_summary speed1 (unsupported command, not transpiled)
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// eval (dynamic, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)

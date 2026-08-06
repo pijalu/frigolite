@@ -73,12 +73,12 @@ func Test_snapshot2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	{ // do_test "1.1.1"
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
 		_ = _list
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.2"
 		r = db.Query(" SELECT * FROM t1 ")
@@ -119,12 +119,12 @@ func Test_snapshot2(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
+	db.Close()
 	{ // do_test "1.2.1"
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
 		_ = _list
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.2.2"
 		r = db.Query(" SELECT * FROM t1 ")
@@ -169,7 +169,8 @@ func Test_snapshot2(t *testing.T) {
 	}
 	db2.Close()
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
@@ -184,9 +185,9 @@ func Test_snapshot2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		// sqlite3_db_config NO_CKPT_ON_CLOSE (unhandled flag)
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT * FROM sqlite_master")
 		if r.Error != nil {
@@ -207,9 +208,9 @@ func Test_snapshot2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		// sqlite3_db_config NO_CKPT_ON_CLOSE (unhandled flag)
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT * FROM sqlite_master")
 		if r.Error != nil {
@@ -253,9 +254,9 @@ func Test_snapshot2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
-		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		// sqlite3_db_config NO_CKPT_ON_CLOSE (unhandled flag)
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// sqlite3_snapshot_recover db main (unsupported command, not transpiled)
 		_res = db.Exec("BEGIN")
@@ -266,7 +267,8 @@ func Test_snapshot2(t *testing.T) {
 		_ = _list
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('c', 'd');\n")
@@ -346,7 +348,8 @@ func Test_snapshot2(t *testing.T) {
 		_ = _list
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2

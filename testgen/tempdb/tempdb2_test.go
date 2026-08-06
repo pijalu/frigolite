@@ -60,6 +60,7 @@ func Test_tempdb2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "tempdb2"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	unlocked = "unlocked"
@@ -76,7 +77,7 @@ func Test_tempdb2(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list main $unlocked temp closed"
+		want := "main " + unlocked + " temp closed"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -111,6 +112,7 @@ func Test_tempdb2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"

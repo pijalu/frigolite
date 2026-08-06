@@ -116,9 +116,21 @@ func Test_e_createtable(t *testing.T) {
 	// do_createtable_tests 0.4.1 -repair {\n  drop_all_tables \n} {\n  1     {CREATE TABLE t1(\n           ... (unsupported command, not transpiled)
 	// do_createtable_tests 0.5.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(...} {\n  1    ... (unsupported command, not transpiled)
 	// do_createtable_tests 0.6.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(...} {\n  11146... (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	os.Remove("test.db2")
 	{ // "e_createtable-1.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS auxa;\n  ATTACH 'test.db3' AS auxb;\n")
@@ -130,37 +142,109 @@ func Test_e_createtable(t *testing.T) {
 	// do_createtable_tests 1.1.2 {\n  1    "CREATE TABLE sqlit_abc(a, b, c)"        ...} (unsupported command, not transpiled)
 	// do_createtable_tests 1.2.1 -error {\n  unknown database %s\n} {\n  1    "CREATE TABLE george.t1(a, b)... (unsupported command, not transpiled)
 	// do_createtable_tests 1.2.2 {\n  1    "CREATE TABLE main.abc(a, b, c)"         ...} (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	if tclBool("permutation" + "!=\"maindbname\"") {
 		// do_createtable_tests 1.3 -tclquery {\n    unset -nocomplain X\n    array set X [table_...} {\n    1  ... (unsupported command, not transpiled)
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	if tclBool("permutation" + "!=\"maindbname\"") {
 		// do_createtable_tests 1.4 -tclquery {\n    unset -nocomplain X\n    array set X [table_...} {\n    1  ... (unsupported command, not transpiled)
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	// do_createtable_tests 1.5.1 -error {\n  temporary table name must be unqualified\n} {\n  1    "CREATE ... (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	if tclBool("permutation" + "!=\"maindbname\"") {
 		// do_createtable_tests 1.5.2 -tclquery {\n    unset -nocomplain X\n    array set X [table_...} {\n    1... (unsupported command, not transpiled)
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	if tclBool("permutation" + "!=\"maindbname\"") {
 		// do_createtable_tests 1.6 -tclquery {\n    unset -nocomplain X\n    array set X [table_...} {\n    1  ... (unsupported command, not transpiled)
 	}
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "e_createtable-1.7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  CREATE VIEW  v1 AS SELECT * FROM t1;\n\n  CREATE TABLE auxa.tbl1(x, y);\n  CREATE INDEX auxa.idx1 ON tbl1(x);\n  CREATE VIEW auxa.view1 AS SELECT * FROM tbl1;\n")
 		if _res.Error != nil {
@@ -169,9 +253,21 @@ func Test_e_createtable(t *testing.T) {
 	}
 	// do_createtable_tests 1.7.1 -error { %s } {\n  1    "CREATE TABLE t1(a, b)"   {{table t1 alre...} (unsupported command, not transpiled)
 	// do_createtable_tests 1.7.2 {\n  1    "CREATE TABLE auxa.t1(a, b)"   {}\n  2   ...} (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "e_createtable-1.8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  CREATE VIEW  v1 AS SELECT * FROM t1;\n  CREATE TABLE auxa.tbl1(x, y);\n  CREATE INDEX auxa.idx1 ON tbl1(x);\n  CREATE VIEW auxa.view1 AS SELECT * FROM tbl1;\n")
 		if _res.Error != nil {
@@ -180,9 +276,21 @@ func Test_e_createtable(t *testing.T) {
 	}
 	// do_createtable_tests 1.8 {\n  1    "CREATE TABLE IF NOT EXISTS t1(a, b)"    ...} (unsupported command, not transpiled)
 	// do_createtable_tests 1.9 -error { %s } {\n  1    "CREATE TABLE IF NOT EXISTS i1(a, b)"   \...} (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "e_createtable-1.10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE TABLE auxb.t2(x, y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 1;\n  END;\n  CREATE TRIGGER auxb.tr2 AFTER INSERT ON t2 BEGIN\n    SELECT 1;\n  END;\n")
 		if _res.Error != nil {
@@ -190,9 +298,21 @@ func Test_e_createtable(t *testing.T) {
 		}
 	}
 	// do_createtable_tests 1.10 {\n  1    "CREATE TABLE tr1(a, b)"          {}\n  2...} (unsupported command, not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "e_createtable-1.11.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE auxa.t3(a, b);\n  CREATE TABLE auxa.t4(a, b);\n")
 		if _res.Error != nil {
@@ -264,9 +384,21 @@ func Test_e_createtable(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "e_createtable-2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g BIGINT, h VARCHAR(10));\n  CREATE TABLE t4(i BLOB, j ANYOLDATA);\n  CREATE TABLE t5(k FLOAT, l INTEGER);\n  CREATE TABLE t6(m DEFAULT 10, n DEFAULT 5, PRIMARY KEY(m, n));\n  CREATE TABLE t7(x INTEGER PRIMARY KEY);\n  CREATE TABLE t8(o COLLATE nocase DEFAULT 'abc');\n  CREATE TABLE t9(p NOT NULL, q DOUBLE CHECK (q!=0), r STRING UNIQUE);\n")
 		if _res.Error != nil {
@@ -332,9 +464,21 @@ func Test_e_createtable(t *testing.T) {
 		}
 	}
 	tcl_nullvalue = ""
+	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 	}
+	for _, _t := range db.Query("PRAGMA database_list").Rows {
+		if len(_t) > 1 {
+			dbname := fmt.Sprint(_t[1])
+			if dbname != "main" && dbname != "temp" {
+				for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+					db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+				}
+			}
+		}
+	}
+	_res = db.Exec("PRAGMA foreign_keys = ON")
 	{ // "e_createtable-2.4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('i',   'one');\n  INSERT INTO t1 VALUES('ii',  'two');\n  INSERT INTO t1 VALUES('iii', 'three');\n")
 		if _res.Error != nil {
@@ -356,21 +500,45 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE " + tbl + " AS " + _select)
 			}
 			{ // "e_createtable-2.4." + tn + ".1"
-				_res = db.Exec("SELECT * FROM " + tbl + " ORDER BY rowid;")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM " + tbl + " ORDER BY rowid;")
+				r = db.Query("SELECT * FROM " + tbl + " ORDER BY rowid;")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM " + tbl + " ORDER BY rowid;")
+					return
+				}
+				got := flatten(r)
+				want := tclExecSQL(db, _select)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "e_createtable-2.4." + tn + ".2"
-				_res = db.Exec("SELECT min(rowid), count(rowid)==max(rowid) FROM " + tbl)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT min(rowid), count(rowid)==max(rowid) FROM " + tbl)
+				r = db.Query("SELECT min(rowid), count(rowid)==max(rowid) FROM " + tbl)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT min(rowid), count(rowid)==max(rowid) FROM " + tbl)
+					return
+				}
+				got := flatten(r)
+				want := "1 1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		{ // "e_createtable-3.1.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x VARCHAR(10), y INTEGER, z DOUBLE);\n  CREATE TABLE t2(a DATETIME, b STRING, c REAL);\n  CREATE TABLE t3(o, t);\n")
 			if _res.Error != nil {
@@ -384,7 +552,7 @@ func Test_e_createtable(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "14 {quite a lengthy string} UVU"
+			want := "14 quite a lengthy string UVU"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -396,7 +564,7 @@ func Test_e_createtable(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{not a datetime} 13 12:41:59"
+			want := "not a datetime 13 12:41:59"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -435,7 +603,7 @@ func Test_e_createtable(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "NULL {'text value'} X'424C4F42' -45678.6 394507"
+			want := "NULL 'text value' X'424C4F42' -45678.6 394507"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -500,7 +668,7 @@ func Test_e_createtable(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "'01:46:40' '2001-09-09' {'2001-09-09 01:46:40'}"
+			want := "'01:46:40' '2001-09-09' '2001-09-09 01:46:40'"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -559,9 +727,21 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  INSERT INTO t12 VALUES(randomblob(30001),randomblob(30000),randomblob(30000));\n")
 			}
 		}
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		// do_createtable_tests 4.1.1 {\n  1    "CREATE TABLE t1(a, b, c)"               ...} (unsupported command, not transpiled)
 		// do_createtable_tests 4.1.2 -error {\n  table "t5" has more than one primary key\n} {\n  1    "CREATE ... (unsupported command, not transpiled)
 		{ // "4.1.3"
@@ -578,9 +758,21 @@ func Test_e_createtable(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		// do_createtable_tests 4.2 -repair {\n  catchsql { DROP TABLE t5 }\n} -tclquery {\n  table_pk t5\n} {\n... (unsupported command, not transpiled)
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		{ // "4.3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(0,          'zero');\n  INSERT INTO t1 VALUES(45.5,       'one');\n  INSERT INTO t1 VALUES('brambles', 'two');\n  INSERT INTO t1 VALUES(X'ABCDEF',  'three');\n\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y));\n  INSERT INTO t2 VALUES(0,          'zero');\n  INSERT INTO t2 VALUES(45.5,       'one');\n  INSERT INTO t2 VALUES('brambles', 'two');\n  INSERT INTO t2 VALUES(X'ABCDEF',  'three');\n")
 			if _res.Error != nil {
@@ -636,9 +828,21 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t7.u", _res.Error, "\n  CREATE TABLE t7(s INT, u INT PRIMARY KEY NOT NULL, v INT) STRICT;\n  INSERT INTO t7 VALUES(1, NULL, 2);\n")
 			}
 		}
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		// do_createtable_tests 4.6 {\n  1    "CREATE TABLE t1(a UNIQUE, b UNIQUE)"    ...} (unsupported command, not transpiled)
 		{ // "4.7.0"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(4.3, 5.5);\n  INSERT INTO t1 VALUES('reveal', 'variableness');\n  INSERT INTO t1 VALUES(X'123456', X'654321');\n\n  INSERT INTO t4 VALUES('xyx', 1, 1);\n  INSERT INTO t4 VALUES('xyx', 2, 1);\n  INSERT INTO t4 VALUES('uvw', 1, 1);\n")
@@ -656,9 +860,21 @@ func Test_e_createtable(t *testing.T) {
 			}
 		}
 		// do_createtable_tests 4.10 {\n  1    "EXPLAIN QUERY PLAN SELECT * FROM t1 WHER...} (unsupported command, not transpiled)
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		{ // "4.11"
 			_res = db.Exec("\n  CREATE TABLE x1(a TEXT, b INTEGER CHECK( b>0 ));\n  CREATE TABLE t1(a TEXT, b INTEGER, CHECK( b>0 ));\n  INSERT INTO x1 VALUES('x', 'xx');\n  INSERT INTO x1 VALUES('y', 'yy');\n  INSERT INTO t1 SELECT * FROM x1;\n\n  CREATE TABLE x2(a CHECK( a||b ), b);\n  CREATE TABLE t2(a, b, CHECK( a||b ));\n  INSERT INTO x2 VALUES(1, 'xx');\n  INSERT INTO x2 VALUES(1, 'yy');\n  INSERT INTO t2 SELECT * FROM x2;\n")
 			if _res.Error != nil {
@@ -667,9 +883,21 @@ func Test_e_createtable(t *testing.T) {
 		}
 		// do_createtable_tests 4.11 -error {CHECK constraint failed: %s} {\n  1a    "INSERT INTO x1 VALUES('one... (unsupported command, not transpiled)
 		// do_createtable_tests 4.12 {\n  1a    "INSERT INTO x1 VALUES('one', NULL)"    ...} (unsupported command, not transpiled)
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		// do_createtable_tests 4.13.1 {\n  1     "CREATE TABLE t1(a NOT NULL, b)"        ...} (unsupported command, not transpiled)
 		// do_createtable_tests 4.13.2 -error {\n  near "NOT": syntax error\n} {\n  1     "CREATE TABLE t4(a, b,... (unsupported command, not transpiled)
 		{ // "4.14.0"
@@ -679,9 +907,21 @@ func Test_e_createtable(t *testing.T) {
 			}
 		}
 		// do_createtable_tests 4.14 -error {NOT NULL constraint failed: %s} {\n  1    "INSERT INTO t1 VALUES(NU... (unsupported command, not transpiled)
+		_res = db.Exec("PRAGMA foreign_keys = OFF")
 		for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 			db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 		}
+		for _, _t := range db.Query("PRAGMA database_list").Rows {
+			if len(_t) > 1 {
+				dbname := fmt.Sprint(_t[1])
+				if dbname != "main" && dbname != "temp" {
+					for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+						db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+					}
+				}
+			}
+		}
+		_res = db.Exec("PRAGMA foreign_keys = ON")
 		{ // "4.15.0"
 			_res = db.Exec("\n  CREATE TABLE t1_ab(a PRIMARY KEY ON CONFLICT ABORT, b);\n  CREATE TABLE t1_ro(a PRIMARY KEY ON CONFLICT ROLLBACK, b);\n  CREATE TABLE t1_ig(a PRIMARY KEY ON CONFLICT IGNORE, b);\n  CREATE TABLE t1_fa(a PRIMARY KEY ON CONFLICT FAIL, b);\n  CREATE TABLE t1_re(a PRIMARY KEY ON CONFLICT REPLACE, b);\n  CREATE TABLE t1_xx(a PRIMARY KEY, b);\n\n  INSERT INTO t1_ab VALUES(1, 'one');\n  INSERT INTO t1_ab VALUES(2, 'two');\n  INSERT INTO t1_ro SELECT * FROM t1_ab;\n  INSERT INTO t1_ig SELECT * FROM t1_ab;\n  INSERT INTO t1_fa SELECT * FROM t1_ab;\n  INSERT INTO t1_re SELECT * FROM t1_ab;\n  INSERT INTO t1_xx SELECT * FROM t1_ab;\n\n  CREATE TABLE t2_ab(a, b NOT NULL ON CONFLICT ABORT);\n  CREATE TABLE t2_ro(a, b NOT NULL ON CONFLICT ROLLBACK);\n  CREATE TABLE t2_ig(a, b NOT NULL ON CONFLICT IGNORE);\n  CREATE TABLE t2_fa(a, b NOT NULL ON CONFLICT FAIL);\n  CREATE TABLE t2_re(a, b NOT NULL ON CONFLICT REPLACE);\n  CREATE TABLE t2_xx(a, b NOT NULL);\n\n  INSERT INTO t2_ab VALUES(1, 'one');\n  INSERT INTO t2_ab VALUES(2, 'two');\n  INSERT INTO t2_ro SELECT * FROM t2_ab;\n  INSERT INTO t2_ig SELECT * FROM t2_ab;\n  INSERT INTO t2_fa SELECT * FROM t2_ab;\n  INSERT INTO t2_re SELECT * FROM t2_ab;\n  INSERT INTO t2_xx SELECT * FROM t2_ab;\n\n  CREATE TABLE t3_ab(a, b, UNIQUE(a, b) ON CONFLICT ABORT);\n  CREATE TABLE t3_ro(a, b, UNIQUE(a, b) ON CONFLICT ROLLBACK);\n  CREATE TABLE t3_ig(a, b, UNIQUE(a, b) ON CONFLICT IGNORE);\n  CREATE TABLE t3_fa(a, b, UNIQUE(a, b) ON CONFLICT FAIL);\n  CREATE TABLE t3_re(a, b, UNIQUE(a, b) ON CONFLICT REPLACE);\n  CREATE TABLE t3_xx(a, b, UNIQUE(a, b));\n\n  INSERT INTO t3_ab VALUES(1, 'one');\n  INSERT INTO t3_ab VALUES(2, 'two');\n  INSERT INTO t3_ro SELECT * FROM t3_ab;\n  INSERT INTO t3_ig SELECT * FROM t3_ab;\n  INSERT INTO t3_fa SELECT * FROM t3_ab;\n  INSERT INTO t3_re SELECT * FROM t3_ab;\n  INSERT INTO t3_xx SELECT * FROM t3_ab;\n")
 			if _res.Error != nil {
@@ -718,6 +958,9 @@ func Test_e_createtable(t *testing.T) {
 				}
 				{ // do_test "e_createtable-4.15." + tn + ".3"
 					// sqlite3_get_autocommit db (unsupported command, not transpiled)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), ac) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ac, _res.Error, "e_createtable-4.15." + tn + ".3")
+					}
 				}
 				{ // "4.15." + tn + ".4"
 					r = db.Query("SELECT * FROM " + tbl)
@@ -726,7 +969,7 @@ func Test_e_createtable(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := data
+					want := tclListFlatten(data)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -762,6 +1005,9 @@ func Test_e_createtable(t *testing.T) {
 					}
 					{ // do_test "e_createtable-4.16." + tn + ".3"
 						// sqlite3_get_autocommit db (unsupported command, not transpiled)
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), ac) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ac, _res.Error, "e_createtable-4.16." + tn + ".3")
+						}
 					}
 					{ // "4.16." + tn + ".4"
 						r = db.Query("SELECT * FROM " + tbl)
@@ -770,7 +1016,7 @@ func Test_e_createtable(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := data
+						want := tclListFlatten(data)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -806,6 +1052,9 @@ func Test_e_createtable(t *testing.T) {
 						}
 						{ // do_test "e_createtable-4.17." + tn + ".3"
 							// sqlite3_get_autocommit db (unsupported command, not transpiled)
+							if _res.Error == nil || !strings.Contains(_res.Error.Error(), ac) {
+								t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ac, _res.Error, "e_createtable-4.17." + tn + ".3")
+							}
 						}
 						{ // "4.17." + tn + ".4"
 							r = db.Query("SELECT * FROM " + tbl + " ORDER BY rowid")
@@ -814,7 +1063,7 @@ func Test_e_createtable(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := data
+							want := tclListFlatten(data)
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -885,9 +1134,21 @@ func Test_e_createtable(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t5 ")
 						}
 					}
+					_res = db.Exec("PRAGMA foreign_keys = OFF")
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("PRAGMA database_list").Rows {
+						if len(_t) > 1 {
+							dbname := fmt.Sprint(_t[1])
+							if dbname != "main" && dbname != "temp" {
+								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								}
+							}
+						}
+					}
+					_res = db.Exec("PRAGMA foreign_keys = ON")
 					{ // "5.1.0"
 						_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('one', 'first');\n  INSERT INTO t1 VALUES('two', 'second');\n  INSERT INTO t1 VALUES('three', 'third');\n")
 						if _res.Error != nil {
@@ -969,9 +1230,21 @@ func Test_e_createtable(t *testing.T) {
 					// do_createtable_tests 5.7.2 -query { \n  SELECT rowid, _rowid_, oid, b FROM t11;\n} {\n  1    "UPDATE ... (unsupported command, not transpiled)
 					// do_createtable_tests 5.8.1 -query { \n  SELECT rowid, _rowid_, oid FROM t10;\n} -repair { \n  execsql... (unsupported command, not transpiled)
 					// do_createtable_tests 5.8.2 -query { \n  SELECT rowid, _rowid_, oid, b FROM t11;\n} -repair { \n  exec... (unsupported command, not transpiled)
+					_res = db.Exec("PRAGMA foreign_keys = OFF")
 					for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 						db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 					}
+					for _, _t := range db.Query("PRAGMA database_list").Rows {
+						if len(_t) > 1 {
+							dbname := fmt.Sprint(_t[1])
+							if dbname != "main" && dbname != "temp" {
+								for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+									db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+								}
+							}
+						}
+					}
+					_res = db.Exec("PRAGMA foreign_keys = ON")
 					{ // "5.9.0"
 						_res = db.Exec("\n  CREATE TABLE t12(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t12 VALUES(5, 'five');\n")
 						if _res.Error != nil {

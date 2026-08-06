@@ -75,8 +75,8 @@ func Test_tkt_5e10420e8d(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA incremental_vacuum(1)\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "tkt-5e10420e8d.5"
 		r = db.Query("\n  PRAGMA integrity_check;\n")

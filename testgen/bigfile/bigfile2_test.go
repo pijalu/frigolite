@@ -7,6 +7,7 @@ package bigfile
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -67,6 +68,7 @@ func Test_bigfile2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
+	db.Close()
 	if false {
 		_putsMsg := "**** Unable to create a file larger than 4096 MB. *****"
 		_ = _putsMsg
@@ -86,9 +88,13 @@ func Test_bigfile2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, " + sqlLiteral(str) + ") ")
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), str) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", str, _res.Error, "1.3")
+		}
 	}
+	db.Close()
 	// delete_file test.db (unsupported command, not transpiled)
 }

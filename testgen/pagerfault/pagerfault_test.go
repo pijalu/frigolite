@@ -133,6 +133,7 @@ func Test_pagerfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 4096;\n    BEGIN;\n      CREATE TABLE abc(a, b, c);\n      INSERT INTO abc VALUES('o', 't', 't'); \n      INSERT INTO abc VALUES('f', 'f', 's'); \n      INSERT INTO abc SELECT * FROM abc; -- 4\n      INSERT INTO abc SELECT * FROM abc; -- 8\n      INSERT INTO abc SELECT * FROM abc; -- 16\n      INSERT INTO abc SELECT * FROM abc; -- 32\n      INSERT INTO abc SELECT * FROM abc; -- 64\n      INSERT INTO abc SELECT * FROM abc; -- 128\n      INSERT INTO abc SELECT * FROM abc; -- 256\n    COMMIT;\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
 		}
+		db.Close()
 		// tv delete (unsupported command, not transpiled)
 	}
 	// do_faultsim_test pagerfault-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELE... (unsupported command, not transpiled)
@@ -146,6 +147,7 @@ func Test_pagerfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
 		}
+		db.Close()
 		// tstvfs delete (unsupported command, not transpiled)
 	}
 	// do_faultsim_test pagerfault-3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n  ... (unsupported command, not transpiled)
@@ -246,6 +248,7 @@ func Test_pagerfault(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// ss_layer delete (unsupported command, not transpiled)
 	{ // do_test "pagerfault-13-pre1"
@@ -254,6 +257,7 @@ func Test_pagerfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = PERSIST;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
 		}
+		db.Close()
 		os.Remove("test.db")
 		// faultsim_save (unsupported command, not transpiled)
 	}
@@ -343,10 +347,10 @@ func Test_pagerfault(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA journal_mode = DELETE;\n  ")
 		}
+		db.Close()
 		// hexio_write test.db 20 10 (unsupported command, not transpiled)
 		// hexio_write test.db 105 03F0 (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n    INSERT INTO t0 VALUES(a_string(224), a_string(335));\n    INSERT INTO t0 VALUES(a_string(225), a_string(336));\n  ")
 		if _res.Error != nil {
@@ -360,10 +364,10 @@ func Test_pagerfault(t *testing.T) {
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA journal_mode = DELETE;\n  ")
 	}
+	db.Close()
 	// hexio_write test.db 20 10 (unsupported command, not transpiled)
 	// hexio_write test.db 105 03F0 (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n  ")
 	if _res.Error != nil {
@@ -377,14 +381,15 @@ func Test_pagerfault(t *testing.T) {
 			// crashsql -delay 1 -file test.db -seed $iTest {\n        BEGIN;\n          CREATE TABLE t1... (unsupported command, not transpiled)
 		}
 		{ // do_test "pagerfault-22." + iTest + ".2"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 			}
 		}
+		db.Close()
 		// incr iTest 1
 		{
 			_n, _err := strconv.Atoi(iTest)
@@ -399,6 +404,7 @@ func Test_pagerfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(a_string(3000));\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n  ")
 		}
+		db.Close()
 		// sql36231 { INSERT INTO t1 VALUES(a_string(3000)) } (unsupported command, not transpiled)
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
@@ -440,13 +446,14 @@ func Test_pagerfault(t *testing.T) {
 	_ = db2
 	_res = db2.Exec("SELECT count(*) FROM t2")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+	db.Close()
 	// do_faultsim_test pagerfault-28b -faults oom* -prep {\n  sqlite3 db test.db\n} -body {\n  execsql ... (unsupported command, not transpiled)
 	_ = db2 // close db2: aliased to db, no-op
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	FAULTSIM_custom = "list      \\\n  -injectinstall   custom_injectinstall    \\\n  -injectstart     custom_injectstart      \\\n  -injectstop      custom_injectstop       \\\n  -injecterrlist   {{1 {disk I/O error}}}  \\\n  -injectuninstall custom_injectuninstall  \\" // TCL namespace variable
+	FAULTSIM_custom = "-injectinstall custom_injectinstall -injectstart custom_injectstart -injectstop custom_injectstop -injecterrlist {{1 {disk I/O error}}} -injectuninstall custom_injectuninstall" // TCL namespace variable
 	_ = FAULTSIM_custom // suppress unused warning
 	{ // do_test "pagerfault-29-pre"
 		// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -458,13 +465,13 @@ func Test_pagerfault(t *testing.T) {
 	}
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// foreach {tn tt} "29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }"
-	_items3 := tclSplitList("29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }")
-	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-		tn := _items3[_idx3+0]
+	_items1 := tclSplitList("29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		tt := _items3[_idx3+1]
+		tt := _items1[_idx1+1]
 		_ = tt // suppress unused warning
-		_ = _idx3
+		_ = _idx1
 			// do_faultsim_test pagerfault-$tn -faults custom -prep {\n    faultsim_restore_and_reopen\n      db... (unsupported command, not transpiled)
 		}
 		{ // do_test "pagerfault-31-pre"
@@ -476,7 +483,8 @@ func Test_pagerfault(t *testing.T) {
 		// sqlite3_config_uri 0 (unsupported command, not transpiled)
 		{ // do_test "pagerfault-32-pre"
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('one');\n  ")
 			if _res.Error != nil {
@@ -491,7 +499,8 @@ func Test_pagerfault(t *testing.T) {
 		// do_faultsim_test pagerfault-33b -prep {\n  sqlite3 db ""\n  execsql {\n    CREATE TABLE t...} -bo... (unsupported command, not transpiled)
 		{ // do_test "pagerfault-34-pre"
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
 			if _res.Error != nil {
@@ -515,6 +524,7 @@ func Test_pagerfault(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		// tv delete (unsupported command, not transpiled)
 		// sqlite3_shutdown (unsupported command, not transpiled)

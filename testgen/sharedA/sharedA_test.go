@@ -66,6 +66,7 @@ func Test_sharedA(t *testing.T) {
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
+	db.Close()
 	testprefix = "sharedA" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	if tclBool("atomic_batch_write test.db") {

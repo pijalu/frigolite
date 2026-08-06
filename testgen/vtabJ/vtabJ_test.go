@@ -105,7 +105,7 @@ func Test_vtabJ(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "vtabJ(1) this vtabJ(3) {a test} vtabJ(4) 4 vtabJ(five) 555 vtabJ(two) is"
+		want := "vtabJ(1) this vtabJ(3) a test vtabJ(4) 4 vtabJ(five) 555 vtabJ(two) is"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -171,7 +171,7 @@ func Test_vtabJ(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "vtabJ(1) this vtabJ(3) {a test} vtabJ(5) 55"
+		want := "vtabJ(1) this vtabJ(3) a test vtabJ(5) 55"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

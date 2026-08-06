@@ -109,6 +109,7 @@ func Test_index5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE INDEX i1 ON t1(x);\n    DROP INDEX I1;\n    PRAGMA main.page_size;\n  ")
 		}
 	}
+	db.Close()
 	// testvfs tvfs (unsupported command, not transpiled)
 	// tvfs filter xWrite (unsupported command, not transpiled)
 	// tvfs script write_cb (unsupported command, not transpiled)
@@ -117,7 +118,7 @@ func Test_index5(t *testing.T) {
 		_dbtmp0, err := frigolite.Open("test.db")
 		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		write_list = "list" // TCL namespace variable
+		write_list = "" // TCL namespace variable
 		_ = write_list // suppress unused warning
 		_res = db.Exec(" CREATE INDEX i1 ON t1(x) ")
 		if _res.Error != nil {
@@ -179,5 +180,6 @@ func Test_index5(t *testing.T) {
 		}
 		// expr $nForward > 2*($nBackward + $nNoncont) (not evaluated)
 	}
+	db.Close()
 	// tvfs delete (unsupported command, not transpiled)
 }

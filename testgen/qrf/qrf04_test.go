@@ -71,15 +71,15 @@ func Test_qrf04(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');\n  ")
 		}
-		res = "\\n"
+		res = "\n"
 		_ = res // suppress unused warning
 		i = "22"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 80 }() {
 			sp = tclExprWith("$i-13", map[string]string{"i": i})
 			_ = sp // suppress unused warning
-			res += "format \"<----%*s%3d%*s---->\\n\" \\\n                 [expr {$sp/2}] {} $i [expr {$sp-$sp/2}] {}"
-			res += "db format -style column -title off \\\n                   -screenwidth $i -splitcolumn on \\\n                  {SELECT x FROM t1 ORDER BY x ASC}"
+			res += "format \"<----%*s%3d%*s---->\n\"                  [expr {$sp/2}] {} $i [expr {$sp-$sp/2}] {}"
+			res += "db format -style column -title off                    -screenwidth $i -splitcolumn on                   {SELECT x FROM t1 ORDER BY x ASC}"
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

@@ -401,9 +401,11 @@ func Test_zipfile(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM zz;\n  SELECT * FROM zz;\n")
 		}
 	}
+	db.Close()
 	os.Remove("test.zip")
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db fileio (unsupported command, not transpiled)
 	// load_static_extension db zipfile (unsupported command, not transpiled)
@@ -495,7 +497,8 @@ func Test_zipfile(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.zip")
 	// load_static_extension db zipfile (unsupported command, not transpiled)
@@ -516,20 +519,20 @@ func Test_zipfile(t *testing.T) {
 		_ = _idx0
 			{ // "3.1." + tn + ".0"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", NULL);\n  ")
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", NULL);\n  ")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"" + fname + "/\"") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"" + fname + "/\"", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", NULL);\n  ")
 				}
 			}
 			{ // "3.1." + tn + ".1"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + " || '/', NULL);\n  ")
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + " || '/', NULL);\n  ")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"" + fname + "/\"") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"" + fname + "/\"", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + " || '/', NULL);\n  ")
 				}
 			}
 			{ // "3.1." + tn + ".2"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", 'abcd');\n  ")
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", 'abcd');\n  ")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \"" + fname + "\"") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \"" + fname + "\"", _res.Error, "\n    INSERT INTO x1(name, data) VALUES(" + sqlLiteral(fname) + ", 'abcd');\n  ")
 				}
 			}
 		}
@@ -573,8 +576,8 @@ func Test_zipfile(t *testing.T) {
 			_ = _idx1
 				{ // "4.5." + tn
 					_res = db.Exec("\n    WITH m(m) AS ( SELECT " + sqlLiteral(mode) + ")\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
-					if _res.Error != nil {
-						t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n    WITH m(m) AS ( SELECT " + sqlLiteral(mode) + ")\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zipfile: parse error in mode: " + mode) {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "zipfile: parse error in mode: " + mode, _res.Error, "\n    WITH m(m) AS ( SELECT " + sqlLiteral(mode) + ")\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
 					}
 				}
 			}
@@ -783,6 +786,7 @@ func Test_zipfile(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			os.Remove("test.zip")
 			db, err = frigolite.Open("")
@@ -1098,6 +1102,7 @@ func Test_zipfile(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING zipfile('zipfile19.zip');\n    INSERT INTO t1 DEFAULT VALUES;\n  ")
 					}
+					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
 					// load_static_extension db zipfile (unsupported command, not transpiled)
@@ -1106,6 +1111,7 @@ func Test_zipfile(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE v0 USING zipfile('zipfile19.zip');\n    SAVEPOINT y;\n    DELETE FROM v0 WHERE 9;\n    INSERT INTO v0 DEFAULT VALUES;\n  ")
 					}
 				}
+				db.Close()
 				os.Remove("zipfile19.zip")
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
@@ -1147,7 +1153,8 @@ func Test_zipfile(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// load_static_extension db zipfile (unsupported command, not transpiled)
 				if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
@@ -1159,7 +1166,8 @@ func Test_zipfile(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				os.Remove("test.zip")
 				// load_static_extension db zipfile (unsupported command, not transpiled)

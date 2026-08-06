@@ -278,10 +278,10 @@ func Test_triggerA(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	os.Remove("test.db-triggerA")
 	// copy_file test.db test.db-triggerA (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// do_malloc_test triggerA-3 -tclprep {\n  db close\n  forcedelete test.db test.db-journa...} -sql... (unsupported command, not transpiled)
 	os.Remove("test.db-triggerA")

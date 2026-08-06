@@ -74,6 +74,7 @@ func Test_win32nolock(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	{ // do_test "win32nolock-1.2"
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
@@ -125,6 +126,7 @@ func Test_win32nolock(t *testing.T) {
 		}
 	}
 	{ // do_test "win32nolock-1.8"
+		db.Close()
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.9.1"
@@ -137,6 +139,7 @@ func Test_win32nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "win32nolock-1.9.2"
+		db.Close()
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.10.1"
@@ -149,6 +152,7 @@ func Test_win32nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "win32nolock-1.10.2"
+		db.Close()
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.11.1"
@@ -161,6 +165,7 @@ func Test_win32nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "win32nolock-1.11.2"
+		db.Close()
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.12.1"
@@ -173,6 +178,7 @@ func Test_win32nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "win32nolock-1.12.2"
+		db.Close()
 		db2.Close()
 	}
 }

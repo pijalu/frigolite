@@ -86,7 +86,8 @@ func Test_bloom1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.4"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b TEXT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d);\n  CREATE TABLE t3(e INTEGER PRIMARY KEY, f);\n\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','idx1','600 6');\n  INSERT INTO sqlite_stat1 VALUES('t2','idx1','6 6');\n  INSERT INTO sqlite_stat1 VALUES('t3','idx2','6 6');\n  ANALYZE sqlite_schema;\n\n  INSERT INTO t1 VALUES(1, '123');\n  INSERT INTO t2 VALUES(123, 'one');\n  INSERT INTO t3 VALUES(123, 'two');\n")
@@ -107,7 +108,8 @@ func Test_bloom1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE objs(c INTEGER, s INTEGER, p INTEGER, o INTEGER);\n  CREATE UNIQUE INDEX objs_cspo ON objs(o,p,c,s);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('objs','objs_cspo','520138 21 20 19 1');\n  ANALYZE sqlite_schema;\n")
@@ -122,7 +124,8 @@ func Test_bloom1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  CREATE TABLE t0(x TEXT COLLATE rtrim);\n  INSERT INTO t0(x) VALUES ('a'), ('b'), ('c');\n  CREATE VIEW v0(y) AS SELECT DISTINCT x FROM t0;\n  SELECT count(*) FROM t0, v0 WHERE x='b ';\n")
@@ -161,7 +164,8 @@ func Test_bloom1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT, y INT, z TEXT);\n  INSERT INTO t1(rowid,x,y,z) VALUES(12,'aa','bb','aa');\n  CREATE INDEX i1x ON t1(1 IS true,z);\n  CREATE TABLE t0(x TEXT);\n  INSERT INTO t0(rowid,x) VALUES(4,'aa');\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t0',NULL,'20');\n  INSERT INTO sqlite_stat1 VALUES('t1','i1x','18 18 2');\n  ANALYZE sqlite_schema;\n")
@@ -200,7 +204,8 @@ func Test_bloom1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (c1);\n  INSERT INTO t1 VALUES (101);\n  CREATE TABLE t2 ( x );\n  INSERT INTO t2 VALUES(404);\n")

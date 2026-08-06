@@ -147,9 +147,9 @@ func Test_fts3conf(t *testing.T) {
 			_ = _res // catchsql
 			// fts3_integrity 1.$tn.3 db t1 (unsupported command, not transpiled)
 			{ // do_test "1." + tn + ".4"
-				_res = db.Exec("list sql_uses_stmt db $sql")
+				_res = db.Exec("sql_uses_stmt db " + sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list sql_uses_stmt db $sql")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "sql_uses_stmt db " + sql)
 				}
 			}
 		}
@@ -179,7 +179,7 @@ func Test_fts3conf(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{a b c} {a b c}"
+			want := "a b c a b c"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

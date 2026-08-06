@@ -75,6 +75,7 @@ func Test_analyzer1(t *testing.T) {
 			return
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

@@ -102,6 +102,7 @@ func Test_walfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(1500));\n  ")
 		}
+		db.Close()
 		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
 	// do_faultsim_test walfault-3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval {\n    D... (unsupported command, not transpiled)

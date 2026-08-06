@@ -346,7 +346,7 @@ func Test_func(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl1")
 			}
-			for _, word := range tclSplitList("contains UTF-8 characters hi\\u1234ho") {
+			for _, word := range tclSplitList("contains UTF-8 characters hiu1234ho") {
 			_ = word // suppress unused warning
 				_res = db.Exec("INSERT INTO tbl1 VALUES('" + word + "')")
 				if _res.Error != nil {
@@ -536,6 +536,9 @@ func Test_func(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ");")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), x2) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", x2, _res.Error, "func-4.17." + i)
+			}
 		}
 		// incr i 1
 		{
@@ -556,6 +559,9 @@ func Test_func(t *testing.T) {
 			r = db.Query("SELECT round(" + sqlLiteral(x1) + ",1);")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT round(" + sqlLiteral(x1) + ",1);")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), x2) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", x2, _res.Error, "func-4.18." + i)
 			}
 		}
 		// incr i 1
@@ -1137,12 +1143,14 @@ func Test_func(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			// db function [string repeat X 254] (variable-reader, inlined)
 		}
 	}
 	{ // do_test "func-14.2"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			// db function [string repeat X 256] (variable-reader, inlined)
 		}
 	}
 	{ // do_test "func-15.1"
@@ -1188,6 +1196,7 @@ func Test_func(t *testing.T) {
 	}
 	{ // do_test "func-17.1"
 		// proc definition (not transpiled)
+		// db function testfunc1 (variable-reader, inlined)
 		_res = db.Exec("\n    SELECT testfunc1(1,2,3);\n  ")
 		_ = _res // catchsql
 	}
@@ -1343,6 +1352,9 @@ func Test_func(t *testing.T) {
 					r = db.Query("SELECT soundex(" + sqlLiteral(name) + ")")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex(" + sqlLiteral(name) + ")")
+					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), sdx) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sdx, _res.Error, "func-20." + i)
 					}
 				}
 			}
@@ -1593,14 +1605,14 @@ func Test_func(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			midargs += ",'/" + i + "'"
 			midres += "/" + i
-			result = "md5 \\\n     \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
+			result = "md5      \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
 			_ = result // suppress unused warning
 			sql = "SELECT md5sum(t1" + midargs + ") FROM tbl1"
 			_ = sql // suppress unused warning
 			{ // do_test "func-24.7." + i
 				_res = db.Exec(sql)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
+					t.Errorf("expected error containing %s, got: %v\n  sql: %s", result, _res.Error, sql)
 				}
 			}
 			// incr i 1
@@ -1755,8 +1767,8 @@ func Test_func(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
 			}
-			_dbtmp0, err := frigolite.Open("test.db")
-			_ = _dbtmp0 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
@@ -1773,8 +1785,8 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // do_test "func-29.3"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT typeof(+x) FROM t29 ORDER BY id")
@@ -1785,8 +1797,8 @@ func Test_func(t *testing.T) {
 		if tclBool("permutation" + " != \"mmap\"") {
 		}
 		{ // do_test "func-29.5"
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT sum(length(x)) FROM t29")
@@ -1851,15 +1863,27 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // "func-30.2"
-			_res = db.Exec("SELECT unicode('\\u00A2');")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT unicode('\\u00A2');")
+			r = db.Query("SELECT unicode('u00A2');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode('u00A2');")
+				return
+			}
+			got := flatten(r)
+			want := "162"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "func-30.3"
-			_res = db.Exec("SELECT unicode('\\u20AC');")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT unicode('\\u20AC');")
+			r = db.Query("SELECT unicode('u20AC');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode('u20AC');")
+				return
+			}
+			got := flatten(r)
+			want := "8364"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		{ // "func-30.4"
@@ -1869,7 +1893,7 @@ func Test_func(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "$\\u00A2\\u20AC"
+			want := tclListFlatten(u00A2u20AC)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -1884,7 +1908,7 @@ func Test_func(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := i
+				want := tclListFlatten(i)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -1909,7 +1933,7 @@ func Test_func(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := i
+				want := tclListFlatten(i)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -1932,7 +1956,7 @@ func Test_func(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := i
+				want := tclListFlatten(i)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -2097,7 +2121,8 @@ func Test_func(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "func-34.10"
 			r = db.Query("\n  CREATE TABLE t1(a INT CHECK(\n     datetime( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,\n              10,11,12,13,14,15,16,17,18,19,\n              20,21,22,23,24,25,26,27,28,29,\n              30,31,32,33,34,35,36,37,38,39,\n              40,41,42,43,44,45,46,47,48,a)\n   )\n  );\n  INSERT INTO t1(a) VALUES(1),(2);\n  SELECT * FROM t1;\n")
@@ -2112,7 +2137,8 @@ func Test_func(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "func-35.100"
 			r = db.Query("\n  CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;\n")
@@ -2165,7 +2191,8 @@ func Test_func(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "func-37.100"
 			_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;\n")

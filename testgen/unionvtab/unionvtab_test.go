@@ -341,7 +341,8 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// load_static_extension db unionvtab (unsupported command, not transpiled)
 			{ // "3.0"
@@ -357,7 +358,7 @@ func Test_unionvtab(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "10 {1.10}"
+				want := "10 1.10"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -369,7 +370,7 @@ func Test_unionvtab(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "25 {1.25}"
+				want := "25 1.25"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -1119,7 +1120,7 @@ func Test_unionvtab(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "list $k $v"
+						want := k + " " + v
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -1270,7 +1271,8 @@ func Test_unionvtab(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// load_static_extension db unionvtab (unsupported command, not transpiled)
 				{ // "6.0"

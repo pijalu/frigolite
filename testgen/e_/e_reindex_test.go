@@ -89,25 +89,25 @@ func Test_e_reindex(t *testing.T) {
 		}
 	}
 	// do_reindex_tests e_reindex-0.1 {\n  1   "REINDEX"           {}\n  2   "REINDEX noc...} (unsupported command, not transpiled)
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "e_reindex-1.1"
 		r = db.Query("\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "e_reindex-1.2"
 		r = db.Query("\n  DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;\n")
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "e_reindex-1.3"
 		r = db.Query("\n  PRAGMA integrity_check;\n")
@@ -116,7 +116,7 @@ func Test_e_reindex(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "list \\\n  {wrong # of entries in index i2} \\\n  {wrong # of entries in index i1} \\\n  {row 3 missing from index i2} \\\n  {row 3 missing from index i1} \\\n  {row 4 missing from index i2} \\\n  {row 4 missing from index i1}"
+		want := "{wrong # of entries in index i2} {wrong # of entries in index i1} {row 3 missing from index i2} {row 3 missing from index i1} {row 4 missing from index i2} {row 4 missing from index i1}"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -133,6 +133,7 @@ func Test_e_reindex(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	os.Remove("test.db2")
 	os.Remove("test.db")
 	db, err = frigolite.Open("")

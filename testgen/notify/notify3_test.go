@@ -7,6 +7,7 @@ package notify
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -149,6 +150,7 @@ func Test_notify3(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM t2 ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	var _err_tcl string
 	_err_tcl = "{1 {unable to open database: test.db2}}"
 	_ = _err_tcl // suppress unused warning
@@ -202,6 +204,9 @@ func Test_notify3(t *testing.T) {
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 					_res = db.Exec("ATTACH 'test.db2' AS two")
 					_ = _res // catchsql
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", result, _res.Error, "notify3-2." + tn + ".1")
+					}
 				}
 				{ // do_test "notify3-2." + tn + ".2"
 					_list := tclList([]string{"0", "sqlite3_extended_errcode db1"})

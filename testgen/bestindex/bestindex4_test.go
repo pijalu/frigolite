@@ -103,7 +103,8 @@ func Test_bestindex4(t *testing.T) {
 		_ = param2 // suppress unused warning
 		for func() bool { param2_n, _param2_e := strconv.Atoi(param2); if _param2_e != nil { return false }; return param2_n < 16 }() {
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// register_tcl_module db (unsupported command, not transpiled)
 			{ // "1." + param1 + "." + param2 + ".1"
@@ -152,7 +153,8 @@ func Test_bestindex4(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// register_tcl_module db (unsupported command, not transpiled)
 		// proc definition (not transpiled)

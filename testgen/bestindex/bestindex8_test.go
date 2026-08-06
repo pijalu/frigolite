@@ -7,6 +7,7 @@ package bestindex
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -193,16 +194,26 @@ func Test_bestindex8(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".2"
 				_ = lBestIndexDistinct // TCL namespace variable (query)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), bDistinct) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bDistinct, _res.Error, "1." + tn + ".2")
+				}
 			}
 			{ // do_test "1." + tn + ".3"
 				// expr [lsearch [execsql "explain $sql"] IdxInsert]>=0 (not evaluated)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), idxinsert) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", idxinsert, _res.Error, "1." + tn + ".3")
+				}
 			}
 			{ // do_test "1." + tn + ".4"
 				_ = lOrderByConsumed // TCL namespace variable (query)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), bConsumed) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bConsumed, _res.Error, "1." + tn + ".4")
+				}
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// register_tcl_module db (unsupported command, not transpiled)
 		// proc definition (not transpiled)
@@ -213,7 +224,7 @@ func Test_bestindex8(t *testing.T) {
 			}
 		}
 		{ // do_test "2.1"
-			lFilterArgs = "list" // TCL namespace variable
+			lFilterArgs = "" // TCL namespace variable
 			_ = lFilterArgs // suppress unused warning
 			r = db.Query(" SELECT * FROM vt1 LIMIT 10 ")
 			if r.Error != nil {
@@ -222,7 +233,7 @@ func Test_bestindex8(t *testing.T) {
 			_ = lFilterArgs // TCL namespace variable (query)
 		}
 		{ // do_test "2.2"
-			lFilterArgs = "list" // TCL namespace variable
+			lFilterArgs = "" // TCL namespace variable
 			_ = lFilterArgs // suppress unused warning
 			r = db.Query(" SELECT * FROM vt1 LIMIT 5 OFFSET 50 ")
 			if r.Error != nil {
@@ -231,7 +242,7 @@ func Test_bestindex8(t *testing.T) {
 			_ = lFilterArgs // TCL namespace variable (query)
 		}
 		{ // do_test "2.3"
-			lFilterArgs = "list" // TCL namespace variable
+			lFilterArgs = "" // TCL namespace variable
 			_ = lFilterArgs // suppress unused warning
 			r = db.Query(" SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1 ")
 			if r.Error != nil {
@@ -240,7 +251,7 @@ func Test_bestindex8(t *testing.T) {
 			_ = lFilterArgs // TCL namespace variable (query)
 		}
 		{ // do_test "2.4"
-			lFilterArgs = "list" // TCL namespace variable
+			lFilterArgs = "" // TCL namespace variable
 			_ = lFilterArgs // suppress unused warning
 			r = db.Query(" SELECT * FROM vt1 ORDER BY a, +b LIMIT 1 OFFSET 1 ")
 			if r.Error != nil {
@@ -249,7 +260,8 @@ func Test_bestindex8(t *testing.T) {
 			_ = lFilterArgs // TCL namespace variable (query)
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// register_tcl_module db (unsupported command, not transpiled)
 		// proc definition (not transpiled)
@@ -270,17 +282,21 @@ func Test_bestindex8(t *testing.T) {
 			_ = lfa // suppress unused warning
 			_ = _idx1
 				{ // do_test "3." + tn
-					lFilterArg = "list" // TCL namespace variable
+					lFilterArg = "" // TCL namespace variable
 					_ = lFilterArg // suppress unused warning
 					_res = db.Exec(sql)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 					}
 					_ = lFilterArg // TCL namespace variable (query)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), lfa) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lfa, _res.Error, "3." + tn)
+					}
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// register_tcl_module db (unsupported command, not transpiled)
 			// proc definition (not transpiled)
@@ -301,17 +317,21 @@ func Test_bestindex8(t *testing.T) {
 				_ = lbir // suppress unused warning
 				_ = _idx2
 					{ // do_test "4." + tn
-						lBestIndexRhs = "list" // TCL namespace variable
+						lBestIndexRhs = "" // TCL namespace variable
 						_ = lBestIndexRhs // suppress unused warning
 						_res = db.Exec(sql)
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 						}
 						_ = lBestIndexRhs // TCL namespace variable (query)
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), lbir) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lbir, _res.Error, "4." + tn)
+						}
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// register_tcl_module db (unsupported command, not transpiled)
 				vtab_handle_in = "1" // TCL namespace variable

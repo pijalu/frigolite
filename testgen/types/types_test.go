@@ -82,7 +82,10 @@ func Test_types(t *testing.T) {
 	_ = sqlite_options_utf16 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	DB = "sqlite3 db test.db; sqlite3_connection_pointer db"
+	db.Close()
+	db, err = frigolite.Open("test.db;")
+	if err != nil { t.Fatal(err) }
+	DB = ""
 	_ = DB // suppress unused warning
 	// sqlite3_rekey $DB {} (unsupported command, not transpiled)
 	{ // do_test "types-1.1.0"
@@ -228,7 +231,8 @@ func Test_types(t *testing.T) {
 		}
 	}
 	{ // do_test "types-2.1.9"
-		root = "db eval {select rootpage from sqlite_master where name = 't1'}"
+		_dbeval0 := tclExecSQL(db, "{select rootpage from sqlite_master where name = 't1'}")
+		root = _dbeval0
 		_ = root // suppress unused warning
 		// record_sizes $root (unsupported command, not transpiled)
 	}
@@ -245,7 +249,8 @@ func Test_types(t *testing.T) {
 		}
 	}
 	{ // do_test "types-2.2.3"
-		root = "db eval {select rootpage from sqlite_master where name = 't2'}"
+		_dbeval1 := tclExecSQL(db, "{select rootpage from sqlite_master where name = 't2'}")
+		root = _dbeval1
 		_ = root // suppress unused warning
 		// record_sizes $root (unsupported command, not transpiled)
 	}
@@ -262,7 +267,8 @@ func Test_types(t *testing.T) {
 		}
 	}
 	{ // do_test "types-2.3.3"
-		root = "db eval {select rootpage from sqlite_master where name = 't3'}"
+		_dbeval2 := tclExecSQL(db, "{select rootpage from sqlite_master where name = 't3'}")
+		root = _dbeval2
 		_ = root // suppress unused warning
 		// record_sizes $root (unsupported command, not transpiled)
 	}
@@ -286,13 +292,15 @@ func Test_types(t *testing.T) {
 	}
 	if tclBool(sqlite_options_utf16 + "==0 || " + tclExecSQL(db, "{pragma encoding}") + " == \"UTF-8\"") {
 		{ // do_test "types-2.4.3"
-			root = "db eval {select rootpage from sqlite_master where name = 't4'}"
+			_dbeval0 := tclExecSQL(db, "{select rootpage from sqlite_master where name = 't4'}")
+			root = _dbeval0
 			_ = root // suppress unused warning
 			// record_sizes $root (unsupported command, not transpiled)
 		}
 	} else {
 		{ // do_test "types-2.4.3"
-			root = "db eval {select rootpage from sqlite_master where name = 't4'}"
+			_dbeval0 := tclExecSQL(db, "{select rootpage from sqlite_master where name = 't4'}")
+			root = _dbeval0
 			_ = root // suppress unused warning
 			// record_sizes $root (unsupported command, not transpiled)
 		}

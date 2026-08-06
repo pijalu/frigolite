@@ -77,7 +77,8 @@ func Test_btreefault(t *testing.T) {
 	}
 	// do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  set ::STMT [sql...} -body {\n  execs... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b);\n  CREATE INDEX i1 ON t1(b);\n  CREATE TABLE t2(x, y);\n")

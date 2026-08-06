@@ -75,9 +75,9 @@ func Test_vtab3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	auth_fail = "0" // TCL namespace variable
 	_ = auth_fail // suppress unused warning
-	auth_log = "list" // TCL namespace variable
+	auth_log = "" // TCL namespace variable
 	_ = auth_log // suppress unused warning
-	auth_filter = "list SQLITE_READ SQLITE_UPDATE SQLITE_SELECT SQLITE_PRAGMA" // TCL namespace variable
+	auth_filter = "SQLITE_READ SQLITE_UPDATE SQLITE_SELECT SQLITE_PRAGMA" // TCL namespace variable
 	_ = auth_filter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "vtab3-1.1"
@@ -95,7 +95,7 @@ func Test_vtab3(t *testing.T) {
 		_ = auth_log // TCL namespace variable (query)
 	}
 	{ // do_test "vtab3-1.3"
-		auth_log = "list" // TCL namespace variable
+		auth_log = "" // TCL namespace variable
 		_ = auth_log // suppress unused warning
 		_res = db.Exec("\n    DROP TABLE pachyderm;\n  ")
 		if _res.Error != nil {

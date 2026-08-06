@@ -69,10 +69,10 @@ func Test_sharedlock(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "sharedlock"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
@@ -91,13 +91,13 @@ func Test_sharedlock(t *testing.T) {
 		}
 	}
 	// foreach {tn delete_sql} "1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }"
-	_items1 := tclSplitList("1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }")
-	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-		tn := _items1[_idx1+0]
+	_items0 := tclSplitList("1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		delete_sql := _items1[_idx1+1]
+		delete_sql := _items0[_idx0+1]
 		_ = delete_sql // suppress unused warning
-		_ = _idx1
+		_ = _idx0
 			{ // "2.1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 				if _res.Error != nil {
@@ -127,6 +127,7 @@ func Test_sharedlock(t *testing.T) {
 				}
 			}
 		}
+		db.Close()
 		_ = db2 // close db2: aliased to db, no-op
 		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

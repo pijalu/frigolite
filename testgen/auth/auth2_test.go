@@ -117,8 +117,8 @@ func Test_auth2(t *testing.T) {
 	{ // do_test "auth2-1.8"
 		_ = flist // TCL namespace variable (query)
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2

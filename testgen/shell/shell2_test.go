@@ -7,6 +7,7 @@ package shell
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -73,6 +74,7 @@ func Test_shell2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -144,7 +146,7 @@ func Test_shell2(t *testing.T) {
 		_putsMsg := df
 		_ = _putsMsg
 		// close $df
-		res = "catchcmd :memory: [string trim {\n CREATE TABLE t(line text);\n.mode ascii -colsep \"\\377\" -rowsep \"\\n\"\n.import dummy.csv t\n SELECT count(*) FROM t;}]"
+		res = "catchcmd :memory: [string trim {\n CREATE TABLE t(line text);\n.mode ascii -colsep \"\xff\" -rowsep \"\n\"\n.import dummy.csv t\n SELECT count(*) FROM t;}]"
 		_ = res // suppress unused warning
 	}
 	{ // do_test "shell2-1.4.12"
@@ -169,6 +171,9 @@ func Test_shell2(t *testing.T) {
 			{ // do_test "shell2-2." + tn + ".1"
 				rc = "catchcmd \"\" \".open --hexdb dump.txt\""
 				_ = rc // suppress unused warning
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), expect) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", expect, _res.Error, "shell2-2." + tn + ".1")
+				}
 			}
 		}
 }

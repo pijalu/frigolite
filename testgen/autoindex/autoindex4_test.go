@@ -7,6 +7,7 @@ package autoindex
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -248,6 +249,9 @@ func Test_autoindex4(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), answer) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", answer, _res.Error, "autoindex4-4." + id + ".1")
+				}
 			}
 			{ // do_test "autoindex4-4." + id + ".2"
 				_res = db.Exec("PRAGMA automatic_index=OFF;")
@@ -257,6 +261,9 @@ func Test_autoindex4(t *testing.T) {
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), answer) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", answer, _res.Error, "autoindex4-4." + id + ".2")
 				}
 			}
 			{ // do_test "autoindex4-4." + id + ".3"
@@ -268,6 +275,9 @@ func Test_autoindex4(t *testing.T) {
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), answer) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", answer, _res.Error, "autoindex4-4." + id + ".3")
 				}
 			}
 			// optimization_control db all 1 (unsupported command, not transpiled)

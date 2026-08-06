@@ -7,6 +7,7 @@ package fts3
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -108,9 +109,12 @@ func Test_fts3sort(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), nRow) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nRow, _res.Error, "1.0")
+				}
 			}
-			// foreach {tn query} "1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\\\"aa bb\\\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\\\"aa bb cc\\\"'\""
-			_items1 := tclSplitList("1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\\\"aa bb\\\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\\\"aa bb cc\\\"'\"")
+			// foreach {tn query} "1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\"aa bb\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\"aa bb cc\"'\""
+			_items1 := tclSplitList("1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\"aa bb\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\"aa bb cc\"'\"")
 			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 				tn := _items1[_idx1+0]
 				_ = tn // suppress unused warning

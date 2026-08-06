@@ -243,7 +243,7 @@ func Test_filter2(t *testing.T) {
 		_ = res2 // suppress unused warning
 		i = "0"
 		_ = i // suppress unused warning
-		// foreach r "set myres" (no body)
+		// foreach r myres (no body)
 		// set  (invalid identifier, skipped)
 	}
 	{ // "1.15"

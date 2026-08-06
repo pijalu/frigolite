@@ -188,6 +188,7 @@ func Test_walthread(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	os.Remove(DBNAME)
 	os.Remove(DBNAME + "-bak.db-wal")

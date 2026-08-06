@@ -79,7 +79,8 @@ func Test_zipfilefault(t *testing.T) {
 	// do_faultsim_test 2.2 -faults oom* -body {\n    execsql { \n      SELECT json_extract( zipfi...} -... (unsupported command, not transpiled)
 	os.Remove("test.zip")
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db zipfile (unsupported command, not transpiled)
 	{ // "3.0"
@@ -91,7 +92,8 @@ func Test_zipfilefault(t *testing.T) {
 	// do_faultsim_test 3 -faults oom* -body {\n  execsql { SELECT name,data FROM zipfile('test....} -te... (unsupported command, not transpiled)
 	// do_faultsim_test 4 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      SELECT...} -te... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	// load_static_extension db zipfile (unsupported command, not transpiled)

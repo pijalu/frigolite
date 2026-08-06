@@ -64,7 +64,8 @@ func Test_joinA(t *testing.T) {
 		_ = schema // suppress unused warning
 		_ = _idx0
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "-"
 			{ // "joinA-" + id + ".setup"

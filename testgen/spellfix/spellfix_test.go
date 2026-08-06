@@ -107,7 +107,7 @@ func Test_spellfix(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := res
+				want := tclListFlatten(res)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -317,7 +317,7 @@ func Test_spellfix(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					want := res
+					want := tclListFlatten(res)
 					if got != want {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
@@ -346,7 +346,7 @@ func Test_spellfix(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := res
+						want := tclListFlatten(res)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -375,7 +375,7 @@ func Test_spellfix(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := res
+							want := tclListFlatten(res)
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -560,13 +560,16 @@ func Test_spellfix(t *testing.T) {
 									return
 								}
 								got := flatten(r)
-								want := res
+								want := tclListFlatten(res)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
 							{ // do_test "7.4.2." + tn + ".3"
 								// sqlite3_get_autocommit db (unsupported command, not transpiled)
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), bRollback) {
+									t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bRollback, _res.Error, "7.4.2." + tn + ".3")
+								}
 							}
 							_res = db.Exec("ROLLBACK")
 							_ = _res // catchsql
@@ -606,13 +609,16 @@ func Test_spellfix(t *testing.T) {
 										return
 									}
 									got := flatten(r)
-									want := res
+									want := tclListFlatten(res)
 									if got != want {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
 								{ // do_test "7.5.2." + tn + ".3"
 									// sqlite3_get_autocommit db (unsupported command, not transpiled)
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), bRollback) {
+										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", bRollback, _res.Error, "7.5.2." + tn + ".3")
+									}
 								}
 								_res = db.Exec("ROLLBACK")
 								_ = _res // catchsql

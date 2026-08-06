@@ -131,7 +131,8 @@ func Test_misc8(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // "misc8-2.1"
@@ -154,6 +155,7 @@ func Test_misc8(t *testing.T) {
 			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  SELECT *\n    FROM\n         (\n           (SELECT 0 AS i) AS x1,\n           (SELECT 1) AS x2\n         ) AS x3,\n         (SELECT 6 AS j UNION ALL SELECT 7) AS x4\n   WHERE i<rowid\n   ORDER BY 1;\n")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

@@ -85,7 +85,7 @@ func Test_e_dropview(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a main} {b main} {a main} {b main}"
+		want := "a main b main a main b main"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -97,7 +97,7 @@ func Test_e_dropview(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "view {new view} {new view} 0 {CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y}"
+		want := "view new view new view 0 CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -123,7 +123,7 @@ func Test_e_dropview(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a temp} {b temp}"
+		want := "a temp b temp"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -153,7 +153,7 @@ func Test_e_dropview(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a main} {b main}"
+		want := "a main b main"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -183,7 +183,7 @@ func Test_e_dropview(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a main} {b main}"
+		want := "a main b main"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -213,7 +213,7 @@ func Test_e_dropview(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a aux} {b aux}"
+		want := "a aux b aux"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -243,7 +243,7 @@ func Test_e_dropview(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a aux} {b aux}"
+		want := "a aux b aux"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -273,7 +273,7 @@ func Test_e_dropview(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{a aux} {b aux}"
+		want := "a aux b aux"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}

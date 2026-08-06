@@ -71,6 +71,7 @@ func Test_malloc9(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 	}
 }

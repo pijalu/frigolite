@@ -59,7 +59,7 @@ func Test_utf16align(t *testing.T) {
 		unaligned_string_counter = "0"
 		_ = unaligned_string_counter // suppress unused warning
 		// add_alignment_test_collations [sqlite3_connection_pointer db] (unsupported command, not transpiled)
-		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+		db.SetDQS(false, true)
 		r = db.Query("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      spacer TEXT,\n      a TEXT COLLATE utf16_aligned,\n      b TEXT COLLATE utf16_unaligned\n    );\n    INSERT INTO t1(a) VALUES(\"abc\");\n    INSERT INTO t1(a) VALUES(\"defghi\");\n    INSERT INTO t1(a) VALUES(\"jklmnopqrstuv\");\n    INSERT INTO t1(a) VALUES(\"wxyz0123456789-\");\n    UPDATE t1 SET b=a||'-'||a;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) VALUES('one','two');\n    INSERT INTO t1(a,b) SELECT a, b FROM t1;\n    UPDATE t1 SET spacer = CASE WHEN rowid&1 THEN 'x' ELSE 'xx' END;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      spacer TEXT,\n      a TEXT COLLATE utf16_aligned,\n      b TEXT COLLATE utf16_unaligned\n    );\n    INSERT INTO t1(a) VALUES(\"abc\");\n    INSERT INTO t1(a) VALUES(\"defghi\");\n    INSERT INTO t1(a) VALUES(\"jklmnopqrstuv\");\n    INSERT INTO t1(a) VALUES(\"wxyz0123456789-\");\n    UPDATE t1 SET b=a||'-'||a;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) VALUES('one','two');\n    INSERT INTO t1(a,b) SELECT a, b FROM t1;\n    UPDATE t1 SET spacer = CASE WHEN rowid&1 THEN 'x' ELSE 'xx' END;\n    SELECT count(*) FROM t1;\n  ")
@@ -85,6 +85,7 @@ func Test_utf16align(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "utf16align-2.1"

@@ -80,13 +80,14 @@ func Test_corrupt9(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	db.Close()
 	tclFileCopy("test.db", "test.db-template")
 	// corrupt_freelist test.db 1 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-2.1"
-		x = "db eval {PRAGMA integrity_check}"
+		_dbeval0 := tclExecSQL(db, "{PRAGMA integrity_check}")
+		x = _dbeval0
 		_ = x // suppress unused warning
 		// expr $x!="ok" (not evaluated)
 	}
@@ -94,13 +95,14 @@ func Test_corrupt9(t *testing.T) {
 		_res = db.Exec("\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	tclFileCopy("test.db-template", "test.db")
 	// corrupt_freelist test.db 2 (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-3.1"
-		x = "db eval {PRAGMA integrity_check}"
+		_dbeval1 := tclExecSQL(db, "{PRAGMA integrity_check}")
+		x = _dbeval1
 		_ = x // suppress unused warning
 		// expr $x!="ok" (not evaluated)
 	}
@@ -108,13 +110,14 @@ func Test_corrupt9(t *testing.T) {
 		_res = db.Exec("\n    CREATE INDEX i2 ON t2(b,a);\n    REINDEX;\n  ")
 		_ = _res // catchsql
 	}
+	db.Close()
 	tclFileCopy("test.db-template", "test.db")
 	// corrupt_freelist test.db 3 (unsupported command, not transpiled)
-	_dbtmp2, err := frigolite.Open("test.db")
-	_ = _dbtmp2 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-4.1"
-		x = "db eval {PRAGMA integrity_check}"
+		_dbeval2 := tclExecSQL(db, "{PRAGMA integrity_check}")
+		x = _dbeval2
 		_ = x // suppress unused warning
 		// expr $x!="ok" (not evaluated)
 	}

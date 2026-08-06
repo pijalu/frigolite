@@ -65,7 +65,8 @@ func Test_exprfault(t *testing.T) {
 	// do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\... (unsupported command, not transpiled)
 	// do_faultsim_test 2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n ... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1( hex(b) );\n  INSERT INTO t1 VALUES(10, randomblob(500));\n")

@@ -85,6 +85,7 @@ func Test_incrvacuum3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
+				db.Close()
 			}
 			os.Remove("test.db")
 			db, err = frigolite.Open("")

@@ -65,14 +65,14 @@ func Test_walbig(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n  ")
 		}
 	}
+	db.Close()
 	if false {
 		_putsMsg := "**** Unable to create a file larger than 5000 MB. *****"
 		_ = _putsMsg
 		return
 	}
 	// hexio_write test.db 28 00000000 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbig-1.1"
 		_res = db.Exec(" INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1 ")
@@ -80,8 +80,8 @@ func Test_walbig(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1 ")
 		}
 	}
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbig-1.2"
 		r = db.Query(" SELECT a FROM t1 ORDER BY a ")

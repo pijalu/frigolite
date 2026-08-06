@@ -7,6 +7,7 @@ package format
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -55,7 +56,7 @@ func Test_format4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
+	// sqlite3_db_config LEGACY_FILE_FORMAT (unhandled flag)
 	if tclBool("db one {PRAGMA auto_vacuum}") {
 		small = "3072"
 		_ = small // suppress unused warning
@@ -73,6 +74,9 @@ func Test_format4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);\n    INSERT INTO t1 VALUES(0,0,0,0,0,0,0,0,0,0);\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
 		}
 		// file size test.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), small) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", small, _res.Error, "format4-1.1")
+		}
 	}
 	{ // do_test "format4-1.2"
 		_res = db.Exec("\n    UPDATE t1 SET x0=1, x1=1, x2=1, x3=1, x4=1, x5=1, x6=1, x7=1, x8=1, x9=1\n  ")
@@ -80,6 +84,9 @@ func Test_format4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET x0=1, x1=1, x2=1, x3=1, x4=1, x5=1, x6=1, x7=1, x8=1, x9=1\n  ")
 		}
 		// file size test.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), small) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", small, _res.Error, "format4-1.2")
+		}
 	}
 	{ // do_test "format4-1.3"
 		_res = db.Exec("\n    UPDATE t1 SET x0=2, x1=2, x2=2, x3=2, x4=2, x5=2, x6=2, x7=2, x8=2, x9=2\n  ")
@@ -87,5 +94,8 @@ func Test_format4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET x0=2, x1=2, x2=2, x3=2, x4=2, x5=2, x6=2, x7=2, x8=2, x9=2\n  ")
 		}
 		// file size test.db
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), large) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", large, _res.Error, "format4-1.3")
+		}
 	}
 }

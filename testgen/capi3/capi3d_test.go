@@ -198,7 +198,8 @@ func Test_capi3d(t *testing.T) {
 		// sqlite3_stmt_busy 0 (unsupported command, not transpiled)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "capi3d-4.1"
 		_res = db.Exec("\n  CREATE TABLE t4(x,y);\n  BEGIN;\n")

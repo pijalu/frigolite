@@ -277,7 +277,8 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x); \n  INSERT INTO t1 VALUES(1);\n\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,a,b);\n  INSERT INTO t2 VALUES(1,2,3);\n  CREATE INDEX t2a ON t2(a); \n  CREATE INDEX t2b ON t2(b); \n")
@@ -316,7 +317,8 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.100"
 		r = db.Query("\n  CREATE TABLE t1(aa, bb);\n  CREATE INDEX t1x1 on t1(abs(aa), abs(bb));\n  INSERT INTO t1 VALUES(-2,-3),(+2,-3),(-2,+3),(+2,+3);\n  SELECT * FROM (t1) \n   WHERE ((abs(aa)=1 AND 1=2) OR abs(aa)=2)\n     AND abs(bb)=3\n  ORDER BY +1, +2;\n")
@@ -331,7 +333,8 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1);\n")
@@ -382,7 +385,8 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0, c1, PRIMARY KEY (c0, c1));\n  CREATE TABLE t1 (c0);\n\n  INSERT INTO t1 VALUES (2);\n\n  INSERT INTO t0 VALUES(0, 10);\n  INSERT INTO t0 VALUES(1, 10);\n  INSERT INTO t0 VALUES(2, 10);\n  INSERT INTO t0 VALUES(3, 10);\n")
@@ -403,7 +407,8 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a ,b FLOAT);\n  INSERT INTO t1 VALUES(1,1);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1x1','648 324 81 81 81 81 81 81 81081 81 81 81');\n  ANALYZE sqlite_schema;\n")
@@ -418,7 +423,8 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "10.1"
 		r = db.Query("\n  CREATE TABLE t1(x INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20)\n    INSERT INTO t1(x) SELECT 0 FROM c;\n  CREATE INDEX t1x1 ON t1(x BETWEEN 0 AND 10, x);\n  ANALYZE;\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(0),(0);\n  CREATE VIEW v1 AS SELECT * FROM t1 NATURAL JOIN t1 WHERE (x BETWEEN 0 AND 10) OR true;\n  CREATE VIEW v2 AS SELECT * FROM v1 NATURAL JOIN v1;\n  CREATE VIEW v3 AS SELECT * FROM v2, v1 USING (x) GROUP BY x;\n  SELECT x FROM v3; \n")
@@ -433,7 +439,8 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "11.1"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8)\n  INSERT INTO t1(a,b) SELECT x, 10*x FROM c;\n  INSERT INTO t2(c,d) SELECT b*2, 100*a FROM t1;\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES\n    ('t1',NULL,150105),('t2',NULL,98747);\n  ANALYZE sqlite_schema;\n")
@@ -478,7 +485,8 @@ func Test_join5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "12.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT, b INT, c INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x, x*1000, x*1000000 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%3==0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%4==0;\n  CREATE INDEX t3c ON t3(c);\n  INSERT INTO t1(a,b,c) VALUES(200, 200000, NULL);\n  ANALYZE;\n")

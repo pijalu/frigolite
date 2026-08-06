@@ -108,7 +108,8 @@ func Test_bestindexE(t *testing.T) {
 	// do_bestindex_test 1.1 {\n  SELECT * FROM x1 WHERE a=?\n} {{x1: a=?}} (unsupported command, not transpiled)
 	// do_bestindex_test 1.2 {\n  SELECT * FROM x1 WHERE a=? AND b=?\n} {{x1: a=? AND b=?}} (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// register_tcl_module db (unsupported command, not transpiled)
 	{ // do_test "2.0"
@@ -119,7 +120,8 @@ func Test_bestindexE(t *testing.T) {
 	// do_bestindex_test 2.1 {\n  SELECT Delivery.ID, Customer.Name\n  FROM Deli...} {\n  {Delivery: }\n ... (unsupported command, not transpiled)
 	// do_bestindex_test 2.2 {\n  SELECT * FROM\n  (\n     SELECT Delivery.ID, C...} {\n  {Delivery: id=?... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// register_tcl_module db eponymous_cmd (unsupported command, not transpiled)
 	// proc definition (not transpiled)
@@ -167,8 +169,8 @@ func Test_bestindexE(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(x);\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// register_tcl_module db eponymous_cmd (unsupported command, not transpiled)
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
@@ -179,10 +181,10 @@ func Test_bestindexE(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
 		}
 	}
-	{ // "-db"
-		_res = db.Exec("db2")
+	{ // "3.2.2"
+		_res = db.Exec(" CREATE TABLE x2(x) ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE x2(x) ")
 		}
 	}
 	{ // "3.2.3"

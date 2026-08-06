@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -64,6 +65,7 @@ func Test_crash2(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	{ // do_test "crash2-1.1"
 		// crashsql -delay 500 -file test.db -blocksize 2048 {\n    PRAGMA auto_vacuum=OFF;\n    PRA... (unsupported command, not transpiled)
 		// file size test.db
@@ -127,6 +129,7 @@ func Test_crash2(t *testing.T) {
 		_ = sig // suppress unused warning
 		sector = tclExprWith("1024 * 1<<($i%4)", map[string]string{"i": i})
 		_ = sector // suppress unused warning
+		db.Close()
 		{ // do_test "crash2-2." + i + ".1"
 			// crashsql -blocksize $sector -delay [expr $i%5 + 1] -file test.db-journal \n       PRAGMA ... (unsupported command, not transpiled)
 		}
@@ -135,6 +138,9 @@ func Test_crash2(t *testing.T) {
 			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash2-2." + i + ".2")
+			}
 		}
 		// incr i 1
 		{
@@ -151,6 +157,7 @@ func Test_crash2(t *testing.T) {
 		_ = sig // suppress unused warning
 		sector = tclExprWith("1024 * 1<<($i%4)", map[string]string{"i": i})
 		_ = sector // suppress unused warning
+		db.Close()
 		{ // do_test "crash2-3." + i + ".1"
 			// crashsql -blocksize $sector -file test.db \n       BEGIN;\n       SELECT random() FROM ab... (unsupported command, not transpiled)
 		}
@@ -159,6 +166,9 @@ func Test_crash2(t *testing.T) {
 			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash2-3." + i + ".2")
+			}
 		}
 		// incr i 1
 		{

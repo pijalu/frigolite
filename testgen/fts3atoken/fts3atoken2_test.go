@@ -63,9 +63,10 @@ func Test_fts3atoken2(t *testing.T) {
 	testprefix = "fts3atoken2" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 0 (unsupported command, not transpiled)
+	// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 	{ // "1.1.1"
 		r = db.Query("\n  SELECT typeof( fts3_tokenizer('simple') );\n")
 		if r.Error != nil {
@@ -120,7 +121,7 @@ func Test_fts3atoken2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts3(col, tokenize=mytok);\n")
 		}
 	}
-	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
+	// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 	bound = "simple"
 	_ = bound // suppress unused warning
 	{ // "1.3.1"

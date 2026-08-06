@@ -335,7 +335,8 @@ func Test_in5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  CREATE VIEW v0(c0) AS SELECT LOWER(CAST('1e500' AS TEXT)) FROM t0;\n  INSERT INTO t0(c0) VALUES (NULL);\n")
@@ -368,7 +369,8 @@ func Test_in5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b TEXT COLLATE NOCASE);\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t1 VALUES('ghi', 'jkl');\n")

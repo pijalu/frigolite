@@ -360,7 +360,8 @@ func Test_select3(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "select3-9.100"
 			r = db.Query("\n  CREATE TABLE t0(c0 REAL, c1 REAL GENERATED ALWAYS AS (c0));\n  INSERT INTO t0(c0) VALUES (1);\n  SELECT * FROM t0 GROUP BY c0;\n")
@@ -375,7 +376,8 @@ func Test_select3(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "select3.10.100"
 			r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  SELECT max(t1.a), \n         (SELECT 'xyz' FROM (SELECT * FROM t2 WHERE 0) WHERE t1.b=1) \n  FROM t1;\n")
@@ -398,7 +400,8 @@ func Test_select3(t *testing.T) {
 			_ = sql // suppress unused warning
 			_ = _idx1
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "select3-11." + tn + ".1"
 					_res = db.Exec(sql)
@@ -444,7 +447,8 @@ func Test_select3(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "12.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(x);\n")

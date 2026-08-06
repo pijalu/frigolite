@@ -7,6 +7,7 @@ package e_
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -146,13 +147,16 @@ func Test_e_update(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list {*}$data"
+				want := "{*}" + data
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "e_update-1.8." + tn + ".3"
 				// sqlite3_get_autocommit db (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), ac) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ac, _res.Error, "e_update-1.8." + tn + ".3")
+				}
 			}
 		}
 		// do_update_tests e_update-2.1 -error {\n  qualified table names are not allowed on INSER...} {\n ... (unsupported command, not transpiled)
@@ -176,7 +180,7 @@ func Test_e_update(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "list {*}{\n    main t1\n    main t2\n    main t3\n    main t6\n    temp t4\n    temp t6\n    aux  t1\n    aux  t5\n}"
+			want := "{*}{ main t1 main t2 main t3 main t6 temp t4 temp t6 aux t1 aux t5 }"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

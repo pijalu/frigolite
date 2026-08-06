@@ -521,7 +521,8 @@ func Test_conflict3(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "13.1.0"
 		r = db.Query("\n    PRAGMA recursive_triggers = true;\n    CREATE TABLE t0 (c0 UNIQUE, c1 UNIQUE);\n    CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN \n      DELETE FROM t0; \n    END;\n\n    INSERT INTO t0 VALUES(1, NULL);\n    INSERT INTO t0 VALUES(0, NULL);\n  ")

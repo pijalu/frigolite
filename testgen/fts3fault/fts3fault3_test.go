@@ -57,7 +57,7 @@ func Test_fts3fault3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3fault" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	TMPDBERROR = "1 {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n  INSERT INTO t1 VALUES(' actually other stuff instead');\n")
@@ -68,7 +68,8 @@ func Test_fts3fault3(t *testing.T) {
 	// faultsim_save_and_close (unsupported command, not transpiled)
 	// do_faultsim_test 1 -faults oom* -prep { \n  faultsim_restore_and_reopen\n  execsql {\n   ...} -bo... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;\n")

@@ -319,18 +319,22 @@ func Test_trace3(t *testing.T) {
 	{ // do_test "trace3-11.1"
 		stmtlist_record = "" // TCL namespace variable
 		_ = stmtlist_record // suppress unused warning
+		db.Close()
 		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "trace3-11.2"
 		stmtlist_record = "" // TCL namespace variable
 		_ = stmtlist_record // suppress unused warning
+		db.Close()
 		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "12.1.0"
 		STMT = "" // TCL namespace variable
@@ -375,7 +379,8 @@ func Test_trace3(t *testing.T) {
 		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE T1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")

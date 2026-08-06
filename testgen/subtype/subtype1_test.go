@@ -7,7 +7,6 @@ package subtype
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -107,7 +106,8 @@ func Test_subtype1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "subtype1-200"
 		_res = db.Exec("\n  CREATE TABLE t1(a); INSERT INTO t1 VALUES ('x');\n  CREATE VIEW t2(b) AS SELECT json(TRUE);\n  CREATE TABLE t3(b); INSERT INTO t3 VALUES(json(TRUE));\n")
@@ -176,15 +176,27 @@ func Test_subtype1(t *testing.T) {
 		}
 	}
 	{ // "subtype1-310"
-		_res = db.Exec("\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "\"1\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "\"1\"", _res.Error, "\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y);\n")
+		r = db.Query("\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y);\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y);\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 \"1\""
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subtype1-320"
-		_res = db.Exec("\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y)\n   WHERE json_quote(y)='\"1\"';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "\"1\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "\"1\"", _res.Error, "\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y)\n   WHERE json_quote(y)='\"1\"';\n")
+		r = db.Query("\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y)\n   WHERE json_quote(y)='\"1\"';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, json_quote(y) FROM (SELECT +json('1') AS y)\n   WHERE json_quote(y)='\"1\"';\n")
+			return
+		}
+		got := flatten(r)
+		want := "1 \"1\""
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "subtype1-400"
@@ -200,7 +212,8 @@ func Test_subtype1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "subtype1-500"
 		_res = db.Exec("\n  CREATE TABLE t1(id, j);\n  INSERT INTO t1 VALUES (1,'{a:{x:1,y:2},b:{x:3,y:4}}'), (2,'not json');\n")
@@ -225,7 +238,7 @@ func Test_subtype1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list 1 $st 2 0"
+				want := "1 " + st + " 2 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -237,7 +250,7 @@ func Test_subtype1(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list 1 $st 2 0"
+				want := "1 " + st + " 2 0"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

@@ -73,6 +73,7 @@ func Test_capi3e(t *testing.T) {
 	// do_not_use_codec (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
+	db.Close()
 	names = "t 1 t. 1. t.d 1.d t-1 1-1 t.db ä.db ë.db ö.db ü.db ÿ.db"
 	_ = names // suppress unused warning
 	i = "0"

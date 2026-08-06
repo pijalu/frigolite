@@ -147,6 +147,7 @@ func Test_analyze9(t *testing.T) {
 	testprefix = "analyze9"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
+	// db function s (variable-reader, inlined)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b TEXT); \n  INSERT INTO t1 VALUES('(0)', '(0)');\n  INSERT INTO t1 VALUES('(1)', '(1)');\n  INSERT INTO t1 VALUES('(2)', '(2)');\n  INSERT INTO t1 VALUES('(3)', '(3)');\n  INSERT INTO t1 VALUES('(4)', '(4)');\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
@@ -166,7 +167,7 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "t1 i1 {1 1 1} {0 0 0} {0 0 0} {(0) (0) 1} t1 i1 {1 1 1} {1 1 1} {1 1 1} {(1) (1) 2} t1 i1 {1 1 1} {2 2 2} {2 2 2} {(2) (2) 3} t1 i1 {1 1 1} {3 3 3} {3 3 3} {(3) (3) 4} t1 i1 {1 1 1} {4 4 4} {4 4 4} {(4) (4) 5}"
+		want := "t1 i1 1 1 1 0 0 0 0 0 0 (0) (0) 1 t1 i1 1 1 1 1 1 1 1 1 1 (1) (1) 2 t1 i1 1 1 1 2 2 2 2 2 2 (2) (2) 3 t1 i1 1 1 1 3 3 3 3 3 3 (3) (3) 4 t1 i1 1 1 1 4 4 4 4 4 4 (4) (4) 5"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -179,14 +180,15 @@ func Test_analyze9(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "t1 i1 {1 1 1} {0 0 0} {0 0 0} ....(0)(0) t1 i1 {1 1 1} {1 1 1} {1 1 1} ....(1)(1). t1 i1 {1 1 1} {2 2 2} {2 2 2} ....(2)(2). t1 i1 {1 1 1} {3 3 3} {3 3 3} ....(3)(3). t1 i1 {1 1 1} {4 4 4} {4 4 4} ....(4)(4)."
+			want := "t1 i1 1 1 1 0 0 0 0 0 0 ....(0)(0) t1 i1 1 1 1 1 1 1 1 1 1 ....(1)(1). t1 i1 1 1 1 2 2 2 2 2 2 ....(2)(2). t1 i1 1 1 1 3 3 3 3 3 3 ....(3)(3). t1 i1 1 1 1 4 4 4 4 4 4 ....(4)(4)."
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('some text', 14, NULL);\n  INSERT INTO t1 VALUES(22.0, NULL, x'656667');\n  CREATE INDEX i1 ON t1(a, b, c);\n  ANALYZE;\n  SELECT test_decode(sample) FROM sqlite_stat4;\n")
@@ -195,13 +197,14 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{22.0 NULL x'656667' 2} {{some text} 14 NULL 1}"
+		want := "22.0 NULL x'656667' 2 {some text} 14 NULL 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  BEGIN;\n")
@@ -271,7 +274,8 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(c, b, a);\n")
@@ -299,7 +303,7 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{10 10 10 1} {0 0 0} {0 0 0} {0 0 0} {10 10 10 1} {10 10 10} {1 1 1} {1 1 1} {10 10 10 1} {20 20 20} {2 2 2} {2 2 2} {10 10 10 1} {30 30 30} {3 3 3} {3 3 3} {10 10 10 1} {40 40 40} {4 4 4} {4 4 4} {10 10 10 1} {50 50 50} {5 5 5} {5 5 5} {10 10 10 1} {60 60 60} {6 6 6} {6 6 6} {10 10 10 1} {70 70 70} {7 7 7} {7 7 7} {10 10 10 1} {80 80 80} {8 8 8} {8 8 8} {10 10 10 1} {90 90 90} {9 9 9} {9 9 9} {10 10 10 1} {100 100 100} {10 10 10} {10 10 10} {10 10 10 1} {110 110 110} {11 11 11} {11 11 11} {10 10 10 1} {120 120 120} {12 12 12} {12 12 12} {10 10 10 1} {130 130 130} {13 13 13} {13 13 13} {10 10 10 1} {140 140 140} {14 14 14} {14 14 14} {10 10 10 1} {150 150 150} {15 15 15} {15 15 15}"
+		want := "10 10 10 1 0 0 0 0 0 0 0 0 0 10 10 10 1 10 10 10 1 1 1 1 1 1 10 10 10 1 20 20 20 2 2 2 2 2 2 10 10 10 1 30 30 30 3 3 3 3 3 3 10 10 10 1 40 40 40 4 4 4 4 4 4 10 10 10 1 50 50 50 5 5 5 5 5 5 10 10 10 1 60 60 60 6 6 6 6 6 6 10 10 10 1 70 70 70 7 7 7 7 7 7 10 10 10 1 80 80 80 8 8 8 8 8 8 10 10 10 1 90 90 90 9 9 9 9 9 9 10 10 10 1 100 100 100 10 10 10 10 10 10 10 10 10 1 110 110 110 11 11 11 11 11 11 10 10 10 1 120 120 120 12 12 12 12 12 12 10 10 10 1 130 130 130 13 13 13 13 13 13 10 10 10 1 140 140 140 14 14 14 14 14 14 10 10 10 1 150 150 150 15 15 15 15 15 15"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -311,7 +315,7 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{2 1 1 1} {295 296 296} {120 122 125} {201 4} {5 3 1 1} {290 290 290} {119 119 119} {200 1}"
+		want := "2 1 1 1 295 296 296 120 122 125 201 4 5 3 1 1 290 290 290 119 119 119 200 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -353,7 +357,8 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.7"
 		_res = db.Exec(" \n    BEGIN;\n    CREATE TABLE t1(o,t INTEGER PRIMARY KEY);\n    CREATE INDEX i1 ON t1(o);\n  ")
@@ -387,13 +392,14 @@ func Test_analyze9(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{x 211} {x 423} {x 635} {x 847} {x 1590} {x 3710} {x 5830} {x 7950}"
+		want := "x 211 x 423 x 635 x 847 x 1590 x 3710 x 5830 x 7950"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.1"
 		r = db.Query("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t0(v);\n  ANALYZE;\n")
@@ -402,7 +408,8 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "6.1"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  PRAGMA writable_schema = 1;\n  CREATE TEMP TABLE x1 AS\n    SELECT tbl,idx,neq,nlt,ndlt,sample FROM sqlite_stat4\n    ORDER BY (rowid%5), rowid;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat4 SELECT * FROM x1;\n  PRAGMA writable_schema = 0;\n  ANALYZE sqlite_master;\n")
@@ -417,7 +424,8 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	// database_may_be_corrupt (unsupported command, not transpiled)
@@ -477,7 +485,8 @@ func Test_analyze9(t *testing.T) {
 	}
 	// database_never_corrupt (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1 VALUES('2');\n  INSERT INTO t1 VALUES('3');\n  INSERT INTO t1 VALUES('4');\n  ANALYZE;\n")
@@ -498,7 +507,8 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d);\n  CREATE INDEX i2 ON t1(e);\n")
@@ -697,9 +707,21 @@ func Test_analyze9(t *testing.T) {
 		schema := _items0[_idx0+1]
 		_ = schema // suppress unused warning
 		_ = _idx0
+			_res = db.Exec("PRAGMA foreign_keys = OFF")
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("PRAGMA database_list").Rows {
+				if len(_t) > 1 {
+					dbname := fmt.Sprint(_t[1])
+					if dbname != "main" && dbname != "temp" {
+						for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+						}
+					}
+				}
+			}
+			_res = db.Exec("PRAGMA foreign_keys = ON")
 			{ // do_test "11." + tn + ".1"
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -778,9 +800,21 @@ func Test_analyze9(t *testing.T) {
 			schema := _items1[_idx1+1]
 			_ = schema // suppress unused warning
 			_ = _idx1
+				_res = db.Exec("PRAGMA foreign_keys = OFF")
 				for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 					db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 				}
+				for _, _t := range db.Query("PRAGMA database_list").Rows {
+					if len(_t) > 1 {
+						dbname := fmt.Sprint(_t[1])
+						if dbname != "main" && dbname != "temp" {
+							for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+								db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+							}
+						}
+					}
+				}
+				_res = db.Exec("PRAGMA foreign_keys = ON")
 				{ // do_test "12." + tn + ".1"
 					_res = db.Exec(schema)
 					if _res.Error != nil {
@@ -851,9 +885,21 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
+			_res = db.Exec("PRAGMA foreign_keys = OFF")
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("PRAGMA database_list").Rows {
+				if len(_t) > 1 {
+					dbname := fmt.Sprint(_t[1])
+					if dbname != "main" && dbname != "temp" {
+						for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+						}
+					}
+				}
+			}
+			_res = db.Exec("PRAGMA foreign_keys = ON")
 			{ // do_test "13.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);\n  ")
 				if _res.Error != nil {
@@ -910,9 +956,21 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'100' AND b<12\n")
 				}
 			}
+			_res = db.Exec("PRAGMA foreign_keys = OFF")
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("PRAGMA database_list").Rows {
+				if len(_t) > 1 {
+					dbname := fmt.Sprint(_t[1])
+					if dbname != "main" && dbname != "temp" {
+						for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+						}
+					}
+				}
+			}
+			_res = db.Exec("PRAGMA foreign_keys = ON")
 			{ // do_test "14.1"
 				_res = db.Exec(" CREATE TABLE t1(a, b INTEGER, c) ")
 				if _res.Error != nil {
@@ -953,9 +1011,21 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			// proc definition (not transpiled)
+			_res = db.Exec("PRAGMA foreign_keys = OFF")
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("PRAGMA database_list").Rows {
+				if len(_t) > 1 {
+					dbname := fmt.Sprint(_t[1])
+					if dbname != "main" && dbname != "temp" {
+						for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+						}
+					}
+				}
+			}
+			_res = db.Exec("PRAGMA foreign_keys = ON")
 			{ // do_test "14.1.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
 				if _res.Error != nil {
@@ -1095,22 +1165,34 @@ func Test_analyze9(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{0 1} {1 1} {2 1} {3 1} {4 1} {5 1} {6 1} {7 1} {8 1} {9 1} {10 1} {11 1} {12 1} {13 1} {14 1} {15 1}"
+				want := "0 1 1 1 2 1 3 1 4 1 5 1 6 1 7 1 8 1 9 1 10 1 11 1 12 1 13 1 14 1 15 1"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
+			_res = db.Exec("PRAGMA foreign_keys = OFF")
 			for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 				db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
 			}
+			for _, _t := range db.Query("PRAGMA database_list").Rows {
+				if len(_t) > 1 {
+					dbname := fmt.Sprint(_t[1])
+					if dbname != "main" && dbname != "temp" {
+						for _, _u := range db.Query("SELECT name FROM " + dbname + ".sqlite_master WHERE type='table'").Rows {
+							db.Exec("DROP TABLE " + dbname + "." + fmt.Sprint(_u[0]))
+						}
+					}
+				}
+			}
+			_res = db.Exec("PRAGMA foreign_keys = ON")
 			{ // "15.1"
 				_res = db.Exec("\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
 				}
 			}
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "15.2"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1130,8 +1212,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
 				}
 			}
-			_dbtmp3, err := frigolite.Open("test.db")
-			_ = _dbtmp3 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "15.4"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1151,8 +1233,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
 				}
 			}
-			_dbtmp4, err := frigolite.Open("test.db")
-			_ = _dbtmp4 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "15.6"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1172,8 +1254,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
 				}
 			}
-			_dbtmp5, err := frigolite.Open("test.db")
-			_ = _dbtmp5 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "15.8"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1193,8 +1275,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
 				}
 			}
-			_dbtmp6, err := frigolite.Open("test.db")
-			_ = _dbtmp6 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "15.10"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1214,8 +1296,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
 				}
 			}
-			_dbtmp7, err := frigolite.Open("test.db")
-			_ = _dbtmp7 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "15.12"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1235,7 +1317,8 @@ func Test_analyze9(t *testing.T) {
 			_ = two // suppress unused warning
 			{ // do_test "16.1"
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(one) + ");\n    ANALYZE;\n  ")
 				if _res.Error != nil {
@@ -1244,7 +1327,8 @@ func Test_analyze9(t *testing.T) {
 				nByte = tclLIndex("sqlite3_db_status", "db")
 				_ = nByte // suppress unused warning
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(two) + ");\n    ANALYZE;\n  ")
 				if _res.Error != nil {
@@ -1258,7 +1342,8 @@ func Test_analyze9(t *testing.T) {
 			}
 			{ // do_test "17.1"
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n  ")
 				if _res.Error != nil {
@@ -1329,7 +1414,8 @@ func Test_analyze9(t *testing.T) {
 			}
 			{ // do_test "18.1"
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 				if _res.Error != nil {
@@ -1361,7 +1447,8 @@ func Test_analyze9(t *testing.T) {
 			}
 			{ // do_test "19.1"
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      CREATE TABLE t1(x, y);\n      CREATE INDEX i1 ON t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n      ANALYZE;\n    ")
 				if _res.Error != nil {
@@ -1371,7 +1458,8 @@ func Test_analyze9(t *testing.T) {
 			// proc definition (not transpiled)
 			{ // do_test "19.2"
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      CREATE TABLE t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n    ")
 				if _res.Error != nil {
@@ -1381,7 +1469,8 @@ func Test_analyze9(t *testing.T) {
 				_ = _res // catchsql
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// proc definition (not transpiled)
 			{ // do_test "20.1"
@@ -1437,7 +1526,8 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "21.0"
 				_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);\n")
@@ -1479,7 +1569,8 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "22.0"
 				r = db.Query("\n  CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;\n")
@@ -1494,15 +1585,15 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			// foreach {tn where res} "1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}"
-			_items8 := tclSplitList("1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}")
-			for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
-				tn := _items8[_idx8+0]
+			_items2 := tclSplitList("1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				where := _items8[_idx8+1]
+				where := _items2[_idx2+1]
 				_ = where // suppress unused warning
-				res := _items8[_idx8+2]
+				res := _items2[_idx2+2]
 				_ = res // suppress unused warning
-				_ = _idx8
+				_ = _idx2
 					{ // "22.2." + tn
 						r = db.Query("EXPLAIN QUERY PLAN " + "SELECT * FROM t3 WHERE " + where)
 						if r.Error != nil {
@@ -1536,15 +1627,15 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 				// foreach {tn where eqp} "1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}"
-				_items9 := tclSplitList("1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}")
-				for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
-					tn := _items9[_idx9+0]
+				_items3 := tclSplitList("1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					where := _items9[_idx9+1]
+					where := _items3[_idx3+1]
 					_ = where // suppress unused warning
-					eqp := _items9[_idx9+2]
+					eqp := _items3[_idx3+2]
 					_ = eqp // suppress unused warning
-					_ = _idx9
+					_ = _idx3
 						{ // "24." + tn
 							r = db.Query("EXPLAIN QUERY PLAN " + "SeLeCt * FROM t5 WHERE " + where)
 							if r.Error != nil {
@@ -1589,7 +1680,8 @@ func Test_analyze9(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // do_test "26.1.1"
 						_res = db.Exec(" \n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);\n    ")
@@ -1662,7 +1754,8 @@ func Test_analyze9(t *testing.T) {
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "26.2.1"
 						r = db.Query("\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")

@@ -118,18 +118,19 @@ func Test_default(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "default-4.0"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';\n")
 		}
 	}
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "default-4.1"
 		r = db.Query("\n  INSERT INTO t1(a) VALUES('xyzzy');\n  SELECT a, quote(b) FROM t1;\n")
@@ -162,7 +163,8 @@ func Test_default(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "default-5.1"
 		_res = db.Exec("\n  CREATE TABLE t1 (a,b DEFAULT(random() NOTNULL IN (RAISE(IGNORE),2,3)));\n  INSERT INTO t1(a) VALUES(1);\n")

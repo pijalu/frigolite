@@ -124,6 +124,7 @@ func Test_jrnlmode2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-2.5"
+		db.Close()
 		// delete_file test.db-journal (unsupported command, not transpiled)
 	}
 	{ // do_test "jrnlmode2-2.6"

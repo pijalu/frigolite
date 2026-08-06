@@ -327,7 +327,7 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := sortdata
+							want := tclListFlatten(sortdata)
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}

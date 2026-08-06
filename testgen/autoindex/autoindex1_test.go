@@ -63,12 +63,12 @@ func Test_autoindex1(t *testing.T) {
 	_ = d // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log [list lappend ::log] (unsupported command, not transpiled)
-	log = "list" // TCL namespace variable
+	log = "" // TCL namespace variable
 	_ = log // suppress unused warning
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "autoindex1-100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 SELECT a+2, b+22 FROM t1;\n    INSERT INTO t1 SELECT a+4, b+44 FROM t1;\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 SELECT a, 900+b FROM t1;\n  ")
@@ -103,11 +103,11 @@ func Test_autoindex1(t *testing.T) {
 	{ // do_test "autoindex1-113"
 		_ = log // TCL namespace variable (query)
 	}
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// test_sqlite3_log (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "autoindex1-200"
 		r = db.Query("\n    PRAGMA automatic_index=OFF;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;\n  ")
@@ -277,6 +277,7 @@ func Test_autoindex1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -335,7 +336,8 @@ func Test_autoindex1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "autoindex-1100"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e TEXT, f TEXT);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(1, 2);\n  INSERT INTO t3 VALUES('abc', 'def');\n")
@@ -368,7 +370,8 @@ func Test_autoindex1(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "autoindex-1200"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, x INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,90),(1,3,91),(1,4,92);\n  CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n  CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n  CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n  INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n  INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual(dummy) VALUES('x');\n")

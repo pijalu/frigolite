@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -68,6 +69,7 @@ func Test_crash6(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		os.Remove("test.db")
 		// crashsql -delay 2 -file test.db {\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_siz...} (unsupported command, not transpiled)
@@ -89,6 +91,7 @@ func Test_crash6(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
@@ -97,9 +100,9 @@ func Test_crash6(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=2048;\n    BEGIN;\n    CREATE TABLE abc AS SELECT 1 AS a, 2 AS b, 3 AS c;\n    COMMIT;\n  ")
 		}
+		db.Close()
 		// crashsql -delay 1 -file test.db {\n    INSERT INTO abc VALUES(5, 6, 7);\n  } (unsupported command, not transpiled)
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -115,6 +118,7 @@ func Test_crash6(t *testing.T) {
 	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 30 }() {
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -132,6 +136,9 @@ func Test_crash6(t *testing.T) {
 			r = db.Query("pragma page_size")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma page_size")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), pagesize) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", pagesize, _res.Error, "crash6-3." + ii + ".0")
 			}
 		}
 		{ // do_test "crash6-3." + ii + ".1"
@@ -170,14 +177,18 @@ func Test_crash6(t *testing.T) {
 		}
 		sig = "signature"
 		_ = sig // suppress unused warning
+		db.Close()
 		{ // do_test "crash6-3." + ii + ".2"
 			// crashsql -file test.db \n       BEGIN;\n       SELECT random() FROM abc L... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash6-3." + ii + ".3"
-			_dbtmp1, err := frigolite.Open("test.db")
-			_ = _dbtmp1 // sqlite3 db connection
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "crash6-3." + ii + ".3")
+			}
 		}
 		// incr ii 1
 		{

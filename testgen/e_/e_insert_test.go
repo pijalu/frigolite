@@ -127,13 +127,16 @@ func Test_e_insert(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list {*}$data"
+				want := "{*}" + data
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // do_test "e_insert-4.1." + tn + ".3"
 				// sqlite3_get_autocommit db (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), ac) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", ac, _res.Error, "e_insert-4.1." + tn + ".3")
+				}
 			}
 		}
 		var _err_tcl string

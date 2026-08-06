@@ -112,6 +112,7 @@ func Test_tkt2686(t *testing.T) {
 			}
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

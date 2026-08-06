@@ -59,7 +59,7 @@ func Test_pragma3(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool("sqlite3 -has-codec") {
+	if tclBool("") {
 		return
 	}
 	{ // "pragma3-100"
@@ -205,6 +205,7 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	_ = db2 // close db2: aliased to db, no-op
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	_dbtmp0, err := frigolite.Open("test.db")
@@ -257,6 +258,7 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	_ = db2 // close db2: aliased to db, no-op
+	db.Close()
 	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	if tclBool("wal_is_capable") {
 		if tclBool("permutation" + "!=\"inmemory_journal\"") {
@@ -313,7 +315,8 @@ func Test_pragma3(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx1
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(sql)
 			if _res.Error != nil {

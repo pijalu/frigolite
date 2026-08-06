@@ -203,6 +203,9 @@ func Test_triggerC(t *testing.T) {
 				}
 				_res = db.Exec("\n      INSERT INTO t2 VALUES(10);\n      SELECT * FROM t2 ORDER BY rowid;\n    ")
 				_ = _res // catchsql
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), rc) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", rc, _res.Error, "triggerC-2.1." + n)
+				}
 			}
 		}
 		{ // do_test "triggerC-2.2"
@@ -258,7 +261,7 @@ func Test_triggerC(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "list $SQLITE_MAX_TRIGGER_DEPTH [expr $SQLITE_MAX_TRIGGER_DEPTH * 2] [expr $SQLITE_MAX_TRIGGER_DEPTH + 1]"
+			want := SQLITE_MAX_TRIGGER_DEPTH + " " + tclExprWith("$SQLITE_MAX_TRIGGER_DEPTH * 2", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH}) + " " + tclExprWith("$SQLITE_MAX_TRIGGER_DEPTH + 1", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH})
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -291,7 +294,7 @@ func Test_triggerC(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "list [expr $SQLITE_MAX_TRIGGER_DEPTH / 10] [expr $SQLITE_MAX_TRIGGER_DEPTH * 2] [expr ($SQLITE_MAX_TRIGGER_DEPTH * 2) - ($SQLITE_MAX_TRIGGER_DEPTH / 10) + 1]"
+			want := tclExprWith("$SQLITE_MAX_TRIGGER_DEPTH / 10", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH}) + " " + tclExprWith("$SQLITE_MAX_TRIGGER_DEPTH * 2", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH}) + " " + tclExprWith("($SQLITE_MAX_TRIGGER_DEPTH * 2) - ($SQLITE_MAX_TRIGGER_DEPTH / 10) + 1", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH})
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -324,7 +327,7 @@ func Test_triggerC(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "list 1 [expr $SQLITE_MAX_TRIGGER_DEPTH * 2] [expr $SQLITE_MAX_TRIGGER_DEPTH * 2]"
+			want := "1 " + tclExprWith("$SQLITE_MAX_TRIGGER_DEPTH * 2", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH}) + " " + tclExprWith("$SQLITE_MAX_TRIGGER_DEPTH * 2", map[string]string{"SQLITE_MAX_TRIGGER_DEPTH": SQLITE_MAX_TRIGGER_DEPTH})
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -594,6 +597,9 @@ func Test_triggerC(t *testing.T) {
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TRIGGER tt1 BEFORE INSERT ON t1 BEGIN \n        INSERT INTO log VALUES(new.a, new.b);\n      END;\n      INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;\n    ")
 									}
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), defaults) {
+										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", defaults, _res.Error, "triggerC-11." + testno + ".1")
+									}
 								}
 								{ // do_test "triggerC-11." + testno + ".2"
 									_res = db.Exec(" DELETE FROM log ")
@@ -618,6 +624,9 @@ func Test_triggerC(t *testing.T) {
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;\n    ")
 									}
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), defaults) {
+										t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", defaults, _res.Error, "triggerC-11." + testno + ".3")
+									}
 								}
 							}
 							{ // do_test "triggerC-11.4"
@@ -629,6 +638,7 @@ func Test_triggerC(t *testing.T) {
 								}
 							}
 							{ // do_test "triggerC-12.1"
+								db.Close()
 								os.Remove("test.db")
 								db, err = frigolite.Open("")
 								if err != nil { t.Fatal(err) }
@@ -662,7 +672,8 @@ func Test_triggerC(t *testing.T) {
 							var SQL = "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, c);\n  CREATE INDEX i2 ON t1(b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n\n  CREATE TABLE t2(e, f);\n  CREATE INDEX i3 ON t2(e);\n  INSERT INTO t2 VALUES(1234567, 3);\n\n  CREATE TABLE empty(x);\n  CREATE TABLE not_empty(x);\n  INSERT INTO not_empty VALUES(2);\n\n  CREATE TABLE t4(x);\n  CREATE TABLE t5(g, h, i);\n\n  CREATE TRIGGER trig BEFORE INSERT ON t4 BEGIN\n    INSERT INTO t5 SELECT * FROM t1 WHERE \n        (a IN (SELECT x FROM empty) OR b IN (SELECT x FROM not_empty)) \n        AND c IN (SELECT f FROM t2 WHERE e=1234567);\n  END;\n\n  INSERT INTO t4 VALUES(0);\n  SELECT * FROM t5;\n"
 							_ = SQL // suppress unused warning
 							db.Close()
-							db, err = frigolite.Open("")
+							os.Remove("test.db")
+							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							{ // "triggerC-14.1"
 								_res = db.Exec(SQL)
@@ -671,7 +682,8 @@ func Test_triggerC(t *testing.T) {
 								}
 							}
 							db.Close()
-							db, err = frigolite.Open("")
+							os.Remove("test.db")
+							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							// optimization_control db factor-constants 0 (unsupported command, not transpiled)
 							{ // "triggerC-14.2"
@@ -747,7 +759,8 @@ func Test_triggerC(t *testing.T) {
 								}
 							}
 							db.Close()
-							db, err = frigolite.Open("")
+							os.Remove("test.db")
+							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							r = db.Query(" PRAGMA recursive_triggers = on ")
 							if r.Error != nil {

@@ -7,7 +7,6 @@ package fts3defer
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strings"
 "testing"
 )
 
@@ -97,7 +96,7 @@ func Test_fts3defer2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES('a b c d e f a x y');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "1.1.4"
 		r = db.Query("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments SET block = zeroblob(length(block)) WHERE length(block)>10000;\n")
 		if r.Error != nil {
@@ -135,25 +134,25 @@ func Test_fts3defer2(t *testing.T) {
 		}
 	}
 	{ // "1.2.2"
-		r = db.Query("\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';\n")
+		r = db.Query("\n  SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';\n")
 			return
 		}
 		got := flatten(r)
-		want := "list                              \\\n   {a b c d [e] [f] [a] x y}         \\\n   {0 1 8 1 0 0 10 1 0 2 12 1}       \\\n   [list 3 1   1 1 1   1 1 1   1 1 1   8 5001 9]"
+		want := "{a b c d " + "e" + " " + "f" + " " + "a" + " x y} {0 1 8 1 0 0 10 1 0 2 12 1} " + "3 1 1 1 1 1 1 1 1 1 1 8 5001 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // "1.2.3"
-		r = db.Query("\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';\n")
+		r = db.Query("\n  SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';\n")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';\n")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';\n")
 			return
 		}
 		got := flatten(r)
-		want := "list                                 \\\n   {[a] b c d [e] [f] [a] x y}          \\\n   {0 2 0 1 0 1 8 1 0 0 10 1 0 2 12 1}  \\\n   [list 3 1   1 1 1   1 1 1   2 2 1   8 5001 9]"
+		want := "{" + "a" + " b c d " + "e" + " " + "f" + " " + "a" + " x y} {0 2 0 1 0 1 8 1 0 0 10 1 0 2 12 1} " + "3 1 1 1 1 1 1 1 2 2 1 8 5001 9"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -202,7 +201,7 @@ func Test_fts3defer2(t *testing.T) {
 		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
 		_ = _idx0
-			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+			// sqlite3_db_config DEFENSIVE (unhandled flag)
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -214,7 +213,7 @@ func Test_fts3defer2(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list                                          \\\n    [list 2 1  1 54 54  1 3 3  54 372 8]        \\\n    [list 2 1  1 54 54  1 3 3  54 372 7]        \\"
+				want := "2 1 1 54 54 1 3 3 54 372 8" + " " + "2 1 1 54 54 1 3 3 54 372 7"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -226,7 +225,7 @@ func Test_fts3defer2(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list                                       \\\n    [list 1 2 2  1 54 54]                       \\"
+				want := "1 2 2 1 54 54"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -240,7 +239,7 @@ func Test_fts3defer2(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list                                       \\\n    [list 1 2 2  1 2 2   1 54 54]               \\\n    [list 1 2 2  1 2 2   0 54 54]               \\"
+				want := "1 2 2 1 2 2 1 54 54" + " " + "1 2 2 1 2 2 0 54 54"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -254,7 +253,7 @@ func Test_fts3defer2(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "list                                       \\\n    [list 1 2 2  1 2 2]                         \\"
+				want := "1 2 2 1 2 2"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -280,15 +279,21 @@ func Test_fts3defer2(t *testing.T) {
 			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
 			_ = _idx1
-				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+				// sqlite3_db_config DEFENSIVE (unhandled flag)
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
 				{ // "2.4." + tn
-					_res = db.Exec("\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1 1 1 4 4 11 912 6} 3 {1 1 1 4 4 11 912 6") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1 1 1 4 4 11 912 6} 3 {1 1 1 4 4 11 912 6", _res.Error, "\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
+					r = db.Query("\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 1 1 1 4 4 11 912 6 3 1 1 1 4 4 11 912 6"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
 			}

@@ -149,23 +149,23 @@ func Test_fts4unicode(t *testing.T) {
 	// do_unicode_token_test 1.11 \u01c5 0 \u01c6 \u01c5 (unsupported command, not transpiled)
 	docs = "{\n  Enhance the INSERT syntax to allow multiple rows to be inserted via the\n  VALUES clause.\n} {\n  Enhance the CREATE VIRTUAL TABLE command to support the IF NOT EXISTS clause.\n} {\n  Added the sqlite3_stricmp() interface as a counterpart to sqlite3_strnicmp().\n} {\n  Added the sqlite3_db_readonly() interface.\n} {\n  Added the SQLITE_FCNTL_PRAGMA file control, giving VFS implementations the\n  ability to add new PRAGMA statements or to override built-in PRAGMAs.  \n} {\n  Queries of the form: \"SELECT max(x), y FROM table\" returns the value of y on\n  the same row that contains the maximum x value.\n} {\n  Added support for the FTS4 languageid option.\n} {\n  Documented support for the FTS4 content option. This feature has actually\n  been in the code since version 3.7.9 but is only now considered to be\n  officially supported.  \n} {\n  Pending statements no longer block ROLLBACK. Instead, the pending statement\n  will return SQLITE_ABORT upon next access after the ROLLBACK.  \n} {\n  Improvements to the handling of CSV inputs in the command-line shell\n} {\n  Fix a bug introduced in version 3.7.10 that might cause a LEFT JOIN to be\n  incorrectly converted into an INNER JOIN if the WHERE clause indexable terms\n  connected by OR.  \n}"
 	_ = docs // suppress unused warning
-	map_a = "\"\\u00C4\" \"\\u00E4\""
+	map_a = "\"u00C4\" \"u00E4\""
 	_ = map_a // suppress unused warning
-	map_e = "\"\\u00CB\" \"\\u00EB\""
+	map_e = "\"u00CB\" \"u00EB\""
 	_ = map_e // suppress unused warning
-	map_i = "\"\\u00CF\" \"\\u00EF\""
+	map_i = "\"u00CF\" \"u00EF\""
 	_ = map_i // suppress unused warning
-	map_o = "\"\\u00D6\" \"\\u00F6\""
+	map_o = "\"u00D6\" \"u00F6\""
 	_ = map_o // suppress unused warning
-	map_u = "\"\\u00DC\" \"\\u00FC\""
+	map_u = "\"u00DC\" \"u00FC\""
 	_ = map_u // suppress unused warning
-	map_y = "\"\\u0178\" \"\\u00FF\""
+	map_y = "\"u0178\" \"u00FF\""
 	_ = map_y // suppress unused warning
-	map_h = "\"\\u1E26\" \"\\u1E27\""
+	map_h = "\"u1E26\" \"u1E27\""
 	_ = map_h // suppress unused warning
-	map_w = "\"\\u1E84\" \"\\u1E85\""
+	map_w = "\"u1E84\" \"u1E85\""
 	_ = map_w // suppress unused warning
-	map_x = "\"\\u1E8C\" \"\\u1E8D\""
+	map_x = "\"u1E8C\" \"u1E8D\""
 	_ = map_x // suppress unused warning
 	for _, k := range tclSplitList("array names map") {
 	_ = k // suppress unused warning
@@ -209,14 +209,15 @@ func Test_fts4unicode(t *testing.T) {
 			{ // do_test "2." + tn
 				q = "mapdoc $query"
 				_ = q // suppress unused warning
-				r = db.Query(" SELECT snippet(t2, '" + sqlLiteral("', '") + "', '...') FROM t2 WHERE t2 MATCH " + sqlLiteral(q) + " ")
+				r = db.Query(" SELECT snippet(t2, '[', ']', '...') FROM t2 WHERE t2 MATCH " + sqlLiteral(q) + " ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT snippet(t2, '" + sqlLiteral("', '") + "', '...') FROM t2 WHERE t2 MATCH " + sqlLiteral(q) + " ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT snippet(t2, '[', ']', '...') FROM t2 WHERE t2 MATCH " + sqlLiteral(q) + " ")
 				}
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x, y);\n  INSERT INTO t1 VALUES(NULL, 'a b c');\n")
@@ -225,9 +226,9 @@ func Test_fts4unicode(t *testing.T) {
 			}
 		}
 		{ // "3.2"
-			r = db.Query("\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "') FROM t1 WHERE t1 MATCH 'b'\n")
+			r = db.Query("\n  SELECT snippet(t1, '[', ']') FROM t1 WHERE t1 MATCH 'b'\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '" + sqlLiteral("', '") + "') FROM t1 WHERE t1 MATCH 'b'\n")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(t1, '[', ']') FROM t1 WHERE t1 MATCH 'b'\n")
 				return
 			}
 			got := flatten(r)
@@ -249,13 +250,14 @@ func Test_fts4unicode(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "{a b c} {}"
+			want := "a b c {}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "4.1"
 			a = "abcuFFFEdef"
@@ -349,8 +351,8 @@ func Test_fts4unicode(t *testing.T) {
 			// do_isspace_test 6.$T.22 $T {8200 8201 8202 8239} (unsupported command, not transpiled)
 			// do_isspace_test 6.$T.23 $T {8287 12288} (unsupported command, not transpiled)
 		}
-		// foreach {tn1 c} "1 \\ue000 2 \\ue001 3 \\uf000 4 \\uf8fe 5 \\uf8ff"
-		_items1 := tclSplitList("1 \\ue000 2 \\ue001 3 \\uf000 4 \\uf8fe 5 \\uf8ff")
+		// foreach {tn1 c} "1 ue000 2 ue001 3 uf000 4 uf8fe 5 uf8ff"
+		_items1 := tclSplitList("1 ue000 2 ue001 3 uf000 4 uf8fe 5 uf8ff")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			tn1 := _items1[_idx1+0]
 			_ = tn1 // suppress unused warning
@@ -377,9 +379,9 @@ func Test_fts4unicode(t *testing.T) {
 					}
 				}
 				{ // "8.1.1"
-					_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('xD6');\n  INSERT INTO t3 VALUES('xC4');\n  INSERT INTO t3 VALUES('xF6');\n  INSERT INTO t3 VALUES('xE4');\n")
+					_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('\xd6');\n  INSERT INTO t3 VALUES('\xc4');\n  INSERT INTO t3 VALUES('\xf6');\n  INSERT INTO t3 VALUES('\xe4');\n")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('xD6');\n  INSERT INTO t3 VALUES('xC4');\n  INSERT INTO t3 VALUES('xF6');\n  INSERT INTO t3 VALUES('xE4');\n")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(tokenize=unicode61 'remove_diacritics=1');\n  INSERT INTO t3 VALUES('o');\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('O');\n  INSERT INTO t3 VALUES('A');\n  INSERT INTO t3 VALUES('\xd6');\n  INSERT INTO t3 VALUES('\xc4');\n  INSERT INTO t3 VALUES('\xf6');\n  INSERT INTO t3 VALUES('\xe4');\n")
 					}
 				}
 				{ // "8.1.2"
@@ -436,8 +438,8 @@ func Test_fts4unicode(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				// foreach {tn sql} "1 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 " + "tokenchars= ." + ");\n    CREATE VIRTUAL TABLE t6 USING fts4(\n        tokenize=unicode61 " + "tokenchars==\"" + " \"tokenchars=" + "\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 " + "separators=x\\xC4" + ");\n  }\n  2 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 \"tokenchars= .\");\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 \"tokenchars=" + "=\"\"" + "\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 \"separators=x\\xC4\");\n  }\n  3 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 'tokenchars= .');\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 'tokenchars==\"" + "');\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 'separators=x\\xC4');\n  }\n  4 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 `tokenchars= .`);\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 `tokenchars=" + "=\"" + "`);\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 `separators=x\\xC4`);\n  }"
-				_items3 := tclSplitList("1 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 " + "tokenchars= ." + ");\n    CREATE VIRTUAL TABLE t6 USING fts4(\n        tokenize=unicode61 " + "tokenchars==\"" + " \"tokenchars=" + "\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 " + "separators=x\\xC4" + ");\n  }\n  2 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 \"tokenchars= .\");\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 \"tokenchars=" + "=\"\"" + "\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 \"separators=x\\xC4\");\n  }\n  3 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 'tokenchars= .');\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 'tokenchars==\"" + "');\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 'separators=x\\xC4');\n  }\n  4 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 `tokenchars= .`);\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 `tokenchars=" + "=\"" + "`);\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 `separators=x\\xC4`);\n  }")
+				// foreach {tn sql} "1 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 " + "tokenchars= ." + ");\n    CREATE VIRTUAL TABLE t6 USING fts4(\n        tokenize=unicode61 " + "tokenchars==\"" + " \"tokenchars=" + "\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 " + "separators=x\xc4" + ");\n  }\n  2 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 \"tokenchars= .\");\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 \"tokenchars=" + "=\"\"" + "\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 \"separators=x\xc4\");\n  }\n  3 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 'tokenchars= .');\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 'tokenchars==\"" + "');\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 'separators=x\xc4');\n  }\n  4 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 `tokenchars= .`);\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 `tokenchars=" + "=\"" + "`);\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 `separators=x\xc4`);\n  }"
+				_items3 := tclSplitList("1 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 " + "tokenchars= ." + ");\n    CREATE VIRTUAL TABLE t6 USING fts4(\n        tokenize=unicode61 " + "tokenchars==\"" + " \"tokenchars=" + "\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 " + "separators=x\xc4" + ");\n  }\n  2 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 \"tokenchars= .\");\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 \"tokenchars=" + "=\"\"" + "\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 \"separators=x\xc4\");\n  }\n  3 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 'tokenchars= .');\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 'tokenchars==\"" + "');\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 'separators=x\xc4');\n  }\n  4 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 `tokenchars= .`);\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 `tokenchars=" + "=\"" + "`);\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 `separators=x\xc4`);\n  }")
 				for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
@@ -463,19 +465,19 @@ func Test_fts4unicode(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := "four.five.six * 1 1 four.five.six 0 1 1 {one two three} * 1 1 {one two three} 0 1 1"
+							want := "four.five.six * 1 1 four.five.six 0 1 1 one two three * 1 1 one two three 0 1 1"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 						{ // "9." + tn + ".3"
-							r = db.Query("\n    CREATE VIRTUAL TABLE t6aux USING fts4aux(t6);\n    INSERT INTO t6 VALUES('alpha=beta\"gamma/delta" + sqlLiteral("epsilon") + "zeta');\n    SELECT * FROM t6aux;\n  ")
+							r = db.Query("\n    CREATE VIRTUAL TABLE t6aux USING fts4aux(t6);\n    INSERT INTO t6 VALUES('alpha=beta\"gamma/delta[epsilon]zeta');\n    SELECT * FROM t6aux;\n  ")
 							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t6aux USING fts4aux(t6);\n    INSERT INTO t6 VALUES('alpha=beta\"gamma/delta" + sqlLiteral("epsilon") + "zeta');\n    SELECT * FROM t6aux;\n  ")
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t6aux USING fts4aux(t6);\n    INSERT INTO t6 VALUES('alpha=beta\"gamma/delta[epsilon]zeta');\n    SELECT * FROM t6aux;\n  ")
 								return
 							}
 							got := flatten(r)
-							want := "\n    {alpha=beta\"gamma}   * 1 1 {alpha=beta\"gamma} 0 1 1 \n    {delta[epsilon]zeta} * 1 1 {delta[epsilon]zeta} 0 1 1\n  "
+							want := "alpha=beta\"gamma * 1 1 alpha=beta\"gamma 0 1 1 delta[epsilon]zeta * 1 1 delta[epsilon]zeta 0 1 1"
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}

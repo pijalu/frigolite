@@ -7,6 +7,7 @@ package triggerE
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -83,26 +84,26 @@ func Test_triggerE(t *testing.T) {
 			_ = _res // catchsql
 			{ // "1.1." + tn
 				_res = db.Exec("CREATE TRIGGER tr1 " + defn)
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER tr1 " + defn)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), errmsg) {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", errmsg, _res.Error, "CREATE TRIGGER tr1 " + defn)
 				}
 			}
 			{ // "1.2." + tn
 				_res = db.Exec("CREATE TEMP TRIGGER tr1 " + defn)
-				if _res.Error != nil {
-					t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "CREATE TEMP TRIGGER tr1 " + defn)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), errmsg) {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", errmsg, _res.Error, "CREATE TEMP TRIGGER tr1 " + defn)
 				}
 			}
 		}
-		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		{ // "2.1"
 			r = db.Query("\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
 			}
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "2.2.1"
 			r = db.Query("\n  INSERT INTO t1 VALUES(1, 2);\n  SELECT * FROM t2;\n")
@@ -148,11 +149,13 @@ func Test_triggerE(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		db.Close()
 		// sqlite3_shutdown (unsupported command, not transpiled)
 		// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
 		// sqlite3_initialize (unsupported command, not transpiled)
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			_res = db.Exec("\n    CREATE TABLE t1(a);\n    CREATE VIRTUAL TABLE rr USING rtree(id, a, b);\n    CREATE TRIGGER r1 AFTER DELETE ON t1 BEGIN\n      SELECT a FROM t1 NATURAL LEFT JOIN rr;\n    END;\n    DELETE FROM t1;\n  ")

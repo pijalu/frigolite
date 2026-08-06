@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -117,6 +118,9 @@ func Test_bigrow(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), big1) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", big1, _res.Error, "bigrow-1.3")
+		}
 	}
 	{ // do_test "bigrow-1.4"
 		big2 = tclStringRange(bigstr, "0", "65520") // TCL namespace variable
@@ -210,6 +214,9 @@ func Test_bigrow(t *testing.T) {
 		r = db.Query("SELECT b FROM t1 WHERE a=='abc'")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='abc'")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), big1) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", big1, _res.Error, "bigrow-2.2")
 		}
 	}
 	{ // do_test "bigrow-2.3"
@@ -404,7 +411,7 @@ func Test_bigrow(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "list $v"
+			want := tclListFlatten(v)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

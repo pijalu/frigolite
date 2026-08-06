@@ -181,7 +181,8 @@ func Test_alterdropcol(t *testing.T) {
 			// eval (dynamic, not transpiled)
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t12(a, b, c, CHECK(c>10));\n  CREATE TABLE t13(a, b, c CHECK(c>10));\n")
@@ -212,7 +213,8 @@ func Test_alterdropcol(t *testing.T) {
 			_ = vs // suppress unused warning
 			_ = _idx1
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "4." + tn + ".0"
 					_res = db.Exec("\n    CREATE TABLE 'my table'(a, b PRIMARY KEY, c AS (a+b) " + vs + ", d) " + wo + "\n  ")
@@ -306,7 +308,8 @@ func Test_alterdropcol(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "5.0"
 				_res = db.Exec("\n  CREATE TABLE p1(a PRIMARY KEY, b UNIQUE);\n  CREATE TABLE c1(x, y, z REFERENCES p1(c));\n  CREATE TABLE c2(x, y, z, w REFERENCES p1(b));\n")
@@ -321,7 +324,7 @@ func Test_alterdropcol(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "{CREATE TABLE c1(x, y)} {CREATE TABLE c2(x, y, w REFERENCES p1(b))}"
+				want := "CREATE TABLE c1(x, y) CREATE TABLE c2(x, y, w REFERENCES p1(b))"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -375,7 +378,8 @@ func Test_alterdropcol(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(x,y,z);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET sql='CREATE INDEX t1b ON t1(b)' WHERE name='t2';\n  PRAGMA writable_schema=OFF;\n  ALTER TABLE t2 DROP COLUMN z;\n")
@@ -384,7 +388,8 @@ func Test_alterdropcol(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "6.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(x,y,z);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET sql='CREATE VIEW t2(x,y,z) AS SELECT b,a,c FROM t1'\n   WHERE name='t2';\n  PRAGMA writable_schema=OFF;\n  ALTER TABLE t2 DROP COLUMN z;\n")
@@ -393,7 +398,8 @@ func Test_alterdropcol(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "7.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
@@ -432,7 +438,8 @@ func Test_alterdropcol(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "8.0"
 				r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'\n")
@@ -440,8 +447,8 @@ func Test_alterdropcol(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'\n")
 				}
 			}
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "8.1"
 				_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN b;                \n")
@@ -462,15 +469,16 @@ func Test_alterdropcol(t *testing.T) {
 				}
 			}
 			// foreach {tn wo} "1 {}\n  2 {WITHOUT ROWID}"
-			_items3 := tclSplitList("1 {}\n  2 {WITHOUT ROWID}")
-			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-				tn := _items3[_idx3+0]
+			_items2 := tclSplitList("1 {}\n  2 {WITHOUT ROWID}")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				wo := _items3[_idx3+1]
+				wo := _items2[_idx2+1]
 				_ = wo // suppress unused warning
-				_ = _idx3
+				_ = _idx2
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "9." + tn + ".0"
 						_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c) " + wo + ";\n  ")

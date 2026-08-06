@@ -192,7 +192,8 @@ func Test_having(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "5.0"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n")

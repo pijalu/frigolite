@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -101,6 +102,9 @@ func Test_join3(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", result, _res.Error, "join3-1." + N)
+			}
 		}
 		// incr N 1
 		{
@@ -150,6 +154,9 @@ func Test_join3(t *testing.T) {
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), result) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", result, _res.Error, "join3-2." + N)
 			}
 		}
 		// incr N 1

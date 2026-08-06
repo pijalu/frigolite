@@ -85,6 +85,7 @@ func Test_shell1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -115,7 +116,7 @@ func Test_shell1(t *testing.T) {
 		_ = res // suppress unused warning
 		rc = tclLIndex(res, "0")
 		_ = rc // suppress unused warning
-		_list := tclList([]string{rc, "regexp {Usage} $res", "regexp {\\-init} $res", "regexp {\\-version} $res"})
+		_list := tclList([]string{rc, "regexp {Usage} $res", "regexp {-init} $res", "regexp {-version} $res"})
 		_ = _list
 	}
 	os.Remove("FOO")
@@ -549,7 +550,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test.db .separator FOO BAD BAD2 (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.23.1"
-		res = "catchcmd \"test.db\" \".mode batch\\n.show\""
+		res = "catchcmd \"test.db\" \".mode batch\n.show\""
 		_ = res // suppress unused warning
 		_list := tclList([]string{"regexp {echo:} $res", "regexp {explain:} $res", "regexp {headers:} $res", "regexp {mode:} $res", "regexp {nullvalue:} $res", "regexp {output:} $res", "regexp {colseparator:} $res", "regexp {rowseparator:} $res", "regexp {stats:} $res", "regexp {width:} $res"})
 		_ = _list
@@ -633,6 +634,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd {test.db} {.print "this\nis\ta\\test" 'this\nis\ta\\test'} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -646,6 +648,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test.db {.dump --preserve-rowids} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.2"
+		db.Close()
 		os.Remove("test2.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -656,6 +659,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.3"
+		db.Close()
 		os.Remove("test2.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -666,6 +670,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.4"
+		db.Close()
 		os.Remove("test2.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -676,6 +681,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.5"
+		db.Close()
 		os.Remove("test2.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -686,6 +692,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test2.db {.dump --preserve-rowids} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.7"
+		db.Close()
 		os.Remove("test2.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -696,6 +703,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test2.db {.dump} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.8"
+		db.Close()
 		os.Remove("test2.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -706,6 +714,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test2.db {.dump} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.9"
+		db.Close()
 		os.Remove("test2.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -728,6 +737,7 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test.db .mode insert t3\n.headers on\nselect * from t3; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.3"
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -748,11 +758,11 @@ func Test_shell1(t *testing.T) {
 		// catchcmd test.db .mode tcl\n.nullvalue NULL\nselect * from t2; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.6"
-		_res = db.Exec("\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('" + sqlLiteral("'), ('") + "'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
+		_res = db.Exec("\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('['), (']'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('" + sqlLiteral("'), ('") + "'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('['), (']'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
 		}
-		// foreach x,y "catchcmd test.db \".mode tcl\\nselect * from tcl1;\"" (no body)
+		// foreach x,y "catchcmd test.db \".mode tcl\nselect * from tcl1;\"" (no body)
 		_list := tclList([]string{x, y, "llength $y"})
 		_ = _list
 	}
@@ -786,22 +796,22 @@ func Test_shell1(t *testing.T) {
 				}
 				hex = "format %02X $i"
 				_ = hex // suppress unused warning
-				char = "\\\\x" + hex
+				char = "\\x" + hex
 				_ = char // suppress unused warning
 				oldChar = char
 				_ = oldChar // suppress unused warning
 				escapes = ""
 				_ = escapes // suppress unused warning
 				if tcl_platform_platform == "windows" {
-					escapes = "\\a \\\\a \\b \\\\b \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\r \\\\r            \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
+					escapes = "\a \\a \b \\b \t \\t \n \\n \v \\v \f \\f \r \\r            \" \" \"\" \"\" \" \\\" \\ \\\\"
 					_ = escapes // suppress unused warning
 				} else {
-					escapes = "\\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f            \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
+					escapes = "\t \\t \n \\n \v \\v \f \\f            \" \" \"\" \"\" \" \\\" \\ \\\\"
 					_ = escapes // suppress unused warning
 				}
 				char = ""
 				_ = char // suppress unused warning
-				x = "catchcmdex test.db \".print \\\"$char\\\"\\n\""
+				x = "catchcmdex test.db \".print \"$char\"\n\""
 				_ = x // suppress unused warning
 				code = tclLIndex(x, "0")
 				_ = code // suppress unused warning
@@ -831,7 +841,7 @@ func Test_shell1(t *testing.T) {
 		}
 	}
 	if false {
-		test = "\\u6D4B\\u8BD5"
+		test = "u6D4Bu8BD5"
 		_ = test // suppress unused warning
 		{ // do_test "shell1-6.0"
 			fileName = test
@@ -842,7 +852,7 @@ func Test_shell1(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove(fileName)
 			}
-			x = "catchcmdex $fileName \"CREATE TABLE t1(x);\\n.schema\\n\""
+			x = "catchcmdex $fileName \"CREATE TABLE t1(x);\n.schema\n\""
 			_ = x // suppress unused warning
 			code = tclLIndex(x, "0")
 			_ = code // suppress unused warning
@@ -865,7 +875,7 @@ func Test_shell1(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove("test3.db")
 			}
-			x = "catchcmdex test3.db \\\n      \"CREATE TABLE [encoding convertto utf-8 $test](x);\\n.schema\\n\""
+			x = "catchcmdex test3.db       \"CREATE TABLE [encoding convertto utf-8 $test](x);\n.schema\n\""
 			_ = x // suppress unused warning
 			code = tclLIndex(x, "0")
 			_ = code // suppress unused warning
@@ -880,6 +890,7 @@ func Test_shell1(t *testing.T) {
 			os.Remove("test3.db")
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

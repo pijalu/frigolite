@@ -84,6 +84,7 @@ func Test_memsubsys1(t *testing.T) {
 	// proc definition (not transpiled)
 	xtra_size = "290"
 	_ = xtra_size // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
 	// sqlite3_config_pagecache 0 0 (unsupported command, not transpiled)
@@ -100,6 +101,7 @@ func Test_memsubsys1(t *testing.T) {
 	}
 	max_pagecache = tclLIndex("sqlite3_status", "SQLITE_STATUS_PAGECACHE_OVERFLOW")
 	_ = max_pagecache // suppress unused warning
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pagecache [expr 1024+$xtra_size] 20 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
@@ -115,6 +117,7 @@ func Test_memsubsys1(t *testing.T) {
 		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
 		_ = s_used // suppress unused warning
 	}
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pagecache [expr 512+$xtra_size] 20 (unsupported command, not transpiled)
 	// sqlite3_config singlethread (unsupported command, not transpiled)
@@ -134,6 +137,7 @@ func Test_memsubsys1(t *testing.T) {
 		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
 		_ = s_used // suppress unused warning
 	}
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pagecache [expr 2048+$xtra_size] 20 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
@@ -159,6 +163,7 @@ func Test_memsubsys1(t *testing.T) {
 		s_used = tclLIndex("sqlite3_status", "SQLITE_STATUS_SCRATCH_USED")
 		_ = s_used // suppress unused warning
 	}
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_pagecache [expr 1024+$xtra_size] 50 (unsupported command, not transpiled)
 	// sqlite3_initialize (unsupported command, not transpiled)
@@ -178,6 +183,7 @@ func Test_memsubsys1(t *testing.T) {
 		_ = maxreq // suppress unused warning
 		// expr $maxreq<9000 (not evaluated)
 	}
+	db.Close()
 	// sqlite3_shutdown (unsupported command, not transpiled)
 	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
 	// sqlite3_config_lookaside 100 500 (unsupported command, not transpiled)

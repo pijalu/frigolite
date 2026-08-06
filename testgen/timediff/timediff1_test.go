@@ -133,7 +133,7 @@ func Test_timediff1(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "list $r1"
+						want := tclListFlatten(r1)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -147,7 +147,7 @@ func Test_timediff1(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := "list $r2"
+						want := tclListFlatten(r2)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -203,7 +203,7 @@ func Test_timediff1(t *testing.T) {
 									return
 								}
 								got := flatten(r)
-								want := "list $r1"
+								want := tclListFlatten(r1)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
@@ -217,7 +217,7 @@ func Test_timediff1(t *testing.T) {
 									return
 								}
 								got := flatten(r)
-								want := "list $r2"
+								want := tclListFlatten(r2)
 								if got != want {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}

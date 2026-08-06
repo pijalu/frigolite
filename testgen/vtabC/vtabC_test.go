@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -69,6 +70,7 @@ func Test_vtabC(t *testing.T) {
 	N = "1"
 	_ = N // suppress unused warning
 	for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return N_n <= 20 }() {
+		db.Close()
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -105,6 +107,9 @@ func Test_vtabC(t *testing.T) {
 			r = db.Query("SELECT name FROM sqlite_master")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master")
+			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), tablist) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", tablist, _res.Error, "vtabC-1." + N + ".2")
 			}
 		}
 		{ // do_test "vtabC-1." + N + ".3"
@@ -221,11 +226,17 @@ func Test_vtabC(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t" + j)
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "vtabC-1." + N + ".9." + j)
+				}
 			}
 			{ // do_test "vtabC-1." + N + ".10." + j
 				r = db.Query("SELECT * FROM vt" + j)
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM vt" + j)
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "vtabC-1." + N + ".10." + j)
 				}
 			}
 			// incr j 1

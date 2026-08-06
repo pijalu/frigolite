@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -162,6 +163,9 @@ func Test_wal3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM t1 WHERE rowid = " + sqlLiteral(i) + " ")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), str) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", str, _res.Error, "wal3-1." + i + ".3")
+			}
 		}
 		{ // do_test "wal3-1." + i + ".4"
 			r = db2.Query(" PRAGMA integrity_check ")
@@ -186,6 +190,9 @@ func Test_wal3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT x FROM t1 WHERE rowid = " + sqlLiteral(i) + " ")
 			}
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), str) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", str, _res.Error, "wal3-1." + i + ".6")
+			}
 		}
 		{ // do_test "wal3-1." + i + ".7"
 			r = db2.Query(" PRAGMA integrity_check ")
@@ -207,6 +214,7 @@ func Test_wal3(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// foreach {tn syncmode synccount} "1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}"
 	_items0 := tclSplitList("1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}")
@@ -242,7 +250,7 @@ func Test_wal3(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE filler(a,b,c); ")
 				}
-				syncs = "list" // TCL namespace variable
+				syncs = "" // TCL namespace variable
 				_ = syncs // suppress unused warning
 				// T filter xSync (unsupported command, not transpiled)
 				r = db.Query("\n      CREATE TABLE x(y);\n      INSERT INTO x VALUES('z');\n      PRAGMA wal_checkpoint;\n    ")
@@ -251,7 +259,11 @@ func Test_wal3(t *testing.T) {
 				}
 				// T filter {} (unsupported command, not transpiled)
 				_ = syncs // TCL namespace variable (query)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), synccount) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", synccount, _res.Error, "wal3-3." + tn)
+				}
 			}
+			db.Close()
 			// T delete (unsupported command, not transpiled)
 		}
 		{ // do_test "wal3-5.1"
@@ -285,6 +297,7 @@ func Test_wal3(t *testing.T) {
 			_list := tclList([]string{testrc, testmsg})
 			_ = _list
 		}
+		db.Close()
 		// T filter xShmBarrier (unsupported command, not transpiled)
 		barrier_count = "0"
 		_ = barrier_count // suppress unused warning
@@ -305,10 +318,12 @@ func Test_wal3(t *testing.T) {
 			_list := tclList([]string{testrc, testmsg})
 			_ = _list
 		}
+		db.Close()
 		// T delete (unsupported command, not transpiled)
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		// testvfs T -default 1 (unsupported command, not transpiled)
 		{ // do_test "wal3-6.1.1"
@@ -393,6 +408,7 @@ func Test_wal3(t *testing.T) {
 		}
 		db3.Close()
 		db2.Close()
+		db.Close()
 		{ // do_test "wal3-6.2.1"
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
@@ -453,10 +469,12 @@ func Test_wal3(t *testing.T) {
 			// expr $sz2 == $sz1 (not evaluated)
 		}
 		db2.Close()
+		db.Close()
 		// T delete (unsupported command, not transpiled)
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		// testvfs T -default 1 (unsupported command, not transpiled)
 		{ // do_test "wal3-7.1.1"
@@ -480,7 +498,7 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		// T filter xShmLock (unsupported command, not transpiled)
-		locks = "list" // TCL namespace variable
+		locks = "" // TCL namespace variable
 		_ = locks // suppress unused warning
 		// proc definition (not transpiled)
 		{ // do_test "wal3-7.1.3"
@@ -492,7 +510,7 @@ func Test_wal3(t *testing.T) {
 		{ // do_test "wal3-7.1.4"
 			_ = locks // TCL namespace variable (query)
 		}
-		locks = "list" // TCL namespace variable
+		locks = "" // TCL namespace variable
 		_ = locks // suppress unused warning
 		// proc definition (not transpiled)
 		{ // do_test "wal3-7.2.1"
@@ -504,6 +522,7 @@ func Test_wal3(t *testing.T) {
 		{ // do_test "wal3-7.2.2"
 			_ = locks // TCL namespace variable (query)
 		}
+		db.Close()
 		db2.Close()
 		// T delete (unsupported command, not transpiled)
 		nConn = "50"
@@ -537,6 +556,9 @@ func Test_wal3(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      SELECT * FROM whoami\n    ")
 				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), c) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", c, _res.Error, "wal3-9.1." + i)
+				}
 			}
 			// incr i 1
 			{
@@ -555,6 +577,9 @@ func Test_wal3(t *testing.T) {
 				r = c.Query(" SELECT * FROM whoami ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM whoami ")
+				}
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), c) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", c, _res.Error, "wal3-9.2." + i)
 				}
 			}
 			// incr i 1

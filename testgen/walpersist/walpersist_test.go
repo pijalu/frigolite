@@ -69,6 +69,7 @@ func Test_walpersist(t *testing.T) {
 		// file exists "test.db-shm"
 	}
 	{ // do_test "walpersist-1.2"
+		db.Close()
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
 		_ = _list
 	}
@@ -104,6 +105,7 @@ func Test_walpersist(t *testing.T) {
 		// file_control_persist_wal db 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "walpersist-1.11"
+		db.Close()
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
 		_ = _list
 	}
@@ -120,6 +122,7 @@ func Test_walpersist(t *testing.T) {
 	}
 	{ // do_test "walpersist-2.2"
 		// file_control_persist_wal db 1 (unsupported command, not transpiled)
+		db.Close()
 		_r_tcl := append([]string{}, tclSplitList("file exists test.db-wal")...)
 		_r_tcl = append(_r_tcl, tclSplitList("file size test.db-wal")...)
 		_r_tcl_str := tclList(_r_tcl)
@@ -139,6 +142,7 @@ func Test_walpersist(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
+			db.Close()
 		}
 		os.Remove("test.db")
 		db, err = frigolite.Open("")
@@ -165,6 +169,7 @@ func Test_walpersist(t *testing.T) {
 			}
 		}
 		// file_control_persist_wal db 1 (unsupported command, not transpiled)
+		db.Close()
 	}
 	{ // do_test "walpersist-3.3"
 		// file size test.db-wal
@@ -179,7 +184,8 @@ func Test_walpersist(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.1"
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n  ")

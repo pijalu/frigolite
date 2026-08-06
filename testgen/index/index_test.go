@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -87,8 +88,8 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-1.1c"
-		_dbtmp0, err := frigolite.Open("test.db")
-		_ = _dbtmp0 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'")
 		if r.Error != nil {
@@ -96,8 +97,8 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-1.1d"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		if r.Error != nil {
@@ -212,6 +213,9 @@ func Test_index(t *testing.T) {
 		r = db.Query("SELECT name FROM sqlite_master \n           WHERE type='index' AND tbl_name='test1'\n           ORDER BY name")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master \n           WHERE type='index' AND tbl_name='test1'\n           ORDER BY name")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), _r) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", _r, _res.Error, "index-3.1")
 		}
 	}
 	_res = db.Exec("PRAGMA integrity_check")
@@ -876,7 +880,7 @@ func Test_index(t *testing.T) {
 		_res = db.Exec("\n    CREATE TABLE sqlite_t1(a, b, c);\n  ")
 		_ = _res // catchsql
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // do_test "index-18.2"
 		_res = db.Exec("\n    CREATE INDEX sqlite_i1 ON t7(c);\n  ")
 		_ = _res // catchsql

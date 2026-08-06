@@ -91,7 +91,7 @@ func Test_fts3corrupt4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "1.2"
 		_res = db.Exec("\n  UPDATE ft_segdir SET root = blob(\n    '0005616261636B03010200 FFFFFFFF0702 66740302020003046E646F6E03030200'\n  );\n")
 		if _res.Error != nil {
@@ -105,7 +105,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');\n")
@@ -158,7 +159,7 @@ func Test_fts3corrupt4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "2.3.1"
 		_res = db.Exec("\n  UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 FFFFFFFF07FF55 66740302020003046E646F6E03030200')\n    WHERE blockid=2;\n")
 		if _res.Error != nil {
@@ -196,7 +197,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');\n")
@@ -241,7 +243,7 @@ func Test_fts3corrupt4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "3.2"
 		_res = db.Exec("\n  UPDATE ft_segdir \n  SET root = blob('0101056162633132FFFFFFFF070236030132030136');\n")
 		if _res.Error != nil {
@@ -255,7 +257,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3();\n  INSERT INTO t1 VALUES('one two three');\n  UPDATE t1_segdir SET start_block = 1;\n")
@@ -288,7 +291,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "5.0"
 		db, err = frigolite.Open("")
@@ -301,7 +305,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "6.0"
@@ -323,7 +328,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "7.0"
 		db, err = frigolite.Open("")
@@ -546,7 +552,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "8.0"
 		db, err = frigolite.Open("")
@@ -679,7 +686,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "9.0"
 		db, err = frigolite.Open("")
@@ -698,16 +706,17 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "10.0"
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "10.1"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('" + sqlLiteral("%,d") + "',x*-5844627) FROM c;\n")
+		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;\n")
 		if _res.Error != nil {
-			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('" + sqlLiteral("%,d") + "',x*-5844627) FROM c;\n")
+			t.Errorf("expected success, got error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;\n")
 		}
 	}
 	{ // "10.3"
@@ -717,7 +726,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "11.0"
 		db, err = frigolite.Open("")
@@ -730,7 +740,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "12.0"
 		db, err = frigolite.Open("")
@@ -743,7 +754,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "13.0"
 		db, err = frigolite.Open("")
@@ -756,7 +768,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "14.0"
 		db, err = frigolite.Open("")
@@ -775,7 +788,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "15.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, content=\"\");\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 665',X'000261640303040002086970697363696e670301080001056c6971756103020c00050269700304040001036d65740301060001036e6a6d03080900010375746503050300000663696c6c756d0306020001066f6d6d6f646f0304070002096e736563746574757203010700050471756174030408000104756c7061030804000207706964617461740307050000086465736572756e740308070001016f0302030002036c6f720601040004050005016506020a00040300010375697303050200000265610304060001066975736d6f640302040001036c69740301090001036e696d13030300010373736503050b0002017403080b0001017403020900010175030604000101780304050002076365707465757203070100020a65726369746174696f6e030309000006667567696174030605000002696403080a0001016e070506040003030002086369646964756e740302060001047073756d030103000104727572650305040000066c61626f7265030208000502697303030b000502756d03080c0001046f72656d0301020000056d61676e6103020b000104696e696d0303050001056f6c6c69740308080000046e6973690304020001026f6e0307060002057374727564030308000104756c6c610306060000086f636361656361740307040001066666696369610308060000087061726961747572030607000107726f6964656e740307070000037175690308050003017303030700000d726570726568656e6465726974030507000003736564030202000103696e7403070300020174030105000103756e7403080200000674656d706f72030205000007756c6c616d636f03030a0001017409020700010200010300000576656c697403050a0002046e69616d0303060001086f6c75707461746503050900');\n")
@@ -796,7 +810,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "16.0"
 		db, err = frigolite.Open("")
@@ -809,7 +824,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "17.0"
 		db, err = frigolite.Open("")
@@ -834,7 +850,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "18.0"
 		db, err = frigolite.Open("")
@@ -847,7 +864,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "19.0"
 		db, err = frigolite.Open("")
@@ -860,7 +878,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "20.0"
 		db, err = frigolite.Open("")
@@ -879,7 +898,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "21.0"
 		db, err = frigolite.Open("")
@@ -892,7 +912,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "22.0"
 		db, err = frigolite.Open("")
@@ -905,7 +926,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "23.0"
 		db, err = frigolite.Open("")
@@ -918,7 +940,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "24.0"
 		db, err = frigolite.Open("")
@@ -961,7 +984,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "25.0"
 		db, err = frigolite.Open("")
@@ -1026,7 +1050,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "26.0"
 		db, err = frigolite.Open("")
@@ -1045,7 +1070,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "27.0"
 		db, err = frigolite.Open("")
@@ -1225,7 +1251,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "28.0"
 		db, err = frigolite.Open("")
@@ -1280,7 +1307,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "29.0"
 		db, err = frigolite.Open("")
@@ -1293,7 +1321,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "30.0"
 		db, err = frigolite.Open("")
@@ -1312,7 +1341,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "31.0"
 		_res = db.Exec("\nCREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\nINSERT INTO t1_segdir VALUES(0,0,0,0,'0 592',X'00016dcb048ce6fbd3b2d68bfebf0101020200808080808080808020010202008080808080808080100102020080808080808080800801020200808080808080808004010202008080808080808080020102020080808080808080800101020200808080808080804001020200808080808080802001020200808080808080801001020200808080808080800801020200808080808080800401020200808080808080800201020200808080808080800101020200808080808080400102020080808080808020010202008080808080801001020200808080808080080102020080808080808004010202008080808080800201020200808080808080010102020080808080804001020200808080808020010202008080808080100102020080808080800801020200808080808004010202008080808080020102020080808080800101020200808080804001020200808080802001020200808080801001020200808080800801020200808080800401020200808080800201020200808080800101020200808080400102020080808020010202008080801001020200808080080102020080808004010202008080800201020200808080010102020080804001020200808020010202008080100102020080800801020200808004010202008080020102020080800101020200804001020200802001020200801001020200800801020200800401020200800201020200800101020200400102020020010202001001020200080102020004010202000201020200010102020001010202008080808080808080800101020200');\nINSERT INTO t1_segdir VALUES(0,1,0,0,'0 18',X'00026d6d0d8ee6fbd3b2d68bfe7f01020200');\n")
@@ -1327,7 +1357,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "32.0"
 		db, err = frigolite.Open("")
@@ -1340,7 +1371,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "33.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE f USING fts3(a,b,tokenize=icu);\n    CREATE TABLE 'f_docsize'(docid INTEGER PRIMARY KEY, size BLOB);\n    CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n    INSERT INTO f VALUES (1, '1234');\n    INSERT INTO f_stat VALUES (1,x'0000000165656565db6569746565c5c52bc5c5c53e3a003bc502ffffffffc5c5c53e3a003bc502fffffffffb8b2afbfb6565f0740100650000000165656565db6569746565c5c52bc5c5c53e3a003bc502ffffffffc5c5c53e3a003b8b00c5c5c5c5c5bfc5');\n    INSERT INTO f(f) VALUES ('merge=198,49');\n  ")
@@ -1349,7 +1381,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "34.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f VALUES (1, '1234');\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'00');\n  UPDATE f_segdir SET level = 0 WHERE level IN (\n    SELECT level FROM f_segdir LIMIT 1 OFFSET 1\n  );\n  INSERT INTO f_segdir VALUES (255,249,0,121,'0 0',x'00');\n  INSERT INTO f_content VALUES (255,0,x'ff');\n  INSERT INTO f_segdir VALUES (1,255,16,0,'1 255',x'00');\n")
@@ -1364,7 +1397,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "35.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'0001ff000001ff000001ff000001ff000001ff00c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5bec5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5');\n")
@@ -1391,7 +1425,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "36.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,tokenize=porter);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f VALUES (1);\n  INSERT INTO f_stat VALUES (1,x'00000000000101010119013d00ffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a601f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a69201f63d010101f63d01010101010101010101010119013d00ffffff0400fa83717b71a6929797010101010101010101010119013d00ffff01f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d00fa03ffffffa69297979701f63d010101000000000101010101197e9797976567656565ffa63535354e');\n  INSERT INTO f(f) VALUES ('merge=53,216');\n")
@@ -1400,7 +1435,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "36.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_stat VALUES (1,x'11014101000101c5c5014b010164c5014b010101c50101c5c5010201010101014101000101c5c5014b010101c5014b010101c50101c5c501010100c50101c5c5010101010101e40201010101014101000201010101014101000101010201010101014101000101c5c503b5fefefe3afeffffc5c5c5c50101010101010201010101014101adadadadadadadadadadadad91adadadadadadadad0101c50101c5c501f9ffffffffffffffff0001010102010101010140f5000101c5c5014b010101c50101c5c501010101e6010201010101014101000101c5c5014b010101c50101c5c5010101114b0101c5c50101010a0101020101e60101');\n")
@@ -1415,7 +1451,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "37.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (28,0,0,0,'0 0',x'00');\n  INSERT INTO f_segdir VALUES (0,241,0,0,'0 0',x'0001000030310000f1');\n")
@@ -1430,7 +1467,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "38.0"
 		db, err = frigolite.Open("")
@@ -1519,7 +1557,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	saved = sqlite_fts3_enable_parentheses
 	_ = saved // suppress unused warning
@@ -1550,7 +1589,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	sqlite_fts3_enable_parentheses = saved
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	saved = sqlite_fts3_enable_parentheses
 	_ = saved // suppress unused warning
@@ -1577,7 +1617,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	sqlite_fts3_enable_parentheses = saved
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "41.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 835',X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000008636f3870696c657209010200010200010200000664627374617409070300010300010300010465627567090402000102000102000006656e61626c653f07020001020001020001020001020001020001020001020001020001030001010002020001020001020001020001120001020001020001020001020001020001087874656e73696f6e091f0400010400010400000466747334090a0300010300010400030135090d03000103000103000003676363090103000103000103000106656f706f6c790910030001030001030000056a736f6e310913030001030001030000046c6f6164091f030001030001030000036d6178091c02000102000102000105656d6f7279091c03000103000103000304737973350916030001030001030000066e6f636173653c02010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020000046f6d6974091f020001020001020000057274726565091903000103000103000302696d3c010102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200000a746872656164736166650922020001020001020000047674616209070400010400010400000178b401010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200');\n")
@@ -1610,7 +1651,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	saved = sqlite_fts3_enable_parentheses
 	_ = saved // suppress unused warning
@@ -1637,7 +1679,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	sqlite_fts3_enable_parentheses = saved
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "44.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'00013103010200010332333405010201ba00000461616161050101020200000462626262050101030200');\n")
@@ -1658,7 +1701,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "45.0"
 		db, err = frigolite.Open("")
@@ -1671,7 +1715,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	saved = sqlite_fts3_enable_parentheses
 	_ = saved // suppress unused warning
@@ -1693,7 +1738,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// extra_schema_checks 1 (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "47.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n")
@@ -1714,7 +1760,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "48.0"
 		db, err = frigolite.Open("")
@@ -1758,7 +1805,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "49.0"
 		db, err = frigolite.Open("")
@@ -1771,7 +1819,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "50.0"
 		db, err = frigolite.Open("")
@@ -1790,7 +1839,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "51.0"
 		db, err = frigolite.Open("")
@@ -1813,7 +1863,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "52.0"
 		db, err = frigolite.Open("")
@@ -1826,7 +1877,8 @@ func Test_fts3corrupt4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "53.0"
 		db, err = frigolite.Open("")
@@ -1839,7 +1891,7 @@ func Test_fts3corrupt4(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "0 {ATE 2:P}"
+		want := "0 ATE 2:P"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -1847,7 +1899,8 @@ func Test_fts3corrupt4(t *testing.T) {
 	sqlite_fts3_enable_parentheses = saved
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "54.0"
 		db, err = frigolite.Open("")

@@ -62,6 +62,7 @@ func Test_shared6(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);\n    CREATE TABLE t3(e, f);\n  ")
 		}
+		db.Close()
 	}
 	{ // do_test "shared6-1.1.2"
 		enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable

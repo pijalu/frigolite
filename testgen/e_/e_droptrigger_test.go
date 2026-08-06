@@ -7,6 +7,7 @@ package e_
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -104,6 +105,9 @@ func Test_e_droptrigger(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO " + tbl + " VALUES('1', '2') ")
 				}
 				_ = triggers_fired // TCL namespace variable (query)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), before) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", before, _res.Error, "2." + tn + ".1")
+				}
 			}
 			{ // do_test "2." + tn + ".2"
 				// droptrigger_reopen_db (unsupported command, not transpiled)
@@ -116,6 +120,9 @@ func Test_e_droptrigger(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO " + tbl + " VALUES('1', '2') ")
 				}
 				_ = triggers_fired // TCL namespace variable (query)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), after) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", after, _res.Error, "2." + tn + ".2")
+				}
 			}
 		}
 		// foreach {tn tbl droptrigger before after} "1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}"
@@ -139,6 +146,9 @@ func Test_e_droptrigger(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + tbl + " SET a = 'abc'")
 					}
 					_ = triggers_fired // TCL namespace variable (query)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), before) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", before, _res.Error, "3.1." + tn + ".1")
+					}
 				}
 				{ // do_test "3.1." + tn + ".2"
 					// droptrigger_reopen_db UPDATE (unsupported command, not transpiled)
@@ -151,6 +161,9 @@ func Test_e_droptrigger(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + tbl + " SET a = 'abc'")
 					}
 					_ = triggers_fired // TCL namespace variable (query)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), after) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", after, _res.Error, "3.1." + tn + ".2")
+					}
 				}
 			}
 			// foreach {tn tbl droptrigger before after} "1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}"
@@ -174,6 +187,9 @@ func Test_e_droptrigger(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM " + tbl)
 						}
 						_ = triggers_fired // TCL namespace variable (query)
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), before) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", before, _res.Error, "3.2." + tn + ".1")
+						}
 					}
 					{ // do_test "3.2." + tn + ".2"
 						// droptrigger_reopen_db DELETE (unsupported command, not transpiled)
@@ -186,6 +202,9 @@ func Test_e_droptrigger(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM " + tbl)
 						}
 						_ = triggers_fired // TCL namespace variable (query)
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), after) {
+							t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", after, _res.Error, "3.2." + tn + ".2")
+						}
 					}
 				}
 				{ // do_test "4.1"

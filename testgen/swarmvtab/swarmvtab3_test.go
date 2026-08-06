@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -167,6 +168,9 @@ func Test_swarmvtab3(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".3"
 				// check_dbcache (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), nMaxOpen) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nMaxOpen, _res.Error, "1." + tn + ".3")
+				}
 			}
 			{ // "1." + tn + ".4"
 				r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
@@ -182,6 +186,9 @@ func Test_swarmvtab3(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".5"
 				// check_dbcache (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), nMaxOpen) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nMaxOpen, _res.Error, "1." + tn + ".5")
+				}
 			}
 		}
 		_res = db.Exec(" DROP TABLE IF EXISTS s ")
@@ -287,6 +294,9 @@ func Test_swarmvtab3(t *testing.T) {
 				}
 				{ // do_test "3." + tn + ".3"
 					// check_dbcache (unsupported command, not transpiled)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), nMaxOpen) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nMaxOpen, _res.Error, "3." + tn + ".3")
+					}
 				}
 				{ // "3." + tn + ".4"
 					r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
@@ -302,8 +312,12 @@ func Test_swarmvtab3(t *testing.T) {
 				}
 				{ // do_test "3." + tn + ".5"
 					// check_dbcache (unsupported command, not transpiled)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), nMaxOpen) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", nMaxOpen, _res.Error, "3." + tn + ".5")
+					}
 				}
 			}
+			db.Close()
 			os.Remove("*")
 			os.Remove("*")
 }

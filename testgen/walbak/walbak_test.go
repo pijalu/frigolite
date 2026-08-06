@@ -138,9 +138,9 @@ func Test_walbak(t *testing.T) {
 		_ = _list
 	}
 	// proc definition (not transpiled)
+	db.Close()
 	// delete_file test.db (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbak-2.1"
 		r = db.Query(" PRAGMA journal_mode = WAL ")
@@ -172,8 +172,8 @@ func Test_walbak(t *testing.T) {
 		strings.Compare("sig db", "sig db2")
 	}
 	{ // do_test "walbak-2.5"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA cache_size = 10 ")
 		if r.Error != nil {
@@ -202,8 +202,8 @@ func Test_walbak(t *testing.T) {
 		strings.Compare("sig db", "sig db2")
 	}
 	{ // do_test "walbak-2.9"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA cache_size = 10 ")
 		if r.Error != nil {
@@ -234,15 +234,16 @@ func Test_walbak(t *testing.T) {
 		strings.Compare("sig db", "sig db2")
 	}
 	db2.Close()
+	db.Close()
 	// foreach {tn setup} "1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }"
-	_items3 := tclSplitList("1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }")
-	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-		tn := _items3[_idx3+0]
+	_items0 := tclSplitList("1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		setup := _items3[_idx3+1]
+		setup := _items0[_idx0+1]
 		_ = setup // suppress unused warning
-		_ = _idx3
-			if tclBool(tn + "==4 && " + "sqlite3 -has-codec") {
+		_ = _idx0
+			if tclBool(tn + "==4 && " + "") {
 			}
 			for _, f := range tclSplitList("glob -nocomplain test.db*") {
 			_ = f // suppress unused warning
@@ -307,23 +308,25 @@ func Test_walbak(t *testing.T) {
 					// hexio_read test.db 18 2 (unsupported command, not transpiled)
 				}
 			}
+			db.Close()
 			db2.Close()
 		}
 		// foreach {tn src dest dest_final} "1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal"
-		_items4 := tclSplitList("1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal")
-		for _idx4 := 0; _idx4+4 <= len(_items4); _idx4 += 4 {
-			tn := _items4[_idx4+0]
+		_items1 := tclSplitList("1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			src := _items4[_idx4+1]
+			src := _items1[_idx1+1]
 			_ = src // suppress unused warning
-			dest := _items4[_idx4+2]
+			dest := _items1[_idx1+2]
 			_ = dest // suppress unused warning
-			dest_final := _items4[_idx4+3]
+			dest_final := _items1[_idx1+3]
 			_ = dest_final // suppress unused warning
-			_ = _idx4
+			_ = _idx1
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
+					db.Close()
 				}
 				{
 					var _catchErr error
@@ -332,8 +335,8 @@ func Test_walbak(t *testing.T) {
 				}
 				os.Remove("test.db")
 				{ // do_test "walbak-4." + tn + ".1"
-					_dbtmp5, err := frigolite.Open("test.db")
-					_ = _dbtmp5 // sqlite3 db connection
+					_dbtmp2, err := frigolite.Open("test.db")
+					_ = _dbtmp2 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("PRAGMA journal_mode = " + src)
 					if _res.Error != nil {
@@ -355,11 +358,17 @@ func Test_walbak(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), src) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", src, _res.Error, "walbak-4." + tn + ".2")
+					}
 				}
 				{ // do_test "walbak-4." + tn + ".3"
 					r = db2.Query(" PRAGMA journal_mode ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
+					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), dest) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dest, _res.Error, "walbak-4." + tn + ".3")
 					}
 				}
 				{ // do_test "walbak-4." + tn + ".4"
@@ -375,6 +384,9 @@ func Test_walbak(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), dest_final) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dest_final, _res.Error, "walbak-4." + tn + ".5")
+					}
 				}
 				db2.Close()
 				{ // do_test "walbak-4." + tn + ".6"
@@ -386,6 +398,9 @@ func Test_walbak(t *testing.T) {
 					r = db2.Query(" PRAGMA journal_mode ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
+					}
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), dest_final) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", dest_final, _res.Error, "walbak-4." + tn + ".7")
 					}
 				}
 			}

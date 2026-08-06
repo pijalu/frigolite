@@ -612,7 +612,8 @@ func Test_decimal(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// load_static_extension db decimal (unsupported command, not transpiled)
 	{ // "8100"

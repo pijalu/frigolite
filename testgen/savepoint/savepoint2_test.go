@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -116,6 +117,9 @@ func Test_savepoint2(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK to one")
 			}
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig_one) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig_one, _res.Error, "savepoint2-" + ii + ".2")
+			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -141,6 +145,9 @@ func Test_savepoint2(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK to two")
 			}
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig_two) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig_two, _res.Error, "savepoint2-" + ii + ".4")
+			}
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -166,6 +173,9 @@ func Test_savepoint2(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK to one")
 			}
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig_one) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig_one, _res.Error, "savepoint2-" + ii + ".5")
+			}
 		}
 		{ // do_test "savepoint2-" + ii + ".6"
 			_res = db.Exec(SQL_4)

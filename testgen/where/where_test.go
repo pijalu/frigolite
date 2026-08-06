@@ -801,28 +801,29 @@ func Test_where(t *testing.T) {
 	}
 	{ // do_test "where-10.2"
 		// proc definition (not transpiled)
+		// db function tclvar (variable-reader, inlined)
 		v1 = "0" // TCL namespace variable
 		_ = v1 // suppress unused warning
-		r = db.Query("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
+		r = db.Query("\n    SELECT count(*) FROM t1 WHERE " + sqlLiteral(v1) + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE " + sqlLiteral(v1) + ";\n  ")
 		}
 	}
 	{ // do_test "where-10.3"
 		v1 = "1" // TCL namespace variable
 		_ = v1 // suppress unused warning
-		r = db.Query("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
+		r = db.Query("\n    SELECT count(*) FROM t1 WHERE " + sqlLiteral(v1) + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE " + sqlLiteral(v1) + ";\n  ")
 		}
 	}
 	{ // do_test "where-10.4"
 		v1 = "1" // TCL namespace variable
 		_ = v1 // suppress unused warning
 		// proc definition (not transpiled)
-		r = db.Query("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
+		r = db.Query("\n    SELECT count(*) FROM t1 WHERE " + sqlLiteral(v1) + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE " + sqlLiteral(v1) + ";\n  ")
 		}
 	}
 	{ // do_test "where-11.1"
@@ -1198,7 +1199,8 @@ func Test_where(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "where-24.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n")
@@ -1249,7 +1251,8 @@ func Test_where(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.0"
 			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
@@ -1257,8 +1260,8 @@ func Test_where(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.1"
 			_res = db.Exec("\n  DELETE FROM t1 WHERE c='iii'\n")
@@ -1273,7 +1276,8 @@ func Test_where(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.3"
 			r = db.Query("\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
@@ -1281,8 +1285,8 @@ func Test_where(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.4"
 			_res = db.Exec("\n  SELECT * FROM t1 WHERE c='iii'\n")
@@ -1296,6 +1300,7 @@ func Test_where(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "corrupt database", _res.Error, "\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
 			}
 		}
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // "where-26.1"
@@ -1396,7 +1401,8 @@ func Test_where(t *testing.T) {
 		}
 		if tclBool("permutation" + "!=\"valgrind\"") {
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "where-27.1"
 				r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1(a) VALUES(9223372036854775807);\n    SELECT 1 FROM t1 WHERE a>=(9223372036854775807+1);\n  ")
@@ -1418,7 +1424,8 @@ func Test_where(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "where-28.1"
 			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE INDEX t1b ON t1(b,b,b,b,b,b,b,b,b,b,b,b,b);\n  INSERT INTO t1(a,b) VALUES(1,1),(15,2),(19,5);\n  UPDATE t1 SET b=999 WHERE a IN (SELECT 15) AND b IN (1,2);\n  SELECT * FROM t1;\n")

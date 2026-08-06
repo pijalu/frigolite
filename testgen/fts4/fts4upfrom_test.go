@@ -96,7 +96,7 @@ func Test_fts4upfrom(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "a {} apple b {} banana c {} cherry d {} {damson plum}"
+				want := "a {} apple b {} banana c {} cherry d {} damson plum"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
@@ -114,7 +114,7 @@ func Test_fts4upfrom(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := "a {} apple b apple banana c banana cherry d cherry {damson plum}"
+				want := "a {} apple b apple banana c banana cherry d cherry damson plum"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}

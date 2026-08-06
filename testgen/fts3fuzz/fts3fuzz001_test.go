@@ -75,7 +75,8 @@ func Test_fts3fuzz001(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "200"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts3(x);\n\n  INSERT INTO x1 VALUES('braes brag bragged bragger bragging');\n  INSERT INTO x1 VALUES('brags braid braided braiding braids');\n  INSERT INTO x1 VALUES('brain brainchild brained braining brains');\n  INSERT INTO x1 VALUES('brainstem brainstems brainstorm brainstorms');\n  INSERT INTO x1(x1) VALUES('nodesize=24');\n")

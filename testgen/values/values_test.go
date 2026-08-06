@@ -184,7 +184,8 @@ func Test_values(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n")
@@ -219,7 +220,8 @@ func Test_values(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE y1(x, y);\n")
@@ -264,7 +266,8 @@ func Test_values(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a PRIMARY KEY, b) WITHOUT ROWID;\n")
@@ -337,7 +340,8 @@ func Test_values(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE VIEW v1 AS VALUES(1, 2, 3), (4, 5, 6), (7, 8, 9);\n")
@@ -358,7 +362,8 @@ func Test_values(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2);\n")
@@ -379,7 +384,8 @@ func Test_values(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('x'), ('y');\n")
@@ -424,7 +430,8 @@ func Test_values(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		VVV = "\n  ( VALUES('a', 'b'), ('c', 'd'), (123, NULL) )\n"
 		_ = VVV // suppress unused warning
@@ -472,7 +479,8 @@ func Test_values(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "9.1"
 				r = db.Query("\n  VALUES(456), (123), (NULL) UNION ALL SELECT 122 ORDER BY 1\n")
@@ -511,7 +519,8 @@ func Test_values(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "11.0"
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n  ")
@@ -526,7 +535,8 @@ func Test_values(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "12.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b);\n")
@@ -553,7 +563,8 @@ func Test_values(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "13.0"
 				r = db.Query("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('xyz');\n\n  SELECT (\n      VALUES( (max(substr('abc', 1, 1), x)) ),\n      (123),\n      (456)\n      )\n  FROM t1;\n")
@@ -572,7 +583,8 @@ func Test_values(t *testing.T) {
 				_ = _res
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "14.1"
 				r = db.Query("\n  PRAGMA encoding = utf16;\n  CREATE TABLE t1(a, b);\n")
@@ -580,8 +592,8 @@ func Test_values(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding = utf16;\n  CREATE TABLE t1(a, b);\n")
 				}
 			}
-			_dbtmp2, err := frigolite.Open("test.db")
-			_ = _dbtmp2 // sqlite3 db connection
+			db.Close()
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "14.2"
 				_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (17, 'craft'),\n    (16, 'urtlek' IN(1,2,3));\n")
@@ -590,7 +602,8 @@ func Test_values(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "15.1"
 				r = db.Query("EXPLAIN QUERY PLAN " + "\n  VALUES(1),(2),(3),(4),(5);\n")
@@ -635,7 +648,8 @@ func Test_values(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // "16.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b);\n")
@@ -770,7 +784,8 @@ func Test_values(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tcl_nullvalue = "NULL"
 			{ // "19.1"

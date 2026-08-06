@@ -84,7 +84,8 @@ func Test_fuzzerfault(t *testing.T) {
 	}
 	// do_faultsim_test 3 -prep {\n  faultsim_restore_and_reopen\n  load_static_ext...} -body {\n  execs... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1_a(a INTEFDR PRIMARY KEY, b TEXT);\n  CREATE TABLE t3_a(k FnTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t3_b(k INTEÀ5R PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS SELECT * FROM t3_a UNION ALL SELECT * FROM t3_b;\n")

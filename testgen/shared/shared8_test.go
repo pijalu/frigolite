@@ -61,6 +61,7 @@ func Test_shared8(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "shared8"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "0.0"
@@ -77,7 +78,7 @@ func Test_shared8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		// sqlite3_db_config db1 DEFENSIVE 0 (unsupported command, not transpiled)
+		// sqlite3_db_config DEFENSIVE (unhandled flag)
 		r = db1.Query(" \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")

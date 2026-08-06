@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -74,6 +75,7 @@ func Test_notify1(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "notify1-1.1"
@@ -198,6 +200,7 @@ func Test_notify1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "notify1-2.3.1"
+		db.Close()
 		db2.Close()
 		os.Remove("test.db")
 		for _, con := range tclSplitList("db db2 db3") {
@@ -294,6 +297,7 @@ func Test_notify1(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
+		db.Close()
 	}
 	// foreach {tn nConn} "3 20 4 76"
 	_items1 := tclSplitList("3 20 4 76")
@@ -347,6 +351,9 @@ func Test_notify1(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
 				_ = tclSort("-integer") // lsort result
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), lUnlockFinal) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", lUnlockFinal, _res.Error, "notify1-" + tn + ".4")
+				}
 			}
 			{ // do_test "notify1-" + tn + ".5"
 				ii = "1"
@@ -363,7 +370,9 @@ func Test_notify1(t *testing.T) {
 				}
 			}
 		}
+		db.Close()
 		// do_malloc_test notify1-5 -tclprep {\n  set ::lUnlock [list]\n  execsql {\n    CREATE ...} -sqlb... (unsupported command, not transpiled)
+		db.Close()
 		{ // do_test "notify1-6.1.1"
 			os.Remove("test.db")
 			for _, conn := range tclSplitList("db db2 db3") {
@@ -454,6 +463,7 @@ func Test_notify1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
 		}
+		db.Close()
 		db2.Close()
 		db3.Close()
 		// proc definition (not transpiled)
@@ -590,6 +600,7 @@ func Test_notify1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
 		}
+		db.Close()
 		db2.Close()
 		db3.Close()
 		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)

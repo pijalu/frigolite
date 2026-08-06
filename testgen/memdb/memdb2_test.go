@@ -62,8 +62,9 @@ func Test_memdb2(t *testing.T) {
 	testprefix = "memdb2"
 	_ = testprefix // suppress unused warning
 	// do_not_use_codec (unsupported command, not transpiled)
-	// foreach {tn fname} "1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb"
-	_items0 := tclSplitList("1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb")
+	db.Close()
+	// foreach {tn fname} "1   file:/test.db?vfs=memdb\n    2   file:\\test.db?vfs=memdb"
+	_items0 := tclSplitList("1   file:/test.db?vfs=memdb\n    2   file:\\test.db?vfs=memdb")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
@@ -83,10 +84,16 @@ func Test_memdb2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 				}
 			}
-			{ // "-db"
-				_res = db.Exec("db2")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			{ // "1." + tn + ".2"
+				r = db.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      SELECT * FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1." + tn + ".3"
@@ -101,10 +108,16 @@ func Test_memdb2(t *testing.T) {
 					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    COMMIT\n  ")
 				}
 			}
-			{ // "-db"
-				_res = db.Exec("db2")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			{ // "1." + tn + ".5"
+				r = db.Query("\n      SELECT * FROM t1;\n    END;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1;\n    END;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 			{ // "1." + tn + ".6"
@@ -113,12 +126,19 @@ func Test_memdb2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT\n  ")
 				}
 			}
-			{ // "-db"
-				_res = db.Exec("db2")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			{ // "1." + tn + ".7"
+				r = db.Query("\n    SELECT * FROM t1\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
+			db.Close()
 			db2.Close()
 		}
 }

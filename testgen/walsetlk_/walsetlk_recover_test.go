@@ -129,6 +129,7 @@ func Test_walsetlk_recover(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	// tvfs delete (unsupported command, not transpiled)
 	if func() bool { sqlite_options_setlk_timeout_n, _sqlite_options_setlk_timeout_e := strconv.Atoi(sqlite_options_setlk_timeout); if _sqlite_options_setlk_timeout_e != nil { return false }; return sqlite_options_setlk_timeout_n == 1 }() {
 		{ // do_test "1.5.1"

@@ -133,6 +133,7 @@ func Test_e_fts3(t *testing.T) {
 		enc := _items0[_idx0+1]
 		_ = enc // suppress unused warning
 		_ = _idx0
+			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -239,7 +240,8 @@ func Test_e_fts3(t *testing.T) {
 					hit := _items2[_idx2+2]
 					_ = hit // suppress unused warning
 					_ = _idx2
-						res = "db eval {SELECT * FROM docs WHERE $hit}"
+						_dbeval3 := tclExecSQL(db, "{SELECT * FROM docs WHERE " + sqlLiteral(hit) + "}")
+						res = _dbeval3
 						_ = res // suppress unused warning
 						// read_test 1.4.2.$tn $query $res (unsupported command, not transpiled)
 					}
@@ -248,15 +250,15 @@ func Test_e_fts3(t *testing.T) {
 					_ = sqlite_fts3_enable_parentheses // suppress unused warning
 					// ddl_test 1.5.1.1 { CREATE VIRTUAL TABLE docs USING fts3() } (unsupported command, not transpiled)
 					// foreach {tn docid content} "2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\""
-					_items3 := tclSplitList("2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"")
-					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-						tn := _items3[_idx3+0]
+					_items4 := tclSplitList("2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"")
+					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
-						docid := _items3[_idx3+1]
+						docid := _items4[_idx4+1]
 						_ = docid // suppress unused warning
-						content := _items3[_idx3+2]
+						content := _items4[_idx4+2]
 						_ = content // suppress unused warning
-						_ = _idx3
+						_ = _idx4
 							R_docid = content
 							_ = R_docid // suppress unused warning
 							// write_test 1.5.1.$tn docs_content { \n    INSERT INTO docs(docid, content) VALUES($do...} (unsupported command, not transpiled)
@@ -380,6 +382,7 @@ func Test_e_fts3(t *testing.T) {
 					// read_test 8.2.2 { PRAGMA table_info(t9c) } {0 c\"1 {} 0 {} 0 1 c'2 {} 0 {} 0} (unsupported command, not transpiled)
 					for _, DO_MALLOC_TEST := range tclSplitList("0 1 2") {
 					_ = DO_MALLOC_TEST // suppress unused warning
+						db.Close()
 						os.Remove("test.db")
 						db, err = frigolite.Open("")
 						if err != nil { t.Fatal(err) }
@@ -400,7 +403,7 @@ func Test_e_fts3(t *testing.T) {
 					// ddl_test 10.1.1 { CREATE VIRTUAL TABLE ta USING fts3 } (unsupported command, not transpiled)
 					// write_test 10.1.2 ta_content { \n  INSERT INTO ta VALUES('During a summer vacati...} (unsupported command, not transpiled)
 					// write_test 10.1.3 ta_content {\n  INSERT INTO ta VALUES('Wordsworth went on a wa...} (unsupported command, not transpiled)
-					// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+					// sqlite3_db_config DEFENSIVE (unhandled flag)
 					// write_test 10.1.4 ta_content { DELETE FROM ta_content WHERE rowid = 2 } (unsupported command, not transpiled)
 					// read_test 10.1.5 {\n  SELECT * FROM ta WHERE ta MATCH 'summer'\n} {{During a summer vacati... (unsupported command, not transpiled)
 					// error_test 10.1.6 {\n  SELECT * FROM ta WHERE ta MATCH 'walking'\n} {database disk image is... (unsupported command, not transpiled)
@@ -410,7 +413,7 @@ func Test_e_fts3(t *testing.T) {
 					blob = "db one {SELECT root FROM ta_segdir WHERE rowid = 2}"
 					_ = blob // suppress unused warning
 					// binary scan $blob a6 a3 a* start middle end (test infra, not transpiled)
-					middle = "x0ExFFxFFxFFxFFxFFxFFxFFxFFxFFxFFxFFx06x06"
+					middle = "\x0e\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x06\x06"
 					_ = middle // suppress unused warning
 					blob = "binary format \"a6 a* a*\" $start $middle $end"
 					_ = blob // suppress unused warning

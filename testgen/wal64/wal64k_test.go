@@ -58,9 +58,9 @@ func Test_wal64k(t *testing.T) {
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}
+	db.Close()
 	// test_syscall pagesize 65536 (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query(" \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n")
@@ -96,6 +96,7 @@ func Test_wal64k(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -111,5 +112,6 @@ func Test_wal64k(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	// test_syscall pagesize -1 (unsupported command, not transpiled)
 }

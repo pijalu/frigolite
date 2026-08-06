@@ -69,6 +69,7 @@ func Test_collate1(t *testing.T) {
 	testprefix = "collate1"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
+	// db function hex (variable-reader, inlined)
 	// proc definition (not transpiled)
 	{ // do_test "collate1-1.0"
 		_res = db.Exec("\n    CREATE TABLE collate1t1(c1, c2);\n    INSERT INTO collate1t1 VALUES(45, hex(45));\n    INSERT INTO collate1t1 VALUES(NULL, NULL);\n    INSERT INTO collate1t1 VALUES(281, hex(281));\n  ")
@@ -322,7 +323,7 @@ func Test_collate1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id FROM c5 WHERE c='abc' ORDER BY id;\n  ")
 		}
 	}
-	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+	db.SetDQS(true, true)
 	{ // "6.1"
 		r = db.Query("\n  SELECT \"\"\"\"\"\"\"\";\n")
 		if r.Error != nil {
@@ -450,7 +451,7 @@ func Test_collate1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "{ } 1"
+		want := "{} 1"
 		if got != want {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -463,7 +464,8 @@ func Test_collate1(t *testing.T) {
 	}
 	// do_faultsim_test 9.1 -faults oom* -body {\n  execsql {\n    SELECT * FROM (\n        SELECT...} -... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1 VALUES(0,NULL);\n  CREATE TABLE t2(x UNIQUE);\n  CREATE VIEW v1a(z,y) AS SELECT x COLLATE x FROM t2;\n  SELECT a,b,z,y,'' FROM t1 JOIN v1a ON b IS NOT FALSE;\n")

@@ -60,7 +60,8 @@ func Test_fts3snippet2(t *testing.T) {
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(b);\n  INSERT INTO f VALUES ( x'746e6e6d64612e082a011065616e656d655a616c702a2f65732e0f42014001380230018218');\n")
@@ -81,7 +82,8 @@ func Test_fts3snippet2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0 VALUES (1, '1234','aaaa','bbbb');\n  SELECT snippet(t0)  FROM t0 WHERE t0 MATCH x'0a4d4d4d4d320a4f52d70a310a310a4e4541520a0a31f6ce0a4f520a0a310a310a310a4f520a75fc2a242424' ;\n")
@@ -96,7 +98,8 @@ func Test_fts3snippet2(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts3(\n      col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY\n  );\n  INSERT INTO t0 VALUES ('one', '1234','aaaa','bbbb');\n")

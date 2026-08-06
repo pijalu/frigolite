@@ -62,7 +62,7 @@ func Test_fts3corrupt(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3corrupt" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('hello');\n")
 		if _res.Error != nil {
@@ -112,7 +112,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // do_test "fts3corrupt-2.1"
 		blob = "db one {SELECT root from t1_segdir}"
 		_ = blob // suppress unused warning
-		blob = "binary format a*a* \"\\x00\\x7F\" [string range $blob 2 end]"
+		blob = "binary format a*a* \"\x00\x7f\" [string range $blob 2 end]"
 		_ = blob // suppress unused warning
 		_res = db.Exec(" UPDATE t1_segdir SET root = " + sqlLiteral(blob) + " ")
 		if _res.Error != nil {
@@ -137,7 +137,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // do_test "fts3corrupt-3.1"
 		blob = "db one {SELECT quote(root) from t1_segdir}"
 		_ = blob // suppress unused warning
-		blob = "binary format a11a*a* $blob \"\\x7F\" [string range $blob 12 end]"
+		blob = "binary format a11a*a* $blob \"\x7f\" [string range $blob 12 end]"
 		_ = blob // suppress unused warning
 		_res = db.Exec(" UPDATE t1_segdir SET root = " + sqlLiteral(blob) + " ")
 		if _res.Error != nil {
@@ -185,7 +185,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // do_test "4.2.1"
 		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
-	blob = "binary format cca*cca*cca*cca*cca*cca*cca*cca*cca*cca*a* \\\n  22 120 [string repeat a 120]  \\\n  22 120 [string repeat b 120]  \\\n  22 120 [string repeat c 120]  \\\n  22 120 [string repeat d 120]  \\\n  22 120 [string repeat e 120]  \\\n  22 120 [string repeat f 120]  \\\n  22 120 [string repeat g 120]  \\\n  22 120 [string repeat h 120]  \\\n  22 120 [string repeat i 120]  \\\n  22 120 [string repeat j 120]  \\\n  \"\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\""
+	blob = "binary format cca*cca*cca*cca*cca*cca*cca*cca*cca*cca*a*   22 120 [string repeat a 120]    22 120 [string repeat b 120]    22 120 [string repeat c 120]    22 120 [string repeat d 120]    22 120 [string repeat e 120]    22 120 [string repeat f 120]    22 120 [string repeat g 120]    22 120 [string repeat h 120]    22 120 [string repeat i 120]    22 120 [string repeat j 120]    \"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\""
 	_ = blob // suppress unused warning
 	{ // "4.3"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = " + sqlLiteral(blob) + ";\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
@@ -246,6 +246,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // do_test "5.3.1"
 		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
+	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "6.10"
@@ -255,7 +256,8 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.10"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (0,0,1,0,'0 0',x'01010101020101');\n  SELECT  matchinfo( f , 'pcx')  FROM f WHERE b MATCH x'c533';\n")
@@ -264,7 +266,8 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// sqlite3_fts3_may_be_corrupt 1 (unsupported command, not transpiled)
 	{ // "8.1"

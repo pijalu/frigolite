@@ -78,11 +78,12 @@ func Test_enc4(t *testing.T) {
 	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
+	db.Close()
 	encodings = "UTF-8 UTF-16le UTF-16be"
 	_ = encodings // suppress unused warning
 	inits = "1 1.0 1. 1e0"
 	_ = inits // suppress unused warning
-	vals = "list\\\n\"922337203685477580792233720368547758079223372036854775807\"\\\n\"100000000000000000000000000000000000000000000000000000000\"\\\n\"1.0000000000000000000000000000000000000000000000000000000\"\\"
+	vals = "list\"922337203685477580792233720368547758079223372036854775807\"\"100000000000000000000000000000000000000000000000000000000\"\"1.0000000000000000000000000000000000000000000000000000000\""
 	_ = vals // suppress unused warning
 	i = "1"
 	_ = i // suppress unused warning
@@ -102,7 +103,7 @@ func Test_enc4(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := enc
+			want := tclListFlatten(enc)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -154,6 +155,7 @@ func Test_enc4(t *testing.T) {
 				}
 			}
 		}
+		db.Close()
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -206,4 +208,5 @@ func Test_enc4(t *testing.T) {
 	{ // do_test "enc4-4.4.2"
 		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
+	db.Close()
 }

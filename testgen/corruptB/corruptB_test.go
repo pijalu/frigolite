@@ -102,6 +102,7 @@ func Test_corruptB(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptB-1.4.1"
+		db.Close()
 		tclFileCopy("bak.db", "test.db")
 		cell_offset = "hexio_get_int [hexio_read test.db [expr $offset+12] 2]"
 		_ = cell_offset // suppress unused warning
@@ -115,9 +116,9 @@ func Test_corruptB(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptB-1.5.1"
+		db.Close()
 		tclFileCopy("bak.db", "test.db")
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
 		if _res.Error != nil {
@@ -126,6 +127,7 @@ func Test_corruptB(t *testing.T) {
 	}
 	tclFileCopy("test.db", "bak.db")
 	{ // do_test "corruptB-1.6.1"
+		db.Close()
 		iRightChild = "hexio_get_int [hexio_read test.db [expr $offset+8] 4]"
 		_ = iRightChild // suppress unused warning
 		c_offset = tclExprWith("($iRightChild-1)*1024", map[string]string{"iRightChild": iRightChild})
@@ -133,26 +135,28 @@ func Test_corruptB(t *testing.T) {
 		// hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root] (unsupported command, not transpiled)
 	}
 	{ // do_test "corruptB-1.6.2"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptB-1.7.1"
+		db.Close()
 		tclFileCopy("bak.db", "test.db")
 		cell_offset = "hexio_get_int [hexio_read test.db [expr $c_offset+12] 2]"
 		_ = cell_offset // suppress unused warning
 		// hexio_write test.db [expr $c_offset+$cell_offset] [hexio_render_int32 $::root] (unsupported command, not transpiled)
 	}
 	{ // do_test "corruptB-1.7.2"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptB-1.8.1"
+		db.Close()
 		cell_offset = "hexio_get_int [hexio_read test.db [expr $offset+12] 2]"
 		_ = cell_offset // suppress unused warning
 		iLeftChild = "hexio_get_int [hexio_read test.db [expr $offset+$cell_offset] 4]"
@@ -162,40 +166,42 @@ func Test_corruptB(t *testing.T) {
 		// hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root] (unsupported command, not transpiled)
 	}
 	{ // do_test "corruptB-1.8.2"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptB-1.9.1"
+		db.Close()
 		tclFileCopy("bak.db", "test.db")
 		cell_offset = "hexio_get_int [hexio_read test.db [expr $c_offset+12] 2]"
 		_ = cell_offset // suppress unused warning
 		// hexio_write test.db [expr $c_offset+$cell_offset] [hexio_render_int32 $::root] (unsupported command, not transpiled)
 	}
 	{ // do_test "corruptB-1.9.2"
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
+		if err != nil { t.Fatal(err) }
+		_res = db.Exec(" SELECT * FROM t1 ")
+		_ = _res // catchsql
+	}
+	{ // do_test "corruptB-2.1.1"
+		db.Close()
+		tclFileCopy("bak.db", "test.db")
+		// hexio_write test.db [expr $offset+8] [hexio_render_int32 0x6FFFFFFF] (unsupported command, not transpiled)
+	}
+	{ // do_test "corruptB-2.1.2"
 		_dbtmp6, err := frigolite.Open("test.db")
 		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
-	{ // do_test "corruptB-2.1.1"
-		tclFileCopy("bak.db", "test.db")
-		// hexio_write test.db [expr $offset+8] [hexio_render_int32 0x6FFFFFFF] (unsupported command, not transpiled)
-	}
-	{ // do_test "corruptB-2.1.2"
-		_dbtmp7, err := frigolite.Open("test.db")
-		_ = _dbtmp7 // sqlite3 db connection
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" SELECT * FROM t1 ")
-		_ = _res // catchsql
-	}
 	{ // do_test "corruptB-3.1.1"
+		db.Close()
 		tclFileCopy("bak.db", "test.db")
-		_dbtmp8, err := frigolite.Open("test.db")
-		_ = _dbtmp8 // sqlite3 db connection
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		v = "abcdefghij 200"
 		_ = v // suppress unused warning
@@ -211,11 +217,12 @@ func Test_corruptB(t *testing.T) {
 		_ = iCellarray // suppress unused warning
 		iRecord = "hexio_get_int [hexio_read test.db $iCellarray 2]"
 		_ = iRecord // suppress unused warning
+		db.Close()
 		// hexio_write test.db [expr $iPage+$iRecord+3] FF00 (unsupported command, not transpiled)
 	}
 	{ // do_test "corruptB-3.1.2"
-		_dbtmp9, err := frigolite.Open("test.db")
-		_ = _dbtmp9 // sqlite3 db connection
+		_dbtmp7, err := frigolite.Open("test.db")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t2 ")
 		_ = _res // catchsql

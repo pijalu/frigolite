@@ -189,7 +189,8 @@ func Test_with5(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		_res = db.Exec("\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parent INTEGER);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(2, 3);\n")

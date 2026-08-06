@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -132,12 +133,18 @@ func Test_shell8(t *testing.T) {
 				os.Remove("-force")
 				// catchcmd test_ar.db $x1 (unsupported command, not transpiled)
 				// dir_to_list ar1 (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), expected) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", expected, _res.Error, "1." + tn + ".1")
+				}
 			}
 			{ // do_test "1." + tn + ".2"
 				os.Remove("-force")
 				// catchcmd test_ar.db $c2 (unsupported command, not transpiled)
 				// catchcmd test_ar.db $x2 (unsupported command, not transpiled)
 				// dir_to_list ar3 (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), expected) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", expected, _res.Error, "1." + tn + ".2")
+				}
 			}
 			{ // do_test "1." + tn + ".3"
 				os.Remove("-force")
@@ -145,6 +152,9 @@ func Test_shell8(t *testing.T) {
 				// catchcmd :memory: $c3 (unsupported command, not transpiled)
 				// catchcmd :memory: $x3 (unsupported command, not transpiled)
 				// dir_to_list ar3 (unsupported command, not transpiled)
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), expected) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", expected, _res.Error, "1." + tn + ".3")
+				}
 			}
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
 				{ // do_test "1." + tn + ".4"
@@ -152,6 +162,9 @@ func Test_shell8(t *testing.T) {
 					os.Remove("-force")
 					// catchcmd test_ar.db $x1 (unsupported command, not transpiled)
 					// dir_to_list ar1 (unsupported command, not transpiled)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), expected) {
+						t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", expected, _res.Error, "1." + tn + ".4")
+					}
 				}
 			}
 		}

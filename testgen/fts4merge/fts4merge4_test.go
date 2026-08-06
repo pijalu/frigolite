@@ -129,7 +129,8 @@ func Test_fts4merge4(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4 ")

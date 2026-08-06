@@ -314,9 +314,11 @@ func Test_incrblob3(t *testing.T) {
 			_list := tclList([]string{"0", msg})
 			_ = _list
 		}
+		db.Close()
 		// tvfs delete (unsupported command, not transpiled)
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		os.Remove("test.db2")
 		{ // "8.1"
@@ -347,4 +349,5 @@ func Test_incrblob3(t *testing.T) {
 			_list := tclList([]string{"0", msg})
 			_ = _list
 		}
+		db.Close()
 }

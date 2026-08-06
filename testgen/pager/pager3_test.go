@@ -7,6 +7,7 @@ package pager
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -82,6 +83,9 @@ func Test_pager3(t *testing.T) {
 			}
 			{ // do_test "pager3-1." + tn + ".2"
 				// file exists "test.db-journal"
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), j) {
+					t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", j, _res.Error, "pager3-1." + tn + ".2")
+				}
 			}
 		}
 }

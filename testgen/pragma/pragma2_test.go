@@ -58,10 +58,10 @@ func Test_pragma2(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
+	db.Close()
 	// delete_file test.db test.db-journal (unsupported command, not transpiled)
 	// delete_file test3.db test3.db-journal (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -142,10 +142,10 @@ func Test_pragma2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA aux.freelist_count = 500;\n      PRAGMA aux.freelist_count;\n    ")
 		}
 	}
+	db.Close()
 	// delete_file test.db test.db-journal (unsupported command, not transpiled)
 	// delete_file test2.db test2.db-journal (unsupported command, not transpiled)
-	_dbtmp1, err := frigolite.Open("test.db")
-	_ = _dbtmp1 // sqlite3 db connection
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "pragma2-4.1"
 		r = db.Query("\n  PRAGMA main.cache_size=2000;\n  PRAGMA temp.cache_size=2000;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;\n")
@@ -245,6 +245,7 @@ func Test_pragma2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

@@ -126,7 +126,8 @@ func Test_window9(t *testing.T) {
 		_ = _res
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(a,b,c);\n")
@@ -151,7 +152,8 @@ func Test_window9(t *testing.T) {
 		_ = _res
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b TEXT);\n  INSERT INTO t1 VALUES('A', 1), ('A', 2), ('2', 1), ('2', 2);\n")
@@ -176,7 +178,8 @@ func Test_window9(t *testing.T) {
 		_ = _res
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d, e);\n")
@@ -200,7 +203,8 @@ func Test_window9(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n")
@@ -217,7 +221,8 @@ func Test_window9(t *testing.T) {
 			_ = _res
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "7.0"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(10, 1);\n  INSERT INTO t1 VALUES(20, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n")
@@ -242,7 +247,8 @@ func Test_window9(t *testing.T) {
 			_ = _res
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "8.1.1" — skipped: window functions not supported
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  SELECT min( sum(a) ) OVER () FROM t1;\n")
@@ -265,7 +271,8 @@ func Test_window9(t *testing.T) {
 			_ = _res
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "9.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',356);\n  INSERT INTO t1 VALUES('CB','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);\n")
@@ -278,7 +285,8 @@ func Test_window9(t *testing.T) {
 			_ = _res
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "10.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'a');\n  INSERT INTO t1 VALUES(2, 'b');\n  INSERT INTO t1 VALUES(3, 'c');\n  INSERT INTO t1 VALUES(4, 'd');\n  INSERT INTO t1 VALUES(5, 'e');\n  INSERT INTO t1 VALUES(6, 'f');\n")

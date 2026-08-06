@@ -398,8 +398,8 @@ func Test_conflict(t *testing.T) {
 									_ = t3 // suppress unused warning
 								}
 								{ // do_test "conflict-6." + i
-									_dbtmp6, err := frigolite.Open("test.db")
-									_ = _dbtmp6 // sqlite3 db connection
+									db.Close()
+									db, err = frigolite.Open("test.db")
 									if err != nil { t.Fatal(err) }
 									if conf1 != "" {
 										conf1 = "ON CONFLICT " + conf1
@@ -832,7 +832,8 @@ func Test_conflict(t *testing.T) {
 								}
 							}
 							db.Close()
-							db, err = frigolite.Open("")
+							os.Remove("test.db")
+							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							{ // "conflict-15.10"
 								r = db.Query("\n  CREATE TABLE t1(\n    x PRIMARY KEY,\n    UNIQUE(x,x),\n    UNIQUE(x,x) ON CONFLICT REPLACE\n  );\n  INSERT INTO t1(x) VALUES(1);\n  SELECT * FROM t1;\n")
@@ -865,7 +866,8 @@ func Test_conflict(t *testing.T) {
 								}
 							}
 							db.Close()
-							db, err = frigolite.Open("")
+							os.Remove("test.db")
+							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							{ // "conflict-16.1"
 								_res = db.Exec("\n  -- ON CONFLICT clauses are not allowed on column CHECK constraints\n  CREATE TABLE t1(a INT CHECK( a!=5 ) ON CONFLICT ignore);\n")

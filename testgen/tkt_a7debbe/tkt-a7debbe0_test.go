@@ -61,7 +61,8 @@ func Test_tkt_a7debbe0(t *testing.T) {
 	for _, tn := range tclSplitList("1 2") {
 	_ = tn // suppress unused warning
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
 			// optimization_control db query-flattener 0 (unsupported command, not transpiled)

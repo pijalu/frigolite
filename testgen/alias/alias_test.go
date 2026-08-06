@@ -7,6 +7,7 @@ package alias
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -59,6 +60,7 @@ func Test_alias(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	return
 	{ // do_test "alias-1.1"
+		// db function sequence (variable-reader, inlined)
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(8);\n    INSERT INTO t1 VALUES(7);\n    SELECT x, sequence() FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(8);\n    INSERT INTO t1 VALUES(7);\n    SELECT x, sequence() FROM t1;\n  ")
@@ -120,10 +122,14 @@ func Test_alias(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 ORDER BY x%2, y\n  ")
 		}
 	}
-	random_int_list = "db eval {\n   SELECT random()&2147483647 AS r FROM t1, t1, t1, t1 ORDER BY r\n}"
+	_dbeval0 := tclExecSQL(db, "{\n   SELECT random()&2147483647 AS r FROM t1, t1, t1, t1 ORDER BY r\n}")
+	random_int_list = _dbeval0
 	_ = random_int_list // suppress unused warning
 	{ // do_test "alias-1.11"
 		_ = tclSort("-integer") // lsort result
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), random_int_list) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", random_int_list, _res.Error, "alias-1.11")
+		}
 	}
 	{ // do_test "alias-2.1"
 		r = db.Query("\n    SELECT 4 UNION SELECT 1 ORDER BY 1\n  ")

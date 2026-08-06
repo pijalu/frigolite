@@ -661,7 +661,8 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "intpkey-18.0"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  INSERT INTO t1(rowid,x) VALUES\n    (-9223372036854775808, 'min-int'),\n    (0, 'zero'),\n    (9223372036854775807, 'max-int');\n  SELECT rowid, * FROM t1 ORDER BY rowid;\n")

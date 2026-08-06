@@ -177,7 +177,7 @@ func Test_bestindexC(t *testing.T) {
 							return
 						}
 						got := flatten(r)
-						want := expect
+						want := tclListFlatten(expect)
 						if got != want {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
@@ -185,7 +185,8 @@ func Test_bestindexC(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// register_tcl_module db (unsupported command, not transpiled)
 			{ // "2.0"
@@ -207,7 +208,8 @@ func Test_bestindexC(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// register_tcl_module db (unsupported command, not transpiled)
 			{ // "3.0"
@@ -294,7 +296,8 @@ func Test_bestindexC(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// proc definition (not transpiled)
 			// register_tcl_module db (unsupported command, not transpiled)
@@ -327,7 +330,8 @@ func Test_bestindexC(t *testing.T) {
 				}
 			}
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			// register_tcl_module db (unsupported command, not transpiled)
 			// proc definition (not transpiled)
@@ -455,7 +459,8 @@ func Test_bestindexC(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				// register_tcl_module db (unsupported command, not transpiled)
 				// proc definition (not transpiled)

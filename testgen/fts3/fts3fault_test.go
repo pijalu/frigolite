@@ -70,7 +70,7 @@ func Test_fts3fault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "fts3fault" // TCL namespace variable
 	_ = testprefix // suppress unused warning
-	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	TMPDBERROR = "1 {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = TMPDBERROR // suppress unused warning
 	// do_faultsim_test 1 -body { \n  sqlite3 db test.db \n  expr 0\n} -test {\n  catch { db close }\n} (unsupported command, not transpiled)
 	// faultsim_delete_and_reopen (unsupported command, not transpiled)
@@ -197,7 +197,8 @@ func Test_fts3fault(t *testing.T) {
 	// do_faultsim_test 9.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT offset... (unsupported command, not transpiled)
 	// do_faultsim_test 10.1 -prep {\n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUA... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n")

@@ -183,7 +183,7 @@ func Test_where3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "0 0 2 {SCAN t402} 0 1 0 {SCAN t400} 0 2 1 {SCAN t401}"
+			want := "0 0 2 SCAN t402 0 1 0 SCAN t400 0 2 1 SCAN t401"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -195,7 +195,7 @@ func Test_where3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "0 0 1 {SCAN t401} 0 1 0 {SCAN t400} 0 2 2 {SCAN t402}"
+			want := "0 0 1 SCAN t401 0 1 0 SCAN t400 0 2 2 SCAN t402"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -207,7 +207,7 @@ func Test_where3(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "0 0 0 {SCAN t400} 0 1 1 {SCAN t401} 0 2 2 {SCAN t402}"
+			want := "0 0 0 SCAN t400 0 1 1 SCAN t401 0 2 2 SCAN t402"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -455,7 +455,8 @@ func Test_where3(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "where3-8.1"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d);  INSERT INTO t1 VALUES(1,2,3,4);\n  CREATE TABLE t2(x,y);      INSERT INTO t2 VALUES(3,4);\n  CREATE INDEX t2xy ON t2(x,y);\n  SELECT 1 FROM t1 JOIN t2 ON x=c AND y=d WHERE d>0;\n")

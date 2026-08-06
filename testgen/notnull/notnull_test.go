@@ -376,7 +376,8 @@ func Test_notnull(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "notnull-6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a UNIQUE);\n  CREATE TABLE t2(a NOT NULL UNIQUE);\n  CREATE TABLE t3(a UNIQUE NOT NULL);\n  CREATE TABLE t4(a NOT NULL);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n\n  CREATE TABLE t5(a PRIMARY KEY);\n  CREATE TABLE t6(a PRIMARY KEY NOT NULL);\n  CREATE TABLE t7(a NOT NULL PRIMARY KEY);\n  CREATE TABLE t8(a PRIMARY KEY) WITHOUT ROWID;\n\n  CREATE TABLE t9(a PRIMARY KEY UNIQUE NOT NULL);\n  CREATE TABLE t10(a UNIQUE PRIMARY KEY NOT NULL);\n")

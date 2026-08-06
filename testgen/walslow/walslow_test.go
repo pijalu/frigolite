@@ -83,6 +83,7 @@ func Test_walslow(t *testing.T) {
 	testprefix = "walslow"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
+	db.Close()
 	// save_prng_state (unsupported command, not transpiled)
 	seed = "1"
 	_ = seed // suppress unused warning
@@ -170,7 +171,8 @@ func Test_walslow(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "3.1"
 		_res = db.Exec("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(300));\n    INSERT INTO t1 VALUES(2, randomblob(300));\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(3, randomblob(300));\n  ")
@@ -230,7 +232,8 @@ func Test_walslow(t *testing.T) {
 	_ = blobcnt // suppress unused warning
 	// proc definition (not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO \"t1\" VALUES('A',0);\n  CREATE TABLE t2(x, y);\n  INSERT INTO \"t2\" VALUES('B',2);\n")
@@ -244,6 +247,7 @@ func Test_walslow(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
+	db.Close()
 	{ // do_test "4.1.1"
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
 		_ = _list
@@ -264,6 +268,7 @@ func Test_walslow(t *testing.T) {
 		}
 	}
 	{ // do_test "4.1.3"
+		db.Close()
 		// file exists "test.db-wal"
 	}
 	{ // do_test "4.2.1"
@@ -276,6 +281,7 @@ func Test_walslow(t *testing.T) {
 		}
 	}
 	{ // do_test "4.2.2"
+		// db function blob (variable-reader, inlined)
 		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {

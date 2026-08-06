@@ -7,6 +7,7 @@ package bigfile
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -78,7 +79,11 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.1")
+		}
 	}
+	db.Close()
 	if false {
 		_putsMsg := "**** Unable to create a file larger than 4096 MB. *****"
 		_ = _putsMsg
@@ -93,6 +98,9 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.2")
+		}
 	}
 	if tclBool("llength [info command db]" + "<=0") {
 		_putsMsg := "**** Large file support appears to be broken. *****"
@@ -104,16 +112,23 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t2;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.3")
+		}
 	}
 	{ // do_test "bigfile-1.4"
-		_dbtmp1, err := frigolite.Open("test.db")
-		_ = _dbtmp1 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.4")
+		}
 	}
+	db.Close()
 	if false {
 		_putsMsg := "**** Unable to create a file larger than 8192 MB. *****"
 		_ = _putsMsg
@@ -121,21 +136,27 @@ func Test_bigfile(t *testing.T) {
 	}
 	// hexio_write test.db 28 00000000 (unsupported command, not transpiled)
 	{ // do_test "bigfile-1.5"
-		_dbtmp2, err := frigolite.Open("test.db")
-		_ = _dbtmp2 // sqlite3 db connection
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.5")
+		}
 	}
 	{ // do_test "bigfile-1.6"
-		_dbtmp3, err := frigolite.Open("test.db")
-		_ = _dbtmp3 // sqlite3 db connection
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.6")
 		}
 	}
 	{ // do_test "bigfile-1.7"
@@ -143,14 +164,20 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t3;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.7")
+		}
 	}
 	{ // do_test "bigfile-1.8"
-		_dbtmp4, err := frigolite.Open("test.db")
-		_ = _dbtmp4 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.8")
 		}
 	}
 	{ // do_test "bigfile-1.9"
@@ -158,7 +185,11 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.9")
+		}
 	}
+	db.Close()
 	if false {
 		_putsMsg := "**** Unable to create a file larger than 16384 MB. *****"
 		_ = _putsMsg
@@ -166,30 +197,39 @@ func Test_bigfile(t *testing.T) {
 	}
 	// hexio_write test.db 28 00000000 (unsupported command, not transpiled)
 	{ // do_test "bigfile-1.10"
-		_dbtmp5, err := frigolite.Open("test.db")
-		_ = _dbtmp5 // sqlite3 db connection
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.10")
+		}
 	}
 	{ // do_test "bigfile-1.11"
-		_dbtmp6, err := frigolite.Open("test.db")
-		_ = _dbtmp6 // sqlite3 db connection
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.11")
+		}
 	}
 	{ // do_test "bigfile-1.12"
-		_dbtmp7, err := frigolite.Open("test.db")
-		_ = _dbtmp7 // sqlite3 db connection
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t3;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.12")
 		}
 	}
 	{ // do_test "bigfile-1.13"
@@ -197,14 +237,20 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t4;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.13")
+		}
 	}
 	{ // do_test "bigfile-1.14"
-		_dbtmp8, err := frigolite.Open("test.db")
-		_ = _dbtmp8 // sqlite3 db connection
+		db.Close()
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT md5sum(x) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t1;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.14")
 		}
 	}
 	{ // do_test "bigfile-1.15"
@@ -212,11 +258,17 @@ func Test_bigfile(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t2;\n  ")
 		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.15")
+		}
 	}
 	{ // do_test "bigfile-1.16"
 		r = db.Query("\n    SELECT md5sum(x) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT md5sum(x) FROM t3;\n  ")
+		}
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), MAGIC_SUM) {
+			t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", MAGIC_SUM, _res.Error, "bigfile-1.16")
 		}
 	}
 }

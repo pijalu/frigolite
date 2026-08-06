@@ -105,7 +105,8 @@ func Test_tkt3810(t *testing.T) {
 	}
 	db2.Close()
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tkt3810-100"
 		_res = db.Exec("\n    ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t1(x);\n    CREATE TEMP TRIGGER r1 DELETE ON t1 BEGIN SELECT *; END;\n    CREATE VIEW t1 AS SELECT *;\n  ")

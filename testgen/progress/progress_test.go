@@ -185,7 +185,7 @@ func Test_progress(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		}
-		res = "list" // TCL namespace variable
+		res = "" // TCL namespace variable
 		_ = res // suppress unused warning
 		_res = db.Exec("SELECT a, b, c FROM abc")
 		if _res.Error != nil {

@@ -67,8 +67,8 @@ func Test_pendingrace(t *testing.T) {
 	testprefix = "pendingrace"
 	_ = testprefix // suppress unused warning
 	// testvfs tvfs (unsupported command, not transpiled)
-	_dbtmp0, err := frigolite.Open("test.db")
-	_ = _dbtmp0 // sqlite3 db connection
+	db.Close()
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT hex(randomblob(100)), hex(randomblob(100)) FROM s;\n")
@@ -83,10 +83,10 @@ func Test_pendingrace(t *testing.T) {
 	}
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+	{ // "1.1"
+		r = db.Query("\n  PRAGMA cache_size = 5;\n  BEGIN;\n    UPDATE t1 SET b=hex(randomblob(100));\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 5;\n  BEGIN;\n    UPDATE t1 SET b=hex(randomblob(100));\n")
 		}
 	}
 	// db_save (unsupported command, not transpiled)
@@ -115,6 +115,7 @@ func Test_pendingrace(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  PRAGMA integrity_check\n")
 		}
 	}
+	db.Close()
 	_ = db2 // close db2: aliased to db, no-op
 	// tvfs delete (unsupported command, not transpiled)
 	// tvfs2 delete (unsupported command, not transpiled)

@@ -112,7 +112,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE r3(x);\n  CREATE TABLE r4(y INTEGER PRIMARY KEY);\n  INSERT INTO r4 VALUES(55);\n")
@@ -145,7 +146,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c0);\n  CREATE TABLE t2 (c0 , c1 , c2 , UNIQUE (c0), UNIQUE (c2 DESC));\n  INSERT INTO t2 VALUES ('x', 'y', 'z');\n  ANALYZE;\n  CREATE VIEW v0(c0) AS SELECT FALSE;\n")
@@ -160,7 +162,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,e,f,g,h,PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  CREATE TABLE t2(i, j);\n  INSERT INTO t2 VALUES(10, 20);\n")
@@ -199,7 +202,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t0(w);\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n  INSERT INTO t3 VALUES('t3val');\n")
@@ -262,7 +266,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "NULL"
 	{ // "6.0"
@@ -290,7 +295,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n\n  INSERT INTO t1 VALUES ('a', 'a');\n  INSERT INTO t2 VALUES ('ddd');\n  INSERT INTO t3 VALUES(1234);\n")
@@ -329,7 +335,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE x2(c, d);\n  CREATE TABLE x3(rowid, _rowid_);\n\n  CREATE TABLE x4(rowid, _rowid_, oid);\n\n  INSERT INTO x1 VALUES(1000, 'thousand');\n  INSERT INTO x2 VALUES('c', 'd');\n  INSERT INTO x3(oid, rowid, _rowid_) VALUES(43, 'hello', 'world');\n  INSERT INTO x4(oid, rowid, _rowid_) VALUES('forty three', 'hello', 'world');\n")
@@ -374,7 +381,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a);\n  CREATE TABLE x2(b);\n  CREATE TABLE x3(c);\n\n  CREATE TABLE wo1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE wo2(a PRIMARY KEY, rowid) WITHOUT ROWID;\n  CREATE TABLE wo3(a PRIMARY KEY, b) WITHOUT ROWID;\n")
@@ -461,7 +469,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE rt0 (c0 INTEGER, c1 INTEGER, c2 INTEGER, c3 INTEGER, c4 INTEGER);\n  CREATE TABLE rt3 (c3 INTEGER);\n\n  INSERT INTO rt0(c3, c1) VALUES (x'', '1');\n  INSERT INTO rt0(c3, c1) VALUES ('-1', -1e500);\n  INSERT INTO rt0(c3, c1) VALUES (1, x'');\n\n  CREATE VIEW v6(c0, c1, c2) AS SELECT 0, 0, 0;\n")
@@ -518,7 +527,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "12.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a1 INT, b1 TEXT);\n  INSERT INTO t1 VALUES(88,'');\n  CREATE TABLE t2(c2 INT, d2 TEXT);\n  INSERT INTO t2 VALUES(88,'');\n  CREATE TABLE t3(e3 TEXT PRIMARY KEY);\n  INSERT INTO t3 VALUES('');\n")
@@ -539,7 +549,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "13.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT AS (b), b INT);\n  INSERT INTO t1(b) VALUES(123);\n  CREATE TABLE t2(a INT, c INT);\n  SELECT a FROM t2 NATURAL RIGHT JOIN t1;\n")
@@ -591,7 +602,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "14.0"
 		_res = db.Exec("\n  CREATE TABLE t1(c0 INT);\n  CREATE TABLE t2(c0 BLOB);\n  CREATE TABLE t3(c0 BLOB);\n  CREATE TABLE t4(c4 BLOB);\n  INSERT INTO t1(c0) VALUES(0);\n  INSERT INTO t3(c0) VALUES('0');\n")
@@ -696,7 +708,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "15.1"
 		r = db.Query("\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0);\n  CREATE TABLE t2(c0);\n  INSERT INTO t0 VALUES ('1.0');\n  INSERT INTO t2(c0) VALUES (9);\n  SELECT t0.c0,t2.c0 FROM (SELECT CAST(t0.c0 as REAL) AS c0 FROM t0) as subquery NATURAL LEFT JOIN t1  NATURAL JOIN t0  RIGHT JOIN t2 ON 1;\n")
@@ -723,7 +736,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "16.0"
 		_res = db.Exec("\n  CREATE TABLE t0_a (c0 INT);\n  CREATE TABLE t0_b (c0 INT);\n\n  CREATE TABLE t2 (c0 INT);\n  INSERT INTO t2 VALUES (1);\n")
@@ -798,7 +812,8 @@ func Test_joinH(t *testing.T) {
 		}
 	}
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "16.5.0"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0 INT);\n  CREATE TABLE t1 (c0 INT);\n  CREATE TABLE t2 (c0 INT);\n\n  INSERT INTO t1(c0) VALUES (NULL);\n  INSERT INTO t2 VALUES (1);\n\n  CREATE VIEW v0(c0) AS SELECT 1 AS col_0 FROM t0;\n")

@@ -214,7 +214,8 @@ func Test_e_blobopen(t *testing.T) {
 			// sqlite3_blob_close $B (unsupported command, not transpiled)
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('abcd', 152);\n  INSERT INTO t1 VALUES(NULL, X'00010203');\n  INSERT INTO t1 VALUES('', 154.2);\n\n  CREATE TABLE t2(x PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 'blob');\n\n  CREATE TABLE t3(a PRIMARY KEY, b, c, d, e, f, UNIQUE(e, f));\n  INSERT INTO t3 VALUES('aaaa', 'bbbb', 'cccc', 'dddd', 'eeee', 'ffff');\n  CREATE INDEX t3b ON t3(b);\n\n  CREATE TABLE p1(x PRIMARY KEY);\n  INSERT INTO p1 VALUES('abc');\n\n  CREATE TABLE c1(a INTEGER PRIMARY KEY, b REFERENCES p1);\n  INSERT INTO c1 VALUES(45, 'abc');\n")
@@ -436,7 +437,7 @@ func Test_e_blobopen(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "22 xxxxx..... {not null}"
+			want := "22 xxxxx..... not null"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -451,7 +452,7 @@ func Test_e_blobopen(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "22 xxxxx..... {not null}"
+			want := "22 xxxxx..... not null"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

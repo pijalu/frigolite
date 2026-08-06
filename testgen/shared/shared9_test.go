@@ -71,6 +71,7 @@ func Test_shared9(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	testprefix = "shared9"
 	_ = testprefix // suppress unused warning
+	db.Close()
 	enable_shared_cache = "sqlite3_enable_shared_cache 1"
 	_ = enable_shared_cache // suppress unused warning
 	db1 = db // sqlite3 db1 test.db: alias to main in-memory db

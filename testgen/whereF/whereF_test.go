@@ -155,7 +155,8 @@ func Test_whereF(t *testing.T) {
 					}
 				}
 				db.Close()
-				db, err = frigolite.Open("")
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				{ // "5.0"
 					r = db.Query("\n  CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;\n")
@@ -215,9 +216,9 @@ func Test_whereF(t *testing.T) {
 					}
 				}
 				{ // "6.2"
-					_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8", _res.Error, "\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":" + sqlLiteral("3,4,5") + ",\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
+					_res = db.Exec("\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8", _res.Error, "\n    DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));\n  ")
 					}
 				}
 				{ // "6.3"

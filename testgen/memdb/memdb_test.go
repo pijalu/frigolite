@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -97,6 +98,7 @@ func Test_memdb(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "memdb-1.1"
+		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
@@ -132,6 +134,9 @@ func Test_memdb(t *testing.T) {
 			}
 			sig2 = "signature two"
 			_ = sig2 // suppress unused warning
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "memdb-1." + i + ".1-" + cnt)
+			}
 		}
 		{ // do_test "memdb-1." + i + ".2-" + cnt
 			_res = db.Exec("\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
@@ -139,6 +144,9 @@ func Test_memdb(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
 			// signature (unsupported command, not transpiled)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), sig) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", sig, _res.Error, "memdb-1." + i + ".2-" + cnt)
+			}
 		}
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			{ // do_test "memdb-1." + i + ".9-" + cnt
@@ -434,6 +442,7 @@ func Test_memdb(t *testing.T) {
 				}
 			}
 			{ // do_test "memdb-8.1"
+				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    PRAGMA auto_vacuum=TRUE;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    SELECT count(*) FROM t1;\n  ")
@@ -448,8 +457,8 @@ func Test_memdb(t *testing.T) {
 				}
 			}
 			{ // do_test "memdb-9.1"
-				_dbtmp2, err := frigolite.Open("test.db")
-				_ = _dbtmp2 // sqlite3 db connection
+				db.Close()
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n    ")
 				if _res.Error != nil {

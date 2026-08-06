@@ -87,7 +87,7 @@ func Test_fts3atoken(t *testing.T) {
 	testprefix = "fts3atoken" // TCL namespace variable
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
+	// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 	{ // do_test "fts3atoken-1.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize blah);\n  ")
 		_ = _res // catchsql
@@ -120,7 +120,7 @@ func Test_fts3atoken(t *testing.T) {
 	_ = blah2name // suppress unused warning
 	simple = "db one {SELECT fts3_tokenizer('simple')}"
 	_ = simple // suppress unused warning
-	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 0 (unsupported command, not transpiled)
+	// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 	{ // "1.6"
 		_res = db.Exec("\n  SELECT fts3_tokenizer('blah', fts3_tokenizer('simple')) IS NULL;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fts3tokenize disabled") {
@@ -139,7 +139,7 @@ func Test_fts3atoken(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fts3_tokenizer(" + sqlLiteral(blah2name) + ") == fts3_tokenizer(" + sqlLiteral(simplename) + "),\n           typeof(fts3_tokenizer(" + sqlLiteral(blah2name) + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + sqlLiteral(simplename) + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
 		}
 	}
-	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
+	// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 	{ // do_test "fts3atoken-1.9"
 		r = db.Query("\n    SELECT fts3_tokenizer('blah2') == fts3_tokenizer('simple'),\n           typeof(fts3_tokenizer(" + sqlLiteral(blah2name) + ")),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer(" + sqlLiteral(simplename) + ")),\n           typeof(fts3_tokenizer('simple'));\n  ")
 		if r.Error != nil {
@@ -180,7 +180,7 @@ func Test_fts3atoken(t *testing.T) {
 		_res = db.Exec("\n    SELECT fts3_tokenizer('nosuchtokenizer');\n  ")
 		_ = _res // catchsql
 	}
-	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
+	// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 	{ // do_test "fts3atoken-3.1"
 		r = db.Query("\n    SELECT fts3_tokenizer_test('simple', 'I don''t see how');\n  ")
 		if r.Error != nil {
@@ -270,7 +270,7 @@ func Test_fts3atoken(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown tokenizer:", _res.Error, "\n  SELECT fts3_tokenizer(NULL);\n")
 		}
 	}
-	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
+	// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 	{ // "6.2.2"
 		_res = db.Exec("\n  SELECT fts3_tokenizer(NULL, X'1234567812345678');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "argument type mismatch") {

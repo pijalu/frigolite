@@ -63,9 +63,9 @@ func Test_shellA(t *testing.T) {
 	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	{ // "shellA-1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a INT, x TEXT);\n  INSERT INTO t1 VALUES\n   (1, 'line with '' single quote'),\n   (2, concat(char(0x1b),'" + sqlLiteral("31mVT-100 codes',char(0x1b),'[0m')),\n   (3, NULL),\n   (4, 1234),\n   (5, 568.25),\n   (6, unistr('new\\u000aline')),\n   (7, unistr('carriage\\u000dreturn')),\n   (8, 'last line');"))
+		_res = db.Exec("\n  CREATE TABLE t1(a INT, x TEXT);\n  INSERT INTO t1 VALUES\n   (1, 'line with '' single quote'),\n   (2, concat(char(0x1b),'[31mVT-100 codes',char(0x1b),'[0m')),\n   (3, NULL),\n   (4, 1234),\n   (5, 568.25),\n   (6, unistr('new\\u000aline')),\n   (7, unistr('carriage\\u000dreturn')),\n   (8, 'last line');\n")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, x TEXT);\n  INSERT INTO t1 VALUES\n   (1, 'line with '' single quote'),\n   (2, concat(char(0x1b),'" + sqlLiteral("31mVT-100 codes',char(0x1b),'[0m')),\n   (3, NULL),\n   (4, 1234),\n   (5, 568.25),\n   (6, unistr('new\\u000aline')),\n   (7, unistr('carriage\\u000dreturn')),\n   (8, 'last line');"))
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, x TEXT);\n  INSERT INTO t1 VALUES\n   (1, 'line with '' single quote'),\n   (2, concat(char(0x1b),'[31mVT-100 codes',char(0x1b),'[0m')),\n   (3, NULL),\n   (4, 1234),\n   (5, 568.25),\n   (6, unistr('new\\u000aline')),\n   (7, unistr('carriage\\u000dreturn')),\n   (8, 'last line');\n")
 		}
 	}
 	// do_test_with_ansi_output shellA-1.2 {\n  exec {*}$CLI -noinit test.db {.mode box -quote...} {\n╭──�... (unsupported command, not transpiled)

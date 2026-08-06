@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -113,13 +114,13 @@ func Test_ctime(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				want := res
+				want := tclListFlatten(res)
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
 		}
-		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
+		db.SetDQS(true, true)
 		{ // do_test "ctime-1.4.1"
 			_res = db.Exec("\n    SELECT sqlite_compileoption_used('SQLITE_THREADSAFE');\n  ")
 			_ = _res // catchsql
@@ -139,7 +140,7 @@ func Test_ctime(t *testing.T) {
 			_ = ans2 // suppress unused warning
 			ans3 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=2');\n  }"
 			_ = ans3 // suppress unused warning
-			_ = tclSort("list $ans1 $ans2 $ans3") // lsort result
+			_ = tclSort(ans1 + " " + ans2 + " " + ans3) // lsort result
 		}
 		{ // do_test "ctime-1.6"
 			r = db.Query("\n    SELECT sqlite_compileoption_used('THREADSAFE=');\n  ")
@@ -273,5 +274,8 @@ func Test_ctime(t *testing.T) {
 		_ = res // suppress unused warning
 		{ // do_test "ctime-3.0.1"
 			// expr [lsearch [db eval {PRAGMA compile_options}] DIRECT_OVERFLOW_READ]>=0 (not evaluated)
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), res) {
+				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", res, _res.Error, "ctime-3.0.1")
+			}
 		}
 }

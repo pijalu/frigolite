@@ -118,7 +118,8 @@ func Test_window6(t *testing.T) {
 			setup_sql = ""
 			_ = setup_sql // suppress unused warning
 			db.Close()
-			db, err = frigolite.Open("")
+			os.Remove("test.db")
+			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(setup_sql)
 			if _res.Error != nil {
@@ -151,7 +152,7 @@ func Test_window6(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := "window: {hello world}"
+			want := "window: hello world"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
@@ -194,7 +195,8 @@ func Test_window6(t *testing.T) {
 			}
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "5.0" — skipped: window functions not supported
 			_res = db.Exec("\n  CREATE TABLE over(x, over);\n  CREATE TABLE window(x, window);\n  INSERT INTO over VALUES(1, 2), (3, 4), (5, 6);\n  INSERT INTO window VALUES(1, 2), (3, 4), (5, 6);\n  SELECT sum(x) over FROM over\n")
@@ -221,7 +223,8 @@ func Test_window6(t *testing.T) {
 			_ = _res
 		}
 		db.Close()
-		db, err = frigolite.Open("")
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
@@ -324,14 +327,15 @@ func Test_window6(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := res
+							want := tclListFlatten(res)
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 					}
 					db.Close()
-					db, err = frigolite.Open("")
+					os.Remove("test.db")
+					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					{ // "11.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(10),(15),(20),(20),(25),(30),(30),(50);\n  CREATE TABLE t3(x INT, y VARCHAR);\n  INSERT INTO t3(x,y) VALUES(10,'ten'),('15','fifteen'),(30,'thirty');\n")

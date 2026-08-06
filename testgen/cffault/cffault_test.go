@@ -78,7 +78,8 @@ func Test_cffault(t *testing.T) {
 	// do_faultsim_test 1.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    ...} -body {\n  sql... (unsupported command, not transpiled)
 	// do_faultsim_test 1.2 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    ...} -body {\n  set... (unsupported command, not transpiled)
 	db.Close()
-	db, err = frigolite.Open("")
+	os.Remove("test.db")
+	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b);\n  CREATE INDEX i2 ON t1(c, b);\n  INSERT INTO t1 VALUES(1, 2,  randomblob(600));\n  INSERT INTO t1 VALUES(3, 4,  randomblob(600));\n  INSERT INTO t1 VALUES(5, 6,  randomblob(600));\n  INSERT INTO t1 VALUES(7, 8,  randomblob(600));\n  INSERT INTO t1 VALUES(9, 10, randomblob(600));\n")
