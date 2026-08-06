@@ -151,7 +151,8 @@ func Test_altertab2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
 			}
-			expect = "db eval \"SELECT sql FROM sqlite_master\""
+			_dbeval1 := tclExecSQL(db, "SELECT sql FROM sqlite_master")
+			expect = _dbeval1
 			_ = expect // suppress unused warning
 			expect = strings.ReplaceAll(expect, "log_entry", "{\"newname\"}")
 			_ = expect // suppress unused warning
@@ -176,7 +177,8 @@ func Test_altertab2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
 			}
-			expect = "db eval \"SELECT sql FROM sqlite_master\""
+			_dbeval2 := tclExecSQL(db, "SELECT sql FROM sqlite_master")
+			expect = _dbeval2
 			_ = expect // suppress unused warning
 			expect = strings.ReplaceAll(expect, "col1", "newname")
 			_ = expect // suppress unused warning

@@ -3541,6 +3541,24 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 		cmdText = strings.TrimPrefix(cmdText, "[")
 		cmdText = strings.TrimSuffix(cmdText, "]")
 		cmdParts := strings.Fields(cmdText)
+		if len(cmdParts) > 0 && cmdParts[0] == "db" && len(cmdParts) >= 2 && cmdParts[1] == "eval" {
+			// set var [db eval "SQL"] — run the query and assign the
+			// flattened result.
+			sqlText := strings.TrimSpace(strings.TrimPrefix(cmdText, "db eval"))
+			sqlText = strings.TrimSpace(strings.Trim(sqlText, `"`))
+			sqlExpr := tp.buildSQLStringExpr(sqlText)
+			dbEvalVar := fmt.Sprintf("_dbeval%d", tp.varCount)
+			tp.varCount++
+			tp.emitLine("%s := tclExecSQL(db, %s)", dbEvalVar, sqlExpr)
+			if tp.isVarDeclared(goName) {
+				tp.emitLine("%s = %s", goName, dbEvalVar)
+			} else {
+				tp.emitLine("var %s = %s", goName, dbEvalVar)
+				tp.vars = append(tp.vars, goName)
+			}
+			tp.emitLine("_ = %s // suppress unused warning", goName)
+			return
+		}
 		if len(cmdParts) > 0 && cmdParts[0] == "list" {
 			// set var [list a b c] — build a TCL-list string without the
 			// "list" command word so tclSplitList at Go runtime returns
