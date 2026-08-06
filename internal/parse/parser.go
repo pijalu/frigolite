@@ -2179,11 +2179,18 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 		return &sql.ReindexStmt{}
 
 	// Rule 290: cmd ::= ANALYZE
-	// (and the ANALYZE nm / ANALYZE nm dbnm variants — the bare form is the
-	// common one; named forms reduce through the same handler with the name
-	// in the RHS).
 	case 290:
 		return &sql.AnalyzeStmt{}
+
+	// Rule 291: cmd ::= ANALYZE nm dbnm
+	// ANALYZE with a table/index name (and optional schema qualifier). The
+	// name is the 2nd RHS element; a schema qualifier is the 3rd.
+	case 291:
+		name := getString(getRHS(p, ruleNo, 2))
+		if schema := getString(getRHS(p, ruleNo, 3)); schema != "" {
+			name = schema + "." + name
+		}
+		return &sql.AnalyzeStmt{Name: name}
 
 	// Rule 292: cmd ::= ALTER TABLE fullname RENAME TO nm
 	case 292:
