@@ -1322,8 +1322,9 @@ func findTableRefsInTrigger(triggerSQL string) []string {
 // Returns the CTE names in uppercase for easy comparison.
 func extractCTENames(sql string) []string {
 	var names []string
-	// Match WITH name AS (...), including nested WITH clauses
-	re := regexp.MustCompile(`(?i)\bWITH\s+(\w+)\s+AS\s*\(`)
+	// Match WITH name AS (...) or WITH name(col1,col2) AS (...), including
+	// nested WITH clauses.
+	re := regexp.MustCompile(`(?i)\bWITH\s+(\w+)\s*(?:\([^)]*\))?\s+AS\s*\(`)
 	matches := re.FindAllStringSubmatch(sql, -1)
 	for _, m := range matches {
 		names = append(names, strings.ToUpper(m[1]))
