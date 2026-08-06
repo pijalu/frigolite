@@ -239,16 +239,26 @@ func (e *Engine) evalCaseElse(v *sql.CaseExpr, row Row) (interface{}, error) {
 	return nil, nil
 }
 
-func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (interface{}, error) {
-	val, err := e.evalExpr(v.Operand, row)
-	if err != nil {
-		return nil, err
+func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (result interface{}, err error) {
+	val, evalErr := e.evalExpr(v.Operand, row)
+	if evalErr != nil {
+		return nil, evalErr
 	}
 	if val == nil {
 		return nil, nil
 	}
 	// Unwrap ColumnValue affinity wrappers so the CAST operates on the raw value.
 	val = util.UnwrapColumnValue(val)
+	// The CAST result carries the affinity of its target type for comparison
+	// purposes (sqlite3ExprAffinity): CAST(x AS NUMERIC) compares its other
+	// operand with NUMERIC affinity, CAST(x AS TEXT) with TEXT affinity, etc.
+	// Output paths unwrap the ColumnValue (unwrapCollatedValue), so the
+	// wrapper only affects comparisons.
+	defer func() {
+		if result != nil {
+			result = &util.ColumnValue{Value: result, Affinity: util.Affinity(v.AsType)}
+		}
+	}()
 	switch strings.ToUpper(v.AsType) {
 	case "INTEGER", "INT":
 		switch x := val.(type) {
@@ -830,12 +840,13 @@ func extractValue(v interface{}) (interface{}, string) {
 // Used when a value flows to a result column, where the collation marker
 // (a *collatedValue pointer) must not leak into the output. Since a COLLATE
 // expression wraps its operand (which may itself be a *ColumnValue), this
-// also unwraps the inner ColumnValue to produce the raw scalar.
+// also unwraps the inner ColumnValue to produce the raw scalar. A top-level
+// ColumnValue (e.g. the affinity wrapper on a CAST result) is unwrapped too.
 func unwrapCollatedValue(v interface{}) interface{} {
 	if cv, ok := v.(*collatedValue); ok {
 		return util.UnwrapColumnValue(cv.value)
 	}
-	return v
+	return util.UnwrapColumnValue(v)
 }
 
 // compareValuesWithCollate compares two values using the collation from either side.
@@ -1923,7 +1934,8 @@ func toIntValue(v interface{}) int64 {
 
 // toInt64 converts a value to int64 with an ok flag, matching SQLite's
 // integer conversion for bitwise operators: int64 stays, float64 truncates
-// toward zero, numeric strings parse, everything else fails.
+// toward zero, numeric strings parse, everything else coerces to 0 (SQLite
+// applies NUMERIC affinity to text/blob operands, so 'a' → 0, x'00' → 0).
 func toInt64(v interface{}) (int64, bool) {
 	switch x := util.UnwrapColumnValue(v).(type) {
 	case int64:
@@ -1938,9 +1950,20 @@ func toInt64(v interface{}) (int64, bool) {
 		if f, err := strconv.ParseFloat(s, 64); err == nil {
 			return int64(f), true
 		}
-		return 0, false
+		return 0, true
+	case []byte:
+		s := strings.TrimSpace(string(x))
+		if i, err := strconv.ParseInt(s, 10, 64); err == nil {
+			return i, true
+		}
+		if f, err := strconv.ParseFloat(s, 64); err == nil {
+			return int64(f), true
+		}
+		return 0, true
+	case nil:
+		return 0, false // NULL propagates NULL
 	default:
-		return 0, false
+		return 0, true
 	}
 }
 
@@ -2053,16 +2076,32 @@ func concatValues(a, b interface{}) (interface{}, error) {
 		if aIsBlob {
 			buf = append(buf, ab...)
 		} else {
-			buf = append(buf, fmt.Sprintf("%v", a)...)
+			buf = append(buf, renderConcatValue(a)...)
 		}
 		if bIsBlob {
 			buf = append(buf, bb...)
 		} else {
-			buf = append(buf, fmt.Sprintf("%v", b)...)
+			buf = append(buf, renderConcatValue(b)...)
 		}
 		return string(buf), nil
 	}
-	return fmt.Sprintf("%v%v", a, b), nil
+	return renderConcatValue(a) + renderConcatValue(b), nil
+}
+
+// renderConcatValue converts a value to its TEXT form for the || operator,
+// matching SQLite's sqlite3_value_text rendering (REALs use the 15-digit
+// %!.15g format with a trailing .0 for whole numbers, e.g. 11.0).
+func renderConcatValue(v interface{}) string {
+	switch x := v.(type) {
+	case float64:
+		return util.FormatSQLiteReal(x)
+	case []byte:
+		return string(x)
+	case nil:
+		return ""
+	default:
+		return fmt.Sprintf("%v", x)
+	}
 }
 
 func negateValue(v interface{}) (interface{}, error) {

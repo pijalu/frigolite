@@ -854,8 +854,9 @@ func (e *Engine) resolveUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.
 						continue
 					}
 					for _, cn := range def.Cols {
-						idx, ok := colIndex[cn]
-						if !ok || idx >= len(rec.Values) || idx >= len(c.values) || rec.Values[idx] == nil || c.values[idx] == nil || util.CompareValues(rec.Values[idx], c.values[idx]) != 0 {
+						rkv, rok := e.indexKeyValue(cn, colDefs, colIndex, rec.Values, orow)
+						ckv, cok := e.indexKeyValue(cn, colDefs, colIndex, c.values, nrow)
+						if !rok || !cok || util.CompareValues(rkv, ckv) != 0 {
 							match = false
 							break
 						}
@@ -973,8 +974,9 @@ func (e *Engine) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.Colu
 					}
 					match := true
 					for _, cn := range def.Cols {
-						idx, ok := colIndex[cn]
-						if !ok || idx >= len(rec.Values) || idx >= len(c.values) || rec.Values[idx] == nil || c.values[idx] == nil || util.CompareValues(rec.Values[idx], c.values[idx]) != 0 {
+						rkv, rok := e.indexKeyValue(cn, colDefs, colIndex, rec.Values, orow)
+						ckv, cok := e.indexKeyValue(cn, colDefs, colIndex, c.values, nrow)
+						if !rok || !cok || util.CompareValues(rkv, ckv) != 0 {
 							match = false
 							break
 						}
@@ -1082,8 +1084,9 @@ func (e *Engine) valuesConflict(a, b []interface{}, colDefs []sql.ColumnDef, col
 		}
 		match := true
 		for _, cn := range def.Cols {
-			idx, ok := colIndex[cn]
-			if !ok || idx >= len(a) || idx >= len(b) || a[idx] == nil || b[idx] == nil || util.CompareValues(a[idx], b[idx]) != 0 {
+			akv, aok := e.indexKeyValue(cn, colDefs, colIndex, a, arow)
+			bkv, bok := e.indexKeyValue(cn, colDefs, colIndex, b, brow)
+			if !aok || !bok || util.CompareValues(akv, bkv) != 0 {
 				match = false
 				break
 			}

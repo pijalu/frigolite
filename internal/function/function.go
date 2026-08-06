@@ -127,6 +127,10 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "ADD_TEXT_TYPE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnAddTextType})
 	r.register(&Func{Name: "ADD_INT_TYPE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnAddIntType})
 	r.register(&Func{Name: "ADD_REAL_TYPE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnAddRealType})
+	// intreal(N) forces N to the REAL storage class with an integer value
+	// (SQLite's MEM_IntReal test helper): renders as "N.0", typeof "real",
+	// but compares numerically like the integer N.
+	r.register(&Func{Name: "INTREAL", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnIntReal})
 
 	// Date/time functions
 	r.register(&Func{Name: "DATE", Type: TypeScalar, MinArgs: 1, MaxArgs: 3, ScalarFn: fnDATE})
@@ -1747,6 +1751,15 @@ func fnAddRealType(args []interface{}) (interface{}, error) {
 	default:
 		return float64(0), nil
 	}
+}
+
+// fnIntReal implements the test-only intreal() function from the SQLite TCL
+// test suite. It forces its argument to the REAL storage class while keeping
+// the integer value (SQLite's MEM_IntReal): the value renders as "N.0",
+// typeof() reports "real", and comparisons treat it numerically as N.
+// NULL passes through.
+func fnIntReal(args []interface{}) (interface{}, error) {
+	return fnAddRealType(args)
 }
 
 func fnREGEXP(args []interface{}) (interface{}, error) {

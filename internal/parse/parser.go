@@ -949,22 +949,25 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 68: tcons ::= PRIMARY KEY LP sortlist autoinc RP onconf
 	case 68:
 		return sql.TableConstraint{
-			Type:    sql.ConstraintPrimaryKey,
-			Columns: indexColumnsFromSortlist(getRHS(p, ruleNo, 4)),
+			Type:       sql.ConstraintPrimaryKey,
+			Columns:    indexColumnsFromSortlist(getRHS(p, ruleNo, 4)),
+			OnConflict: getString(getRHS(p, ruleNo, 6)),
 		}
 
 	// Rule 69: tcons ::= UNIQUE LP sortlist RP onconf
 	case 69:
 		return sql.TableConstraint{
-			Type:    sql.ConstraintUnique,
-			Columns: indexColumnsFromSortlist(getRHS(p, ruleNo, 3)),
+			Type:       sql.ConstraintUnique,
+			Columns:    indexColumnsFromSortlist(getRHS(p, ruleNo, 3)),
+			OnConflict: getString(getRHS(p, ruleNo, 5)),
 		}
 
 	// Rule 70: tcons ::= CHECK LP expr RP onconf
 	case 70:
 		return sql.TableConstraint{
-			Type: sql.ConstraintCheck,
-			Expr: getExpr(getRHS(p, ruleNo, 3)),
+			Type:       sql.ConstraintCheck,
+			Expr:       getExpr(getRHS(p, ruleNo, 3)),
+			OnConflict: getString(getRHS(p, ruleNo, 5)),
 		}
 
 	// Rule 71: tcons ::= FOREIGN KEY LP eidlist RP REFERENCES nm eidlist_opt refargs defer_subclause_opt

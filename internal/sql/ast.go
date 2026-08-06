@@ -279,6 +279,9 @@ type TableConstraint struct {
 	Name    string          // optional constraint name
 	Expr    Expr            // for CHECK: the check expression
 	Columns []IndexedColumn // for PRIMARY KEY/UNIQUE: indexed columns with options
+	// OnConflict is the optional ON CONFLICT resolution for the constraint
+	// (e.g. "IGNORE", "REPLACE", "ABORT", "FAIL", "ROLLBACK").
+	OnConflict string
 
 	// FOREIGN KEY reference info (Type == ConstraintForeignKey):
 	RefTable  string   // referenced (parent) table name

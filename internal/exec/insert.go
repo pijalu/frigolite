@@ -117,7 +117,11 @@ func (e *Engine) execInsert(s *sql.InsertStmt) (ret *Result) {
 		var replaceRowID int64
 		var haveReplaceRowID bool
 		if s.IsReplace {
-			replaceRowID = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+			rr, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+			if err != nil {
+				return &Result{Error: err}
+			}
+			replaceRowID = rr
 			haveReplaceRowID = true
 			if res := e.replaceDeleteConflicts(dbCtx.Pager, tableEntry, colDefs, values); res.Error != nil {
 				return res
@@ -202,7 +206,10 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	// value, use that value as the rowid (the column IS the rowid). Otherwise
 	// auto-assign the next available rowid. REPLACE passes a rowid computed
 	// before its conflict deletes (SQLite keeps it through the retry).
-	nextRowID := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+	nextRowID, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+	if err != nil {
+		return &Result{Error: err}
+	}
 	if fixedRowID != nil {
 		nextRowID = *fixedRowID
 	}
@@ -225,7 +232,7 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 
 	if err := e.checkConstraints(tableEntry, colDefs, values, nextRowID); err != nil {
 		// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
-		if isIgnoreableConflict(err, colDefs) {
+		if e.isIgnoreableConflict(err, tableEntry, colDefs) {
 			return &Result{Changes: 0}
 		}
 		// Column-level ON CONFLICT REPLACE on a NOT NULL column: substitute the
@@ -722,6 +729,39 @@ func (e *Engine) evalIndexWhere(whereSQL string, row RowMap) (bool, error) {
 	return toBool(v), nil
 }
 
+// indexKeyValue returns the value of one index column for a row. A plain
+// column name resolves through colIndex; any other expression (e.g. "0 | c0")
+// is parsed and evaluated against the row. The bool result is false when the
+// value cannot be computed (NULL or evaluation error) — callers treat that as
+// no-conflict (SQL UNIQUE allows multiple NULLs in an index key).
+func (e *Engine) indexKeyValue(cn string, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, row RowMap) (interface{}, bool) {
+	if idx, ok := colIndex[cn]; ok && idx >= 0 && idx < len(values) {
+		if values[idx] == nil {
+			return nil, false
+		}
+		return values[idx], true
+	}
+	// Expression index column: evaluate SELECT <expr> against the row.
+	stmts, perr := parse.ParseSQL("SELECT " + cn)
+	if perr != nil || len(stmts) == 0 {
+		return nil, false
+	}
+	sel, ok := stmts[0].(*sql.SelectStmt)
+	if !ok || len(sel.Columns) == 0 {
+		return nil, false
+	}
+	v, err := e.evalExpr(sel.Columns[0].Expr, row)
+	if err != nil {
+		return nil, false
+	}
+	if v == nil {
+		return nil, false
+	}
+	// Unwrap column-affinity wrappers so comparisons use raw values.
+	v = util.UnwrapColumnValue(v)
+	return v, true
+}
+
 // checkUniqueIndex scans the table for a row whose values match the new row
 // on all columns of a UNIQUE index. Returns a SQLite-style error on conflict.
 // NULL values never conflict (SQL UNIQUE allows multiple NULLs).
@@ -736,11 +776,11 @@ func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.Column
 	idxCols := def.Cols
 	key := make([]interface{}, len(idxCols))
 	for i, cn := range idxCols {
-		idx, ok := colIndex[cn]
-		if !ok || idx >= len(values) || values[idx] == nil {
+		kv, ok := e.indexKeyValue(cn, colDefs, colIndex, values, row)
+		if !ok {
 			return nil
 		}
-		key[i] = values[idx]
+		key[i] = kv
 	}
 	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
@@ -761,8 +801,8 @@ func (e *Engine) checkUniqueIndex(tableEntry *schema.Entry, colDefs []sql.Column
 		if inIndex, _ := e.evalIndexWhere(def.Where, erow); inIndex {
 			match := true
 			for i, cn := range idxCols {
-				idx, ok := colIndex[cn]
-				if !ok || idx >= len(rec.Values) || util.CompareValues(rec.Values[idx], key[i]) != 0 {
+				kv, ok := e.indexKeyValue(cn, colDefs, colIndex, rec.Values, erow)
+				if !ok || util.CompareValues(kv, key[i]) != 0 {
 					match = false
 					break
 				}
@@ -795,11 +835,11 @@ func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.Colu
 	idxCols := def.Cols
 	key := make([]interface{}, len(idxCols))
 	for i, cn := range idxCols {
-		idx, ok := colIndex[cn]
-		if !ok || idx >= len(values) || values[idx] == nil {
+		kv, ok := e.indexKeyValue(cn, colDefs, colIndex, values, row)
+		if !ok {
 			return 0, nil, false
 		}
-		key[i] = values[idx]
+		key[i] = kv
 	}
 	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
@@ -820,8 +860,8 @@ func (e *Engine) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.Colu
 		if inIndex, _ := e.evalIndexWhere(def.Where, erow); inIndex {
 			match := true
 			for i, cn := range idxCols {
-				idx, ok := colIndex[cn]
-				if !ok || idx >= len(rec.Values) || util.CompareValues(rec.Values[idx], key[i]) != 0 {
+				kv, ok := e.indexKeyValue(cn, colDefs, colIndex, rec.Values, erow)
+				if !ok || util.CompareValues(kv, key[i]) != 0 {
 					match = false
 					break
 				}
@@ -1256,8 +1296,9 @@ func hasConflictAt(recValues []interface{}, uniqueCols []int, values []interface
 }
 
 // isIgnoreableConflict checks if a constraint error should be silently ignored
-// due to a column-level ON CONFLICT IGNORE clause.
-func isIgnoreableConflict(err error, colDefs []sql.ColumnDef) bool {
+// due to a column-level ON CONFLICT IGNORE clause or a table-level constraint's
+// ON CONFLICT IGNORE clause.
+func (e *Engine) isIgnoreableConflict(err error, tableEntry *schema.Entry, colDefs []sql.ColumnDef) bool {
 	if err == nil {
 		return false
 	}
@@ -1277,6 +1318,13 @@ func isIgnoreableConflict(err error, colDefs []sql.ColumnDef) bool {
 	}
 	for _, cd := range colDefs {
 		if cd.OnConflict == "IGNORE" {
+			return true
+		}
+	}
+	// Table-level UNIQUE/PRIMARY KEY constraints may carry their own
+	// ON CONFLICT IGNORE clause (e.g. UNIQUE(b,c) ON CONFLICT IGNORE).
+	for _, tc := range e.tableConstraints(tableEntry.Name, tableEntry.SQL) {
+		if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.OnConflict == "IGNORE" {
 			return true
 		}
 	}
@@ -1485,7 +1533,11 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		// through the REPLACE retry, so a trigger may grab it and conflict).
 		var replaceRowID int64
 		if isReplace {
-			replaceRowID = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+			rr, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+			if err != nil {
+				return &Result{Error: err}
+			}
+			replaceRowID = rr
 			if res := e.replaceDeleteConflicts(e.pager, tableEntry, colDefs, values); res.Error != nil {
 				return res
 			}
@@ -1505,7 +1557,11 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 				}
 			}
 		} else {
-			rowID = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+			var err error
+			rowID, err = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+			if err != nil {
+				return &Result{Error: err}
+			}
 			// If INTEGER PRIMARY KEY column is nil, set it to the auto-assigned rowid
 			for i, cd := range colDefs {
 				if cd.PrimaryKey && i < len(values) && values[i] == nil {
@@ -1522,7 +1578,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 				continue
 			}
 			// Column-level ON CONFLICT IGNORE: silence UNIQUE constraint violations
-			if isIgnoreableConflict(err, colDefs) {
+			if e.isIgnoreableConflict(err, tableEntry, colDefs) {
 				continue
 			}
 			// Column-level ON CONFLICT REPLACE: delete the conflicting row and
@@ -1638,18 +1694,31 @@ func (e *Engine) computeGeneratedValues(colDefs []sql.ColumnDef, values []interf
 // auto-assigned rowid. WITHOUT ROWID tables are emulated with rowid-based
 // storage, so their PRIMARY KEY integer value is used as the rowid to keep
 // PK-ordered storage.
-func (e *Engine) pkRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) int64 {
+//
+// For an INTEGER PRIMARY KEY column with an explicit non-NULL value, SQLite
+// applies NUMERIC affinity (OP_MustBeInt): a value that converts to an exact
+// integer (integer, integer-valued real like 3.0, or numeric text like '12')
+// is used as the rowid; anything else (non-integer real like 3.5, or
+// non-numeric text) fails with "datatype mismatch".
+func (e *Engine) pkRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) (int64, error) {
 	for i, cd := range colDefs {
 		if cd.PrimaryKey && i < len(values) && values[i] != nil {
+			if !withoutRowid && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
+				v := util.ApplyColumnAffinity(values[i], "NUMERIC")
+				if iv, ok := v.(int64); ok {
+					return iv, nil
+				}
+				return 0, fmt.Errorf("datatype mismatch")
+			}
 			if v, ok := values[i].(int64); ok {
-				if withoutRowid || strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
-					return v
+				if withoutRowid {
+					return v, nil
 				}
 			}
 			break
 		}
 	}
-	return e.findNextRowID(tableName, rootPage)
+	return e.findNextRowID(tableName, rootPage), nil
 }
 
 func (e *Engine) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt) *Result {

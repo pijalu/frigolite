@@ -268,14 +268,31 @@ func sqlite3IntFloatCompare(i int64, r float64) int {
 	// SQLite's sqlite3IntFloatCompare: NaN is NULL (all integers > NULL).
 	// The boundary for "outside int64 range" is 2^63, not MaxInt64, because
 	// float64(MaxInt64) rounds up to 2^63.
+	//
+	// A REAL equal to -2^63 or 2^63 (exactly representable) is treated as the
+	// corresponding int64 boundary value: r == -2^63 matches MinInt64 and
+	// r == 2^63 matches MaxInt64. Doubles beyond those (the next representable
+	// double is 2^63±2048) compare strictly less/greater than every int64.
 	if math.IsNaN(r) {
 		return 1
 	}
 	if r < -9223372036854775808.0 {
 		return 1 // r < i (i >= MinInt64 > r)
 	}
-	if r >= 9223372036854775808.0 {
+	if r == -9223372036854775808.0 {
+		if i == math.MinInt64 {
+			return 0
+		}
+		return 1 // r < i (i > MinInt64)
+	}
+	if r > 9223372036854775808.0 {
 		return -1 // r > i (i <= MaxInt64 < r)
+	}
+	if r == 9223372036854775808.0 {
+		if i == math.MaxInt64 {
+			return 0
+		}
+		return -1 // r > i (i < MaxInt64)
 	}
 	// r is within int64 range: convert r to int64 and compare as integers,
 	// falling back to a float compare when the truncated values tie.

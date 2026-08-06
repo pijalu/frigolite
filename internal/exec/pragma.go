@@ -575,6 +575,20 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 		return e.execPragmaIndexList(s.Value)
 	}
 
+	// PRAGMA table_info(tbl) / table_xinfo(tbl) materialize the table's
+	// column metadata as rows (cid, name, type, notnull, dflt_value, pk).
+	if name == "TABLE_INFO" || name == "TABLE_XINFO" {
+		cols, rows, err := e.materializeTableInfo(sql.TableRef{Name: "pragma_" + strings.ToLower(name), Args: []sql.Expr{&sql.StringLit{Value: s.Value}}})
+		if err != nil {
+			return &Result{Error: err}
+		}
+		names := make([]string, len(cols))
+		for i, c := range cols {
+			names[i] = c.Name
+		}
+		return &Result{Columns: names, Rows: rows}
+	}
+
 	// Handle PRAGMA ... = value for known pragmas
 	if s.Value != "" && name != "QUICK_CHECK" && name != "INTEGRITY_CHECK" {
 		switch name {
