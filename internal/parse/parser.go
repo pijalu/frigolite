@@ -11,6 +11,7 @@ package parse
 import (
 	"encoding/hex"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -92,6 +93,8 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 							vw.RawSQL = strings.TrimSpace(input[stmtStart:end])
 						} else if ci, ciOK := s.(*sql.CreateIndexStmt); ciOK {
 							ci.RawSQL = strings.TrimSpace(input[stmtStart:end])
+						} else if sel, selOK := s.(*sql.SelectStmt); selOK {
+							sel.RawSQL = strings.TrimSpace(input[stmtStart:end])
 						}
 						stmtStart = end + 1
 					}
@@ -163,10 +166,118 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	// WITH-clause (CTE) definitions are carried directly by the LALR grammar:
 	// SELECT (rules 85/86), INSERT (rule 164), and CREATE VIEW bodies all
 	// populate the AST's CTEs field. No RD re-parse merge is needed.
+	// Recover function-call ORDER BY clauses that the LALR tables drop
+	// (e.g. group_concat(a ORDER BY b)) by scanning the raw statement text.
+	recoverFuncCallOrderBy(stmts)
 	return stmts, nil
 }
 
-// isHexLiteral reports whether s is a hexadecimal integer literal
+// recoverFuncCallOrderBy re-attaches ORDER BY clauses inside aggregate
+// function calls (e.g. group_concat(a ORDER BY b)) that the LALR parse
+// tables drop. The parser reduces the function call without the ORDER BY,
+// leaving the FuncCall.OrderBy empty; this pass scans each SELECT's raw
+// statement text for "funcname( ... ORDER BY sortlist )" and attaches the
+// recovered sortlist to the matching FuncCall.
+func recoverFuncCallOrderBy(stmts []sql.Stmt) {
+	for _, stmt := range stmts {
+		var sel *sql.SelectStmt
+		switch s := stmt.(type) {
+		case *sql.SelectStmt:
+			sel = s
+		case *sql.InsertStmt:
+			sel = s.Select
+		case *sql.CreateViewStmt:
+			sel = s.Select
+			// The inner SELECT does not carry RawSQL (only the CREATE VIEW
+			// wrapper does); propagate it so the fixup can scan the body.
+			if sel != nil && sel.RawSQL == "" {
+				sel.RawSQL = s.RawSQL
+			}
+		}
+		if sel == nil || sel.RawSQL == "" {
+			continue
+		}
+		recoverSelectFuncCallOrderBy(sel)
+	}
+}
+
+// recoverSelectFuncCallOrderBy walks a SELECT's column expressions and
+// attaches function-call ORDER BY recovered from raw SQL.
+func recoverSelectFuncCallOrderBy(sel *sql.SelectStmt) {
+	if sel == nil || sel.RawSQL == "" {
+		return
+	}
+	raw := sel.RawSQL
+	for i := range sel.Columns {
+		expr := sel.Columns[i].Expr
+		fc, ok := expr.(*sql.FuncCall)
+		if !ok || len(fc.OrderBy) > 0 {
+			continue
+		}
+		if ob := extractFuncCallOrderBy(raw, fc.Name); len(ob) > 0 {
+			sel.Columns[i].Expr = &sql.FuncCall{
+				Name:     fc.Name,
+				Args:     fc.Args,
+				Distinct: fc.Distinct,
+				OrderBy:  ob,
+			}
+		}
+	}
+}
+
+// extractFuncCallOrderBy finds "funcname( ... ORDER BY sortlist )" in raw SQL
+// and parses the sortlist into OrderByTerms by re-parsing "SELECT sortlist".
+// Returns nil if no ORDER BY is present inside the call.
+func extractFuncCallOrderBy(raw, funcName string) []sql.OrderByTerm {
+	upper := strings.ToUpper(raw)
+	quoted := regexp.QuoteMeta(funcName)
+	// Match funcname( ... ) — find the function call, then locate ORDER BY
+	// inside its parens.
+	fnRe := regexp.MustCompile(`(?i)\b` + quoted + `\s*\(`)
+	loc := fnRe.FindStringIndex(upper)
+	if loc == nil {
+		return nil
+	}
+	// Scan from the open paren to the matching close, tracking depth.
+	open := loc[1] - 1 // byte offset of '('
+	depth := 0
+	end := -1
+	for i := open; i < len(raw); i++ {
+		if raw[i] == '(' {
+			depth++
+		} else if raw[i] == ')' {
+			depth--
+			if depth == 0 {
+				end = i
+				break
+			}
+		}
+	}
+	if end < 0 {
+		return nil
+	}
+	inner := raw[open+1 : end]
+	// Find ORDER BY inside the call's parens.
+	obIdx := strings.Index(strings.ToUpper(inner), "ORDER BY")
+	if obIdx < 0 {
+		return nil
+	}
+	obText := strings.TrimSpace(inner[obIdx+len("ORDER BY"):])
+	if obText == "" {
+		return nil
+	}
+	// Re-parse the sortlist as "SELECT 1 ORDER BY <sortlist>" to get
+	// OrderByTerms (the sortlist grammar only appears in ORDER BY context).
+	sub, err := ParseSQL("SELECT 1 ORDER BY " + obText)
+	if err != nil || len(sub) == 0 {
+		return nil
+	}
+	subSel, ok := sub[0].(*sql.SelectStmt)
+	if !ok || len(subSel.OrderBy) == 0 {
+		return nil
+	}
+	return subSel.OrderBy
+}
 // (optionally with a leading + or - sign), e.g. "0x1A" or "-0xFF".
 func isHexLiteral(s string) bool {
 	i := 0

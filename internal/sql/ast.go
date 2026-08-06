@@ -44,6 +44,10 @@ type SelectStmt struct {
 	// member is O(1). It is only maintained by AppendUnion; callers that build
 	// chains by assigning Union directly must not rely on it.
 	unionTail *SelectStmt
+
+	// RawSQL is the original statement text as written by the caller (used
+	// for post-parse fixups such as function-call ORDER BY recovery).
+	RawSQL string
 }
 
 // AppendUnion appends next to the end of s's compound chain in O(1) amortized
