@@ -1849,10 +1849,18 @@ func addValues(a, b interface{}) (interface{}, error) {
 		return ai + bi, nil
 	}
 	// Integer arithmetic must not round-trip through float64 (precision loss
-	// for large int64 values).
+	// for large int64 values) unless the result overflows int64, in which
+	// case SQLite promotes the result to REAL (e.g. 9223372036854775807+1
+	// is 9.22337203685478e+18, not the wrapped MinInt64).
 	if ia, ok := a.(int64); ok {
 		if ib, ok := b.(int64); ok {
-			return ia + ib, nil
+			sum := ia + ib
+			// Detect int64 overflow: the sum of two same-sign values must
+			// keep that sign (or be zero for -1 + 1, which cannot overflow).
+			if (ib > 0 && sum < ia) || (ib < 0 && sum > ia) {
+				return float64(ia) + float64(ib), nil
+			}
+			return sum, nil
 		}
 	}
 	af, aok := toFloat(a)

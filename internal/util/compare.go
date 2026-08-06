@@ -265,22 +265,34 @@ func compareIntFloat(a, b interface{}) int {
 // sqlite3IntFloatCompare implements SQLite's comparison between int64 and float64.
 // Returns -1 if i < r, 0 if i == r, 1 if i > r.
 func sqlite3IntFloatCompare(i int64, r float64) int {
-	// If r is outside int64 range, compare as floats (i converted to float64)
-	if r > float64(math.MaxInt64) {
-		return -1 // r > i (since i <= MaxInt64 < r)
+	// SQLite's sqlite3IntFloatCompare: NaN is NULL (all integers > NULL).
+	// The boundary for "outside int64 range" is 2^63, not MaxInt64, because
+	// float64(MaxInt64) rounds up to 2^63.
+	if math.IsNaN(r) {
+		return 1
 	}
-	if r < float64(math.MinInt64) {
-		return 1 // r < i (since i >= MinInt64 > r)
+	if r < -9223372036854775808.0 {
+		return 1 // r < i (i >= MinInt64 > r)
 	}
-	// r is within int64 range: convert r to int64 and compare as integers
-	ri := int64(r)
-	if ri < i {
-		return 1 // i > r
+	if r >= 9223372036854775808.0 {
+		return -1 // r > i (i <= MaxInt64 < r)
 	}
-	if ri > i {
-		return -1 // i < r
+	// r is within int64 range: convert r to int64 and compare as integers,
+	// falling back to a float compare when the truncated values tie.
+	y := int64(r)
+	if i < y {
+		return -1
 	}
-	return 0 // equal
+	if i > y {
+		return 1
+	}
+	if float64(i) < r {
+		return -1
+	}
+	if float64(i) > r {
+		return 1
+	}
+	return 0
 }
 
 // compareTextNumeric compares a text value a with a numeric value b.
