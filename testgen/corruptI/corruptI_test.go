@@ -137,6 +137,7 @@ func Test_corruptI(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.1"
 			r = db.Query("\n     PRAGMA auto_vacuum=0;\n     PRAGMA page_size = 512;\n     CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n     WITH s(a, b) AS (\n       SELECT 2, 'abcdefghij'\n       UNION ALL\n       SELECT a+2, b FROM s WHERe a < 40\n     )\n     INSERT INTO t1 SELECT * FROM s;\n   ")
 			if r.Error != nil {
@@ -171,6 +172,7 @@ func Test_corruptI(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		r = db.Query("\n  PRAGMA page_size = 65536;\n  PRAGMA autovacuum = 0;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(-1, 'abcdefghij');\n  INSERT INTO t1 VALUES(0, 'abcdefghij');\n")
 		if r.Error != nil {
@@ -194,6 +196,7 @@ func Test_corruptI(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "5.0"
 		r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;\n  ")
 		if r.Error != nil {
@@ -250,6 +253,7 @@ func Test_corruptI(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.0"
 		r = db.Query("\n  PRAGMA page_size = 512;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(600));\n")
 		if r.Error != nil {
@@ -270,6 +274,7 @@ func Test_corruptI(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.0"
 		r = db.Query("\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES('a', 'A');\n  INSERT INTO t1 VALUES('b', 'A');\n  INSERT INTO t1 VALUES('c', 'A');\n  SELECT name FROM sqlite_master;\n")
 		if r.Error != nil {
@@ -300,6 +305,7 @@ func Test_corruptI(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		r = db.Query("\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n")
 		if r.Error != nil {

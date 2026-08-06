@@ -409,6 +409,7 @@ func Test_check(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// proc definition (not transpiled)
 	// db function myfunc (variable-reader, inlined)
 	{ // "7.1"
@@ -502,6 +503,7 @@ func Test_check(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n")
 		if _res.Error != nil {
@@ -548,6 +550,7 @@ func Test_check(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "12.10"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, CHECK(a=+a));\n  INSERT INTO t1(a) VALUES(NULL),('xyz'),(5),(x'303132'),(4.75);\n  SELECT quote(a) FROM t1 ORDER BY rowid;\n")
 		if r.Error != nil {
@@ -672,6 +675,7 @@ func Test_check(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.1.0"
 		_res = db.Exec("\n  CREATE TABLE Table0 (Col0 , CHECK(Table0.Col0 NOT NULL ) ) ;\n  REPLACE INTO Table0 VALUES (hex(randomblob(100000)));\n")
 		if _res.Error != nil {

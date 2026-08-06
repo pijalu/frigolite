@@ -436,6 +436,7 @@ func Test_shell5(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell5-2.1"

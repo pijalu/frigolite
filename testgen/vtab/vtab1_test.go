@@ -1352,6 +1352,7 @@ func Test_vtab1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// load_static_extension db wholenumber (unsupported command, not transpiled)
 		// load_static_extension db eval (unsupported command, not transpiled)
 		// register_echo_module db (unsupported command, not transpiled)
@@ -1429,6 +1430,7 @@ func Test_vtab1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// register_echo_module db (unsupported command, not transpiled)
 		{ // "25.0"
 			_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
@@ -1440,6 +1442,7 @@ func Test_vtab1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// load_static_extension db wholenumber (unsupported command, not transpiled)
 		{ // "26.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")

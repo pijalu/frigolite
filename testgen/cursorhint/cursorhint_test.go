@@ -133,6 +133,7 @@ func Test_cursorhint(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		r = db.Query("\n  CREATE TABLE t1(x TEXT PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW t2 AS SELECT 0 FROM t1 WHERE x>='a' OR x='1';\n  SELECT * FROM t2 RIGHT JOIN t1 ON true;\n")
 		if r.Error != nil {
@@ -161,6 +162,7 @@ func Test_cursorhint(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(b INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t3(c INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a) VALUES(1),(2);\n  INSERT INTO t2(b) VALUES(4),(8);\n  INSERT INTO t3(c) VALUES(16),(32);\n  CREATE VIEW v4(d) AS SELECT c FROM t3;\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN v4 ON (d IS NULL);\n")
 		if r.Error != nil {

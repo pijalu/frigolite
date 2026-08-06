@@ -21,6 +21,16 @@ import (
 // ParseSQL parses a SQL string using the go-lemon generated LALR(1) parser.
 // Returns a list of statements compatible with Frigolite's AST types.
 func ParseSQL(input string) ([]sql.Stmt, error) {
+	// The LALR tables are generated from SQLite's grammar, which accepts
+	// UPDATE ... ORDER BY ... LIMIT (a SQLite extension). The tables used
+	// here predate that extension, so rewrite such statements first: strip
+	// the trailing ORDER BY/LIMIT, parse the remainder, then re-attach the
+	// clause to the resulting UpdateStmt.
+	rewritten, updClauses, hasUpdateRewrite := rewriteUpdateOrderLimit(input)
+	if hasUpdateRewrite {
+		input = rewritten
+	}
+
 	// If input is only whitespace or comments, return no statements without error.
 	trimmed := strings.TrimSpace(input)
 	if trimmed == "" {
@@ -169,6 +179,9 @@ func ParseSQL(input string) ([]sql.Stmt, error) {
 	// Recover function-call ORDER BY clauses that the LALR tables drop
 	// (e.g. group_concat(a ORDER BY b)) by scanning the raw statement text.
 	recoverFuncCallOrderBy(stmts)
+	if hasUpdateRewrite {
+		attachUpdateOrderLimit(stmts, updClauses)
+	}
 	return stmts, nil
 }
 
@@ -277,6 +290,293 @@ func extractFuncCallOrderBy(raw, funcName string) []sql.OrderByTerm {
 		return nil
 	}
 	return subSel.OrderBy
+}
+
+// updateOrderLimit records the ORDER BY/LIMIT clause stripped from a top-level
+// UPDATE statement so it can be re-attached after LALR parsing. The clause
+// index matches the statement's position in the parsed statement list.
+type updateOrderLimit struct {
+	orderBy []sql.OrderByTerm
+	limit   sql.Expr
+	offset  sql.Expr
+}
+
+// rewriteUpdateOrderLimit scans the input for top-level UPDATE statements that
+// carry a trailing ORDER BY/LIMIT clause (a SQLite extension not accepted by
+// the LALR tables), strips the clause text, and returns the rewritten SQL plus
+// the extracted clauses (indexed by statement order). It returns
+// hasUpdateRewrite=false when no UPDATE statement needs rewriting.
+//
+// The scan operates on token boundaries with parenthesis tracking so that
+// ORDER BY/LIMIT inside subqueries (e.g. SET x=(SELECT ... ORDER BY ... LIMIT
+// 1)) is not mistaken for the statement-level clause.
+func rewriteUpdateOrderLimit(input string) (string, []updateOrderLimit, bool) {
+	toks, ok := tokenizeInput(input)
+	if !ok {
+		return input, nil, false
+	}
+	spans := splitTopLevelStatements(toks)
+
+	// Find the statement-level ORDER BY/LIMIT clause of each top-level UPDATE.
+	var clauseStarts []int // token index where the clause begins, per statement
+	for _, sp := range spans {
+		if !isTopLevelUpdate(toks, sp) {
+			continue
+		}
+		if start, ok := findStatementOrderLimit(toks, sp); ok {
+			clauseStarts = append(clauseStarts, start)
+		}
+	}
+	if len(clauseStarts) == 0 {
+		return input, nil, false
+	}
+
+	// Convert each clause start to a byte splice and parse the clause text.
+	var splices []updateSplice
+	for _, tokStart := range clauseStarts {
+		clauseText, from, to := clauseTextForToken(toks, input, tokStart)
+		ob, limit, offset := parseOrderLimitClause(clauseText)
+		if ob == nil && limit == nil {
+			continue
+		}
+		splices = append(splices, updateSplice{
+			from:   from,
+			to:     to,
+			clause: updateOrderLimit{orderBy: ob, limit: limit, offset: offset},
+		})
+	}
+	if len(splices) == 0 {
+		return input, nil, false
+	}
+
+	// The clause order in splices matches statement order; the parsed
+	// statements will be in the same order (the rewritten input preserves
+	// statement boundaries), so build the return slice in statement order.
+	var result []updateOrderLimit
+	for _, s := range splices {
+		result = append(result, s.clause)
+	}
+	return applyUpdateSplices(input, splices), result, true
+}
+
+// updateSplice records a byte range of the input to remove and the clause it
+// contained.
+type updateSplice struct {
+	from, to int // byte offsets
+	clause   updateOrderLimit
+}
+
+// tokenizeInput tokenizes the input, returning false on a tokenizer error.
+func tokenizeInput(input string) ([]sql.Token, bool) {
+	tok := sql.NewTokenizer(input)
+	var toks []sql.Token
+	for {
+		t := tok.Next()
+		if t.Type == sql.TokenEOF {
+			return toks, true
+		}
+		if t.Type == sql.TokenError {
+			return nil, false
+		}
+		toks = append(toks, t)
+	}
+}
+
+// stmtSpan is a half-open token range [start, end) for one top-level statement.
+type stmtSpan struct {
+	start, end int
+}
+
+// splitTopLevelStatements splits the token stream into statements on SEMI at
+// parenthesis depth 0.
+func splitTopLevelStatements(toks []sql.Token) []stmtSpan {
+	var spans []stmtSpan
+	depth := 0
+	start := 0
+	for i, t := range toks {
+		switch {
+		case t.Type == sql.TokenLParen:
+			depth++
+		case t.Type == sql.TokenRParen:
+			if depth > 0 {
+				depth--
+			}
+		case t.Type == sql.TokenSemicolon && depth == 0:
+			spans = append(spans, stmtSpan{start: start, end: i})
+			start = i + 1
+		}
+	}
+	if start < len(toks) {
+		spans = append(spans, stmtSpan{start: start, end: len(toks)})
+	}
+	return spans
+}
+
+// isTopLevelUpdate reports whether the statement span starts with UPDATE
+// (optionally after WITH, which SQLite does not allow on UPDATE — the check is
+// conservative so a WITH ... UPDATE is simply not rewritten).
+func isTopLevelUpdate(toks []sql.Token, sp stmtSpan) bool {
+	for j := sp.start; j < sp.end; j++ {
+		if toks[j].Type == sql.TokenKeyword && strings.EqualFold(toks[j].Value, "UPDATE") {
+			return true
+		}
+		// Stop at the first meaningful token after the previous SEMI that is
+		// not WITH (a non-UPDATE statement).
+		if toks[j].Type != sql.TokenIdentifier || !strings.EqualFold(toks[j].Value, "WITH") {
+			return false
+		}
+	}
+	return false
+}
+
+// findStatementOrderLimit finds the token index where the statement-level
+// ORDER BY/LIMIT clause begins (the LAST top-level ORDER BY, or the last
+// top-level LIMIT when no ORDER BY is present). SQLite requires LIMIT when
+// ORDER BY is used on UPDATE ("ORDER BY without LIMIT on UPDATE"), so an ORDER
+// BY without a following LIMIT is not rewritten. Returns ok=false when the
+// statement has no usable clause.
+func findStatementOrderLimit(toks []sql.Token, sp stmtSpan) (int, bool) {
+	lastOB := -1
+	lastLIMIT := -1
+	d := 0
+	for j := sp.start; j < sp.end; j++ {
+		switch {
+		case toks[j].Type == sql.TokenLParen:
+			d++
+		case toks[j].Type == sql.TokenRParen:
+			if d > 0 {
+				d--
+			}
+		case toks[j].Type == sql.TokenKeyword && d == 0:
+			kw := strings.ToUpper(toks[j].Value)
+			if kw == "ORDER" && j+1 < sp.end &&
+				toks[j+1].Type == sql.TokenKeyword && strings.EqualFold(toks[j+1].Value, "BY") {
+				lastOB = j
+			}
+			if kw == "LIMIT" {
+				lastLIMIT = j
+			}
+		}
+	}
+	switch {
+	case lastOB >= 0:
+		if lastLIMIT > lastOB {
+			return lastOB, true
+		}
+	case lastLIMIT >= 0:
+		return lastLIMIT, true
+	}
+	return 0, false
+}
+
+// clauseTextForToken returns the clause text, its starting byte offset, and
+// the byte offset of the statement's terminating SEMI (or end of input).
+func clauseTextForToken(toks []sql.Token, input string, tokStart int) (string, int, int) {
+	from := toks[tokStart].Pos
+	to := len(input)
+	for i := tokStart; i < len(toks); i++ {
+		if toks[i].Type == sql.TokenSemicolon {
+			to = toks[i].Pos
+			break
+		}
+	}
+	return strings.TrimSpace(input[from:to]), from, to
+}
+
+// applyUpdateSplices rebuilds the input with each clause's text replaced by a
+// single space (so adjacent tokens do not merge).
+func applyUpdateSplices(input string, splices []updateSplice) string {
+	var out strings.Builder
+	out.WriteString(input[:splices[0].from])
+	for i, s := range splices {
+		if i > 0 {
+			out.WriteString(input[splices[i-1].to:s.from])
+		}
+		// Leave a space where the clause was so tokens do not merge.
+		out.WriteString(" ")
+	}
+	out.WriteString(input[splices[len(splices)-1].to:])
+	return out.String()
+}
+
+// parseOrderLimitClause parses a trailing "ORDER BY sortlist LIMIT n [OFFSET m]"
+// (or "LIMIT n [OFFSET m]") clause text into OrderByTerms and limit/offset
+// expressions. Returns nil orderBy and nil limit when the text is empty or
+// unparseable.
+func parseOrderLimitClause(text string) ([]sql.OrderByTerm, sql.Expr, sql.Expr) {
+	upper := strings.ToUpper(text)
+	if strings.HasPrefix(upper, "ORDER BY") {
+		rest := strings.TrimSpace(text[len("ORDER BY"):])
+		// Split off a trailing LIMIT clause.
+		limitText := ""
+		if li := strings.Index(upper[len("ORDER BY"):], "LIMIT"); li >= 0 {
+			abs := len("ORDER BY") + li
+			limitText = strings.TrimSpace(text[abs:])
+			rest = strings.TrimSpace(text[len("ORDER BY"):abs])
+		}
+		ob := parseOrderBySortlist(rest)
+		var lim, off sql.Expr
+		if limitText != "" {
+			lim, off = parseLimitClause(limitText)
+		}
+		return ob, lim, off
+	}
+	if strings.HasPrefix(upper, "LIMIT") {
+		lim, off := parseLimitClause(text)
+		return nil, lim, off
+	}
+	return nil, nil, nil
+}
+
+// parseOrderBySortlist parses an ORDER BY sortlist into OrderByTerms by
+// re-parsing it as a SELECT. Returns nil on any parse failure.
+func parseOrderBySortlist(sortlist string) []sql.OrderByTerm {
+	if strings.TrimSpace(sortlist) == "" {
+		return nil
+	}
+	sub, err := ParseSQL("SELECT 1 ORDER BY " + sortlist)
+	if err != nil || len(sub) == 0 {
+		return nil
+	}
+	subSel, ok := sub[0].(*sql.SelectStmt)
+	if !ok || len(subSel.OrderBy) == 0 {
+		return nil
+	}
+	return subSel.OrderBy
+}
+
+// parseLimitClause parses "LIMIT n [OFFSET m]" or "LIMIT n, m" into limit and
+// offset expressions. Returns nil expressions on parse failure.
+func parseLimitClause(text string) (sql.Expr, sql.Expr) {
+	// Reuse the LALR SELECT limit grammar via a wrapper statement.
+	sub, err := ParseSQL("SELECT 1 " + text)
+	if err != nil || len(sub) == 0 {
+		return nil, nil
+	}
+	subSel, ok := sub[0].(*sql.SelectStmt)
+	if !ok {
+		return nil, nil
+	}
+	return subSel.Limit, subSel.Offset
+}
+
+// attachUpdateOrderLimit applies the ORDER BY/LIMIT clauses stripped by
+// rewriteUpdateOrderLimit to the parsed statements in order.
+func attachUpdateOrderLimit(stmts []sql.Stmt, clauses []updateOrderLimit) {
+	ci := 0
+	for _, st := range stmts {
+		upd, ok := st.(*sql.UpdateStmt)
+		if !ok {
+			continue
+		}
+		if ci >= len(clauses) {
+			break
+		}
+		upd.OrderBy = clauses[ci].orderBy
+		upd.Limit = clauses[ci].limit
+		upd.Offset = clauses[ci].offset
+		ci++
+	}
 }
 
 // (optionally with a leading + or - sign), e.g. "0x1A" or "-0xFF".

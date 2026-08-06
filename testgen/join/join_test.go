@@ -1009,6 +1009,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join-18.1"
 		_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  CREATE VIEW v0 AS SELECT a FROM t1 LEFT JOIN t0;\n  INSERT INTO t1 VALUES (1);\n")
 		if _res.Error != nil {
@@ -1055,6 +1056,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join-19.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  INSERT INTO t1(a) VALUES(0);\n  CREATE VIEW v0(c) AS SELECT t2.b FROM t1 LEFT JOIN t2;\n")
 		if _res.Error != nil {
@@ -1164,6 +1166,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join-22.10"
 		r = db.Query("\n  CREATE TABLE t0(a, b);\n  CREATE INDEX t0a ON t0(a);\n  INSERT INTO t0 VALUES(10,10),(10,11),(10,12);\n  SELECT DISTINCT c FROM t0 LEFT JOIN (SELECT a+1 AS c FROM t0) ORDER BY c ;\n")
 		if r.Error != nil {
@@ -1180,6 +1183,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join-23.10"
 		r = db.Query("\n    CREATE TABLE t0(c0);\n    INSERT INTO t0(c0) VALUES(123);\n    CREATE VIEW v0(c0) AS SELECT 0 GROUP BY 1;\n    SELECT t0.c0, v0.c0, vt0.name\n     FROM v0, t0 LEFT JOIN pragma_table_info('t0') AS vt0\n       ON vt0.name LIKE 'c0'\n     WHERE v0.c0 == 0;\n  ")
 		if r.Error != nil {
@@ -1268,6 +1272,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join-24.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, x);\n  CREATE TABLE t2(b INT);\n  CREATE INDEX t1aa ON t1(a, a);\n\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t2 VALUES(1);\n")
 		if _res.Error != nil {
@@ -1308,6 +1313,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join-25.1"
 		r = db.Query("\n  CREATE TABLE t0(c0 INT);\n  CREATE VIEW v0 AS SELECT (NULL AND 5) as c0 FROM t0;\n  INSERT INTO t0(c0) VALUES (NULL);\n  SELECT count(*)  FROM v0 LEFT JOIN t0 ON v0.c0;\n")
 		if r.Error != nil {
@@ -1324,6 +1330,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join-26.1"
 		_res = db.Exec("\n  CREATE TABLE t4(a,b);\n  CREATE TABLE t5(a,c);\n  CREATE TABLE t6(a,d);\n  SELECT * FROM t5 JOIN ((t4 JOIN (t5 JOIN t6)) t7);\n")
 		if _res.Error != nil {
@@ -1334,6 +1341,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join-27.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT,b INT,c INT);  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  CREATE TABLE t2(d INT,e INT);        INSERT INTO t2 VALUES(NULL,NULL);\n  CREATE INDEX x2 ON t1(c,b);\n  CREATE TABLE t3(x INT);              INSERT INTO t3 VALUES(NULL);\n")
 		if _res.Error != nil {
@@ -1411,6 +1419,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join-28.1"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT);\n  CREATE TABLE t2(d INTEGER PRIMARY KEY, e INT);\n  CREATE VIEW t3(a,b,c,d,e) AS SELECT * FROM t1 LEFT JOIN t2 ON d=c;\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t2 VALUES(1,5);\n  INSERT INTO t4 VALUES(1,4);\n  SELECT a, b, y FROM t4 JOIN t3 ON a=x;\n")
 		if r.Error != nil {
@@ -1433,6 +1442,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "NULL"
 	{ // "join-29.1"
 		r = db.Query("\n  CREATE TABLE t0(a INT); INSERT INTO t0(a) VALUES (1);\n  CREATE TABLE t1(b INT); INSERT INTO t1(b) VALUES (2);\n  CREATE VIEW v2(c) AS SELECT 3 FROM t1;\n  SELECT * FROM t1 JOIN v2 ON 0     FULL OUTER JOIN t0 ON true;\n")
@@ -1474,6 +1484,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "NULL"
 	{ // "join-30.1"
 		_res = db.Exec("\n  CREATE TABLE t0(z INT);         INSERT INTO t0 VALUES(1),(2);\n  CREATE TABLE t1(a INT);         INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);         INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT, d INT);  INSERT INTO t3 VALUES(3,4);\n  CREATE TABLE t4(e INT);         INSERT INTO t4 VALUES(5);\n  CREATE VIEW v5(x,y) AS SELECT c, d FROM t3 LEFT JOIN t4 ON false;\n")
@@ -1497,6 +1508,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "NULL"
 	{ // "join-31.1"
 		_res = db.Exec("\n  CREATE TABLE t1(c0 INT , c1 INT); INSERT INTO t1(c0, c1) VALUES(NULL,11);\n  CREATE TABLE t2(c0 INT NOT NULL);\n  CREATE TABLE t2n(c0 INT);\n  CREATE TABLE t3(x INT);           INSERT INTO t3(x) VALUES(3);\n  CREATE TABLE t4(y INT);           INSERT INTO t4(y) VALUES(4);\n  CREATE TABLE t5(c0 INT, x INT);   INSERT INTO t5 VALUES(NULL, 5);\n")
@@ -1592,6 +1604,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "NULL"
 	{ // "join-32.1"
 		_res = db.Exec("\n  CREATE TABLE t0(w INT);\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT UNIQUE);\n  CREATE VIEW v0(z) AS SELECT CAST(x AS INT) FROM t1 LEFT JOIN t2 ON true;\n  INSERT INTO t1(x) VALUES(123);\n  INSERT INTO t2(y) VALUES(NULL);\n")
@@ -1627,6 +1640,7 @@ func Test_join(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "NULL"
 	{ // "join-33.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1);\n  CREATE TABLE t2(a2 INTEGER PRIMARY KEY, b2);\n  CREATE TABLE t3(a3 INTEGER PRIMARY KEY, b3);\n  CREATE TABLE t4(a4 INTEGER PRIMARY KEY, b4);\n  INSERT INTO t1 VALUES(1,11),(2,12),(3,13),       (5,15);\n  INSERT INTO t2 VALUES(1,21),       (3,23),(4,24),(5,25);\n  INSERT INTO t3 VALUES       (2,32),(3,33),       (5,35);\n  INSERT INTO t4 VALUES(1,41),(2,42),       (4,44),(5,45);\n  CREATE VIEW vchain AS\n    SELECT a1, b1, b2, b3, b4\n      FROM t1 LEFT JOIN t2 ON a1=a2\n              LEFT JOIN t3 ON a2=a3\n              LEFT JOIN t4 ON a3=a4;\n")

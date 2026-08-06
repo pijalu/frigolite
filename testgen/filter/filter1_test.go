@@ -162,6 +162,7 @@ func Test_filter1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9);\n")
 		if _res.Error != nil {
@@ -188,6 +189,7 @@ func Test_filter1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1, 1);\n")
 		if _res.Error != nil {
@@ -246,6 +248,7 @@ func Test_filter1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('a', 0, 5);\n  INSERT INTO t1 VALUES('a', 1, 10);\n  INSERT INTO t1 VALUES('a', 0, 15);\n\n  INSERT INTO t1 VALUES('b', 0, 5);\n  INSERT INTO t1 VALUES('b', 1, 1000);\n  INSERT INTO t1 VALUES('b', 0, 5);\n\n  INSERT INTO t1 VALUES('c', 0, 1);\n  INSERT INTO t1 VALUES('c', 1, 2);\n  INSERT INTO t1 VALUES('c', 0, 3);\n")
 		if _res.Error != nil {
@@ -304,6 +307,7 @@ func Test_filter1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(1, 3);\n")
 		if _res.Error != nil {
@@ -334,6 +338,7 @@ func Test_filter1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,1);\n  INSERT INTO t1 VALUES(2,2);\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2 VALUES(1,1);\n")
 		if _res.Error != nil {
@@ -380,6 +385,7 @@ func Test_filter1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(321, 100000);\n  INSERT INTO t1 VALUES(111, 110000);\n  INSERT INTO t1 VALUES(444, 120000);\n  INSERT INTO t1 VALUES(222, 130000);\n")
 		if _res.Error != nil {
@@ -402,6 +408,7 @@ func Test_filter1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		r = db.Query("\n  CREATE TABLE t0(c0 INT);\n  CREATE TABLE t1a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1a VALUES(1,'one'),(2,NULL),(3,'three');\n  CREATE TABLE t1b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1b VALUES(4,'four'),(5,NULL),(6,'six');\n  CREATE VIEW t1 AS SELECT a, b FROM t1a UNION ALL SELECT c, d FROM t1b;\n  SELECT count()FILTER(WHERE b IS NULL) FROM t1;\n")
 		if r.Error != nil {

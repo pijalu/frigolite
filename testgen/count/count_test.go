@@ -246,6 +246,7 @@ func Test_count(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "count-7.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c VARCHAR(1000));\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1(a,b,c) values(1,2,'count.test cases for NOT INDEXED');\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10' WHERE idx='t1b';\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {

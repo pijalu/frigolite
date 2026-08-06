@@ -1419,6 +1419,7 @@ func Test_tabfunc01(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// load_static_extension db series (unsupported command, not transpiled)
 			{ // "1400"
 				_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")

@@ -106,6 +106,7 @@ func Test_vtabdrop(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(x);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
@@ -157,6 +158,7 @@ func Test_vtabdrop(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts3(x);\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {

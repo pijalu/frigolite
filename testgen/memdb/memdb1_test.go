@@ -361,6 +361,7 @@ func Test_memdb1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "650"
 		_res = db.Exec("\n    CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT random() FROM c;\n  ")
 		if _res.Error != nil {
@@ -385,6 +386,7 @@ func Test_memdb1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "700"
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    PRAGMA schema_version = 0;\n  ")
 		if r.Error != nil {
@@ -405,6 +407,7 @@ func Test_memdb1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "800"
 			r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n  ")
 			if r.Error != nil {
@@ -461,6 +464,7 @@ func Test_memdb1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	dbempty, err := frigolite.Open(":memory:")
 	defer dbempty.Close()
 	if err != nil { t.Fatal(err) }
@@ -501,6 +505,7 @@ func Test_memdb1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "1100"
 		_res = db.Exec("\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		if _res.Error != nil {

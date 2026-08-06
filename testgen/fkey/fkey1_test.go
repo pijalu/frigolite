@@ -202,6 +202,7 @@ func Test_fkey1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.1"
 		r = db.Query("\n  PRAGMA foreign_keys=OFF;\n  CREATE TABLE t1(a,b,c,FOREIGN KEY(a,a,a,a,a,a,a,a,a,a,a,a,a,a) REFERENCES t0);\n  INSERT INTO t1 VALUES(1,2,3);\n  PRAGMA foreign_key_check;\n")
 		if r.Error != nil {
@@ -224,6 +225,7 @@ func Test_fkey1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.1"
 		r = db.Query("\n  PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  DROP table \"sqlsim4\";\n")
 		if r.Error != nil {
@@ -234,6 +236,7 @@ func Test_fkey1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "8.2"
 		r = db.Query("\n  CREATE TABLE t1(a REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  CREATE TABLE t2(a TEXT PRIMARY KEY);\n  PRAGMA writable_schema=ON;\n  CREATE TABLE sqlite_stat1(tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  UPDATE sqlite_schema SET name='sqlite_autoindex_sqlite_stat1_1' WHERE name='sqlite_autoindex_sqlite_stat1_2';\n  PRAGMA writable_schema=RESET;\n")
@@ -251,6 +254,7 @@ func Test_fkey1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.1"
 		r = db.Query("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\", \"\"\"3\" PRIMARY KEY);\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" REFERENCES \"\"\"1\" ON DELETE RESTRICT);\n  DELETE FROM \"\"\"1\";\n")
 		if r.Error != nil {

@@ -296,6 +296,7 @@ func Test_distinct(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "7.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t3(a INTEGER PRIMARY KEY);\n\n  CREATE TABLE t4(x);\n  CREATE TABLE t5(y);\n  \n  INSERT INTO t5 VALUES(1), (2), (2);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t3 VALUES(2);\n  INSERT INTO t4 VALUES(2);\n")
 				if _res.Error != nil {
@@ -318,6 +319,7 @@ func Test_distinct(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "8.0"
 				r = db.Query("\n  CREATE TABLE person ( pid INT) ;\n  CREATE UNIQUE INDEX idx ON person ( pid ) WHERE pid == 1;\n  INSERT INTO person VALUES (1), (10), (10);\n  SELECT DISTINCT pid FROM person where pid = 10;\n")
 				if r.Error != nil {
@@ -334,6 +336,7 @@ func Test_distinct(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "9.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('a', 'c');\n\n  INSERT INTO t1 VALUES('b', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n  INSERT INTO t1 VALUES('b', 'c');\n\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n\n  INSERT INTO t1 VALUES('A', 'A');\n  INSERT INTO t1 VALUES('B', 'B');\n")
 				if _res.Error != nil {

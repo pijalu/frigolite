@@ -157,6 +157,7 @@ func Test_triggerE(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			_res = db.Exec("\n    CREATE TABLE t1(a);\n    CREATE VIRTUAL TABLE rr USING rtree(id, a, b);\n    CREATE TRIGGER r1 AFTER DELETE ON t1 BEGIN\n      SELECT a FROM t1 NATURAL LEFT JOIN rr;\n    END;\n    DELETE FROM t1;\n  ")
 			if _res.Error != nil {

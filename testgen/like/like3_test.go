@@ -441,6 +441,7 @@ func Test_like3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "like3-7.0"
 		r = db.Query("\n    PRAGMA encoding = 'UTF-16be';\n  \n    CREATE TABLE Example(word TEXT NOT NULL);\n    CREATE INDEX Example_word on Example(word);\n  \n    INSERT INTO Example VALUES(char(0x307F));\n  ")
 		if r.Error != nil {
@@ -487,6 +488,7 @@ func Test_like3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	for _, enc := range tclSplitList("UTF-8\n  UTF-16le \n  UTF-16be") {
 	_ = enc // suppress unused warning
 		if enc == "UTF-8" {
@@ -504,6 +506,7 @@ func Test_like3(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				r = db.Query("PRAGMA encoding = '" + enc + "'")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = '" + enc + "'")

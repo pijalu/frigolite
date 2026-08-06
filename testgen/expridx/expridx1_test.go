@@ -231,6 +231,7 @@ func Test_expridx1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		nRow = "1000"
 		_ = nRow // suppress unused warning
 		{ // "2.0"
@@ -306,6 +307,7 @@ func Test_expridx1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE y1(a, b, c GENERATED ALWAYS AS (a*b) VIRTUAL);\n  CREATE INDEX i1 ON y1(c);\n  INSERT INTO y1 VALUES(2, 3);\n  INSERT INTO y1 VALUES(4, 5);\n")
 			if _res.Error != nil {
@@ -352,6 +354,7 @@ func Test_expridx1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE z1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX z1b ON z1(b+0.0);\n  INSERT INTO z1 VALUES(1, 1.0);\n  INSERT INTO z1 VALUES(2, 4.0);\n  INSERT INTO z1 VALUES(3, 4.0);\n  INSERT INTO z1 VALUES(4, 4.0);\n  INSERT INTO z1 VALUES(5, 4.0);\n  INSERT INTO z1 VALUES(6, 4.0);\n  INSERT INTO z1 VALUES(7, 4.0);\n  INSERT INTO z1 VALUES(8, 1.0);\n")
 			if _res.Error != nil {

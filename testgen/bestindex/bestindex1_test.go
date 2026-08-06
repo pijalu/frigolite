@@ -148,6 +148,7 @@ func Test_bestindex1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "2.1"

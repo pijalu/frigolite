@@ -249,6 +249,7 @@ func Test_lock5(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // do_test "lock5-none.1"
 			_dbtmp2, err := frigolite.Open("test.db")
 			_ = _dbtmp2 // sqlite3 db connection
@@ -311,6 +312,7 @@ func Test_lock5(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		if tclBool("permutation" + "!=\"inmemory_journal\"") {
 			{ // do_test "2.dotfile.1"
 				_dbtmp0, err := frigolite.Open("test.db")

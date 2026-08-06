@@ -493,6 +493,7 @@ func Test_subquery(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "subquery-9.1"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),(1),(1);\n  SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 100) FROM t1;\n")
 		if r.Error != nil {
@@ -545,6 +546,7 @@ func Test_subquery(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "subquery-10.1"
 		_res = db.Exec("\n  CREATE TABLE t1(aa TEXT, bb INT, cc TEXT);\n  CREATE INDEX x11 on t1(bb);\n  CREATE INDEX x12 on t1(aa);\n  CREATE TABLE t2(aa TEXT, xx INT);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES('t1', 'x11', '156789 28');\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES('t1', 'x12', '156789 1');\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
@@ -573,6 +575,7 @@ func Test_subquery(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	{ // "subquery-11.1"
 		r = db.Query("\n  CREATE TABLE t1(ix INT, rx REAL, bx BLOB, tx TEXT, ax);\n  INSERT INTO t1 VALUES(1,1.0,x'31','x',NULL);\n  WITH c(a) AS (SELECT 'y' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 'y') SELECT affinity(a) FROM c;\n")

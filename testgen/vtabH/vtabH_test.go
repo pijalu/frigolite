@@ -217,6 +217,7 @@ func Test_vtabH(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// register_fs_module db (unsupported command, not transpiled)
 		if tclBool(tcl_platform_platform + " != \"windows\" || \\\n    " + "regexp -nocase -- {^[A-Z]:} $drive") {
 			{ // "3.0"

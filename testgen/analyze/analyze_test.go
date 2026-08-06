@@ -346,6 +346,7 @@ func Test_analyze(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "analyze-7.1"
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n    INSERT INTO t1 VALUES(1, 7223372036854775);\n    INSERT INTO t1 VALUES(2, 7223372036854776);\n    INSERT INTO t1 VALUES(3, 7223372036854777);\n    CREATE INDEX i1 ON t1(b);\n    ANALYZE;\n    UPDATE sqlite_stat4 SET sample = substr(sample, 0, 4);\n    ANALYZE sqlite_schema;\n    SELECT * FROM t1 WHERE b>7223372036854775\n  ")

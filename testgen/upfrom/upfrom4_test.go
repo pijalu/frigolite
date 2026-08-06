@@ -95,6 +95,7 @@ func Test_upfrom4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "200"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT, c INT);\n  INSERT INTO t1(a) VALUES(1),(2),(8),(19);\n  CREATE TABLE c1(x INTEGER PRIMARY KEY, b INT);\n  INSERT INTO c1(x,b) VALUES(1,1),(8,8),(17,17),(NULL,NULL);\n  CREATE TABLE c2(x INT,c INT);\n  INSERT INTO c2(x,c) VALUES(2,2),(8,8),(NULL,NULL);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual VALUES('X');\n")
@@ -136,6 +137,7 @@ func Test_upfrom4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "400"
 		r = db.Query("\n  CREATE TABLE t2(x,y,z PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(89,-89,6);\n  CREATE TABLE t1(a INT,b TEXT,c TEXT,d REAL) STRICT;\n  INSERT INTO t1 VALUES(1,'xyz','def',4.5);\n  CREATE TRIGGER t1tr BEFORE UPDATE ON t1 BEGIN\n    INSERT INTO t1(a,b) VALUES(1000,'uvw');\n    UPDATE t1 SET b=NULL FROM (SELECT CAST(a AS varchar) FROM t1 ORDER BY b) NATURAL LEFT FULL JOIN t1 AS text;\n  END;\n  UPDATE t1 SET b=b|100;\n  SELECT * FROM t1 ORDER BY a;\n")
@@ -153,6 +155,7 @@ func Test_upfrom4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "500"
 		_res = db.Exec("\n    CREATE TABLE t1(abc INT, def INT);  \n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    INSERT INTO t1 VALUES(0,0);\n    CREATE TABLE dual(dummy TEXT);  \n    INSERT INTO dual(dummy) VALUES('X');\n  ")
 		if _res.Error != nil {

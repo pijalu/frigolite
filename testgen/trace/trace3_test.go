@@ -326,6 +326,7 @@ func Test_trace3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "trace3-11.2"
 		stmtlist_record = "" // TCL namespace variable
 		_ = stmtlist_record // suppress unused warning
@@ -336,6 +337,7 @@ func Test_trace3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "12.1.0"
 		STMT = "" // TCL namespace variable
 		_ = STMT // suppress unused warning
@@ -382,6 +384,7 @@ func Test_trace3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE T1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
 		if _res.Error != nil {

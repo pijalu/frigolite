@@ -649,6 +649,7 @@ func Test_regexp1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// load_static_extension db regexp (unsupported command, not transpiled)
 	{ // "regexp1-3.1"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a TEXT);\n  INSERT INTO t1(id, a) VALUES(1, '日本語');\n  SELECT a, hex(a), length(a) FROM t1;\n")

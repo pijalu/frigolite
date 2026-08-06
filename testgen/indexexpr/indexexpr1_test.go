@@ -857,6 +857,7 @@ func Test_indexexpr1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "indexexpr1-1900"
 		r = db.Query("\n  CREATE TABLE t1(x TEXT PRIMARY KEY, y TEXT, z INT);\n  INSERT INTO t1(x,y,z) VALUES('alpha','ALPHA',1),('bravo','charlie',1);\n  CREATE INDEX i1 ON t1(+y COLLATE NOCASE);\n  SELECT * FROM t1;\n")
 		if r.Error != nil {
@@ -897,6 +898,7 @@ func Test_indexexpr1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "indexexpr1-2000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b TEXT);\n  INSERT INTO t1(a,b) VALUES\n    (10, '{\"one\":5,\"two\":6}'),\n    (10, '{\"one\":50,\"two\":60}'),\n    (10, '{\"three\":99}'),\n    (11, '{\"one\":100,\"two\":200}');\n  CREATE INDEX t1_one ON t1(a, b->>'one');\n  CREATE INDEX t1_two ON t1(a, b->>'two');\n")
 		if _res.Error != nil {
@@ -985,6 +987,7 @@ func Test_indexexpr1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "indexexpr1-2100"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1(a,b) VALUES(1,0);\n  CREATE INDEX x1 ON t1( \"y\" );\n  CREATE INDEX x2 ON t1( +\"y\" );\n  CREATE INDEX x3 ON t1( +'y' );\n  CREATE INDEX x4 ON t1( \"y*\" );\n")
 		if _res.Error != nil {
@@ -1043,6 +1046,7 @@ func Test_indexexpr1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "indexexpr1-2200"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, tag INT);\n  INSERT INTO t1 VALUES (0, 7), (1, 8);\n  CREATE TABLE t2(type INT, t1_id  INT, value  INT);\n  INSERT INTO t2 VALUES (0, 0, 100), (0, 1, 101);\n  CREATE INDEX t1x ON t1(-tag);\n  SELECT u.tag, v.max_value\n    FROM (SELECT tag FROM t1 GROUP BY -tag) u\n    JOIN (SELECT t1.tag AS \"tag\", t2.type AS \"type\",\n                 MAX(t2.value) AS \"max_value\"\n            FROM t1\n                 JOIN t2 ON t2.t1_id = t1.id\n           GROUP BY t2.type, t1.tag\n         ) v ON v.type = 0 AND v.tag = u.tag;\n")
 		if r.Error != nil {
@@ -1204,6 +1208,7 @@ func Test_indexexpr1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "indexexpr1-2300"
 		r = db.Query("\n  CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1(x,y) VALUES(1,'{b:5}');\n  CREATE INDEX t1j ON t1(json(y));\n  SELECT json_insert('{}', '$.a', json(y)) FROM t1;\n")
 		if r.Error != nil {
@@ -1220,6 +1225,7 @@ func Test_indexexpr1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// proc definition (not transpiled)
 	// db function addone (variable-reader, inlined)
 	{ // "indexexpr1-2400"

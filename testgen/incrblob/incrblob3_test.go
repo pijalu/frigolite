@@ -320,6 +320,7 @@ func Test_incrblob3(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		os.Remove("test.db2")
 		{ // "8.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');\n")

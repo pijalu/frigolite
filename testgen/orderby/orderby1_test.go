@@ -713,6 +713,7 @@ func Test_orderby1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		r = db.Query("\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
 		if r.Error != nil {

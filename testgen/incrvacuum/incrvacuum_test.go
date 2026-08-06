@@ -642,6 +642,7 @@ func Test_incrvacuum(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "incrvacuum-16.0"
 		r = db.Query("\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n  ")
 		if r.Error != nil {

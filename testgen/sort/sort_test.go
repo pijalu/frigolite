@@ -575,6 +575,7 @@ func Test_sort(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit (unsupported command, not transpiled)
 			r = db.Query("PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
 			if r.Error != nil {
@@ -648,6 +649,7 @@ func Test_sort(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "16.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
 			if _res.Error != nil {
@@ -658,6 +660,7 @@ func Test_sort(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "16.2"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.b, t1.a, t1.c") {
@@ -668,6 +671,7 @@ func Test_sort(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "17.1"
 			r = db.Query("\n  SELECT * FROM sqlite_master ORDER BY sql;\n")
 			if r.Error != nil {
@@ -678,6 +682,7 @@ func Test_sort(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "18.1"
 			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
 			if r.Error != nil {

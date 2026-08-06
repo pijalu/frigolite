@@ -74,6 +74,7 @@ func Test_walrestart(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20\n  ) \n  INSERT INTO t1 SELECT NULL, randomblob(600) FROM s;\n  CREATE INDEX i1 ON t1(b);\n  PRAGMA wal_checkpoint;\n")
 		if r.Error != nil {

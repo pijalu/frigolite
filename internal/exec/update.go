@@ -3,6 +3,7 @@ package exec
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -53,6 +54,12 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	changes, err := e.collectUpdateChanges(tableEntry.Name, tableEntry.RootPage, colIndex, colDefs, s)
 	if err != nil {
 		return &Result{Error: err}
+	}
+
+	// Enforce NOT NULL and CHECK constraints on the new values (SQLite checks
+	// these per-row during UPDATE; a violation aborts the whole statement).
+	if res := e.checkUpdateConstraints(tableEntry, colDefs, changes); res.Error != nil {
+		return res
 	}
 
 	// Handle RETURNING clause — evaluate against updated rows before applying
@@ -319,6 +326,7 @@ func (e *Engine) collectUpdateChanges(tableName string, rootPage uint32, colInde
 	defer func() { e.currentScanTable = prevScan }()
 
 	var changes []updateChange
+	var rowMaps []RowMap
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil {
@@ -340,6 +348,7 @@ func (e *Engine) collectUpdateChanges(tableName string, rootPage uint32, colInde
 				return nil, err
 			}
 			changes = append(changes, *ch)
+			rowMaps = append(rowMaps, row)
 		}
 
 		ok, err := cursor.Next()
@@ -347,7 +356,95 @@ func (e *Engine) collectUpdateChanges(tableName string, rootPage uint32, colInde
 			break
 		}
 	}
+
+	// Apply UPDATE ... ORDER BY ... LIMIT (a SQLite extension): sort the
+	// matching rows by the ORDER BY expressions, then keep only the LIMIT
+	// window. Without ORDER BY the rows are processed in rowid order; LIMIT
+	// alone applies to that natural order (SQLite: "LIMIT ... on UPDATE
+	// statements ... are not supported unless the UPDATE is on a single
+	// table").
+	if len(s.OrderBy) > 0 {
+		e.sortUpdateChanges(changes, rowMaps, s.OrderBy)
+	}
+	if s.Limit != nil {
+		changes = e.limitUpdateChanges(changes, s)
+	}
 	return changes, nil
+}
+
+// sortUpdateChanges sorts updateChange entries by the ORDER BY expressions
+// evaluated against each row's original values.
+func (e *Engine) sortUpdateChanges(changes []updateChange, rowMaps []RowMap, orderBy []sql.OrderByTerm) {
+	if len(changes) <= 1 {
+		return
+	}
+	type pair struct {
+		ch  updateChange
+		row RowMap
+	}
+	pairs := make([]pair, len(changes))
+	for i := range changes {
+		pairs[i] = pair{ch: changes[i], row: rowMaps[i]}
+	}
+	sort.SliceStable(pairs, func(i, j int) bool {
+		for _, ob := range orderBy {
+			left, _ := e.evalExpr(ob.Expr, pairs[i].row)
+			right, _ := e.evalExpr(ob.Expr, pairs[j].row)
+			cmp := compareOrderByValues(left, right, ob)
+			if cmp < 0 {
+				return true
+			} else if cmp > 0 {
+				return false
+			}
+		}
+		return false
+	})
+	for i := range pairs {
+		changes[i] = pairs[i].ch
+	}
+}
+
+// limitUpdateChanges applies UPDATE ... LIMIT n [OFFSET m] to the change list,
+// keeping the first n entries after skipping m (SQLite semantics for UPDATE
+// LIMIT: the first N rows matched by the scan order are updated).
+func (e *Engine) limitUpdateChanges(changes []updateChange, s *sql.UpdateStmt) []updateChange {
+	limit, err := e.evalConstInt(s.Limit)
+	if err != nil || limit < 0 {
+		return changes
+	}
+	offset := int64(0)
+	if s.Offset != nil {
+		if v, err := e.evalConstInt(s.Offset); err == nil && v > 0 {
+			offset = v
+		}
+	}
+	if offset >= int64(len(changes)) {
+		return nil
+	}
+	end := offset + limit
+	if end > int64(len(changes)) {
+		end = int64(len(changes))
+	}
+	return changes[offset:end]
+}
+
+// evalConstInt evaluates an expression that must be a constant integer,
+// returning -1 on error or non-integer values.
+func (e *Engine) evalConstInt(expr sql.Expr) (int64, error) {
+	v, err := e.evalExpr(expr, nil)
+	if err != nil {
+		return -1, err
+	}
+	v = util.UnwrapColumnValue(v)
+	switch n := v.(type) {
+	case int64:
+		return n, nil
+	case int:
+		return int64(n), nil
+	case float64:
+		return int64(n), nil
+	}
+	return -1, fmt.Errorf("exec: LIMIT expression is not an integer")
 }
 
 func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, row Row) (*updateChange, error) {
@@ -999,9 +1096,10 @@ func (e *Engine) valuesConflict(a, b []interface{}, colDefs []sql.ColumnDef, col
 }
 
 // checkUpdateConflicts validates that an UPDATE's new values do not violate
-// UNIQUE/PRIMARY KEY constraints against non-updated rows or other updated
-// rows. SQLite checks constraints per-row during UPDATE (a plain UPDATE has no
-// OR REPLACE resolution, so a conflict is an error).
+// UNIQUE/PRIMARY KEY constraints, matching SQLite's one-pass semantics: rows
+// are processed in rowid order, and each row's new values are checked against
+// the CURRENT state of every other row — rows processed earlier hold their NEW
+// values, rows not yet processed hold their ORIGINAL values.
 func (e *Engine) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
 	colIndex := buildColumnIndex(colDefs)
 	var uniqueCols []int
@@ -1014,12 +1112,20 @@ func (e *Engine) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.Co
 	if len(uniqueCols) == 0 && len(idxColsList) == 0 {
 		return &Result{}
 	}
-	changed := make(map[int64]bool, len(changes))
-	for _, c := range changes {
-		changed[c.rowID] = true
-	}
+
 	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
-	for _, c := range changes {
+	for i := range changes {
+		c := changes[i]
+		// Check the new values against every other row's CURRENT value: for
+		// changes processed before this one (j < i) use their NEW values (they
+		// have already been written); for all other rows (unchanged rows and
+		// changes processed later) use the row's ORIGINAL value from the table
+		// (they have not been written yet).
+		for j := 0; j < i; j++ {
+			if e.valuesConflict(changes[j].values, c.values, colDefs, colIndex, uniqueCols, idxColsList) {
+				return &Result{Error: e.uniqueConflictError(tableEntry.Name, colDefs, colIndex, changes[j].values, c.values, uniqueCols, idxColsList)}
+			}
+		}
 		cursor, err := tree.OpenCursor()
 		if err != nil {
 			return &Result{Error: err}
@@ -1029,11 +1135,37 @@ func (e *Engine) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.Co
 			if err != nil || cell == nil {
 				break
 			}
+			if cell.RowID == c.rowID {
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+				continue
+			}
+			// Skip rows that were already processed (j < i): their current
+			// value is the NEW value (checked pairwise above), and the table
+			// still holds their ORIGINAL value.
+			skip := false
+			for j := 0; j < i; j++ {
+				if changes[j].rowID == cell.RowID {
+					skip = true
+					break
+				}
+			}
+			if skip {
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+				continue
+			}
 			rec, err := storage.DecodeRecord(cell.Payload)
 			if err != nil || rec == nil {
 				break
 			}
-			if !changed[cell.RowID] && e.valuesConflict(rec.Values, c.values, colDefs, colIndex, uniqueCols, idxColsList) {
+			// A later change (j > i) still holds its ORIGINAL values (not yet
+			// written), which the table scan sees.
+			if e.valuesConflict(rec.Values, c.values, colDefs, colIndex, uniqueCols, idxColsList) {
 				return &Result{Error: e.uniqueConflictError(tableEntry.Name, colDefs, colIndex, rec.Values, c.values, uniqueCols, idxColsList)}
 			}
 			ok, err := cursor.Next()
@@ -1042,10 +1174,62 @@ func (e *Engine) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.Co
 			}
 		}
 	}
-	for i := 0; i < len(changes); i++ {
-		for j := i + 1; j < len(changes); j++ {
-			if e.valuesConflict(changes[i].values, changes[j].values, colDefs, colIndex, uniqueCols, idxColsList) {
-				return &Result{Error: e.uniqueConflictError(tableEntry.Name, colDefs, colIndex, changes[i].values, changes[j].values, uniqueCols, idxColsList)}
+	return &Result{}
+}
+
+// checkUpdateConstraints validates NOT NULL and CHECK constraints on the new
+// values of an UPDATE. SQLite checks these per-row during UPDATE (before
+// applying); a violation aborts the whole statement with no partial writes.
+// UNIQUE/PRIMARY KEY conflicts are handled separately by checkUpdateConflicts.
+func (e *Engine) checkUpdateConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
+	hasNotNullOrCheck := false
+	for _, cd := range colDefs {
+		if cd.NotNull || cd.Check != nil {
+			hasNotNullOrCheck = true
+			break
+		}
+	}
+	if !hasNotNullOrCheck && len(e.tableConstraints(tableEntry.Name, tableEntry.SQL)) == 0 {
+		return &Result{}
+	}
+	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	var pkCols map[int]bool
+	if withoutRowid {
+		pkCols = e.primaryKeyColIndices(tableEntry.Name, tableEntry.SQL, colDefs)
+	}
+	for _, ch := range changes {
+		row := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		for _, cd := range colDefs {
+			val := columnValue(ch.values, colDefs, cd.Name)
+			// NOT NULL constraint — skip for INTEGER PRIMARY KEY columns of
+			// rowid tables (their value derives from the rowid, which is
+			// unchanged by an UPDATE).
+			pkAutoRowID := cd.PrimaryKey && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") && !withoutRowid
+			implicitNotNull := cd.NotNull || (withoutRowid && pkCols[cdIndex(colDefs, cd.Name)])
+			if implicitNotNull && val == nil && !pkAutoRowID {
+				return &Result{Error: fmt.Errorf("NOT NULL constraint failed: %s.%s", tableEntry.Name, e.originalColumnName(tableEntry.SQL, cd.Name))}
+			}
+			// CHECK constraint: only fails when the result is explicitly false.
+			if cd.Check != nil {
+				checkVal, err := e.evalExpr(cd.Check, row)
+				if err == nil && checkVal != nil && !toBool(checkVal) {
+					checkText := e.checkConstraintText(tableEntry.SQL, cd.Name, cd.Check)
+					return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", checkText)}
+				}
+			}
+		}
+		// Table-level CHECK constraints.
+		for _, tc := range e.tableConstraints(tableEntry.Name, tableEntry.SQL) {
+			if tc.Type != sql.ConstraintCheck || tc.Expr == nil {
+				continue
+			}
+			checkVal, err := e.evalExpr(tc.Expr, row)
+			if err == nil && checkVal != nil && !toBool(checkVal) {
+				name := tc.Name
+				if name == "" {
+					name = sql.ExprString(tc.Expr)
+				}
+				return &Result{Error: fmt.Errorf("CHECK constraint failed: %s", name)}
 			}
 		}
 	}

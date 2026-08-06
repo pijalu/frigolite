@@ -86,6 +86,7 @@ func Test_upsert4(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -205,6 +206,7 @@ func Test_upsert4(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -257,6 +259,7 @@ func Test_upsert4(t *testing.T) {
 						os.Remove("test.db")
 						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
+						tcl_nullvalue = "{}" // fresh connection resets nullvalue
 						_res = db.Exec(sql)
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -309,6 +312,7 @@ func Test_upsert4(t *testing.T) {
 								os.Remove("test.db")
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
+								tcl_nullvalue = "{}" // fresh connection resets nullvalue
 								_res = db.Exec(sql)
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -384,6 +388,7 @@ func Test_upsert4(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											_res = db.Exec(sql)
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -413,6 +418,7 @@ func Test_upsert4(t *testing.T) {
 												os.Remove("test.db")
 												db, err = frigolite.Open("test.db")
 												if err != nil { t.Fatal(err) }
+												tcl_nullvalue = "{}" // fresh connection resets nullvalue
 												_res = db.Exec(sql)
 												if _res.Error != nil {
 													t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -484,6 +490,7 @@ func Test_upsert4(t *testing.T) {
 													os.Remove("test.db")
 													db, err = frigolite.Open("test.db")
 													if err != nil { t.Fatal(err) }
+													tcl_nullvalue = "{}" // fresh connection resets nullvalue
 													_res = db.Exec(sql)
 													if _res.Error != nil {
 														t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -555,6 +562,7 @@ func Test_upsert4(t *testing.T) {
 														os.Remove("test.db")
 														db, err = frigolite.Open("test.db")
 														if err != nil { t.Fatal(err) }
+														tcl_nullvalue = "{}" // fresh connection resets nullvalue
 														_res = db.Exec(sql)
 														if _res.Error != nil {
 															t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)

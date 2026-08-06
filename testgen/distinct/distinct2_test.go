@@ -338,6 +338,7 @@ func Test_distinct2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2000"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0, c1, c2, PRIMARY KEY (c0, c1));\n  CREATE TABLE t1 (c2);\n  INSERT INTO t0(c2) VALUES (0),(1),(3),(4),(5),(6),(7),(8),(9),(10),(11);\n  INSERT INTO t0(c1) VALUES ('a');\n  INSERT INTO t1(c2) VALUES (0);\n")
 		if _res.Error != nil {
@@ -396,6 +397,7 @@ func Test_distinct2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3000"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0, c1 NOT NULL DEFAULT 1, c2, PRIMARY KEY (c0, c1));\n  INSERT INTO t0(c2) VALUES (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL), (NULL);\n  INSERT INTO t0(c2) VALUES('a');\n")
 		if _res.Error != nil {
@@ -436,6 +438,7 @@ func Test_distinct2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4010"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b COLLATE RTRIM);\n  INSERT INTO t1 VALUES(1, ''), (2, ' '), (3, '  ');\n")
 		if _res.Error != nil {
@@ -458,6 +461,7 @@ func Test_distinct2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5010"
 		r = db.Query("\n  CREATE TABLE cnt(a);\n  WITH RECURSIVE cnt2(x) AS (\n    VALUES(1) UNION ALL SELECT x+1 FROM cnt2 WHERE x<50\n  )\n  INSERT INTO cnt SELECT x FROM cnt2;   \n")
 		if r.Error != nil {
@@ -553,6 +557,7 @@ func Test_distinct2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6000"
 		r = db.Query("\n  CREATE TABLE t1(c1 UNIQUE NOT NULL);\n  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0 VALUES(0);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1000)\n    INSERT INTO t0(c0) SELECT NULL FROM c;\n")
 		if r.Error != nil {

@@ -300,6 +300,7 @@ func Test_pagesize(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "pagesize-3.1"
 		r = db.Query("\n  BEGIN;\n  SELECT * FROM sqlite_master;\n  PRAGMA page_size=2048;\n  PRAGMA main.page_size;\n")
 		if r.Error != nil {

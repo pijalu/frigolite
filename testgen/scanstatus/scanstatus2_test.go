@@ -138,6 +138,7 @@ func Test_scanstatus2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "2.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts5(a);\n    INSERT INTO ft VALUES('abc');\n    INSERT INTO ft VALUES('def');\n    INSERT INTO ft VALUES('ghi');\n  ")
@@ -150,6 +151,7 @@ func Test_scanstatus2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "3.0"
 		r = db.Query("\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
@@ -162,6 +164,7 @@ func Test_scanstatus2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE rt1 (id INTEGER PRIMARY KEY, x1, x2);\n  CREATE TABLE rt2 (id, x1, x2);\n")
@@ -178,6 +181,7 @@ func Test_scanstatus2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      SELECT 1;\n    END;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
@@ -200,6 +204,7 @@ func Test_scanstatus2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  INSERT INTO t1 VALUES(7, 'seven');\n  INSERT INTO t1 VALUES(8, 'eight');\n")
@@ -216,6 +221,7 @@ func Test_scanstatus2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "7.0"
 		_res = db.Exec("SELECT * FROM sqlite_schema")
 		if _res.Error != nil {

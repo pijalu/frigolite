@@ -1429,24 +1429,59 @@ func (e *Engine) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Result {
 	return &Result{}
 }
 
-// virtualTableRows reads all rows from a virtual table.
-func (e *Engine) virtualTableRows(entry *schema.Entry) ([][]interface{}, error) {
-	// Parse the SQL to extract module name and args
-	sql := entry.SQL
+// parseVTabSQL extracts the module name and argument list from a virtual
+// table's stored SQL ("CREATE VIRTUAL TABLE t USING mod(a, b)").
+func parseVTabSQL(sql string) (moduleName string, args []string, err error) {
 	upper := strings.ToUpper(sql)
 	idx := strings.Index(upper, " USING ")
 	if idx < 0 {
-		return nil, fmt.Errorf("vtab: invalid virtual table SQL: %s", sql)
+		return "", nil, fmt.Errorf("vtab: invalid virtual table SQL: %s", sql)
 	}
 	rest := sql[idx+7:]
 	parts := strings.SplitN(rest, "(", 2)
-	moduleName := strings.TrimSpace(parts[0])
-	var args []string
+	moduleName = strings.TrimSpace(parts[0])
 	if len(parts) > 1 {
 		argsStr := strings.TrimRight(parts[1], ")")
 		for _, a := range strings.Split(argsStr, ",") {
 			args = append(args, strings.TrimSpace(a))
 		}
+	}
+	return moduleName, args, nil
+}
+
+// ensureFTSForTable lazily re-creates the in-memory FTS table for a virtual
+// table entry whose module is an FTS module. On a fresh connection the FTS
+// tables map is empty even though the schema (sqlite_schema) still contains
+// the CREATE VIRTUAL TABLE entry; this restores the mapping so that
+// INSERT/SELECT/DELETE route to FTS storage instead of treating the table as
+// storageless (which would make writes no-ops and RETURNING project NULLs).
+func (e *Engine) ensureFTSForTable(entry *schema.Entry) {
+	if entry == nil || !strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE") {
+		return
+	}
+	if _, ok := e.ftsTables[entry.Name]; ok {
+		return
+	}
+	moduleName, args, err := parseVTabSQL(entry.SQL)
+	if err != nil {
+		return
+	}
+	ftsMod := e.getFTSModule(moduleName)
+	if ftsMod == nil {
+		return
+	}
+	ftsTable, err := ftsMod.GetOrCreateTable(entry.Name, moduleName, args)
+	if err != nil {
+		return
+	}
+	e.ftsTables[entry.Name] = ftsTable
+}
+
+// virtualTableRows reads all rows from a virtual table.
+func (e *Engine) virtualTableRows(entry *schema.Entry) ([][]interface{}, error) {
+	moduleName, args, err := parseVTabSQL(entry.SQL)
+	if err != nil {
+		return nil, err
 	}
 	module, ok := e.vtabs.Find(moduleName)
 	if !ok {

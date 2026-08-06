@@ -253,6 +253,7 @@ func Test_intreal(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a REAL, b AS ('expr') ); \n")
 		if _res.Error != nil {

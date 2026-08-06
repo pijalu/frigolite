@@ -592,6 +592,7 @@ func Test_trigger1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "trigger1-22.10" — skipped: window functions not supported
 		_res = db.Exec("\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b DOUBLE\n  );\n  CREATE TRIGGER x AFTER UPDATE ON t1 BEGIN\n   SELECT sum(b)OVER(ORDER BY (SELECT b FROM t1 AS x \n                               WHERE b IN (t1.a,127,t1.b)\n                               GROUP BY b))\n     FROM t1\n     GROUP BY a;\n  END;\n  CREATE TEMP TRIGGER x BEFORE INSERT ON t1 BEGIN\n    UPDATE t1\n       SET b=randomblob(10)\n     WHERE b >= 'E'\n       AND a < (SELECT a FROM t1 WHERE a<22 GROUP BY b);\n  END;\n  INSERT INTO t1(b) VALUES('Y'),('X'),('Z');\n  SELECT a, CASE WHEN typeof(b)='text' THEN quote(b) ELSE '<blob>' END, '|' FROM t1;\n")
 		_ = _res
@@ -600,6 +601,7 @@ func Test_trigger1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "trigger1-23.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1 SELECT e_master LIMIT 1,#1;\n  END;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"#1\": syntax error") {

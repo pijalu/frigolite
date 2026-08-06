@@ -202,6 +202,7 @@ func Test_capi3d(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "capi3d-4.1"
 		_res = db.Exec("\n  CREATE TABLE t4(x,y);\n  BEGIN;\n")
 		if _res.Error != nil {

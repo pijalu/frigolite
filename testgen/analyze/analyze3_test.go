@@ -859,6 +859,7 @@ func Test_analyze3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.2"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;\n")
 		if r.Error != nil {
@@ -869,6 +870,7 @@ func Test_analyze3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, v) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','1 1');\n  INSERT INTO sqlite_stat4 VALUES('t1','t1','1','0','0',X'021b76657273696f6e');\n  INSERT INTO sqlite_stat4 VALUES('T1','T1','1','0','0',X'021b76657273696f6e');\n  ANALYZE sqlite_schema;\n")
 		if _res.Error != nil {
@@ -879,6 +881,7 @@ func Test_analyze3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat4 VALUES\n     ('t1','t1','1','2','2',X'03000103'),\n     ('t1','sqlite_autoindex_t1_1','1','2','2',X'03000103');\n  ANALYZE sqlite_schema;\n  PRAGMA integrity_check;\n")
 		if r.Error != nil {

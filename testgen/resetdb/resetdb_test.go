@@ -175,6 +175,7 @@ func Test_resetdb(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // "600"
@@ -218,6 +219,7 @@ func Test_resetdb(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "700"
 		r = db.Query("\n  PRAGMA page_size=512;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c) SELECT x, randomblob(100),randomblob(100) FROM c;\n  PRAGMA page_count;\n  PRAGMA integrity_check;\n")
 		if r.Error != nil {
@@ -276,6 +278,7 @@ func Test_resetdb(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "800"
 		r = db.Query("\n    PRAGMA encoding = 'utf8';\n    CREATE TABLE t1(a, b);\n    PRAGMA encoding;\n  ")
 		if r.Error != nil {

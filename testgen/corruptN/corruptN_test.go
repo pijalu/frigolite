@@ -69,6 +69,7 @@ func Test_corruptN(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "1.0"
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -87,6 +88,7 @@ func Test_corruptN(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	if tclBool("!" + "info exists ::G(perm:presql)") {
 		{ // "3.0"
 			r = db.Query("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = 'CREATE TABLE sqlite_sequence(name-seq)' \n      WHERE name = 'sqlite_sequence';\n  ")
@@ -107,6 +109,7 @@ func Test_corruptN(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.1"
 			r = db.Query("\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n    INSERT INTO x1 VALUES(1, 1, 2);\n    INSERT INTO x1 VALUES(2, 2, 3);\n    INSERT INTO x1 VALUES(3, 3, 4);\n    INSERT INTO x1 VALUES(4, 5, 6);\n    PRAGMA writable_schema = 1;\n\n    UPDATE sqlite_schema SET rootpage = (\n      SELECT rootpage FROM sqlite_schema WHERE name = 'sqlite_autoindex_x1_2'\n    ) WHERE name = 'sqlite_autoindex_x1_1';\n  ")
 			if r.Error != nil {
@@ -127,6 +130,7 @@ func Test_corruptN(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// db function strreplace (variable-reader, inlined)
 	// proc definition (not transpiled)
 	{ // "5.0"
@@ -150,6 +154,7 @@ func Test_corruptN(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(b) VALUES(zeroblob(300)),(zeroblob(300)),(zeroblob(300)),(zeroblob(300));\n  CREATE TABLE t2(a);\n  CREATE TRIGGER t1tr BEFORE UPDATE ON t1 BEGIN DELETE FROM t2; END;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET rootpage=3 WHERE rowid=2;\n  PRAGMA writable_schema=RESET;\n  INSERT INTO t2 VALUES('active'),('boomer'),('atom'),('atomic'),\n         ('alpha channel backup abandon test aback boomer atom alpha active');\n")
 		if r.Error != nil {
@@ -166,6 +171,7 @@ func Test_corruptN(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.2"
 		r = db.Query("\n  -- Make \"t1\" a large table. Large enough that the children of the root\n  -- node are interior nodes.\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<500\n  )\n  INSERT INTO t1 SELECT zeroblob(300) FROM s;\n  \n  CREATE TABLE t2(y);\n  CREATE TRIGGER tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t2;\n  END;\n  \n  -- Set the root of table t2 to 137 - the leftmost child of the root of t1.\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_schema SET rootpage = 137 WHERE name='t2';\n  PRAGMA writable_schema = RESET;\n")
 		if r.Error != nil {
@@ -182,6 +188,7 @@ func Test_corruptN(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.0"
 		r = db.Query("\n  BEGIN;\n  CREATE TABLE p1(x PRIMARY KEY);\n  CREATE TABLE c1(y);\n\n  PRAGMA schema_version = 0;\n  PRAGMA writable_schema = RESET;\n\n  INSERT INTO c1 VALUES(1000);\n  ROLLBACK;\n")
 		if r.Error != nil {

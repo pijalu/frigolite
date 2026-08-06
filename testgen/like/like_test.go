@@ -931,6 +931,7 @@ func Test_like(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "16.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER COLLATE NOCASE);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(' 1x');\n  INSERT INTO t1 VALUES(' 1-');\n")
 		if _res.Error != nil {
@@ -1001,6 +1002,7 @@ func Test_like(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config DEFENSIVE (unhandled flag)
 	_res = db.Exec("PRAGMA trusted_schema=OFF")
 	if _res.Error != nil {

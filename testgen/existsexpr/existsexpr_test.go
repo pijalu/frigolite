@@ -295,6 +295,7 @@ func Test_existsexpr(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE tx1(a TEXT COLLATE nocase, b TEXT);\n  CREATE UNIQUE INDEX tx1ab ON tx1(a, b);\n\n  INSERT INTO tx1 VALUES('a', 'a');\n  INSERT INTO tx1 VALUES('B', 'b');\n  INSERT INTO tx1 VALUES('c', 'c');\n  INSERT INTO tx1 VALUES('D', 'd');\n  INSERT INTO tx1 VALUES('e', 'e');\n\n  CREATE TABLE tx2(x, y);\n  INSERT INTO tx2 VALUES('A', 'a');\n  INSERT INTO tx2 VALUES('b', 'b');\n  INSERT INTO tx2 VALUES('C', 'c');\n  INSERT INTO tx2 VALUES('D', 'd');\n")
 		if _res.Error != nil {
@@ -366,6 +367,7 @@ func Test_existsexpr(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n  CREATE TABLE t2(a INfEGER PRIMARY KEY, b);\n  CREATE UNIQUE INDEX t2b ON t2(b);\n")
 		if _res.Error != nil {
@@ -382,6 +384,7 @@ func Test_existsexpr(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.0"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y UNIQUE);\n\n  INSERT INTO t1 VALUES(1), (2);\n  INSERT INTO t2 VALUES(1), (3);\n\n  SELECT * FROM t1 one LEFT JOIN t1 two ON (one.x=two.x AND EXISTS (\n    SELECT 1 FROM t2 WHERE y=one.x\n  ));\n")
 		if r.Error != nil {
@@ -398,6 +401,7 @@ func Test_existsexpr(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		r = db.Query("\n  CREATE TABLE t0 (c0 INT);  INSERT INTO t0(c0) VALUES (1);\n  CREATE TABLE t1(c0 INT);   INSERT INTO t1(c0) VALUES (2);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t0 LIMIT 0);\n")
 		if r.Error != nil {
@@ -408,6 +412,7 @@ func Test_existsexpr(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t1(xx);\n  INSERT INTO t1 VALUES('big string value');\n")
 		if _res.Error != nil {
@@ -520,6 +525,7 @@ func Test_existsexpr(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE x1(x);\n")
 		if _res.Error != nil {
@@ -560,6 +566,7 @@ func Test_existsexpr(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "12.0"
 		_res = db.Exec("\n  CREATE TABLE t2(id INT, data INT);\n  CREATE TABLE t3(amount INT);\n\n  INSERT INTO t2 VALUES (1,0),(2,0);\n  INSERT INTO t3 VALUES (1),(1);\n")
 		if _res.Error != nil {
@@ -588,6 +595,7 @@ func Test_existsexpr(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.0"
 		r = db.Query("\n  CREATE TABLE t1(b,c);\n  CREATE TABLE t2(x,y);\n  CREATE TABLE t3(p,q);\n\n  INSERT INTO t1 VALUES(7,10);\n  INSERT INTO t2 VALUES(1,1), (4,7);\n  INSERT INTO t3 VALUES(4,7);\n\n  PRAGMA automatic_index = 0;\n")
 		if r.Error != nil {
@@ -610,6 +618,7 @@ func Test_existsexpr(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "14.1.0"
 		_res = db.Exec("\n  CREATE TABLE t(n INTEGER, parent INTEGER);\n  CREATE INDEX idx ON t(parent);\n  INSERT INTO t VALUES (1,  NULL);\n  INSERT INTO t VALUES (10, NULL);\n")
 		if _res.Error != nil {

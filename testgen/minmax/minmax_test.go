@@ -591,6 +591,7 @@ func Test_minmax(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -646,6 +647,7 @@ func Test_minmax(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "15.1"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  CREATE TABLE t3(c);\n  INSERT INTO t1 VALUES(0);\n  INSERT INTO t2 VALUES(5);\n  SELECT MIN((SELECT b FROM t2 UNION SELECT x FROM (SELECT x FROM (SELECT 1 AS x WHERE t1.a=1) UNION ALL SELECT c FROM t3))) FROM t1;\n")
 		if r.Error != nil {

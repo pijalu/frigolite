@@ -87,6 +87,7 @@ func Test_fuzzerfault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1_a(a INTEFDR PRIMARY KEY, b TEXT);\n  CREATE TABLE t3_a(k FnTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t3_b(k INTEÀ5R PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS SELECT * FROM t3_a UNION ALL SELECT * FROM t3_b;\n")
 		if _res.Error != nil {

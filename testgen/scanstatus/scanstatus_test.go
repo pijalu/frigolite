@@ -161,6 +161,7 @@ func Test_scanstatus(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	{ // "2.1"
 		r = db.Query("\n  CREATE TABLE x1(i INTEGER PRIMARY KEY, j);\n  INSERT INTO x1 VALUES(1, 'one');\n  INSERT INTO x1 VALUES(2, 'two');\n  INSERT INTO x1 VALUES(3, 'three');\n  INSERT INTO x1 VALUES(4, 'four');\n  CREATE INDEX x1j ON x1(j);\n\n  SELECT * FROM x1 WHERE i=2;\n")
@@ -368,6 +369,7 @@ func Test_scanstatus(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config STMT_SCANSTATUS (unhandled flag)
 	// proc definition (not transpiled)
 	// db function tochar (variable-reader, inlined)

@@ -334,6 +334,7 @@ func Test_select5(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "select5-9.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1(a,b) VALUES(1,null),(null,null),(1,null);\n  CREATE UNIQUE INDEX t1b ON t1(abs(b));\n  SELECT quote(a), quote(b), '|' FROM t1 GROUP BY a, abs(b);\n")
 		if r.Error != nil {

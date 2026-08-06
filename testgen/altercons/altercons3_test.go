@@ -83,6 +83,7 @@ func Test_altercons3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE p1(a PRIMARY KEY);\n  CREATE TABLE c1(b, CONSTRAINT fk FOREIGN KEY (b) REFERENCES p1(a));\n")
 		if _res.Error != nil {
@@ -105,6 +106,7 @@ func Test_altercons3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE generated(a PRIMARY KEY);\n  CREATE TABLE c1(b CONSTRAINT fk REFERENCES generated(a));\n")
 		if _res.Error != nil {
@@ -127,6 +129,7 @@ func Test_altercons3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// foreach {tn before after} "1 \"CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a))\"\n    \"CREATE TABLE c1(b)\"\n\n  2 \"CREATE TABLE c1(b, c, CONSTRAINT fk FOREIGN key (c, b) REFERENCES p1(o,t))\"\n    \"CREATE TABLE c1(b, c)\"\n\n  3 \"CREATE TABLE c1(b, generated, \n       CONSTRAINT fk FOREIGN key (generated) REFERENCES p1(o))\"\n    \"CREATE TABLE c1(b, generated)\"\n\n  4 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES p1(o) NOT NULL)\"\n    \"CREATE TABLE c1(b, generated NOT NULL)\"\n\n  5 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES x1)\"\n    \"CREATE TABLE c1(b, generated)\""
 	_items0 := tclSplitList("1 \"CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a))\"\n    \"CREATE TABLE c1(b)\"\n\n  2 \"CREATE TABLE c1(b, c, CONSTRAINT fk FOREIGN key (c, b) REFERENCES p1(o,t))\"\n    \"CREATE TABLE c1(b, c)\"\n\n  3 \"CREATE TABLE c1(b, generated, \n       CONSTRAINT fk FOREIGN key (generated) REFERENCES p1(o))\"\n    \"CREATE TABLE c1(b, generated)\"\n\n  4 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES p1(o) NOT NULL)\"\n    \"CREATE TABLE c1(b, generated NOT NULL)\"\n\n  5 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES x1)\"\n    \"CREATE TABLE c1(b, generated)\"")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -172,6 +175,7 @@ func Test_altercons3(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "5.0"
 			r = db.Query("\n  CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';\n")
 			if r.Error != nil {

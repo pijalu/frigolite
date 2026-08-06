@@ -75,6 +75,7 @@ func Test_notnull2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE T1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE T3(k, v);\n")
 		if _res.Error != nil {
@@ -91,6 +92,7 @@ func Test_notnull2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES (0);\n")
 		if _res.Error != nil {
@@ -113,6 +115,7 @@ func Test_notnull2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		r = db.Query("\n  SELECT *, '/'\n  FROM (\n      SELECT NULL val FROM (SELECT 1)\n      UNION ALL\n      SELECT 'missing' FROM (SELECT 1)\n  ) a\n  LEFT JOIN (SELECT 1)\n      ON a.val IS NULL;\n")
 		if r.Error != nil {
@@ -141,6 +144,7 @@ func Test_notnull2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		r = db.Query("\n  CREATE TABLE t1(a INT NOT NULL);\n  SELECT a IS NULL, a IS NOT NULL, count(*) FROM t1;\n")
 		if r.Error != nil {

@@ -496,6 +496,7 @@ func Test_hook(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE t2(a, b INTEGER PRIMARY KEY);\n  ")
 		if _res.Error != nil {
@@ -537,6 +538,7 @@ func Test_hook(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "11.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX idx1 ON t1(a);\n    CREATE INDEX idx2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 		if _res.Error != nil {
@@ -573,6 +575,7 @@ func Test_hook(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "12.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES(5, 6);\n  INSERT INTO t2 VALUES(7, 8);\n\n  CREATE TABLE t3 (a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n")
 		if _res.Error != nil {
@@ -637,6 +640,7 @@ func Test_hook(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(100), (200), (300), (400);\n")
 		if _res.Error != nil {

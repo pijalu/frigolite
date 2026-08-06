@@ -167,6 +167,7 @@ func Test_snapshot3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 		if r.Error != nil {

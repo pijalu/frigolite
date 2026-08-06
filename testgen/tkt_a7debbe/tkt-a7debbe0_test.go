@@ -64,6 +64,7 @@ func Test_tkt_a7debbe0(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
 			// optimization_control db query-flattener 0 (unsupported command, not transpiled)
 		} else {

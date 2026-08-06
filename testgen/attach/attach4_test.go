@@ -282,6 +282,7 @@ func Test_attach4(t *testing.T) {
 										os.Remove("test.db")
 										db, err = frigolite.Open("test.db")
 										if err != nil { t.Fatal(err) }
+										tcl_nullvalue = "{}" // fresh connection resets nullvalue
 										{ // "2.0"
 											_res = db.Exec("\n  ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);\n")
 											if _res.Error != nil {

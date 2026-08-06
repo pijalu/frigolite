@@ -88,6 +88,7 @@ func Test_sort5(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA mmap_size = 10000000;\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n")
 		if r.Error != nil {

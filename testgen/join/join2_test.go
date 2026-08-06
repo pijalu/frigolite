@@ -138,6 +138,7 @@ func Test_join2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(k1 INTEGER PRIMARY KEY, k2, k3);\n  CREATE TABLE t2(k2 INTEGER PRIMARY KEY, v2);\n\n  -- Prior to this problem being fixed, table t3_2 would be omitted from\n  -- the join queries below, but if t3_1 were used in its place it would\n  -- not.\n  CREATE TABLE t3_1(k3 PRIMARY KEY, v3) WITHOUT ROWID;\n  CREATE TABLE t3_2(v3, k3 PRIMARY KEY) WITHOUT ROWID;\n")
 		if _res.Error != nil {
@@ -355,6 +356,7 @@ func Test_join2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0);\n")
 		if _res.Error != nil {
@@ -371,6 +373,7 @@ func Test_join2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 INT);\n  CREATE VIEW v0(c0) AS SELECT CAST(t0.c0 AS INTEGER) FROM t0;\n  INSERT INTO t0(c0) VALUES (0);\n")
 		if _res.Error != nil {
@@ -466,6 +469,7 @@ func Test_join2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "NULL"
 	{ // "10.1"
 		_res = db.Exec("\n  CREATE TABLE t1 (x INTEGER);\n  INSERT INTO t1 VALUES(1);   -- Some true value\n  CREATE TABLE t2 (z TEXT);\n  INSERT INTO t2 VALUES('some value');\n  CREATE TABLE t3(w TEXT);\n  INSERT INTO t3 VALUES('some other value');\n")
@@ -540,6 +544,7 @@ func Test_join2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1 INT);\n  CREATE TABLE t2(c2 INT, d2 INTEGER PRIMARY KEY);\n  CREATE TABLE t3(e3 INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(33,0);\n  INSERT INTO t2 VALUES(33,1),(33,2);\n")
 		if _res.Error != nil {

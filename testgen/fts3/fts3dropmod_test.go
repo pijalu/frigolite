@@ -75,6 +75,7 @@ func Test_fts3dropmod(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_drop_modules db fts4 (unsupported command, not transpiled)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(x);\n")

@@ -612,6 +612,7 @@ func Test_analyzeE(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "analyzeE-5.0"
 		r = db.Query("\n  PRAGMA encoding = 'UTF-16';\n  CREATE TABLE t0 (c1 TEXT);\n  INSERT INTO t0 VALUES ('');\n  CREATE INDEX i0 ON t0(c1);\n  ANALYZE;\n  SELECT * FROM t0 WHERE t0.c1 BETWEEN '' AND (ABS(''));\n")
 		if r.Error != nil {
@@ -628,6 +629,7 @@ func Test_analyzeE(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "analyzeE-6.0"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;\n")
 		if r.Error != nil {
@@ -686,6 +688,7 @@ func Test_analyzeE(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "analyzeE-7.0"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT COLLATE binary);\n  CREATE INDEX t1x ON t1(a);\n  INSERT INTO t1(a) VALUES(0),('apple'),(NULL),(''),('banana');\n  ANALYZE;\n  SELECT format('(%s)',a) FROM t1 WHERE t1.a > CAST(zeroblob(5) AS TEXT);\n")
 		if r.Error != nil {

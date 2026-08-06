@@ -98,6 +98,7 @@ func Test_snapshot(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// eval $tcl (dynamic, not transpiled)
 			{ // tn + ".1.0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
@@ -413,6 +414,7 @@ func Test_snapshot(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			db.Close()
 			// testvfs tvfs (unsupported command, not transpiled)
 			db, err = frigolite.Open("test.db")
@@ -454,6 +456,7 @@ func Test_snapshot(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // tn + ".6.1"
 				r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      PRAGMA user_version;\n  ")
 				if r.Error != nil {
@@ -515,6 +518,7 @@ func Test_snapshot(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // tn + ".7.1"
 				r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);\n  ")
 				if r.Error != nil {

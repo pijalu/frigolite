@@ -122,6 +122,7 @@ func Test_wal6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // "2.1"
@@ -191,6 +192,7 @@ func Test_wal6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // "3.1"
@@ -230,6 +232,7 @@ func Test_wal6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.1"
 		r = db.Query("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  PRAGMA wal_checkpoint = truncate;\n")
 		if r.Error != nil {
@@ -285,6 +288,7 @@ func Test_wal6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // "5.1"

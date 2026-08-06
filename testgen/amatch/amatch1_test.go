@@ -141,6 +141,7 @@ func Test_amatch1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// load_static_extension db amatch (unsupported command, not transpiled)
 	{ // "amatch1-3.0"
 		r = db.Query("\n  CREATE TABLE cost(iLang,cFrom,cTo,Cost);\n  INSERT INTO cost VALUES(0,'?','?',1);\n  CREATE TABLE vocab(word TEXT PRIMARY KEY);\n  CREATE VIRTUAL TABLE am USING approximate_match(\n      vocabulary_table=vocab,\n      vocabulary_word=word,\n      edit_distances=cost\n  );\n  INSERT INTO vocab(word) VALUES(format('%.81c','a'));\n  SELECT length(word) FROM am WHERE word MATCH format('%.81c','a');\n")

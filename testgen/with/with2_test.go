@@ -555,6 +555,7 @@ func Test_with2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.1"
 		r = db.Query("\n  WITH xyz(a) AS (\n    WITH abc AS ( SELECT 1234 ) SELECT * FROM abc\n  )\n  SELECT * FROM xyz AS one, xyz AS two, (\n    SELECT * FROM xyz UNION ALL SELECT * FROM xyz\n  );\n")
 		if r.Error != nil {
@@ -576,6 +577,7 @@ func Test_with2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "10.1"
 		r = db.Query("\n  SELECT 1 AS c WHERE (\n    SELECT (\n      WITH t1(a) AS (VALUES( c ))\n      SELECT ( SELECT t1a.a FROM t1 AS t1a, t1 AS t1x )\n      FROM t1 AS xyz GROUP BY 1\n    )\n  )\n")
 		if r.Error != nil {
@@ -592,6 +594,7 @@ func Test_with2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "11.1"
 		r = db.Query("\n    CREATE TABLE t1(a);\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1;\n    ALTER TABLE t1 RENAME COLUMN a TO b;\n    SELECT sql FROM sqlite_schema WHERE name='t1';\n  ")
 		if r.Error != nil {
@@ -632,6 +635,7 @@ func Test_with2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "12.1"
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1),('hello'),(4.25),(NULL),(x'3c626c6f623e');\n    CREATE VIEW v2(c) AS WITH x AS (WITH y AS (WITH z AS(SELECT * FROM t1) SELECT * FROM v2) SELECT a) SELECT * from t1;\n    CREATE VIEW v3(c) AS WITH x AS (WITH y AS (WITH z AS(SELECT * FROM v2) SELECT * FROM v3) SELECT a) SELECT * from t1;\n    ALTER TABLE t1 RENAME TO t1x;\n    SELECT quote(c) FROM v3;\n  ")
 		if r.Error != nil {
@@ -648,6 +652,7 @@ func Test_with2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.1"
 		r = db.Query("\n  WITH\n    t1(x) AS (SELECT 111),\n    t2(y) AS (SELECT 222),\n    t3(z) AS (SELECT * FROM t2 WHERE false UNION ALL SELECT * FROM t2)\n  SELECT * FROM t1, t3;\n")
 		if r.Error != nil {

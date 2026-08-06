@@ -118,14 +118,17 @@ func Test_e_fkey(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	_res = db.Exec("PRAGMA foreign_keys = OFF")
 	for _, _t := range db.Query("SELECT name FROM sqlite_master WHERE type='table'").Rows {
 		db.Exec("DROP TABLE " + fmt.Sprint(_t[0]))
@@ -157,6 +160,7 @@ func Test_e_fkey(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "e_fkey-5.1"
 		r = db.Query(" PRAGMA foreign_keys ")
 		if r.Error != nil {
@@ -179,6 +183,7 @@ func Test_e_fkey(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "e_fkey-6.1"
 		r = db.Query("\n    PRAGMA foreign_keys = ON;\n    CREATE TABLE t1(a UNIQUE, b);\n    CREATE TABLE t2(c, d REFERENCES t1(a));\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(2, 1);\n    BEGIN;\n      PRAGMA foreign_keys = OFF;\n  ")
 		if r.Error != nil {

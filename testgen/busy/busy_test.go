@@ -107,6 +107,7 @@ func Test_busy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.1"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n\n  CREATE INDEX i1 ON t1(x);\n  CREATE INDEX i2 ON t2(y);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(1);\n  ANALYZE;\n\n  SELECT * FROM t1 WHERE x=1;\n  SELECT * FROM t2 WHERE y=1;\n")
 		if r.Error != nil {

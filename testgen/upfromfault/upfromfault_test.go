@@ -78,6 +78,7 @@ func Test_upfromfault(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -103,6 +104,7 @@ func Test_upfromfault(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);\n")
 			if _res.Error != nil {

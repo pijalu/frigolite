@@ -192,6 +192,7 @@ func Test_with5(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "300"
 		_res = db.Exec("\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parent INTEGER);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(2, 3);\n")
 		if _res.Error != nil {

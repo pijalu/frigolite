@@ -111,6 +111,7 @@ func Test_bestindexE(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// register_tcl_module db (unsupported command, not transpiled)
 	{ // do_test "2.0"
 		// create_vtab Delivery {id customer} (unsupported command, not transpiled)
@@ -123,6 +124,7 @@ func Test_bestindexE(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// register_tcl_module db eponymous_cmd (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "3.1.0"

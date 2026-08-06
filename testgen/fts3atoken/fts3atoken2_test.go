@@ -66,6 +66,7 @@ func Test_fts3atoken2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
 	{ // "1.1.1"
 		r = db.Query("\n  SELECT typeof( fts3_tokenizer('simple') );\n")

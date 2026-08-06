@@ -118,6 +118,7 @@ func Test_in6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "in6-3.100"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b, c, d);\n  INSERT INTO t2(b,c,d) VALUES(4,5,3),(4,5,4),(4,5,8);\n  CREATE INDEX t2bcd ON t2(b, c, d);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL AND c=5 AND d IN (2,3,4);\n")
 		if r.Error != nil {
@@ -146,6 +147,7 @@ func Test_in6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "in6-3.120"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, b TEXT);\n  INSERT INTO t1 VALUES(null,10),(0,10),(10,10);\n  CREATE INDEX t1ab ON t1(a,b);\n  SELECT quote(a), quote(b), '|' FROM t1 WHERE b in (SELECT a FROM t1) AND a=0;\n")
 		if r.Error != nil {

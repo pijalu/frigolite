@@ -123,6 +123,7 @@ func Test_bestindexF(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// proc definition (not transpiled)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE real_t1(a, b);\n\n  INSERT INTO real_t1 VALUES (1, 'a');\n  INSERT INTO real_t1 VALUES (2, 'a');\n  INSERT INTO real_t1 VALUES (1, 'a');\n\n  INSERT INTO real_t1 VALUES (2, 'b');\n  INSERT INTO real_t1 VALUES (1, 'b');\n  INSERT INTO real_t1 VALUES (2, 'b');\n\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');\n")

@@ -112,6 +112,7 @@ func Test_recover(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.1.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
 		if r.Error != nil {
@@ -144,11 +145,13 @@ func Test_recover(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// do_recover_test 3.0 (unsupported command, not transpiled)
 	db.Close()
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	r = db.Query(" PRAGMA secure_delete = 0 ")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA secure_delete = 0 ")

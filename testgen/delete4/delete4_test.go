@@ -83,6 +83,7 @@ func Test_delete4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  INSERT INTO t1 VALUES(1, 0, randomblob(200));\n  INSERT INTO t1 VALUES(2, 1, randomblob(200));\n  INSERT INTO t1 VALUES(3, 0, randomblob(200));\n  INSERT INTO t1 VALUES(4, 1, randomblob(200));\n  INSERT INTO t1 VALUES(5, 0, randomblob(200));\n  INSERT INTO t1 VALUES(6, 1, randomblob(200));\n  INSERT INTO t1 VALUES(7, 0, randomblob(200));\n  INSERT INTO t1 VALUES(8, 1, randomblob(200));\n")
 		if _res.Error != nil {
@@ -111,6 +112,7 @@ func Test_delete4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0.1"
 		r = db.Query("\n  CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n  DELETE FROM t1 WHERE a=1;\n  SELECT printf('(%d)',changes());\n  SELECT * FROM t1;\n")
 		if r.Error != nil {
@@ -139,6 +141,7 @@ func Test_delete4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b);\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b ON t1(b);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n  INSERT INTO t1 VALUES(3, 'three', 'iii');\n  INSERT INTO t1 VALUES(4, 'four', 'iv');\n  INSERT INTO t1 VALUES(5, 'one', 'i');\n  INSERT INTO t1 VALUES(6, 'two', 'ii');\n  INSERT INTO t1 VALUES(7, 'three', 'iii');\n  INSERT INTO t1 VALUES(8, 'four', 'iv');\n")
 		if _res.Error != nil {
@@ -304,6 +307,7 @@ func Test_delete4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.3.0"
 		_res = db.Exec("\n  CREATE TABLE t3(id INT PRIMARY KEY, a, b) WITHOUT ROWID;\n  INSERT INTO t3 VALUES(1, 2, 3);\n  INSERT INTO t3 VALUES(4, 5, 6);\n  INSERT INTO t3 VALUES(7, 8, 9);\n  CREATE TRIGGER t3t BEFORE DELETE ON t3 BEGIN\n    DELETE FROM t3 WHERE id=old.id+3;\n  END;\n")
 		if _res.Error != nil {

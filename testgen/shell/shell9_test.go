@@ -101,6 +101,7 @@ func Test_shell9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "1.2.1"
 		_res = db.Exec("\n  CREATE TABLE t4(hello);\n")
 		if _res.Error != nil {
@@ -133,6 +134,7 @@ func Test_shell9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t2 VALUES('two');\n")
 		if _res.Error != nil {
@@ -161,6 +163,7 @@ func Test_shell9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.SetDQS(true, true)
 	{ // "3.1.0"
 		_res = db.Exec("\n  CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );\n")

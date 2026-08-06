@@ -682,6 +682,7 @@ func Test_where2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "where2-16.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t3(e INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t4(g INTEGER PRIMARY KEY, h INT);\n")
 		if _res.Error != nil {

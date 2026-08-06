@@ -219,6 +219,7 @@ func Test_fts4unicode(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x, y);\n  INSERT INTO t1 VALUES(NULL, 'a b c');\n")
 			if _res.Error != nil {
@@ -259,6 +260,7 @@ func Test_fts4unicode(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // do_test "4.1"
 			a = "abcuFFFEdef"
 			_ = a // suppress unused warning

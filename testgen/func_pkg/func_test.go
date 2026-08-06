@@ -2125,6 +2125,7 @@ func Test_func(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "func-34.10"
 			r = db.Query("\n  CREATE TABLE t1(a INT CHECK(\n     datetime( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,\n              10,11,12,13,14,15,16,17,18,19,\n              20,21,22,23,24,25,26,27,28,29,\n              30,31,32,33,34,35,36,37,38,39,\n              40,41,42,43,44,45,46,47,48,a)\n   )\n  );\n  INSERT INTO t1(a) VALUES(1),(2);\n  SELECT * FROM t1;\n")
 			if r.Error != nil {
@@ -2141,6 +2142,7 @@ func Test_func(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "func-35.100"
 			r = db.Query("\n  CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;\n")
 			if r.Error != nil {
@@ -2197,6 +2199,7 @@ func Test_func(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "func-37.100"
 			_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {

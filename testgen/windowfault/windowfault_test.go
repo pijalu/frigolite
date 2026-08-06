@@ -92,6 +92,7 @@ func Test_windowfault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	big = "x 900"
 	_ = big // suppress unused warning
 	{ // "9.0"
@@ -125,6 +126,7 @@ func Test_windowfault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);\n")
 		if _res.Error != nil {
@@ -136,6 +138,7 @@ func Test_windowfault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "11.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);\n")
 		if _res.Error != nil {
@@ -148,6 +151,7 @@ func Test_windowfault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "12.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
 		if _res.Error != nil {
@@ -159,6 +163,7 @@ func Test_windowfault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');\n")
 		if _res.Error != nil {

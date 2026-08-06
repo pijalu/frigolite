@@ -766,6 +766,7 @@ func Test_delete(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "delete-12.0"
 		r = db.Query("\n  CREATE TABLE t0(vkey INTEGER, pkey INTEGER,c1 INTEGER);\n  INSERT INTO t0 VALUES(2,1,-20),(2,2,NULL),(2,3,0),(8,4,95);\n  DELETE FROM t0 WHERE NOT (\n    (t0.vkey <= t0.c1) AND\n    (t0.vkey <> (SELECT vkey FROM t0 ORDER BY vkey LIMIT 1 OFFSET 2))\n  );\n  SELECT * FROM t0;\n")
 		if r.Error != nil {

@@ -284,6 +284,7 @@ func Test_fts4langid(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// build_multilingual_db_1 db (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
@@ -312,6 +313,7 @@ func Test_fts4langid(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// build_multilingual_db_1 db (unsupported command, not transpiled)
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('rebuild') ")
 		if _res.Error != nil {
@@ -327,6 +329,7 @@ func Test_fts4langid(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// build_multilingual_db_1 db (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t3_data(l, x, y);\n    INSERT INTO t3_data(rowid, l, x, y) SELECT docid, l, x, y FROM t2;\n    DROP TABLE t2;\n  ")
 		if _res.Error != nil {
@@ -383,6 +386,7 @@ func Test_fts4langid(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		ptr = "fts3_test_tokenizer"
 		_ = ptr // suppress unused warning
 		// sqlite3_db_config SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER (unhandled flag)
@@ -457,6 +461,7 @@ func Test_fts4langid(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// build_multilingual_db_3 db (unsupported command, not transpiled)
 	}
 	{ // "5.1.1"
@@ -632,6 +637,7 @@ func Test_fts4langid(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE vt0 USING fts4(c0, languageid=\"lid\");\n  INSERT INTO vt0 VALUES ('a'), ('b');\n  BEGIN;\n    UPDATE vt0 SET lid = 1 WHERE lid=0;\n")
 		if _res.Error != nil {

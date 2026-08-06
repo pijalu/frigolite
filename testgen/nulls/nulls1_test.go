@@ -152,6 +152,7 @@ func Test_nulls1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX i2 ON t2(a, b);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(1, NULL, 2);\n  INSERT INTO t2 VALUES(1, NULL, 3);\n  INSERT INTO t2 VALUES(1, 4, 4);\n")
 			if _res.Error != nil {
@@ -186,6 +187,7 @@ func Test_nulls1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, UNIQUE (b));\n")
 			if _res.Error != nil {
@@ -394,6 +396,7 @@ func Test_nulls1(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "9.0"
 				_res = db.Exec("\n  CREATE TABLE v0 (c1, c2, c3);\n  CREATE INDEX v3 ON v0 (c1, c2, c3);\n")
 				if _res.Error != nil {
@@ -434,6 +437,7 @@ func Test_nulls1(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "10.10"
 				r = db.Query("\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES('X');\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT c FROM t1 LEFT JOIN t2 ON d=NULL ORDER BY d, c NULLS LAST;\n")
 				if r.Error != nil {
@@ -542,6 +546,7 @@ func Test_nulls1(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "11." + tn + ".1"
 						_res = db.Exec("\n    CREATE TABLE t1(a TEXT COLLATE NOCASE, b TEXT);\n    INSERT INTO t1 VALUES('Hello', 'world');\n  ")
 						if _res.Error != nil {

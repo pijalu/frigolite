@@ -368,6 +368,7 @@ func Test_csv01(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// load_static_extension db csv (unsupported command, not transpiled)
 		fd = "open csv.data w"
 		_ = fd // suppress unused warning
@@ -409,6 +410,7 @@ func Test_csv01(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// load_static_extension db csv (unsupported command, not transpiled)
 		T = "randomtext $ii"
 		_ = T // suppress unused warning
@@ -449,6 +451,7 @@ func Test_csv01(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// load_static_extension db csv (unsupported command, not transpiled)
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE abc USING csv(\n     data='1,2,3,4,5,6',\n     columns=32768\n  );\n")

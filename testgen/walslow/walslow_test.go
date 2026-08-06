@@ -174,6 +174,7 @@ func Test_walslow(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "3.1"
 		r = db.Query("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(300));\n    INSERT INTO t1 VALUES(2, randomblob(300));\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(3, randomblob(300));\n  ")
 		if r.Error != nil {
@@ -235,6 +236,7 @@ func Test_walslow(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.1"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO \"t1\" VALUES('A',0);\n  CREATE TABLE t2(x, y);\n  INSERT INTO \"t2\" VALUES('B',2);\n")
 		if r.Error != nil {

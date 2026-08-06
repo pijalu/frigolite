@@ -134,6 +134,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// register_echo_module db (unsupported command, not transpiled)
 	{ // "2.0"
 		r = db.Query("\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE eee USING echo('abc');\n    SELECT * FROM eee;\n  ")
@@ -172,6 +173,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE txx(a, b, c);\n  INSERT INTO txx VALUES(1, 2, 3);\n  CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx;\n  CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one;\n  CREATE VIEW temp.ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx;\n")
 		if _res.Error != nil {
@@ -266,6 +268,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE table t1(x, y);\n  CREATE table t2(a, b);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT t1.x, * FROM t1, t2;\n    INSERT INTO t2 VALUES(new.x, new.y);\n  END;\n")
 		if _res.Error != nil {
@@ -290,6 +293,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		r = db.Query("\n  CREATE TABLE t9(a, b, c);\n  CREATE TABLE t10(a, b, c);\n  CREATE TEMP TABLE t9(a, b, c);\n\n  CREATE TRIGGER temp.t9t AFTER INSERT ON temp.t9 BEGIN\n    INSERT INTO t10 VALUES(new.a, new.b, new.c);\n  END;\n\n  INSERT INTO temp.t9 VALUES(1, 2, 3);\n  SELECT * FROM t10;\n")
 		if r.Error != nil {
@@ -400,6 +404,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	{ // "8.1"
 		r = db.Query("\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
@@ -429,6 +434,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t2;\n")
 		if _res.Error != nil {
@@ -482,6 +488,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "10.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE fff USING fts5(x, y, z);\n  ")
 		if _res.Error != nil {
@@ -510,6 +517,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	// db function trigger (variable-reader, inlined)
 	trigger = "" // TCL namespace variable
@@ -579,6 +587,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "12.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);\n")
 		if _res.Error != nil {
@@ -607,6 +616,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE log(c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log SELECT y FROM t1, t2;\n  END;\n")
 		if _res.Error != nil {
@@ -629,6 +639,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "14.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE rt USING rtree(id, minx, maxx, miny, maxy);\n\n    CREATE TABLE \"mytable\" ( \"fid\" INTEGER PRIMARY KEY, \"geom\" BLOB);\n\n    CREATE TRIGGER tr1 AFTER UPDATE OF \"geom\" ON \"mytable\" \n          WHEN OLD.\"fid\" = NEW.\"fid\" AND NEW.\"geom\" IS NULL BEGIN \n      DELETE FROM rt WHERE id = OLD.\"fid\"; \n    END;\n\n    INSERT INTO mytable VALUES(1, X'abcd');\n  ")
 		if _res.Error != nil {
@@ -663,6 +674,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "14.5"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER xyz AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM v1;\n  END;\n")
 		if _res.Error != nil {
@@ -679,6 +691,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "15.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a integer NOT NULL PRIMARY KEY);\n  CREATE VIEW v1 AS SELECT a FROM t1;\n  CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN \n    UPDATE t1 SET a = NEW.a;\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF INSERT ON v1 BEGIN \n    SELECT new.a;\n  END;\n  CREATE TABLE t2 (b);\n")
 		if _res.Error != nil {
@@ -804,6 +817,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "17.0"
 		r = db.Query("\n  CREATE TABLE sqlite1234 (id integer);\n  ALTER TABLE sqlite1234 RENAME TO User;\n  SELECT name, sql FROM sqlite_master WHERE sql IS NOT NULL;\n")
 		if r.Error != nil {
@@ -820,6 +834,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "18.1.0"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0 INTEGER, PRIMARY KEY(c0)) WITHOUT ROWID;\n")
 		if _res.Error != nil {
@@ -848,6 +863,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "18.2.0"
 		_res = db.Exec("\n  CREATE TABLE t0 (c0 INTEGER, PRIMARY KEY(c0));\n")
 		if _res.Error != nil {
@@ -876,6 +892,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "19.100"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE VIEW t2 AS SELECT 1 FROM t1, (t1 AS a0, t1);\n  ALTER TABLE t1 RENAME TO t3;\n  SELECT sql FROM sqlite_master;\n")
 		if r.Error != nil {
@@ -916,6 +933,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "20.0"
 		_res = db.Exec("\n  CREATE TABLE a(a);\n  CREATE VIEW b AS SELECT(SELECT *FROM c JOIN a USING(d, a, a, a) JOIN a) IN();\n")
 		if _res.Error != nil {
@@ -932,6 +950,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "21.0"
 		_res = db.Exec("\n  CREATE TABLE a(b);\n  CREATE VIEW c AS \n      SELECT NULL INTERSECT \n      SELECT NULL ORDER BY\n      likelihood(NULL, (d, (SELECT c)));\n")
 		if _res.Error != nil {
@@ -960,6 +979,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "22.0"
 		r = db.Query("\n  CREATE TABLE t1(a INT, b TEXT NOT NULL);\n  INSERT INTO t1 VALUES(1,2),('a','b');\n  BEGIN;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET sql='CREATE TABLE t1(a INT, b TEXT)' WHERE name LIKE 't1';\n  PRAGMA schema_version=1234;\n  COMMIT;\n  PRAGMA integrity_check;\n")
 		if r.Error != nil {
@@ -988,6 +1008,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "23.1"
 		_res = db.Exec("\n  CREATE TABLE gigo(a text);\n  CREATE TABLE idx(x text COLLATE compare64);\n  CREATE VIEW v1 AS SELECT * FROM idx WHERE x='abc';\n")
 		if _res.Error != nil {
@@ -1031,6 +1052,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "24.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    INSERT INTO nosuchtable VALUES(new.a) ON CONFLICT(a) DO NOTHING;\n  END;\n")
 		if _res.Error != nil {
@@ -1047,6 +1069,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "24.2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    INSERT INTO v1 VALUES(new.a) ON CONFLICT(a) DO NOTHING;\n  END;\n  CREATE VIEW v1 AS SELECT * FROM nosuchtable;\n")
 		if _res.Error != nil {
@@ -1063,6 +1086,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "25.1"
 		_res = db.Exec("\n  CREATE TABLE xx(x);\n  CREATE VIEW v3(b) AS WITH b AS (SELECT b FROM (SELECT * FROM t2)) VALUES(1);\n")
 		if _res.Error != nil {
@@ -1079,6 +1103,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "26.1"
 		r = db.Query("\n  CREATE TABLE t1(k,v);\n  CREATE TABLE t2_a(k,v);\n  CREATE VIEW t2 AS SELECT * FROM t2_a;\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 \n       SET (k,v)=((WITH cte1(a) AS (SELECT 1 FROM t2) SELECT t2.k FROM t2, cte1),1);\n  END;\n  ALTER TABLE t1 RENAME TO t1x;\n  INSERT INTO t2_a VALUES(2,3);\n  INSERT INTO t1x VALUES(98,99);\n  SELECT * FROM t1x;\n")
 		if r.Error != nil {
@@ -1095,6 +1120,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "27.1"
 		_res = db.Exec("\n\n create table t_sa (\n c_muyat INTEGER NOT NULL,\n c_d4u TEXT \n );\n\n create table t2 ( abc );\n\n CREATE TRIGGER trig AFTER DELETE ON t_sa\n   BEGIN\n   DELETE FROM t_sa WHERE (\n       SELECT 123 FROM t2\n       WINDOW oamat7fzf AS ( PARTITION BY t_sa.c_d4u )\n   );\n   END;\n")
 		if _res.Error != nil {
@@ -1111,6 +1137,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "29.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n\n  CREATE VIEW v0 AS\n    WITH p AS ( SELECT 1 FROM t1 ),\n         g AS ( SELECT 1 FROM p, t1 )\n    SELECT 1 FROM g;\n")
 		if _res.Error != nil {
@@ -1187,6 +1214,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "28.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b,c);\n  CREATE TABLE t4(b,c);\n  INSERT INTO t2 VALUES(1,2),(1,3),(2,5);\n  INSERT INTO t4 VALUES(1,2),(1,3),(2,5);\n\n  CREATE VIEW v3 AS \n    WITH RECURSIVE t3(x,y,z) AS (\n        SELECT b,c,NULL FROM t4\n        UNION\n        SELECT x,y,NULL FROM t3, t2\n    )\n  SELECT * FROM t3 AS xyz;\n")
 		if _res.Error != nil {
@@ -1233,6 +1261,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "30.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d,e,f);\n  CREATE TABLE t2(a,b,c);\n  CREATE INDEX t1abc ON t1(a,b,c+d+e);\n  CREATE VIEW v1(x,y) AS \n    SELECT t1.b,t2.b FROM t1,t2 WHERE t1.a=t2.a \n      GROUP BY 1 HAVING t2.c NOT NULL LIMIT 10;\n  CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN 'no' NOT NULL BEGIN\n    INSERT INTO t2(a,a,b,c) VALUES(new.b,new.a,new.c-7);\n    WITH c1(x) AS (\n      VALUES(0) \n        UNION ALL \n      SELECT current_time+x FROM c1 WHERE x \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE x<1\n    ), c2(x) AS (VALUES(0),(1))\n    SELECT * FROM c1 AS x1, c2 AS x2, (\n      SELECT x+1 FROM c1 WHERE x IS NOT TRUE \n        UNION ALL \n      SELECT 1+x FROM c1 WHERE 1<x\n    ) AS x3, c2 x5;\n  END;\n")
 		if r.Error != nil {
@@ -1261,6 +1290,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "31.0"
 		_res = db.Exec("\n  CREATE TABLE t1(q);\n  CREATE VIEW vvv AS WITH x AS (WITH y AS (SELECT * FROM x) SELECT 1) SELECT 1;\n")
 		if _res.Error != nil {
@@ -1295,6 +1325,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "32.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN \n    UPDATE t1 SET x=x FROM (SELECT*);\n  END;\n  ALTER TABLE t1 RENAME TO x;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger r1: no tables specified") {
@@ -1305,6 +1336,7 @@ func Test_altertab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "33.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1(a) VALUES('abc'),('def'),(NULL);\n  CREATE TABLE t2(b TEXT);\n  CREATE TRIGGER r3 AFTER INSERT ON t1 BEGIN\n   UPDATE t2 SET (b,a)=(SELECT 1) FROM t1 JOIN t2 ON (SELECT * FROM (SELECT a));\n  END;\n")
 		if _res.Error != nil {

@@ -140,6 +140,7 @@ func Test_fts4intck1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('one', 'two');\n  INSERT INTO x1 VALUES('three', 'four');\n")
 		if _res.Error != nil {

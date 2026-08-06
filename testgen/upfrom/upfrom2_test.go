@@ -78,6 +78,7 @@ func Test_upfrom2(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// eval (dynamic, not transpiled)
 		}
 		// foreach {tn wo} "1 \"\"\n  2 \"WITHOUT ROWID\""
@@ -92,12 +93,14 @@ func Test_upfrom2(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				// eval (dynamic, not transpiled)
 			}
 			db.Close()
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "3.0"
 				_res = db.Exec("\n  CREATE TABLE data(x, y, z);\n  CREATE VIEW t1 AS SELECT * FROM data;\n  CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO data VALUES(new.x, new.y, new.z);\n  END;\n  CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.z || '->' || new.z);\n  END;\n\n  CREATE TABLE log(t TEXT);\n\n  INSERT INTO t1 VALUES(1, 'i',   'one');\n  INSERT INTO t1 VALUES(2, 'ii',  'two');\n  INSERT INTO t1 VALUES(3, 'iii', 'three');\n  INSERT INTO t1 VALUES(4, 'iv',  'four');\n")
 				if _res.Error != nil {
@@ -122,6 +125,7 @@ func Test_upfrom2(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					_res = db.Exec(sql)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -149,6 +153,7 @@ func Test_upfrom2(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "5.0"
 					_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n  CREATE TABLE x2(a, b, c);\n")
 					if _res.Error != nil {
@@ -176,6 +181,7 @@ func Test_upfrom2(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "6.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a); \n")
 						if _res.Error != nil {
@@ -198,6 +204,7 @@ func Test_upfrom2(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "7.0" — skipped: window functions not supported
 						_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(11),(22),(33),(44),(55);\n  CREATE VIEW t2(b,c) AS SELECT a, COUNT(*) OVER () FROM t1;\n  CREATE TABLE t3(x,y);\n  CREATE TRIGGER t2r1 INSTEAD OF UPDATE ON t2 BEGIN\n    INSERT INTO t3(x,y) VALUES(new.b,new.c);\n  END;\n  SELECT * FROM t2;\n")
 						_ = _res

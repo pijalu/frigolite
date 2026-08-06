@@ -121,6 +121,7 @@ func Test_fkey8(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "2.1.0"
 			r = db.Query("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);\n")
 			if r.Error != nil {
@@ -137,6 +138,7 @@ func Test_fkey8(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "2.2.0"
 			r = db.Query("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;\n")
 			if r.Error != nil {
@@ -153,6 +155,7 @@ func Test_fkey8(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "2.3.0"
 			r = db.Query("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN old.a=1 BEGIN\n    INSERT OR REPLACE INTO p3 VALUES(2, 'three');\n  END;\n")
 			if r.Error != nil {
@@ -199,6 +202,7 @@ func Test_fkey8(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "5.0"
 			r = db.Query("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COMMIT;\n")
 			if r.Error != nil {
@@ -239,6 +243,7 @@ func Test_fkey8(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		os.Remove("test.db2")
 		{ // "6.1"
 			r = db.Query("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
@@ -262,6 +267,7 @@ func Test_fkey8(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "7.0"
 			r = db.Query("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );\n")
 			if r.Error != nil {

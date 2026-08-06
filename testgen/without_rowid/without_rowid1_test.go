@@ -332,6 +332,7 @@ func Test_without_rowid1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(b);\n\n  CREATE TABLE t2(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i2 ON t2(b);\n\n  INSERT INTO t1 VALUES('one', 'two');\n  INSERT INTO t2 VALUES('three', 'two');\n")
 		if _res.Error != nil {
@@ -583,6 +584,7 @@ func Test_without_rowid1(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "10.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);\n")
 				if _res.Error != nil {
@@ -671,6 +673,7 @@ func Test_without_rowid1(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "14.1"
 				r = db.Query("\n    CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1(a) VALUES(10);\n    ALTER TABLE t1 ADD COLUMN b INT;\n    SELECT * FROM t1 WHERE a=20 OR (a=10 AND b=10);\n  ")
 				if r.Error != nil {
@@ -693,6 +696,7 @@ func Test_without_rowid1(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "15.1"
 				r = db.Query("\n    PRAGMA writable_schema=ON;\n    CREATE TABLE sqlite_sequence (name PRIMARY KEY) WITHOUT ROWID;\n    PRAGMA writable_schema=OFF;\n    CREATE TABLE c1(x);\n    INSERT INTO sqlite_sequence(name) VALUES('c0'),('c1'),('c2');\n    ALTER TABLE c1 RENAME TO a;\n    SELECT name FROM sqlite_sequence ORDER BY +name;\n  ")
 				if r.Error != nil {
@@ -709,6 +713,7 @@ func Test_without_rowid1(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// sqlite3_limit db SQLITE_LIMIT_COLUMN 8 (unsupported command, not transpiled)
 			{ // "16.1"
 				_res = db.Exec("\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")

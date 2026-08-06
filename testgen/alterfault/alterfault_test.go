@@ -71,6 +71,7 @@ func Test_alterfault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE x1(d, e CONSTRAINT abc NOT NULL, f);\n")
 		if _res.Error != nil {

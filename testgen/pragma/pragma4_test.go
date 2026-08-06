@@ -79,6 +79,7 @@ func Test_pragma4(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// do_pragma_ncol_test 1.$tn.1 [lindex [split $sql =] 0] 1 (unsupported command, not transpiled)
 			// do_pragma_ncol_test 1.$tn.2 $sql 0 (unsupported command, not transpiled)
 		}
@@ -111,6 +112,7 @@ func Test_pragma4(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			os.Remove("test.db2")
 			{ // "4.1.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n")
@@ -182,6 +184,7 @@ func Test_pragma4(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			os.Remove("test.db2")
 			{ // "4.2.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n")
@@ -245,6 +248,7 @@ func Test_pragma4(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			os.Remove("test.db2")
 			{ // "4.3.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n  CREATE INDEX aux.i2 ON t2(e);\n")
@@ -510,6 +514,7 @@ func Test_pragma4(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "6.0"
 				r = db.Query("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INT PRIMARY KEY, b INT);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT REFERENCES t1);\n    SELECT t.name, f.\"table\", f.\"from\", i.name, i.pk\n      FROM pragma_table_list() AS t\n           JOIN pragma_foreign_key_list(t.name, t.schema) AS f\n           JOIN pragma_table_info(f.\"table\", t.schema) AS i\n     WHERE i.pk;\n  ")
 				if r.Error != nil {

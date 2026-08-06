@@ -68,6 +68,7 @@ func Test_dbpagefault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE x1(z, b);\n  CREATE TRIGGER BEFORE INSERT ON x1 BEGIN\n    DELETE FROM sqlite_dbpage WHERE pgno=100;\n    UPDATE sqlite_dbpage SET data=null WHERE pgno=100;\n  END;\n")
 		if _res.Error != nil {
@@ -90,6 +91,7 @@ func Test_dbpagefault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);\n")

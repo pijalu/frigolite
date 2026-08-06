@@ -128,6 +128,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// register_echo_module db (unsupported command, not transpiled)
 	{ // "2.0"
 		r = db.Query("\n    PRAGMA legacy_alter_table = 1;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE eee USING echo('abc');\n    SELECT * FROM eee;\n  ")
@@ -166,6 +167,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE txx(a, b, c);\n  INSERT INTO txx VALUES(1, 2, 3);\n  CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx;\n  CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one;\n  CREATE VIEW temp.ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx;\n")
 		if r.Error != nil {
@@ -248,6 +250,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE table t1(x, y);\n  CREATE table t2(a, b);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT t1.x, * FROM t1, t2;\n    INSERT INTO t2 VALUES(new.x, new.y);\n  END;\n")
 		if r.Error != nil {
@@ -290,6 +293,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t9(a, b, c);\n  CREATE TABLE t10(a, b, c);\n  CREATE TEMP TABLE t9(a, b, c);\n\n  CREATE TRIGGER temp.t9t AFTER INSERT ON temp.t9 BEGIN\n    INSERT INTO t10 VALUES(new.a, new.b, new.c);\n  END;\n\n  INSERT INTO temp.t9 VALUES(1, 2, 3);\n  SELECT * FROM t10;\n")
 		if r.Error != nil {
@@ -386,6 +390,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	{ // "8.1"
 		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));\n")
@@ -415,6 +420,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.0"
 		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t2;\n")
 		if r.Error != nil {
@@ -474,6 +480,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "10.0"
 		r = db.Query("\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE fff USING fts5(x, y, z);\n  ")
 		if r.Error != nil {
@@ -502,6 +509,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	// db function trigger (variable-reader, inlined)
 	trigger = "" // TCL namespace variable
@@ -571,6 +579,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "12.0"
 		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);\n")
 		if r.Error != nil {
@@ -599,6 +608,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "14.0"
 		r = db.Query("\n    PRAGMA legacy_alter_table = 1;\n    CREATE VIRTUAL TABLE rt USING rtree(id, minx, maxx, miny, maxy);\n\n    CREATE TABLE \"mytable\" ( \"fid\" INTEGER PRIMARY KEY, \"geom\" BLOB);\n\n    CREATE TRIGGER tr1 AFTER UPDATE OF \"geom\" ON \"mytable\" \n          WHEN OLD.\"fid\" = NEW.\"fid\" AND NEW.\"geom\" IS NULL BEGIN \n      DELETE FROM rt WHERE id = OLD.\"fid\"; \n    END;\n\n    INSERT INTO mytable VALUES(1, X'abcd');\n  ")
 		if r.Error != nil {
@@ -633,6 +643,7 @@ func Test_alterlegacy(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "14.5"
 		r = db.Query("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER xyz AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM v1;\n  END;\n")
 		if r.Error != nil {

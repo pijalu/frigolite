@@ -1032,6 +1032,7 @@ func Test_expr(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 		{ // "expr-16.1"
 			_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');\n")

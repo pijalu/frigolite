@@ -137,6 +137,7 @@ func Test_atof1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "atof1-2.10"
 		r = db.Query("\n  PRAGMA encoding = 'UTF16be';\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1(rowid,a) VALUES (1,x'00'),(2,3);\n  SELECT substr(a,',') is true FROM t1 ORDER BY rowid;\n")
 		if r.Error != nil {

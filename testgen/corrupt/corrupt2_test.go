@@ -303,6 +303,7 @@ func Test_corrupt2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "14.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(randomblob(3500));\n  DELETE FROM t1;\n")
 		if r.Error != nil {

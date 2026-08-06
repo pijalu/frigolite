@@ -885,6 +885,7 @@ func Test_fts4content(t *testing.T) {
 								os.Remove("test.db")
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
+								tcl_nullvalue = "{}" // fresh connection resets nullvalue
 								// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 								{ // "9.1"
 									_res = db.Exec("\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
@@ -950,6 +951,7 @@ func Test_fts4content(t *testing.T) {
 								os.Remove("test.db")
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
+								tcl_nullvalue = "{}" // fresh connection resets nullvalue
 								// register_fs_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 								// proc definition (not transpiled)
 								// write_file t1.txt {a b c d e f g h i j k l m n o p q r s t u v w x y ...} (unsupported command, not transpiled)
@@ -1031,6 +1033,7 @@ func Test_fts4content(t *testing.T) {
 								os.Remove("test.db")
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
+								tcl_nullvalue = "{}" // fresh connection resets nullvalue
 								{ // "11.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(content=x1);\n")
 									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "vtable constructor called recursively: x1") {
@@ -1041,6 +1044,7 @@ func Test_fts4content(t *testing.T) {
 								os.Remove("test.db")
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
+								tcl_nullvalue = "{}" // fresh connection resets nullvalue
 								{ // "12.1.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
 									if _res.Error != nil {
@@ -1069,6 +1073,7 @@ func Test_fts4content(t *testing.T) {
 								os.Remove("test.db")
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
+								tcl_nullvalue = "{}" // fresh connection resets nullvalue
 								{ // "12.2.1"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
 									if _res.Error != nil {
@@ -1097,6 +1102,7 @@ func Test_fts4content(t *testing.T) {
 								os.Remove("test.db")
 								db, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
+								tcl_nullvalue = "{}" // fresh connection resets nullvalue
 								{ // "13.0"
 									r = db.Query("\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
 									if r.Error != nil {

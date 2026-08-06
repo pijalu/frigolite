@@ -172,6 +172,7 @@ func Test_snapshot2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
 		if r.Error != nil {
@@ -270,6 +271,7 @@ func Test_snapshot2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('c', 'd');\n")
 		if r.Error != nil {
@@ -351,6 +353,7 @@ func Test_snapshot2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 	_ = db2
 	{ // "5.0"

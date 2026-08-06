@@ -75,6 +75,7 @@ func Test_triggerF(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "1." + tn + ".0"
 				r = db.Query("\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
 				if r.Error != nil {

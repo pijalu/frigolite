@@ -229,6 +229,7 @@ func Test_dbpage(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "400"
 		_res = db.Exec("\n  ATTACH ':memory:' AS aux1;\n  BEGIN;\n    CREATE VIRTUAL TABLE aux1.t1 USING sqlite_dbpage;\n    INSERT INTO t1 VALUES(17, NULL);\n  COMMIT;\n")
 		if _res.Error != nil {
@@ -239,6 +240,7 @@ func Test_dbpage(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
@@ -290,6 +292,7 @@ func Test_dbpage(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	{ // "610"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES(1234);\n  CREATE TABLE aux.x1(z);\n")
@@ -337,6 +340,7 @@ func Test_dbpage(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "700"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n")
 		if _res.Error != nil {
@@ -396,6 +400,7 @@ func Test_dbpage(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "800"
 		_res = db.Exec("\n  CREATE TABLE x1(x);\n")
 		if _res.Error != nil {

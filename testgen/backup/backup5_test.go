@@ -104,6 +104,7 @@ func Test_backup5(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	for _, n := range tclSplitList("test2.db test3.db test4.db test5.db test6.db test7.db test8.db") {
 	_ = n // suppress unused warning
 		os.Remove(n)
@@ -154,6 +155,7 @@ func Test_backup5(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(y, x);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
 		if _res.Error != nil {

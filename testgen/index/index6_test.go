@@ -571,6 +571,7 @@ func Test_index6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "index6-14.1"
 		r = db.Query("\n  CREATE TABLE IF NOT EXISTS t0 (c0, c1);\n  CREATE INDEX IF NOT EXISTS i0 ON t0(c0, c1) WHERE c0 NOT NULL;\n  INSERT INTO t0(c0, c1) VALUES(NULL, 'row');\n  SELECT * FROM t0 WHERE t0.c0 IS NOT 1;\n")
 		if r.Error != nil {
@@ -728,6 +729,7 @@ func Test_index6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "index6-18.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1 VALUES(10,10);\n  CREATE UNIQUE INDEX t1b ON t1(b) WHERE a>NULL;\n  SELECT * FROM t1 WHERE a IS NOT NULL;\n")
 		if r.Error != nil {
@@ -744,6 +746,7 @@ func Test_index6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "index6-19.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1(a) VALUES(2);\n  CREATE TABLE t2(c INT);\n  CREATE INDEX i0 ON t2(c) WHERE c=3;\n  CREATE TABLE t3(d INT);\n  INSERT INTO t3 VALUES(1);\n")
 		if _res.Error != nil {

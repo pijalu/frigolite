@@ -367,6 +367,7 @@ func Test_aggorderby(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "aggorderby-10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(w, x);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		if _res.Error != nil {

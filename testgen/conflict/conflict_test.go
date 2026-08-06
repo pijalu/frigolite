@@ -835,6 +835,7 @@ func Test_conflict(t *testing.T) {
 							os.Remove("test.db")
 							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
+							tcl_nullvalue = "{}" // fresh connection resets nullvalue
 							{ // "conflict-15.10"
 								r = db.Query("\n  CREATE TABLE t1(\n    x PRIMARY KEY,\n    UNIQUE(x,x),\n    UNIQUE(x,x) ON CONFLICT REPLACE\n  );\n  INSERT INTO t1(x) VALUES(1);\n  SELECT * FROM t1;\n")
 								if r.Error != nil {
@@ -869,6 +870,7 @@ func Test_conflict(t *testing.T) {
 							os.Remove("test.db")
 							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
+							tcl_nullvalue = "{}" // fresh connection resets nullvalue
 							{ // "conflict-16.1"
 								_res = db.Exec("\n  -- ON CONFLICT clauses are not allowed on column CHECK constraints\n  CREATE TABLE t1(a INT CHECK( a!=5 ) ON CONFLICT ignore);\n")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"ON\": syntax error") {

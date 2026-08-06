@@ -287,6 +287,7 @@ func Test_walcksum(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
 		if r.Error != nil {
@@ -336,6 +337,7 @@ func Test_walcksum(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  PRAGMA wal_checkpoint;\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n")
 		if r.Error != nil {
@@ -391,6 +393,7 @@ func Test_walcksum(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA synchronous = NORMAL;\n  PRAGMA journal_mode = WAL;\n  PRAGMA cache_size = 1;\n\n  CREATE TABLE t1 (i INTEGER PRIMARY KEY, b BLOB, t TEXT);\n  INSERT INTO t1 VALUES(1, randomblob(2048), 'one');\n  INSERT INTO t1 VALUES(2, randomblob(2048), 'two');\n  INSERT INTO t1 VALUES(3, randomblob(2048), 'three');\n  PRAGMA wal_checkpoint;\n")
 		if r.Error != nil {

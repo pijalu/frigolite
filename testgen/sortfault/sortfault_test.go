@@ -179,6 +179,7 @@ func Test_sortfault(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.0"
 			_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);\n")
 			if _res.Error != nil {
@@ -208,6 +209,7 @@ func Test_sortfault(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		a = "a 500"
 		_ = a // suppress unused warning
 		b = "b 500"

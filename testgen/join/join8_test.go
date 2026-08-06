@@ -70,6 +70,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-1000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT,b,c,d,e,f,g,h,j,k,l,m,n,o,p,q,r,s);\n  CREATE INDEX t1x1 ON t1(g+h,j,k);\n  CREATE INDEX t1x2 ON t1(b);\n  INSERT INTO t1 DEFAULT VALUES;\n")
 		if _res.Error != nil {
@@ -86,6 +87,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-2000"
 		r = db.Query("\n  CREATE TABLE t1(a int, b int, c int);\n  INSERT INTO t1 VALUES(1,2,3),(4,5,6);\n  CREATE TABLE t2(d int, e int);\n  INSERT INTO t2 VALUES(3,333),(4,444);\n  CREATE TABLE t3(f int, g int);\n  PRAGMA automatic_index=off;\n")
 		if r.Error != nil {
@@ -102,6 +104,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// load_static_extension db series (unsupported command, not transpiled)
 	{ // "join8-3000"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c INT);\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t5(id INTEGER PRIMARY KEY, e INT);\n  CREATE TABLE t6(id INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, g INT);\n  CREATE TABLE t8(id INTEGER PRIMARY KEY, h INT);\n  INSERT INTO t1 SELECT value, 1 FROM generate_series(1,256) WHERE value & 1;\n  INSERT INTO t2 SELECT value, 1 FROM generate_series(1,256) WHERE value & 2;\n  INSERT INTO t3 SELECT value, 1 FROM generate_series(1,256) WHERE value & 4;\n  INSERT INTO t4 SELECT value, 1 FROM generate_series(1,256) WHERE value & 8;\n  INSERT INTO t5 SELECT value, 1 FROM generate_series(1,256) WHERE value & 16;\n  INSERT INTO t6 SELECT value, 1 FROM generate_series(1,256) WHERE value & 32;\n  INSERT INTO t7 SELECT value, 1 FROM generate_series(1,256) WHERE value & 64;\n  INSERT INTO t8 SELECT value, 1 FROM generate_series(1,256) WHERE value & 128;\n  CREATE TABLE t9 AS\n    SELECT id, h, g, f, e, d, c, b, a\n      FROM t1\n      NATURAL FULL JOIN t2\n      NATURAL FULL JOIN t3\n      NATURAL FULL JOIN t4\n      NATURAL FULL JOIN t5\n      NATURAL FULL JOIN t6\n      NATURAL FULL JOIN t7\n      NATURAL FULL JOIN t8;\n")
@@ -149,6 +152,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-4000"
 		r = db.Query("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1,5555,4);\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b ON t1(b);\n  SELECT a FROM t1 NATURAL RIGHT JOIN t1 WHERE a=5555 OR (1,b)==(SELECT 2 IN (2,2),4);\n")
 		if r.Error != nil {
@@ -165,6 +169,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "join8-5000"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2(c,d) SELECT x, x FROM t1;\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT (SELECT c FROM sqlite_temp_schema FULL JOIN t2 ON d IN (1,2,3) ORDER BY d) AS x FROM t1;\n")
@@ -176,6 +181,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-6000"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d REAL);\n  INSERT INTO t1 VALUES(1,'A','aa',2.5);\n  SELECT * FROM t1 AS t2 NATURAL RIGHT JOIN t1 AS t3\n   WHERE (a,b) IN (SELECT rowid, b FROM t1);\n")
 		if r.Error != nil {
@@ -240,6 +246,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-7000"
 		r = db.Query("\nCREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;\n")
 		if r.Error != nil {
@@ -287,6 +294,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-8000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e INT, f INT);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t2 VALUES(3, 4);\n  INSERT INTO t3 VALUES(5, 6);\n")
 		if _res.Error != nil {
@@ -309,6 +317,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "join8-9000"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d REAL);\n  INSERT INTO t1 VALUES(1,'E','bb',NULL),(2,NULL,NULL,NULL);\n  SELECT * FROM t1 NATURAL RIGHT JOIN t1 AS t2 WHERE (a,b) IN (SELECT a+0, b FROM t1);\n")
@@ -326,6 +335,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "join8-10000"
 		_res = db.Exec("\n  CREATE TABLE t1(c0 INT UNIQUE);\n  CREATE TABLE t2(c0);\n  CREATE TABLE t2i(c0 INT);\n  CREATE TABLE t3(c0 INT);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(2);\n  INSERT INTO t2i VALUES(2);\n  INSERT INTO t3 VALUES(3);\n")
@@ -433,6 +443,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "join8-11000"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  INSERT INTO t2 VALUES(0),(1),(2);\n  SELECT * FROM t1 RIGHT JOIN t2 ON (a=b) WHERE 99+(b+1)!=99;\n")
@@ -498,6 +509,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "join8-12000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(0),(1);\n  CREATE TABLE t2(a INT);  INSERT INTO t2 VALUES(0),(2);\n  CREATE TABLE t3(a INT);  INSERT INTO t3 VALUES(0),(3);\n")
@@ -533,6 +545,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-13000"
 		r = db.Query("\n  CREATE TABLE t0(t TEXT, u TEXT);  INSERT INTO t0 VALUES('t', 'u');\n  CREATE TABLE t1(v TEXT, w TEXT);  INSERT INTO t1 VALUES('v', 'w');\n  CREATE TABLE t2(x TEXT, y TEXT);  INSERT INTO t2 VALUES('x', 'y');\n  SELECT * FROM t0 JOIN t1 ON (t2.x NOTNULL) LEFT JOIN t2 ON false;\n  SELECT * FROM t0 JOIN t1 ON (t2.x NOTNULL) LEFT JOIN t2 ON false\n   WHERE t2.y ISNULL;\n")
 		if r.Error != nil {
@@ -543,6 +556,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-14000"
 		r = db.Query("\n  CREATE TABLE t0(a TEXT, b TEXT, c TEXT);\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('1');\n  CREATE VIEW v0 AS SELECT 'xyz' AS d;\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'';\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'' WHERE b ISNULL;\n")
 		if r.Error != nil {
@@ -572,6 +586,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-15000"
 		_res = db.Exec("\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT);\n  CREATE TABLE t3(z INT);\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t3 VALUES(20),(30);\n")
 		if _res.Error != nil {
@@ -625,6 +640,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-16000"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n  CREATE TABLE t3(c TEXT);\n  INSERT INTO t2(b) VALUES ('x');\n  INSERT INTO t3(c) VALUES ('y'), ('z');\n")
 		if _res.Error != nil {
@@ -696,6 +712,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-17000"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x INT, y INT);\n  CREATE TABLE t2(z INT);\n  INSERT INTO t1(id,x,y) VALUES(1, 0, 0);\n")
 		if _res.Error != nil {
@@ -845,6 +862,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-18000"
 		r = db.Query("\n  CREATE TABLE t1(a BOOLEAN); INSERT INTO t1 VALUES (false);\n  CREATE TABLE t2(x INT);     INSERT INTO t2 VALUES (0);\n  SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 RIGHT JOIN t1 ON true WHERE (x NOTNULL)=a;\n")
 		if r.Error != nil {
@@ -885,6 +903,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-19000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT, c INT);\n  CREATE TABLE t3(d INT);\n\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t2 VALUES(50,51);\n  INSERT INTO t3 VALUES(299);\n\n  CREATE INDEX t2b ON t2( (b IS NOT NULL) );\n")
 		if _res.Error != nil {
@@ -901,6 +920,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-20000"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  INSERT INTO t1(x) VALUES('aaa');\n  CREATE VIEW v0(y) AS SELECT x FROM t1;\n  CREATE TABLE t2(z TEXT);\n")
 		if _res.Error != nil {
@@ -984,6 +1004,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-21000"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT,b BOOLEAN);\n  CREATE TABLE t2(c INT);  INSERT INTO t2 VALUES(NULL);\n  CREATE TABLE t3(d INT);\n")
 		if _res.Error != nil {
@@ -1030,6 +1051,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-22000"
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c TEXT);  INSERT INTO t3 VALUES('x');\n  CREATE TABLE t4(d TEXT);  INSERT INTO t4 VALUES('y');\n  SELECT 99\n    FROM t1\n         LEFT JOIN t2 ON true\n         RIGHT JOIN t3 ON true\n         RIGHT JOIN t4 ON true\n   WHERE a=b;\n")
 		if r.Error != nil {
@@ -1040,6 +1062,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "join8-23000"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('c');\n  CREATE TABLE t2(b TEXT, c TEXT NOT NULL);\n  INSERT INTO t2 VALUES('a', 'b');\n  CREATE TABLE t3(d TEXT);\n  INSERT INTO t3 VALUES('x');\n  CREATE TABLE t4(e TEXT);\n  INSERT INTO t4 VALUES('y');\n")
@@ -1075,6 +1098,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "join8-24000"
 		r = db.Query("\n  CREATE TABLE t4(b INT, c INT);\n  CREATE TABLE t5(a INT, f INT);\n  INSERT INTO t5 VALUES(1,2);\n  WITH t7(x, y) AS (SELECT 100, 200 FROM t5)\n    SELECT * FROM t4 JOIN t7 ON true RIGHT JOIN (SELECT y AS z FROM t7) AS t6 ON (x=z);\n")
@@ -1092,6 +1116,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "join8-25000"
 		_res = db.Exec("\n  CREATE TABLE t1(a1 INT);\n  CREATE TABLE t2(b2 INT);\n  CREATE TABLE t3(c3 INT, d3 INT UNIQUE);\n  CREATE TABLE t4(e4 INT, f4 TEXT);\n  INSERT INTO t3(c3, d3) VALUES (2, 1);\n  INSERT INTO t4(f4) VALUES ('x');\n  CREATE INDEX i0 ON t3(c3) WHERE d3 ISNULL;\n  ANALYZE main;\n")
 		if _res.Error != nil {
@@ -1127,6 +1152,7 @@ func Test_join8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "join8-26000"
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT, c INT);\n  CREATE VIEW t3(d) AS SELECT NULL FROM t2 FULL OUTER JOIN t1 ON c=a UNION ALL SELECT b FROM t2;\n  INSERT INTO t1(a) VALUES (NULL);\n  INSERT INTO t2(b, c) VALUES (99, NULL);\n  SELECT DISTINCT b, c, d FROM t2, t3 WHERE b<>0\n   UNION SELECT DISTINCT b, c, d FROM t2, t3 WHERE b ISNULL;\n")

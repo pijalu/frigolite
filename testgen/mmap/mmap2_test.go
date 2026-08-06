@@ -83,6 +83,7 @@ func Test_mmap2(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			r = db.Query(" PRAGMA mmap_size = 8000000 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 8000000 ")

@@ -181,6 +181,7 @@ func Test_mjournal(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA synchronous = OFF;\n  CREATE TABLE t1(x, y);\n")
 		if r.Error != nil {
@@ -257,6 +258,7 @@ func Test_mjournal(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n")
 		if _res.Error != nil {

@@ -71,6 +71,7 @@ func Test_nulls2(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c);\n\n    INSERT INTO t1 VALUES(1, 1, NULL);\n    INSERT INTO t1 VALUES(2, 2, NULL);\n\n    CREATE TABLE t2(d NOT NULL, e NOT NULL, f);\n    INSERT INTO t2 VALUES(1, 1, NULL);\n    INSERT INTO t2 VALUES(2, 2, NULL);\n  ")
 				if _res.Error != nil {
@@ -100,6 +101,7 @@ func Test_nulls2(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "2." + tn + ".0"
 					_res = db.Exec("\n    CREATE TABLE t1(a, b, c COLLATE nocase);\n    INSERT INTO t1 VALUES('one', 'two', 'THREE');\n    INSERT INTO t1 VALUES('four', 'five', 'SIX');\n  ")
 					if _res.Error != nil {

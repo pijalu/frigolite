@@ -120,6 +120,7 @@ func Test_autoindex3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "210"
 		_res = db.Exec("\n  CREATE TABLE v(b, d, e);\n  CREATE TABLE u(a, b, c);\n  ANALYZE sqlite_master;\n  INSERT INTO \"sqlite_stat1\" VALUES('u','uab','40000 400 1');\n  INSERT INTO \"sqlite_stat1\" VALUES('v','vbde','40000 400 1 1');\n  INSERT INTO \"sqlite_stat1\" VALUES('v','ve','40000 21');\n\n  CREATE INDEX uab on u(a, b);\n  CREATE INDEX ve on v(e);\n  CREATE INDEX vbde on v(b,d,e);\n\n  DROP TABLE IF EXISTS sqlite_stat4;\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
@@ -136,6 +137,7 @@ func Test_autoindex3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "300"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(cid INT, pid INT, rx INT, PRIMARY KEY(cid, pid, rx));\n  CREATE INDEX x1 ON t2(pid, rx);\n  ANALYZE sqlite_schema;\n  REPLACE INTO sqlite_stat1(tbl, idx, stat) VALUES\n    ('t2', 'x1', '500000 250 250'),\n    ('t2','sqlite_autoindex_t2_1','500000 1 1 1');\n  ANALYZE sqlite_schema;\n")
 		if _res.Error != nil {

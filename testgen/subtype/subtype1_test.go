@@ -109,6 +109,7 @@ func Test_subtype1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "subtype1-200"
 		_res = db.Exec("\n  CREATE TABLE t1(a); INSERT INTO t1 VALUES ('x');\n  CREATE VIEW t2(b) AS SELECT json(TRUE);\n  CREATE TABLE t3(b); INSERT INTO t3 VALUES(json(TRUE));\n")
 		if _res.Error != nil {
@@ -215,6 +216,7 @@ func Test_subtype1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "subtype1-500"
 		_res = db.Exec("\n  CREATE TABLE t1(id, j);\n  INSERT INTO t1 VALUES (1,'{a:{x:1,y:2},b:{x:3,y:4}}'), (2,'not json');\n")
 		if _res.Error != nil {

@@ -306,6 +306,7 @@ func Test_fts3ao(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "6." + tn + ".1"
 				_res = db.Exec("\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n    " + sql + "\n  ")
 				if _res.Error != nil {

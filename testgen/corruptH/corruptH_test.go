@@ -105,6 +105,7 @@ func Test_corruptH(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA auto_vacuum=0;\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t3(x);\n\n  CREATE TABLE t2(x PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(randomblob(100));\n\n  DROP TABLE t3;\n")
 		if r.Error != nil {
@@ -139,6 +140,7 @@ func Test_corruptH(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.1"
 		r = db.Query("\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(c INTEGER PRAGMA KEY, d);\n  INSERT INTO t2 VALUES(1, randomblob(1100));\n")
 		if r.Error != nil {

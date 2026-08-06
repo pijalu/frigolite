@@ -707,6 +707,7 @@ func Test_in(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "in-16.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1(a) VALUES(1), (2), (3), (4), (5), (6);\n  CREATE INDEX x1i ON x1(a, b);\n")
 		if _res.Error != nil {
@@ -873,6 +874,7 @@ func Test_in(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "in-21.1"
 		r = db.Query("\n  CREATE TABLE t0(c0);\n  SELECT COUNT(*) FROM t0 ORDER BY (t0.c0 IN ());\n")
 		if r.Error != nil {

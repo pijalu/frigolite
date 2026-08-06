@@ -165,6 +165,7 @@ func Test_fts4check(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				// fts3_build_db_1 5000 (unsupported command, not transpiled)
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE t3 USING fts4(x, y, prefix=\"2,3\", languageid=langid);\n  ")
 				if _res.Error != nil {
@@ -233,6 +234,7 @@ func Test_fts4check(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "5.0"
 					_res = db.Exec("\n  BEGIN;\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5 VALUES('And down by Kosiosko, where the reed-banks sweep');\n  INSERT INTO t5 VALUES('and sway, and the rolling plains are wide, the');\n  INSERT INTO t5 VALUES('man from snowy river is a household name today,');\n  INSERT INTO t5 VALUES('and the stockmen tell the story of his ride');\n")
 					if _res.Error != nil {

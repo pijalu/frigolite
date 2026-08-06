@@ -264,6 +264,7 @@ func Test_hidden(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.1"
 			r = db.Query("\n  CREATE TABLE t1(a, __hidden__b, c UNIQUE);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(1, 2, 3);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(4, 5, 6);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(7, 8, 9);\n  DELETE FROM t1 WHERE __hidden__b = 5;\n  SELECT rowid, a, __hidden__b, c FROM t1;\n")
 			if r.Error != nil {

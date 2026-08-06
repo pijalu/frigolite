@@ -458,6 +458,7 @@ func Test_where3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "where3-8.1"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d);  INSERT INTO t1 VALUES(1,2,3,4);\n  CREATE TABLE t2(x,y);      INSERT INTO t2 VALUES(3,4);\n  CREATE INDEX t2xy ON t2(x,y);\n  SELECT 1 FROM t1 JOIN t2 ON x=c AND y=d WHERE d>0;\n")
 		if r.Error != nil {

@@ -323,6 +323,7 @@ func Test_minmax4(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "3." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);\n  ")
 				if _res.Error != nil {
@@ -392,6 +393,7 @@ func Test_minmax4(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE t0 (c0, c1);\n  CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);\n  INSERT INTO t0(c0) VALUES (1);\n")
 			if _res.Error != nil {
@@ -414,6 +416,7 @@ func Test_minmax4(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE t1 (a, b);\n  INSERT INTO t1 VALUES(123, NULL);\n  CREATE INDEX i1 ON t1(a, b DESC);\n")
 			if _res.Error != nil {
@@ -436,6 +439,7 @@ func Test_minmax4(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "6.1.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL, 1, 'x');\n  CREATE INDEX i1 ON t1(a);\n")
 			if _res.Error != nil {

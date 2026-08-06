@@ -95,6 +95,7 @@ func Test_existsexpr2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1ab ON t1(a,b);\n\n  INSERT INTO t1 VALUES\n      ('abc', 1, 1),\n      ('abc', 2, 2),\n      ('abc', 2, 3),\n\n      ('def', 1, 1),\n      ('def', 2, 2),\n      ('def', 2, 3);\n\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 1), (2, 2), (3, 3);\n\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','10000 5000 2');\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {

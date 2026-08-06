@@ -344,6 +344,7 @@ func Test_unionvtab(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// load_static_extension db unionvtab (unsupported command, not transpiled)
 			{ // "3.0"
 				r = db.Query("\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
@@ -1274,6 +1275,7 @@ func Test_unionvtab(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				// load_static_extension db unionvtab (unsupported command, not transpiled)
 				{ // "6.0"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');\n")

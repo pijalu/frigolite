@@ -130,6 +130,7 @@ func Test_windowC(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "2.0" — skipped: window functions not supported
 				_res = db.Exec("\n  PRAGMA encoding=UTF16le;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
 				_ = _res
@@ -138,6 +139,7 @@ func Test_windowC(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "2.1" — skipped: window functions not supported
 				_res = db.Exec("\n  PRAGMA encoding=UTF16be;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
 				_ = _res

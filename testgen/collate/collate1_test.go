@@ -467,6 +467,7 @@ func Test_collate1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1 VALUES(0,NULL);\n  CREATE TABLE t2(x UNIQUE);\n  CREATE VIEW v1a(z,y) AS SELECT x COLLATE x FROM t2;\n  SELECT a,b,z,y,'' FROM t1 JOIN v1a ON b IS NOT FALSE;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: x") {

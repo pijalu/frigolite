@@ -178,6 +178,7 @@ func Test_subquery2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');\n")
 			if _res.Error != nil {
@@ -200,6 +201,7 @@ func Test_subquery2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
 			if _res.Error != nil {
@@ -276,6 +278,7 @@ func Test_subquery2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
 			if _res.Error != nil {

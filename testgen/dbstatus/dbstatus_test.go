@@ -396,6 +396,7 @@ func Test_dbstatus(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				_dbtmp0, err := frigolite.Open("file:test.db?cache=shared")
 				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
@@ -428,6 +429,7 @@ func Test_dbstatus(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "5.0"
 				_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 				if _res.Error != nil {

@@ -2314,6 +2314,7 @@ func Test_pager1(t *testing.T) {
 										os.Remove("test.db")
 										db, err = frigolite.Open("test.db")
 										if err != nil { t.Fatal(err) }
+										tcl_nullvalue = "{}" // fresh connection resets nullvalue
 										// db function a_string (variable-reader, inlined)
 										_res = db.Exec(pragma)
 										if _res.Error != nil {
@@ -2342,6 +2343,7 @@ func Test_pager1(t *testing.T) {
 									os.Remove("test.db")
 									db, err = frigolite.Open("test.db")
 									if err != nil { t.Fatal(err) }
+									tcl_nullvalue = "{}" // fresh connection resets nullvalue
 									{ // do_test "35"
 										_dbtmp14, err := frigolite.Open("test.db")
 										_ = _dbtmp14 // sqlite3 db connection
@@ -2473,6 +2475,7 @@ func Test_pager1(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES(randomblob(1200));\n    PRAGMA page_count;\n  ")
 											if r.Error != nil {
 												t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES(randomblob(1200));\n    PRAGMA page_count;\n  ")
@@ -2498,6 +2501,7 @@ func Test_pager1(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES(randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES(randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
@@ -2524,6 +2528,7 @@ func Test_pager1(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
@@ -2544,6 +2549,7 @@ func Test_pager1(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
@@ -2567,6 +2573,7 @@ func Test_pager1(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE TABLE t3(x, y);\n    INSERT INTO t3 VALUES(1, 2);\n  ")
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE TABLE t3(x, y);\n    INSERT INTO t3 VALUES(1, 2);\n  ")

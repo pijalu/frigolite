@@ -754,6 +754,7 @@ func Test_attach(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "attach-13.1"
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

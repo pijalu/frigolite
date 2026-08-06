@@ -1079,6 +1079,7 @@ func Test_select4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "select4-18.1" — skipped: window functions not supported
 		_res = db.Exec("\n  CREATE VIEW v0(v0) AS WITH v0 AS(SELECT 0 v0) SELECT(SELECT min(v0) OVER()) FROM v0 GROUP BY v0;\n  SELECT *FROM v0 v1 JOIN v0 USING(v0) WHERE datetime(v0) = (v0.v0)AND v0 = 10;\n")
 		_ = _res
@@ -1103,6 +1104,7 @@ func Test_select4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "select4-19.1"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(99);\n  SELECT sum((SELECT 1 FROM (SELECT 2 WHERE x IS NULL) WHERE 0)) FROM t1;\n")
 		if r.Error != nil {

@@ -221,6 +221,7 @@ func Test_malloc(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// add_test_utf16bin_collate db (unsupported command, not transpiled)
 	{ // "40.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('fghij');\n  INSERT INTO t1 VALUES('pqrst');\n  INSERT INTO t1 VALUES('abcde');\n  INSERT INTO t1 VALUES('uvwxy');\n  INSERT INTO t1 VALUES('klmno');\n")
@@ -245,6 +246,7 @@ func Test_malloc(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// add_test_utf16bin_collate db (unsupported command, not transpiled)
 	big = "x 200"
 	_ = big // suppress unused warning
@@ -259,6 +261,7 @@ func Test_malloc(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "42.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TABLE t2(a, b);\n  CREATE VIEW a002 AS SELECT *, sum(b) AS m FROM t2 GROUP BY a;\n")
 		if _res.Error != nil {

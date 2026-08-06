@@ -142,6 +142,7 @@ func Test_triggerupfrom(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	{ // "3.0"
 		r = db.Query("\n  CREATE TABLE mmm(x, y);\n  INSERT INTO mmm VALUES(1, 'one');\n  INSERT INTO mmm VALUES(2, 'two');\n  INSERT INTO mmm VALUES(3, 'three');\n\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b);\n  CREATE TABLE aux.mmm(x, y);\n  INSERT INTO aux.mmm VALUES(1, 'ONE');\n  INSERT INTO aux.mmm VALUES(2, 'TWO');\n  INSERT INTO aux.mmm VALUES(3, 'THREE');\n\n  CREATE TRIGGER aux.ttt AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b=y FROM mmm WHERE x=new.a AND a=new.a;\n  END;\n  \n  INSERT INTO t1(a) VALUES (2);\n  SELECT * FROM t1;\n")
@@ -159,6 +160,7 @@ func Test_triggerupfrom(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(k, a, b);\n  INSERT INTO t1 VALUES('a', 1, 'one');\n  INSERT INTO t1 VALUES('b', 2, 'two');\n  INSERT INTO t1 VALUES('c', 3, 'three');\n  INSERT INTO t1 VALUES('d', 4, 'four');\n\n  CREATE TABLE log(x);\n  CREATE VIEW v1 AS SELECT k, a, b AS __hidden__b FROM t1;\n  CREATE TRIGGER tr1 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES(\n      '('||old.a||','||old.__hidden__b||')->('||new.a||','||new.__hidden__b||')'\n    );\n  END;\n")
 		if _res.Error != nil {

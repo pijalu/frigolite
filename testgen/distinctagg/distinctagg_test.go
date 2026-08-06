@@ -116,6 +116,7 @@ func Test_distinctagg(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  INSERT INTO t1 VALUES (1, 1, 1);\n  INSERT INTO t1 VALUES (2, 2, 2);\n  INSERT INTO t1 VALUES (3, 3, 3);\n  INSERT INTO t1 VALUES (4, 1, 4);\n  INSERT INTO t1 VALUES (5, 2, 1);\n  INSERT INTO t1 VALUES (5, 3, 2);\n  INSERT INTO t1 VALUES (4, 1, 3);\n  INSERT INTO t1 VALUES (3, 2, 4);\n  INSERT INTO t1 VALUES (2, 3, 1);\n  INSERT INTO t1 VALUES (1, 1, 2);\n\n  INSERT INTO t2 VALUES('a', 'a', 'a');\n  INSERT INTO t2 VALUES('b', 'b', 'b');\n  INSERT INTO t2 VALUES('c', 'c', 'c');\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n")
 		if _res.Error != nil {
@@ -168,6 +169,7 @@ func Test_distinctagg(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(1, 'B', 1);\n  INSERT INTO t1 VALUES(2, 'B', 2);\n  INSERT INTO t1 VALUES(3, 'B', 3);\n  INSERT INTO t1 VALUES(NULL, 'B', NULL);\n  INSERT INTO t1 VALUES(NULL, 'C', NULL);\n  INSERT INTO t1 VALUES('d', 'D', 'd');\n\n  CREATE TABLE t2(d, e, f);\n  CREATE INDEX t2def ON t2(d, e, f);\n\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'a');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(2, 3, 'x');\n  INSERT INTO t2 VALUES(2, 3, 'y');\n  INSERT INTO t2 VALUES(2, 3, 'z');\n\n  CREATE TABLE t3(x, y, z);\n  INSERT INTO t3 VALUES(1,1,1);\n  INSERT INTO t3 VALUES(2,2,2);\n\n  CREATE TABLE t4(a);\n  CREATE INDEX t4a ON t4(a);\n  INSERT INTO t4 VALUES(1), (2), (2), (3), (1);\n")
 			if _res.Error != nil {
@@ -240,6 +242,7 @@ func Test_distinctagg(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "6.0"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES(123,456);\n  INSERT INTO t2 VALUES(123,456);\n")
 					if _res.Error != nil {

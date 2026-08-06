@@ -411,6 +411,7 @@ func Test_stat(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE dbstat(x, y);\n  DROP TABLE nosuchdb.dbstat;\n")
 		if _res.Error != nil {

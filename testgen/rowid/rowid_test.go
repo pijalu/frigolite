@@ -1141,6 +1141,7 @@ func Test_rowid(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "rowid-15.0"
 		r = db.Query("\n  PRAGMA reverse_unordered_selects=true;\n  CREATE TABLE t1 (c0, c1);\n  CREATE TABLE t2 (c0 INT UNIQUE);\n  INSERT INTO t1(c0, c1) VALUES (0, 0), (0, NULL);\n  INSERT INTO t2(c0) VALUES (1);\n")
 		if r.Error != nil {
@@ -1175,6 +1176,7 @@ func Test_rowid(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "16.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT x FROM t1;\n  CREATE TABLE t3(z);\n\n  INSERT INTO t1(rowid, x) VALUES(1, 1);\n  INSERT INTO t2(y) VALUES(2);\n  INSERT INTO t3(rowid, z) VALUES(3, 3);\n")
 		if _res.Error != nil {

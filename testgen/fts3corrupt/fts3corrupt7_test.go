@@ -76,6 +76,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "1.0"
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -90,6 +91,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "1.0"
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -104,6 +106,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	DEPTH = "40000"
 	_ = DEPTH // suppress unused warning
 	// proc definition (not transpiled)
@@ -150,6 +153,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(content);\n  DELETE FROM t1_segments;\n  DELETE FROM t1_segdir;\n")
 		if _res.Error != nil {
@@ -178,6 +182,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t USING fts3(x);\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(1,0,0,0,'0 -9223372036854775808',x'00');\n")
 		if _res.Error != nil {
@@ -194,6 +199,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t USING fts4(x);\n  INSERT INTO t_content(docid,c0x) VALUES(1,'a b');\n  DELETE FROM t_segments;\n  DELETE FROM t_segdir;\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(0,0,0,0,0,x'000161110150028001500a818080800103038101000001622c010281008101ffffffffffffffffff010204ffffffffffffffffff01ffffffffffffffffff01c80109323200');\n")
 		if _res.Error != nil {

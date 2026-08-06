@@ -254,6 +254,7 @@ func Test_whereA(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "whereA-6.1"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1aa ON t1(a,a);\n  INSERT INTO t1 VALUES(1,2);\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='27 3 3' WHERE idx='t1aa';\n  ANALYZE sqlite_schema;\n  PRAGMA reverse_unordered_selects (1) ;\n  SELECT a FROM t1 WHERE  a=1 OR a=2;\n")
 		if r.Error != nil {

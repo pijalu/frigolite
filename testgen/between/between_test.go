@@ -158,6 +158,7 @@ func Test_between(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "between-2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT, y TEXT COLLATE nocase);\n  INSERT INTO t1 VALUES('0', 'abc');\n")
 		if _res.Error != nil {
@@ -187,6 +188,7 @@ func Test_between(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "between-3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);\n")
 			if _res.Error != nil {

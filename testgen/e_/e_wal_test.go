@@ -300,6 +300,7 @@ func Test_e_wal(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.1.1"
 		_res = db.Exec(" CREATE TABLE t1(x, y) ")
 		if _res.Error != nil {

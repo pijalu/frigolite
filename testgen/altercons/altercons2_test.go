@@ -86,6 +86,7 @@ func Test_altercons2(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c NOT NULL, CONSTRAINT xyz CHECK( a!=0 ));\n  ")
 				if _res.Error != nil {
@@ -121,6 +122,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// proc definition (not transpiled)
 		_dbtmp1, err := frigolite.Open("test.db")
 		_ = _dbtmp1 // sqlite3 db connection
@@ -171,6 +173,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n")
 			if _res.Error != nil {
@@ -187,6 +190,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CONSTRAINT two CHECK (b!=c));\n")
 			if _res.Error != nil {
@@ -215,6 +219,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \"d\": syntax error") {
@@ -231,6 +236,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "6.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b CONSTRAINT two COLLATE nocase CHECK (a!=b), c CONSTRAINT one DEFAULT 'abc');\n")
 			if _res.Error != nil {
@@ -259,6 +265,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT one CHECK (a>b) FOREIGN KEY(a) REFERENCES abc);\n")
 			if _res.Error != nil {
@@ -287,6 +294,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "8.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b, c, CONSTRAINT one FOREIGN KEY(a) REFERENCES abc);\n")
 			if _res.Error != nil {
@@ -315,6 +323,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "9.0"
 			_res = db.Exec("\n  CREATE TABLE abc(a, b NOT NULL AS (a+1))\n")
 			if _res.Error != nil {
@@ -337,6 +346,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "10.0"
 			r = db.Query("\n  CREATE TABLE abc(a, b GENERATED ALWAYS AS (a+1));\n  INSERT INTO abc VALUES(1), (2);\n  SELECT * FROM abc;\n")
 			if r.Error != nil {
@@ -377,6 +387,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "11.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
 			if _res.Error != nil {
@@ -453,6 +464,7 @@ func Test_altercons2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "12.0"
 			_res = db.Exec("\n  CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );\n")
 			if _res.Error != nil {

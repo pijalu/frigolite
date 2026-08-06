@@ -146,6 +146,7 @@ func Test_altertab2(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "3." + tn + ".1"
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -173,6 +174,7 @@ func Test_altertab2(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "3." + tn + ".3"
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -201,6 +203,7 @@ func Test_altertab2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,e,f);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN new.a NOT NULL BEGIN\n    UPDATE t1 SET (c,d)=(a,b);\n  END;\n")
 			if _res.Error != nil {
@@ -317,6 +320,7 @@ func Test_altertab2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "7.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,e,f);\n  INSERT INTO t1 VALUES(1,2,3,4,5,6);\n  CREATE TABLE t2(x,y,z);\n")
 			if _res.Error != nil {
@@ -375,6 +379,7 @@ func Test_altertab2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "8.0"
 			r = db.Query("\n  CREATE TABLE t1(a, b, c); \n  CREATE TABLE t2(a, b, c); \n  CREATE TABLE t3(d, e, f);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER tr AFTER INSERT ON t3 BEGIN\n    UPDATE t2 SET a = new.d;\n    SELECT a, b, c FROM v1;\n  END;\n")
 			if r.Error != nil {
@@ -421,6 +426,7 @@ func Test_altertab2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "8.6"
 			_res = db.Exec("\n  CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(likelihood(1,2) AND 0);\n  ALTER TABLE t0 RENAME TO t1;\n  SELECT sql FROM sqlite_master WHERE name='i0';\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to likelihood() must be a constant between 0.0 and 1.0") {
@@ -431,6 +437,7 @@ func Test_altertab2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "9.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n\n  CREATE TRIGGER AFTER INSERT ON t2 BEGIN\n\n    SELECT group_conct(\n        123 ORDER BY (\n          SELECT 1 FROM ( VALUES(a, 'b'), ('c') )\n          )) \n    FROM t1;\n\n  END;\n")
 			if _res.Error != nil {

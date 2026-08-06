@@ -1372,6 +1372,7 @@ func Test_tclsqlite(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// db function add_i (variable-reader, inlined)

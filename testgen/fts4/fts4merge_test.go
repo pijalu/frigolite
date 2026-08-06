@@ -90,6 +90,7 @@ func Test_fts4merge(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // do_test "1.0"
 			// fts3_build_db_1 -module $mod 1004 (unsupported command, not transpiled)
 		}
@@ -222,6 +223,7 @@ func Test_fts4merge(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				r = db.Query(" PRAGMA page_size = 512 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 512 ")
@@ -259,6 +261,7 @@ func Test_fts4merge(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "4.1"
 				r = db.Query("\n    PRAGMA page_size = 512;\n    CREATE VIRTUAL TABLE t4 USING " + mod + ";\n    PRAGMA main.page_size;\n  ")
 				if r.Error != nil {
@@ -335,6 +338,7 @@ func Test_fts4merge(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					// fts3_build_db_1 -module $mod 1000 (unsupported command, not transpiled)
 				}
 				{ // "5.2"
@@ -461,6 +465,7 @@ func Test_fts4merge(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					a = "a 900"
 					_ = a // suppress unused warning
 					b = "b 900"
@@ -487,6 +492,7 @@ func Test_fts4merge(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					// fts3_build_db_1 -module $mod 1000 (unsupported command, not transpiled)
 				}
 				{ // "7.1"
@@ -544,6 +550,7 @@ func Test_fts4merge(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "8.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, order=DESC);\n  INSERT INTO t1(a) VALUES (0);\n  INSERT INTO t1(a) VALUES (0);\n  UPDATE t1 SET a = NULL;\n")
 				if _res.Error != nil {

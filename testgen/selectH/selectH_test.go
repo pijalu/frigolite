@@ -184,6 +184,7 @@ func Test_selectH(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (val1);\n  INSERT INTO t1 VALUES(4);\n  INSERT INTO t1 VALUES(5);\n  CREATE TABLE t2 (val2);\n")
 		if _res.Error != nil {

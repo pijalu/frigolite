@@ -184,6 +184,7 @@ func Test_vtab2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.1"
 		r = db.Query("\n    PRAGMA encoding='UTF16';\n  ")
 		if r.Error != nil {

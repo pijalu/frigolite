@@ -187,6 +187,7 @@ func Test_walpersist(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "4.1"
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n  ")
 		if _res.Error != nil {

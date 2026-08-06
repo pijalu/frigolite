@@ -87,6 +87,7 @@ func Test_altermalloc2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE t1(abcd, efgh);\n  CREATE VIEW v1 AS SELECT * FROM t1 WHERE abcd>efgh;\n")
 		if _res.Error != nil {
@@ -99,6 +100,7 @@ func Test_altermalloc2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM rr;\n\n  CREATE TRIGGER vv1 INSTEAD OF INSERT ON vv BEGIN\n    SELECT 1, 2, 3;\n  END;\n  CREATE TRIGGER tr1 AFTER INSERT ON rr BEGIN\n    INSERT INTO vv VALUES(new.a, new.b);\n  END;\n")
 		if _res.Error != nil {
@@ -111,6 +113,7 @@ func Test_altermalloc2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM (\n    WITH abc(d, e) AS (SELECT * FROM rr)\n    SELECT * FROM abc\n  );\n")
 		if _res.Error != nil {

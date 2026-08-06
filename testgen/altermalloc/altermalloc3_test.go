@@ -72,6 +72,7 @@ func Test_altermalloc3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(k,v);\n  CREATE TRIGGER r2 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (k,v)= (\n       (WITH cte1(a) AS ( SELECT 1 FROM ( SELECT * FROM t2 ) )\n       SELECT a FROM cte1\n    ), 1);\n  END;\n\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET k=1 FROM t2 AS one, t2 AS two NATURAL JOIN t2 AS three \n    WHERE one.k=two.v;\n  END;\n")
 		if _res.Error != nil {

@@ -68,6 +68,7 @@ func Test_snapshot_fault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES('abc');\n  INSERT INTO t1 VALUES('def');\n")
 		if r.Error != nil {
@@ -95,6 +96,7 @@ func Test_snapshot_fault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.1.0"
 		r = db.Query("\n  PRAGMA page_size = 512;\n  PRAGMA journal_mode = wal;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES(randomblob( 500 * 9500 ));\n  PRAGMA user_version = 211;\n")
 		if r.Error != nil {
@@ -117,6 +119,7 @@ func Test_snapshot_fault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		r = db.Query("\n  PRAGMA page_size = 512;\n  PRAGMA journal_mode = wal;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES(randomblob( 5000 ));\n  PRAGMA user_version = 211;\n")
 		if r.Error != nil {

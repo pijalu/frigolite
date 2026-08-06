@@ -2360,6 +2360,7 @@ func Test_json102(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "json102-1600"
 			r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":[7,8]}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x->'a' AS '->',\n    CASE WHEN subtype(x->'a') THEN 'json' ELSE typeof(x->'a') END AS 'type',\n    x->>'a' AS '->>',\n    CASE WHEN subtype(x->>'a') THEN 'json' ELSE typeof(x->>'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;\n")
 			if r.Error != nil {
@@ -2400,6 +2401,7 @@ func Test_json102(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "json102-1700"
 			_res = db.Exec("\n  CREATE TABLE t1(a1 DATE, a2 INTEGER PRIMARY KEY, a3 INTEGER, memo TEXT);\n  CREATE INDEX t1x1 ON t1(a3, a1, memo->>'y');\n  INSERT INTO t1(a2,a1,a3,memo) VALUES (876, '2023-08-03', 5, '{\"x\":77,\"y\":4}');\n")
 			if _res.Error != nil {

@@ -139,6 +139,7 @@ func Test_enc(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	os.Remove("test.db3")
 	{ // "enc-12.0"
@@ -203,6 +204,7 @@ func Test_enc(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "enc-12.6"
 		r = db.Query("\n  PRAGMA encoding = 'UTF-8';\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
 		if r.Error != nil {

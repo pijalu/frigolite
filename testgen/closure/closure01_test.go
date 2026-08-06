@@ -407,6 +407,7 @@ func Test_closure01(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// load_static_extension db closure (unsupported command, not transpiled)
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t(p, abcx);\n  INSERT INTO t VALUES(1, 2);\n")

@@ -67,6 +67,7 @@ func Test_walsetlk2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
 		if r.Error != nil {
@@ -146,6 +147,7 @@ func Test_walsetlk2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -229,6 +231,7 @@ func Test_walsetlk2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	if func() bool { sqlite_options_setlk_timeout_n, _sqlite_options_setlk_timeout_e := strconv.Atoi(sqlite_options_setlk_timeout); if _sqlite_options_setlk_timeout_e != nil { return false }; return sqlite_options_setlk_timeout_n == 1 }() {
 		{ // "3.0"
 			r = db.Query("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');\n")

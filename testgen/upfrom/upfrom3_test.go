@@ -71,6 +71,7 @@ func Test_upfrom3(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// eval (dynamic, not transpiled)
 		}
 		{ // "2.1.1"
@@ -127,6 +128,7 @@ func Test_upfrom3(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				os.Remove("test.db2")
 				// eval (dynamic, not transpiled)
 			}
@@ -134,6 +136,7 @@ func Test_upfrom3(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// foreach {tn wo} "1 \"\"\n  2 \"WITHOUT ROWID\""
 			_items2 := tclSplitList("1 \"\"\n  2 \"WITHOUT ROWID\"")
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
@@ -146,6 +149,7 @@ func Test_upfrom3(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					os.Remove("test.db2")
 					// eval (dynamic, not transpiled)
 				}

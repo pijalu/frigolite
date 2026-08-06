@@ -261,6 +261,7 @@ func Test_misuse(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "misuse-6.0"
 		// sqlite3_set_errmsg db 1 an error has occurred (unsupported command, not transpiled)
 	}

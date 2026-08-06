@@ -119,6 +119,7 @@ func Test_corruptK(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(20));    -- free this one\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(20));    -- and this one\n  INSERT INTO t1 VALUES(randomblob(20));    -- corrupt this one.\n\n  DELETE FROM t1 WHERE rowid IN(2, 4);\n  PRAGMA page_count\n")
 		if r.Error != nil {
@@ -157,6 +158,7 @@ func Test_corruptK(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// db function hex2blob (variable-reader, inlined)
 		{ // "3.1"
 			r = db.Query("\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);\n  ")

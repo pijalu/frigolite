@@ -79,6 +79,7 @@ func Test_vacuum6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "1.2"
 		_res = db.Exec("\n  CREATE TABLE t1(x,b);\n  CREATE INDEX x1 ON t1(x);\n  CREATE INDEX x2 ON t1(x);\n  CREATE INDEX x3 ON t1(x);\n  INSERT INTO t1 SELECT 2,'';\n  VACUUM;\n")
 		if _res.Error != nil {
@@ -89,6 +90,7 @@ func Test_vacuum6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// foreach {tn sz} "1 400 2 4000 3 9999"
 	_items0 := tclSplitList("1 400 2 4000 3 9999")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
@@ -101,6 +103,7 @@ func Test_vacuum6(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "2." + tn + ".1"
 				r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob(" + sqlLiteral(sz) + ") FROM s;\n  ")
 				if r.Error != nil {
@@ -130,6 +133,7 @@ func Test_vacuum6(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			r = db.Query("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
 			if r.Error != nil {
@@ -158,6 +162,7 @@ func Test_vacuum6(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.0"
 			r = db.Query("\n  CREATE TABLE tx(a, b);\n  CREATE INDEX i1 ON tx(b);\n  WITH s(i) AS (\n      SELECT 8000 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  )\n  INSERT INTO tx SELECT i, randomblob(i) FROM s;\n\n  SELECT sum(length(b)) FROM tx;\n")
 			if r.Error != nil {

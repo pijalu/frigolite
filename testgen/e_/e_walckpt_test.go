@@ -166,6 +166,7 @@ func Test_e_walckpt(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		db2 = db // sqlite3 db2 test.db: alias to main in-memory db
 		_ = db2
 		{ // do_test "6.1"

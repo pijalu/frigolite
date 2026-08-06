@@ -79,6 +79,7 @@ func Test_waloverwrite(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "1." + tn + ".0"
 				r = db.Query("\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    CREATE INDEX i1y ON t1(y);\n  \n    WITH cnt(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20\n    )\n    INSERT INTO t1 SELECT i, randomblob(800) FROM cnt;\n  ")
 				if r.Error != nil {

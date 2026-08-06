@@ -97,6 +97,7 @@ func Test_alterqf(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		db.SetDQS(true, true)
 		db.SetDQS(true, true)
 		{ // "2.0"

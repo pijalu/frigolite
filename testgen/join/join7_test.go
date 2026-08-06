@@ -67,6 +67,7 @@ func Test_join7(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			tcl_nullvalue = "NULL"
 			{ // "join7-" + id + ".setup"
 				_res = db.Exec(schema)

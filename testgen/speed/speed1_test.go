@@ -92,6 +92,7 @@ func Test_speed1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// speed_trial_init speed1 (unsupported command, not transpiled)
 	// expr srand(0) (not evaluated)
 	sqlout = "open speed1.txt w"

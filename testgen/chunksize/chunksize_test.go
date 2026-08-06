@@ -74,6 +74,7 @@ func Test_chunksize(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// file_control_chunksize_test db main 32768 (unsupported command, not transpiled)
 			{ // tn + ".0"
 				r = db.Query(" PRAGMA journal_mode = " + jrnlmode + " ")

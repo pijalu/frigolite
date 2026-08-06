@@ -65,6 +65,7 @@ func Test_gcfault(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 		r = db.Query("PRAGMA encoding = " + enc)
 		if r.Error != nil {

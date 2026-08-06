@@ -71,6 +71,7 @@ func Test_fts3fault3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		r = db.Query("\n  BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;\n")
 		if r.Error != nil {

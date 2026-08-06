@@ -59,6 +59,7 @@ func Test_reservebytes(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// file_control_reservebytes db 0 (unsupported command, not transpiled)
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, i, hex(randomblob(500)) FROM s;\n")

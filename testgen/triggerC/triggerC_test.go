@@ -675,6 +675,7 @@ func Test_triggerC(t *testing.T) {
 							os.Remove("test.db")
 							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
+							tcl_nullvalue = "{}" // fresh connection resets nullvalue
 							{ // "triggerC-14.1"
 								_res = db.Exec(SQL)
 								if _res.Error != nil {
@@ -685,6 +686,7 @@ func Test_triggerC(t *testing.T) {
 							os.Remove("test.db")
 							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
+							tcl_nullvalue = "{}" // fresh connection resets nullvalue
 							// optimization_control db factor-constants 0 (unsupported command, not transpiled)
 							{ // "triggerC-14.2"
 								_res = db.Exec(SQL)
@@ -762,6 +764,7 @@ func Test_triggerC(t *testing.T) {
 							os.Remove("test.db")
 							db, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
+							tcl_nullvalue = "{}" // fresh connection resets nullvalue
 							r = db.Query(" PRAGMA recursive_triggers = on ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA recursive_triggers = on ")

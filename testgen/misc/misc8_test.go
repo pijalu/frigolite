@@ -134,6 +134,7 @@ func Test_misc8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// proc definition (not transpiled)
 	// db function eval (variable-reader, inlined)
 	{ // "misc8-2.1"

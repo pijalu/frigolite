@@ -2108,6 +2108,7 @@ func Test_select1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "select1-20.10"
 		r = db.Query("\n  CREATE TABLE t1 (\n    a INTEGER PRIMARY KEY,\n    b AS('Y') UNIQUE\n  );\n  INSERT INTO t1(a) VALUES (10);\n  SELECT * FROM t1 JOIN t1 USING(a,b)\n   WHERE ((SELECT t1.a FROM t1 AS x GROUP BY b) AND b=0)\n      OR a = 10;\n")
 		if r.Error != nil {
@@ -2136,6 +2137,7 @@ func Test_select1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "select1-21.1"
 		r = db.Query("\n  CREATE TABLE t1(a IMTEGES PRIMARY KEY,R);\n  CREATE TABLE t2(x UNIQUE);\n  CREATE VIEW v1a(z,y) AS SELECT x IS NULL, x FROM t2;\n  SELECT a,(+a)b,(+a)b,(+a)b,NOT EXISTS(SELECT null FROM t2),CASE z WHEN 487 THEN 992 WHEN 391 THEN 203 WHEN 10 THEN '?k<D Q' END,'' FROM t1 LEFT JOIN v1a ON z=b;\n")
 		if r.Error != nil {

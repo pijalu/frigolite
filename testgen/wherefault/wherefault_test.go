@@ -67,6 +67,7 @@ func Test_wherefault(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.0"
 		r = db.Query("\n  PRAGMA writable_schema = 1;\n  BEGIN TRANSACTION;    \n    CREATE TABLE t1(\n      a INT AS (c*11),\n      b TEXT AS (substr(d,1,3)) STORED, \n      c INTEGEB PRIMARI KEY, d TEXT\n    );\n    CREATE INDEX t1a ON t1(a);\n  COMMIT;\n")
 		if r.Error != nil {

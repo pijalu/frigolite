@@ -265,6 +265,7 @@ func Test_strict1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "strict1-8.1"
 		r = db.Query("\n  CREATE TABLE csv_import_table (\n    \"debit\" TEXT,\n    \"credit\" TEXT\n  );\n  INSERT INTO csv_import_table VALUES ('', '250.00');\n  CREATE TABLE IF NOT EXISTS transactions (\n      debit REAL,\n      credit REAL,\n      amount REAL GENERATED ALWAYS AS (ifnull(credit, 0.0) - ifnull(debit, 0.0))\n  ) STRICT;\n  INSERT INTO transactions\n  SELECT\n      nullif(debit, '') AS debit,\n      nullif(credit, '') AS credit\n  FROM csv_import_table;\n  SELECT * FROM transactions;\n")
 		if r.Error != nil {

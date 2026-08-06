@@ -862,6 +862,7 @@ func Test_autoinc(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.0"
 		r = db.Query("\n  CREATE TABLE t1(i INTEGER PRIMARY KEY AUTOINCREMENT, j);\n  CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, j);\n  CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, j);\n\n  INSERT INTO t1 VALUES(NULL, 1);\n  INSERT INTO t2 VALUES(NULL, 2);\n  INSERT INTO t3 VALUES(NULL, 3);\n\n  SELECT name FROM sqlite_sequence;\n")
 		if r.Error != nil {

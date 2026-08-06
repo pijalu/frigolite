@@ -90,8 +90,8 @@ type Engine struct {
 	dqsDML            bool                             // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
 	recursiveCTELimit int                              // PRAGMA recursive_cte_limit setting (default 100000, matching SQLite test builds)
 	reverseUnordered  bool                             // PRAGMA reverse_unordered_selects: reverse the scan order of the top-level SELECT when it has no ORDER BY
-	selectDepth        int                              // current SELECT nesting depth (1 = top-level statement)
-	countChanges       bool                             // PRAGMA count_changes: DML statements return a row with the changed-row count
+	selectDepth       int                              // current SELECT nesting depth (1 = top-level statement)
+	countChanges      bool                             // PRAGMA count_changes: DML statements return a row with the changed-row count
 	returningStrict   bool                             // RETURNING eval: unknown columns are errors (SQLite semantics)
 	returningTable    string                           // table name for RETURNING qualified column resolution
 	// aggRowMaps, when non-nil, holds the row set an aggregate query is
@@ -626,6 +626,11 @@ func (e *Engine) resolveDB(name string) (ctx *DatabaseContext, object string) {
 func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error) {
 	// Check table cache first
 	if cached, ok := e.tableCache[name]; ok {
+		// Re-hydrate FTS state for cached entries too: a fresh engine has an
+		// empty ftsTables map until the first lookup, and tableCache may be
+		// consulted before ensureFTSForTable has run (e.g. after a schema
+		// invalidation that cleared only the cache used by UPDATE).
+		e.ensureFTSForTable(cached.entry)
 		return cached.entry, cached.ctx, nil
 	}
 
@@ -639,6 +644,7 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 		if err != nil {
 			return nil, nil, err
 		}
+		e.ensureFTSForTable(entry)
 		e.tableCache[name] = &cachedTableEntry{entry: entry, ctx: ctx}
 		return entry, ctx, nil
 	}
@@ -646,6 +652,7 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 	// No schema prefix: search main first, then attached databases
 	entry, err := e.mainDB.Schema.FindTable(name)
 	if err == nil {
+		e.ensureFTSForTable(entry)
 		e.tableCache[name] = &cachedTableEntry{entry: entry, ctx: e.mainDB}
 		return entry, e.mainDB, nil
 	}
@@ -658,6 +665,7 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 		}
 		entry, err := ctx.Schema.FindTable(name)
 		if err == nil {
+			e.ensureFTSForTable(entry)
 			e.tableCache[name] = &cachedTableEntry{entry: entry, ctx: ctx}
 			return entry, ctx, nil
 		}

@@ -599,6 +599,7 @@ func Test_enc2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "enc2-11.10"
 		r = db.Query("\n  PRAGMA encoding=UTF8;\n  CREATE TEMP TABLE t1(x);\n  INSERT INTO t1 VALUES('this is a test');\n  PRAGMA encoding=UTF16;\n  SELECT * FROM t1;\n")
 		if r.Error != nil {

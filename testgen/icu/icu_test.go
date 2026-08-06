@@ -214,6 +214,7 @@ func Test_icu(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "icu-7.1"
 		_res = db.Exec("\n  SELECT icu_load_collation('en_US','error','xyzzy');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL") {
@@ -248,6 +249,7 @@ func Test_icu(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "icu-8.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  INSERT INTO t1 VALUES('abcdefg');\n  INSERT INTO t1 VALUES('1234567');\n")
 		if _res.Error != nil {

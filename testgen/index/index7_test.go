@@ -426,6 +426,7 @@ func Test_index7(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "index7-8.1"
 		r = db.Query("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  CREATE INDEX t1y ON t1(y) WHERE y IS NOT NULL;\n  INSERT INTO t1(x) VALUES(1),(2);\n  ANALYZE;\n  EXPLAIN QUERY PLAN SELECT 1 FROM t1 WHERE y=5;\n")
 		if r.Error != nil {

@@ -824,6 +824,7 @@ func Test_alter(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "alter-18.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger tr1: no such table: main.logx") {
@@ -834,6 +835,7 @@ func Test_alter(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "alter-19.1"
 				_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER TABLE t2 RENAME TO t3;\n")
 				if _res.Error != nil {
@@ -862,6 +864,7 @@ func Test_alter(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "alter-20.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);\n")
 				if _res.Error != nil {
@@ -890,6 +893,7 @@ func Test_alter(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "alter-21.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;\n")
 				if _res.Error != nil {
@@ -930,6 +934,7 @@ func Test_alter(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "alter-22.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b);\n")
 				if _res.Error != nil {

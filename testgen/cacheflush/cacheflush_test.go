@@ -265,6 +265,7 @@ func Test_cacheflush(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		_res = db.Exec("\n    CREATE TABLE ta(a, aa);\n    CREATE TABLE tb(b, bb);\n    INSERT INTO ta VALUES('a', randomblob(500));\n    INSERT INTO tb VALUES('b', randomblob(500));\n    BEGIN;\n      UPDATE ta SET a = 'A';\n      SAVEPOINT one;\n        UPDATE tb SET b = 'B';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE ta(a, aa);\n    CREATE TABLE tb(b, bb);\n    INSERT INTO ta VALUES('a', randomblob(500));\n    INSERT INTO tb VALUES('b', randomblob(500));\n    BEGIN;\n      UPDATE ta SET a = 'A';\n      SAVEPOINT one;\n        UPDATE tb SET b = 'B';\n  ")

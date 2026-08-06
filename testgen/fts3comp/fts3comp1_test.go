@@ -231,6 +231,7 @@ func Test_fts3comp1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			r = db.Query("\n  PRAGMA trusted_schema = OFF;\n")
 			if r.Error != nil {
@@ -284,6 +285,7 @@ func Test_fts3comp1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.0"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE v1 USING fts4(x, compress=comp, uncompress=uncomp);\n")
 			if _res.Error != nil {

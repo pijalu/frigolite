@@ -140,6 +140,7 @@ func Test_indexA(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a TEXT, b, c);\n  INSERT INTO x1 VALUES('2', 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c);\n  INSERT INTO x2 VALUES('2', 'two', 'ii');\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x3(a REAL, b, c);\n  INSERT INTO x3 VALUES('2', 'two', 'ii');\n  INSERT INTO x3 VALUES('2.0', 'twopointoh', 'ii.0');\n")
 		if _res.Error != nil {
@@ -319,6 +320,7 @@ func Test_indexA(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE x1(a TEXT, d PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO x1 VALUES('2', 1, 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 2, 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c, d PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO x2 VALUES('2', 'two', 'ii', 1);\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0', 2);\n\n  CREATE TABLE x3(d PRIMARY KEY, a REAL, b, c) WITHOUT ROWID;\n  INSERT INTO x3 VALUES(34, '2', 'two', 'ii');\n  INSERT INTO x3 VALUES(35, '2.0', 'twopointoh', 'ii.0');\n")
 			if _res.Error != nil {
@@ -498,6 +500,7 @@ func Test_indexA(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE t2(a INTEGER, b TEXT);\n  INSERT INTO t2 VALUES(1, 'two');\n  INSERT INTO t2 VALUES(2, 'two');\n  INSERT INTO t2 VALUES(3, 'two');\n  INSERT INTO t2 VALUES(1, 'three');\n  INSERT INTO t2 VALUES(2, 'three');\n  INSERT INTO t2 VALUES(3, 'three');\n\n  CREATE INDEX t2a_two ON t2(a) WHERE b='two';\n")
 				if _res.Error != nil {
@@ -526,6 +529,7 @@ func Test_indexA(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "5.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMQRY KEY, b, c);\n")
 				if _res.Error != nil {
@@ -558,6 +562,7 @@ func Test_indexA(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "6.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER, z INTEGER);\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 1, 2);\n  INSERT INTO t2 VALUES(1, 5, 1);\n  INSERT INTO t2 VALUES(2, 5, 2);\n\n  CREATE INDEX t2z ON t2(z) WHERE y=5;\n")
 				if _res.Error != nil {
@@ -628,6 +633,7 @@ func Test_indexA(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "7.0"
 				r = db.Query("\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, b TEXT, c TEXT);\n  CREATE INDEX i1 ON t1(c) WHERE b='abc' AND i=5;\n  INSERT INTO t1 VALUES(5, 'abc', 'xyz');\n  SELECT * FROM t1 INDEXED BY i1 WHERE b='abc' AND i=5 ORDER BY c;\n")
 				if r.Error != nil {
@@ -644,6 +650,7 @@ func Test_indexA(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "8.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX ex2 ON t1(a, 4);\n  CREATE INDEX ex1 ON t1(a) WHERE 4=b;\n  INSERT INTO t1 VALUES(1, 4, 1);\n  INSERT INTO t1 VALUES(1, 5, 1);\n  INSERT INTO t1 VALUES(2, 4, 2);\n")
 				if _res.Error != nil {

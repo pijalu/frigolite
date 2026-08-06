@@ -606,6 +606,7 @@ func Test_select6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.100"
 		_res = db.Exec("\n\n  CREATE  TABLE  t1(y INT);\n  INSERT INTO t1 (y) VALUES (1);\n\n  CREATE  TABLE  t2(x INTEGER);\n  INSERT INTO t2 VALUES(0);\n\n  CREATE  TABLE  empty1(z);\n")
 		if _res.Error != nil {

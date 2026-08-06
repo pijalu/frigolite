@@ -407,6 +407,7 @@ func Test_zipfile(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// load_static_extension db fileio (unsupported command, not transpiled)
 	// load_static_extension db zipfile (unsupported command, not transpiled)
 	{ // "2.1"
@@ -500,6 +501,7 @@ func Test_zipfile(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.zip")
 	// load_static_extension db zipfile (unsupported command, not transpiled)
 	// load_static_extension db fileio (unsupported command, not transpiled)
@@ -1157,6 +1159,7 @@ func Test_zipfile(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				// load_static_extension db zipfile (unsupported command, not transpiled)
 				if func() bool { l_n, l_e := strconv.Atoi("0"); if l_e != nil { return false }; r_n, r_e := strconv.Atoi("0"); if r_e != nil { return false }; return l_n == r_n }() {
 					{ // "23.0"
@@ -1170,6 +1173,7 @@ func Test_zipfile(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				os.Remove("test.zip")
 				// load_static_extension db zipfile (unsupported command, not transpiled)
 				// load_static_extension db fileio (unsupported command, not transpiled)

@@ -91,6 +91,7 @@ func Test_incrblob4(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// create_t1 (unsupported command, not transpiled)
 		// populate_t1 (unsupported command, not transpiled)
 	}
@@ -120,6 +121,7 @@ func Test_incrblob4(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// create_t1 (unsupported command, not transpiled)
 		// populate_t1 (unsupported command, not transpiled)
 	}
@@ -169,6 +171,7 @@ func Test_incrblob4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t2 VALUES(1000, 'abcdefghijklmnopqrstuvwxyz');\n  INSERT INTO t2 VALUES(2000, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');\n  INSERT INTO t2 VALUES(3000, 'abcdefghijklmnopqrstuvwxyz');\n")
 		if _res.Error != nil {

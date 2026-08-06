@@ -512,6 +512,7 @@ func Test_fts3matchinfo(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE tt USING fts3(x, y);\n  INSERT INTO tt VALUES('c d a c d d', 'e a g b d a');   -- 1\n  INSERT INTO tt VALUES('c c g a e b', 'c g d g e c');   -- 2\n  INSERT INTO tt VALUES('b e f d e g', 'b a c b c g');   -- 3\n  INSERT INTO tt VALUES('a c f f g d', 'd b f d e g');   -- 4\n  INSERT INTO tt VALUES('g a c f c f', 'd g g b c c');   -- 5\n  INSERT INTO tt VALUES('g a c e b b', 'd b f b g g');   -- 6\n  INSERT INTO tt VALUES('f d a a f c', 'e e a d c f');   -- 7\n  INSERT INTO tt VALUES('a c b b g f', 'a b a e d f');   -- 8\n  INSERT INTO tt VALUES('b a f e c c', 'f d b b a b');   -- 9\n  INSERT INTO tt VALUES('f d c e a c', 'f a f a a f');   -- 10\n")
 		if _res.Error != nil {
@@ -599,6 +600,7 @@ func Test_fts3matchinfo(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				// db function mit (variable-reader, inlined)
 				{ // do_test "12.0"
 					cols = ""

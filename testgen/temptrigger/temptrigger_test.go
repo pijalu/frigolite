@@ -261,6 +261,7 @@ func Test_temptrigger(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN\n    SELECT 1,2,3;\n  END;\n")
 		if _res.Error != nil {
@@ -277,6 +278,7 @@ func Test_temptrigger(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END;\n")
 		if _res.Error != nil {
@@ -308,6 +310,7 @@ func Test_temptrigger(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN \n    SELECT raise(ABORT, 'error'); \n  END;\n  ATTACH 'test.db2' AS aux;\n")
@@ -346,6 +349,7 @@ func Test_temptrigger(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test.db2")
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE m1(a, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.a1(c, d);\n")
@@ -423,6 +427,7 @@ func Test_temptrigger(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("*")
 	os.Remove("test.db2")
 	{ // "8.0"
@@ -507,6 +512,7 @@ func Test_temptrigger(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	nDb = "8"
 	_ = nDb // suppress unused warning
 	{ // do_test "9.0"

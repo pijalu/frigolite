@@ -166,6 +166,7 @@ func Test_skipscan5(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				// eval $coll (dynamic, not transpiled)
 				{ // "2." + tn + ".1"
 					r = db.Query(" PRAGMA encoding = '" + dbenc + "' ")
@@ -237,6 +238,7 @@ func Test_skipscan5(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "3.1"
 					_res = db.Exec("\n  CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);\n")
 					if _res.Error != nil {

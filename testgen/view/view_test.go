@@ -718,6 +718,7 @@ func Test_view(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "view-27.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 TEXT, c1);\n  INSERT INTO t0(c0, c1) VALUES (-1, 0);\n  CREATE VIEW v0(c0, c1) AS SELECT t0.c0, AVG(t0.c1) FROM t0;\n")
 		if _res.Error != nil {
@@ -824,6 +825,7 @@ func Test_view(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "view-28.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0) AS SELECT t0.c0 FROM t0;\n  INSERT INTO t0(c0) VALUES ('0');\n")
 		if _res.Error != nil {
@@ -858,6 +860,7 @@ func Test_view(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "view-29.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE VIEW IF NOT EXISTS IF AS SELECT null;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed database schema (IF) - near \"AS\": syntax error") {
@@ -874,6 +877,7 @@ func Test_view(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "view-30.0"
 		_res = db.Exec("\n  CREATE TABLE t0(a INT, b TEXT);\n\n  INSERT INTO t0 VALUES(1,'one');\n\n  CREATE VIEW t1      AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n  CREATE VIEW t2(a,b) AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n")
 		if _res.Error != nil {
@@ -908,6 +912,7 @@ func Test_view(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "view-31.1"
 		r = db.Query("\n  CREATE TABLE x2(b TEXT);\n  CREATE TABLE x1(a TEXT);\n  INSERT INTO x1 VALUES('123');\n  -- Two queries get the same result even though the order of terms\n  -- in the CTE is reversed\n  WITH c(x) AS ( SELECT b FROM x2 UNION SELECT 123 )\n    SELECT count(*) FROM x1 WHERE a IN c; \n  WITH c(x) AS ( SELECT 123 UNION SELECT b FROM x2 )\n    SELECT count(*) FROM x1 WHERE a IN c;\n")
 		if r.Error != nil {
@@ -936,6 +941,7 @@ func Test_view(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "view-32.1"
 		_res = db.Exec("\n  CREATE TABLE t0(a);\n  INSERT INTO t0 VALUES(0);\n  CREATE VIEW v1(a) AS SELECT a+1 FROM t0;\n  CREATE VIEW v2(a) AS SELECT a+1 FROM v1;\n  CREATE VIEW v3(a) AS SELECT a+1 FROM v2;\n  CREATE VIEW v4(a) AS SELECT a+1 FROM v3;\n  CREATE VIEW v5(a) AS SELECT a+1 FROM v4;\n  CREATE VIEW v6(a) AS SELECT a+1 FROM v5;\n  CREATE VIEW v7(a) AS SELECT a+1 FROM v6;\n")
 		if _res.Error != nil {

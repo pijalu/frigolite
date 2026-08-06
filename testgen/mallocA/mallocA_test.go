@@ -85,6 +85,7 @@ func Test_mallocA(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	{ // "6-prep"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('abc', 'w'); -- rowid=1\n  INSERT INTO t1 VALUES('abc', 'x'); -- rowid=2\n  INSERT INTO t1 VALUES('abc', 'y'); -- rowid=3\n  INSERT INTO t1 VALUES('abc', 'z'); -- rowid=4\n\n  INSERT INTO t1 VALUES('def', 'w'); -- rowid=5\n  INSERT INTO t1 VALUES('def', 'x'); -- rowid=6\n  INSERT INTO t1 VALUES('def', 'y'); -- rowid=7\n  INSERT INTO t1 VALUES('def', 'z'); -- rowid=8\n\n  ANALYZE;\n")

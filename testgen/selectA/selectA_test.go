@@ -1364,6 +1364,7 @@ func Test_selectA(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t1(c1);     INSERT INTO t1 VALUES(12),(123),(1234),(NULL),('abc');\n  CREATE TABLE t2(c2);     INSERT INTO t2 VALUES(44),(55),(123);\n  CREATE TABLE t3(c3,c4);  INSERT INTO t3 VALUES(66,1),(123,2),(77,3);\n  CREATE VIEW t4 AS SELECT c3 FROM t3;\n  CREATE VIEW t5 AS SELECT c3 FROM t3 ORDER BY c4;\n")
 		if _res.Error != nil {
@@ -1402,6 +1403,7 @@ func Test_selectA(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE x1(x);\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n")
 		if _res.Error != nil {
@@ -1418,6 +1420,7 @@ func Test_selectA(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a COLLATE nocase);\n  CREATE TABLE t2(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');\n")
 		if _res.Error != nil {

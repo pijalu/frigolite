@@ -119,6 +119,7 @@ func Test_indexexpr2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
@@ -495,6 +496,7 @@ func Test_indexexpr2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(c0) WHERE c0 NOT NULL;\n  INSERT INTO t0(c0) VALUES (NULL);\n")
 		if _res.Error != nil {
@@ -601,6 +603,7 @@ func Test_indexexpr2(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "9.0"
 				r = db.Query("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE INDEX t1x ON t1(a, abs(b));\n  CREATE TABLE t2(c INT, d INT);\n  INSERT INTO t1(a,b) VALUES(4,4),(5,-5),(5,20),(6,6);\n  INSERT INTO t2(c,d) VALUES(100,1),(200,1),(300,2);\n  SELECT *,\n    (SELECT max(c+abs(b)) FROM t2 GROUP BY d ORDER BY d LIMIT 1) AS subq\n   FROM t1 WHERE a=5;\n")
 				if r.Error != nil {
@@ -617,6 +620,7 @@ func Test_indexexpr2(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "10.0"
 				r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE INDEX t1x ON t1 (b, +b COLLATE NOCASE);\n  INSERT INTO t1(a,b) VALUES(1,'abcde');\n  SELECT * FROM t1 AS a0\n   WHERE (SELECT count(a0.b=+a0.b COLLATE NOCASE IN (b)) FROM t1 GROUP BY 2.5)\n   ORDER BY a0.b;\n")
 				if r.Error != nil {

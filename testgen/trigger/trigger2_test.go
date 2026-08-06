@@ -621,6 +621,7 @@ func Test_trigger2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "11.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT PRIMARY KEY, b, c REAL, d, e);\n  CREATE TABLE t2(a INT, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);\n  CREATE UNIQUE INDEX t2d ON t2(d);\n  CREATE UNIQUE INDEX t2e ON t2(e);\n")
 		if _res.Error != nil {

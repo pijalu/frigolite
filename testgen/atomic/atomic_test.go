@@ -65,6 +65,7 @@ func Test_atomic(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n")
 		if _res.Error != nil {

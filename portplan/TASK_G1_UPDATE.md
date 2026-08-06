@@ -33,22 +33,45 @@ cascade updates, statement-level rollback, and updating columns used in indexes.
 - `src/insert.c` — constraint resolution shared with INSERT.
 
 ## Steps
-- [ ] **G1.UPDATE.1** Pre-test suite. Commit: `G1.UPDATE.1: UPDATE pre-test suite`.
-- [ ] **G1.UPDATE.2** Diagnose current `update` testgen failure via pure-Go test
-  first (triage). Likely: SET expression evaluation against the row context, or
-  WHERE eval error swallowing. Fix `internal/exec/update.go`.
-  Commit: `G1.UPDATE.2: fix UPDATE SET/WHERE eval`.
-- [ ] **G1.UPDATE.3** Conflict clauses (OR IGNORE/REPLACE/FAIL/ABORT/ROLLBACK).
-  Commit: `G1.UPDATE.3: UPDATE conflict resolution`.
-- [ ] **G1.UPDATE.4** UPDATE ... ORDER BY ... LIMIT (non-standard but real).
-  Commit: `G1.UPDATE.4: UPDATE ORDER BY/LIMIT`.
-- [ ] **G1.UPDATE.5** RETURNING (shared path; coordinate with INSERT/DELETE).
-  Commit: `G1.UPDATE.5: UPDATE RETURNING`.
-- [ ] **G1.UPDATE.6** Index maintenance on updated columns; WITHOUT ROWID PK
-  updates. Commit: `G1.UPDATE.6: index + WITHOUT ROWID updates`.
-- [ ] **G1.UPDATE.7** FK ON UPDATE actions (coordinate with G3.FKEY).
-  Commit: `G1.UPDATE.7: FK ON UPDATE`.
-- [ ] **G1.UPDATE.8** testgen update + returning green. Commit: `G1.UPDATE.8: UPDATE TCL green`.
+- [x] **G1.UPDATE.1** Pre-test suite (`frigolite_p1_update_test.go` — SET, WHERE,
+  ORDER BY/LIMIT, RETURNING, conflicts, constraints, WITHOUT ROWID, FK ON UPDATE,
+  index maintenance; all PASS vs oracle).
+- [x] **G1.UPDATE.2** Triage + fixes in `internal/exec/update.go`:
+  NOT NULL/CHECK enforcement (checkUpdateConstraints), one-pass UNIQUE conflict
+  semantics (checkUpdateConflicts), lazy FTS table re-init after reopen
+  (ensureFTSForTable in findTable), shared parseVTabSQL helper.
+- [x] **G1.UPDATE.3** Conflict clauses (OR IGNORE/REPLACE/FAIL/ABORT/ROLLBACK)
+  verified against oracle; OR IGNORE multi-row + OR REPLACE covered in pre-tests.
+- [x] **G1.UPDATE.4** UPDATE ... ORDER BY ... LIMIT (SQLite extension): parser
+  rewrite in `internal/parse/parser.go` (top-level token scan strips ORDER
+  BY/LIMIT, re-attached to UpdateStmt) + exec sort/limit in
+  collectUpdateChanges; ORDER BY requires LIMIT (SQLite behavior).
+- [x] **G1.UPDATE.5** RETURNING (shared path; coordinate with INSERT/DELETE):
+  `testgen/returning` green — fixed fts5 INSERT RETURNING after reopen
+  (lazy FTS) and reset_db nullvalue (tcl2go transpiler emits
+  `tcl_nullvalue = "{}"` after reset_db to match per-connection semantics).
+- [x] **G1.UPDATE.6** Index maintenance on updated columns (updated column
+  reflected in index; UNIQUE index conflict errors); WITHOUT ROWID PK updates
+  (verified in pre-tests + probe).
+- [x] **G1.UPDATE.7** FK ON UPDATE actions (CASCADE/SET NULL/RESTRICT) verified
+  with PRAGMA foreign_keys=ON in pre-tests.
+- [x] **G1.UPDATE.8** testgen update + returning green; full verify command
+  passes (see below).
+
+## Current state: DONE
+Verify output:
+```
+$ go test -tags testgen -count=1 ./testgen/update/ ./testgen/returning/
+ok  github.com/pijalu/frigolite/testgen/update
+ok  github.com/pijalu/frigolite/testgen/returning
+$ go test -run TestP1Update -count=1 .
+ok  github.com/pijalu/frigolite
+$ go build ./...
+BUILD OK
+```
+No new root-package failures (baseline: TestDoubleCreateTable + TestDropTable
+pre-existing). testgen conflict/notnull/upfrom/trigger failures are also
+pre-existing (verified via git stash baseline).
 
 ## Verify command
 ```bash

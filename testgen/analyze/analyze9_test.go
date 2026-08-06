@@ -190,6 +190,7 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.1"
 		r = db.Query("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('some text', 14, NULL);\n  INSERT INTO t1 VALUES(22.0, NULL, x'656667');\n  CREATE INDEX i1 ON t1(a, b, c);\n  ANALYZE;\n  SELECT test_decode(sample) FROM sqlite_stat4;\n")
 		if r.Error != nil {
@@ -206,6 +207,7 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  BEGIN;\n")
 		if _res.Error != nil {
@@ -278,6 +280,7 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// db function lindex (variable-reader, inlined)
 	// db function lrange (variable-reader, inlined)
 	{ // "4.0"
@@ -363,6 +366,7 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "4.7"
 		_res = db.Exec(" \n    BEGIN;\n    CREATE TABLE t1(o,t INTEGER PRIMARY KEY);\n    CREATE INDEX i1 ON t1(o);\n  ")
 		if _res.Error != nil {
@@ -404,6 +408,7 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "5.1"
 		r = db.Query("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t0(v);\n  ANALYZE;\n")
 		if r.Error != nil {
@@ -414,6 +419,7 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.1"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  PRAGMA writable_schema = 1;\n  CREATE TEMP TABLE x1 AS\n    SELECT tbl,idx,neq,nlt,ndlt,sample FROM sqlite_stat4\n    ORDER BY (rowid%5), rowid;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat4 SELECT * FROM x1;\n  PRAGMA writable_schema = 0;\n  ANALYZE sqlite_master;\n")
 		if r.Error != nil {
@@ -430,6 +436,7 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "7.1"
@@ -491,6 +498,7 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1 VALUES('2');\n  INSERT INTO t1 VALUES('3');\n  INSERT INTO t1 VALUES('4');\n  ANALYZE;\n")
 		if _res.Error != nil {
@@ -513,6 +521,7 @@ func Test_analyze9(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d);\n  CREATE INDEX i2 ON t1(e);\n")
 		if _res.Error != nil {
@@ -1325,6 +1334,7 @@ func Test_analyze9(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(one) + ");\n    ANALYZE;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(one) + ");\n    ANALYZE;\n  ")
@@ -1335,6 +1345,7 @@ func Test_analyze9(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(two) + ");\n    ANALYZE;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES(" + sqlLiteral(two) + ");\n    ANALYZE;\n  ")
@@ -1350,6 +1361,7 @@ func Test_analyze9(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n  ")
@@ -1422,6 +1434,7 @@ func Test_analyze9(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
@@ -1455,6 +1468,7 @@ func Test_analyze9(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				_res = db.Exec("\n      CREATE TABLE t1(x, y);\n      CREATE INDEX i1 ON t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n      ANALYZE;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x, y);\n      CREATE INDEX i1 ON t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n      ANALYZE;\n    ")
@@ -1466,6 +1480,7 @@ func Test_analyze9(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				_res = db.Exec("\n      CREATE TABLE t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n    ")
@@ -1477,6 +1492,7 @@ func Test_analyze9(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// proc definition (not transpiled)
 			// db function r (variable-reader, inlined)
 			// db function lrange (variable-reader, inlined)
@@ -1536,6 +1552,7 @@ func Test_analyze9(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "21.0"
 				_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);\n")
 				if _res.Error != nil {
@@ -1579,6 +1596,7 @@ func Test_analyze9(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "22.0"
 				r = db.Query("\n  CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;\n")
 				if r.Error != nil {
@@ -1691,6 +1709,7 @@ func Test_analyze9(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // do_test "26.1.1"
 						_res = db.Exec(" \n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);\n    ")
 						if _res.Error != nil {
@@ -1765,6 +1784,7 @@ func Test_analyze9(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "26.2.1"
 						r = db.Query("\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
 						if r.Error != nil {

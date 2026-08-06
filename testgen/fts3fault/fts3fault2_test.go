@@ -103,6 +103,7 @@ func Test_fts3fault2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "6.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t6 USING fts4(x,order=DESC);\n    INSERT INTO t6(docid, x) VALUES(-1,'a b');\n    INSERT INTO t6(docid, x) VALUES(1, 'b');\n  ")
 		if _res.Error != nil {
@@ -115,6 +116,7 @@ func Test_fts3fault2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t7 USING fts4(x,prefix=2);\n  INSERT INTO t7 VALUES('the quick brown fox');\n  INSERT INTO t7 VALUES('jumped over the');\n  INSERT INTO t7 VALUES('lazy dog');\n")
 		if _res.Error != nil {
@@ -126,6 +128,7 @@ func Test_fts3fault2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE t8 USING fts3;\n  INSERT INTO t8 VALUES('the quick brown fox');\n  INSERT INTO t8 VALUES('jumped over the');\n  INSERT INTO t8 VALUES('lazy dog');\n  INSERT INTO t8(t8) VALUES('automerge=8');\n  SELECT name FROM sqlite_master WHERE name LIKE 't8%';\n")
 		if r.Error != nil {
@@ -147,6 +150,7 @@ func Test_fts3fault2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	chunkconfig = "fts3_configure_incr_load 1 1"
 	_ = chunkconfig // suppress unused warning
 	{ // "9.0"

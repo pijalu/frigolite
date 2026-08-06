@@ -245,6 +245,7 @@ func Test_with6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	tcl_nullvalue = "-"
 	{ // "300"
 		_res = db.Exec("\n  CREATE TABLE t2(a INT,b INT,d INT); INSERT INTO t2 VALUES(4,5,6),(7,8,9);\n  CREATE TABLE t3(a INT,b INT,e INT); INSERT INTO t3 VALUES(3,3,3),(8,8,8);\n")
@@ -310,6 +311,7 @@ func Test_with6(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	_res = db.Exec("\n  CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));\n")

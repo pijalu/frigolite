@@ -166,6 +166,7 @@ func Test_default(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "default-5.1"
 		_res = db.Exec("\n  CREATE TABLE t1 (a,b DEFAULT(random() NOTNULL IN (RAISE(IGNORE),2,3)));\n  INSERT INTO t1(a) VALUES(1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "default value of column [b] is not constant") {

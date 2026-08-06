@@ -214,6 +214,7 @@ func Test_swarmvtab(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	{ // do_test "2.0.1"
 		_res = db.Exec("\n    CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n      INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n    CREATE TABLE dir(f, t, imin, imax);\n  ")

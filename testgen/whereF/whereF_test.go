@@ -137,6 +137,7 @@ func Test_whereF(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "5.0"
 					r = db.Query("\n  CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;\n")
 					if r.Error != nil {

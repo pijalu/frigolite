@@ -200,6 +200,7 @@ func Test_crash8(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	os.Remove("test2.db")
 	{ // do_test "crash8-4.1"
 		r = db.Query("\n      PRAGMA journal_mode = persist;\n      CREATE TABLE ab(a, b);\n      INSERT INTO ab VALUES(0, 'abc');\n      INSERT INTO ab VALUES(1, NULL);\n      INSERT INTO ab VALUES(2, NULL);\n      INSERT INTO ab VALUES(3, NULL);\n      INSERT INTO ab VALUES(4, NULL);\n      INSERT INTO ab VALUES(5, NULL);\n      INSERT INTO ab VALUES(6, NULL);\n      UPDATE ab SET b = randstr(1000,1000);\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE aux.ab(a, b);\n      INSERT INTO aux.ab SELECT * FROM main.ab;\n\n      UPDATE aux.ab SET b = randstr(1000,1000) WHERE a>=1;\n      UPDATE ab SET b = randstr(1000,1000) WHERE a>=1;\n    ")

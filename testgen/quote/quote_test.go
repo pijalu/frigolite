@@ -174,6 +174,7 @@ func Test_quote(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.SetDQS(false, true)
 	db.SetDQS(false, true)
 	{ // "2.0"
@@ -248,6 +249,7 @@ func Test_quote(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			_res = db.Exec("\n      CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;\n    ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?") {

@@ -131,6 +131,7 @@ func Test_walvfs(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		r = db.Query("\n  PRAGMA journal_size_limit = 10000;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n  )\n  INSERT INTO t1 SELECT randomblob(750) FROM s;\n")
 		if r.Error != nil {
@@ -164,6 +165,7 @@ func Test_walvfs(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -209,6 +211,7 @@ func Test_walvfs(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.Close()
 	{ // do_test "4.0"
 		_dbtmp0, err := frigolite.Open("test.db")
@@ -245,6 +248,7 @@ func Test_walvfs(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -332,6 +336,7 @@ func Test_walvfs(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// tvfs filter {} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("test.db")
@@ -372,6 +377,7 @@ func Test_walvfs(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// tvfs filter {} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("test.db")
@@ -407,6 +413,7 @@ func Test_walvfs(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// testvfs tvfs2 -iversion 2 (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("test.db")
@@ -462,6 +469,7 @@ func Test_walvfs(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	db.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

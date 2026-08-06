@@ -276,6 +276,7 @@ func Test_filefmt(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "filefmt-4.1"
 		r = db.Query("\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x, y);\n\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t2 SELECT randomblob(100), randomblob(100) FROM t1;\n")
 		if r.Error != nil {

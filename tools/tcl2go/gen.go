@@ -1941,10 +1941,14 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		// ./test.db (a fresh empty file). Reopening on the same filename
 		// matters because a later "sqlite3 db test.db" reopens that file
 		// and must find the writes made after reset.
+		// The TCL driver's nullvalue setting is per-connection; the fresh
+		// connection created here starts with the default (empty-string)
+		// rendering, so reset the harness nullvalue to "{}".
 		tp.emitLine("db.Close()")
 		tp.emitLine("os.Remove(\"test.db\")")
 		tp.emitLine("db, err = frigolite.Open(\"test.db\")")
 		tp.emitLine("if err != nil { t.Fatal(err) }")
+		tp.emitLine("tcl_nullvalue = \"{}\" // fresh connection resets nullvalue")
 		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
 		tp.dqsDML = true
 	case "source", "finish_test", "test_finish", "exit", "flush",

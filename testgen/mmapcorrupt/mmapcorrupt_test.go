@@ -66,6 +66,7 @@ func Test_mmapcorrupt(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA page_size = 16384;\n  CREATE TABLE tn1(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t0(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('B');\n")
 		if r.Error != nil {

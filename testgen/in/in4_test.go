@@ -642,6 +642,7 @@ func Test_in4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e);\n  CREATE INDEX t1bc ON t1(c, b);\n  INSERT INTO t2(e) VALUES(1);\n  INSERT INTO t1 VALUES(NULL, NULL, NULL);\n")
 		if _res.Error != nil {
@@ -664,6 +665,7 @@ func Test_in4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.2"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n    CREATE TABLE t2(d INTEGER, e INT);\n    INSERT INTO t2(e) VALUES(1);\n  ")
 		if _res.Error != nil {
@@ -686,6 +688,7 @@ func Test_in4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  CREATE UNIQUE INDEX t1y ON t1(y);\n  INSERT INTO t1 VALUES(111, 'AAA'),(222, 'BBB'),(333, 'CCC');\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('BBB'),('AAA');\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1', 't1y','100 1');\n")
 		if _res.Error != nil {
@@ -735,6 +738,7 @@ func Test_in4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "9.0"
 		_res = db.Exec("\n  CREATE TABLE node(node_id INTEGER PRIMARY KEY);\n  CREATE TABLE edge(node_from INT, node_to INT);\n  CREATE TABLE sub_nodes(node_id INTEGER PRIMARY KEY);\n  CREATE INDEX edge_from_to ON edge(node_from,node_to);\n  CREATE INDEX edge_to_from ON edge(node_to,node_from);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES\n    ('sub_nodes',NULL,'1000000'),\n    ('edge','edge_to_from','20000000 2 2'),\n    ('edge','edge_from_to','20000000 2 2'),\n    ('node',NULL,'10000000');\n  ANALYZE sqlite_schema;\n")
 		if _res.Error != nil {
@@ -751,6 +755,7 @@ func Test_in4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "10.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d,PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c,d) VALUES\n    (0,-2,2,3),\n    (0,2,3,4),\n    (0,5,8,10),\n    (1,7,11,13);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','10 3 2 1');\n  ANALYZE sqlite_schema;\n  PRAGMA reverse_unordered_selects(1);\n  SELECT d FROM t1 WHERE 0=a AND b IN (-17,-4,-3,1,5,25,7798);\n")
 		if r.Error != nil {
@@ -767,6 +772,7 @@ func Test_in4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "11.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b INT, c INT, d INT);\n  INSERT INTO t1 VALUES('abc',123,4,5);\n  INSERT INTO t1 VALUES('xyz',1,'abcdefxyz',99);\n  CREATE INDEX t1abc ON t1(b,b,c);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1abc','10000 5 00 2003\u00a010');\n  ANALYZE sqlite_schema;\n")
 		if _res.Error != nil {
@@ -801,6 +807,7 @@ func Test_in4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "12.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  CREATE INDEX t1bca on t1(b,c,a);\n  INSERT INTO t1 VALUES(56,1119,1115);\n  INSERT INTO t1 VALUES(57,1147,1137);\n  INSERT INTO t1 VALUES(100,1050,1023);\n  INSERT INTO t1 VALUES(101,1050,1023);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1abc','358677 2 2 1');\n  INSERT INTO sqlite_stat1 VALUES('t1','t1bca','358677 4 2 1');\n  ANALYZE sqlite_schema;\n  SELECT * FROM t1 NOT INDEXED\n   WHERE (b = 1137 AND c IN (97, 98))\n      OR (b = 1119 AND c IN (1115, 1023));\n")
 		if r.Error != nil {
@@ -829,6 +836,7 @@ func Test_in4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "13.0"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT, b INT, c INT);\n  INSERT INTO t1 VALUES(10,1,2,5);\n  INSERT INTO t1 VALUES(20,1,3,5);\n  INSERT INTO t1 VALUES(30,1,2,4);\n  INSERT INTO t1 VALUES(40,1,3,4);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1x','84000 3 2 1');\n  CREATE INDEX t1x ON t1(a,b,c);\n  PRAGMA writable_schema=RESET;\n  SELECT * FROM t1\n   WHERE a=1\n     AND b IN (2,3)\n     AND c BETWEEN 4 AND 5\n   ORDER BY +id;\n")
 		if r.Error != nil {

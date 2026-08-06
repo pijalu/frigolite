@@ -74,6 +74,7 @@ func Test_upsert5(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -539,6 +540,7 @@ func Test_upsert5(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c REAL, d, e, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2c ON t2(c);\n")
 			if _res.Error != nil {
@@ -555,6 +557,7 @@ func Test_upsert5(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			r = db.Query("\n  CREATE TABLE t1(aa INTEGER PRIMARY KEY, bb INT);\n  INSERT INTO t1 VALUES(11,22);\n  CREATE UNIQUE INDEX t1bb ON t1(bb);\n  REPLACE INTO t1 VALUES(11,33)\n    ON CONFLICT(bb) DO UPDATE SET aa = 44\n    ON CONFLICT(bb) DO UPDATE SET aa = 44;\n  PRAGMA integrity_check;\n")
 			if r.Error != nil {
@@ -643,6 +646,7 @@ func Test_upsert5(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// foreach {tn WO} "1 \"\"\n  2 \"WITHOUT ROWID\""
 		_items1 := tclSplitList("1 \"\"\n  2 \"WITHOUT ROWID\"")
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
@@ -655,6 +659,7 @@ func Test_upsert5(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "4." + tn + ".0"
 					_res = db.Exec("\n    CREATE TABLE t1(a, b, c REAL, d UNIQUE, e PRIMARY KEY) " + WO + " ;\n    INSERT INTO t1 VALUES(555, 555, 555, 555, 555);\n  ")
 					if _res.Error != nil {

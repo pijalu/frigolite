@@ -108,6 +108,7 @@ func Test_pcache2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "pcache2-2.2"
 		r = db.Query("\n  PRAGMA page_size = 4096;\n  CREATE TABLE t1(x);\n")
 		if r.Error != nil {

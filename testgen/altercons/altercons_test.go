@@ -80,6 +80,7 @@ func Test_altercons(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "1." + tn + ".0"
 				_res = db.Exec(before)
 				if _res.Error != nil {
@@ -127,6 +128,7 @@ func Test_altercons(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// foreach {tn col before after} "1 a { CREATE TABLE t1(a NOT NULL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  2 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  3 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a UNIQUE, b) }\n\n  4 b { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n\n  5 a { CREATE TABLE t1(a CHECK(a<b) NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  6 a { CREATE TABLE t1(a CHECK(a<b) CONSTRAINT nn NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  7 b { CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b PRIMARY KEY) }\n\n  8 b { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }\n\n  9 b { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }\n      { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }\n\n 10 b { CREATE TABLE t1(a, b NOT NULL AS (a+1)) }\n      { CREATE TABLE t1(a, b AS (a+1)) }\n\n 11 b { CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }\n      { CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }"
 		_items1 := tclSplitList("1 a { CREATE TABLE t1(a NOT NULL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  2 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  3 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a UNIQUE, b) }\n\n  4 b { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n\n  5 a { CREATE TABLE t1(a CHECK(a<b) NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  6 a { CREATE TABLE t1(a CHECK(a<b) CONSTRAINT nn NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  7 b { CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b PRIMARY KEY) }\n\n  8 b { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }\n\n  9 b { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }\n      { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }\n\n 10 b { CREATE TABLE t1(a, b NOT NULL AS (a+1)) }\n      { CREATE TABLE t1(a, b AS (a+1)) }\n\n 11 b { CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }\n      { CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }")
 		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
@@ -143,6 +145,7 @@ func Test_altercons(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "3." + tn + ".0"
 					_res = db.Exec(before)
 					if _res.Error != nil {
@@ -172,6 +175,7 @@ func Test_altercons(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
 				if _res.Error != nil {
@@ -188,6 +192,7 @@ func Test_altercons(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "5.1"
 				_res = db.Exec("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t3 VALUES(1000, NULL);\n")
 				if _res.Error != nil {
@@ -219,6 +224,7 @@ func Test_altercons(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "5.3." + tn + ".1"
 						_res = db.Exec(before)
 						if _res.Error != nil {
@@ -272,6 +278,7 @@ func Test_altercons(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "6.1"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
 					if _res.Error != nil {
@@ -312,6 +319,7 @@ func Test_altercons(t *testing.T) {
 						os.Remove("test.db")
 						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
+						tcl_nullvalue = "{}" // fresh connection resets nullvalue
 						{ // "6.3." + tn + ".1"
 							_res = db.Exec(before)
 							if _res.Error != nil {
@@ -377,6 +385,7 @@ func Test_altercons(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "7.0"
 						_res = db.Exec("\n  CREATE TABLE x1(a, b AS (a+1));\n  INSERT INTO x1 VALUES(1), (2), (3), (NULL);\n")
 						if _res.Error != nil {
@@ -447,6 +456,7 @@ func Test_altercons(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "8.0"
 						_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b NOT NULL, c CHECK (c!=555), d);\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3, 3);\n")
 						if _res.Error != nil {
@@ -517,6 +527,7 @@ func Test_altercons(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					os.Remove("test.db2")
 					{ // "9.0"
 						_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);\n")
@@ -636,6 +647,7 @@ func Test_altercons(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "10.1"
 						_res = db.Exec("\n  CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');\n")
 						if _res.Error != nil {

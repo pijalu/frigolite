@@ -376,6 +376,7 @@ func Test_misc7(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // do_test "misc7-18.1"
 		r = db.Query("\n    CREATE TABLE table_1 (col_10);\n    CREATE TABLE table_2 (\n      col_1, col_2, col_3, col_4, col_5,\n      col_6, col_7, col_8, col_9, col_10\n    );\n    SELECT a.col_10\n    FROM\n      (SELECT table_1.col_10 AS col_10 FROM table_1) a,\n      (SELECT table_1.col_10, table_2.col_9 AS qcol_9\n         FROM table_1, table_2\n        GROUP BY table_1.col_10, qcol_9);\n  ")
 		if r.Error != nil {
@@ -455,6 +456,7 @@ func Test_misc7(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "23.0"
 			_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 			if _res.Error != nil {

@@ -362,6 +362,7 @@ func Test_upsert1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "upsert1-1000"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 PRIMARY KEY, c1, c2 UNIQUE) WITHOUT ROWID;\n  INSERT OR FAIL INTO t0(c2) VALUES (0), (NULL)\n    ON CONFLICT(c2) DO UPDATE SET c1 = c0;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t0.c0") {
@@ -372,6 +373,7 @@ func Test_upsert1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "upsert1-1100"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b UNIQUE);\n  INSERT INTO t1(b) VALUES(22);\n  INSERT INTO t1 VALUES(2,22) ON CONFLICT (b) DO NOTHING;\n  SELECT * FROM t1;\n")
 		if r.Error != nil {
@@ -388,6 +390,7 @@ func Test_upsert1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "upsert1-1200"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE UNIQUE INDEX t1x ON t1(b+3);\n")
 		if _res.Error != nil {
@@ -405,6 +408,7 @@ func Test_upsert1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "upsert1-1300"
 		_res = db.Exec("\n  CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1 VALUES\n    (11, printf('%.9000c','a')),\n    (11, printf('%.9000c','a')),\n    (33, printf('%.9000c','b')),\n    (33, printf('%.9000c','b'));\n  CREATE TABLE t2(x INT UNIQUE, y TEXT);\n  CREATE TRIGGER r1 BEFORE UPDATE ON t2 BEGIN\n    SELECT raise(ABORT,'Incorrect old.y value passed to trigger!')\n     WHERE old.y != new.y;\n    /* ^^^ This trigger will fire and cause the ABORT if the problem has\n    ** not been fixed, or if there is a regression. */\n  END;\n  INSERT INTO t2(x, y) SELECT x, y FROM t1\n   WHERE true\n   ON CONFLICT (x) DO UPDATE SET y = excluded.y;\n")
 		if _res.Error != nil {

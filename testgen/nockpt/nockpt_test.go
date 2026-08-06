@@ -161,6 +161,7 @@ func Test_nockpt(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		db.Close()
 		// set ::db1 (skipped, DB connection)
 		{ // do_test "2.0"

@@ -215,6 +215,7 @@ func Test_bestindex8(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// register_tcl_module db (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		{ // "2.0"
@@ -263,6 +264,7 @@ func Test_bestindex8(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// register_tcl_module db (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		{ // "3.0"
@@ -298,6 +300,7 @@ func Test_bestindex8(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			// register_tcl_module db (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			{ // "4.0"
@@ -333,6 +336,7 @@ func Test_bestindex8(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				// register_tcl_module db (unsupported command, not transpiled)
 				vtab_handle_in = "1" // TCL namespace variable
 				_ = vtab_handle_in // suppress unused warning

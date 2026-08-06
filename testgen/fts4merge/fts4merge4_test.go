@@ -132,6 +132,7 @@ func Test_fts4merge4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4 ")
 		if _res.Error != nil {

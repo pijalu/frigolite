@@ -339,6 +339,7 @@ func Test_autoindex1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "autoindex-1100"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e TEXT, f TEXT);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(1, 2);\n  INSERT INTO t3 VALUES('abc', 'def');\n")
 		if _res.Error != nil {
@@ -373,6 +374,7 @@ func Test_autoindex1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "autoindex-1200"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, x INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,90),(1,3,91),(1,4,92);\n  CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n  CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n  CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n  INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n  INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual(dummy) VALUES('x');\n")
 		if _res.Error != nil {

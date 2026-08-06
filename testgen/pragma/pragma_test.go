@@ -724,6 +724,7 @@ func Test_pragma(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "pragma-3.40"
 		r = db.Query("\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b TEXT COLLATE nocase,\n    c INT COLLATE nocase,\n    d TEXT\n  );\n  INSERT INTO t1(a,b,c,d) VALUES\n    (1, 'one','one','one'),\n    (2, 'two','two','two'),\n    (3, 'three','three','three'),\n    (4, 'four','four','four'),\n    (5, 'five','five','five');\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE TABLE t2(\n    a INTEGER PRIMARY KEY,\n    b TEXT COLLATE nocase,\n    c INT COLLATE nocase,\n    d TEXT\n  );\n  INSERT INTO t2(a,b,c,d) VALUES\n    (1, 'one','one','one'),\n    (2, 'two','two','TWO'),\n    (3, 'three','THREE','three'),\n    (4, 'FOUR','four','four'),\n    (5, 'FIVE','FIVE','five');\n  CREATE INDEX t2bcd ON t2(b,c,d);\n  CREATE TEMP TABLE saved_schema AS SELECT name, rootpage FROM sqlite_schema;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema\n     SET rootpage=(SELECT rootpage FROM saved_schema WHERE name='t2bcd')\n   WHERE name='t1bcd';\n  UPDATE sqlite_schema\n     SET rootpage=(SELECT rootpage FROM saved_schema WHERE name='t1bcd')\n   WHERE name='t2bcd';\n  PRAGMA Writable_schema=RESET;\n")
 		if r.Error != nil {
@@ -2017,6 +2018,7 @@ func Test_pragma(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "25.0"
 						r = db.Query("\n  CREATE TABLE t1(a INT, b AS (a*2) NOT NULL);\n  CREATE TEMP TABLE t2(a PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2x ON t2(c,b);\n  PRAGMA integrity_check;\n")
 						if r.Error != nil {

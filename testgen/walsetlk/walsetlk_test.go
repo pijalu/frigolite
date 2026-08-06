@@ -171,6 +171,7 @@ func Test_walsetlk(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
 	// tvfs script xSleep_callback (unsupported command, not transpiled)
 	// tvfs filter xSleep (unsupported command, not transpiled)

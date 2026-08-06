@@ -184,6 +184,7 @@ func Test_alterdropcol(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t12(a, b, c, CHECK(c>10));\n  CREATE TABLE t13(a, b, c CHECK(c>10));\n")
 			if _res.Error != nil {
@@ -216,6 +217,7 @@ func Test_alterdropcol(t *testing.T) {
 				os.Remove("test.db")
 				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
+				tcl_nullvalue = "{}" // fresh connection resets nullvalue
 				{ // "4." + tn + ".0"
 					_res = db.Exec("\n    CREATE TABLE 'my table'(a, b PRIMARY KEY, c AS (a+b) " + vs + ", d) " + wo + "\n  ")
 					if _res.Error != nil {
@@ -311,6 +313,7 @@ func Test_alterdropcol(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "5.0"
 				_res = db.Exec("\n  CREATE TABLE p1(a PRIMARY KEY, b UNIQUE);\n  CREATE TABLE c1(x, y, z REFERENCES p1(c));\n  CREATE TABLE c2(x, y, z, w REFERENCES p1(b));\n")
 				if _res.Error != nil {
@@ -381,6 +384,7 @@ func Test_alterdropcol(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "6.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(x,y,z);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET sql='CREATE INDEX t1b ON t1(b)' WHERE name='t2';\n  PRAGMA writable_schema=OFF;\n  ALTER TABLE t2 DROP COLUMN z;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -391,6 +395,7 @@ func Test_alterdropcol(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "6.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(x,y,z);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET sql='CREATE VIEW t2(x,y,z) AS SELECT b,a,c FROM t1'\n   WHERE name='t2';\n  PRAGMA writable_schema=OFF;\n  ALTER TABLE t2 DROP COLUMN z;\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -401,6 +406,7 @@ func Test_alterdropcol(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "7.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
 				if _res.Error != nil {
@@ -441,6 +447,7 @@ func Test_alterdropcol(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "8.0"
 				r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'\n")
 				if r.Error != nil {
@@ -480,6 +487,7 @@ func Test_alterdropcol(t *testing.T) {
 					os.Remove("test.db")
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
+					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					{ // "9." + tn + ".0"
 						_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c) " + wo + ";\n  ")
 						if _res.Error != nil {

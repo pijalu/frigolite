@@ -140,6 +140,7 @@ func Test_in7(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b TEXT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('1', 'one');\n  INSERT INTO t1 VALUES('2', NULL);\n  INSERT INTO t1 VALUES('3', 'three');\n")
 			if _res.Error != nil {
@@ -162,6 +163,7 @@ func Test_in7(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n\n  CREATE TABLE x2(b);\n  INSERT INTO x2 VALUES(4), (5), (6);\n\n  CREATE TABLE t1(u);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6);\n\n  CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (\n    SELECT a FROM x1\n  );\n  CREATE VIEW v2 AS SELECT u FROM t1 WHERE u IN (\n    SELECT b FROM x2\n  );\n")
 			if _res.Error != nil {
@@ -268,6 +270,7 @@ func Test_in7(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "4.0"
 			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1,x'1111');\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n  CREATE TRIGGER t1tr UPDATE ON t1 BEGIN\n    UPDATE t1 SET b=x'2222' FROM t2;\n    UPDATE t1\n       SET b = (SELECT a IN (SELECT a\n                               FROM t1\n                              WHERE (b,a) IN (SELECT rowid, d\n                                                FROM t3\n                                             )\n                            )\n                  FROM t1 NATURAL RIGHT JOIN t1\n               );\n  END;\n  UPDATE t1 SET b=x'3333';\n  SELECT quote(b) FROM t1;\n")
 			if r.Error != nil {

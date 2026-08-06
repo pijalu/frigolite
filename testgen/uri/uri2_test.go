@@ -122,6 +122,7 @@ func Test_uri2(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // do_test "2.0"
 			// expr [lsearch [execsql {PRAGMA compile_options}] ENABLE_URI_00_ERROR] >= 0 (not evaluated)
 		}

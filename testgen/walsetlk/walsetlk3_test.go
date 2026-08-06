@@ -101,6 +101,7 @@ func Test_walsetlk3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n")
 		if _res.Error != nil {

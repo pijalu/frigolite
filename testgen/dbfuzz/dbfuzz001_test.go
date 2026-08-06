@@ -89,6 +89,7 @@ func Test_dbfuzz001(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "dbfuzz001-430"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER, b INT, c DEFAULT 0);\n")
 		if _res.Error != nil {

@@ -303,6 +303,7 @@ func Test_null(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "null-10.1"
 		r = db.Query("\n  CREATE TABLE t0(c0 PRIMARY KEY DESC);\n  INSERT INTO t0(c0) VALUES (0);\n  SELECT * FROM t0 WHERE t0.c0 > NULL;\n")
 		if r.Error != nil {

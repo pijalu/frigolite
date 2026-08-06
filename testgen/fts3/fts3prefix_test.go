@@ -286,6 +286,7 @@ func Test_fts3prefix(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=0);\n  CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t1 VALUES('Twas Mulga Bill, from Eaglehawk, ');\n  INSERT INTO t2 VALUES('Twas Mulga Bill, from Eaglehawk, ');\n")
 		if _res.Error != nil {
@@ -313,6 +314,7 @@ func Test_fts3prefix(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.2.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"1,0,2\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=\"1,2\");\n  INSERT INTO t1 VALUES('that caught the cycling craze;');\n  INSERT INTO t2 VALUES('that caught the cycling craze;');\n")
 		if _res.Error != nil {
@@ -340,6 +342,7 @@ func Test_fts3prefix(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"1,3,2\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=\"1,2\");\n  INSERT INTO t1 VALUES('He turned away the good old horse');\n  INSERT INTO t2 VALUES('He turned away the good old horse');\n")
 		if _res.Error != nil {
@@ -359,6 +362,7 @@ func Test_fts3prefix(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.4.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"1,600,2\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=\"1,2\");\n  INSERT INTO t1 VALUES('that served him many days;');\n  INSERT INTO t2 VALUES('that served him many days;');\n")
 		if _res.Error != nil {
@@ -386,6 +390,7 @@ func Test_fts3prefix(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "6.5.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(prefix=\"2147483647,2147483648,2147483649\");\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix=);\n  INSERT INTO t1 VALUES('He dressed himself in cycling clothes');\n  INSERT INTO t2 VALUES('He dressed himself in cycling clothes');\n")
 		if _res.Error != nil {

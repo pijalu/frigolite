@@ -260,6 +260,7 @@ func Test_fts3corrupt(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "7.10"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (0,0,1,0,'0 0',x'01010101020101');\n  SELECT  matchinfo( f , 'pcx')  FROM f WHERE b MATCH x'c533';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -270,6 +271,7 @@ func Test_fts3corrupt(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// sqlite3_fts3_may_be_corrupt 1 (unsupported command, not transpiled)
 	{ // "8.1"
 		r = db.Query("\n  CREATE VIRTUAL TABLE f USING fts3(a);\n  INSERT INTO f(f) VALUES('nodesize=24');\n  BEGIN;\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n  COMMIT;\n  BEGIN;\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n  COMMIT;\n\n  SELECT count(*) FROM f_segments;\n")

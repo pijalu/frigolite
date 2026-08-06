@@ -190,6 +190,7 @@ func Test_mallocK(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// proc definition (not transpiled)
 	// db function isqrt (variable-reader, inlined)
 	{ // "8.0"

@@ -324,6 +324,7 @@ func Test_symlink(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE TABLE xyz(x, y, z);\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
 			if _res.Error != nil {

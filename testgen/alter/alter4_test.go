@@ -400,6 +400,7 @@ func Test_alter4(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "alter4-11.0"
 		r = db.Query("\n  CREATE TABLE t1(c INTEGER PRIMARY KEY, d);\n  INSERT INTO t1(c,d) VALUES(1,2);\n  PRAGMA foreign_keys = on;\n  ALTER TABLE t1 ADD COLUMN e;\n")
 		if r.Error != nil {

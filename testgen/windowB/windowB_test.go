@@ -86,6 +86,7 @@ func Test_windowB(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, 45);\n  INSERT INTO t1 VALUES(3, 66.2);\n  INSERT INTO t1 VALUES(4, 'hello world');\n  INSERT INTO t1 VALUES(5, 'hello world');\n  INSERT INTO t1 VALUES(6, X'1234');\n  INSERT INTO t1 VALUES(7, X'1234');\n  INSERT INTO t1 VALUES(8, NULL);\n")
 			if _res.Error != nil {
@@ -109,6 +110,7 @@ func Test_windowB(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "3.0"
 				_res = db.Exec("\n    CREATE TABLE testjson(id INTEGER PRIMARY KEY, j TEXT, x TEXT);\n    INSERT INTO testjson VALUES(1, '{\"a\":1}', 'a');\n    INSERT INTO testjson VALUES(2, '{\"b\":2}', 'b');\n    INSERT INTO testjson VALUES(3, '{\"c\":3}', 'c');\n    INSERT INTO testjson VALUES(4, '{\"d\":4}', 'd');\n  ")
 				if _res.Error != nil {
@@ -221,6 +223,7 @@ func Test_windowB(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE x(a);\n  INSERT INTO x VALUES(1);\n  INSERT INTO x VALUES(2);\n")
 				if _res.Error != nil {
@@ -245,6 +248,7 @@ func Test_windowB(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "5.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(0, 421);\n  INSERT INTO t1 VALUES(1, 844);\n  INSERT INTO t1 VALUES(2, 1001);\n")
 				if _res.Error != nil {
@@ -275,6 +279,7 @@ func Test_windowB(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "6.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES('abc', 1001);\n")
 				if _res.Error != nil {
@@ -293,6 +298,7 @@ func Test_windowB(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "7.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(NULL, 46);\n  INSERT INTO t1 VALUES(NULL, 45);\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(7,  1000);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES(8,  1000);\n  INSERT INTO t1 VALUES('abc', 1001);\n  INSERT INTO t1 VALUES('abc', 1004);\n  INSERT INTO t1 VALUES('xyz', 3333);\n")
 				if _res.Error != nil {
@@ -319,6 +325,7 @@ func Test_windowB(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "8.0"
 				_res = db.Exec("\n  BEGIN TRANSACTION;\n    CREATE TABLE t1(a, c);\n    INSERT INTO t1 VALUES('aa', 111);\n    INSERT INTO t1 VALUES('BB', 660);\n    INSERT INTO t1 VALUES('CC', 938);\n    INSERT INTO t1 VALUES('dd', 979);\n  COMMIT;\n\n  CREATE INDEX i1 ON t1(a COLLATE nocase);\n")
 				if _res.Error != nil {
@@ -337,6 +344,7 @@ func Test_windowB(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			{ // "10.1"
 				_res = db.Exec("\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, v);\n  INSERT INTO t1 VALUES( 1, 'one' );\n  INSERT INTO t1 VALUES( 2, 'two' );\n")
 				if _res.Error != nil {

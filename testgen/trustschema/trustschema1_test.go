@@ -318,6 +318,7 @@ func Test_trustschema1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	// db function f1 (variable-reader, inlined)
 	// db function f2 (variable-reader, inlined)
 	// db function f3 (variable-reader, inlined)

@@ -123,6 +123,7 @@ func Test_mmap1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		// db function rblob (variable-reader, inlined)
 		{ // "2.1"
 			r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   16\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   32\n    PRAGMA wal_checkpoint;\n  ")
@@ -176,6 +177,7 @@ func Test_mmap1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		r = db.Query(" PRAGMA mmap_size = 67108864; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 67108864; ")
@@ -199,6 +201,7 @@ func Test_mmap1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		r = db.Query(" PRAGMA mmap_size = 67108864; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 67108864; ")
@@ -262,6 +265,7 @@ func Test_mmap1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		r = db.Query(" PRAGMA mmap_size = 67108864; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 67108864; ")

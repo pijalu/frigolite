@@ -977,6 +977,7 @@ func Test_with1(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
 	{ // "24.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT max(a), min(b) FROM t1 GROUP BY c;\n")
 		if _res.Error != nil {
@@ -1013,6 +1014,7 @@ func Test_with1(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
+			tcl_nullvalue = "{}" // fresh connection resets nullvalue
 			_res = db.Exec(dual)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, dual)
@@ -1040,6 +1042,7 @@ func Test_with1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "26.1"
 			r = db.Query("\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
 			if r.Error != nil {
@@ -1080,6 +1083,7 @@ func Test_with1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "27.1"
 			r = db.Query("\n  CREATE TABLE t1(k);\n  CREATE TABLE log(k, cte_map, main_map);\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'main1'), (2, 'main2');\n  \n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log\n        WITH map(k,v) AS (VALUES(1,'cte1'),(2,'cte2'))\n        SELECT\n          new.k,\n          (SELECT v FROM map WHERE k=new.k),\n          (SELECT v FROM main.map WHERE k=new.k);\n  END;\n  \n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  SELECT k, cte_map, main_map, '|' FROM log ORDER BY k;\n")
 			if r.Error != nil {

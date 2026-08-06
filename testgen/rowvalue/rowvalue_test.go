@@ -1540,6 +1540,7 @@ func Test_rowvalue(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											{ // "27.10"
 												_res = db.Exec("\n  CREATE TABLE t0(c0 CHECK(((0, 0) > (0, c0))));\n  INSERT INTO t0(c0) VALUES(0) ON CONFLICT(c0) DO UPDATE SET c0 = 3;\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {
@@ -1550,6 +1551,7 @@ func Test_rowvalue(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											{ // "28.10"
 												_res = db.Exec("\n  CREATE TABLE t0(c0 PRIMARY KEY, c1);\n  CREATE TRIGGER trigger0 BEFORE DELETE ON t0 BEGIN\n   SELECT (SELECT c0,c1  FROM t0)  FROM t0;\n  END ;\n  DELETE FROM t0;\n")
 												if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
@@ -1566,6 +1568,7 @@ func Test_rowvalue(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											{ // "30.0"
 												_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n  CREATE TABLE t2(a, b);\n\n  INSERT INTO t1 VALUES(1000, 2000, 3000);\n  INSERT INTO t2 VALUES(NULL, NULL);\n")
 												if _res.Error != nil {
@@ -1592,6 +1595,7 @@ func Test_rowvalue(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											{ // "30.3" — skipped: window functions not supported
 												_res = db.Exec("\n  CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x<a;\n")
 												_ = _res
@@ -1600,6 +1604,7 @@ func Test_rowvalue(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											{ // "31.1"
 												r = db.Query("\n  CREATE TABLE a(a1 PRIMARY KEY,a2);\n  INSERT INTO a VALUES(1,5);\n  CREATE TABLE b(b1 UNIQUE,b2);\n  SELECT * FROM a LEFT JOIN b ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');\n")
 												if r.Error != nil {
@@ -1628,6 +1633,7 @@ func Test_rowvalue(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											{ // "32.1"
 												r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT);\n  CREATE TABLE t2(d INTEGER PRIMARY KEY);\n  INSERT INTO t1(a,b,c) VALUES(500,654,456);\n  INSERT INTO t1(a,b,c) VALUES(501,655,456);\n  INSERT INTO t1(a,b,c) VALUES(502,654,122);\n  INSERT INTO t1(a,b,c) VALUES(503,654,221);\n  INSERT INTO t1(a,b,c) VALUES(601,654,122);\n  INSERT INTO t2(d) VALUES(456);\n  INSERT INTO t2(d) VALUES(122);\n  SELECT a FROM (\n    SELECT t1.a FROM t2, t1 \n    WHERE (987, t1.b) = ( SELECT 987, 654 ) AND t2.d=t1.c\n  ) AS t3\n  WHERE a=1234 OR a<=567;\n")
 												if r.Error != nil {
@@ -1644,6 +1650,7 @@ func Test_rowvalue(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											{ // "33.1"
 												_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a, b) VALUES (0, 1),(15,-7),(3,100);\n  ANALYZE;\n")
 												if _res.Error != nil {
@@ -1732,6 +1739,7 @@ func Test_rowvalue(t *testing.T) {
 											os.Remove("test.db")
 											db, err = frigolite.Open("test.db")
 											if err != nil { t.Fatal(err) }
+											tcl_nullvalue = "{}" // fresh connection resets nullvalue
 											{ // "34.1"
 												r = db.Query("\n  CREATE TABLE items (\n    Id INTEGER  /* rowid alias */,\n    Item INTEGER  /* any type */,\n    Test TEXT  /* TEXT or BLOB */,\n    Filler,  /* any type */\n    PRIMARY KEY(Id),\n    UNIQUE(Item, Id)\n  );\n  INSERT INTO items (Id, Item)\n    VALUES (1, 2), (2, 2), (3, 3), (4, 5);\n  UPDATE items SET test='ok'\n    WHERE (Id, Item) IN (SELECT Id, Item FROM items);\n  SELECT Id, Item, test FROM items ORDER BY id;\n")
 												if r.Error != nil {
