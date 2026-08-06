@@ -126,8 +126,13 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	// name matches the old table name is rewritten to the new name.
 	e.renameSQLiteSequence(oldName, newName)
 
-	// Update views, triggers, and indexes that reference the renamed table
-	e.renameUpdateRelatedEntries(oldName, newName)
+	// Update views, triggers, and indexes that reference the renamed table.
+	// writable_schema performs a raw rename that does NOT rewrite dependent
+	// objects (SQLite leaves view/trigger SQL untouched when sqlite_schema
+	// is directly editable).
+	if !e.writableSchema {
+		e.renameUpdateRelatedEntries(oldName, newName)
+	}
 
 	return &Result{}
 }
