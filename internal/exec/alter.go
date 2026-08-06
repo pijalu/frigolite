@@ -122,6 +122,13 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		delete(e.colCache, oldName)
 	}
 
+	// Re-key FTS virtual table instances after rename so SELECT from the new
+	// name still finds the FTS content table.
+	if ftsTable, ok := e.ftsTables[oldName]; ok {
+		e.ftsTables[newName] = ftsTable
+		delete(e.ftsTables, oldName)
+	}
+
 	// Invalidate table/column/constraint caches for the old and new names so
 	// stale entries do not outlive the rename.
 	delete(e.tableCache, oldName)
