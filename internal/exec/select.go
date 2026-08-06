@@ -3400,6 +3400,11 @@ func (e *Engine) subqueryColumnCount(s *sql.SelectStmt) int {
 	if !ok || ref.Name != "*" {
 		return len(s.Columns)
 	}
+	// SELECT * FROM (subquery): star expands to the subquery's columns.
+	// A nil/empty From (no FROM clause) contributes no columns.
+	if s.From.Subquery != nil {
+		return e.subqueryColumnCount(s.From.Subquery)
+	}
 	if s.From.Name == "" {
 		return 0
 	}
