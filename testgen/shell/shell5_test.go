@@ -8,6 +8,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -227,7 +228,7 @@ func Test_shell5(t *testing.T) {
 		// close $in
 		res = "catchcmd \"test.db -list\" {CREATE TABLE t2(x INT, y INT);\n.import shell5.csv t2\n.mode quote\n.header on\nSELECT * FROM t2;}"
 		_ = res // suppress unused warning
-		// string map {\n | \n\r |} $res
+		strings.ReplaceAll(strings.ReplaceAll(res, "\\n", "|"), "\\n\\r", "|")
 	}
 	{ // do_test "shell5-1.4.12"
 		in = "open shell5.csv wb"
@@ -239,7 +240,7 @@ func Test_shell5(t *testing.T) {
 		// close $in
 		res = "catchcmd \"test.db -list\" {DELETE FROM t2;\n.import shell5.csv t2\n.mode quote\n.header on\nSELECT * FROM t2;}"
 		_ = res // suppress unused warning
-		// string map {\n | \n\r |} $res
+		strings.ReplaceAll(strings.ReplaceAll(res, "\\n", "|"), "\\n\\r", "|")
 	}
 	{ // do_test "shell5-1.5.1"
 		str = "X 999"

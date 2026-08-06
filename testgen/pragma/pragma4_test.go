@@ -106,7 +106,7 @@ func Test_pragma4(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=512;\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10000)\n    INSERT INTO t1(x) SELECT zeroblob(300) FROM c;\n    CREATE TABLE t2(y);\n    DROP TABLE t1;\n  ")
 				}
-				// string map {\[ x \] x \173 {} \175 {}} [db eval {EXPLAIN PRAGMA integrity_check}]
+				strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll("db eval {EXPLAIN PRAGMA integrity_check}", "\\[", "x"), "\\]", "x"), "\\173", ""), "\\175", "")
 			}
 			db.Close()
 			os.Remove("test.db")

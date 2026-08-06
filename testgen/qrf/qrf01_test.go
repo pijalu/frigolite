@@ -7,6 +7,7 @@ package qrf
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -570,7 +571,7 @@ func Test_qrf01(t *testing.T) {
 	{ // do_test "3.2"
 		result = "\n" + "db format -esc off {SELECT * FROM t1}"
 		_ = result // suppress unused warning
-		// string map [list \033 X] $result
+		strings.ReplaceAll(result, "[list", "\\033")
 	}
 	{ // do_test "3.3"
 		result = "\n" + "db format -esc symbol {SELECT * FROM t1}"

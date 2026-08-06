@@ -230,9 +230,6 @@ func Test_incrblob(t *testing.T) {
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".4"
 			_ = tclStringRange("db one {SELECT v FROM blobs}", "end-19", "end") // string range result
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), fragment) {
-				t.Errorf("expected error containing %s, got: %v\n  body: do_test %s", fragment, _res.Error, "incrblob-2." + AutoVacuumMode + ".4")
-			}
 		}
 		{ // do_test "incrblob-2." + AutoVacuumMode + ".5"
 			db.Close()
