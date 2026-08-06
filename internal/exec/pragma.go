@@ -616,6 +616,10 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 				e.recursiveCTELimit = n
 			}
 			return &Result{Rows: [][]interface{}{{int64(e.recursiveCTELimit)}}}
+		case "REVERSE_UNORDERED_SELECTS":
+			e.reverseUnordered = s.Value == "1" || strings.EqualFold(s.Value, "ON") || strings.EqualFold(s.Value, "TRUE")
+			// SQLite: PRAGMA reverse_unordered_selects=1 (set form) returns
+			// no row; only the bare PRAGMA (getter) returns the value.
 		}
 		// When setting a PRAGMA value, don't also return the value
 		return &Result{}
@@ -971,6 +975,9 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"USER_VERSION":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"APPLICATION_ID":   func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"AUTO_VACUUM":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"REVERSE_UNORDERED_SELECTS": func(e *Engine) *Result {
+		return &Result{Rows: [][]interface{}{{boolToInt(e.reverseUnordered)}}}
+	},
 	"JOURNAL_MODE":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"memory"}}} },
 	"SYNCHRONOUS":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
 	"CACHE_SIZE":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(2000)}}} },

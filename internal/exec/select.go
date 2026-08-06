@@ -140,6 +140,11 @@ func buildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool, w
 }
 
 func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
+	// Track SELECT nesting depth so PRAGMA reverse_unordered_selects only
+	// reverses the top-level SELECT, never subqueries or join members.
+	e.selectDepth++
+	defer func() { e.selectDepth-- }()
+
 	// Validate expressions before executing: check for invalid ORDER BY usage and
 	// aggregates inside UNION ALL in subqueries.
 	if err := e.validateSelectExprs(s); err != nil {
@@ -4295,6 +4300,20 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 		allRows[i] = outValues[start : start+activeColCount : start+activeColCount]
 	}
 	copy(allRows[totalStarRows:], nonStarRows)
+
+	// PRAGMA reverse_unordered_selects: reverse the scan order of the
+	// top-level SELECT when it has no ORDER BY (SQLite's behavior).
+	// Subqueries, compound members, and JOINed queries are not affected;
+	// ORDER BY sorts after this and its output is deterministic.
+	if e.reverseUnordered && len(s.OrderBy) == 0 && e.selectDepth == 1 && !hasJoins {
+		for i, j := 0, len(allRows)-1; i < j; i, j = i+1, j-1 {
+			allRows[i], allRows[j] = allRows[j], allRows[i]
+		}
+		for i, j := 0, len(allRowMaps)-1; i < j; i, j = i+1, j-1 {
+			allRowMaps[i], allRowMaps[j] = allRowMaps[j], allRowMaps[i]
+		}
+	}
+
 	return allRows, allRowMaps, nil
 }
 

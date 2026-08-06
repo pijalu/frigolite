@@ -89,6 +89,8 @@ type Engine struct {
 	dqsDDL            bool                             // SQLITE_DBCONFIG_DQS_DDL: allow double-quoted strings in DDL (default true)
 	dqsDML            bool                             // SQLITE_DBCONFIG_DQS_DML: allow double-quoted strings in DML (default true)
 	recursiveCTELimit int                              // PRAGMA recursive_cte_limit setting (default 100000, matching SQLite test builds)
+	reverseUnordered  bool                             // PRAGMA reverse_unordered_selects: reverse the scan order of the top-level SELECT when it has no ORDER BY
+	selectDepth        int                              // current SELECT nesting depth (1 = top-level statement)
 	returningStrict   bool                             // RETURNING eval: unknown columns are errors (SQLite semantics)
 	returningTable    string                           // table name for RETURNING qualified column resolution
 	// aggRowMaps, when non-nil, holds the row set an aggregate query is
