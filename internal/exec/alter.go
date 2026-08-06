@@ -865,13 +865,16 @@ func (e *Engine) validateRename(oldName, newName string) error {
 				if strings.EqualFold(lookupName, "SET") {
 					continue
 				}
-				_, err := e.schema.FindTable(lookupName)
+				_, _, err := e.findTable(lookupName)
 				if err != nil {
 					// Check if it's a view before reporting error
-					if _, err2 := e.schema.FindView(lookupName); err2 != nil {
-						// Format error message: prepend "main." if no schema prefix
+					if _, _, err2 := e.findView(lookupName); err2 != nil {
+						// Format error message: prepend "main." for main-schema
+						// triggers; TEMP triggers omit the schema prefix
+						// (SQLite: "no such table: u8" for temp, "no such
+						// table: main.u8" for main).
 						refName := ref
-						if !strings.Contains(ref, ".") {
+						if !strings.Contains(ref, ".") && !e.isTempTrigger(entry) {
 							refName = "main." + ref
 						}
 						return fmt.Errorf("error in trigger %s: no such table: %s", entry.Name, refName)
@@ -900,6 +903,29 @@ func (e *Engine) validateRename(oldName, newName string) error {
 		}
 	}
 	return nil
+}
+
+// isTempTrigger reports whether a trigger lives in the TEMP schema. A trigger
+// is temp if it was created with CREATE TEMP TRIGGER or if its ON table is a
+// temp table (CREATE TEMP TABLE).
+func (e *Engine) isTempTrigger(entry *schema.Entry) bool {
+	if entry == nil {
+		return false
+	}
+	upper := strings.ToUpper(entry.SQL)
+	if strings.Contains(upper, "CREATE TEMP TRIGGER") || strings.Contains(upper, "CREATE TEMPORARY TRIGGER") {
+		return true
+	}
+	// Check if the ON table is a temp table.
+	if entry.TblName != "" {
+		if te, err := e.schema.FindTable(entry.TblName); err == nil && te != nil {
+			if strings.Contains(strings.ToUpper(te.SQL), "CREATE TEMP TABLE") ||
+				strings.Contains(strings.ToUpper(te.SQL), "CREATE TEMPORARY TABLE") {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // checkTriggerColRefs checks that all column references in a trigger's SQL
